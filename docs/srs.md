@@ -693,6 +693,88 @@ The Vault domain model is centred on the `Rulebook` entity. The `IngestionPipeli
 
 ![Vault Domain Model](./diagrams/The_Vault_Domian_Model.png)
 
+#### 9.3.2 User Stories
+
+---
+
+**Epic: Digital Vault Ingestion & Management**
+
+##### US-VLT-01: Upload a Rulebook
+
+**As a community contributor, I want to upload a PDF of a board game rulebook, so that it can be added to the Shared Library for others to view and edit.**
+
+**Acceptance Criteria:**
+- The system accepts `.pdf` file formats up to 50 MB.
+- The upload UI provides a clear progress indicator and a success or failure notification.
+- The raw PDF is securely stored in Cloudflare R2.
+- The Nuxt BFF proxies the upload request directly to FastAPI, which validates the JWT, sanitises the PDF, extracts text, and stores metadata in MongoDB Atlas.
+- The file is rejected with a clear error if it exceeds the size limit, is not a PDF, or fails sanitisation.
+
+---
+
+##### US-VLT-02: Browse the Vault Library
+
+**As a tabletop player, I want to search for and view existing rulebooks in the Vault, so that I can find and read the rules for a specific game.**
+
+**Acceptance Criteria:**
+- Users can search the Vault by game title.
+- The Nuxt BFF routes the search request to Spring Boot, which fetches rulebook metadata from MongoDB.
+- The UI displays rulebook cards with game name, edition, upload date, version number, and contributor username.
+- The interface scales appropriately for mobile and desktop screens.
+- Only rulebooks with status `Ready` appear in search results.
+
+---
+
+**Epic: Collaborative Rulebook Editor**
+
+##### US-VLT-03: View a Rulebook in the Editor
+
+**As a registered user, I want to view the text content of a rulebook in the collaborative editor, so that I can read the rules without downloading the PDF.**
+
+**Acceptance Criteria:**
+- The rulebook text content loads within 2 seconds of selection.
+- The current version number and last editor username are displayed.
+- Multiple users may view the same rulebook simultaneously in read-only mode without conflict.
+- If another user holds the write lock, a banner displays "Currently being edited by [username]" and the Edit button is disabled.
+
+---
+
+##### US-VLT-04: Edit a Rulebook
+
+**As a community contributor, I want to edit a specific section of a rulebook, so that I can correct an error or add an official publisher errata.**
+
+**Acceptance Criteria:**
+- The user interface provides an "Edit" button when viewing a rulebook that is not currently locked.
+- After acquiring the write lock via Spring Boot's MRSW lock manager, the editor becomes active.
+- Modifying the text triggers debounced auto-save; a full page reload is never required.
+- Other users viewing the document see committed changes in real time via WebSocket.
+
+---
+
+##### US-VLT-05: Concurrency Lock (MRSW)
+
+**As a reader, I want to be prevented from editing a rulebook that another user is currently working on, so that our changes do not overwrite each other.**
+
+**Acceptance Criteria:**
+- Spring Boot issues an exclusive write lock to the first user who requests edit access on a rulebook.
+- Other users viewing the document see a real-time banner: "Currently being edited by [username]" and the Edit button is disabled.
+- If the lock holder goes idle for 30 seconds, the lock is automatically released and all readers are notified.
+- WebSocket broadcasts ensure all active readers see lock state changes instantly.
+
+---
+
+##### US-VLT-06: Edit History
+
+**As a Vault user, I want to view the version history of a rulebook, so that I can see what changes have been made and by whom.**
+
+**Acceptance Criteria:**
+- Spring Boot logs every edit as an immutable event in the MongoDB `EDIT_EVENT` ledger.
+- Each commit increments a version counter and stores the delta.
+- Authorised users can view a chronological list of changes including who made them and when.
+
+---
+
+
 ---
 
 ## 10. API Service Contracts
