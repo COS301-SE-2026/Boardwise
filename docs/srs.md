@@ -683,6 +683,188 @@ The User Service domain model centres on the `User` class, which holds core iden
 
 ### 9.2 Marketplace Service
 
+The Marketplace Service is responsible for the peer-to-peer and retail discovery experience within Boardwise. It encompasses the ability for users to browse community listings for board games and board game themed merchandise available for rental or sale, create and manage their own listings, and discover where to purchase games both online and in-store. The marketplace enables the community to transact and trade independently of any single retailer.
+
+#### 9.2.1 Domain Model
+
+The Marketplace domain model is centred on the `User`, `BoardGame`, `Listing`, and `RetailSource` entities. A `User` makes zero or more `Listings` and has relationships with `BoardGame` through ownership, rental, and purchase associations. A `BoardGame` can have zero or more `Listings` associated with it, and zero or more `RetailSource` entries indicating where the game can be purchased externally.
+
+![Marketplace Domain Model](./diagrams/Marketplace_Domain_Model.png)
+
+#### 9.2.2 User Stories
+
+---
+
+**Epic: Browse & Discover**
+
+##### US-MKT-01: Browse Community Listings
+
+**As a board game enthusiast, I want to browse listings created by other users, so that I can find board games available to rent or buy within my community.**
+
+**Acceptance Criteria:**
+- Given I am on the marketplace page, when the page loads, then all active listings are displayed, each showing the game title, listing type (rent or buy), price, and availability status.
+- Given I am on a mid-range device, when I open the app, then listings load within an acceptable response time and are paginated to maintain performance.
+- Given I am on the marketplace page, when I filter listings by listing type (rental or sale), price range, or game title, then only listings that meet the filter criteria are displayed.
+- Given I am a user on multiple devices, when I switch devices and open the marketplace, then the listing view is responsive and renders correctly across different screen sizes.
+- Given I am browsing the marketplace, when a listing is unavailable, then it is visually distinct from active listings and does not appear in search results.
+
+---
+
+##### US-MKT-02: View Listing Details
+
+**As a prospective buyer or renter, I want to view the full details of a specific listing, so that I can make an informed decision before contacting the seller.**
+
+**Acceptance Criteria:**
+- Given I am on the marketplace page, when I click on a listing, then I am navigated to a detail view displaying the game title, rental/sale price, listing description, and the seller's display name.
+- Given I am on a listing's detail view, when the page loads, then a call-to-action is visible that links to the seller to allow for communication through the Boardwise app.
+
+---
+
+##### US-MKT-03: Discover External Retail Sources
+
+**As a board game shopper, I want to see where I can purchase a specific game from online or in-store retailers, so that I can find options for titles not available through peer listings.**
+
+**Acceptance Criteria:**
+- Given I am on a game's detail or search result page, when the page loads, then an aggregated "Where to Buy" section is displayed containing available retail options.
+- Given I am viewing the "Where to Buy" section, when retail data is available, then a list of external retail links is shown, each displaying the retailer name and a direct link that opens in a new tab and is clearly shown as an external source.
+- Given I am viewing the "Where to Buy" section, when no retail data is available for the title, then a fallback message is displayed.
+
+---
+
+**Epic: Listing Management**
+
+##### US-MKT-04: Create a Rental or Sale Listing
+
+**As a board game owner, I want to create a listing to rent or sell one of my games, so that other community members can find and acquire it.**
+
+**Acceptance Criteria:**
+- Given I am a logged in user, when I am on the marketplace interface, then I can access a "Create Listing" form.
+- Given I am on the "Create Listing" form, when I open it, then I am prompted to fill in the following required fields: item image, game title, item type, listing type (rental or sale), and price, as well as an optional description field.
+- Given I am completing the "Create Listing" form, when I submit the form with one or more required fields missing or invalid, then errors are displayed clearly and the form is not submitted.
+- Given I am completing the "Create Listing" form, when I successfully submit the form, then the listing becomes immediately visible in the marketplace and I receive a success notification confirming it has been published.
+- Given I am an unauthenticated user, when I attempt to access the "Create Listing" form, then I am redirected to the login or registration page.
+
+---
+
+##### US-MKT-05: Manage Own Listings
+
+**As a seller or lender, I want to edit or remove my active listings, so that I can keep my availability and pricing accurate.**
+
+**Acceptance Criteria:**
+- Given I am an authenticated user, when I navigate to my profile or marketplace dashboard, then I can view all of my own listings in a dedicated "My Listings" section.
+- Given I am viewing one of my own listings, when I select the "Edit" option, then a form pre-populated with the listing's existing data is presented and I am able to update any field.
+- Given I am viewing one of my own listings, when I select "Delete" or "Mark as Unavailable", then the listing is immediately removed from public view.
+- Given I am an authenticated user, when I save changes to one of my listings, then the updates are persisted and reflected in the marketplace view without requiring a full page reload.
+- Given I am an authenticated user, when I attempt to edit or delete a listing that belongs to another user, then the action is rejected and an authorisation error is returned.
+
+---
+
+#### 9.2.3 Use Cases
+
+![Marketplace Use Case Diagram](./diagrams/Marketplace__USE_CASE.drawio_1.png)
+
+##### UC-MKT-01: Browse and Filter Community Listings
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-MKT-01 |
+| **Use Case Name** | Browse and Filter Community Listings |
+| **Actor(s)** | Registered User, Guest User |
+| **Description** | A user navigates to the marketplace and browses active peer listings, optionally applying filters to narrow results. |
+| **Preconditions** | The marketplace contains at least one active listing. Network connectivity is stable. |
+| **Postconditions** | The user is presented with a filtered or unfiltered list of active listings. |
+| **Basic Flow** | 1. User navigates to the Marketplace section of the application. <br> 2. The system fetches and displays all active listings from the backend. <br> 3. Each listing card displays the game title, listing type, price, and availability. <br> 4. User optionally applies filters (type, price range, game title). <br> 5. The system re-queries and updates the listing display in response to filter changes. |
+| **Alternative Flow** | **4a.** User searches by game title using a search input — the system returns listings matching the title substring. |
+| **Exception Flow** | **2a.** If the backend fails to return listings, the system displays an error message and a retry option. <br> **2b.** If no listings match the applied filters, the system displays a "No listings found" message. |
+| **Related FR** | FR2.1 |
+
+---
+
+##### UC-MKT-02: View Full Listing Detail
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-MKT-02 |
+| **Use Case Name** | View Full Listing Detail |
+| **Actor(s)** | Registered User, Guest User |
+| **Description** | A user selects a listing from the marketplace browse view to inspect its full details before deciding to act. |
+| **Preconditions** | The listing exists and is in an active state. |
+| **Postconditions** | The user has viewed the complete listing information and may proceed to contact the seller or return to browsing. |
+| **Basic Flow** | 1. User clicks on a listing card in the marketplace. <br> 2. The system fetches the full listing record by ID and renders the detail view. <br> 3. The detail view displays game title, condition, price, listing type, description, and seller display name. <br> 4. User reviews the information and selects "Contact Seller" or navigates back. |
+| **Alternative Flow** | **4a.** User selects "Contact Seller" — the system routes the user to the relevant community profile or messaging interface. |
+| **Exception Flow** | **2a.** If the listing has been deleted between browse and click, the system displays a "Listing no longer available" message and returns the user to the browse view. |
+| **Related FR** | FR2.1 |
+
+---
+
+##### UC-MKT-03: Create a Rental or Sale Listing
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-MKT-03 |
+| **Use Case Name** | Create a Rental or Sale Listing |
+| **Actor(s)** | Registered User |
+| **Description** | An authenticated user creates a new listing to offer one of their board games for rent or sale on the marketplace. |
+| **Preconditions** | The user is authenticated. The user owns the board game they wish to list. |
+| **Postconditions** | A new listing is persisted in the database and immediately visible in the marketplace. |
+| **Basic Flow** | 1. User navigates to the marketplace and selects "Create Listing". <br> 2. The system displays the listing creation form. <br> 3. User fills in game title, listing type (rental/sale), price, and optional description. <br> 4. User submits the form. <br> 5. The system validates all required fields. <br> 6. The system persists the listing to the database, associated with the user's account. <br> 7. The system returns a success notification and the new listing appears in the marketplace. |
+| **Alternative Flow** | **3a.** User selects a game title from an autocomplete list populated by the existing board game catalogue. |
+| **Exception Flow** | **5a.** If required fields are missing or invalid, the system highlights the offending fields with inline error messages and halts submission. <br> **1a.** If the user is not authenticated, the system redirects to the login/registration page with a return URL to the listing form. |
+| **Related FR** | FR2.2 |
+
+---
+
+##### UC-MKT-04: Edit an Existing Listing
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-MKT-04 |
+| **Use Case Name** | Edit an Existing Listing |
+| **Actor(s)** | Registered User (listing owner) |
+| **Description** | A user updates the details of one of their own active listings, such as adjusting the price or updating availability. |
+| **Preconditions** | The user is authenticated and is the owner of the listing being edited. The listing is in an active state. |
+| **Postconditions** | The listing reflects the updated information in the marketplace immediately. |
+| **Basic Flow** | 1. User navigates to "My Listings" on their profile. <br> 2. The system fetches and displays all listings belonging to the authenticated user. <br> 3. User selects "Edit" on the target listing. <br> 4. The system displays the edit form pre-populated with the listing's current values. <br> 5. User modifies the desired fields and submits. <br> 6. The system validates the updated fields and persists the changes. <br> 7. The updated listing is reflected in the marketplace view. |
+| **Alternative Flow** | None. |
+| **Exception Flow** | **5a.** If validation fails on updated fields, inline errors are shown and the update is not persisted. <br> **3a.** If the listing was deleted by another session since the page loaded, the system notifies the user and refreshes "My Listings". |
+| **Related FR** | FR2.2 |
+
+---
+
+##### UC-MKT-05: Delete or Deactivate a Listing
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-MKT-05 |
+| **Use Case Name** | Delete or Deactivate a Listing |
+| **Actor(s)** | Registered User (listing owner) |
+| **Description** | A user removes or marks as unavailable one of their own listings so that it no longer appears in the public marketplace. |
+| **Preconditions** | The user is authenticated and owns the listing. The listing is currently active. |
+| **Postconditions** | The listing is no longer visible in the public marketplace browse view. |
+| **Basic Flow** | 1. User navigates to "My Listings". <br> 2. User selects "Delete" or "Mark as Unavailable" on the target listing. <br> 3. The system presents a confirmation prompt. <br> 4. User confirms the action. <br> 5. The system soft-deletes or flags the listing as inactive in the database. <br> 6. The listing is immediately removed from public marketplace results. <br> 7. The system confirms the action with a success notification. |
+| **Alternative Flow** | **5a.** "Mark as Unavailable" sets the listing to an inactive state without deleting the record, allowing the user to reactivate it later. |
+| **Exception Flow** | **4a.** If the user cancels the confirmation prompt, no changes are made and the listing remains active. |
+| **Related FR** | FR2.2 |
+
+---
+
+##### UC-MKT-06: View External Retail Purchase Links
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-MKT-06 |
+| **Use Case Name** | View External Retail Purchase Links |
+| **Actor(s)** | Registered User, Guest User |
+| **Description** | A user viewing a board game in the marketplace accesses aggregated external retail links to find where they can purchase the title, both online and at nearby physical stores. |
+| **Preconditions** | The game title exists in the system's catalogue. The backend retail aggregation service has data for the title. |
+| **Postconditions** | The user is presented with one or more external retail options, or a graceful fallback if none are available. |
+| **Basic Flow** | 1. User navigates to a game's detail or search result page within the marketplace. <br> 2. The system calls the backend retail aggregation endpoint with the game title as the query parameter. <br> 3. The backend returns a list of retail sources including retailer name, link type (online/in-store), and URL. <br> 4. The system renders the "Where to Buy" section with the aggregated results. <br> 5. User clicks a retail link, which opens in a new browser tab. |
+| **Alternative Flow** | **3a.** If only online retailers are available, the "in-store" section is either hidden or displays a "No in-store listings found near you" message. |
+| **Exception Flow** | **2a.** If the retail aggregation service returns no results for the title, the system displays a fallback message: "No retail information available for this title at this time." <br> **2b.** If the aggregation service is unreachable, the system logs the failure and displays the fallback message. |
+| **Related FR** | FR2.3 |
+
+---
+
 ### 9.3 Shared Library - The Vault Service
 
 The Vault is the Shared Library subsystem of Boardwise. It provides a community-maintained digital repository of board game rulebooks, accessible to all registered users. The Vault enables contributors to upload PDF rulebooks and collaborators to edit and correct rulebook text using a strict Multi-Reader Single-Writer (MRSW) concurrency model. The subsystem is built on a dual-backend architecture: Spring Boot handles transactional operations (metadata management, MRSW lock management, edit history), while FastAPI handles the PDF ingestion pipeline.
@@ -1625,6 +1807,319 @@ All protected endpoints require a valid JWT passed as a Bearer token in the `Aut
 ---
 
 ### 10.2 Marketplace Service API Contracts
+
+**Validation Error Body:**
+```json
+{
+  "code": "string",
+  "message": "string",
+  "errors": [
+    {
+      "field": "string",
+      "message": "string"
+    }
+  ]
+}
+```
+
+---
+
+#### AC-MKT-01: Get All Active Listings
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-MKT-01 |
+| **Endpoint** | `GET /api/marketplace/listings` |
+| **Description** | Returns a list of all active community listings. Supports filtering by listing type, price range, and game title. |
+| **Authentication** | None required |
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `page` | integer | No | Page number. Default: `1` |
+| `pageSize` | integer | No | Results per page. Default: `20`. Max: `50` |
+| `listingType` | string | No | `RENT` or `SALE` |
+| `minPrice` | number | No | Minimum price filter (ZAR) |
+| `maxPrice` | number | No | Maximum price filter (ZAR) |
+| `gameTitle` | string | No | Partial or full game title substring search |
+| `itemType` | string | No | `BOARD_GAME`, `MERCHANDISE`, or `EXPANSION` |
+
+**Success Response — 200 OK:**
+```json
+{
+  "data": [
+    {
+      "id": "string",
+      "userId": "string",
+      "sellerDisplayName": "string",
+      "gameTitle": "string",
+      "itemType": "BOARD_GAME",
+      "listingType": "RENT",
+      "price": 80.00,
+      "description": "string",
+      "imageUrl": "string",
+      "status": "ACTIVE",
+      "createdAt": "ISO8601",
+      "updatedAt": "ISO8601"
+    }
+  ],
+  "page": 1,
+  "pageSize": 20,
+  "totalItems": 143,
+  "totalPages": 8
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `503 Service Unavailable` | External data service is unreachable |
+
+---
+
+#### AC-MKT-02: Get Listing by ID
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-MKT-02 |
+| **Endpoint** | `GET /api/marketplace/listings/{listingId}` |
+| **Description** | Returns the full detail of a single active listing by its unique ID. |
+| **Authentication** | None required |
+
+**Success Response — 200 OK:**
+```json
+{
+  "id": "string",
+  "userId": "string",
+  "sellerDisplayName": "string",
+  "gameTitle": "string",
+  "itemType": "BOARD_GAME",
+  "listingType": "RENT",
+  "price": 80.00,
+  "description": "string",
+  "imageUrl": "string",
+  "status": "ACTIVE",
+  "createdAt": "ISO8601",
+  "updatedAt": "ISO8601"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `404 Not Found` | No active listing exists with the provided ID |
+
+---
+
+#### AC-MKT-03: Create a Listing
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-MKT-03 |
+| **Endpoint** | `POST /api/marketplace/listings` |
+| **Description** | Creates a new rental or sale listing associated with the authenticated user's account. |
+| **Authentication** | Bearer token required |
+| **Content-Type** | `multipart/form-data` |
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `gameTitle` | string | Yes | Title of the board game being listed |
+| `itemType` | string | Yes | `BOARD_GAME`, `MERCHANDISE`, or `EXPANSION` |
+| `listingType` | string | Yes | `RENT` or `SALE` |
+| `price` | number | Yes | Listing price in ZAR |
+| `image` | file | Yes | JPEG or PNG image file. Max size: 5MB |
+| `description` | string | No | Optional free-text description |
+
+**Success Response — 201 Created:**
+```json
+{
+  "id": "string",
+  "userId": "string",
+  "sellerDisplayName": "string",
+  "gameTitle": "Wingspan",
+  "itemType": "BOARD_GAME",
+  "listingType": "SALE",
+  "price": 450.00,
+  "description": "string",
+  "imageUrl": "string",
+  "status": "ACTIVE",
+  "createdAt": "ISO8601",
+  "updatedAt": "ISO8601"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | One or more required fields are missing or invalid |
+| `401 Unauthorized` | No valid authentication token provided |
+| `413 Payload Too Large` | Uploaded image exceeds the 5MB size limit |
+
+---
+
+#### AC-MKT-04: Update a Listing
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-MKT-04 |
+| **Endpoint** | `PATCH /api/marketplace/listings/{listingId}` |
+| **Description** | Partially updates an existing listing. Only the fields included in the request body are modified. Only the listing owner may perform this action. |
+| **Authentication** | Bearer token required |
+| **Content-Type** | `application/json` |
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `gameTitle` | string | No | Updated game title |
+| `listingType` | string | No | `RENT` or `SALE` |
+| `price` | number | No | Updated price in ZAR |
+| `description` | string | No | Updated description |
+| `status` | string | No | `ACTIVE` or `INACTIVE` to deactivate without deleting |
+
+**Success Response — 200 OK:**
+```json
+{
+  "id": "string",
+  "userId": "string",
+  "sellerDisplayName": "string",
+  "gameTitle": "string",
+  "itemType": "BOARD_GAME",
+  "listingType": "SALE",
+  "price": 350.00,
+  "description": "string",
+  "imageUrl": "string",
+  "status": "ACTIVE",
+  "createdAt": "ISO8601",
+  "updatedAt": "ISO8601"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | One or more updated fields are invalid |
+| `401 Unauthorized` | No valid authentication token provided |
+| `403 Forbidden` | Authenticated user does not own this listing |
+| `404 Not Found` | No listing exists with the provided ID |
+
+---
+
+#### AC-MKT-05: Delete a Listing
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-MKT-05 |
+| **Endpoint** | `DELETE /api/marketplace/listings/{listingId}` |
+| **Description** | Permanently removes a listing from the marketplace. Only the listing owner may perform this action. |
+| **Authentication** | Bearer token required |
+
+**Success Response — 204 No Content:** No response body is returned on successful deletion.
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | No valid authentication token provided |
+| `403 Forbidden` | Authenticated user does not own this listing |
+| `404 Not Found` | No listing exists with the provided ID |
+
+---
+
+#### AC-MKT-06: Get Authenticated User's Listings
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-MKT-06 |
+| **Endpoint** | `GET /api/marketplace/listings/me` |
+| **Description** | Returns a paginated list of all listings belonging to the currently authenticated user, filterable by status. |
+| **Authentication** | Bearer token required |
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `page` | integer | No | Page number. Default: `1` |
+| `pageSize` | integer | No | Results per page. Default: `20` |
+| `status` | string | No | `ACTIVE`, `INACTIVE`, or `DELETED`. Default: `ACTIVE` |
+
+**Success Response — 200 OK:**
+```json
+{
+  "data": [
+    {
+      "id": "string",
+      "gameTitle": "string",
+      "listingType": "SALE",
+      "price": 350.00,
+      "status": "ACTIVE",
+      "createdAt": "ISO8601",
+      "updatedAt": "ISO8601"
+    }
+  ],
+  "page": 1,
+  "pageSize": 20,
+  "totalItems": 4,
+  "totalPages": 1
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | No valid authentication token provided |
+
+---
+
+#### AC-MKT-07: Get Retail Sources for a Game Title
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-MKT-07 |
+| **Endpoint** | `GET /api/marketplace/retail-sources` |
+| **Description** | Returns external retail purchase links for a given game title, sourced from both online and in-store retailers. |
+| **Authentication** | None required |
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `gameTitle` | string | Yes | The game title to search retail sources for |
+| `linkType` | string | No | Filter by `ONLINE` or `IN_STORE`. Returns all types if omitted |
+
+**Success Response — 200 OK:**
+```json
+{
+  "gameTitle": "Catan",
+  "sources": [
+    {
+      "retailerName": "string",
+      "linkType": "ONLINE",
+      "url": "string",
+      "priceIndication": 699.00,
+      "inStockIndication": true
+    }
+  ]
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | The `gameTitle` query parameter is required |
+| `404 Not Found` | No retail information is available for the given title |
+| `503 Service Unavailable` | The retail aggregation service is currently unreachable |
+
+---
 
 ### 10.3 The Vault API Contracts
 
