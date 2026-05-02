@@ -1508,19 +1508,81 @@ The system employs a combination of architectural patterns across its subsystems
 
 #### 12.2.1 Maintainability
 
+Maintainability is critical for Boardwise given its open-source licence (CON1) and incremental, sprint-based development model. The system must remain readable, modifiable, and extensible by a distributed team across multiple sprints without incurring significant technical debt.
+
+Maintainability is measured by:
+- Maintaining a cyclomatic complexity of no more than 10 per function across all services.
+- Achieving a SonarQube maintainability rating of A or B for each service.
+- Ensuring all public methods and classes are self-documenting, with inline comments for non-obvious logic.
+- Enforcing a depth of inheritance no greater than 3 levels.
+- Keeping class coupling low through the use of interfaces and dependency injection in Spring Boot.
+
 #### 12.2.2 Scalability
+
+While Boardwise targets the South African board gaming community initially, the platform must be designed to accommodate growth in user base and data volume. The free-tier infrastructure constraint (CON2) limits horizontal scaling at this stage, but the architecture must not prevent future scaling.
+
+Scalability is measured by:
+- The system must handle at least 50 concurrent user sessions without degradation in response time during Sprint 1.
+- MongoDB Atlas's free tier (512MB) must not be exceeded; collections must be monitored and data pruned or archived as needed.
+- Each service must be independently deployable, allowing individual services to be scaled horizontally in future sprints without architectural changes.
 
 #### 12.2.3 Flexibility
 
+The system must be flexible enough to accommodate new features in future sprints (e.g., RAG queries, recommendation systems) without requiring structural changes to existing services.
+
+Flexibility is measured by:
+- All external packages and third-party integrations must be placed behind standardised internal APIs or interfaces — no direct calls to external libraries from business logic.
+- New subsystems or features must be addable without modifying existing service contracts.
+- Ensuring low coupling between services — inter-service communication is mediated exclusively through the BFF and REST APIs.
+
 #### 12.2.4 Performance
+
+Performance is important to maintain a smooth user experience on mid-range devices (CON3).
+
+Performance is measured by:
+- All REST API endpoints must respond within 500ms under normal load conditions.
+- The frontend must achieve a Lighthouse performance score of 70 or above on a mid-range mobile device.
+- Collaborative rulebook updates in The Vault must be reflected to all active readers within 1 second of a delta commit via WebSocket.
+- Paginated responses must be used for all list endpoints to prevent large payloads from degrading performance.
 
 #### 12.2.5 Security
 
+Security is critical as the system handles user credentials, session tokens, and P2P transaction data.
+
+Security is measured by:
+- All passwords must be hashed using BCrypt before storage — plain text passwords must never be persisted.
+- JWTs must use a minimum 256-bit secret and expire within 24 hours.
+- All protected endpoints must validate the JWT on every request via the SecurityFilterChain (User Service and Marketplace Service) or the shared JWT secret verification (Vault FastAPI).
+- The system must mitigate OWASP Top 10 vulnerabilities, including SQL/NoSQL injection, broken authentication, and insecure direct object references.
+- IP-based rate limiting must be applied to authentication routes to prevent brute-force attacks.
+
 #### 12.2.6 Reliability
+
+The system must operate consistently and recover gracefully from failures, particularly given the free-tier infrastructure which may have cold-start latency.
+
+Reliability is measured by:
+- All database write operations in the Marketplace Service must be ACID compliant (NFR3.1).
+- The Shared Library must implement MRSW versioning with optimistic version checks to prevent data corruption on concurrent edits (NFR3.2).
+- The frontend must implement loading skeleton states for all data-fetching operations to provide graceful degradation under slow network conditions (NFR1.3).
+- Free-tier cold start delays must be handled with appropriate timeout and retry logic in the BFF.
 
 #### 12.2.7 Usability
 
+The system must be intuitive and accessible across device types and user abilities, targeting a broad South African board gaming community.
+
+Usability is measured by:
+- The UI must be fully responsive across mobile, tablet, and desktop screen sizes (NFR2.1).
+- The system must conform to WCAG 2.1 Level AA accessibility guidelines, including sufficient colour contrast ratios, screen-reader compatibility via ARIA labels, and full keyboard navigation support (NFR2.2).
+- Contextual tooltips must be provided for complex interactions such as creating a P2P listing or uploading to The Vault (FR5.1).
+
 #### 12.2.8 Testability
+
+The system must be structured to support automated testing at unit and integration levels to ensure correctness across all services.
+
+Testability is measured by:
+- Each service must achieve a minimum of 80% unit test code coverage for business logic layer components.
+- Integration tests must be implemented for all API endpoints, verifying correct status codes and response shapes.
+- The CI/CD pipeline must execute the full test suite on every push and block merges on test failure.
 
 ---
 
