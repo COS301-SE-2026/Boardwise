@@ -685,6 +685,779 @@ The User Service domain model centres on the `User` class, which holds core iden
 
 ### 10.1 User Service API Contracts
 
+**Base URL:** `/api`  
+All protected endpoints require a valid JWT passed as a Bearer token in the `Authorization` header. Sensitive fields such as `_id` and `password` are excluded from all responses.
+
+---
+
+#### AC-AUTH-01: Register a User
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-AUTH-01 |
+| **Endpoint** | `POST /api/auth/register` |
+| **Description** | Registers a new user account on the Boardwise platform. Creates the user account and profile in a single operation. |
+| **Authentication** | None required |
+
+**Request Body:**
+```json
+{
+  "username": "string",
+  "email": "string",
+  "password": "string",
+  "displayName": "string",
+  "bio": "string"
+}
+```
+
+**Success Response — 201 Created:**
+```json
+{
+  "message": "Account created successfully.",
+  "user": {
+    "username": "string",
+    "email": "string",
+    "displayName": "string",
+    "bio": "string",
+    "profilePicture": "string | null",
+    "createdAt": "ISO8601 date string"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | Missing or invalid required fields |
+| `409 Conflict` | Email address or username already registered |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-AUTH-02: Log Into an Account
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-AUTH-02 |
+| **Endpoint** | `POST /api/auth/login` |
+| **Description** | Authenticates a registered user and returns a JWT for session management. |
+| **Authentication** | None required |
+
+**Request Body:**
+```json
+{
+  "email": "string",
+  "password": "string"
+}
+```
+
+**Success Response — 200 OK:**
+```json
+{
+  "message": "Login successful.",
+  "token": "string (JWT)",
+  "user": {
+    "username": "string",
+    "email": "string",
+    "displayName": "string",
+    "profilePicture": "string | null"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | Missing required fields |
+| `401 Unauthorized` | Invalid email or password |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-AUTH-03: Log Out of an Account
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-AUTH-03 |
+| **Endpoint** | `POST /api/auth/logout` |
+| **Description** | Terminates the authenticated user's session and invalidates their JWT. |
+| **Authentication** | Bearer token required |
+
+**Success Response — 200 OK:**
+```json
+{
+  "message": "Logged out successfully."
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | Missing or invalid JWT |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-PROF-01: Get a User Profile
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-PROF-01 |
+| **Endpoint** | `GET /api/users/:username` |
+| **Description** | Retrieves the full profile view for a user, including their bio, game inventory, and social counts. |
+| **Authentication** | Bearer token required |
+
+**Success Response — 200 OK:**
+```json
+{
+  "username": "string",
+  "displayName": "string",
+  "bio": "string",
+  "profilePicture": "string | null",
+  "friendCount": "number",
+  "groupCount": "number",
+  "ownedGameCount": "number",
+  "games": [
+    {
+      "title": "string",
+      "description": "string",
+      "image": "string | null",
+      "genre": ["string"],
+      "mechanics": ["string"]
+    }
+  ],
+  "preferences": {
+    "genres": ["string"],
+    "mechanics": ["string"]
+  },
+  "createdAt": "ISO8601 date string"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | Missing or invalid JWT |
+| `404 Not Found` | User with the given username does not exist |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-PROF-02: Update a User Profile
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-PROF-02 |
+| **Endpoint** | `PATCH /api/users/:username` |
+| **Description** | Updates the authenticated user's profile information. Only the authenticated user may update their own profile. |
+| **Authentication** | Bearer token required |
+
+**Request Body:**
+```json
+{
+  "displayName": "string",
+  "bio": "string",
+  "profilePicture": "string | null"
+}
+```
+
+**Success Response — 200 OK:**
+```json
+{
+  "message": "Profile updated successfully.",
+  "user": {
+    "username": "string",
+    "displayName": "string",
+    "bio": "string",
+    "profilePicture": "string | null"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | Missing required fields |
+| `401 Unauthorized` | Missing or invalid JWT |
+| `403 Forbidden` | Authenticated user does not own this profile |
+| `404 Not Found` | User not found |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-PROF-03: Delete a User Account
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-PROF-03 |
+| **Endpoint** | `DELETE /api/users/:username` |
+| **Description** | Permanently deletes the authenticated user's account and all associated data. |
+| **Authentication** | Bearer token required |
+
+**Success Response — 200 OK:**
+```json
+{
+  "message": "Account deleted successfully."
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | Missing or invalid JWT |
+| `403 Forbidden` | Authenticated user does not own this account |
+| `404 Not Found` | User not found |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-INV-01: Add a Game to Inventory
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-INV-01 |
+| **Endpoint** | `POST /api/users/:username/inventory` |
+| **Description** | Adds a board game to the authenticated user's game inventory. |
+| **Authentication** | Bearer token required |
+
+**Request Body:**
+```json
+{
+  "title": "string",
+  "description": "string",
+  "image": "string | null",
+  "genre": ["string"],
+  "mechanics": ["string"]
+}
+```
+
+**Success Response — 201 Created:**
+```json
+{
+  "message": "Game added to inventory successfully.",
+  "game": {
+    "title": "string",
+    "description": "string",
+    "image": "string | null",
+    "genre": ["string"],
+    "mechanics": ["string"]
+  }
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | Missing required fields |
+| `401 Unauthorized` | Missing or invalid JWT |
+| `403 Forbidden` | Authenticated user does not own this inventory |
+| `409 Conflict` | Game already exists in the user's inventory |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-INV-02: Remove a Game from Inventory
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-INV-02 |
+| **Endpoint** | `DELETE /api/users/:username/inventory/:gameTitle` |
+| **Description** | Removes a board game from the authenticated user's game inventory. |
+| **Authentication** | Bearer token required |
+
+**Success Response — 200 OK:**
+```json
+{
+  "message": "Game removed from inventory successfully."
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | Missing or invalid JWT |
+| `403 Forbidden` | Authenticated user does not own this inventory |
+| `404 Not Found` | Game not found in the user's inventory |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-PREF-01: Set or Update Preferences
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-PREF-01 |
+| **Endpoint** | `PUT /api/users/:username/preferences` |
+| **Description** | Sets or updates the authenticated user's board game genre and mechanic preferences. Uses PUT as the entire preferences object is replaced on each save. |
+| **Authentication** | Bearer token required |
+
+**Request Body:**
+```json
+{
+  "genres": ["string"],
+  "mechanics": ["string"]
+}
+```
+
+**Success Response — 200 OK:**
+```json
+{
+  "message": "Preferences updated successfully.",
+  "preferences": {
+    "genres": ["string"],
+    "mechanics": ["string"]
+  }
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | Invalid or malformed preferences body |
+| `401 Unauthorized` | Missing or invalid JWT |
+| `403 Forbidden` | Authenticated user does not own this profile |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-SOC-01: Send a Friend Request
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-SOC-01 |
+| **Endpoint** | `POST /api/users/:username/friend-requests` |
+| **Description** | Sends a friend request from the authenticated user to the specified target user. |
+| **Authentication** | Bearer token required |
+
+**Success Response — 201 Created:**
+```json
+{
+  "message": "Friend request sent successfully.",
+  "friendRequest": {
+    "sender": "string (username)",
+    "recipient": "string (username)",
+    "status": "Pending",
+    "createdAt": "ISO8601 date string"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | User attempting to send a request to themselves |
+| `401 Unauthorized` | Missing or invalid JWT |
+| `404 Not Found` | Target user not found |
+| `409 Conflict` | Friend request already exists or users are already friends |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-SOC-02: Respond to a Friend Request
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-SOC-02 |
+| **Endpoint** | `PATCH /api/users/:username/friend-requests/:senderUsername` |
+| **Description** | Accepts or rejects an incoming friend request. Only the recipient of the request may respond to it. |
+| **Authentication** | Bearer token required |
+
+**Request Body:**
+```json
+{
+  "status": "Accepted | Rejected"
+}
+```
+
+**Success Response — 200 OK:**
+```json
+{
+  "message": "Friend request accepted. | Friend request rejected.",
+  "friendRequest": {
+    "sender": "string (username)",
+    "recipient": "string (username)",
+    "status": "Accepted | Rejected"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | Invalid status value |
+| `401 Unauthorized` | Missing or invalid JWT |
+| `403 Forbidden` | Authenticated user is not the recipient of this request |
+| `404 Not Found` | Friend request not found |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-SOC-03: Get Friends List
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-SOC-03 |
+| **Endpoint** | `GET /api/users/:username/friends` |
+| **Description** | Retrieves the friends list for the specified user. |
+| **Authentication** | Bearer token required |
+
+**Success Response — 200 OK:**
+```json
+{
+  "friends": [
+    {
+      "username": "string",
+      "displayName": "string",
+      "profilePicture": "string | null"
+    }
+  ],
+  "friendCount": "number"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | Missing or invalid JWT |
+| `404 Not Found` | User not found |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-SOC-04: Unfriend a User
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-SOC-04 |
+| **Endpoint** | `DELETE /api/users/:username/friends/:friendUsername` |
+| **Description** | Removes the friendship connection between the authenticated user and the specified friend. The connection is removed from both users' friends lists. |
+| **Authentication** | Bearer token required |
+
+**Success Response — 200 OK:**
+```json
+{
+  "message": "Friend removed successfully."
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | Missing or invalid JWT |
+| `403 Forbidden` | Authenticated user does not own this account |
+| `404 Not Found` | Friendship not found |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-GRP-01: Create a Group
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-GRP-01 |
+| **Endpoint** | `POST /api/groups` |
+| **Description** | Creates a new group. The authenticated user is automatically assigned as the group owner and first member. |
+| **Authentication** | Bearer token required |
+
+**Request Body:**
+```json
+{
+  "name": "string",
+  "description": "string | null"
+}
+```
+
+**Success Response — 201 Created:**
+```json
+{
+  "message": "Group created successfully.",
+  "group": {
+    "name": "string",
+    "description": "string | null",
+    "owner": "string (username)",
+    "memberCount": 1,
+    "createdAt": "ISO8601 date string"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | Missing group name |
+| `401 Unauthorized` | Missing or invalid JWT |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-GRP-02: Join a Group
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-GRP-02 |
+| **Endpoint** | `POST /api/groups/:groupId/members` |
+| **Description** | Adds the authenticated user as a member of the specified group. |
+| **Authentication** | Bearer token required |
+
+**Success Response — 200 OK:**
+```json
+{
+  "message": "Joined group successfully.",
+  "group": {
+    "name": "string",
+    "description": "string | null",
+    "memberCount": "number"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | Missing or invalid JWT |
+| `404 Not Found` | Group not found |
+| `409 Conflict` | User is already a member of this group |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-GRP-03: Get a Group
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-GRP-03 |
+| **Endpoint** | `GET /api/groups/:groupId` |
+| **Description** | Retrieves the details and member list of a group. Members receive the full member list while non-members receive only the group's basic details. |
+| **Authentication** | Bearer token required |
+
+**Success Response — 200 OK (Member):**
+```json
+{
+  "name": "string",
+  "description": "string | null",
+  "owner": "string (username)",
+  "memberCount": "number",
+  "members": [
+    {
+      "username": "string",
+      "displayName": "string",
+      "profilePicture": "string | null"
+    }
+  ],
+  "createdAt": "ISO8601 date string"
+}
+```
+
+**Success Response — 200 OK (Non-Member):**
+```json
+{
+  "name": "string",
+  "description": "string | null",
+  "owner": "string (username)",
+  "memberCount": "number",
+  "createdAt": "ISO8601 date string"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | Missing or invalid JWT |
+| `404 Not Found` | Group not found |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-EVT-01: Create an Event
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-EVT-01 |
+| **Endpoint** | `POST /api/events` |
+| **Description** | Creates a new gaming event. The authenticated user is automatically assigned as the event creator. |
+| **Authentication** | Bearer token required |
+
+**Request Body:**
+```json
+{
+  "name": "string",
+  "date": "ISO8601 date string",
+  "time": "string (HH:MM)",
+  "location": "string",
+  "game": "string (game title)",
+  "visibility": "Public | Private"
+}
+```
+
+**Success Response — 201 Created:**
+```json
+{
+  "message": "Event created successfully.",
+  "event": {
+    "name": "string",
+    "date": "ISO8601 date string",
+    "time": "string",
+    "location": "string",
+    "game": "string",
+    "visibility": "Public | Private",
+    "creator": "string (username)",
+    "createdAt": "ISO8601 date string"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | Missing or invalid required fields |
+| `401 Unauthorized` | Missing or invalid JWT |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-EVT-02: Get Events
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-EVT-02 |
+| **Endpoint** | `GET /api/events` |
+| **Description** | Retrieves all events visible to the authenticated user. Returns all public events and any private events the user has been invited to or created. |
+| **Authentication** | Bearer token required |
+
+**Success Response — 200 OK:**
+```json
+{
+  "events": [
+    {
+      "name": "string",
+      "date": "ISO8601 date string",
+      "time": "string",
+      "location": "string",
+      "game": "string",
+      "visibility": "Public | Private",
+      "creator": "string (username)",
+      "attendeeCount": "number",
+      "createdAt": "ISO8601 date string"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | Missing or invalid JWT |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-EVT-03: Update an Event
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-EVT-03 |
+| **Endpoint** | `PATCH /api/events/:eventId` |
+| **Description** | Updates the details of an existing event. Only the creator of the event may update it. |
+| **Authentication** | Bearer token required |
+
+**Request Body:**
+```json
+{
+  "name": "string",
+  "date": "ISO8601 date string",
+  "time": "string (HH:MM)",
+  "location": "string",
+  "game": "string",
+  "visibility": "Public | Private"
+}
+```
+
+**Success Response — 200 OK:**
+```json
+{
+  "message": "Event updated successfully.",
+  "event": {
+    "name": "string",
+    "date": "ISO8601 date string",
+    "time": "string",
+    "location": "string",
+    "game": "string",
+    "visibility": "Public | Private",
+    "creator": "string (username)"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | Missing or invalid required fields |
+| `401 Unauthorized` | Missing or invalid JWT |
+| `403 Forbidden` | Authenticated user is not the event creator |
+| `404 Not Found` | Event not found |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-EVT-04: RSVP to an Event
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-EVT-04 |
+| **Endpoint** | `PATCH /api/events/:eventId/rsvp` |
+| **Description** | Records or updates the authenticated user's RSVP status for an event. |
+| **Authentication** | Bearer token required |
+
+**Request Body:**
+```json
+{
+  "status": "Joined | Declined"
+}
+```
+
+**Success Response — 200 OK:**
+```json
+{
+  "message": "RSVP recorded successfully.",
+  "rsvp": {
+    "event": "string (event name)",
+    "user": "string (username)",
+    "status": "Joined | Declined",
+    "respondedAt": "ISO8601 date string"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | Invalid status value |
+| `401 Unauthorized` | Missing or invalid JWT |
+| `404 Not Found` | Event not found |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
 ### 10.2 Marketplace Service API Contracts
 
 ### 10.3 The Vault Service API Contracts
