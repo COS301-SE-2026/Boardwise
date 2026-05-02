@@ -89,13 +89,23 @@ The objectives of the system are to:
 
 ### 4.1 User Profile & Social Domain
 
+- **FR1.1:** The system must allow users to create, read, update, and delete (CRUD) personal profiles.
+- **FR1.2:** The system must enable users to maintain a digital inventory of owned board games.
+- **FR1.3:** The system must record and store user genre and game mechanic preferences.
+- **FR1.4:** The system must facilitate sending, accepting, and rejecting friend requests to form peer groups.
+
 ### 4.2 Marketplace Domain
 
 ### 4.3 Community & Events Domain
 
+- **FR3.1:** The system must allow users to schedule gaming events, defining parameters such as date, time, game, and visibility (Public or Private).
+- **FR3.2:** The system must process event RSVPs, allowing users to join or decline event invitations.
+
 ### 4.4 Shared Library Domain (The Vault)
 
 ### 4.5 UI & Usability
+
+- **FR5.1:** The system must provide contextual help text or tooltips for complex interactions (e.g., uploading a rulebook to The Vault or setting up a P2P rental listing).
 
 ---
 
