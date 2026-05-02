@@ -107,6 +107,8 @@ The objectives of the system are to:
 
 ### 4.4 Shared Library Domain (The Vault)
 
+- **FR4.1:** The system must accept and store user-uploaded PDF documents representing board game rulebooks.
+- **FR4.2:** The system must provide a collaborative interface allowing users to view and update existing rulebook text.
 ### 4.5 UI & Usability
 
 - **FR5.1:** The system must provide contextual help text or tooltips for complex interactions (e.g., uploading a rulebook to The Vault or setting up a P2P rental listing).
@@ -682,6 +684,14 @@ The User Service domain model centres on the `User` class, which holds core iden
 ### 9.2 Marketplace Service
 
 ### 9.3 Shared Library - The Vault Service
+
+The Vault is the Shared Library subsystem of Boardwise. It provides a community-maintained digital repository of board game rulebooks, accessible to all registered users. The Vault enables contributors to upload PDF rulebooks and collaborators to edit and correct rulebook text using a strict Multi-Reader Single-Writer (MRSW) concurrency model. The subsystem is built on a dual-backend architecture: Spring Boot handles transactional operations (metadata management, MRSW lock management, edit history), while FastAPI handles the PDF ingestion pipeline.
+
+#### 9.3.1 Domain Model
+
+The Vault domain model is centred on the `Rulebook` entity. The `IngestionPipeline` processes the uploaded PDF and creates the `Rulebook` document itself. A `Rulebook` is guarded by a `WriteLock` (the MRSW lock), has current text stored in a `RulebookText` document, and tracks all historical changes via the `EditEvent` ledger (event sourcing).
+
+![Vault Domain Model](./diagrams/The_Vault_Domian_Model.png)
 
 ---
 
