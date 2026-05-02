@@ -774,6 +774,76 @@ The Vault domain model is centred on the `Rulebook` entity. The `IngestionPipeli
 
 ---
 
+#### 9.3.3 Use Cases
+
+![Vault Use Case Diagram](./diagrams/The_Vault_Use_Case_Diagram.png)
+
+##### UC-VLT-01: Upload a PDF Rulebook
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-VLT-01 |
+| **Use Case Name** | Upload a PDF Rulebook |
+| **Actor(s)** | Contributor (Registered User) |
+| **Description** | An authenticated user uploads a PDF rulebook to the Vault. The system sanitises and extracts the content, then makes it available to the community. |
+| **Preconditions** | User is authenticated. File is in PDF format and within the size limit. Network connectivity is stable. |
+| **Postconditions** | Rulebook metadata is stored in MongoDB. Raw PDF is stored in Cloudflare R2. Rulebook status is set to 'Ready'. |
+| **Basic Flow** | 1. User navigates to the Vault and selects 'Upload Rulebook'. <br> 2. System presents a file picker filtered to PDF only. <br> 3. User selects a file, enters the game name, and confirms the upload. <br> 4. System displays a real-time upload progress indicator. <br> 5. The Nuxt BFF proxies the request directly to FastAPI. <br> 6. FastAPI validates the JWT, sanitises the PDF, and extracts text. <br> 7. Raw PDF and extracted text are written to Cloudflare R2; rulebook metadata is stored in MongoDB Atlas. <br> 8. Rulebook status transitions to 'Ready' and the user receives an in-app notification. |
+| **Alternative Flow** | **3a.** User uploads a file without entering a game name — the system highlights the required field and prevents submission until it is filled. |
+| **Exception Flow** | **2a.** User selects a non-PDF file — the system rejects it with a clear format error message. <br> **4a.** File exceeds the size limit — the system rejects the upload and prompts the user to compress or split the file. <br> **6a.** Sanitisation detects unsafe content — the file is rejected, the attempt is logged, and the user sees a plain-language error. <br> **7a.** Text extraction fails — the raw PDF is stored to R2 with status 'Pending Review' and the user is notified. <br> **8a.** Network failure mid-upload — the system presents a retry option with the file still selected. |
+| **Related FR** | FR4.1 |
+
+---
+
+##### UC-VLT-02: View and Browse the Vault Library
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-VLT-02 |
+| **Use Case Name** | View and Browse the Vault Library |
+| **Actor(s)** | Registered User |
+| **Description** | An authenticated user navigates to the Vault, browses available rulebooks, and optionally searches by game name to find a specific rulebook. |
+| **Preconditions** | User is authenticated. At least one rulebook has 'Ready' status. Network connectivity is stable. |
+| **Postconditions** | The user is presented with a filtered or unfiltered list of ready rulebooks. No state changes are made to any rulebook document. |
+| **Basic Flow** | 1. User navigates to the Vault section of the application. <br> 2. The Nuxt BFF routes the request to Spring Boot. <br> 3. Spring Boot fetches and returns all 'Ready' rulebooks from MongoDB. <br> 4. Each rulebook card displays game name, upload date, version number, and contributor username. <br> 5. User optionally types a game name into the search bar. <br> 6. System re-queries Spring Boot and updates the displayed list. <br> 7. User selects a rulebook card to open its detail page. <br> 8. Detail page displays full metadata and options to view, edit, or download the rulebook. |
+| **Alternative Flow** | **4a.** User browses without searching — all 'Ready' rulebooks are displayed in order of most recently updated. <br> **8a.** User selects 'Download PDF' — Spring Boot generates a short-lived pre-signed URL for the Cloudflare R2 object; the client downloads directly from R2. |
+| **Exception Flow** | **2a.** Backend fails to return rulebooks — the system displays an error message and a retry option. <br> **5a.** Search returns no matching rulebooks — the system displays a 'No rulebooks found for [query]' message with a prompt to upload one. |
+| **Related FR** | FR4.2 |
+
+---
+
+##### UC-VLT-03: View a Rulebook in the Collaborative Editor
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-VLT-03 |
+| **Use Case Name** | View a Rulebook in the Collaborative Editor |
+| **Actor(s)** | Registered User |
+| **Description** | An authenticated user opens a rulebook in the collaborative editor to read its text content. Multiple users may view the same rulebook simultaneously in read-only mode. |
+| **Preconditions** | User is authenticated. The selected rulebook has 'Ready' status. Network connectivity is stable. |
+| **Postconditions** | The rulebook text is displayed to the user. No changes are made to the rulebook document or version counter. |
+| **Basic Flow** | 1. User selects a rulebook and selects 'View Rulebook'. <br> 2. Nuxt routes the request to Spring Boot, which fetches the current text state from MongoDB and returns it. <br> 3. The current version number and last editor username are displayed. <br> 4. If another user holds the write lock, a banner shows 'Currently being edited by [username]'. <br> 5. The user reads the rulebook in read-only mode. <br> 6. If the active editor commits a change, the user's view updates in real time via WebSocket without a page refresh. |
+| **Alternative Flow** | **4a.** No user holds the write lock — the user is presented with an 'Edit' button to request the write lock. |
+| **Exception Flow** | **2a.** Text content fails to load within 2 seconds — the system displays an error and a retry option. <br> **6a.** WebSocket connection drops — the UI shows a 'Reconnecting…' banner and re-syncs to the latest version on reconnect. |
+| **Related FR** | FR4.2 |
+
+---
+
+##### UC-VLT-04: Edit a Rulebook Collaboratively
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-VLT-04 |
+| **Use Case Name** | Edit a Rulebook Collaboratively |
+| **Actor(s)** | Collaborator — writer (primary), Collaborator — reader (secondary), Spring Boot (system) |
+| **Description** | An authenticated user acquires the write lock on a rulebook and makes edits. Changes are committed to MongoDB, the version counter is incremented, and a delta is broadcast in real time to all other active viewers. |
+| **Preconditions** | User is authenticated. Rulebook status is 'Ready'. No other user currently holds the write lock. |
+| **Postconditions** | MongoDB contains the updated text state and an incremented version number. The edit delta is appended to the EDIT_EVENT ledger. All active readers see the latest version. |
+| **Basic Flow** | 1. User opens a rulebook in read mode and selects 'Edit'. <br> 2. Spring Boot checks the lock state — no write lock is held. <br> 3. Spring Boot grants the write lock to the user; the editor becomes active. <br> 4. All other active viewers receive a WebSocket broadcast banner: 'Being edited by [username]'. <br> 5. User makes edits; each keystroke triggers a debounced auto-save. <br> 6. Spring Boot validates the edit against the current version counter. <br> 7. Edit passes the version check; Spring Boot commits the delta to MongoDB and increments the version counter. <br> 8. Delta is broadcast via WebSocket to all active readers; their views update without a refresh. <br> 9. User selects 'Done Editing'; Spring Boot releases the write lock. <br> 10. All active readers are notified that editing is now available. |
+| **Alternative Flow** | **1a.** User selects 'Edit' but the write lock is held by another user — the Edit button is disabled and a banner shows 'Being edited by [username]'. |
+| **Exception Flow** | **6a.** Version mismatch — Spring Boot rejects the edit, presents the latest version, and prompts the user to re-apply their change. <br> **9a.** User's session expires mid-edit — the write lock is automatically released after a 30-second idle timeout. <br> **8a.** WebSocket broadcast fails — affected readers are flagged with a 'View may be out of date' warning and prompted to refresh. |
+| **Related FR** | FR4.2 |
+
 
 ---
 
