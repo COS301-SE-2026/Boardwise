@@ -96,6 +96,10 @@ The objectives of the system are to:
 
 ### 4.2 Marketplace Domain
 
+- **FR2.1:** The system must display user-generated listings for board game rentals and sales, including pricing and availability.
+- **FR2.2:** The system must allow users to create and manage their own rental and sale listings.
+- **FR2.3:** The system must aggregate and display external retail purchasing links (online and in-store) for specific board games.
+
 ### 4.3 Community & Events Domain
 
 - **FR3.1:** The system must allow users to schedule gaming events, defining parameters such as date, time, game, and visibility (Public or Private).
@@ -1633,6 +1637,36 @@ The User Service is the identity and social backbone of the Boardwise platform. 
 ---
 
 #### 12.4.2 Marketplace Service
+
+![Marketplace Service Component Diagram](./diagrams/marketplace_architecture_diagram.png)
+
+The Marketplace Service manages all peer-to-peer listing activity and external retail discovery on the Boardwise platform. It handles the creation, retrieval, update, and deletion of listings, as well as the aggregation of external retail purchase links for board games.
+
+**How it fits into the overall architecture:** The Marketplace Service is accessed via the BFF. Unauthenticated users may browse and view listings (read operations do not require a JWT). Write operations (create, update, delete listing) require a valid JWT which the BFF's Authentication Guard validates before forwarding to the Marketplace Service.
+
+**Quality Requirements:**
+
+*Reliability:* All listing write operations must be ACID compliant to ensure that listing state is never left in an inconsistent state during create, update, or delete operations.
+
+*Performance:* All listing browse endpoints must support pagination (default page size 20, maximum 50) to prevent large payloads from degrading performance on mid-range devices.
+
+*Security:* All mutating endpoints (create, update, delete) require a valid JWT. Ownership is verified server-side on every update and delete operation — a user may only modify their own listings.
+
+**Architectural Responsibilities:**
+- Listing CRUD operations (create, read, update, delete/deactivate)
+- Ownership enforcement on listing mutations
+- Pagination and filtering for listing browse operations
+- External retail link aggregation and serving
+
+**Frameworks and Technologies:**
+
+| Concern | Option 1 | Option 2 | Option 3 | Chosen |
+|---|---|---|---|---|
+| Backend framework | Spring Boot (Java/Kotlin) | Express.js | FastAPI | Spring Boot |
+| Database driver | Spring Data MongoDB | Morphia | Mongoose (Node) | Spring Data MongoDB |
+| Image storage | Cloudflare R2 | AWS S3 | Cloudinary | Cloudflare R2 |
+
+**Technology Choice Justification:** Spring Boot was chosen for consistency with the User Service and to leverage Spring Data MongoDB's repository pattern. Cloudflare R2 was chosen for listing image storage due to its zero-egress-cost model, which is critical under CON2 (free-tier infrastructure). AWS S3 and Cloudinary were ruled out due to egress costs and paid-tier requirements respectively.
 
 ---
 
