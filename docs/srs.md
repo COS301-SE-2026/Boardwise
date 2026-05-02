@@ -1626,11 +1626,321 @@ All protected endpoints require a valid JWT passed as a Bearer token in the `Aut
 
 ### 10.2 Marketplace Service API Contracts
 
-### 10.3 The Vault Service API Contracts
+### 10.3 The Vault API Contracts
+
+All Vault endpoints require JWT authentication unless noted otherwise. JWTs are issued by Spring Boot and independently verified by FastAPI using a shared secret.
+
+---
+
+#### VC-001: Upload a PDF Rulebook
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | VC-001 |
+| **Endpoint** | `POST /api/vault/rulebooks` |
+| **Routes To** | FastAPI |
+| **Description** | Uploads a PDF rulebook. The BFF streams the multipart payload directly to FastAPI, which sanitises and extracts the content before writing metadata to MongoDB Atlas and the raw file to Cloudflare R2. |
+| **Authentication** | Bearer JWT — verified by FastAPI via shared secret |
+| **Content-Type** | `multipart/form-data` |
+
+**Request Body (multipart/form-data):**
+
+| Field | Required | Description |
+|---|---|---|
+| `file` | Yes | PDF only, max 50 MB |
+| `gameName` | Yes | String, max 120 chars |
+| `edition` | No | e.g. "3rd Edition" |
+
+**Success Response — 202 Accepted:**
+```json
+{
+  "rulebookId": "string",
+  "status": "Processing",
+  "message": "Rulebook accepted. Processing in background."
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | Missing `gameName`, or file field is absent |
+| `401 Unauthorized` | JWT is missing, expired, or signature verification failed |
+| `413 Payload Too Large` | File exceeds the 50 MB size limit |
+| `415 Unsupported Media Type` | Uploaded file is not a valid PDF |
+| `422 Unprocessable Entity` | Sanitisation stage detected unsafe embedded content |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### VC-002: List / Search Rulebooks
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | VC-002 |
+| **Endpoint** | `GET /api/vault/rulebooks` |
+| **Routes To** | Spring Boot |
+| **Description** | Returns a paginated list of rulebooks with `status: "Ready"`, ordered by most recently updated. Supports optional game-name search. |
+| **Authentication** | Bearer JWT |
+
+**Query Parameters:**
+
+| Parameter | Required | Description |
+|---|---|---|
+| `search` | No | Partial game-name match |
+| `page` | No | Default 1 |
+| `limit` | No | Default 20, max 100 |
+
+**Success Response — 200 OK:**
+```json
+{
+  "total": 48,
+  "page": 1,
+  "limit": 20,
+  "rulebooks": [
+    {
+      "rulebookId": "string",
+      "gameName": "string",
+      "edition": "string | null",
+      "version": 12,
+      "contributorName": "string",
+      "uploadedAt": "ISO 8601",
+      "updatedAt": "ISO 8601"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | JWT is missing or invalid |
+| `500 Internal Server Error` | MongoDB query failed |
+
+---
+
+#### VC-003: Get Rulebook Detail
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | VC-003 |
+| **Endpoint** | `GET /api/vault/rulebooks/{id}` |
+| **Routes To** | Spring Boot |
+| **Description** | Returns full metadata for a single rulebook, including its current processing status. Used to poll for `status: "Ready"` after upload. |
+| **Authentication** | Bearer JWT |
+
+**Success Response — 200 OK:**
+```json
+{
+  "rulebookId": "string",
+  "gameName": "string",
+  "edition": "string | null",
+  "status": "Processing | Ready | PendingReview",
+  "version": 12,
+  "contributorId": "string",
+  "contributorName": "string",
+  "uploadedAt": "ISO 8601",
+  "updatedAt": "ISO 8601",
+  "lockHeldBy": "username | null"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | JWT is missing or invalid |
+| `404 Not Found` | No rulebook exists with the provided `id` |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### VC-004: Download Raw PDF
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | VC-004 |
+| **Endpoint** | `GET /api/vault/rulebooks/{id}/download` |
+| **Routes To** | Spring Boot |
+| **Description** | Generates a short-lived pre-signed URL to the raw PDF stored in Cloudflare R2 and returns it to the client. The download event is logged in MongoDB for analytics. |
+| **Authentication** | Bearer JWT |
+
+**Success Response — 200 OK:**
+```json
+{
+  "downloadUrl": "string",
+  "expiresAt": "ISO 8601"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | JWT is missing or invalid |
+| `404 Not Found` | Rulebook not found or PDF not yet stored in R2 |
+| `502 Bad Gateway` | R2 pre-sign request failed |
+
+---
+
+#### VC-005: Get Rulebook Text State
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | VC-005 |
+| **Endpoint** | `GET /api/vault/rulebooks/{id}/text` |
+| **Routes To** | Spring Boot |
+| **Description** | Returns the current collaborative text state of the rulebook, including the version counter and active lock status. |
+| **Authentication** | Bearer JWT |
+
+**Success Response — 200 OK:**
+```json
+{
+  "rulebookId": "string",
+  "version": 12,
+  "content": "string",
+  "lockHeldBy": "username | null",
+  "updatedAt": "ISO 8601"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | JWT is missing or invalid |
+| `404 Not Found` | Rulebook not found or not in `Ready` status |
+| `504 Gateway Timeout` | MongoDB text fetch exceeded 2-second threshold |
+
+---
+
+#### VC-006: Acquire Write Lock (MRSW)
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | VC-006 |
+| **Endpoint** | `POST /api/vault/rulebooks/{id}/lock` |
+| **Routes To** | Spring Boot |
+| **Description** | Requests the exclusive write lock on a rulebook from the MRSW lock manager. Succeeds only if no other user currently holds the lock. On success, the editor becomes active and all current readers receive a WebSocket broadcast. |
+| **Authentication** | Bearer JWT |
+
+**Success Response — 200 OK:**
+```json
+{
+  "lockGranted": true,
+  "lockedBy": "string",
+  "expiresAt": "ISO 8601",
+  "currentVersion": 12
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | JWT is missing or invalid |
+| `404 Not Found` | Rulebook not found |
+| `409 Conflict` | Write lock is already held by another user |
+
+---
+
+#### VC-007: Commit Edit Delta
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | VC-007 |
+| **Endpoint** | `PATCH /api/vault/rulebooks/{id}/text` |
+| **Routes To** | Spring Boot |
+| **Description** | Commits a text delta to the rulebook. Spring Boot validates the caller holds the write lock, performs an optimistic version check, writes the delta to MongoDB, increments the version counter, appends to the EDIT_EVENT ledger, and broadcasts the delta to all active WebSocket readers. |
+| **Authentication** | Bearer JWT — caller must be the current lock holder |
+
+**Request Body:**
+```json
+{
+  "expectedVersion": 12,
+  "delta": "string"
+}
+```
+
+**Success Response — 200 OK:**
+```json
+{
+  "committed": true,
+  "newVersion": 13,
+  "committedAt": "ISO 8601"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | JWT is missing or invalid |
+| `403 Forbidden` | Caller does not hold the current write lock |
+| `404 Not Found` | Rulebook not found |
+| `409 Conflict` | Version mismatch — `expectedVersion` does not match the stored version |
+| `500 Internal Server Error` | MongoDB write or WebSocket broadcast failed |
+
+---
+
+#### VC-008: Release Write Lock
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | VC-008 |
+| **Endpoint** | `DELETE /api/vault/rulebooks/{id}/lock` |
+| **Routes To** | Spring Boot |
+| **Description** | Voluntarily releases the write lock. Spring Boot clears the lock in MongoDB and broadcasts a WebSocket release event to all active readers. |
+| **Authentication** | Bearer JWT — caller must be the current lock holder |
+
+**Success Response — 200 OK:**
+```json
+{
+  "lockReleased": true,
+  "releasedAt": "ISO 8601"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | JWT is missing or invalid |
+| `403 Forbidden` | Caller does not hold the write lock |
+| `404 Not Found` | Rulebook not found |
 
 ---
 
 ## 11. Traceability Matrix
+
+The requirement traceability matrix maps functional requirements to their corresponding use cases, ensuring that all identified requirements are addressed and demonstrating which use cases satisfy which requirements.
+
+| | FR1.1 | FR1.2 | FR1.3 | FR1.4 | FR2.1 | FR2.2 | FR2.3 | FR3.1 | FR3.2 | FR4.1 | FR4.2 | FR5.1 |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| UC-AUTH-01 | X | | | | | | | | | | | |
+| UC-AUTH-02 | X | | | | | | | | | | | |
+| UC-AUTH-03 | X | | | | | | | | | | | |
+| UC-PROF-01 | X | | | | | | | | | | | |
+| UC-PROF-02 | X | X | X | | | | | | | | | |
+| UC-PROF-03 | | X | | | | | | | | | | |
+| UC-PROF-04 | | | X | | | | | | | | | |
+| UC-SOC-01 | | | | X | | | | | | | | |
+| UC-SOC-02 | | | | X | | | | | | | | |
+| UC-SOC-03 | | | | X | | | | | | | | |
+| UC-EVT-01 | | | | | | | | X | | | | X |
+| UC-EVT-02 | | | | | | | | X | | | | |
+| UC-EVT-03 | | | | | | | | | X | | | |
+| UC-MKT-01 | | | | | X | | | | | | | |
+| UC-MKT-02 | | | | | X | | | | | | | |
+| UC-MKT-03 | | | | | | X | | | | | | X |
+| UC-MKT-04 | | | | | | X | | | | | | |
+| UC-MKT-05 | | | | | | X | | | | | | |
+| UC-MKT-06 | | | | | | | X | | | | | |
+| UC-VLT-01 | | | | | | | | | | X | | X |
+| UC-VLT-02 | | | | | | | | | | | X | |
+| UC-VLT-03 | | | | | | | | | | | X | |
+| UC-VLT-04 | | | | | | | | | | | X | |
 
 ---
 
