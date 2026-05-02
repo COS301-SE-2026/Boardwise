@@ -170,6 +170,280 @@ The User entity is central to the entire system, forming the primary actor in al
 
 ### 9.1 User Service (Including Community)
 
+The User Service is responsible for managing all user-centric data and interactions on the Boardwise platform. This subsystem encompasses authentication (registration, login, logout), profile management (create, update, delete), game inventory management, user preference management, social features (friend requests and groups), and community features (events and RSVPs). It serves as the identity and social backbone of the platform that all other subsystems depend upon for user context.
+
+#### 9.1.1 Domain Model
+
+The User Service domain model centres on the `User` class, which holds core identity and profile attributes. The `User` maintains associations with `Boardgame` (ownership), `FriendRequest` (social connectivity), `Preferences` (genre and mechanic preferences), `Event` (creation and attendance), and `Group` (membership). The `FriendRequest` entity tracks the sender, receiver, and status of a connection request.
+
+![User Service Domain Model](./diagrams/User_service_domain_model.drawio.png)
+
+#### 9.1.2 User Stories
+
+---
+
+**Epic: Authentication**
+
+##### US-AUTH-01: Register an Account
+
+**As a user, I want to register an account, so that I can access the Boardwise platform and its features.**
+
+**Acceptance Criteria:**
+- Given I am on the registration page, when I provide a valid username, email address, and password and submit the form, then a new account is created and I am redirected to my profile setup page.
+- Given I am on the registration page, when I submit the form with an email address that is already registered, then the system displays an error message informing me that the email is already in use.
+- Given I am on the registration page, when I submit the form with any required field left empty, then the system displays a validation error and does not create an account.
+- Given I have successfully registered, then my password is stored in an encrypted format and is never stored in plain text.
+
+---
+
+##### US-AUTH-02: Log Into an Account
+
+**As a user, I want to log into my account, so that I can access my personalised profile and platform features.**
+
+**Acceptance Criteria:**
+- Given I am on the login page, when I provide a valid registered email and correct password, then I am authenticated and redirected to my home feed.
+- Given I am on the login page, when I provide an incorrect password or unregistered email, then the system displays a generic error message and does not grant access.
+- Given I have successfully logged in, then a secure JWT is issued and used to manage my session.
+- Given I am on the login page, when I leave any required field empty and submit, then the system displays a validation error.
+
+---
+
+##### US-AUTH-03: Log Out of an Account
+
+**As a user, I want to log out of my account, so that I can ensure my account is secure when I am done using the platform.**
+
+**Acceptance Criteria:**
+- Given I am logged in, when I select the logout option, then my session is terminated, my JWT is invalidated, and I am redirected to the login page.
+- Given I have logged out, when I attempt to navigate to a protected page, then I am redirected to the login page and access is denied.
+
+---
+
+**Epic: Profile Management**
+
+##### US-PROF-01: Create a Profile
+
+**As a user, I want to create a personal profile, so that other users can identify me and I can personalise my experience on the platform.**
+
+**Acceptance Criteria:**
+- Given I have just registered, when I am directed to the profile setup page, then I can enter a display name, bio, and profile picture.
+- Given I am setting up my profile, when I submit the form with at least a display name, then my profile is created and saved successfully.
+- Given I am setting up my profile, when I submit the form without a display name, then the system displays a validation error and does not save the profile.
+
+---
+
+##### US-PROF-02: View a Profile
+
+**As a user, I want to view my profile and the profiles of other users, so that I can see their information, game collections, and gaming preferences.**
+
+**Acceptance Criteria:**
+- Given I am logged in, when I navigate to my profile page, then I can see my display name, bio, profile picture, game inventory, and preferred genres and mechanics.
+- Given I am logged in, when I navigate to another user's profile page, then I can see their display name, bio, profile picture, game inventory, and preferred genres and mechanics in a read-only view.
+- Given a profile does not exist, when I navigate to that profile's URL, then the system displays a not-found message.
+
+---
+
+##### US-PROF-03: Update a Profile
+
+**As a user, I want to update my profile information, so that I can keep my details accurate and up to date.**
+
+**Acceptance Criteria:**
+- Given I am on my profile page, when I select the edit option, then I can modify my display name, bio, and profile picture.
+- Given I am editing my profile, when I save my changes with a valid display name, then the updated information is saved and reflected on my profile immediately.
+- Given I am editing my profile, when I attempt to save with the display name field empty, then the system displays a validation error and does not save the changes.
+
+---
+
+##### US-PROF-04: Delete a Profile
+
+**As a user, I want to delete my account and profile, so that I can remove my personal data from the platform.**
+
+**Acceptance Criteria:**
+- Given I am on my account settings page, when I select the delete account option, then the system prompts me to confirm the action before proceeding.
+- Given I have confirmed the deletion, when the system processes the request, then my profile, game inventory, preferences, and associated data are permanently removed.
+- Given my account has been deleted, when I attempt to log in with my previous credentials, then the system displays an error and denies access.
+
+---
+
+**Epic: Game Inventory**
+
+##### US-INV-01: Add a Game to My Inventory
+
+**As a user, I want to add board games to my digital inventory, so that I can keep track of the games I own.**
+
+**Acceptance Criteria:**
+- Given I am on my profile or inventory page, when I search for a board game and select it, then it is added to my game inventory.
+- Given I attempt to add a game that already exists in my inventory, then the system displays a message informing me the game is already in my collection and does not create a duplicate entry.
+
+---
+
+##### US-INV-02: View a Game Inventory
+
+**As a user, I want to view my own game inventory and the inventories of other users, so that I can see what board games are owned across the platform.**
+
+**Acceptance Criteria:**
+- Given I am on my profile page, when I navigate to my inventory, then I can see a list of all board games I have added, with options to manage them.
+- Given I am viewing another user's profile, when I navigate to their inventory section, then I can see a read-only list of the board games they own, with no ability to modify their collection.
+- Given a user's inventory is empty, when I navigate to their inventory section, then the system displays a message indicating no games have been added yet.
+
+---
+
+##### US-INV-03: Remove a Game from My Inventory
+
+**As a user, I want to remove a board game from my inventory, so that I can keep my collection accurate if I no longer own a game.**
+
+**Acceptance Criteria:**
+- Given I am viewing my inventory, when I select the remove option on a game, then the system prompts me to confirm the action.
+- Given I have confirmed the removal, then the game is removed from my inventory and no longer appears in my collection.
+
+---
+
+**Epic: Preferences**
+
+##### US-PREF-01: Set Game Preferences
+
+**As a user, I want to set my board game genre and mechanic preferences, so that other users can see what I enjoy.**
+
+**Acceptance Criteria:**
+- Given I am on my profile or settings page, when I navigate to preferences, then I can select from a list of available genres and game mechanics.
+- Given I have selected my preferences, when I save them, then they are stored and displayed on my profile in a read-only view for other users.
+- Given I have not set any preferences, when I visit the preferences page, then the system displays all options in an unselected state.
+- Given another user is viewing my profile, when they view my preferences, then they can see my selected genres and mechanics but cannot modify them.
+
+---
+
+##### US-PREF-02: Update Game Preferences
+
+**As a user, I want to update my genre and mechanic preferences, so that my profile reflects changes in my gaming interests over time.**
+
+**Acceptance Criteria:**
+- Given I am on the preferences page, when I modify my selected genres or mechanics and save, then the updated preferences are stored and reflected immediately.
+
+---
+
+**Epic: Social — Friends**
+
+##### US-SOC-01: Send a Friend Request
+
+**As a user, I want to send a friend request to another user, so that I can connect with them on the platform.**
+
+**Acceptance Criteria:**
+- Given I am viewing another user's profile, when I select the add friend option, then a friend request is sent to that user.
+- Given I have already sent a friend request to a user, when I view their profile, then the add friend option is replaced with a pending status indicator.
+- Given the other user has already sent me a friend request, when I attempt to send one to them, then the system instead presents me with the option to accept their existing request.
+
+---
+
+##### US-SOC-02: Accept or Reject a Friend Request
+
+**As a user, I want to accept or reject incoming friend requests, so that I can control who is in my friend network.**
+
+**Acceptance Criteria:**
+- Given I have received a friend request, when I navigate to my notifications or friend requests page, then I can see the request with options to accept or reject.
+- Given I accept a friend request, then both users are added to each other's friends list.
+- Given I reject a friend request, then the request is removed and the requesting user is not added to my friends list.
+
+---
+
+##### US-SOC-03: View Friends List
+
+**As a user, I want to view my friends list, so that I can see all the users I am connected with.**
+
+**Acceptance Criteria:**
+- Given I am on my profile or friends page, when I navigate to my friends list, then I can see all users I am currently friends with, including their display names and profile pictures.
+- Given I have no friends added, when I navigate to my friends list, then the system displays a message indicating my friends list is empty.
+
+---
+
+##### US-SOC-04: Unfriend a User
+
+**As a user, I want to remove a user from my friends list, so that I can manage my social connections on the platform.**
+
+**Acceptance Criteria:**
+- Given I am viewing my friends list or a friend's profile, when I select the unfriend option, then the system prompts me to confirm the action.
+- Given I confirm the unfriend action, then the user is removed from my friends list and I am removed from theirs.
+- Given I have unfriended a user, when I view their profile, then the add friend option is displayed again.
+
+---
+
+**Epic: Social — Groups**
+
+##### US-GRP-01: Create a Group
+
+**As a user, I want to create a group, so that I can organise a dedicated space for a specific set of users to connect.**
+
+**Acceptance Criteria:**
+- Given I am on the groups page, when I select the create group option and provide a group name, then a new group is created with me as the owner.
+- Given I am creating a group, when I submit the form without a group name, then the system displays a validation error and does not create the group.
+- Given I have created a group, then I am automatically added as a member of that group.
+
+---
+
+##### US-GRP-02: Join a Group
+
+**As a user, I want to join an existing group, so that I can connect with other users who share my board gaming interests.**
+
+**Acceptance Criteria:**
+- Given I am browsing or searching groups, when I select the join option on a public group, then I am added as a member of that group.
+- Given I am already a member of a group, when I view that group, then the join option is not displayed.
+
+---
+
+##### US-GRP-03: View a Group
+
+**As a user, I want to view a group's details and members, so that I can see who is part of the group.**
+
+**Acceptance Criteria:**
+- Given I am a member of a group, when I navigate to the group's page, then I can see the group name, description, and a list of its members.
+- Given I am not a member of a public group, when I navigate to the group's page, then I can see the group's basic details but am prompted to join.
+
+---
+
+**Epic: Community — Events**
+
+##### US-EVT-01: Schedule an Event
+
+**As a user, I want to schedule a gaming event, so that I can organise a session for other users to join.**
+
+**Acceptance Criteria:**
+- Given I am on the events page, when I select the create event option and provide a name, date, time, and game, then a new event is created and saved.
+- Given I am creating an event, when I set the visibility to Private, then only users I invite or friends can see and join the event.
+- Given I am creating an event, when I set the visibility to Public, then any user on the platform can see and join the event.
+- Given I submit the event creation form with any required field missing, then the system displays a validation error and does not create the event.
+
+---
+
+##### US-EVT-02: View Events
+
+**As a user, I want to view available gaming events, so that I can find sessions to join.**
+
+**Acceptance Criteria:**
+- Given I am on the events page, when I browse the events list, then I can see all public events and any private events I have been invited to.
+- Given there are no events available, when I navigate to the events page, then the system displays a message indicating no events are currently scheduled.
+
+---
+
+##### US-EVT-03: Update an Event
+
+**As a user, I want to update the details of an event I have created, so that I can keep the event information accurate.**
+
+**Acceptance Criteria:**
+- Given I am the creator of an event, when I navigate to the event and select the edit option, then I can modify the event name, date, time, game, and visibility.
+- Given I have made changes to the event, when I save, then the updated details are reflected immediately for all users who can view the event.
+- Given I am not the creator of an event, when I view that event, then no edit option is presented to me.
+
+---
+
+##### US-EVT-04: RSVP to an Event
+
+**As a user, I want to RSVP to a gaming event, so that the event organiser knows I plan to attend.**
+
+**Acceptance Criteria:**
+- Given I am viewing a public event or a private event I have been invited to, when I select the join option, then my RSVP is recorded and I am added to the event's attendee list.
+- Given I have already joined an event, when I view that event, then the join option is replaced with an option to decline or withdraw my RSVP.
+- Given I select the decline option on an event I have joined, then I am removed from the attendee list.
+
+---
+
 ### 9.2 Marketplace Service
 
 ### 9.3 Shared Library - The Vault Service
