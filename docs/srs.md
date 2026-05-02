@@ -1599,6 +1599,37 @@ Testability is measured by:
 
 #### 12.4.1 User Service
 
+![User Service Component Diagram](./diagrams/User_Service_Architecture_Diagram.png)
+
+The User Service is the identity and social backbone of the Boardwise platform. All other services depend on the User Service for user context and authentication. It is responsible for authentication (registration, login, logout), profile management, game inventory, preferences, social features (friends and groups), and community features (events and RSVPs).
+
+**How it fits into the overall architecture:** The User Service sits behind the Nuxt/Node.js BFF. All client requests to user-related endpoints pass through the BFF's Authentication Guard, which validates the JWT before forwarding the request to the Spring Boot User Service. The User Service is the only service that issues JWTs — other services validate them using the shared secret.
+
+**Quality Requirements:**
+
+*Security:* The User Service is the authentication authority for the entire platform. It implements a multi-layered SecurityFilterChain consisting of an IP-based rate limit filter (applied to auth routes only), a JWT validation filter (applied to all non-auth endpoints), and a general rate limit filter. Passwords are hashed using BCrypt. JWTs are signed with a minimum 256-bit secret and expire within 24 hours.
+
+*Reliability:* The User Service uses MongoDB for persistence. All user data mutations (profile updates, friend connections, group memberships) are performed as atomic MongoDB operations to ensure consistency.
+
+*Maintainability:* The service is structured as a standard Spring Boot layered application — Controller → Service → Repository — ensuring clear separation of concerns and testability at each layer.
+
+**Architectural Responsibilities:**
+- Authentication and authorisation (JWT issuance and validation)
+- IP-based and general rate limiting via the SecurityFilterChain
+- Profile, inventory, preference, friend, group, and event CRUD operations
+- MongoDB persistence for all User Service domain entities
+
+**Frameworks and Technologies:**
+
+| Concern | Option 1 | Option 2 | Option 3 | Chosen |
+|---|---|---|---|---|
+| Backend framework | Spring Boot (Java/Kotlin) | Quarkus | Micronaut | Spring Boot |
+| Authentication | Spring Security + JWT | Auth0 | Keycloak | Spring Security + JWT |
+| Database driver | Spring Data MongoDB | Morphia | Jongo | Spring Data MongoDB |
+
+**Technology Choice Justification:** Spring Boot was chosen for the User Service because it provides a mature, production-grade ecosystem for building REST APIs with built-in support for Spring Security, which directly satisfies the authentication and rate-limiting responsibilities. Spring Data MongoDB provides a clean repository abstraction over MongoDB, reducing boilerplate and maintaining consistency with the rest of the team's backend choices. Auth0 and Keycloak were ruled out as they introduce external service dependencies that conflict with CON1 (open source) and CON2 (free-tier constraints).
+
+
 ---
 
 #### 12.4.2 Marketplace Service
