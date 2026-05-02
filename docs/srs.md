@@ -158,6 +158,12 @@ The Boardwise platform serves several distinct user types, each interacting with
 
 ## 8. System Domain Model
 
+The system domain model illustrates the core entities across all subsystems and their relationships. The system is divided into three primary logical subsystems: the User Service (encompassing profiles, social features, and events), the Marketplace Service, and the Shared Library (The Vault).
+
+The User entity is central to the entire system, forming the primary actor in all interactions across all domains. Each subsystem maintains its own set of domain classes, with cross-subsystem interactions mediated through service API calls rather than direct class coupling.
+
+![System Domain Model](./diagrams/domain-model-system.png)
+
 ---
 
 ## 9. Subsystems
