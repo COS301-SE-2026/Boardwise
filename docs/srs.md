@@ -1588,6 +1588,11 @@ Testability is measured by:
 
 ### 12.3 Architectural Constraints
 
+- **CON1 (Open Source Licensing):** The entire codebase must be released under an Open Source licence. This constrains the choice of third-party libraries to those with compatible licences (MIT, Apache 2.0, etc.). Proprietary frameworks or SDKs may not be used.
+- **CON2 (Free-Tier Infrastructure):** All backend services must be hosted within free-tier limits. This constrains the available compute, memory, storage, and network egress. MongoDB Atlas is limited to 512MB storage. Cloudflare R2 is used for PDF storage due to its zero-egress-cost model. Render or Railway free tiers are used for service hosting.
+- **CON3 (Target Hardware):** The application must be performant on mid-range mobile and desktop devices. This constrains the frontend bundle size, the complexity of client-side rendering, and the payload sizes returned by backend APIs.
+- **CON4 (Client-Mandated Architecture):** The client has mandated the use of Component-Based Architecture and Domain-Driven Architecture as required styles, with Pipe & Filter and SOA as recommended styles. These are not negotiable and must be reflected in the implementation.
+
 ---
 
 ### 12.4 Architectural Components
