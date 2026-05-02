@@ -2,16 +2,19 @@
   <div class="card">
     <h2>{{ title }}</h2>
 
-    <input v-model="email" placeholder="Email" />
-    <input v-model="password" type="password" placeholder="Password" />
+    <BaseInput v-model="email" placeholder="Email" />
+    <BaseInput v-model="password" type="password" placeholder="Password" />
 
-    <button @click="submitForm">
+    <BaseButton @click="submitForm">
       {{ buttonText }}
-    </button>
+    </BaseButton>
   </div>
 </template>
 
 <script setup>
+  import BaseInput from '~/components/ui/BaseInput.vue'
+  import BaseButton from '~/components/ui/BaseButton.vue'
+
     const props = defineProps({
     title: String,
     buttonText: String
