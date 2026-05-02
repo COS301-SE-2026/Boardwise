@@ -1474,6 +1474,10 @@ All protected endpoints require a valid JWT passed as a Bearer token in the `Aut
 
 #### 12.1.1 High-Level Architecture
 
+![Container-Level Architecture Diagram](./diagrams/Architecture_diagram_revised.png)
+
+Boardwise follows a **Client-Server architecture**. The client is a Vue.js single-page application running in the user's browser. The server side consists of multiple backend services hosted on free-tier cloud infrastructure. All communication between the client and the server is initiated by the client, with the server responding to requests — there is no peer-to-peer communication between clients.
+
 #### 12.1.2 Communication Patterns
 
 #### 12.1.3 Architectural Patterns
