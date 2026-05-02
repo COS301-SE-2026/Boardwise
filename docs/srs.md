@@ -50,3 +50,21 @@
     - [12.3 Architectural Constraints](#123-architectural-constraints)
     - [12.4 Architectural Components](#124-architectural-components)
     - [12.5 Summary](#125-summary)
+
+---
+
+## 1. Introduction
+
+Boardwise is a comprehensive platform designed to digitise and expand the board game experience for enthusiasts, particularly within the South African market. The South African board gaming community remains largely offline and fragmented; local stores host gaming days, but enthusiasts are often tied to specific retail locations to find community. Boardwise centralises this ecosystem, providing a store-agnostic platform where the community can connect, rent, and organise events independently.
+
+The platform addresses key community problems: enabling peer-to-peer (P2P) transactions (rental and sale) without dependence on a single retailer, fostering community formation through groups and events, and democratising access to board game knowledge through a collaboratively maintained shared library of rulebooks.
+
+**Scope Note:** This document reflects the requirements in scope for **Sprint 1 (Demo 1)**. The focus is on delivering a functional MVP with core CRUD capabilities across all system domains. The following features are explicitly deferred to future sprints and are **not covered** by this document: personalised recommendation systems, RAG-based natural language query interface, PWA installability, Generative Game Architect (AI Innovation), Setup Wizard, app theming, price comparison, and automated retrieval of rulebooks from the internet.
+
+---
+## 2. Project Owner
+
+Name: Saskia Steyn  
+Email: saskia.steyn@labs.epiuse.com
+
+---
