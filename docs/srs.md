@@ -444,6 +444,237 @@ The User Service domain model centres on the `User` class, which holds core iden
 
 ---
 
+#### 9.1.3 Use Cases
+
+![User Service Authentication Use Case Diagram](./diagrams/uc-auth.png)
+
+##### UC-AUTH-01: Register an Account
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-AUTH-01 |
+| **Use Case Name** | Register an Account |
+| **Actor(s)** | Unregistered User |
+| **Description** | A new user registers for a Boardwise account by providing their credentials. |
+| **Preconditions** | The user does not have an existing Boardwise account. The user is on the registration page. |
+| **Postconditions** | A new user account is created and persisted in the system. The user is redirected to the profile setup page. |
+| **Basic Flow** | 1. User navigates to the registration page. <br> 2. User enters a valid username, email address, and password. <br> 3. User submits the registration form. <br> 4. System validates that all fields are populated and the email is not already registered. <br> 5. System creates a new account with the password encrypted at rest. <br> 6. System redirects the user to the profile setup page. |
+| **Alternative Flow** | **4a.** Email already registered — the system displays an error message and halts account creation. |
+| **Exception Flow** | **3a.** Any required field is empty — the system displays a validation error and does not submit the form. |
+| **Related FR** | FR1.1 |
+
+---
+
+##### UC-AUTH-02: Log Into an Account
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-AUTH-02 |
+| **Use Case Name** | Log Into an Account |
+| **Actor(s)** | Registered User |
+| **Description** | A registered user authenticates with their credentials to access the platform. |
+| **Preconditions** | The user has an existing registered account. The user is on the login page. |
+| **Postconditions** | The user is authenticated and a secure JWT is issued for session management. The user is redirected to their home feed. |
+| **Basic Flow** | 1. User navigates to the login page. <br> 2. User enters their registered email address and password. <br> 3. User submits the login form. <br> 4. System validates the credentials against the stored account. <br> 5. System issues a secure JWT for session management. <br> 6. System redirects the user to their home feed. |
+| **Alternative Flow** | **4a.** Email is not registered or password is incorrect — the system displays a generic error message and does not grant access. |
+| **Exception Flow** | **3a.** Any required field is empty — the system displays a validation error and does not submit the form. |
+| **Related FR** | FR1.1 |
+
+---
+
+##### UC-AUTH-03: Log Out of an Account
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-AUTH-03 |
+| **Use Case Name** | Log Out of an Account |
+| **Actor(s)** | Registered User |
+| **Description** | An authenticated user terminates their session to secure their account. |
+| **Preconditions** | The user is logged in with an active session. |
+| **Postconditions** | The user's session is terminated and their JWT is invalidated. The user is redirected to the login page. |
+| **Basic Flow** | 1. User selects the logout option from the application. <br> 2. System invalidates the user's active JWT. <br> 3. System terminates the session. <br> 4. System redirects the user to the login page. |
+| **Alternative Flow** | None. |
+| **Exception Flow** | If the user attempts to navigate to a protected page after logging out, the system redirects them to the login page and denies access. |
+| **Related FR** | FR1.1 |
+
+---
+
+##### UC-PROF-01: Manage Profile
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-PROF-01 |
+| **Use Case Name** | Manage Profile |
+| **Actor(s)** | Registered User |
+| **Description** | A registered user creates, updates, or deletes their personal profile on the platform. |
+| **Preconditions** | The user is authenticated and has an active session. |
+| **Postconditions** | **Create:** A new profile is persisted and associated with the user's account. **Update:** The updated profile information is saved and immediately reflected. **Delete:** The user's profile and all associated data are permanently removed and the account is deactivated. |
+| **Basic Flow** | **Create:** 1. System directs the user to the profile setup page following registration. 2. User enters a display name, bio, and optionally uploads a profile picture. 3. User submits the form. 4. System validates that a display name has been provided. 5. System saves the profile and redirects the user to their profile page. <br><br> **Update:** 1. User navigates to their profile and selects the edit option. 2. User modifies their display name, bio, or profile picture. 3. User saves the changes. 4. System validates that the display name field is not empty. 5. System persists the updated information and reflects the changes immediately. <br><br> **Delete:** 1. User navigates to account settings and selects delete account. 2. System presents a confirmation prompt. 3. User confirms the deletion. 4. System permanently removes the user's profile, game inventory, preferences, and all associated data. 5. System deactivates the account and redirects the user to the login page. |
+| **Alternative Flow** | **Delete 3a.** User dismisses the confirmation prompt — no action is taken and the user is returned to their settings page. |
+| **Exception Flow** | **Create/Update:** If the user submits without a display name, the system displays a validation error and does not save. |
+| **Related FR** | FR1.1 |
+
+---
+
+![User Service Profile Management Use Case Diagram](./diagrams/uc-profile.png)
+
+##### UC-PROF-02: View a Profile
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-PROF-02 |
+| **Use Case Name** | View a Profile |
+| **Actor(s)** | Registered User |
+| **Description** | A registered user views their own profile or the profile of another user, including their game inventory and gaming preferences. |
+| **Preconditions** | The user is authenticated and has an active session. The profile being viewed exists in the system. |
+| **Postconditions** | The requested profile information is displayed to the user. |
+| **Basic Flow** | **Own Profile:** 1. User navigates to their profile page. 2. System retrieves and displays the user's display name, bio, profile picture, game inventory, and preferred genres and mechanics. <br><br> **Another User's Profile:** 1. User navigates to another user's profile page. 2. System retrieves and displays that user's display name, bio, profile picture, game inventory, and preferred genres and mechanics in a read-only view. |
+| **Alternative Flow** | None. |
+| **Exception Flow** | If the requested profile does not exist, the system displays a not-found message. |
+| **Related FR** | FR1.1, FR1.2, FR1.3 |
+
+---
+
+##### UC-PROF-03: Manage Game Inventory
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-PROF-03 |
+| **Use Case Name** | Manage Game Inventory |
+| **Actor(s)** | Registered User |
+| **Description** | A registered user adds or removes board games from the game inventory on their profile. |
+| **Preconditions** | The user is authenticated and has an active session. The user has an existing profile. |
+| **Postconditions** | **Add:** The selected board game is added to the user's inventory and persisted. **Remove:** The selected board game is removed from the user's inventory. |
+| **Basic Flow** | **Add:** 1. User navigates to their profile and selects the inventory section. 2. User searches for a board game by name. 3. User selects the desired game from the search results. 4. System adds the game to the user's inventory and persists the change. <br><br> **Remove:** 1. User navigates to the inventory section of their profile. 2. User selects the remove option on a game. 3. System presents a confirmation prompt. 4. User confirms the removal. 5. System removes the game from the inventory and persists the change. |
+| **Alternative Flow** | **Remove 4a.** User dismisses the confirmation prompt — no action is taken and the game remains in the inventory. |
+| **Exception Flow** | **Add:** If the selected game already exists in the user's inventory, the system displays an informational message and does not create a duplicate entry. |
+| **Related FR** | FR1.2 |
+
+---
+
+##### UC-PROF-04: Manage Game Preferences
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-PROF-04 |
+| **Use Case Name** | Manage Game Preferences |
+| **Actor(s)** | Registered User |
+| **Description** | A registered user sets or updates their board game genre and mechanic preferences, which are stored as part of their profile and visible to other users in a read-only view. |
+| **Preconditions** | The user is authenticated and has an active session. The user has an existing profile. |
+| **Postconditions** | The user's selected genre and mechanic preferences are persisted and displayed on their profile in a read-only view for other users. |
+| **Basic Flow** | **Set:** 1. User navigates to their profile and selects the preferences section. 2. System displays a list of available genres and game mechanics in an unselected state. 3. User selects their preferred genres and mechanics. 4. User saves their preferences. 5. System persists the selections and displays them on the user's profile. <br><br> **Update:** 1. User navigates to the preferences section. 2. System displays available genres and mechanics with current selections highlighted. 3. User modifies their selections and saves. 4. System persists the updated preferences and reflects the changes immediately on the user's profile. |
+| **Alternative Flow** | None. |
+| **Exception Flow** | None. |
+| **Related FR** | FR1.3 |
+
+---
+
+![User Service Socials Use Case Diagram](./diagrams/uc-social.png)
+
+##### UC-SOC-01: Manage Friend Requests
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-SOC-01 |
+| **Use Case Name** | Manage Friend Requests |
+| **Actor(s)** | Registered User |
+| **Description** | A registered user sends, accepts, or rejects friend requests to form peer connections on the platform. |
+| **Preconditions** | The user is authenticated and has an active session. Both users involved have existing profiles. |
+| **Postconditions** | **Send:** A pending friend request is created between the two users. **Accept:** Both users are added to each other's friends lists and the request is resolved. **Reject:** The friend request is removed and no connection is established. |
+| **Basic Flow** | **Send:** 1. User navigates to another user's profile and selects the add friend option. 2. System creates a pending friend request and notifies the recipient. 3. System updates the add friend option to a pending status indicator. <br><br> **Accept/Reject:** 1. User navigates to their notifications or friend requests page. 2. User views the incoming friend request and selects accept or reject. 3. On accept, both users are added to each other's friends lists and the request is resolved. On reject, the request is removed and no connection is established. |
+| **Alternative Flow** | **Send:** If the target user has already sent the acting user a friend request, the system presents the option to accept that existing request instead of creating a new one. |
+| **Exception Flow** | **Send:** If a pending request already exists between the two users, the system does not create a duplicate and displays the pending status indicator. |
+| **Related FR** | FR1.4 |
+
+---
+
+##### UC-SOC-02: Manage Friends List
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-SOC-02 |
+| **Use Case Name** | Manage Friends List |
+| **Actor(s)** | Registered User |
+| **Description** | A registered user views their friends list or removes an existing friend connection from the platform. |
+| **Preconditions** | The user is authenticated and has an active session. |
+| **Postconditions** | **View:** The user's current friends list is displayed. **Unfriend:** The connection between both users is permanently removed from each other's friends lists. |
+| **Basic Flow** | **View:** 1. User navigates to their profile or friends page. 2. System retrieves and displays all current friends, showing their display names and profile pictures. <br><br> **Unfriend:** 1. User navigates to their friends list or a friend's profile and selects the unfriend option. 2. System presents a confirmation prompt. 3. User confirms the action. 4. System removes the connection from both users' friends lists. 5. System displays the add friend option on the unfriended user's profile. |
+| **Alternative Flow** | **View:** If the user has no friends, the system displays a message indicating the friends list is empty. **Unfriend 3a.** User dismisses the confirmation prompt — no action is taken and the friend connection is retained. |
+| **Exception Flow** | None. |
+| **Related FR** | FR1.4 |
+
+---
+
+##### UC-SOC-03: Manage Groups
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-SOC-03 |
+| **Use Case Name** | Manage Groups |
+| **Actor(s)** | Registered User |
+| **Description** | A registered user creates a new group, joins an existing group, or views a group's details and members. |
+| **Preconditions** | The user is authenticated and has an active session. |
+| **Postconditions** | **Create:** A new group is persisted with the user assigned as owner and first member. **Join:** The user is added as a member of the selected group. **View:** Group details and members are displayed to the user. |
+| **Basic Flow** | **Create:** 1. User navigates to the groups page and selects the create group option. 2. User provides a group name and optional description. 3. System validates that a group name has been provided. 4. System creates the group, assigns the user as owner, and automatically adds them as the first member. <br><br> **Join:** 1. User browses or searches groups. 2. User selects the join option on a public group. 3. System adds the user as a member. <br><br> **View:** 1. User navigates to a group's page. 2. If a member, the system displays the group name, description, and full member list. 3. If not a member, the system displays basic details and presents the join option. |
+| **Alternative Flow** | None. |
+| **Exception Flow** | **Create:** If the user submits without a group name, the system displays a validation error and does not create the group. |
+| **Related FR** | FR1.4 |
+
+---
+
+![User Service Events Use Case Diagram](./diagrams/uc-events.png)
+
+##### UC-EVT-01: Manage Events
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-EVT-01 |
+| **Use Case Name** | Manage Events |
+| **Actor(s)** | Registered User |
+| **Description** | A registered user creates a new gaming event or updates the details of an existing event they own. |
+| **Preconditions** | The user is authenticated and has an active session. |
+| **Postconditions** | **Create:** A new event is persisted and made visible according to the selected visibility setting. **Update:** The event's updated details are persisted and reflected immediately for all users who can view it. |
+| **Basic Flow** | **Create:** 1. User navigates to the events page and selects the create event option. 2. User provides an event name, date, time, game, and visibility setting. 3. System validates all required fields are populated. 4. System creates the event and makes it visible according to the selected setting. <br><br> **Update:** 1. User navigates to an event they have created and selects the edit option. 2. User modifies the desired fields. 3. System validates and persists the changes. 4. System reflects the updated details immediately for all users who can view the event. |
+| **Alternative Flow** | None. |
+| **Exception Flow** | **Create:** If any required field is empty, the system displays a validation error and does not save. **Update:** If the user attempting to edit is not the event creator, the system does not display the edit option and denies access. |
+| **Related FR** | FR3.1 |
+
+---
+
+##### UC-EVT-02: View Events
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-EVT-02 |
+| **Use Case Name** | View Events |
+| **Actor(s)** | Registered User |
+| **Description** | A registered user browses available gaming events to find sessions to join. |
+| **Preconditions** | The user is authenticated and has an active session. |
+| **Postconditions** | The user is presented with a list of events visible to them. |
+| **Basic Flow** | 1. User navigates to the events page. 2. System retrieves all public events and any private events the user has been invited to. 3. System displays the events list. |
+| **Alternative Flow** | None. |
+| **Exception Flow** | If no events are available, the system displays a message indicating no events are currently scheduled. |
+| **Related FR** | FR3.1 |
+
+---
+
+##### UC-EVT-03: RSVP to an Event
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-EVT-03 |
+| **Use Case Name** | RSVP to an Event |
+| **Actor(s)** | Registered User |
+| **Description** | A registered user joins or withdraws from a gaming event to indicate their attendance intention. |
+| **Preconditions** | The user is authenticated and has an active session. The event exists and is visible to the user. |
+| **Postconditions** | **Join:** The user's RSVP is recorded and they are added to the attendee list. **Decline/Withdraw:** The user is removed from the attendee list. |
+| **Basic Flow** | **Join:** 1. User selects the join option on an event. 2. System records the RSVP and adds the user to the attendee list. 3. System replaces the join option with a decline or withdraw option. <br><br> **Decline/Withdraw:** 1. User selects the decline or withdraw option on an event they have previously joined. 2. System removes the user from the attendee list and updates their RSVP status. |
+| **Alternative Flow** | None. |
+| **Exception Flow** | None. |
+| **Related FR** | FR3.2 |
+
+---
+
 ### 9.2 Marketplace Service
 
 ### 9.3 Shared Library - The Vault Service
