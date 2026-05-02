@@ -96,6 +96,10 @@ The objectives of the system are to:
 
 ### 4.2 Marketplace Domain
 
+- **FR2.1:** The system must display user-generated listings for board game rentals and sales, including pricing and availability.
+- **FR2.2:** The system must allow users to create and manage their own rental and sale listings.
+- **FR2.3:** The system must aggregate and display external retail purchasing links (online and in-store) for specific board games.
+
 ### 4.3 Community & Events Domain
 
 - **FR3.1:** The system must allow users to schedule gaming events, defining parameters such as date, time, game, and visibility (Public or Private).
@@ -103,6 +107,8 @@ The objectives of the system are to:
 
 ### 4.4 Shared Library Domain (The Vault)
 
+- **FR4.1:** The system must accept and store user-uploaded PDF documents representing board game rulebooks.
+- **FR4.2:** The system must provide a collaborative interface allowing users to view and update existing rulebook text.
 ### 4.5 UI & Usability
 
 - **FR5.1:** The system must provide contextual help text or tooltips for complex interactions (e.g., uploading a rulebook to The Vault or setting up a P2P rental listing).
@@ -677,7 +683,349 @@ The User Service domain model centres on the `User` class, which holds core iden
 
 ### 9.2 Marketplace Service
 
+The Marketplace Service is responsible for the peer-to-peer and retail discovery experience within Boardwise. It encompasses the ability for users to browse community listings for board games and board game themed merchandise available for rental or sale, create and manage their own listings, and discover where to purchase games both online and in-store. The marketplace enables the community to transact and trade independently of any single retailer.
+
+#### 9.2.1 Domain Model
+
+The Marketplace domain model is centred on the `User`, `BoardGame`, `Listing`, and `RetailSource` entities. A `User` makes zero or more `Listings` and has relationships with `BoardGame` through ownership, rental, and purchase associations. A `BoardGame` can have zero or more `Listings` associated with it, and zero or more `RetailSource` entries indicating where the game can be purchased externally.
+
+![Marketplace Domain Model](./diagrams/Marketplace_Domain_Model.png)
+
+#### 9.2.2 User Stories
+
+---
+
+**Epic: Browse & Discover**
+
+##### US-MKT-01: Browse Community Listings
+
+**As a board game enthusiast, I want to browse listings created by other users, so that I can find board games available to rent or buy within my community.**
+
+**Acceptance Criteria:**
+- Given I am on the marketplace page, when the page loads, then all active listings are displayed, each showing the game title, listing type (rent or buy), price, and availability status.
+- Given I am on a mid-range device, when I open the app, then listings load within an acceptable response time and are paginated to maintain performance.
+- Given I am on the marketplace page, when I filter listings by listing type (rental or sale), price range, or game title, then only listings that meet the filter criteria are displayed.
+- Given I am a user on multiple devices, when I switch devices and open the marketplace, then the listing view is responsive and renders correctly across different screen sizes.
+- Given I am browsing the marketplace, when a listing is unavailable, then it is visually distinct from active listings and does not appear in search results.
+
+---
+
+##### US-MKT-02: View Listing Details
+
+**As a prospective buyer or renter, I want to view the full details of a specific listing, so that I can make an informed decision before contacting the seller.**
+
+**Acceptance Criteria:**
+- Given I am on the marketplace page, when I click on a listing, then I am navigated to a detail view displaying the game title, rental/sale price, listing description, and the seller's display name.
+- Given I am on a listing's detail view, when the page loads, then a call-to-action is visible that links to the seller to allow for communication through the Boardwise app.
+
+---
+
+##### US-MKT-03: Discover External Retail Sources
+
+**As a board game shopper, I want to see where I can purchase a specific game from online or in-store retailers, so that I can find options for titles not available through peer listings.**
+
+**Acceptance Criteria:**
+- Given I am on a game's detail or search result page, when the page loads, then an aggregated "Where to Buy" section is displayed containing available retail options.
+- Given I am viewing the "Where to Buy" section, when retail data is available, then a list of external retail links is shown, each displaying the retailer name and a direct link that opens in a new tab and is clearly shown as an external source.
+- Given I am viewing the "Where to Buy" section, when no retail data is available for the title, then a fallback message is displayed.
+
+---
+
+**Epic: Listing Management**
+
+##### US-MKT-04: Create a Rental or Sale Listing
+
+**As a board game owner, I want to create a listing to rent or sell one of my games, so that other community members can find and acquire it.**
+
+**Acceptance Criteria:**
+- Given I am a logged in user, when I am on the marketplace interface, then I can access a "Create Listing" form.
+- Given I am on the "Create Listing" form, when I open it, then I am prompted to fill in the following required fields: item image, game title, item type, listing type (rental or sale), and price, as well as an optional description field.
+- Given I am completing the "Create Listing" form, when I submit the form with one or more required fields missing or invalid, then errors are displayed clearly and the form is not submitted.
+- Given I am completing the "Create Listing" form, when I successfully submit the form, then the listing becomes immediately visible in the marketplace and I receive a success notification confirming it has been published.
+- Given I am an unauthenticated user, when I attempt to access the "Create Listing" form, then I am redirected to the login or registration page.
+
+---
+
+##### US-MKT-05: Manage Own Listings
+
+**As a seller or lender, I want to edit or remove my active listings, so that I can keep my availability and pricing accurate.**
+
+**Acceptance Criteria:**
+- Given I am an authenticated user, when I navigate to my profile or marketplace dashboard, then I can view all of my own listings in a dedicated "My Listings" section.
+- Given I am viewing one of my own listings, when I select the "Edit" option, then a form pre-populated with the listing's existing data is presented and I am able to update any field.
+- Given I am viewing one of my own listings, when I select "Delete" or "Mark as Unavailable", then the listing is immediately removed from public view.
+- Given I am an authenticated user, when I save changes to one of my listings, then the updates are persisted and reflected in the marketplace view without requiring a full page reload.
+- Given I am an authenticated user, when I attempt to edit or delete a listing that belongs to another user, then the action is rejected and an authorisation error is returned.
+
+---
+
+#### 9.2.3 Use Cases
+
+![Marketplace Use Case Diagram](./diagrams/Marketplace__USE_CASE.drawio_1.png)
+
+##### UC-MKT-01: Browse and Filter Community Listings
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-MKT-01 |
+| **Use Case Name** | Browse and Filter Community Listings |
+| **Actor(s)** | Registered User, Guest User |
+| **Description** | A user navigates to the marketplace and browses active peer listings, optionally applying filters to narrow results. |
+| **Preconditions** | The marketplace contains at least one active listing. Network connectivity is stable. |
+| **Postconditions** | The user is presented with a filtered or unfiltered list of active listings. |
+| **Basic Flow** | 1. User navigates to the Marketplace section of the application. <br> 2. The system fetches and displays all active listings from the backend. <br> 3. Each listing card displays the game title, listing type, price, and availability. <br> 4. User optionally applies filters (type, price range, game title). <br> 5. The system re-queries and updates the listing display in response to filter changes. |
+| **Alternative Flow** | **4a.** User searches by game title using a search input — the system returns listings matching the title substring. |
+| **Exception Flow** | **2a.** If the backend fails to return listings, the system displays an error message and a retry option. <br> **2b.** If no listings match the applied filters, the system displays a "No listings found" message. |
+| **Related FR** | FR2.1 |
+
+---
+
+##### UC-MKT-02: View Full Listing Detail
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-MKT-02 |
+| **Use Case Name** | View Full Listing Detail |
+| **Actor(s)** | Registered User, Guest User |
+| **Description** | A user selects a listing from the marketplace browse view to inspect its full details before deciding to act. |
+| **Preconditions** | The listing exists and is in an active state. |
+| **Postconditions** | The user has viewed the complete listing information and may proceed to contact the seller or return to browsing. |
+| **Basic Flow** | 1. User clicks on a listing card in the marketplace. <br> 2. The system fetches the full listing record by ID and renders the detail view. <br> 3. The detail view displays game title, condition, price, listing type, description, and seller display name. <br> 4. User reviews the information and selects "Contact Seller" or navigates back. |
+| **Alternative Flow** | **4a.** User selects "Contact Seller" — the system routes the user to the relevant community profile or messaging interface. |
+| **Exception Flow** | **2a.** If the listing has been deleted between browse and click, the system displays a "Listing no longer available" message and returns the user to the browse view. |
+| **Related FR** | FR2.1 |
+
+---
+
+##### UC-MKT-03: Create a Rental or Sale Listing
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-MKT-03 |
+| **Use Case Name** | Create a Rental or Sale Listing |
+| **Actor(s)** | Registered User |
+| **Description** | An authenticated user creates a new listing to offer one of their board games for rent or sale on the marketplace. |
+| **Preconditions** | The user is authenticated. The user owns the board game they wish to list. |
+| **Postconditions** | A new listing is persisted in the database and immediately visible in the marketplace. |
+| **Basic Flow** | 1. User navigates to the marketplace and selects "Create Listing". <br> 2. The system displays the listing creation form. <br> 3. User fills in game title, listing type (rental/sale), price, and optional description. <br> 4. User submits the form. <br> 5. The system validates all required fields. <br> 6. The system persists the listing to the database, associated with the user's account. <br> 7. The system returns a success notification and the new listing appears in the marketplace. |
+| **Alternative Flow** | **3a.** User selects a game title from an autocomplete list populated by the existing board game catalogue. |
+| **Exception Flow** | **5a.** If required fields are missing or invalid, the system highlights the offending fields with inline error messages and halts submission. <br> **1a.** If the user is not authenticated, the system redirects to the login/registration page with a return URL to the listing form. |
+| **Related FR** | FR2.2 |
+
+---
+
+##### UC-MKT-04: Edit an Existing Listing
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-MKT-04 |
+| **Use Case Name** | Edit an Existing Listing |
+| **Actor(s)** | Registered User (listing owner) |
+| **Description** | A user updates the details of one of their own active listings, such as adjusting the price or updating availability. |
+| **Preconditions** | The user is authenticated and is the owner of the listing being edited. The listing is in an active state. |
+| **Postconditions** | The listing reflects the updated information in the marketplace immediately. |
+| **Basic Flow** | 1. User navigates to "My Listings" on their profile. <br> 2. The system fetches and displays all listings belonging to the authenticated user. <br> 3. User selects "Edit" on the target listing. <br> 4. The system displays the edit form pre-populated with the listing's current values. <br> 5. User modifies the desired fields and submits. <br> 6. The system validates the updated fields and persists the changes. <br> 7. The updated listing is reflected in the marketplace view. |
+| **Alternative Flow** | None. |
+| **Exception Flow** | **5a.** If validation fails on updated fields, inline errors are shown and the update is not persisted. <br> **3a.** If the listing was deleted by another session since the page loaded, the system notifies the user and refreshes "My Listings". |
+| **Related FR** | FR2.2 |
+
+---
+
+##### UC-MKT-05: Delete or Deactivate a Listing
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-MKT-05 |
+| **Use Case Name** | Delete or Deactivate a Listing |
+| **Actor(s)** | Registered User (listing owner) |
+| **Description** | A user removes or marks as unavailable one of their own listings so that it no longer appears in the public marketplace. |
+| **Preconditions** | The user is authenticated and owns the listing. The listing is currently active. |
+| **Postconditions** | The listing is no longer visible in the public marketplace browse view. |
+| **Basic Flow** | 1. User navigates to "My Listings". <br> 2. User selects "Delete" or "Mark as Unavailable" on the target listing. <br> 3. The system presents a confirmation prompt. <br> 4. User confirms the action. <br> 5. The system soft-deletes or flags the listing as inactive in the database. <br> 6. The listing is immediately removed from public marketplace results. <br> 7. The system confirms the action with a success notification. |
+| **Alternative Flow** | **5a.** "Mark as Unavailable" sets the listing to an inactive state without deleting the record, allowing the user to reactivate it later. |
+| **Exception Flow** | **4a.** If the user cancels the confirmation prompt, no changes are made and the listing remains active. |
+| **Related FR** | FR2.2 |
+
+---
+
+##### UC-MKT-06: View External Retail Purchase Links
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-MKT-06 |
+| **Use Case Name** | View External Retail Purchase Links |
+| **Actor(s)** | Registered User, Guest User |
+| **Description** | A user viewing a board game in the marketplace accesses aggregated external retail links to find where they can purchase the title, both online and at nearby physical stores. |
+| **Preconditions** | The game title exists in the system's catalogue. The backend retail aggregation service has data for the title. |
+| **Postconditions** | The user is presented with one or more external retail options, or a graceful fallback if none are available. |
+| **Basic Flow** | 1. User navigates to a game's detail or search result page within the marketplace. <br> 2. The system calls the backend retail aggregation endpoint with the game title as the query parameter. <br> 3. The backend returns a list of retail sources including retailer name, link type (online/in-store), and URL. <br> 4. The system renders the "Where to Buy" section with the aggregated results. <br> 5. User clicks a retail link, which opens in a new browser tab. |
+| **Alternative Flow** | **3a.** If only online retailers are available, the "in-store" section is either hidden or displays a "No in-store listings found near you" message. |
+| **Exception Flow** | **2a.** If the retail aggregation service returns no results for the title, the system displays a fallback message: "No retail information available for this title at this time." <br> **2b.** If the aggregation service is unreachable, the system logs the failure and displays the fallback message. |
+| **Related FR** | FR2.3 |
+
+---
+
 ### 9.3 Shared Library - The Vault Service
+
+The Vault is the Shared Library subsystem of Boardwise. It provides a community-maintained digital repository of board game rulebooks, accessible to all registered users. The Vault enables contributors to upload PDF rulebooks and collaborators to edit and correct rulebook text using a strict Multi-Reader Single-Writer (MRSW) concurrency model. The subsystem is built on a dual-backend architecture: Spring Boot handles transactional operations (metadata management, MRSW lock management, edit history), while FastAPI handles the PDF ingestion pipeline.
+
+#### 9.3.1 Domain Model
+
+The Vault domain model is centred on the `Rulebook` entity. The `IngestionPipeline` processes the uploaded PDF and creates the `Rulebook` document itself. A `Rulebook` is guarded by a `WriteLock` (the MRSW lock), has current text stored in a `RulebookText` document, and tracks all historical changes via the `EditEvent` ledger (event sourcing).
+
+![Vault Domain Model](./diagrams/The_Vault_Domian_Model.png)
+
+#### 9.3.2 User Stories
+
+---
+
+**Epic: Digital Vault Ingestion & Management**
+
+##### US-VLT-01: Upload a Rulebook
+
+**As a community contributor, I want to upload a PDF of a board game rulebook, so that it can be added to the Shared Library for others to view and edit.**
+
+**Acceptance Criteria:**
+- The system accepts `.pdf` file formats up to 50 MB.
+- The upload UI provides a clear progress indicator and a success or failure notification.
+- The raw PDF is securely stored in Cloudflare R2.
+- The Nuxt BFF proxies the upload request directly to FastAPI, which validates the JWT, sanitises the PDF, extracts text, and stores metadata in MongoDB Atlas.
+- The file is rejected with a clear error if it exceeds the size limit, is not a PDF, or fails sanitisation.
+
+---
+
+##### US-VLT-02: Browse the Vault Library
+
+**As a tabletop player, I want to search for and view existing rulebooks in the Vault, so that I can find and read the rules for a specific game.**
+
+**Acceptance Criteria:**
+- Users can search the Vault by game title.
+- The Nuxt BFF routes the search request to Spring Boot, which fetches rulebook metadata from MongoDB.
+- The UI displays rulebook cards with game name, edition, upload date, version number, and contributor username.
+- The interface scales appropriately for mobile and desktop screens.
+- Only rulebooks with status `Ready` appear in search results.
+
+---
+
+**Epic: Collaborative Rulebook Editor**
+
+##### US-VLT-03: View a Rulebook in the Editor
+
+**As a registered user, I want to view the text content of a rulebook in the collaborative editor, so that I can read the rules without downloading the PDF.**
+
+**Acceptance Criteria:**
+- The rulebook text content loads within 2 seconds of selection.
+- The current version number and last editor username are displayed.
+- Multiple users may view the same rulebook simultaneously in read-only mode without conflict.
+- If another user holds the write lock, a banner displays "Currently being edited by [username]" and the Edit button is disabled.
+
+---
+
+##### US-VLT-04: Edit a Rulebook
+
+**As a community contributor, I want to edit a specific section of a rulebook, so that I can correct an error or add an official publisher errata.**
+
+**Acceptance Criteria:**
+- The user interface provides an "Edit" button when viewing a rulebook that is not currently locked.
+- After acquiring the write lock via Spring Boot's MRSW lock manager, the editor becomes active.
+- Modifying the text triggers debounced auto-save; a full page reload is never required.
+- Other users viewing the document see committed changes in real time via WebSocket.
+
+---
+
+##### US-VLT-05: Concurrency Lock (MRSW)
+
+**As a reader, I want to be prevented from editing a rulebook that another user is currently working on, so that our changes do not overwrite each other.**
+
+**Acceptance Criteria:**
+- Spring Boot issues an exclusive write lock to the first user who requests edit access on a rulebook.
+- Other users viewing the document see a real-time banner: "Currently being edited by [username]" and the Edit button is disabled.
+- If the lock holder goes idle for 30 seconds, the lock is automatically released and all readers are notified.
+- WebSocket broadcasts ensure all active readers see lock state changes instantly.
+
+---
+
+##### US-VLT-06: Edit History
+
+**As a Vault user, I want to view the version history of a rulebook, so that I can see what changes have been made and by whom.**
+
+**Acceptance Criteria:**
+- Spring Boot logs every edit as an immutable event in the MongoDB `EDIT_EVENT` ledger.
+- Each commit increments a version counter and stores the delta.
+- Authorised users can view a chronological list of changes including who made them and when.
+
+---
+
+#### 9.3.3 Use Cases
+
+![Vault Use Case Diagram](./diagrams/The_Vault_Use_Case_Diagram.png)
+
+##### UC-VLT-01: Upload a PDF Rulebook
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-VLT-01 |
+| **Use Case Name** | Upload a PDF Rulebook |
+| **Actor(s)** | Contributor (Registered User) |
+| **Description** | An authenticated user uploads a PDF rulebook to the Vault. The system sanitises and extracts the content, then makes it available to the community. |
+| **Preconditions** | User is authenticated. File is in PDF format and within the size limit. Network connectivity is stable. |
+| **Postconditions** | Rulebook metadata is stored in MongoDB. Raw PDF is stored in Cloudflare R2. Rulebook status is set to 'Ready'. |
+| **Basic Flow** | 1. User navigates to the Vault and selects 'Upload Rulebook'. <br> 2. System presents a file picker filtered to PDF only. <br> 3. User selects a file, enters the game name, and confirms the upload. <br> 4. System displays a real-time upload progress indicator. <br> 5. The Nuxt BFF proxies the request directly to FastAPI. <br> 6. FastAPI validates the JWT, sanitises the PDF, and extracts text. <br> 7. Raw PDF and extracted text are written to Cloudflare R2; rulebook metadata is stored in MongoDB Atlas. <br> 8. Rulebook status transitions to 'Ready' and the user receives an in-app notification. |
+| **Alternative Flow** | **3a.** User uploads a file without entering a game name — the system highlights the required field and prevents submission until it is filled. |
+| **Exception Flow** | **2a.** User selects a non-PDF file — the system rejects it with a clear format error message. <br> **4a.** File exceeds the size limit — the system rejects the upload and prompts the user to compress or split the file. <br> **6a.** Sanitisation detects unsafe content — the file is rejected, the attempt is logged, and the user sees a plain-language error. <br> **7a.** Text extraction fails — the raw PDF is stored to R2 with status 'Pending Review' and the user is notified. <br> **8a.** Network failure mid-upload — the system presents a retry option with the file still selected. |
+| **Related FR** | FR4.1 |
+
+---
+
+##### UC-VLT-02: View and Browse the Vault Library
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-VLT-02 |
+| **Use Case Name** | View and Browse the Vault Library |
+| **Actor(s)** | Registered User |
+| **Description** | An authenticated user navigates to the Vault, browses available rulebooks, and optionally searches by game name to find a specific rulebook. |
+| **Preconditions** | User is authenticated. At least one rulebook has 'Ready' status. Network connectivity is stable. |
+| **Postconditions** | The user is presented with a filtered or unfiltered list of ready rulebooks. No state changes are made to any rulebook document. |
+| **Basic Flow** | 1. User navigates to the Vault section of the application. <br> 2. The Nuxt BFF routes the request to Spring Boot. <br> 3. Spring Boot fetches and returns all 'Ready' rulebooks from MongoDB. <br> 4. Each rulebook card displays game name, upload date, version number, and contributor username. <br> 5. User optionally types a game name into the search bar. <br> 6. System re-queries Spring Boot and updates the displayed list. <br> 7. User selects a rulebook card to open its detail page. <br> 8. Detail page displays full metadata and options to view, edit, or download the rulebook. |
+| **Alternative Flow** | **4a.** User browses without searching — all 'Ready' rulebooks are displayed in order of most recently updated. <br> **8a.** User selects 'Download PDF' — Spring Boot generates a short-lived pre-signed URL for the Cloudflare R2 object; the client downloads directly from R2. |
+| **Exception Flow** | **2a.** Backend fails to return rulebooks — the system displays an error message and a retry option. <br> **5a.** Search returns no matching rulebooks — the system displays a 'No rulebooks found for [query]' message with a prompt to upload one. |
+| **Related FR** | FR4.2 |
+
+---
+
+##### UC-VLT-03: View a Rulebook in the Collaborative Editor
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-VLT-03 |
+| **Use Case Name** | View a Rulebook in the Collaborative Editor |
+| **Actor(s)** | Registered User |
+| **Description** | An authenticated user opens a rulebook in the collaborative editor to read its text content. Multiple users may view the same rulebook simultaneously in read-only mode. |
+| **Preconditions** | User is authenticated. The selected rulebook has 'Ready' status. Network connectivity is stable. |
+| **Postconditions** | The rulebook text is displayed to the user. No changes are made to the rulebook document or version counter. |
+| **Basic Flow** | 1. User selects a rulebook and selects 'View Rulebook'. <br> 2. Nuxt routes the request to Spring Boot, which fetches the current text state from MongoDB and returns it. <br> 3. The current version number and last editor username are displayed. <br> 4. If another user holds the write lock, a banner shows 'Currently being edited by [username]'. <br> 5. The user reads the rulebook in read-only mode. <br> 6. If the active editor commits a change, the user's view updates in real time via WebSocket without a page refresh. |
+| **Alternative Flow** | **4a.** No user holds the write lock — the user is presented with an 'Edit' button to request the write lock. |
+| **Exception Flow** | **2a.** Text content fails to load within 2 seconds — the system displays an error and a retry option. <br> **6a.** WebSocket connection drops — the UI shows a 'Reconnecting…' banner and re-syncs to the latest version on reconnect. |
+| **Related FR** | FR4.2 |
+
+---
+
+##### UC-VLT-04: Edit a Rulebook Collaboratively
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-VLT-04 |
+| **Use Case Name** | Edit a Rulebook Collaboratively |
+| **Actor(s)** | Collaborator — writer (primary), Collaborator — reader (secondary), Spring Boot (system) |
+| **Description** | An authenticated user acquires the write lock on a rulebook and makes edits. Changes are committed to MongoDB, the version counter is incremented, and a delta is broadcast in real time to all other active viewers. |
+| **Preconditions** | User is authenticated. Rulebook status is 'Ready'. No other user currently holds the write lock. |
+| **Postconditions** | MongoDB contains the updated text state and an incremented version number. The edit delta is appended to the EDIT_EVENT ledger. All active readers see the latest version. |
+| **Basic Flow** | 1. User opens a rulebook in read mode and selects 'Edit'. <br> 2. Spring Boot checks the lock state — no write lock is held. <br> 3. Spring Boot grants the write lock to the user; the editor becomes active. <br> 4. All other active viewers receive a WebSocket broadcast banner: 'Being edited by [username]'. <br> 5. User makes edits; each keystroke triggers a debounced auto-save. <br> 6. Spring Boot validates the edit against the current version counter. <br> 7. Edit passes the version check; Spring Boot commits the delta to MongoDB and increments the version counter. <br> 8. Delta is broadcast via WebSocket to all active readers; their views update without a refresh. <br> 9. User selects 'Done Editing'; Spring Boot releases the write lock. <br> 10. All active readers are notified that editing is now available. |
+| **Alternative Flow** | **1a.** User selects 'Edit' but the write lock is held by another user — the Edit button is disabled and a banner shows 'Being edited by [username]'. |
+| **Exception Flow** | **6a.** Version mismatch — Spring Boot rejects the edit, presents the latest version, and prompts the user to re-apply their change. <br> **9a.** User's session expires mid-edit — the write lock is automatically released after a 30-second idle timeout. <br> **8a.** WebSocket broadcast fails — affected readers are flagged with a 'View may be out of date' warning and prompted to refresh. |
+| **Related FR** | FR4.2 |
+
 
 ---
 
@@ -1460,11 +1808,634 @@ All protected endpoints require a valid JWT passed as a Bearer token in the `Aut
 
 ### 10.2 Marketplace Service API Contracts
 
-### 10.3 The Vault Service API Contracts
+**Validation Error Body:**
+```json
+{
+  "code": "string",
+  "message": "string",
+  "errors": [
+    {
+      "field": "string",
+      "message": "string"
+    }
+  ]
+}
+```
+
+---
+
+#### AC-MKT-01: Get All Active Listings
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-MKT-01 |
+| **Endpoint** | `GET /api/marketplace/listings` |
+| **Description** | Returns a list of all active community listings. Supports filtering by listing type, price range, and game title. |
+| **Authentication** | None required |
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `page` | integer | No | Page number. Default: `1` |
+| `pageSize` | integer | No | Results per page. Default: `20`. Max: `50` |
+| `listingType` | string | No | `RENT` or `SALE` |
+| `minPrice` | number | No | Minimum price filter (ZAR) |
+| `maxPrice` | number | No | Maximum price filter (ZAR) |
+| `gameTitle` | string | No | Partial or full game title substring search |
+| `itemType` | string | No | `BOARD_GAME`, `MERCHANDISE`, or `EXPANSION` |
+
+**Success Response — 200 OK:**
+```json
+{
+  "data": [
+    {
+      "id": "string",
+      "userId": "string",
+      "sellerDisplayName": "string",
+      "gameTitle": "string",
+      "itemType": "BOARD_GAME",
+      "listingType": "RENT",
+      "price": 80.00,
+      "description": "string",
+      "imageUrl": "string",
+      "status": "ACTIVE",
+      "createdAt": "ISO8601",
+      "updatedAt": "ISO8601"
+    }
+  ],
+  "page": 1,
+  "pageSize": 20,
+  "totalItems": 143,
+  "totalPages": 8
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `503 Service Unavailable` | External data service is unreachable |
+
+---
+
+#### AC-MKT-02: Get Listing by ID
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-MKT-02 |
+| **Endpoint** | `GET /api/marketplace/listings/{listingId}` |
+| **Description** | Returns the full detail of a single active listing by its unique ID. |
+| **Authentication** | None required |
+
+**Success Response — 200 OK:**
+```json
+{
+  "id": "string",
+  "userId": "string",
+  "sellerDisplayName": "string",
+  "gameTitle": "string",
+  "itemType": "BOARD_GAME",
+  "listingType": "RENT",
+  "price": 80.00,
+  "description": "string",
+  "imageUrl": "string",
+  "status": "ACTIVE",
+  "createdAt": "ISO8601",
+  "updatedAt": "ISO8601"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `404 Not Found` | No active listing exists with the provided ID |
+
+---
+
+#### AC-MKT-03: Create a Listing
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-MKT-03 |
+| **Endpoint** | `POST /api/marketplace/listings` |
+| **Description** | Creates a new rental or sale listing associated with the authenticated user's account. |
+| **Authentication** | Bearer token required |
+| **Content-Type** | `multipart/form-data` |
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `gameTitle` | string | Yes | Title of the board game being listed |
+| `itemType` | string | Yes | `BOARD_GAME`, `MERCHANDISE`, or `EXPANSION` |
+| `listingType` | string | Yes | `RENT` or `SALE` |
+| `price` | number | Yes | Listing price in ZAR |
+| `image` | file | Yes | JPEG or PNG image file. Max size: 5MB |
+| `description` | string | No | Optional free-text description |
+
+**Success Response — 201 Created:**
+```json
+{
+  "id": "string",
+  "userId": "string",
+  "sellerDisplayName": "string",
+  "gameTitle": "Wingspan",
+  "itemType": "BOARD_GAME",
+  "listingType": "SALE",
+  "price": 450.00,
+  "description": "string",
+  "imageUrl": "string",
+  "status": "ACTIVE",
+  "createdAt": "ISO8601",
+  "updatedAt": "ISO8601"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | One or more required fields are missing or invalid |
+| `401 Unauthorized` | No valid authentication token provided |
+| `413 Payload Too Large` | Uploaded image exceeds the 5MB size limit |
+
+---
+
+#### AC-MKT-04: Update a Listing
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-MKT-04 |
+| **Endpoint** | `PATCH /api/marketplace/listings/{listingId}` |
+| **Description** | Partially updates an existing listing. Only the fields included in the request body are modified. Only the listing owner may perform this action. |
+| **Authentication** | Bearer token required |
+| **Content-Type** | `application/json` |
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `gameTitle` | string | No | Updated game title |
+| `listingType` | string | No | `RENT` or `SALE` |
+| `price` | number | No | Updated price in ZAR |
+| `description` | string | No | Updated description |
+| `status` | string | No | `ACTIVE` or `INACTIVE` to deactivate without deleting |
+
+**Success Response — 200 OK:**
+```json
+{
+  "id": "string",
+  "userId": "string",
+  "sellerDisplayName": "string",
+  "gameTitle": "string",
+  "itemType": "BOARD_GAME",
+  "listingType": "SALE",
+  "price": 350.00,
+  "description": "string",
+  "imageUrl": "string",
+  "status": "ACTIVE",
+  "createdAt": "ISO8601",
+  "updatedAt": "ISO8601"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | One or more updated fields are invalid |
+| `401 Unauthorized` | No valid authentication token provided |
+| `403 Forbidden` | Authenticated user does not own this listing |
+| `404 Not Found` | No listing exists with the provided ID |
+
+---
+
+#### AC-MKT-05: Delete a Listing
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-MKT-05 |
+| **Endpoint** | `DELETE /api/marketplace/listings/{listingId}` |
+| **Description** | Permanently removes a listing from the marketplace. Only the listing owner may perform this action. |
+| **Authentication** | Bearer token required |
+
+**Success Response — 204 No Content:** No response body is returned on successful deletion.
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | No valid authentication token provided |
+| `403 Forbidden` | Authenticated user does not own this listing |
+| `404 Not Found` | No listing exists with the provided ID |
+
+---
+
+#### AC-MKT-06: Get Authenticated User's Listings
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-MKT-06 |
+| **Endpoint** | `GET /api/marketplace/listings/me` |
+| **Description** | Returns a paginated list of all listings belonging to the currently authenticated user, filterable by status. |
+| **Authentication** | Bearer token required |
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `page` | integer | No | Page number. Default: `1` |
+| `pageSize` | integer | No | Results per page. Default: `20` |
+| `status` | string | No | `ACTIVE`, `INACTIVE`, or `DELETED`. Default: `ACTIVE` |
+
+**Success Response — 200 OK:**
+```json
+{
+  "data": [
+    {
+      "id": "string",
+      "gameTitle": "string",
+      "listingType": "SALE",
+      "price": 350.00,
+      "status": "ACTIVE",
+      "createdAt": "ISO8601",
+      "updatedAt": "ISO8601"
+    }
+  ],
+  "page": 1,
+  "pageSize": 20,
+  "totalItems": 4,
+  "totalPages": 1
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | No valid authentication token provided |
+
+---
+
+#### AC-MKT-07: Get Retail Sources for a Game Title
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-MKT-07 |
+| **Endpoint** | `GET /api/marketplace/retail-sources` |
+| **Description** | Returns external retail purchase links for a given game title, sourced from both online and in-store retailers. |
+| **Authentication** | None required |
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `gameTitle` | string | Yes | The game title to search retail sources for |
+| `linkType` | string | No | Filter by `ONLINE` or `IN_STORE`. Returns all types if omitted |
+
+**Success Response — 200 OK:**
+```json
+{
+  "gameTitle": "Catan",
+  "sources": [
+    {
+      "retailerName": "string",
+      "linkType": "ONLINE",
+      "url": "string",
+      "priceIndication": 699.00,
+      "inStockIndication": true
+    }
+  ]
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | The `gameTitle` query parameter is required |
+| `404 Not Found` | No retail information is available for the given title |
+| `503 Service Unavailable` | The retail aggregation service is currently unreachable |
+
+---
+
+### 10.3 The Vault API Contracts
+
+All Vault endpoints require JWT authentication unless noted otherwise. JWTs are issued by Spring Boot and independently verified by FastAPI using a shared secret.
+
+---
+
+#### VC-001: Upload a PDF Rulebook
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | VC-001 |
+| **Endpoint** | `POST /api/vault/rulebooks` |
+| **Routes To** | FastAPI |
+| **Description** | Uploads a PDF rulebook. The BFF streams the multipart payload directly to FastAPI, which sanitises and extracts the content before writing metadata to MongoDB Atlas and the raw file to Cloudflare R2. |
+| **Authentication** | Bearer JWT — verified by FastAPI via shared secret |
+| **Content-Type** | `multipart/form-data` |
+
+**Request Body (multipart/form-data):**
+
+| Field | Required | Description |
+|---|---|---|
+| `file` | Yes | PDF only, max 50 MB |
+| `gameName` | Yes | String, max 120 chars |
+| `edition` | No | e.g. "3rd Edition" |
+
+**Success Response — 202 Accepted:**
+```json
+{
+  "rulebookId": "string",
+  "status": "Processing",
+  "message": "Rulebook accepted. Processing in background."
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | Missing `gameName`, or file field is absent |
+| `401 Unauthorized` | JWT is missing, expired, or signature verification failed |
+| `413 Payload Too Large` | File exceeds the 50 MB size limit |
+| `415 Unsupported Media Type` | Uploaded file is not a valid PDF |
+| `422 Unprocessable Entity` | Sanitisation stage detected unsafe embedded content |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### VC-002: List / Search Rulebooks
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | VC-002 |
+| **Endpoint** | `GET /api/vault/rulebooks` |
+| **Routes To** | Spring Boot |
+| **Description** | Returns a paginated list of rulebooks with `status: "Ready"`, ordered by most recently updated. Supports optional game-name search. |
+| **Authentication** | Bearer JWT |
+
+**Query Parameters:**
+
+| Parameter | Required | Description |
+|---|---|---|
+| `search` | No | Partial game-name match |
+| `page` | No | Default 1 |
+| `limit` | No | Default 20, max 100 |
+
+**Success Response — 200 OK:**
+```json
+{
+  "total": 48,
+  "page": 1,
+  "limit": 20,
+  "rulebooks": [
+    {
+      "rulebookId": "string",
+      "gameName": "string",
+      "edition": "string | null",
+      "version": 12,
+      "contributorName": "string",
+      "uploadedAt": "ISO 8601",
+      "updatedAt": "ISO 8601"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | JWT is missing or invalid |
+| `500 Internal Server Error` | MongoDB query failed |
+
+---
+
+#### VC-003: Get Rulebook Detail
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | VC-003 |
+| **Endpoint** | `GET /api/vault/rulebooks/{id}` |
+| **Routes To** | Spring Boot |
+| **Description** | Returns full metadata for a single rulebook, including its current processing status. Used to poll for `status: "Ready"` after upload. |
+| **Authentication** | Bearer JWT |
+
+**Success Response — 200 OK:**
+```json
+{
+  "rulebookId": "string",
+  "gameName": "string",
+  "edition": "string | null",
+  "status": "Processing | Ready | PendingReview",
+  "version": 12,
+  "contributorId": "string",
+  "contributorName": "string",
+  "uploadedAt": "ISO 8601",
+  "updatedAt": "ISO 8601",
+  "lockHeldBy": "username | null"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | JWT is missing or invalid |
+| `404 Not Found` | No rulebook exists with the provided `id` |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### VC-004: Download Raw PDF
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | VC-004 |
+| **Endpoint** | `GET /api/vault/rulebooks/{id}/download` |
+| **Routes To** | Spring Boot |
+| **Description** | Generates a short-lived pre-signed URL to the raw PDF stored in Cloudflare R2 and returns it to the client. The download event is logged in MongoDB for analytics. |
+| **Authentication** | Bearer JWT |
+
+**Success Response — 200 OK:**
+```json
+{
+  "downloadUrl": "string",
+  "expiresAt": "ISO 8601"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | JWT is missing or invalid |
+| `404 Not Found` | Rulebook not found or PDF not yet stored in R2 |
+| `502 Bad Gateway` | R2 pre-sign request failed |
+
+---
+
+#### VC-005: Get Rulebook Text State
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | VC-005 |
+| **Endpoint** | `GET /api/vault/rulebooks/{id}/text` |
+| **Routes To** | Spring Boot |
+| **Description** | Returns the current collaborative text state of the rulebook, including the version counter and active lock status. |
+| **Authentication** | Bearer JWT |
+
+**Success Response — 200 OK:**
+```json
+{
+  "rulebookId": "string",
+  "version": 12,
+  "content": "string",
+  "lockHeldBy": "username | null",
+  "updatedAt": "ISO 8601"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | JWT is missing or invalid |
+| `404 Not Found` | Rulebook not found or not in `Ready` status |
+| `504 Gateway Timeout` | MongoDB text fetch exceeded 2-second threshold |
+
+---
+
+#### VC-006: Acquire Write Lock (MRSW)
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | VC-006 |
+| **Endpoint** | `POST /api/vault/rulebooks/{id}/lock` |
+| **Routes To** | Spring Boot |
+| **Description** | Requests the exclusive write lock on a rulebook from the MRSW lock manager. Succeeds only if no other user currently holds the lock. On success, the editor becomes active and all current readers receive a WebSocket broadcast. |
+| **Authentication** | Bearer JWT |
+
+**Success Response — 200 OK:**
+```json
+{
+  "lockGranted": true,
+  "lockedBy": "string",
+  "expiresAt": "ISO 8601",
+  "currentVersion": 12
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | JWT is missing or invalid |
+| `404 Not Found` | Rulebook not found |
+| `409 Conflict` | Write lock is already held by another user |
+
+---
+
+#### VC-007: Commit Edit Delta
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | VC-007 |
+| **Endpoint** | `PATCH /api/vault/rulebooks/{id}/text` |
+| **Routes To** | Spring Boot |
+| **Description** | Commits a text delta to the rulebook. Spring Boot validates the caller holds the write lock, performs an optimistic version check, writes the delta to MongoDB, increments the version counter, appends to the EDIT_EVENT ledger, and broadcasts the delta to all active WebSocket readers. |
+| **Authentication** | Bearer JWT — caller must be the current lock holder |
+
+**Request Body:**
+```json
+{
+  "expectedVersion": 12,
+  "delta": "string"
+}
+```
+
+**Success Response — 200 OK:**
+```json
+{
+  "committed": true,
+  "newVersion": 13,
+  "committedAt": "ISO 8601"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | JWT is missing or invalid |
+| `403 Forbidden` | Caller does not hold the current write lock |
+| `404 Not Found` | Rulebook not found |
+| `409 Conflict` | Version mismatch — `expectedVersion` does not match the stored version |
+| `500 Internal Server Error` | MongoDB write or WebSocket broadcast failed |
+
+---
+
+#### VC-008: Release Write Lock
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | VC-008 |
+| **Endpoint** | `DELETE /api/vault/rulebooks/{id}/lock` |
+| **Routes To** | Spring Boot |
+| **Description** | Voluntarily releases the write lock. Spring Boot clears the lock in MongoDB and broadcasts a WebSocket release event to all active readers. |
+| **Authentication** | Bearer JWT — caller must be the current lock holder |
+
+**Success Response — 200 OK:**
+```json
+{
+  "lockReleased": true,
+  "releasedAt": "ISO 8601"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | JWT is missing or invalid |
+| `403 Forbidden` | Caller does not hold the write lock |
+| `404 Not Found` | Rulebook not found |
 
 ---
 
 ## 11. Traceability Matrix
+
+The requirement traceability matrix maps functional requirements to their corresponding use cases, ensuring that all identified requirements are addressed and demonstrating which use cases satisfy which requirements.
+
+| | FR1.1 | FR1.2 | FR1.3 | FR1.4 | FR2.1 | FR2.2 | FR2.3 | FR3.1 | FR3.2 | FR4.1 | FR4.2 | FR5.1 |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| UC-AUTH-01 | X | | | | | | | | | | | |
+| UC-AUTH-02 | X | | | | | | | | | | | |
+| UC-AUTH-03 | X | | | | | | | | | | | |
+| UC-PROF-01 | X | | | | | | | | | | | |
+| UC-PROF-02 | X | X | X | | | | | | | | | |
+| UC-PROF-03 | | X | | | | | | | | | | |
+| UC-PROF-04 | | | X | | | | | | | | | |
+| UC-SOC-01 | | | | X | | | | | | | | |
+| UC-SOC-02 | | | | X | | | | | | | | |
+| UC-SOC-03 | | | | X | | | | | | | | |
+| UC-EVT-01 | | | | | | | | X | | | | X |
+| UC-EVT-02 | | | | | | | | X | | | | |
+| UC-EVT-03 | | | | | | | | | X | | | |
+| UC-MKT-01 | | | | | X | | | | | | | |
+| UC-MKT-02 | | | | | X | | | | | | | |
+| UC-MKT-03 | | | | | | X | | | | | | X |
+| UC-MKT-04 | | | | | | X | | | | | | |
+| UC-MKT-05 | | | | | | X | | | | | | |
+| UC-MKT-06 | | | | | | | X | | | | | |
+| UC-VLT-01 | | | | | | | | | | X | | X |
+| UC-VLT-02 | | | | | | | | | | | X | |
+| UC-VLT-03 | | | | | | | | | | | X | |
+| UC-VLT-04 | | | | | | | | | | | X | |
 
 ---
 
@@ -1634,10 +2605,89 @@ The User Service is the identity and social backbone of the Boardwise platform. 
 
 #### 12.4.2 Marketplace Service
 
+![Marketplace Service Component Diagram](./diagrams/marketplace_architecture_diagram.png)
+
+The Marketplace Service manages all peer-to-peer listing activity and external retail discovery on the Boardwise platform. It handles the creation, retrieval, update, and deletion of listings, as well as the aggregation of external retail purchase links for board games.
+
+**How it fits into the overall architecture:** The Marketplace Service is accessed via the BFF. Unauthenticated users may browse and view listings (read operations do not require a JWT). Write operations (create, update, delete listing) require a valid JWT which the BFF's Authentication Guard validates before forwarding to the Marketplace Service.
+
+**Quality Requirements:**
+
+*Reliability:* All listing write operations must be ACID compliant to ensure that listing state is never left in an inconsistent state during create, update, or delete operations.
+
+*Performance:* All listing browse endpoints must support pagination (default page size 20, maximum 50) to prevent large payloads from degrading performance on mid-range devices.
+
+*Security:* All mutating endpoints (create, update, delete) require a valid JWT. Ownership is verified server-side on every update and delete operation — a user may only modify their own listings.
+
+**Architectural Responsibilities:**
+- Listing CRUD operations (create, read, update, delete/deactivate)
+- Ownership enforcement on listing mutations
+- Pagination and filtering for listing browse operations
+- External retail link aggregation and serving
+
+**Frameworks and Technologies:**
+
+| Concern | Option 1 | Option 2 | Option 3 | Chosen |
+|---|---|---|---|---|
+| Backend framework | Spring Boot (Java/Kotlin) | Express.js | FastAPI | Spring Boot |
+| Database driver | Spring Data MongoDB | Morphia | Mongoose (Node) | Spring Data MongoDB |
+| Image storage | Cloudflare R2 | AWS S3 | Cloudinary | Cloudflare R2 |
+
+**Technology Choice Justification:** Spring Boot was chosen for consistency with the User Service and to leverage Spring Data MongoDB's repository pattern. Cloudflare R2 was chosen for listing image storage due to its zero-egress-cost model, which is critical under CON2 (free-tier infrastructure). AWS S3 and Cloudinary were ruled out due to egress costs and paid-tier requirements respectively.
+
 ---
 
 #### 12.4.3 Shared Library — The Vault
 
+![The Vault Architecture Diagram](./diagrams/The_Vault_Architecture_Diagram.png)
+
+The Vault is the Shared Library component of the system. It provides the collaborative rulebook library and PDF ingestion pipeline. It consists of two backend components — a Spring Boot transactional backend and a FastAPI AI Gateway — and uses MongoDB Atlas (for metadata, collaborative text, and edit events) and Cloudflare R2 (for raw PDF blob storage).
+
+**How it fits into the overall architecture:** The Nuxt/Node.js BFF applies direct-to-microservice routing for Vault traffic: transactional requests (rulebook metadata, collaborative editing, lock management) are forwarded to Spring Boot via REST, while AI ingestion tasks (PDF upload and processing) are forwarded directly to the FastAPI AI Gateway via REST. Both services share the same JWT secret for authentication, allowing either to validate tokens independently without cross-service calls.
+
+**Quality Requirements:**
+
+*Reliability:* The Shared Library implements MRSW (Multi-Reader Single-Writer) concurrency control. Spring Boot's lock manager issues an exclusive write lock to the first user who requests edit access. Subsequent edit requests are rejected with a 409 Conflict until the lock is released. An automatic lock expiry (30 seconds of idle time) prevents deadlocks. WebSocket broadcasts notify all active readers of lock state changes in real time.
+
+*Security:* The FastAPI AI Gateway performs PDF sanitisation as the first step in the ingestion pipeline to prevent malicious content injection. The shared JWT secret allows FastAPI to independently verify tokens without calling Spring Boot, enabling the direct BFF routing model.
+
+*Performance:* The collaborative editor must reflect committed deltas to all active readers within 1 second via WebSocket. The ingestion pipeline processes PDFs asynchronously (202 Accepted immediately, then background processing) to prevent upload requests from timing out.
+
+*Scalability:* The ingestion pipeline processes PDFs asynchronously, and the collaborative editor is designed around WebSocket push rather than polling, ensuring the system scales gracefully under concurrent reader load without added per-request overhead.
+
+**Architectural Responsibilities:**
+- PDF upload proxying and secure storage to Cloudflare R2
+- AI ingestion pipeline (Sanitise → Extract) via FastAPI Pipe & Filter
+- MRSW lock management for collaborative editing via Spring Boot
+- Edit delta commit, version incrementing, and WebSocket broadcast via Spring Boot
+- Immutable edit event ledger (Event Sourcing) in MongoDB
+
+**Frameworks and Technologies:**
+
+| Concern | Option 1 | Option 2 | Option 3 | Chosen |
+|---|---|---|---|---|
+| AI Gateway framework | FastAPI (Python) | Flask | Django REST | FastAPI |
+| PDF storage | Cloudflare R2 | AWS S3 | Firebase Storage | Cloudflare R2 |
+| Real-time communication | WebSocket (Spring Boot) | Server-Sent Events | Long polling | WebSocket |
+
+**Technology Choice Justification:** FastAPI was chosen for the AI Gateway due to its native support for asynchronous processing, which is essential for the PDF ingestion pipeline. Flask and Django REST were ruled out due to limited async support and heavier overhead respectively. Cloudflare R2 was chosen for PDF storage due to zero egress costs. WebSocket was chosen over Server-Sent Events for real-time collaborative editing because it supports bidirectional communication, which is required for lock acquisition acknowledgement and delta broadcasting.
+
 ---
 
 ### 12.5 Summary
+
+The Boardwise technology stack is summarised below. This stack reflects the architectural decisions made across all three services and will inform the deployment diagrams in future sprints.
+
+| Layer | Technology | Justification |
+|---|---|---|
+| Frontend | Vue.js | Component-based, cross-platform, responsive |
+| BFF | Nuxt / Node.js | Server-side rendering, JWT forwarding, direct-to-microservice route splitting |
+| User Service | Spring Boot (Java/Kotlin) + Spring Security | REST API, JWT issuance, SecurityFilterChain, Spring Data MongoDB |
+| Marketplace Service | Spring Boot (Java/Kotlin) | REST API, ACID-compliant operations, Spring Data MongoDB |
+| Vault — Transactional | Spring Boot (Java/Kotlin) | MRSW lock management, WebSocket, event sourcing, Spring Data MongoDB |
+| Vault — AI Gateway | FastAPI (Python) | Async ingestion pipeline, PDF pipe & filter |
+| Database | MongoDB Atlas | Flexible document schema, free-tier hosting |
+| File Storage | Cloudflare R2 | Zero-egress-cost PDF and image blob storage |
+| Deployment | Render / Railway (free tier) | Free-tier hosting compliant with CON2 |
+
+The combination of Spring Boot for transactional services and FastAPI for AI workloads reflects a deliberate separation of concerns — each technology is chosen because it best satisfies the architectural responsibilities of its respective component, not out of preference. The unified MongoDB Atlas instance across all services reduces operational overhead while remaining within free-tier storage constraints.
