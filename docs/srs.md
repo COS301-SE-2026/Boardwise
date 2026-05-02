@@ -2144,6 +2144,55 @@ The Marketplace Service manages all peer-to-peer listing activity and external r
 
 #### 12.4.3 Shared Library — The Vault
 
+![The Vault Architecture Diagram](./diagrams/The_Vault_Architecture_Diagram.png)
+
+The Vault is the Shared Library component of the system. It provides the collaborative rulebook library and PDF ingestion pipeline. It consists of two backend components — a Spring Boot transactional backend and a FastAPI AI Gateway — and uses MongoDB Atlas (for metadata, collaborative text, and edit events) and Cloudflare R2 (for raw PDF blob storage).
+
+**How it fits into the overall architecture:** The Nuxt/Node.js BFF applies direct-to-microservice routing for Vault traffic: transactional requests (rulebook metadata, collaborative editing, lock management) are forwarded to Spring Boot via REST, while AI ingestion tasks (PDF upload and processing) are forwarded directly to the FastAPI AI Gateway via REST. Both services share the same JWT secret for authentication, allowing either to validate tokens independently without cross-service calls.
+
+**Quality Requirements:**
+
+*Reliability:* The Shared Library implements MRSW (Multi-Reader Single-Writer) concurrency control. Spring Boot's lock manager issues an exclusive write lock to the first user who requests edit access. Subsequent edit requests are rejected with a 409 Conflict until the lock is released. An automatic lock expiry (30 seconds of idle time) prevents deadlocks. WebSocket broadcasts notify all active readers of lock state changes in real time.
+
+*Security:* The FastAPI AI Gateway performs PDF sanitisation as the first step in the ingestion pipeline to prevent malicious content injection. The shared JWT secret allows FastAPI to independently verify tokens without calling Spring Boot, enabling the direct BFF routing model.
+
+*Performance:* The collaborative editor must reflect committed deltas to all active readers within 1 second via WebSocket. The ingestion pipeline processes PDFs asynchronously (202 Accepted immediately, then background processing) to prevent upload requests from timing out.
+
+*Scalability:* The ingestion pipeline processes PDFs asynchronously, and the collaborative editor is designed around WebSocket push rather than polling, ensuring the system scales gracefully under concurrent reader load without added per-request overhead.
+
+**Architectural Responsibilities:**
+- PDF upload proxying and secure storage to Cloudflare R2
+- AI ingestion pipeline (Sanitise → Extract) via FastAPI Pipe & Filter
+- MRSW lock management for collaborative editing via Spring Boot
+- Edit delta commit, version incrementing, and WebSocket broadcast via Spring Boot
+- Immutable edit event ledger (Event Sourcing) in MongoDB
+
+**Frameworks and Technologies:**
+
+| Concern | Option 1 | Option 2 | Option 3 | Chosen |
+|---|---|---|---|---|
+| AI Gateway framework | FastAPI (Python) | Flask | Django REST | FastAPI |
+| PDF storage | Cloudflare R2 | AWS S3 | Firebase Storage | Cloudflare R2 |
+| Real-time communication | WebSocket (Spring Boot) | Server-Sent Events | Long polling | WebSocket |
+
+**Technology Choice Justification:** FastAPI was chosen for the AI Gateway due to its native support for asynchronous processing, which is essential for the PDF ingestion pipeline. Flask and Django REST were ruled out due to limited async support and heavier overhead respectively. Cloudflare R2 was chosen for PDF storage due to zero egress costs. WebSocket was chosen over Server-Sent Events for real-time collaborative editing because it supports bidirectional communication, which is required for lock acquisition acknowledgement and delta broadcasting.
+
 ---
 
 ### 12.5 Summary
+
+The Boardwise technology stack is summarised below. This stack reflects the architectural decisions made across all three services and will inform the deployment diagrams in future sprints.
+
+| Layer | Technology | Justification |
+|---|---|---|
+| Frontend | Vue.js | Component-based, cross-platform, responsive |
+| BFF | Nuxt / Node.js | Server-side rendering, JWT forwarding, direct-to-microservice route splitting |
+| User Service | Spring Boot (Java/Kotlin) + Spring Security | REST API, JWT issuance, SecurityFilterChain, Spring Data MongoDB |
+| Marketplace Service | Spring Boot (Java/Kotlin) | REST API, ACID-compliant operations, Spring Data MongoDB |
+| Vault — Transactional | Spring Boot (Java/Kotlin) | MRSW lock management, WebSocket, event sourcing, Spring Data MongoDB |
+| Vault — AI Gateway | FastAPI (Python) | Async ingestion pipeline, PDF pipe & filter |
+| Database | MongoDB Atlas | Flexible document schema, free-tier hosting |
+| File Storage | Cloudflare R2 | Zero-egress-cost PDF and image blob storage |
+| Deployment | Render / Railway (free tier) | Free-tier hosting compliant with CON2 |
+
+The combination of Spring Boot for transactional services and FastAPI for AI workloads reflects a deliberate separation of concerns — each technology is chosen because it best satisfies the architectural responsibilities of its respective component, not out of preference. The unified MongoDB Atlas instance across all services reduces operational overhead while remaining within free-tier storage constraints.
