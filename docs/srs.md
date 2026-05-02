@@ -132,6 +132,10 @@ The objectives of the system are to:
 
 ## 6. Technology and Project Constraints
 
+- **CON1 (Licensing):** The entire system codebase must be released and maintained under an Open Source licence.
+- **CON2 (Infrastructure):** All backend services (Spring Boot core, Node.js BFF, FastAPI AI Gateway, and MongoDB database) must be hosted exclusively on free cloud platform services or within standard free-tier limits.
+- **CON3 (Target Hardware):** The application architecture must remain lightweight enough that both client-side rendering (Vue.js) and server-side processing do not demand high-end hardware, targeting optimisation for mid-range device groups.
+
 ---
 
 ## 7. User Characteristics
