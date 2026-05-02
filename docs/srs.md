@@ -62,9 +62,131 @@ The platform addresses key community problems: enabling peer-to-peer (P2P) trans
 **Scope Note:** This document reflects the requirements in scope for **Sprint 1 (Demo 1)**. The focus is on delivering a functional MVP with core CRUD capabilities across all system domains. The following features are explicitly deferred to future sprints and are **not covered** by this document: personalised recommendation systems, RAG-based natural language query interface, PWA installability, Generative Game Architect (AI Innovation), Setup Wizard, app theming, price comparison, and automated retrieval of rulebooks from the internet.
 
 ---
+
 ## 2. Project Owner
 
 Name: Saskia Steyn  
 Email: saskia.steyn@labs.epiuse.com
 
 ---
+
+## 3. Project Vision and Objectives
+
+Boardwise is a comprehensive digital ecosystem for board game enthusiasts that **optimises collection management and community engagement**. The platform features a peer-to-peer marketplace, a community events hub, and a shared digital vault for storing and collaboratively maintaining board game rulebooks.
+
+Designed to foster local gaming networks, the application facilitates peer-to-peer game rentals and a thematic event-hosting system for organised play. By consolidating discovery, logistics, and social coordination into a single interface, it streamlines the hobby for players and collectors alike.
+
+The objectives of the system are to:
+
+- Provide a digital home for board game collections and community interaction in South Africa.
+- Enable peer-to-peer transactions (rental and sale) without dependence on a single retailer.
+- Foster community formation through groups, events, and social connections.
+- Democratise access to board game knowledge through a collaboratively maintained shared library of rulebooks.
+
+---
+
+## 4. Functional Requirements
+
+### 4.1 User Profile & Social Domain
+
+### 4.2 Marketplace Domain
+
+### 4.3 Community & Events Domain
+
+### 4.4 Shared Library Domain (The Vault)
+
+### 4.5 UI & Usability
+
+---
+
+## 5. Non-Functional Requirements
+
+---
+
+## 6. Technology and Project Constraints
+
+---
+
+## 7. User Characteristics
+
+---
+
+## 8. System Domain Model
+
+---
+
+## 9. Subsystems
+
+### 9.1 User Service (Including Community)
+
+### 9.2 Marketplace Service
+
+### 9.3 Shared Library - The Vault Service
+
+---
+
+## 10. API Service Contracts
+
+### 10.1 User Service API Contracts
+
+### 10.2 Marketplace Service API Contracts
+
+### 10.3 The Vault Service API Contracts
+
+---
+
+## 11. Traceability Matrix
+
+---
+
+## 12. Architectural Requirements
+
+### 12.1 Overall Software Architecture
+
+#### 12.1.1 High-Level Architecture
+
+#### 12.1.2 Communication Patterns
+
+#### 12.1.3 Architectural Patterns
+
+---
+
+### 12.2 Architectural Quality Requirements
+
+#### 12.2.1 Maintainability
+
+#### 12.2.2 Scalability
+
+#### 12.2.3 Flexibility
+
+#### 12.2.4 Performance
+
+#### 12.2.5 Security
+
+#### 12.2.6 Reliability
+
+#### 12.2.7 Usability
+
+#### 12.2.8 Testability
+
+---
+
+### 12.3 Architectural Constraints
+
+---
+
+### 12.4 Architectural Components
+
+#### 12.4.1 User Service
+
+---
+
+#### 12.4.2 Marketplace Service
+
+---
+
+#### 12.4.3 Shared Library — The Vault
+
+---
+
+### 12.5 Summary
