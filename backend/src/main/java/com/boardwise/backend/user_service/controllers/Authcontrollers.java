@@ -6,9 +6,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.boardwise.backend.user_service.dtos.AuthResponseDTO;
+import com.boardwise.backend.user_service.dtos.RegisterDTO;
 import com.boardwise.backend.user_service.services.AuthService;
 
 @RestController
@@ -19,8 +22,11 @@ public class Authcontrollers {
     private AuthService service;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponseDTO> register(){
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<String> register(@RequestPart RegisterDTO userData,
+        @RequestPart MultipartFile pfp
+    ){
+        String token = service.register(userData, pfp);
+        return new ResponseEntity<>(token, HttpStatus.OK);
     }
 
     @PostMapping("/login")
