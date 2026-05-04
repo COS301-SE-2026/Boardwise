@@ -15,8 +15,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.boardwise.backend.user_service.dtos.AuthResponseDTO;
 import com.boardwise.backend.user_service.dtos.LoginDTO;
+import com.boardwise.backend.user_service.dtos.LogoutResponseDTO;
 import com.boardwise.backend.user_service.dtos.RegisterDTO;
 import com.boardwise.backend.user_service.services.AuthService;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 
 @RestController
@@ -46,7 +49,9 @@ public class Authcontrollers {
     }
 
     @DeleteMapping("/logout")
-    public ResponseEntity<AuthResponseDTO> logout(){
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<LogoutResponseDTO> logout(HttpServletRequest request){
+        String token = request.getHeader("Authorization").split(" ")[1];
+        LogoutResponseDTO response = service.logout(token);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

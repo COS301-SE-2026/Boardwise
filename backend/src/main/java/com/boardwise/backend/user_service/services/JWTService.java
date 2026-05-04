@@ -1,6 +1,7 @@
 package com.boardwise.backend.user_service.services;
 
 import java.security.NoSuchAlgorithmException;
+import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
@@ -9,8 +10,14 @@ import java.util.UUID;
 import java.util.function.Function;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
+import com.boardwise.backend.user_service.models.TokenBlackList;
+import com.boardwise.backend.user_service.repos.TokenBlackListRepository;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -20,6 +27,9 @@ import io.jsonwebtoken.security.Keys;
 public class JWTService {
 
     private String key = "";
+
+    @Autowired
+    private TokenBlackListRepository tokenRepo;
 
     public JWTService(){
         try {
@@ -72,7 +82,8 @@ public class JWTService {
 
     public boolean validateToken(String token, UserDetails userDeets) {
         String username = extractUsername(token);
-        return username.equals(userDeets.getUsername()) && !isTokenExpired(token);
+        return username.equals(userDeets.getUsername()) && !isTokenExpired(token) 
+        && !isTokenBlackListed(token);
     }
 
     private boolean isTokenExpired(String token) {
@@ -80,4 +91,20 @@ public class JWTService {
         return expiry.before(new Date());
     }
     
+    private boolean isTokenBlackListed(String token){
+        String jti = extractClaim(token, Claims::getId);
+        return tokenRepo.existsByJti(jti);
+    }
+
+    public void addToBlackList(String token){
+        Claims claims = extractAllClaims(token);
+        tokenRepo.save(
+            new TokenBlackList(claims.getId(), 
+            claims.getExpiration()
+            .toInstant()
+            .atZone(ZoneId.systemDefault())
+            .toLocalDateTime())
+        );
+    }
+
 }

@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.boardwise.backend.user_service.dtos.AuthResponseDTO;
 import com.boardwise.backend.user_service.dtos.LoginDTO;
+import com.boardwise.backend.user_service.dtos.LogoutResponseDTO;
 import com.boardwise.backend.user_service.dtos.RegisterDTO;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
@@ -87,7 +88,10 @@ public class AuthService {
         return new AuthResponseDTO("User logged in successfully", token);
     }
 
-    public void logout(){}
+    public LogoutResponseDTO logout(String token){
+        jwt.addToBlackList(token);
+        return new LogoutResponseDTO("User successfully logged out");
+    }
 
     private String sanitize(String input) {
         if (input == null) return null;
