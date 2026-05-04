@@ -1,11 +1,7 @@
 package com.boardwise.backend.user_service.dtos;
 
 import java.util.List;
-
-import org.hibernate.validator.constraints.pl.REGON;
-
 import com.boardwise.backend.user_service.models.Preferences;
-
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

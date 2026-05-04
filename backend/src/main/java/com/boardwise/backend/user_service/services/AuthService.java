@@ -1,7 +1,8 @@
 package com.boardwise.backend.user_service.services;
 
-import java.nio.file.attribute.UserPrincipalNotFoundException;
-
+import java.util.ArrayList;
+import java.util.List;
+import com.boardwise.backend.user_service.models.Preferences;
 import org.owasp.encoder.Encode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,6 +16,7 @@ import com.boardwise.backend.user_service.dtos.AuthResponseDTO;
 import com.boardwise.backend.user_service.dtos.LoginDTO;
 import com.boardwise.backend.user_service.dtos.RegisterDTO;
 import com.boardwise.backend.user_service.models.User;
+import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
 
 @Service
@@ -22,6 +24,9 @@ public class AuthService {
     
     @Autowired  
     private UserRepository userRepo;
+
+    @Autowired  
+    private BoardGameRepository gameRepo;
 
     @Autowired
     private JWTService jwt;
@@ -33,25 +38,46 @@ public class AuthService {
 
     // inserts user into database generates JWT
     public AuthResponseDTO register(RegisterDTO dto, MultipartFile pfp){
-        // validate and sanitise data
-
+        // sanitise data
+        String username = sanitize(dto.username());
+        String email = sanitize(dto.emailAddress());
+        String firstName = sanitize(dto.firstName());
+        String lastName = sanitize(dto.lastName());
+        String bio = sanitize(dto.bio());
+        Preferences preferences = dto.preferences(); 
+        if(preferences != null){
+            List<String> sanPreferences = new ArrayList<>();
+            for (String pref : preferences.getGenres()) {
+                sanPreferences.add(sanitize(pref));
+            }
+            preferences.setGenres(sanPreferences);
+        }
+        List<String> ownedgames = new ArrayList<>();
+        if(dto.ownedGames() != null){
+            for (String gameName : dto.ownedGames()) {
+                gameRepo.findByTitle(gameName)
+                    .ifPresent(game -> ownedgames.add(game.getId()));
+                // silently skip if game not found in DB
+            }
+        }
+        String password = passwordEncoder.encode(dto.password());
 
         // insert into db
-        
+        User newUser = new User(username, firstName, lastName, email, password, bio, preferences, ownedgames);
+        userRepo.insert(newUser);
 
         // generate JWT and return it
-        String token = jwt.generateToken(dto.username());
+        String token = jwt.generateToken(username);
         return new AuthResponseDTO(token);
     }
 
     public AuthResponseDTO login(LoginDTO dto){
         // data validation and sanitisation (don't trust user)
-        String username = userData.username();
-        String password = userData.password();
+        String username = sanitize(dto.username());
         
         // validate user
         Authentication auth = manager
-        .authenticate(new UsernamePasswordAuthenticationToken(username, password) );
+        .authenticate(new UsernamePasswordAuthenticationToken(username, dto.password()) );
 
         if(!auth.isAuthenticated())
             throw new IllegalArgumentException("Incorrect user credentials");
