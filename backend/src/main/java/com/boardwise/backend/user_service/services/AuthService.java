@@ -68,7 +68,7 @@ public class AuthService {
 
         // generate JWT and return it
         String token = jwt.generateToken(username);
-        return new AuthResponseDTO(token);
+        return new AuthResponseDTO("User successfully register", token);
     }
 
     public AuthResponseDTO login(LoginDTO dto){
@@ -84,7 +84,7 @@ public class AuthService {
 
         // generate JWT and return it
         String token = jwt.generateToken(username);
-        return new AuthResponseDTO(token);
+        return new AuthResponseDTO("User logged in successfully", token);
     }
 
     public void logout(){}

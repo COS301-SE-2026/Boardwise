@@ -41,7 +41,8 @@ public class Authcontrollers {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@Validated @RequestBody LoginDTO userData){
-        return new ResponseEntity<>(HttpStatus.OK);
+        AuthResponseDTO response = service.login(userData);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @DeleteMapping("/logout")
