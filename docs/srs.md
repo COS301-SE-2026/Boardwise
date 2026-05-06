@@ -8,7 +8,7 @@
 
 ---
 
-**Item:** Mini Project 2026 — Phase 1  
+**Item:** Capstone 2026 — Demo 1  
 **Team Name:** Works On My Machine
 
 **Team Members:**
