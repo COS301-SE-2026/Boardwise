@@ -4,3 +4,5 @@
 #files
 /backend/src/main/resources/application.properties
 *env*
+error.txt
+err.txt
