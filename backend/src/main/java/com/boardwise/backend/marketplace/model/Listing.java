@@ -46,7 +46,7 @@ public class Listing {
     @Field("price")
     private double price;
 
-    @Field("title")
+    @Field("game_title")
     private String title;
 
     @Field("description")

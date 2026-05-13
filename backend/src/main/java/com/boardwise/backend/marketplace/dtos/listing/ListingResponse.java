@@ -6,19 +6,20 @@ import java.util.List;
 import com.boardwise.backend.marketplace.enums.ItemType;
 import com.boardwise.backend.marketplace.enums.ListingStatus;
 import com.boardwise.backend.marketplace.enums.ListingType;
-
+import com.boardwise.backend.marketplace.model.RentalPeriod;
 
 public record ListingResponse(
-        String listingId,
-        String userId,
-        String gameTitle,
-        ItemType itemType,
-        ListingType listingType,
-        double price,
-        String description,
-        String imageUrl,
-        LocalDateTime[] rentalPeriod,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt,
-        ListingStatus status) {
+                String listingId,
+                String userId,
+                String gameTitle,
+                ItemType itemType,
+                ListingType listingType,
+                double price,
+                String description,
+                String imageUrl,
+                List<String> genres,
+                RentalPeriod rentalPeriod,
+                LocalDateTime createdAt,
+                LocalDateTime updatedAt,
+                ListingStatus status) {
 }

@@ -4,48 +4,53 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
-@Component
+import com.boardwise.backend.marketplace.dtos.listing.ListingRequest;
+import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
+import com.boardwise.backend.marketplace.service.*;
+
+import jakarta.validation.*;
+
 @RestController
-@RequestMapping("/api/marketplace/")
+@RequestMapping("/api/marketplace")
 
 public class MarketplaceControllers {
-    // loading env application-properties: spring.mongodb.uri=${DB_URL}
-    @Value("${spring.mongodb.uri}")
-    private String db_url;
+    private final ListingService listingService;
+
+    public MarketplaceControllers(ListingService listingService) {
+        this.listingService = listingService;
+    }
 
     // AC-MKT-01: Get All Active Listings
-    @GetMapping("listings")
-    public String getAllListings(@RequestParam String param) {
+    @GetMapping("/listings")
+    public ResponseEntity<ListingResponse> getAllListings() {
         // TODO: process GET request
-        System.out.println(db_url);
-        return null;
+        return ResponseEntity.ok().build();
     }
 
     // AC-MKT-02: Get Listing by ID
-    @GetMapping("listings/{listingId}") // to be changed
-    public String getListingById(@RequestParam String param) {
+    @GetMapping("/listings/{listingId}") // to be changed
+    public ResponseEntity<String> getListingById(@PathVariable String listingId) {
         // TODO: process GET request
-        return null;
+        return ResponseEntity.ok().build();
     }
 
     // AC-MKT-03: Create a Listing
-    @PostMapping("listings")
-    public String createListing(@RequestBody String entity) {
+    @PostMapping("/listings")
+    public ResponseEntity<ListingResponse> createListing(@RequestBody @Valid ListingRequest req) {
         // TODO: process POST request
-
-        return null;
+        ListingResponse response = listingService.createListing(req);
+        return ResponseEntity.status(201).body(response);
     }
 
     // AC-MKT-04: Update a Listing
-    @PatchMapping("listings/{listingId}")
+    @PatchMapping("/listings/{listingId}")
     public String updateListing(@RequestBody String entity) {
         // TODO: process PATCH request
 
@@ -53,7 +58,7 @@ public class MarketplaceControllers {
     }
 
     // AC-MKT-05: Delete a Listing
-    @DeleteMapping("listings/{listingId}")
+    @DeleteMapping("/listings/{listingId}")
     public String deleteListing(@RequestBody String entity) {
         // TODO: process DELETE request
 
@@ -61,7 +66,7 @@ public class MarketplaceControllers {
     }
 
     // AC-MKT-06: Get Authenticated User's Listings
-    @GetMapping("listings/user") // to be changed
+    @GetMapping("/listings/user") // to be changed
     public String getUserListings(@RequestParam String param) {
         // TODO: process GET request
         return null;

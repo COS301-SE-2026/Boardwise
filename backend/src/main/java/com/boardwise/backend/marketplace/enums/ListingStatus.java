@@ -5,5 +5,3 @@ public enum ListingStatus {
     RENTED,
     SOLD
 }
-
-
