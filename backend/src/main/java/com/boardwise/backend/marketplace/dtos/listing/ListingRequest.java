@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.boardwise.backend.marketplace.enums.ItemType;
 import com.boardwise.backend.marketplace.enums.ListingType;
-import com.boardwise.backend.marketplace.model.RentalPeriod;
 
 import jakarta.validation.constraints.*;
 

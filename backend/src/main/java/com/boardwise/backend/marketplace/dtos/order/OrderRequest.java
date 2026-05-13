@@ -2,6 +2,7 @@ package com.boardwise.backend.marketplace.dtos.order;
 
 import java.time.LocalDateTime;
 
+import com.boardwise.backend.marketplace.enums.OrderStatus;
 import com.boardwise.backend.marketplace.model.RentalPeriod;
 
 import jakarta.validation.constraints.NotBlank;
@@ -10,5 +11,7 @@ import jakarta.validation.constraints.NotBlank;
 public record OrderRequest(
         @NotBlank String buyerId,
         @NotBlank String listingId,
-        LocalDateTime[] rentalPeriod) {
+        LocalDateTime[] rentalPeriod,
+        String sellerId,
+        OrderStatus status) {
 }

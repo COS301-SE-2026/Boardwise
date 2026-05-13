@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import com.boardwise.backend.marketplace.enums.ListingType;
+import com.boardwise.backend.marketplace.enums.OrderStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,6 +32,12 @@ public class Order {
 
     @Field("buyer_id")
     private String buyerId;
+
+    @Field("seller_id")
+    private String sellerId;
+
+    @Field("status")
+    private OrderStatus status;
 
     @Field("total_price")
     private double totalPrice;
