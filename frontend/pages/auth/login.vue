@@ -9,7 +9,7 @@
 </template>
 
 <script setup>
-    import AuthForm from '~/components/forms/AuthForm.vue'
+    import AuthForm from '~/components/features/auth/AuthForm.vue'
 
     const router = useRouter()
 
