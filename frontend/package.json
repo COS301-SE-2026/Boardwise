@@ -9,10 +9,20 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
   },
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "test": "vitest"
+  },
   "dependencies": {
     "@vite-pwa/nuxt": "^1.1.1",
     "nuxt": "^4.4.4",
     "vue": "^3.5.33",
     "vue-router": "^5.0.6"
+  },
+  "devDependencies": {
+    "@vue/test-utils": "^2.4.10",
+    "happy-dom": "^20.9.0",
+    "vitest": "^4.1.6"
   }
 }
