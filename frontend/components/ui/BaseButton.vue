@@ -1,12 +1,16 @@
 <template> 
-    <button @click="$emit('click')>
+    <button class="base-button">
         <slot />
-    </button>
+    </button> 
 </template>
 
 <style scoped>
-.btn {
-  padding: 8px 12px;
-  cursor: pointer;
+.base-button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 8px; 
+        background: #7B2CBF
+        color: white;
+        cursor: pointer;
 }
 </style>
