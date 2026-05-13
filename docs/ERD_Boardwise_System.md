@@ -46,8 +46,6 @@ erDiagram
         String username
         String email
         String password
-        String display_name
-        String bio
         String profile_pic
         Array_ObjectId owned_games
         Object preferences
