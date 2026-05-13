@@ -6,13 +6,13 @@ import com.boardwise.backend.marketplace.enums.OrderStatus;
 import com.boardwise.backend.marketplace.model.RentalPeriod;
 
 public record OrderResponse(
-        String order_id,
-        String buyer_id,
-        String listing_id,
+        String orderId,
+        String buyerId,
+        String listingId,
         OrderStatus status,
-        String seller_id,
-        double total_price,
-        RentalPeriod rental_period, // not in all responses
-        LocalDateTime date_of_purchase) {
+        String sellerId,
+        double totalPrice,
+        RentalPeriod rentalPeriod, // not in all responses
+        LocalDateTime dateOfPurchase) {
 
 }

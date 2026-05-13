@@ -8,12 +8,12 @@ import com.boardwise.backend.marketplace.enums.ListingType;
 import com.boardwise.backend.marketplace.model.RentalPeriod;
 
 public record ListingUpdateRequest(
-        String game_title,
-        ListingType listing_type,
+        String gameIitle,
+        ListingType listingType,
         Double price, // make null if no changes were made
         String description,
         ListingStatus status,
-        String image_url,
+        String imageUrl,
         List<String> genres,
         LocalDateTime[] rentalPeriod) {
 }

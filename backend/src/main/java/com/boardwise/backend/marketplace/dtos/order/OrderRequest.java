@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 
 // Note: needs to create date_of_purchase object
 public record OrderRequest(
-        @NotBlank String buyer_id,
-        @NotBlank String listing_id,
-        LocalDateTime[] rental_period) {
+        @NotBlank String buyerId,
+        @NotBlank String listingId,
+        LocalDateTime[] rentalPeriod) {
 }

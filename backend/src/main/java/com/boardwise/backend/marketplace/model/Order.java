@@ -27,15 +27,15 @@ public class Order {
     private String id;
 
     @Field("listing_id")
-    private String listing_id;
+    private String listingId;
 
     @Field("buyer_id")
-    private String buyer_id;
+    private String buyerId;
 
     @Field("total_price")
-    private double total_price;
+    private double totalPrice;
 
     @Field("rental_period")
-    private RentalPeriod rental_period;
+    private RentalPeriod rentalPeriod;
 
 }

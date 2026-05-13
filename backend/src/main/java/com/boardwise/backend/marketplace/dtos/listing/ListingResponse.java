@@ -13,15 +13,15 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 public record ListingResponse(
-        String listing_id,
-        String user_id,
-        String game_title,
-        ItemType item_type,
-        ListingType listing_type,
+        String listingId,
+        String userId,
+        String gameTitle,
+        ItemType itemType,
+        ListingType listingType,
         double price,
         String description,
-        String image_url,
-        LocalDateTime[] rental_period,
+        String imageUrl,
+        LocalDateTime[] rentalPeriod,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         ListingStatus status) {

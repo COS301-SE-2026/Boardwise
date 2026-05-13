@@ -32,16 +32,16 @@ public class Listing {
     private String id;
 
     @Field("user_id")
-    private String user_id;
+    private String userId;
 
     @Field("game_id")
-    private String game_id;
+    private String gameId;
 
     @Field("item_type")
-    private ItemType item_type;
+    private ItemType itemType;
 
     @Field("listing_type")
-    private ListingType listing_type;
+    private ListingType listingType;
 
     @Field("price")
     private double price;
@@ -53,20 +53,20 @@ public class Listing {
     private String description;
 
     @Field("image_url")
-    private String image_url;
+    private String imageUrl;
 
     @Field("status")
     private ListingStatus status;
 
     @Field("created_at")
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
 
     @Field("updated_at")
-    private LocalDateTime updated_at;
+    private LocalDateTime updatedAt;
 
     @Field("genres")
     private List<String> genres;
 
     @Field("rental_period")
-    private RentalPeriod rental_period;
+    private RentalPeriod rentalPeriod;
 }

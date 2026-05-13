@@ -11,13 +11,13 @@ import jakarta.validation.constraints.*;
 
 //NOTE: the record assumes status = ACTIVE on creation 
 public record ListingRequest(
-        @NotBlank String user_id,
-        @NotBlank String game_title,
-        @NotNull ItemType item_type,
-        @NotNull ListingType listing_type,
+        @NotBlank String userId,
+        @NotBlank String gameTitle,
+        @NotNull ItemType itemType,
+        @NotNull ListingType listingType,
         @Positive double price,
         String description,
-        String image_url, // if image_url is null then use a default image based on game_id
+        String imageUrl, // if image_url is null then use a default image based on game_id
         @NotEmpty List<String> genres,
-        LocalDateTime[] rental_period) {
+        LocalDateTime[] rentalPeriod) {
 }
