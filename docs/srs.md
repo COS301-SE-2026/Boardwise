@@ -82,7 +82,8 @@ The objectives of the system are to:
 - Enable peer-to-peer transactions (rental and sale) without dependence on a single retailer.
 - Foster community formation through groups, events, and social connections.
 - Democratise access to board game knowledge through a collaboratively maintained shared library of rulebooks.
-
+- Simplify the process of rule verification during a game-playing by employing AI that be asked about the ruling.
+- Provide a means to assist board game players to quickly setup new games without the need to read through manual.
 ---
 
 ## 4. Functional Requirements
