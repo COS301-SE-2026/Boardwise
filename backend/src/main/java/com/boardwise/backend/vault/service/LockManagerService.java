@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.boardwise.backend.vault.dto.response.LockResponseDto;
 import com.boardwise.backend.vault.exception.LockConflictException;
+import com.boardwise.backend.vault.exception.LockNotHeldException;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.model.WriteLock;
@@ -55,7 +56,19 @@ public class LockManagerService {
     }
 
     // AC-VLT-08: Release Write Lock
-    
+    public void releaseLock(ObjectId rulebookId, ObjectId userId) {
+        findRulebookOrThrow(rulebookId);
+
+        WriteLock lock = writeLockRepository.findByRulebookId(rulebookId)
+            .orElseThrow(() -> new LockNotHeldException(userId));
+
+        if(!lock.getHeldByUserId().equals(userId)){
+            throw new LockNotHeldException(userId);
+        }
+
+        writeLockRepository.delete(lock);
+    }
+
     // AC-VLT-07: Commit Edit Delta
 
     // --- private helpers ---

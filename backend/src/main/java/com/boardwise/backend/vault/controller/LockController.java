@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
@@ -34,8 +35,16 @@ public class LockController {
             lockManagerService.acquireLock(toObjectId(id), userId)
         );
     }
-        
+
     // AC-VLT-08: Release Write Lock
+    @DeleteMapping("/{id}/lock")
+    public ResponseEntity<Void> releaseLock(
+        @PathVariable String id,
+        Authentication authentication){
+            ObjectId userId = extractUserId(authentication);
+            lockManagerService.releaseLock(toObjectId(id), userId);
+            return ResponseEntity.ok().build();
+    }
 
     // AC-VLT-07: Commit Edit Delta
 
