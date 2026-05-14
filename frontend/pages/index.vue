@@ -4,12 +4,12 @@
         <p>Your board game hub</p>
     
         <div class="actions">
-            <NuxtLink to="/auth/login">
-                <BaseButton>Login</BaseButton>
+            <NuxtLink to="/auth/signin">
+                <BaseButton>Sign In</BaseButton>
             </NuxtLink>
 
-            <NuxtLink to="/auth/register">
-                <BaseButton>Register</BaseButton>
+            <NuxtLink to="/auth/signup">
+                <BaseButton>Sign Up</BaseButton>
             </NuxtLink>
         </div>
     </div>

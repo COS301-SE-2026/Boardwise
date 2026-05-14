@@ -41,7 +41,7 @@ const listings = [
     display: grid;
 
     grid-template-columns:
-        repeat(auto-fit, minmax(240px, 1fr)); //auto wraps to the device (desktop and mobile)
+        repeat(auto-fit, minmax(240px, 1fr)); /* auto wraps to the device (desktop and mobile) */
 
     gap: 20px;
 }

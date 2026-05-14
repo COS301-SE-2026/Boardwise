@@ -1,5 +1,5 @@
-// Reusable form shell 
-// Generic 
+<!-- Reusable form shell -->
+<!-- Generic -->
 
 <template>
     <BaseCard>
@@ -18,17 +18,17 @@
             placeholder="Password"
             />
 
-            <BaseButton @click="submitForm"?
+            <BaseButton @click="submitForm">
                 {{ buttonText }}
             </BaseButton>
         </div>
     </BaseCard>
-<template>
+</template>
 
 <script setup>
-import BaseButton from '~components/ui/BaseButton.vue'
-import BaseInput from '~components/ui/BaseInput.vue'
-import BaseCard from '~components/ui/BaseCard.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
+import BaseInput from '~/components/ui/BaseInput.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
 
 const props = defineProps({
     title: String,
