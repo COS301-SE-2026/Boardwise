@@ -130,12 +130,20 @@ public class ListingService {
 
     }
 
+    public List<ListingResponse> getAllActiveListings() {
+    return listingRepository.findByStatus(ListingStatus.AVAILABLE)
+            .stream()
+            .map(this::mapToResponse)
+            .toList();
+}
+
     public void deleteListing(String id) {
         if (!listingRepository.existsById(id)) {
             throw new IllegalArgumentException("Listing not found: " + id);
         }
         listingRepository.deleteById(id);
     }
+
 
     private ListingResponse mapToResponse(Listing listing) {
         return new ListingResponse(

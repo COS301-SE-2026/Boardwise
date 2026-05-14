@@ -20,5 +20,5 @@ public interface ListingRepository extends MongoRepository<Listing, String> {
     List<Listing> findByStatus(ListingStatus status);
 
     List<Listing> findByListingType(ListingType listingType);
-
+    
 }

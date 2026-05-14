@@ -18,6 +18,8 @@ import com.boardwise.backend.marketplace.service.*;
 
 import jakarta.validation.*;
 
+import java.util.*;
+
 @RestController
 @RequestMapping("/api/marketplace")
 
@@ -32,9 +34,19 @@ public class ListingController {
 
     // AC-MKT-01: Get All Active Listings
     @GetMapping("/listings")
-    public ResponseEntity<ListingResponse> getAllListings() {
-        // TODO: process GET request
-        return ResponseEntity.ok().build();
+    public ResponseEntity<List<ListingResponse>> getAllListings() {
+        try {
+            List<ListingResponse> listings = listingService.getAllActiveListings();
+            if (listings.isEmpty()) {
+                return ResponseEntity.status(204).body(null);
+            }
+
+            return ResponseEntity.status(200).body(listings);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(listingService.getAllActiveListings());
+
+        }
     }
 
     // AC-MKT-02: Get Listing by ID
