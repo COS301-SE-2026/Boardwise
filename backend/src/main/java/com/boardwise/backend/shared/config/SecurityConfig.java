@@ -26,12 +26,13 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/health").permitAll()
-                .requestMatchers("/ws/vault/**").permitAll()
-                .requestMatchers("/api/vault/rulebooks/*").permitAll()
-                .anyRequest().authenticated()
+                // .requestMatchers("/actuator/health").permitAll()
+                // .requestMatchers("/ws/vault/**").permitAll()
+                // .requestMatchers("/api/vault/rulebooks/*").permitAll()
+                // .anyRequest().authenticated()
+                .anyRequest().permitAll()
             )
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+            // .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
             .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthEntryPoint));
             
             return http.build();
