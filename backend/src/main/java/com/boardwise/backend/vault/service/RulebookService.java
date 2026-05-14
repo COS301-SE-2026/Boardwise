@@ -1,5 +1,8 @@
 package com.boardwise.backend.vault.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -8,9 +11,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.boardwise.backend.vault.dto.response.DownloadUrlResponseDto;
+import com.boardwise.backend.vault.dto.response.EditEventResponseDto;
+import com.boardwise.backend.vault.dto.response.EditHistoryResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookTextResponseDto;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
+import com.boardwise.backend.vault.model.EditEvent;
 import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.model.RulebookText;
 import com.boardwise.backend.vault.model.WriteLock;
@@ -27,6 +33,7 @@ public class RulebookService {
     private final RulebookRepository rulebookRepository;
     private final RulebookTextRepository rulebookTextRepository;
     private final WriteLockRepository writeLockRepository;
+    private final EditEventRepository editEventRepository;
 
     // VC-002: List / Search Rulebooks
     public Page<RulebookResponseDto> searchRulebooks(String search, int page, int limit){
@@ -86,6 +93,23 @@ public class RulebookService {
                 .build();
     }
 
+    // US-VLT-06: Edit History
+    public EditHistoryResponseDto getEditHistory(ObjectId id){
+        findRulebookOrThrow(id);
+
+        List<EditEvent> events = editEventRepository.findByRulebookIdOrderByCommittedAtAsc(id);
+
+        List<EditEventResponseDto> eventResponses = events.stream()
+            .map(this::toEditEventResponse)
+            .collect(Collectors.toList());
+
+        return EditHistoryResponseDto.builder()
+            .rulebookId(id.toHexString())
+            .totalEdits(eventResponses.size())
+            .edits(eventResponses)
+            .build();
+    }
+
     // --- private helpers ---
     private Rulebook findRulebookOrThrow(ObjectId id) {
         return rulebookRepository.findById(id)
@@ -108,5 +132,16 @@ public class RulebookService {
                 .uploadedAt(rulebook.getUploadedAt())
                 .updatedAt(rulebook.getUpdatedAt())
                 .build();
+    }
+
+    private EditEventResponseDto toEditEventResponse(EditEvent event) {
+        return EditEventResponseDto.builder()
+            .id(event.getId().toHexString())
+            .rulebookId(event.getRulebookId().toHexString())
+            .editorId(event.getEditorId().toHexString())
+            .delta(event.getDelta())
+            .versionAfter(event.getVersionAfter())
+            .committedAt(event.getCommittedAt())
+            .build();
     }
 }

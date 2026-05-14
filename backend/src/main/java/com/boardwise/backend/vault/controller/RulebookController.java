@@ -59,6 +59,14 @@ public class RulebookController {
                 rulebookService.getDownloadUrl(toObjectId(id)));
     }
 
+    // US-VLT-06: Edit History
+    @GetMapping("/{id}/history")
+    public ResponseEntity<EditHistoryResponseDto> getEditHistory(
+            @PathVariable String id) {
+        return ResponseEntity.ok(
+                rulebookService.getEditHistory(toObjectId(id)));
+    }
+
     // --- private helpers ---
     private ObjectId toObjectId(String id) {
         try {
