@@ -1,19 +1,18 @@
 package com.boardwise.backend.marketplace.service;
 
-import com.boardwise.backend.marketplace.enums.ListingStatus;
 import com.boardwise.backend.marketplace.model.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Arrays;
 
 import org.springframework.stereotype.Service;
 
 import com.boardwise.backend.marketplace.dtos.listing.ListingRequest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
-import com.boardwise.backend.marketplace.enums.ItemType;
-import com.boardwise.backend.marketplace.enums.ListingType;
+import com.boardwise.backend.marketplace.enums.*;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 
 @Service
@@ -25,6 +24,20 @@ public class ListingService {
         this.listingRepository = listingRepository;
     }
 
+    public static String truncateAfterWords(String text, int wordLimit) {
+        if (text == null || wordLimit <= 0)
+            return "";
+
+        String[] words = text.split("\\s+");
+
+        if (words.length <= wordLimit) {
+            return text;
+        }
+
+        String[] kept = Arrays.copyOfRange(words, 0, wordLimit);
+        return String.join(" ", kept);
+    }
+
     public ListingResponse createListing(ListingRequest req) {
 
         String userId = req.userId();
@@ -32,9 +45,9 @@ public class ListingService {
         ItemType itemType = req.itemType();
         ListingType listingType = req.listingType();
         double price = req.price();
-        String description = req.description();// max word limit
+        String description = truncateAfterWords(req.description(), 500);
         String imageUrl = req.imageUrl();
-        List<String> genres = req.genres();
+        List<Genres> genres = req.genres();
         String gameTitle = req.gameTitle();
 
         String[] rentalPeriod = req.rentalPeriod();

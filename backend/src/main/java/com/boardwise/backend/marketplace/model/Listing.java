@@ -1,16 +1,13 @@
 package com.boardwise.backend.marketplace.model;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import com.boardwise.backend.marketplace.enums.ItemType;
-import com.boardwise.backend.marketplace.enums.ListingStatus;
-import com.boardwise.backend.marketplace.enums.ListingType;
+import com.boardwise.backend.marketplace.enums.*;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -65,7 +62,7 @@ public class Listing {
     private LocalDateTime updatedAt;
 
     @Field("genres")
-    private List<String> genres;
+    private List<Genres> genres;
 
     @Field("rental_period")
     private RentalPeriod rentalPeriod;

@@ -46,6 +46,9 @@ public class MarketplaceControllers {
     public ResponseEntity<ListingResponse> createListing(@RequestBody @Valid ListingRequest req) {
         // TODO: process POST request
         ListingResponse response = listingService.createListing(req);
+        if (response == null) {
+            return ResponseEntity.status(442).body(null);
+        }
         return ResponseEntity.status(201).body(response);
     }
 

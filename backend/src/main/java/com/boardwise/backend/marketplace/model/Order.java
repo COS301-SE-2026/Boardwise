@@ -1,10 +1,8 @@
 package com.boardwise.backend.marketplace.model;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import com.boardwise.backend.marketplace.enums.ListingType;
 import com.boardwise.backend.marketplace.enums.OrderStatus;
 
 import lombok.AllArgsConstructor;
