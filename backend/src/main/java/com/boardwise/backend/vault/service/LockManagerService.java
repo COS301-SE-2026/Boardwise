@@ -80,7 +80,7 @@ public class LockManagerService {
 
     // AC-VLT-07: Commit Edit Delta
     public CommitDeltaResponseDto commitDelta(ObjectId rulebookId, ObjectId userId, CommitDeltaRequestDto request){
-        findRulebookOrThrow(rulebookId);
+        Rulebook rulebook = findRulebookOrThrow(rulebookId);
 
         // Verify that the caller holds the lock
         WriteLock lock = writeLockRepository.findByRulebookId(rulebookId)
@@ -108,7 +108,6 @@ public class LockManagerService {
         rulebookTextRepository.save(text);
 
         // Update rulebook version
-        Rulebook rulebook = findRulebookOrThrow(rulebookId);
         rulebook.setVersion(newVersion);
         rulebook.setUpdatedAt(now);
         rulebookRepository.save(rulebook);
