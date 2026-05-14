@@ -8,10 +8,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.boardwise.backend.vault.dto.response.RulebookResponseDto;
+import com.boardwise.backend.vault.dto.response.RulebookTextResponseDto;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.model.Rulebook;
+import com.boardwise.backend.vault.model.RulebookText;
 import com.boardwise.backend.vault.model.WriteLock;
 import com.boardwise.backend.vault.repository.RulebookRepository;
+import com.boardwise.backend.vault.repository.RulebookTextRepository;
 import com.boardwise.backend.vault.repository.WriteLockRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -20,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor // automatically generates a constructor for specific fields(Removes need for manual boilerplate code)
 public class RulebookService {
     private final RulebookRepository rulebookRepository;
+    private final RulebookTextRepository rulebookTextRepository;
     private final WriteLockRepository writeLockRepository;
 
     // VC-002: List / Search Rulebooks
@@ -42,7 +46,26 @@ public class RulebookService {
         return toRulebookResponse(rulebook);
     }
 
-    
+    // VC-005: Get Rulebook Text State
+    public RulebookTextResponseDto getRulebookText(ObjectId id){
+        findRulebookOrThrow(id);
+
+        RulebookText text = rulebookTextRepository
+            .findByRulebookId(id)
+            .orElseThrow(() -> new RulebookNotFoundException("Text content not found for rulebook: " + id));
+
+        WriteLock lock = writeLockRepository
+            .findByRulebookId(id)
+            .orElse(null);
+
+        return RulebookTextResponseDto.builder()
+            .rulebookId(id.toHexString())
+            .content(text.getContent())
+            .version(text.getVersion())
+            .lockHeldBy(lock != null ? lock.getHeldByUserId().toHexString() : null)
+            .updatedAt(text.getUpdatedAt())
+            .build();
+    }
 
     // --- private helpers ---
     private Rulebook findRulebookOrThrow(ObjectId id) {

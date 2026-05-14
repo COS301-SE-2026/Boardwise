@@ -43,7 +43,13 @@ public class RulebookController {
             );
     }
 
-
+    // VC-005: Get Rulebook Text State
+    @GetMapping("/{id}/text")
+    public ResponseEntity<RulebookTextResponseDto> getRulebookText(
+            @PathVariable String id) {
+        return ResponseEntity.ok(
+                rulebookService.getRulebookText(toObjectId(id)));
+    }
 
     // --- private helpers ---
     private ObjectId toObjectId(String id) {
