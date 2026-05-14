@@ -1,5 +1,9 @@
 <template>
   <div>
-    <h1>Coming Soon</h1>
+    <SettingsView />
   </div>
 </template>
+
+<script setup>
+import SettingsView from '@/components/features/settings/SettingsView.vue';
+</script>
