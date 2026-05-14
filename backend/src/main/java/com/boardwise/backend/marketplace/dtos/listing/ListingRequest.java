@@ -2,7 +2,6 @@ package com.boardwise.backend.marketplace.dtos.listing;
 
 import java.util.List;
 
-
 import jakarta.validation.constraints.*;
 
 //NOTE: the record assumes status = ACTIVE on creation 
@@ -16,5 +15,5 @@ public record ListingRequest(
         @NotBlank String description,
         @NotBlank String imageUrl, // if image_url is null then use a default image based on game_id
         @NotEmpty List<String> genres,
-        String[] rentalPeriod) {
+        List<String> rentalPeriod) {
 }

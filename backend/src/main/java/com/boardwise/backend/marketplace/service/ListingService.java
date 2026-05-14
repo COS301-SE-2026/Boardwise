@@ -14,14 +14,17 @@ import com.boardwise.backend.marketplace.dtos.listing.ListingRequest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
 import com.boardwise.backend.marketplace.enums.*;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
+import com.boardwise.backend.user_service.repos.UserRepository;
 
 @Service
 public class ListingService {
 
     private final ListingRepository listingRepository;
+    private final UserRepository userRepository;
 
-    public ListingService(ListingRepository listingRepository) {
+    public ListingService(ListingRepository listingRepository, UserRepository userRepository) {
         this.listingRepository = listingRepository;
+        this.userRepository = userRepository;
     }
 
     public static String truncateAfterWords(String text, int wordLimit) {
@@ -41,7 +44,13 @@ public class ListingService {
     public ListingResponse createListing(ListingRequest req) {
 
         String userId = req.userId();
+
+        // if (!userRepository.existsById(userId)) {
+        // throw new IllegalArgumentException("User does not exist");
+        // }
+
         String gameId = req.gameId();
+
         String itemType = req.itemType();
 
         // Sanity check
@@ -64,27 +73,30 @@ public class ListingService {
         List<String> genres = req.genres();
 
         // Sanity check
-        Genres.fromValue(listingType);
+        for (int i = 0; i < genres.size(); i++)
+            Genres.fromValue(genres.get(i)).getValue();
 
         String gameTitle = req.gameTitle();
 
-        String[] rentalPeriod = req.rentalPeriod();
+        List<String> rentalPeriod = req.rentalPeriod();
 
-        if (ListingType.fromValue(listingType) == ListingType.RENTAL && rentalPeriod == null) {
+        if (ListingType.fromValue(listingType).equals(ListingType.RENTAL) && rentalPeriod == null) {
             throw new IllegalArgumentException("Rental period required for rental listings");
         }
 
         RentalPeriod borrowDate = null;
 
-        if (ListingType.RENTAL == ListingType.fromValue(listingType)) {
-            if (rentalPeriod.length != 2) {
+        if (ListingType.RENTAL.equals(ListingType.fromValue(listingType))) {
+
+            if (rentalPeriod.size() != 2) {
                 throw new RuntimeException("only 2 dates must be passed in.");
             }
             borrowDate = new RentalPeriod();
 
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            LocalDate start = LocalDate.parse(rentalPeriod[0], dateFormatter);
-            LocalDate end = LocalDate.parse(rentalPeriod[1], dateFormatter);
+
+            LocalDate start = LocalDate.parse(rentalPeriod.toArray()[0].toString(), dateFormatter);
+            LocalDate end = LocalDate.parse(rentalPeriod.toArray()[1].toString(), dateFormatter);
 
             int comp = start.compareTo(end);
 
@@ -116,6 +128,13 @@ public class ListingService {
 
         return mapToResponse(saved);
 
+    }
+
+    public void deleteListing(String id) {
+        if (!listingRepository.existsById(id)) {
+            throw new IllegalArgumentException("Listing not found: " + id);
+        }
+        listingRepository.deleteById(id);
     }
 
     private ListingResponse mapToResponse(Listing listing) {

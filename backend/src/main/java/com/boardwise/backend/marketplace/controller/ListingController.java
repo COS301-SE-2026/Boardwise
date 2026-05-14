@@ -1,5 +1,6 @@
 package com.boardwise.backend.marketplace.controller;
 
+import com.boardwise.backend.marketplace.repository.ListingRepository;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,10 +22,12 @@ import jakarta.validation.*;
 @RequestMapping("/api/marketplace")
 
 public class ListingController {
+    private final ListingRepository listingRepository;
     private final ListingService listingService;
 
-    public ListingController(ListingService listingService) {
+    public ListingController(ListingService listingService, ListingRepository listingRepository) {
         this.listingService = listingService;
+        this.listingRepository = listingRepository;
     }
 
     // AC-MKT-01: Get All Active Listings
@@ -44,7 +47,6 @@ public class ListingController {
     // AC-MKT-03: Create a Listing
     @PostMapping("/listings")
     public ResponseEntity<ListingResponse> createListing(@RequestBody @Valid ListingRequest req) {
-        // TODO: process POST request
         try {
             ListingResponse response = listingService.createListing(req);
             return ResponseEntity.status(201).body(response);
@@ -63,10 +65,14 @@ public class ListingController {
 
     // AC-MKT-05: Delete a Listing
     @DeleteMapping("/listings/{listingId}")
-    public String deleteListing(@RequestBody String entity) {
+    public ResponseEntity<String> deleteListing(@PathVariable String listingId) {
         // TODO: process DELETE request
-
-        return null;
+        try {
+            listingService.deleteListing(listingId);
+            return ResponseEntity.status(204).body("");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body("Listing not found");
+        }
     }
 
     // AC-MKT-06: Get Authenticated User's Listings
