@@ -1,4 +1,4 @@
-// Base Card for every other Card (Marketplace, Library and Profile Cards)
+<!-- Base Card for every other Card (Marketplace, Library and Profile Cards) -->
 <template> 
     <div class="card">
         <slot />

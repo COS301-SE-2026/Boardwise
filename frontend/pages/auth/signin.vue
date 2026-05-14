@@ -1,9 +1,9 @@
 <template> 
     <div class="container">
         <AuthForm 
-            title="Login"
-            buttonText="Login"
-            @submit="handleLogin"
+            title="SignIn"
+            buttonText="SignIn"
+            @submit="handleSignIn"
         />
     </div>
 </template>
@@ -13,11 +13,11 @@
 
     const router = useRouter()
 
-    const handleLogin = (data) => {
-        console.log('LOGIN DATA', data)
+    const handleSignIn = (data) => {
+        console.log('SIGNIN DATA', data)
 
         if (data.email && data.password) {
-            router.push('/profile')
+            router.push('/library')
         }
     }
 </script>
