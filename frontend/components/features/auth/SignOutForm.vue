@@ -14,7 +14,7 @@ const router = useRouter()
 const handleSignIn = (data) => { 
     console.log('SignUp:', data)
 
-    // TEMP SIGNUP
+    <!-- TEMP SIGNUP -->
     if (data.email && data.password) {
         router.push('/profile')
     }
