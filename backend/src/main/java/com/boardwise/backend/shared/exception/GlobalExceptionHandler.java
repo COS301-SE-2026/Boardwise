@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import com.boardwise.backend.vault.exception.LockConflictException;
+import com.boardwise.backend.vault.exception.LockNotHeldException;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
+import com.boardwise.backend.vault.exception.VersionMismatchException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -39,6 +41,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleNoHandlerFound(NoHandlerFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body(Map.of("error", "Endpoint not found: " + ex.getRequestURL()));
+    }
+
+    @ExceptionHandler(LockNotHeldException.class)
+    public ResponseEntity<Map<String, String>> handleLockNotHeld(
+        LockNotHeldException ex) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(VersionMismatchException.class)
+    public ResponseEntity<Map<String, String>> handleVersionMismatch(
+        VersionMismatchException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
