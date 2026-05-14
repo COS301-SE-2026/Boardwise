@@ -20,6 +20,7 @@ import com.boardwise.backend.vault.repository.EditEventRepository;
 import com.boardwise.backend.vault.repository.RulebookRepository;
 import com.boardwise.backend.vault.repository.RulebookTextRepository;
 import com.boardwise.backend.vault.repository.WriteLockRepository;
+import com.boardwise.backend.vault.websocket.VaultEventPublisher;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,6 +33,8 @@ public class LockManagerService {
     private final RulebookRepository rulebookRepository;
     private final RulebookTextRepository rulebookTextRepository;
     private final EditEventRepository editEventRepository;
+
+    private final VaultEventPublisher eventPublisher;
     
     // AC-VLT-06: Acquire Write Lock
     public LockResponseDto acquireLock(ObjectId rulebookId, ObjectId userId){
@@ -56,6 +59,12 @@ public class LockManagerService {
 
         writeLockRepository.save(lock);
 
+        eventPublisher.publishLockAcquired(
+                rulebookId,
+                userId,
+                lock.getExpiresAt(),
+                rulebook.getVersion());
+
         return LockResponseDto.builder()
             .lockGranted(true)
             .lockedBy(userId.toHexString())
@@ -76,6 +85,8 @@ public class LockManagerService {
         }
 
         writeLockRepository.delete(lock);
+
+        eventPublisher.publishLockReleased(rulebookId, userId, "voluntary");
     }
 
     // AC-VLT-07: Commit Edit Delta
@@ -121,6 +132,13 @@ public class LockManagerService {
             .committedAt(now)
             .build();
         editEventRepository.save(event);
+
+        eventPublisher.publishDelta(
+                rulebookId,
+                userId,
+                request.getDelta(),
+                newVersion,
+                now);
 
         // refresh lock expiry on activity
         lock.setExpiresAt(now.plusSeconds(LOCK_EXPIRY_SECONDS));
