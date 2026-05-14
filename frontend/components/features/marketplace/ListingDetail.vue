@@ -30,7 +30,7 @@
 import BaseButton from '~/components/ui/BaseButton.vue'
 </script>
 
-<script scoped>
+<style scoped>
 .detail {
     display: grid;
 
