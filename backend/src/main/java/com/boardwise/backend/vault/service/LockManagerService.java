@@ -5,13 +5,20 @@ import java.time.Instant;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
+import com.boardwise.backend.vault.dto.request.CommitDeltaRequestDto;
+import com.boardwise.backend.vault.dto.response.CommitDeltaResponseDto;
 import com.boardwise.backend.vault.dto.response.LockResponseDto;
 import com.boardwise.backend.vault.exception.LockConflictException;
 import com.boardwise.backend.vault.exception.LockNotHeldException;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
+import com.boardwise.backend.vault.exception.VersionMismatchException;
+import com.boardwise.backend.vault.model.EditEvent;
 import com.boardwise.backend.vault.model.Rulebook;
+import com.boardwise.backend.vault.model.RulebookText;
 import com.boardwise.backend.vault.model.WriteLock;
+import com.boardwise.backend.vault.repository.EditEventRepository;
 import com.boardwise.backend.vault.repository.RulebookRepository;
+import com.boardwise.backend.vault.repository.RulebookTextRepository;
 import com.boardwise.backend.vault.repository.WriteLockRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -23,6 +30,8 @@ public class LockManagerService {
 
     private final WriteLockRepository writeLockRepository;
     private final RulebookRepository rulebookRepository;
+    private final RulebookTextRepository rulebookTextRepository;
+    private final EditEventRepository editEventRepository;
     
     // AC-VLT-06: Acquire Write Lock
     public LockResponseDto acquireLock(ObjectId rulebookId, ObjectId userId){
@@ -70,7 +79,60 @@ public class LockManagerService {
     }
 
     // AC-VLT-07: Commit Edit Delta
+    public CommitDeltaResponseDto commitDelta(ObjectId rulebookId, ObjectId userId, CommitDeltaRequestDto request){
+        findRulebookOrThrow(rulebookId);
 
+        // Verify that the caller holds the lock
+        WriteLock lock = writeLockRepository.findByRulebookId(rulebookId)
+            .orElseThrow(() -> new LockNotHeldException(userId));
+
+        if(!lock.getHeldByUserId().equals(userId)){
+            throw new LockNotHeldException(userId);
+        }
+
+        // Verify version matches
+        RulebookText text = rulebookTextRepository.findByRulebookId(rulebookId)
+            .orElseThrow(() -> new RulebookNotFoundException(rulebookId));
+
+        if(text.getVersion() != request.getExpectedVersion()){
+            throw new VersionMismatchException(request.getExpectedVersion(), text.getVersion());
+        }
+
+        // Commit delta
+        Instant now = Instant.now();
+        int newVersion = text.getVersion() + 1;
+
+        text.setContent(request.getDelta());
+        text.setVersion(newVersion);
+        text.setUpdatedAt(now);
+        rulebookTextRepository.save(text);
+
+        // Update rulebook version
+        Rulebook rulebook = findRulebookOrThrow(rulebookId);
+        rulebook.setVersion(newVersion);
+        rulebook.setUpdatedAt(now);
+        rulebookRepository.save(rulebook);
+
+        // Append edit event
+        EditEvent event = EditEvent.builder()
+            .rulebookId(rulebookId)
+            .editorId(userId)
+            .delta(request.getDelta())
+            .versionAfter(newVersion)
+            .committedAt(now)
+            .build();
+        editEventRepository.save(event);
+
+        // refresh lock expiry on activity
+        lock.setExpiresAt(now.plusSeconds(LOCK_EXPIRY_SECONDS));
+        writeLockRepository.save(lock);
+
+        return CommitDeltaResponseDto.builder()
+            .committed(true)
+            .newVersion(newVersion)
+            .committedAt(now)
+            .build();
+    }
     // --- private helpers ---
     private Rulebook findRulebookOrThrow(ObjectId id){
         return rulebookRepository.findById(id)

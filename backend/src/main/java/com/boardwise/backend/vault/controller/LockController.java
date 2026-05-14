@@ -4,6 +4,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.boardwise.backend.shared.security.JwtUtil;
+import com.boardwise.backend.vault.dto.request.CommitDeltaRequestDto;
+import com.boardwise.backend.vault.dto.response.CommitDeltaResponseDto;
 import com.boardwise.backend.vault.dto.response.LockResponseDto;
 import com.boardwise.backend.vault.service.LockManagerService;
 
@@ -13,8 +15,10 @@ import org.bson.types.ObjectId;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RestController
@@ -47,6 +51,16 @@ public class LockController {
     }
 
     // AC-VLT-07: Commit Edit Delta
+    @PatchMapping("/{id}/text")
+    public ResponseEntity<CommitDeltaResponseDto> commitDelta(
+        @PathVariable String id,
+        @RequestBody CommitDeltaRequestDto request,
+        Authentication authentication){
+            ObjectId userId = extractUserId(authentication);
+            return ResponseEntity.ok(
+                lockManagerService.commitDelta(toObjectId(id), userId, request)
+            );
+    }
 
     // ----- private helpers -----
     private ObjectId extractUserId(Authentication authentication){
