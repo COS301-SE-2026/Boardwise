@@ -45,22 +45,12 @@ public class ListingService {
         String itemType = req.itemType();
 
         // Sanity check
-        try {
-            ItemType.fromValue(itemType);
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-            return null;
-        }
+        ItemType.fromValue(itemType);
 
         String listingType = req.listingType();
 
         // Sanity check
-        try {
-            ListingType.fromValue(listingType);
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-            return null;
-        }
+        ListingType.fromValue(listingType);
 
         double price = req.price();
         if (price < 0) {
@@ -74,12 +64,7 @@ public class ListingService {
         List<String> genres = req.genres();
 
         // Sanity check
-        try {
-            Genres.fromValue(listingType);
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-            return null;
-        }
+        Genres.fromValue(listingType);
 
         String gameTitle = req.gameTitle();
 
@@ -91,38 +76,32 @@ public class ListingService {
 
         RentalPeriod borrowDate = null;
 
-        try {
-
-            if (ListingType.RENTAL == ListingType.fromValue(listingType)) {
-                if (rentalPeriod.length != 2) {
-                    throw new RuntimeException("only 2 dates must be passed in.");
-                }
-                borrowDate = new RentalPeriod();
-
-                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                LocalDate start = LocalDate.parse(rentalPeriod[0], dateFormatter);
-                LocalDate end = LocalDate.parse(rentalPeriod[1], dateFormatter);
-
-                int comp = start.compareTo(end);
-
-                if (comp > 0)
-                    throw new RuntimeException("Start date cannot be after End date");
-
-                LocalDate today = LocalDate.now();
-
-                if (today.compareTo(start) > 0)
-                    throw new RuntimeException("Start Date cannot be a past date");
-
-                if (today.compareTo(end) > 0)
-                    throw new RuntimeException("End Date cannot be a past date");
-
-                borrowDate.setStartDate(start);
-                borrowDate.setEndDate(end);
-
+        if (ListingType.RENTAL == ListingType.fromValue(listingType)) {
+            if (rentalPeriod.length != 2) {
+                throw new RuntimeException("only 2 dates must be passed in.");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;// should be an error
+            borrowDate = new RentalPeriod();
+
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            LocalDate start = LocalDate.parse(rentalPeriod[0], dateFormatter);
+            LocalDate end = LocalDate.parse(rentalPeriod[1], dateFormatter);
+
+            int comp = start.compareTo(end);
+
+            if (comp > 0)
+                throw new RuntimeException("Start date cannot be after End date");
+
+            LocalDate today = LocalDate.now();
+
+            if (today.compareTo(start) > 0)
+                throw new RuntimeException("Start Date cannot be a past date");
+
+            if (today.compareTo(end) > 0)
+                throw new RuntimeException("End Date cannot be a past date");
+
+            borrowDate.setStartDate(start);
+            borrowDate.setEndDate(end);
+
         }
 
         LocalDateTime now = LocalDateTime.now();
