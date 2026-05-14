@@ -20,10 +20,10 @@ import jakarta.validation.*;
 @RestController
 @RequestMapping("/api/marketplace")
 
-public class MarketplaceControllers {
+public class ListingController {
     private final ListingService listingService;
 
-    public MarketplaceControllers(ListingService listingService) {
+    public ListingController(ListingService listingService) {
         this.listingService = listingService;
     }
 
@@ -45,11 +45,12 @@ public class MarketplaceControllers {
     @PostMapping("/listings")
     public ResponseEntity<ListingResponse> createListing(@RequestBody @Valid ListingRequest req) {
         // TODO: process POST request
-        ListingResponse response = listingService.createListing(req);
-        if (response == null) {
-            return ResponseEntity.status(442).body(null);
+        try {
+            ListingResponse response = listingService.createListing(req);
+            return ResponseEntity.status(201).body(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(422).body(null);
         }
-        return ResponseEntity.status(201).body(response);
     }
 
     // AC-MKT-04: Update a Listing
