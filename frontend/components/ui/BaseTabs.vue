@@ -25,7 +25,7 @@ defineEmits(['change'])
 <style scoped> 
 .tabs {
     display: flex;
-    gap 12px;
+    gap: 12px;
 }
 
 .active {

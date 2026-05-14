@@ -16,7 +16,7 @@ const handleSignIn = (data) => {
 
     <!-- TEMP SIGNIN -->
     if (data.email && data.password) {
-        router.push('/profile')
+        router.push('/library')
     }
 }
 </script>

@@ -4,42 +4,21 @@
         <RulebookCard 
             v-for="rulebook in rulebooks"
             :key="rulebook.id"
-
-            :id="rulebook.id"
-            :title="rulebook.title"
-            :image="rulebook.image"
-            :price="rulebook.category"
+            :rulebook="rulebook"
         />
     </div>
 </template>
 
 <script setup>
 import RulebookCard from './RulebookCard.vue'
-
-const rulebooks = [
-    {
-        id: 1,
-        title: 'Catan Rules',
-        image: '/games/catan.jpg',
-        category: 'Strategy'
-    },
-
-    {
-        id:2,
-        title: 'Wingspan Guide',
-        image: '/games/wingspan.jpg',
-        category: 'Engine Builder'
-    }
-]
+import {rulebooks } from '~/services/mockData/rulebooks'
 </script>
 
 <style scoped>
 .grid {
     display: grid;
-
-    grid-template-columns:
-        repeat(auto-fit, minmax(220px, 1fr)); //auto wraps to the device (desktop and mobile)
-
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 24px;
+    margin-top: 32px;
 }
 </style>

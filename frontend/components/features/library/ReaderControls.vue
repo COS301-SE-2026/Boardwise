@@ -1,18 +1,15 @@
-<template> 
-    <div class="controls">
+<template>
+  <div class="controls">
 
-        <BaseButton>
-            A+
-        </BaseButton>
+    <BaseButton>
+      Previous
+    </BaseButton>
 
-        <BaseButton>
-            A-
-        </BaseButton>
+    <BaseButton>
+      Next
+    </BaseButton>
 
-        <BaseButton>
-            Dark Mode
-        </BaseButton>
-    </div>
+  </div>
 </template>
 
 <script setup>
@@ -21,9 +18,8 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 
 <style scoped>
 .controls {
-    display: flex;
-    gap: 24px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 </style>
