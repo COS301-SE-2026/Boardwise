@@ -2,7 +2,7 @@ package com.boardwise.backend.marketplace.dtos.listing;
 
 import java.util.List;
 
-import com.boardwise.backend.marketplace.enums.*;
+import com.boardwise.backend.marketplace.enums.Genres;
 
 import jakarta.validation.constraints.*;
 
@@ -10,12 +10,12 @@ import jakarta.validation.constraints.*;
 public record ListingRequest(
         @NotBlank String userId,
         @NotBlank String gameId,
-        @NotNull ItemType itemType,
-        @NotNull ListingType listingType,
+        @NotNull String itemType,
+        @NotNull String listingType,
         @Positive double price,
         @NotBlank String gameTitle,
         @NotBlank String description,
         @NotBlank String imageUrl, // if image_url is null then use a default image based on game_id
-        @NotEmpty List<Genres> genres,
+        @NotEmpty List<String> genres,
         String[] rentalPeriod) {
 }

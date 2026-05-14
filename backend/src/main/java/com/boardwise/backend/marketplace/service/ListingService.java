@@ -42,17 +42,50 @@ public class ListingService {
 
         String userId = req.userId();
         String gameId = req.gameId();
-        ItemType itemType = req.itemType();
-        ListingType listingType = req.listingType();
+        String itemType = req.itemType();
+
+        // Sanity check
+        try {
+            ItemType.fromValue(itemType);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        String listingType = req.listingType();
+
+        // Sanity check
+        try {
+            ListingType.fromValue(listingType);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            return null;
+        }
+
         double price = req.price();
+        if (price < 0) {
+            throw new IllegalArgumentException("Negative pricing is not allowed");
+        }
+
         String description = truncateAfterWords(req.description(), 500);
+
         String imageUrl = req.imageUrl();
-        List<Genres> genres = req.genres();
+
+        List<String> genres = req.genres();
+
+        // Sanity check
+        try {
+            Genres.fromValue(listingType);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            return null;
+        }
+
         String gameTitle = req.gameTitle();
 
         String[] rentalPeriod = req.rentalPeriod();
 
-        if (listingType == ListingType.RENTAL && rentalPeriod == null) {
+        if (ListingType.fromValue(listingType) == ListingType.RENTAL && rentalPeriod == null) {
             throw new IllegalArgumentException("Rental period required for rental listings");
         }
 
@@ -60,7 +93,7 @@ public class ListingService {
 
         try {
 
-            if (ListingType.RENTAL == listingType) {
+            if (ListingType.RENTAL == ListingType.fromValue(listingType)) {
                 if (rentalPeriod.length != 2) {
                     throw new RuntimeException("only 2 dates must be passed in.");
                 }
@@ -73,15 +106,15 @@ public class ListingService {
                 int comp = start.compareTo(end);
 
                 if (comp > 0)
-                    throw new RuntimeException("Start date cannot after End date");
+                    throw new RuntimeException("Start date cannot be after End date");
 
                 LocalDate today = LocalDate.now();
 
                 if (today.compareTo(start) > 0)
-                    throw new RuntimeException("Start Date cannot a past date");
+                    throw new RuntimeException("Start Date cannot be a past date");
 
                 if (today.compareTo(end) > 0)
-                    throw new RuntimeException("End Date cannot a past date");
+                    throw new RuntimeException("End Date cannot be a past date");
 
                 borrowDate.setStartDate(start);
                 borrowDate.setEndDate(end);
@@ -92,14 +125,11 @@ public class ListingService {
             return null;// should be an error
         }
 
-        // DateTimeFormatter formatter =
-        // DateTimeFormatter.ofPattern("dd-MM-yyyyTHH:mm:ss");
-        // String date = LocalDateTime.now().format(formatter);
-
         LocalDateTime now = LocalDateTime.now();
         ListingStatus status = ListingStatus.AVAILABLE;
 
-        Listing toSave = new Listing(null, userId, gameId, itemType, listingType, price, gameTitle, description,
+        Listing toSave = new Listing(null, userId, gameId, itemType, listingType, price, gameTitle,
+                description,
                 imageUrl,
                 status, now, now, genres, borrowDate);
 
