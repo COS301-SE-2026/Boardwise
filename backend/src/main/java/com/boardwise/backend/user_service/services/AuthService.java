@@ -65,7 +65,7 @@ public class AuthService {
 
         // insert into db
         User newUser = new User(username, firstName, lastName, email, password, bio, preferences, ownedgames);
-        userRepo.insert(newUser);
+        userRepo.save(newUser);
 
         // generate JWT and return it
         String token = jwt.generateToken(username);
