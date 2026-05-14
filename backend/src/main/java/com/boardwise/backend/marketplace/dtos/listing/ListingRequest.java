@@ -2,7 +2,6 @@ package com.boardwise.backend.marketplace.dtos.listing;
 
 import java.util.List;
 
-import com.boardwise.backend.marketplace.enums.Genres;
 
 import jakarta.validation.constraints.*;
 
