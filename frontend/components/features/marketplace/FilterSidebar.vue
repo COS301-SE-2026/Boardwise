@@ -26,6 +26,12 @@
     min-width: 220px;
 }
 
+@media (max-width: 900px) {
+  .sidebar {
+    width: 100%;
+  }
+}
+
 label {
     display: flex;
     gap: 8px;

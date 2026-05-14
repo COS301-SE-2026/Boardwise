@@ -5,7 +5,7 @@
       +
     </div>
 
-    <p>Add Game</p>
+    <p>Add Listing</p>
 
   </BaseCard>
 </template>
@@ -16,7 +16,7 @@ import BaseCard from '~/components/ui/BaseCard.vue'
 
 <style scoped>
 .add-card {
-  height: 280px;
+  height: 320px;
 
   border: 2px dashed #ccc;
 
@@ -35,5 +35,6 @@ import BaseCard from '~/components/ui/BaseCard.vue'
 
 p {
   margin-top: 12px;
+  font-weight: 600;
 }
 </style>
