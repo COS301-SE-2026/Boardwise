@@ -6,7 +6,7 @@
             :class="{ active: tab === activeTab }"
             @click="$emit('change', tab)"
         >
-            {{ tag }}
+            {{ tab }}
         </BaseButton>
     </div>
 </template>

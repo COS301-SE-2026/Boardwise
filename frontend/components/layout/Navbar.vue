@@ -8,7 +8,7 @@
         <div class="links">
             
             <NuxtLink to="/marketplace">
-                marketplace
+                Marketplace
             </NuxtLink>
 
             <NuxtLink to="/library">
