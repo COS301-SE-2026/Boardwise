@@ -31,6 +31,7 @@ import com.boardwise.backend.vault.repository.RulebookRepository;
 import com.boardwise.backend.vault.repository.RulebookTextRepository;
 import com.boardwise.backend.vault.repository.WriteLockRepository;
 import com.boardwise.backend.vault.service.LockManagerService;
+import com.boardwise.backend.vault.websocket.VaultEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 public class LockManagerServiceTest {
@@ -43,6 +44,8 @@ public class LockManagerServiceTest {
     private RulebookTextRepository rulebookTextRepository;
     @Mock
     private EditEventRepository editEventRepository;
+    @Mock
+    private VaultEventPublisher eventPublisher;
 
     @InjectMocks
     private LockManagerService lockManagerService;
