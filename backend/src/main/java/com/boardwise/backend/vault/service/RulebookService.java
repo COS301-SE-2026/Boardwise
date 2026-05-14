@@ -7,12 +7,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.boardwise.backend.vault.dto.response.DownloadUrlResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookTextResponseDto;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.model.RulebookText;
 import com.boardwise.backend.vault.model.WriteLock;
+import com.boardwise.backend.vault.repository.EditEventRepository;
 import com.boardwise.backend.vault.repository.RulebookRepository;
 import com.boardwise.backend.vault.repository.RulebookTextRepository;
 import com.boardwise.backend.vault.repository.WriteLockRepository;
@@ -65,6 +67,23 @@ public class RulebookService {
             .lockHeldBy(lock != null ? lock.getHeldByUserId().toHexString() : null)
             .updatedAt(text.getUpdatedAt())
             .build();
+    }
+
+    // VC-004: Download Raw PDF - pre-signed URL generation placeholder
+    // R2 pre-signing will be wired in once R2Config is active
+    public DownloadUrlResponseDto getDownloadUrl(ObjectId id) {
+        Rulebook rulebook = findRulebookOrThrow(id);
+
+        if (rulebook.getR2PdfKey() == null) {
+            throw new RulebookNotFoundException(
+                    "PDF not yet available for rulebook: " + id);
+        }
+
+        // TODO: wire R2Presigner bean here in Phase 6
+        return DownloadUrlResponseDto.builder()
+                .downloadUrl("presigned-url-placeholder")
+                .expiresAt(java.time.Instant.now().plusSeconds(300))
+                .build();
     }
 
     // --- private helpers ---

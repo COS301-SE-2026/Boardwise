@@ -51,6 +51,14 @@ public class RulebookController {
                 rulebookService.getRulebookText(toObjectId(id)));
     }
 
+    // VC-004: Download Raw PDF
+    @GetMapping("/{id}/download")
+    public ResponseEntity<DownloadUrlResponseDto> downloadRulebook(
+            @PathVariable String id) {
+        return ResponseEntity.ok(
+                rulebookService.getDownloadUrl(toObjectId(id)));
+    }
+
     // --- private helpers ---
     private ObjectId toObjectId(String id) {
         try {
