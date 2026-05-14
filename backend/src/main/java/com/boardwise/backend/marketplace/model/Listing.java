@@ -7,7 +7,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import com.boardwise.backend.marketplace.enums.*;
+import com.boardwise.backend.marketplace.enums.ListingStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,10 +35,10 @@ public class Listing {
     private String gameId;
 
     @Field("item_type")
-    private ItemType itemType;
+    private String itemType;
 
     @Field("listing_type")
-    private ListingType listingType;
+    private String listingType;
 
     @Field("price")
     private double price;
@@ -62,7 +62,7 @@ public class Listing {
     private LocalDateTime updatedAt;
 
     @Field("genres")
-    private List<Genres> genres;
+    private List<String> genres;
 
     @Field("rental_period")
     private RentalPeriod rentalPeriod;

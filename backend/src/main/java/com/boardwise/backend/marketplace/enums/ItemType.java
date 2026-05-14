@@ -11,7 +11,7 @@ public enum ItemType {
         this.value = value;
     }
 
-    public static ItemType fromValues(String value) {
+    public static ItemType fromValue(String value) {
         for (ItemType type : values()) {
             if (type.value.equalsIgnoreCase(value))
                 return type;
