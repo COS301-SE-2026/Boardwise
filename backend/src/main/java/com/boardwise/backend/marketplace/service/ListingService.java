@@ -186,6 +186,14 @@ public class ListingService {
         return mapToResponse(saved);
     }
 
+    public List<ListingResponse> getUserListings(String id) {
+        // if (!userRepository.existsById(id)) {
+        // throw new IllegalArgumentException("User does not exist");
+        // }
+
+        return listingRepository.findByUserId(id).stream().map(this::mapToResponse).toList();
+    }
+
     private ListingResponse mapToResponse(Listing listing) {
         return new ListingResponse(
                 listing.getId(),

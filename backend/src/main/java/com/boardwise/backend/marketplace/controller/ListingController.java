@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.ResponseEntity;
@@ -50,11 +49,10 @@ public class ListingController {
     // AC-MKT-02: Get Listing by ID
     @GetMapping("/listings/{listingId}") // to be changed
     public ResponseEntity<ListingResponse> getListingById(@PathVariable String listingId) {
-        // TODO: process GET request
         try {
             return ResponseEntity.status(200).body(listingService.getListingById(listingId));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(listingService.getListingById(listingId));
+            return ResponseEntity.status(500).body(null);
         }
 
     }
@@ -74,7 +72,6 @@ public class ListingController {
     @PatchMapping("/listings/{listingId}")
     public ResponseEntity<ListingResponse> updateListing(@RequestBody ListingRequest req,
             @PathVariable String listingId) {
-        // TODO: process PATCH request
         try {
             listingService.updateListing(listingId, req);
         } catch (Exception e) {
@@ -86,7 +83,6 @@ public class ListingController {
     // AC-MKT-05: Delete a Listing
     @DeleteMapping("/listings/{listingId}")
     public ResponseEntity<String> deleteListing(@PathVariable String listingId) {
-        // TODO: process DELETE request
         try {
             listingService.deleteListing(listingId);
             return ResponseEntity.status(204).body("");
@@ -96,10 +92,21 @@ public class ListingController {
     }
 
     // AC-MKT-06: Get Authenticated User's Listings
-    @GetMapping("/listings/user") // to be changed
-    public String getUserListings(@RequestParam String param) {
+    @GetMapping("/listings/{user}")
+    public ResponseEntity<List<ListingResponse>> getUserListings(@PathVariable String user) {
         // TODO: process GET request
-        return null;
+        try {
+            List<ListingResponse> listings = listingService.getUserListings(user);
+            if (listings.isEmpty()) {
+                return ResponseEntity.status(204).body(null);
+            }
+
+            return ResponseEntity.status(200).body(listings);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
+
+        }
     }
 
     // TODO: AC-MKT-07: Get Retail Sources for a Game Title
