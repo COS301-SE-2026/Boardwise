@@ -151,7 +151,41 @@ public class ListingService {
         return mapToResponse(listingRepository.findById(id).get());
     }
 
-    
+    public ListingResponse updateListing(String id, ListingRequest req) {
+        if (!listingRepository.existsById(id)) {
+            throw new IllegalArgumentException("Listing not found: " + id);
+        }
+
+        Listing existing = listingRepository.findById(id).get();
+
+        existing.setItemType(req.itemType());
+        existing.setListingType(req.listingType());
+        existing.setPrice(req.price());
+        existing.setTitle(req.gameTitle());
+        existing.setDescription(truncateAfterWords(req.description(), 500));
+        existing.setImageUrl(req.imageUrl());
+        existing.setGenres(req.genres());
+        existing.setUpdatedAt(LocalDateTime.now());
+
+        if (req.rentalPeriod() != null) {
+            List<String> rentalPeriod = req.rentalPeriod();
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            LocalDate start = LocalDate.parse(rentalPeriod.get(0), dateFormatter);
+            LocalDate end = LocalDate.parse(rentalPeriod.get(1), dateFormatter);
+
+            if (start.compareTo(end) > 0)
+                throw new IllegalArgumentException("Start date cannot be after End date");
+
+            RentalPeriod borrowDate = new RentalPeriod();
+            borrowDate.setStartDate(start);
+            borrowDate.setEndDate(end);
+            existing.setRentalPeriod(borrowDate);
+        }
+
+        Listing saved = listingRepository.save(existing);
+        return mapToResponse(saved);
+    }
+
     private ListingResponse mapToResponse(Listing listing) {
         return new ListingResponse(
                 listing.getId(),

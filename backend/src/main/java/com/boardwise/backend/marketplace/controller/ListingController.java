@@ -74,9 +74,14 @@ public class ListingController {
 
     // AC-MKT-04: Update a Listing
     @PatchMapping("/listings/{listingId}")
-    public String updateListing(@RequestBody String entity) {
+    public ResponseEntity<ListingResponse> updateListing(@RequestBody ListingRequest req,
+            @PathVariable String listingId) {
         // TODO: process PATCH request
-
+        try {
+            listingService.updateListing(listingId, req);
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body(null);
+        }
         return null;
     }
 
