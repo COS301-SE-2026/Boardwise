@@ -24,12 +24,10 @@ import java.util.*;
 @RequestMapping("/api/marketplace")
 
 public class ListingController {
-    private final ListingRepository listingRepository;
     private final ListingService listingService;
 
     public ListingController(ListingService listingService, ListingRepository listingRepository) {
         this.listingService = listingService;
-        this.listingRepository = listingRepository;
     }
 
     // AC-MKT-01: Get All Active Listings
