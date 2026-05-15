@@ -7,9 +7,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
-import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,14 +16,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.boardwise.backend.user_service.dtos.AuthResponseDTO;
 import com.boardwise.backend.user_service.dtos.LoginDTO;
 import com.boardwise.backend.user_service.dtos.LogoutResponseDTO;
 import com.boardwise.backend.user_service.dtos.RegisterDTO;
-import com.boardwise.backend.user_service.models.Boardgame;
-import com.boardwise.backend.user_service.models.Preferences;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
 
@@ -46,9 +40,6 @@ class AuthServiceTest {
     private AuthenticationManager manager;
 
     @Mock
-    private MultipartFile profilePic;
-
-    @Mock
     private Authentication authentication;
 
     @InjectMocks
@@ -59,19 +50,13 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        List<String> genres = List.of("Strategy", "Family");
-        Preferences preferences = new Preferences();
-        preferences.setGenres(genres);
-
+        
         validRegisterDTO = new RegisterDTO(
             "testuser",
             "test@example.com",
             "StrongP@ss1!",
             "John",
-            "Doe",
-            "I love board games",
-            preferences,
-            List.of("Catan", "Chess")
+            "Doe"
         );
 
         validLoginDTO = new LoginDTO("testuser", "StrongP@ss1!");
@@ -82,11 +67,9 @@ class AuthServiceTest {
         // Given
         when(jwt.generateToken(anyString())).thenReturn("test.jwt.token");
         when(userRepo.save(any())).thenReturn(null);
-        when(gameRepo.findByTitle("Catan")).thenReturn(Optional.of(new Boardgame()));
-        when(gameRepo.findByTitle("Chess")).thenReturn(Optional.empty());
-
+  
         // When
-        AuthResponseDTO response = authService.register(validRegisterDTO, profilePic);
+        AuthResponseDTO response = authService.register(validRegisterDTO);
 
         // Then
         assertThat(response).isNotNull();
@@ -150,17 +133,14 @@ class AuthServiceTest {
             "test@example.com",
             "StrongP@ss1!",
             "<b>John</b>",
-            "Doe",
-            "<img src='x' onerror='alert(1)'>",
-            null,
-            null
+            "Doe"
         );
         
         when(jwt.generateToken(anyString())).thenReturn("test.jwt.token");
         when(userRepo.save(any())).thenReturn(null);
 
         // When
-        AuthResponseDTO response = authService.register(maliciousDTO, profilePic);
+        AuthResponseDTO response = authService.register(maliciousDTO);
 
         // Then
         assertThat(response).isNotNull();
@@ -175,15 +155,12 @@ class AuthServiceTest {
             "test@example.com",
             "StrongP@ss1!",
             "John",
-            "Doe",
-            null,
-            null,
-            null
+            "Doe"
         );
 
         // When & Then
         assertThrows(IllegalArgumentException.class, () -> {
-            authService.register(maliciousDTO, profilePic);
+            authService.register(maliciousDTO);
         });
     }
 
@@ -195,17 +172,14 @@ class AuthServiceTest {
             "test@example.com",
             "StrongP@ss1!",
             "John",
-            "Doe",
-            null,
-            null,
-            null
+            "Doe"
         );
         
         when(jwt.generateToken(anyString())).thenReturn("test.jwt.token");
         when(userRepo.save(any())).thenReturn(null);
 
         // When
-        AuthResponseDTO response = authService.register(dtoWithoutPrefs, profilePic);
+        AuthResponseDTO response = authService.register(dtoWithoutPrefs);
 
         // Then
         assertThat(response).isNotNull();

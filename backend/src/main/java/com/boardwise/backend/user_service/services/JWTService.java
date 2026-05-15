@@ -1,7 +1,6 @@
 package com.boardwise.backend.user_service.services;
 
 import java.security.NoSuchAlgorithmException;
-import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
@@ -101,9 +100,7 @@ public class JWTService {
         tokenRepo.save(
             new TokenBlackList(claims.getId(), 
             claims.getExpiration()
-            .toInstant()
-            .atZone(ZoneId.systemDefault())
-            .toLocalDateTime())
+            .toInstant())
         );
     }
 

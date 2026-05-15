@@ -1,7 +1,5 @@
 package com.boardwise.backend.user_service.dtos;
 
-import java.util.List;
-import com.boardwise.backend.user_service.models.Preferences;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -24,9 +22,6 @@ public record RegisterDTO(
     @NotBlank(message = "First Name is required")
     String firstName,
     @NotBlank(message = "Last Name is required") 
-    String lastName, 
-    String bio,
-    Preferences preferences,
-    List<String> ownedGames
+    String lastName
 ) {}
 

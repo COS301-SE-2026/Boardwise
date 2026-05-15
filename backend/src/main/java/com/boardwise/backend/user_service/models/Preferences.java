@@ -15,5 +15,6 @@ import lombok.Setter;
 @Setter
 @EqualsAndHashCode
 public class Preferences {
+    private boolean isPrivate;
     private List<String> genres;
 }
