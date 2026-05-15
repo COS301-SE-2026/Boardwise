@@ -151,6 +151,18 @@ public class ListingService {
         return mapToResponse(listingRepository.findById(id).get());
     }
 
+    public List<ListingResponse> getByFilter(String listingType, String itemType, Double minPrice, Double maxPrice,
+            List<String> genres) {
+        return listingRepository.findAll().stream()
+                .filter(listing -> listing.getStatus() == ListingStatus.AVAILABLE)
+                .filter(listing -> listingType == null || listing.getListingType().equalsIgnoreCase(listingType))
+                .filter(listing -> itemType == null || listing.getItemType().equalsIgnoreCase(itemType))
+                .filter(listing -> minPrice == null || listing.getPrice() >= minPrice)
+                .filter(listing -> maxPrice == null || listing.getPrice() <= maxPrice).filter(listing -> genres == null
+                        || genres.isEmpty() || listing.getGenres().stream().anyMatch(genres::contains))
+                .map(this::mapToResponse).toList();
+    }
+
     public ListingResponse updateListing(String id, ListingRequest req) {
         if (!listingRepository.existsById(id)) {
             throw new IllegalArgumentException("Listing not found: " + id);

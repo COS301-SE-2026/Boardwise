@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.boardwise.backend.marketplace.dtos.listing.ListingRequest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
@@ -47,10 +48,10 @@ public class ListingController {
     }
 
     // AC-MKT-02: Get Listing by ID
-    @GetMapping("/listings/{listingId}") // to be changed
-    public ResponseEntity<ListingResponse> getListingById(@PathVariable String listingId) {
+    @GetMapping("/users/{userId}/listings") // to be changed
+    public ResponseEntity<ListingResponse> getListingById(@PathVariable String userId) {
         try {
-            return ResponseEntity.status(200).body(listingService.getListingById(listingId));
+            return ResponseEntity.status(200).body(listingService.getListingById(userId));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(null);
         }
@@ -106,6 +107,24 @@ public class ListingController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body(null);
 
+        }
+    }
+
+    @GetMapping("/listings/filter")
+    public ResponseEntity<List<ListingResponse>> getFilteredListings(@RequestParam(required = false) String listingType,
+            @RequestParam(required = false) String itemType,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) List<String> genres) {
+        try {
+            List<ListingResponse> listings = listingService.getByFilter(listingType, itemType, minPrice, maxPrice,
+                    genres);
+            if (listings.isEmpty()) {
+                return ResponseEntity.status(204).body(null);
+            }
+            return ResponseEntity.ok(listings);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
         }
     }
 
