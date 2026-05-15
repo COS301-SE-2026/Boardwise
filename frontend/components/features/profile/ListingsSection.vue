@@ -3,38 +3,33 @@
 
     <div class="top">
 
-      <SectionTitle
-        title="My Games"
-      />
+      <SectionTitle title="My Listings" />
 
-      <div class="actions">
-
-        <BaseButton variant="secondary">
-          Filter
-        </BaseButton>
-
-        <BaseButton>
-          + Add Game
-        </BaseButton>
-
-      </div>
+      <BaseButton @click="showAddListing = true">
+        + Add Listing
+      </BaseButton>
 
     </div>
 
-    <GamesGrid :games="games" />
+    <ListingGrid :listings="listings" />
+
+    <AddListingModal v-model="showAddListing" />
 
   </section>
 </template>
 
 <script setup>
-import GamesGrid from './GamesGrid.vue'
+import ListingGrid from './ListingGrid.vue'
+import AddListingModal from './AddListingModal.vue'
 
-import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+import SectionTitle from '~/components/ui/SectionTitle.vue'
 
 defineProps({
-  games: Array
+  listings: Array
 })
+
+const showAddListing = ref(false)
 </script>
 
 <style scoped>
@@ -48,11 +43,6 @@ defineProps({
   align-items: center;
 
   margin-bottom: 24px;
-}
-
-.actions {
-  display: flex;
-  gap: 12px;
 }
 
 @media (max-width: 768px) {

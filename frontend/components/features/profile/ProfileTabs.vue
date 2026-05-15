@@ -16,7 +16,7 @@ defineProps({
 defineEmits(['change'])
 
 const tabs = [
-  'Inventory',
+  'Games Owned',
   'Listings',
 ]
 </script>

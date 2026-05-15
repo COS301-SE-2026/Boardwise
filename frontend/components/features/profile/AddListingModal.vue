@@ -1,9 +1,9 @@
 <template>
   <BaseModal v-model="open">
 
-    <div class="modal-content">
+    <div class="content">
 
-      <h2>Edit Listing</h2>
+      <h2>Create Listing</h2>
 
       <BaseInput
         v-model="title"
@@ -15,19 +15,27 @@
         placeholder="Price"
       />
 
-      <BaseTextArea
-        v-model="description"
-        placeholder="Description"
+      <BaseInput
+        v-model="location"
+        placeholder="Location"
+      />
+
+      <BaseInput
+        v-model="image"
+        placeholder="Image URL"
       />
 
       <div class="actions">
 
-        <BaseButton variant="secondary">
+        <BaseButton
+          variant="secondary"
+          @click="open = false"
+        >
           Cancel
         </BaseButton>
 
         <BaseButton>
-          Save Changes
+          Create Listing
         </BaseButton>
 
       </div>
@@ -39,19 +47,19 @@
 
 <script setup>
 import BaseModal from '~/components/ui/BaseModal.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
-import BaseTextArea from '~/components/ui/BaseTextArea.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
 
 const open = defineModel()
 
 const title = ref('')
 const price = ref('')
-const description = ref('')
+const location = ref('')
+const image = ref('')
 </script>
 
 <style scoped>
-.modal-content {
+.content {
   display: flex;
   flex-direction: column;
   gap: 20px;

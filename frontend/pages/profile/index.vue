@@ -24,7 +24,7 @@
     />
 
     <GamesGrid
-      v-if="activeTab === 'Inventory'"
+      v-if="activeTab === 'Games Owned'"
       :games="games"
     />
 

@@ -26,9 +26,11 @@
 
       </div>
 
-      <BaseButton>
+      <BaseButton @click="showEdit = true">
         Edit Profile
       </BaseButton>
+
+      <EditProfileModal  v-model="showEdit" />
 
     </div>
 
@@ -39,20 +41,27 @@
 import BaseAvatar from '~/components/ui/BaseAvatar.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
+import EditListingModal from './EditListingModal.vue';
+import EditProfileModal from './EditProfileModal.vue';
 
 defineProps({
-  name: String,
-  username: String,
-  bio: String,
-  avatar: String
+    name: String,
+    username: String,
+    bio: String,
+    avatar: String
 })
+
+const showEdit = ref(false)
 </script>
 
 <style scoped>
 .header {
-  padding: 40px;
-
-  background: #FDF6E3;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 32px;
+    border-radius: 24px;
+    background: #F9F4E3;
 }
 
 .profile-top {
@@ -75,6 +84,7 @@ defineProps({
 .username {
   color: #6C3BFF;
   font-weight: bold;
+  margin-top: 8px;
 }
 
 .bio {
