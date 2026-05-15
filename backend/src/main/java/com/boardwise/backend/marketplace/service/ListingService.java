@@ -131,20 +131,27 @@ public class ListingService {
     }
 
     public List<ListingResponse> getAllActiveListings() {
-    return listingRepository.findByStatus(ListingStatus.AVAILABLE)
-            .stream()
-            .map(this::mapToResponse)
-            .toList();
-}
+        return listingRepository.findByStatus(ListingStatus.AVAILABLE)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
 
     public void deleteListing(String id) {
-        if (!listingRepository.existsById(id)) {
+        if (id == (null) || !listingRepository.existsById(id)) {
             throw new IllegalArgumentException("Listing not found: " + id);
         }
         listingRepository.deleteById(id);
     }
 
+    public ListingResponse getListingById(String id) {
+        if (!listingRepository.existsById(id)) {
+            throw new IllegalArgumentException("Listing not found: " + id);
+        }
+        return mapToResponse(listingRepository.findById(id).get());
+    }
 
+    
     private ListingResponse mapToResponse(Listing listing) {
         return new ListingResponse(
                 listing.getId(),

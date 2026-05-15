@@ -51,9 +51,14 @@ public class ListingController {
 
     // AC-MKT-02: Get Listing by ID
     @GetMapping("/listings/{listingId}") // to be changed
-    public ResponseEntity<String> getListingById(@PathVariable String listingId) {
+    public ResponseEntity<ListingResponse> getListingById(@PathVariable String listingId) {
         // TODO: process GET request
-        return ResponseEntity.ok().build();
+        try {
+            return ResponseEntity.status(200).body(listingService.getListingById(listingId));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(listingService.getListingById(listingId));
+        }
+
     }
 
     // AC-MKT-03: Create a Listing
