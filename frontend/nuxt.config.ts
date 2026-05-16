@@ -1,14 +1,15 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
-
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
-
   devtools: {
     enabled: true
   },
-
+  components: [
+    {
+      path: '~/components',
+      pathPrefix: false,  // ← registers as BaseButton, CommunityView, Navbar, etc.
+    }
+  ],
   modules: ['@vite-pwa/nuxt'],
-
   pwa: {
     manifest: {
       name: 'Boardwise',

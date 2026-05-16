@@ -11,7 +11,12 @@
             <NuxtLink to="/auth/signup">
                 <BaseButton>Sign Up</BaseButton>
             </NuxtLink>
+
+             <NuxtLink to="/community">
+                <BaseButton>Communities</BaseButton>
+            </NuxtLink>
         </div>
+        
     </div>
 </template>
 
