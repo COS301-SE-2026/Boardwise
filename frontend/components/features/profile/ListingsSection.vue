@@ -19,7 +19,7 @@
 </template>
 
 <script setup>
-import ListingGrid from './ListingGrid.vue'
+import ListingGrid from './ListingsGrid.vue'
 import AddListingModal from './AddListingModal.vue'
 
 import BaseButton from '~/components/ui/BaseButton.vue'

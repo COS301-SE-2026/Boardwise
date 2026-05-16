@@ -9,7 +9,7 @@
       :image="game.image"
     />
 
-    <AddGameCard />
+    <AddGameCard @click="$emit('add-game')" />
 
   </div>
 </template>
@@ -21,6 +21,8 @@ import AddGameCard from './AddGameCard.vue'
 defineProps({
   games: Array
 })
+
+defineEmits(['add-game'])
 </script>
 
 <style scoped>

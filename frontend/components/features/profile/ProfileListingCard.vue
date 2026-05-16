@@ -16,13 +16,17 @@
 
       <div class="actions">
 
-        <BaseButton size="sm">
+        <BaseButton
+          size="sm"
+          @click="showEdit = true"
+        >
           Edit
         </BaseButton>
 
         <BaseButton
           size="sm"
           variant="secondary"
+          @click="showDelete = true"
         >
           Delete
         </BaseButton>
@@ -31,6 +35,10 @@
 
     </div>
 
+    <EditListingModal v-model="showEdit" />
+
+    <DeleteListingModal v-model="showDelete" />
+
   </BaseCard>
 </template>
 
@@ -38,9 +46,18 @@
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 
+import EditListingModal from './EditListingModal.vue'
+import DeleteListingModal from './DeleteListingModal.vue'
+
 defineProps({
-  listing: Object
+  listing: {
+    type: Object,
+    required: true
+  }
 })
+
+const showEdit = ref(false)
+const showDelete = ref(false)
 </script>
 
 <style scoped>
@@ -52,7 +69,6 @@ defineProps({
 img {
   width: 100%;
   height: 180px;
-
   object-fit: cover;
 }
 
@@ -63,14 +79,12 @@ img {
 .price {
   color: #6C3BFF;
   font-weight: bold;
-
   margin-top: 8px;
 }
 
 .actions {
   display: flex;
   gap: 12px;
-
   margin-top: 16px;
 }
 </style>

@@ -1,21 +1,14 @@
-<!-- pages/profile/index.vue -->
 <template>
   <PageContainer>
 
     <Navbar />
 
-    <ProfileHeader
-      name="Alexandra Lee"
-      username="alexalee"
-      bio="Board game lover • Strategy enthusiast"
-      avatar="/images/avatar.jpg"
-    />
+    <ProfileHeader :user="user" />
 
     <ProfileStats
-      :games="28"
+      :games="games.length"
       :friends="15"
       :communities="8"
-      :reviews="12"
     />
 
     <ProfileTabs
@@ -23,12 +16,15 @@
       @change="activeTab = $event"
     />
 
-    <GamesGrid
+    <GamesOwnedSection
       v-if="activeTab === 'Games Owned'"
       :games="games"
     />
 
-    <ListingsGrid v-else />
+    <ListingsSection
+      v-else
+      :listings="listings"
+    />
 
   </PageContainer>
 </template>
@@ -41,10 +37,17 @@ import ProfileHeader from '~/components/features/profile/ProfileHeader.vue'
 import ProfileStats from '~/components/features/profile/ProfileStats.vue'
 import ProfileTabs from '~/components/features/profile/ProfileTabs.vue'
 
-import GamesGrid from '~/components/features/profile/GamesGrid.vue'
-import ListingsGrid from '~/components/features/profile/ListingsGrid.vue'
+import GamesOwnedSection from '~/components/features/profile/GamesOwnedSection.vue'
+import ListingsSection from '~/components/features/profile/ListingsSection.vue'
 
-const activeTab = ref('Inventory')
+const activeTab = ref('Games Owned')
+
+const user = {
+  name: 'Alexandra Lee',
+  username: 'alexalee',
+  bio: 'Board game lover • Strategy enthusiast',
+  avatar: '/images/avatar.jpg'
+}
 
 const games = [
   {
@@ -57,6 +60,21 @@ const games = [
     id: 2,
     title: 'Dixit',
     category: 'Family',
+    image: '/images/dixit.jpg'
+  }
+]
+
+const listings = [
+  {
+    id: 1,
+    title: 'Catan',
+    price: 650,
+    image: '/images/catan.jpg'
+  },
+  {
+    id: 2,
+    title: 'Dixit',
+    price: 400,
     image: '/images/dixit.jpg'
   }
 ]

@@ -21,7 +21,10 @@
 
     </div>
 
-    <GamesGrid :games="games" />
+    <GamesGrid 
+      :games="games"
+      @add-game="showAddGame = true"
+    />
 
     <AddGameModal v-model="showAddGame" />
 
@@ -30,7 +33,7 @@
 
 <script setup>
 import GamesGrid from './GamesGrid.vue'
-import AddGameModal from './AddGameCard.vue'
+import AddGameModal from './AddGameModal.vue'
 
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'

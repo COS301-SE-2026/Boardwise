@@ -6,20 +6,20 @@
       <div class="left">
 
         <BaseAvatar
-          :src="avatar"
+          :src="user.avatar"
           size="xl"
         />
 
         <div class="info">
 
-          <h1>{{ name }}</h1>
+          <h1>{{ user.name }}</h1>
 
           <p class="username">
-            @{{ username }}
+            @{{ user.username }}
           </p>
 
           <p class="bio">
-            {{ bio }}
+            {{ user.bio }}
           </p>
 
         </div>
@@ -45,10 +45,10 @@ import EditListingModal from './EditListingModal.vue';
 import EditProfileModal from './EditProfileModal.vue';
 
 defineProps({
-    name: String,
-    username: String,
-    bio: String,
-    avatar: String
+  user: {
+    type: Object,
+    required: true
+  }
 })
 
 const showEdit = ref(false)

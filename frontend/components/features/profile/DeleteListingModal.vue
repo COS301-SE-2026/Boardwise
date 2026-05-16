@@ -1,7 +1,7 @@
 <template>
   <BaseModal v-model="open">
 
-    <div class="modal-content">
+    <div class="content">
 
       <h2>Delete Listing</h2>
 
@@ -11,11 +11,14 @@
 
       <div class="actions">
 
-        <BaseButton variant="secondary">
+        <BaseButton
+          variant="secondary"
+          @click="open = false"
+        >
           Cancel
         </BaseButton>
 
-        <BaseButton variant="danger">
+        <BaseButton>
           Delete
         </BaseButton>
 
@@ -34,10 +37,10 @@ const open = defineModel()
 </script>
 
 <style scoped>
-.modal-content {
+.content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .actions {

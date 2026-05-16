@@ -12,6 +12,8 @@
 
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
+
+defineEmits(['click'])
 </script>
 
 <style scoped>
