@@ -7,6 +7,7 @@ import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -59,5 +60,17 @@ public class ProfileController {
             res.put("message", "Something went wrong on our end.");
             return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @DeleteMapping("/")
+    public ResponseEntity<?> deleteProfile(HttpServletRequest req){
+        String token = req.getHeader("Authorization").split(" ")[1];
+        Map<String, Object> res = new HashMap<>();
+        if(service.deleteUser(token)){ 
+            res.put("message", "Account deleted successfully.");
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        res.put("message", "Failed to delete account. Something went wrong on our side.");
+        return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

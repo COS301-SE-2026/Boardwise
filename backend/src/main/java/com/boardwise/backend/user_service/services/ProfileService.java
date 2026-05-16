@@ -78,4 +78,9 @@ public class ProfileService {
             formatter.format(user.getCreatedAt())
         );
     }
+
+    public boolean deleteUser(String token) {
+        String username = jwtService.extractUsername(token);
+        return userRepo.deleteByUsername(username);
+    }
 }
