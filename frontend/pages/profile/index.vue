@@ -19,6 +19,7 @@
     <GamesOwnedSection
       v-if="activeTab === 'Games Owned'"
       :games="games"
+      @add-game="games.push($event)"
     />
 
     <ListingsSection

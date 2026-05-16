@@ -1,7 +1,7 @@
 <template>
   <BaseCard 
     class="add-card" 
-    @click="$emit('click')"
+    @click="$emit('add-game')"
   >
 
     <div class="plus">
@@ -16,7 +16,7 @@
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
 
-defineEmits(['click'])
+defineEmits(['add-game'])
 </script>
 
 <style scoped>

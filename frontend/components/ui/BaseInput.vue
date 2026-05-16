@@ -26,5 +26,6 @@ const inputValue = defineModel()
   padding: 12px;
   border: 1px solid #ddd;
   border-radius: 8px;
+  box-sizing: border-box;
 }
 </style>

@@ -17,17 +17,17 @@
 
     </div>
 
-    <RulebookDetail 
+    <!-- <RulebookDetail 
       v-model="showDetail"
       :game = "{ title, category, image }"
-    />
+    /> -->
 
   </BaseCard>
 </template>
 
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
-import GameDetailModal from '~/components/features/library/RulebookDetail.vue'
+// import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
 
 defineProps({
   title: String,

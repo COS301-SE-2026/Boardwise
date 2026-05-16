@@ -63,6 +63,9 @@ const image = ref('')
   display: flex;
   flex-direction: column;
   gap: 20px;
+  padding: 8px;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .actions {

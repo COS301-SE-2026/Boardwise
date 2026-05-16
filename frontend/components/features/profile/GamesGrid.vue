@@ -9,7 +9,7 @@
       :image="game.image"
     />
 
-    <AddGameCard @click="$emit('add-game')" />
+    <AddGameCard @add-game="$emit('add-game')" />
 
   </div>
 </template>

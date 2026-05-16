@@ -2,31 +2,22 @@
   <section class="section">
 
     <div class="top">
-
-      <SectionTitle
-        title="My Games"
-      />
-
+      <SectionTitle title="My Games" />
       <div class="actions">
-
-        <BaseButton variant="secondary">
-          Filter
-        </BaseButton>
-
-        <BaseButton @click="showAddGame = true">
-          + Add Game
-        </BaseButton>
-
+        <BaseButton variant="secondary">Filter</BaseButton>
+        <BaseButton @click="showAddGame = true">+ Add Game</BaseButton>
       </div>
-
     </div>
 
-    <GamesGrid 
+    <GamesGrid
       :games="games"
       @add-game="showAddGame = true"
     />
 
-    <AddGameModal v-model="showAddGame" />
+    <AddGameModal
+      v-model="showAddGame"
+      @confirm="addGame"
+    />
 
   </section>
 </template>
@@ -34,21 +25,27 @@
 <script setup>
 import GamesGrid from './GamesGrid.vue'
 import AddGameModal from './AddGameModal.vue'
-
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 
-defineProps({
+const props = defineProps({
   games: Array
 })
 
+const emit = defineEmits(['add-game'])
+
 const showAddGame = ref(false)
+
+const addGame = (game) => {
+  emit('add-game', {
+    id: Date.now(),
+    ...game
+  })
+}
 </script>
 
 <style scoped>
-.section {
-  margin-top: 32px;
-}
+.section { margin-top: 32px; }
 
 .top {
   display: flex;

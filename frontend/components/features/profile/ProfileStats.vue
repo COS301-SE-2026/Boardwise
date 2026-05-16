@@ -39,11 +39,8 @@ defineProps({
   display: flex;
   justify-content: space-around;
   align-items: center;
-
   padding: 24px;
   margin-top: -40px;
-  position: relative;
-  z-index: 2;
 }
 
 .stat {
