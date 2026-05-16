@@ -15,6 +15,14 @@
             </NuxtLink>
 
             <NuxtLink to="/profile">
+                Community
+            </NuxtLink>
+
+            <NuxtLink to="/profile">
+                Events
+            </NuxtLink>
+
+            <NuxtLink to="/profile">
                 Profile
             </NuxtLink>
         </div>
