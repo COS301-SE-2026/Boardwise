@@ -1,7 +1,7 @@
 <template> 
     <div class="grid">
 
-        <ListingCard 
+        <ProfileListingGrid 
             v-for="listing in listings"
             :key="listing.id"
 
@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-import ListingCard from './ListingCard.vue'
+import ProfileListingGrid from './ProfileListingGrid.vue'
 
 const listings = [
     {
