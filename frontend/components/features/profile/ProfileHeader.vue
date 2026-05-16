@@ -41,7 +41,6 @@
 import BaseAvatar from '~/components/ui/BaseAvatar.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
-import EditListingModal from './EditListingModal.vue';
 import EditProfileModal from './EditProfileModal.vue';
 
 defineProps({
@@ -56,6 +55,7 @@ const showEdit = ref(false)
 
 <style scoped>
 .header {
+    width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;

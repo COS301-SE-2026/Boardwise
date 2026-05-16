@@ -1,5 +1,8 @@
 <template>
-  <BaseCard class="add-card">
+  <BaseCard 
+    class="add-card"
+    @click="$emit('click')"
+  >
 
     <div class="plus">
       +

@@ -22,7 +22,7 @@
     />
 
     <ListingsSection
-      v-else
+      v-else-if="activeTab === 'Listings'"
       :listings="listings"
     />
 
@@ -49,33 +49,42 @@ const user = {
   avatar: '/images/avatar.jpg'
 }
 
-const games = [
+const games = ref([
   {
     id: 1,
     title: 'Catan',
     category: 'Strategy',
     image: '/images/catan.jpg'
   },
+
   {
     id: 2,
     title: 'Dixit',
     category: 'Family',
     image: '/images/dixit.jpg'
-  }
-]
+  },
 
-const listings = [
+  {
+    id: 3,
+    title: 'Azul',
+    category: 'Abstract',
+    image: '/images/azul.jpg'
+  }
+])
+
+const listings = ref([
   {
     id: 1,
     title: 'Catan',
     price: 650,
     image: '/images/catan.jpg'
   },
+
   {
     id: 2,
     title: 'Dixit',
     price: 400,
     image: '/images/dixit.jpg'
   }
-]
+])
 </script>

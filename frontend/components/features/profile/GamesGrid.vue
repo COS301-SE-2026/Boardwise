@@ -19,7 +19,10 @@ import GameCard from './GameCard.vue'
 import AddGameCard from './AddGameCard.vue'
 
 defineProps({
-  games: Array
+  games: {
+    type: Array,
+    default: () => []
+  }
 })
 
 defineEmits(['add-game'])
@@ -28,12 +31,8 @@ defineEmits(['add-game'])
 <style scoped>
 .grid {
   display: grid;
-
-  grid-template-columns:
-    repeat(auto-fill, minmax(220px, 1fr));
-
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 24px;
-
   margin-top: 32px;
 }
 </style>

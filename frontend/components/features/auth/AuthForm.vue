@@ -7,15 +7,11 @@
             <h2>{{ title }}</h2>
 
             <BaseInput 
-            v-model="email"
-            type="email"
-            placeholder="Email"
-            />
-
-            <BaseInput 
-            v-model="password"
-            type="password"
-            placeholder="Password"
+                v-for="field in fields"
+                :key="field.key"
+                v-model="values[field.key]"
+                :type="field.type ?? 'text'"
+                :placeholder="field.placeholder"
             />
 
             <BaseButton @click="submitForm">
@@ -32,20 +28,23 @@ import BaseCard from '~/components/ui/BaseCard.vue'
 
 const props = defineProps({
     title: String,
-    buttonText: String
+    buttonText: String,
+    fields: {
+        type: Array,
+        default: () => []
+    }
 })
 
 const emit = defineEmits(['submit'])
 
-const email = ref('')
-const password = ref('')
+const values = reactive(
+    Object.fromEntries(props.fields.map(f => [f.key, '']))
+)
 
 const submitForm = () => {
-        emit('submit', {
-            email: email.value,
-            password: password.value
-        })
+        emit('submit', { ...values })
 }
+
 </script>
 
 <style scoped>

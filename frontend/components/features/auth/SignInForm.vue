@@ -1,7 +1,8 @@
 <template> 
     <AuthForm 
-        title="SignIn"
-        buttonText="SignIn"
+        title="Sign In"
+        buttonText="Sign In"
+        :fields="fields"
         @submit="handleSignIn"
     />
 </template>
@@ -11,10 +12,14 @@ import AuthForm from './AuthForm.vue'
 
 const router = useRouter()
 
+const fields = [
+    { key: 'email',    placeholder: 'Email',    type: 'email'    },
+    { key: 'password', placeholder: 'Password', type: 'password' }
+]
+
 const handleSignIn = (data) => { 
     console.log('SignIn:', data)
 
-    <!-- TEMP SIGNIN -->
     if (data.email && data.password) {
         router.push('/library')
     }

@@ -6,13 +6,12 @@
         </NuxtLink>
 
         <div class="links">
-            
-            <NuxtLink to="/marketplace">
-                Marketplace
-            </NuxtLink>
-
             <NuxtLink to="/library">
                 Library
+            </NuxtLink> 
+
+            <NuxtLink to="/marketplace">
+                Marketplace
             </NuxtLink>
 
             <NuxtLink to="/profile">

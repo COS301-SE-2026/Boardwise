@@ -1,5 +1,8 @@
 <template>
-  <BaseCard class="card">
+  <BaseCard class="card" 
+    @click="showDetail = true"
+    style="cursor: pointer;"
+  >
 
     <img
       :src="image"
@@ -14,23 +17,35 @@
 
     </div>
 
+    <RulebookDetail 
+      v-model="showDetail"
+      :game = "{ title, category, image }"
+    />
+
   </BaseCard>
 </template>
 
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
+import GameDetailModal from '~/components/features/library/RulebookDetail.vue'
 
 defineProps({
   title: String,
   category: String,
   image: String
 })
+
+const showDetail = ref(false)
 </script>
 
 <style scoped>
 .card {
   overflow: hidden;
   padding: 0;
+}
+
+.card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 img {

@@ -7,7 +7,7 @@
       :listing="listing"
     />
 
-    <AddListingCard />
+    <AddListingCard @click="$emit('add-listing')" />
 
   </div>
 </template>
@@ -17,8 +17,13 @@ import ProfileListingCard from './ProfileListingCard.vue'
 import AddListingCard from './AddListingCard.vue'
 
 defineProps({
-  listings: Array
+  listings: {
+    type: Array,
+    default: () => []
+  }
 })
+
+defineEmits(['add-listing'])
 </script>
 
 <style scoped>

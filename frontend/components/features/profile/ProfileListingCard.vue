@@ -35,9 +35,12 @@
 
     </div>
 
-    <EditListingModal v-model="showEdit" />
-
-    <DeleteListingModal v-model="showDelete" />
+    <EditListingModal v-model="showEdit"
+      :listing="listing"
+    />
+    <DeleteListingModal v-model="showDelete" 
+      :listing="listing"
+    />
 
   </BaseCard>
 </template>

@@ -22,7 +22,9 @@
 
       <div class="actions">
 
-        <BaseButton variant="secondary">
+        <BaseButton variant="secondary"
+          @click="open = false"
+        >
           Cancel
         </BaseButton>
 
@@ -31,9 +33,7 @@
         </BaseButton>
 
       </div>
-
     </div>
-
   </BaseModal>
 </template>
 
@@ -44,10 +44,14 @@ import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseTextArea from '~/components/ui/BaseTextArea.vue'
 
 const open = defineModel()
-
-const title = ref('')
-const price = ref('')
-const description = ref('')
+const props = defineProps({
+  listing: {
+    type: Object,
+  }
+})
+const title = ref(props.listing?.title ?? '')
+const price = ref(props.listing?.price ?? '')
+const description = ref(props.listing?.description ?? '')
 </script>
 
 <style scoped>

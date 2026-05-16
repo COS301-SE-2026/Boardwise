@@ -1,25 +1,11 @@
 <template> 
     <div class="container">
-        <AuthForm 
-            title="SignIn"
-            buttonText="SignIn"
-            @submit="handleSignIn"
-        />
+        <SignInForm />
     </div>
 </template>
 
 <script setup>
-    import AuthForm from '~/components/features/auth/AuthForm.vue'
-
-    const router = useRouter()
-
-    const handleSignIn = (data) => {
-        console.log('SIGNIN DATA', data)
-
-        if (data.email && data.password) {
-            router.push('/library')
-        }
-    }
+import SignInForm from '~/components/features/auth/SignInForm.vue'
 </script>
 
 <style scoped>

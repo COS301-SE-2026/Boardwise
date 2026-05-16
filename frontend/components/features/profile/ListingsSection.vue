@@ -11,7 +11,10 @@
 
     </div>
 
-    <ListingGrid :listings="listings" />
+    <ListingGrid 
+      :listings="listings"
+      @add-listing="showAddListing = true"
+    />
 
     <AddListingModal v-model="showAddListing" />
 
