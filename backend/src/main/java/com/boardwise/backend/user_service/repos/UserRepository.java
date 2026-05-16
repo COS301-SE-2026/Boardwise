@@ -14,5 +14,5 @@ public interface UserRepository extends MongoRepository<User, String>{
     public Optional<User> findByUsername(String username);
     
     @DeleteQuery("{'username': ?0}")
-    public boolean deleteByUsername(String username);
+    public long deleteByUsername(String username);
 }

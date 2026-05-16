@@ -69,7 +69,7 @@ public class AuthService {
         return new LogoutResponseDTO("User successfully logged out");
     }
 
-    private String sanitize(String input) {
+    public static String sanitize(String input) {
         if (input == null) return null;
         
         // trim whitespace

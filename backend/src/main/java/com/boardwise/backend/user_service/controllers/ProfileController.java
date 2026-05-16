@@ -9,11 +9,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileResponseDTO;
+import com.boardwise.backend.user_service.dtos.UpdateProfileDTO;
 import com.boardwise.backend.user_service.services.ProfileService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,7 +52,7 @@ public class ProfileController {
 
     @GetMapping("/")
     public ResponseEntity<?> getOwnProfile(HttpServletRequest req){
-        String token = req.getHeader("Authorization").split(" ")[1];
+        String token = extractToken(req);
         try{
             ProfileResponseDTO res = service.getOwnProfile(token);
             return new ResponseEntity<>(res, HttpStatus.OK);
@@ -64,7 +71,7 @@ public class ProfileController {
 
     @DeleteMapping("/")
     public ResponseEntity<?> deleteProfile(HttpServletRequest req){
-        String token = req.getHeader("Authorization").split(" ")[1];
+        String token = extractToken(req);
         Map<String, Object> res = new HashMap<>();
         if(service.deleteUser(token)){ 
             res.put("message", "Account deleted successfully.");
@@ -73,4 +80,45 @@ public class ProfileController {
         res.put("message", "Failed to delete account. Something went wrong on our side.");
         return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @PatchMapping("/")
+    public ResponseEntity<?> updateProfile(
+        @RequestBody UpdateProfileDTO profileUpdateData,
+        HttpServletRequest req
+    ){
+        try{
+            String token = extractToken(req);
+            UpdateProfileDTO res = service.updateProfile(token, profileUpdateData);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(Exception e){
+            Map<String, Object> res = new HashMap<>();
+            res.put("message", "Something went wrong during profile update.");
+            return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/profilePicture")
+    public ResponseEntity<?> updateProfilePicture(
+        @RequestPart MultipartFile pfp,
+        HttpServletRequest req
+    ){
+         try{
+            String token = extractToken(req);
+            ProfilePictureResponseDTO res = service.changeProfilePicture(token, pfp);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(Exception e){
+            Map<String, Object> res = new HashMap<>();
+            res.put("message", "Something went wrong during profile picture update.");
+            return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    
+
+    private String extractToken(HttpServletRequest req){
+        return req.getHeader("Authorization").split(" ")[1];
+    }
+
 }
