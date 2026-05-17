@@ -2,8 +2,8 @@
     <div class="header">
 
         <SectionTitle
-            title="Marketplace"
-            subtitle="Buy, rent and sell games"
+            title="Commmunity"
+            subtitle="Join a community"
         />
 
         <!-- <BaseInput 
@@ -17,8 +17,6 @@
 
 <script setup>
 import SectionTitle from '~/components/ui/SectionTitle.vue'
-import BaseInput from '~/components/ui/BaseInput.vue'
-import MarketplaceTabs from './MarketplaceTabs.vue'
 </script>
 
 <style scoped>
@@ -26,5 +24,6 @@ import MarketplaceTabs from './MarketplaceTabs.vue'
     display: flex;
     flex-direction: column;
     gap: 20px;
+    
 }
 </style>

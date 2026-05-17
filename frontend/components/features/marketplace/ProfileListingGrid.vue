@@ -1,7 +1,7 @@
 <template> 
     <div class="grid">
 
-        <ListingCard 
+        <ProfileListingGrid 
             v-for="listing in listings"
             :key="listing.id"
             :listing="listing"
@@ -10,8 +10,25 @@
 </template>
 
 <script setup>
-import ListingCard from './ListingCard.vue'
-import { listings } from '~/services/mockData/listings'
+import ProfileListingGrid from './ProfileListingGrid.vue'
+
+const listings = [
+    {
+        id: 1,
+        title: 'Catan',
+        image: '/games/catan.jpg',
+        price: 'R450',
+        location: 'Pretoria'
+    },
+
+    {
+        id:2,
+        title: 'Wingspan',
+        image: '/games/wingspan.jpg',
+        price: 'R700',
+        location: 'Cape Town'
+    }
+]
 </script>
 
 <style scoped>
