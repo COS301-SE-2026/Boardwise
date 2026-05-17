@@ -13,13 +13,13 @@
 </template>
 
 <script setup>
-defineProps({ 
-    title: String,
-    defaultOpen: {
-        type: Boolean,
-        default: false
-    }
-})
+// defineProps({ 
+//     title: String,
+//     defaultOpen: {
+//         type: Boolean,
+//         default: false
+//     }
+// })
 
 const props = defineProps({
     title: String, 
