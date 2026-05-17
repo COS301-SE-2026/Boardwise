@@ -1,35 +1,59 @@
 package com.boardwise.backend.marketplace.service;
 
 import com.boardwise.backend.marketplace.model.*;
+import com.boardwise.backend.user_service.services.*;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import com.boardwise.backend.user_service.repos.*;
+
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Arrays;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
+
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.sync.RequestBody;
+
+import java.io.IOException;
 
 import com.boardwise.backend.marketplace.dtos.listing.ListingRequest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
 import com.boardwise.backend.marketplace.enums.*;
+import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
+import java.util.*;
 
 @Service
 public class ListingService {
 
+    private final BoardGameRepository boardGameRepository;
     private final ListingRepository listingRepository;
     private final UserRepository userRepository;
+    private final JWTService jwtService;
 
-    public ListingService(ListingRepository listingRepository, UserRepository userRepository) {
+    public ListingService(ListingRepository listingRepository, UserRepository userRepository, JWTService jwtService,
+            BoardGameRepository boardGameRepository) {
         this.listingRepository = listingRepository;
         this.userRepository = userRepository;
+        this.jwtService = jwtService;
+        this.boardGameRepository = boardGameRepository;
     }
 
-    public static String truncateAfterWords(String text, int wordLimit) {
+    private static String truncateAfterWords(String text, int wordLimit) {
         if (text == null || wordLimit <= 0)
             return "";
+
+        // remove n > 2 spaces n = 1
+        String doubleSpacingCheck = "\\s{2,}";
+        text = text.trim().replaceAll(doubleSpacingCheck, " ");
 
         String[] words = text.split("\\s+");
 
@@ -41,15 +65,38 @@ public class ListingService {
         return String.join(" ", kept);
     }
 
-    public ListingResponse createListing(ListingRequest req) {
+    public static String uploadImageToR2(
+            String accessKey,
+            String secretKey,
+            String endpoint,
+            String bucket,
+            String listingId,
+            MultipartFile file) throws IOException {
 
-        String userId = req.userId();
+        S3Client r2Client = S3Client.builder()
+                .endpointOverride(URI.create(endpoint))
+                .credentialsProvider(
+                        StaticCredentialsProvider.create(
+                                AwsBasicCredentials.create(accessKey, secretKey)))
+                .region(Region.of("auto"))
+                .build();
 
-        // if (!userRepository.existsById(userId)) {
-        // throw new IllegalArgumentException("User does not exist");
-        // }
+        String key = "listings/" + listingId + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
 
-        String gameId = req.gameId();
+        r2Client.putObject(
+                PutObjectRequest.builder()
+                        .bucket(bucket)
+                        .key(key)
+                        .contentType(file.getContentType())
+                        .contentLength(file.getSize())
+                        .build(),
+                RequestBody.fromBytes(file.getBytes()));
+
+        return endpoint + "/" + bucket + "/" + key;
+    }
+
+    public ListingResponse createListing(ListingRequest req, String token, @RequestPart MultipartFile img) {
+        String username = jwtService.extractUsername(token); // fails at filter level
 
         String itemType = req.itemType();
 
@@ -68,8 +115,7 @@ public class ListingService {
 
         String description = truncateAfterWords(req.description(), 500);
 
-        String imageUrl = req.imageUrl();
-
+        String imageUrl;
         List<String> genres = req.genres();
 
         // Sanity check
@@ -78,16 +124,22 @@ public class ListingService {
 
         String gameTitle = req.gameTitle();
 
-        List<String> rentalPeriod = req.rentalPeriod();
+        // TODO: check if title is avaliable if not upload to db
 
-        if (ListingType.fromValue(listingType).equals(ListingType.RENTAL) && rentalPeriod == null) {
-            throw new IllegalArgumentException("Rental period required for rental listings");
+        if (gameTitle == null || gameTitle.isBlank()) {
+            throw new IllegalArgumentException("Game Title cannot be blank");
+
         }
+
+        List<String> rentalPeriod = (req.rentalPeriod().size() != 2) ? null : req.rentalPeriod();
 
         RentalPeriod borrowDate = null;
 
         if (ListingType.RENTAL.equals(ListingType.fromValue(listingType))) {
 
+            if (rentalPeriod == null) {
+                throw new IllegalArgumentException("Rental period required for rental listings");
+            }
             if (rentalPeriod.size() != 2) {
                 throw new RuntimeException("only 2 dates must be passed in.");
             }
@@ -119,13 +171,26 @@ public class ListingService {
         LocalDateTime now = LocalDateTime.now();
         ListingStatus status = ListingStatus.AVAILABLE;
 
-        Listing toSave = new Listing(null, userId, gameId, itemType, listingType, price, gameTitle,
+        Listing toSave = new Listing(null, username, itemType, listingType, price, gameTitle,
                 description,
-                imageUrl,
+                null,
                 status, now, now, genres, borrowDate);
 
         Listing saved = listingRepository.save(toSave);
 
+        // TODO: Uncomment
+
+        try {
+            imageUrl = uploadImageToR2(System.getenv("R2_ACCESS_KEY"),
+                    System.getenv("R2_SECRET_KEY"),
+                    System.getenv("R2_LISTINGS_ENDPOINT"), System.getenv("R2_LISTINGS_BUCKET"),
+                    saved.getId(), img);
+
+            saved.setImageUrl(imageUrl);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return mapToResponse(saved);
 
     }
@@ -137,11 +202,18 @@ public class ListingService {
                 .toList();
     }
 
-    public void deleteListing(String id) {
-        if (id == (null) || !listingRepository.existsById(id)) {
-            throw new IllegalArgumentException("Listing not found: " + id);
+    public void deleteListing(String listingId, String token) {
+        String username = jwtService.extractUsername(token);
+
+        Listing listing = listingRepository.findById(listingId)
+                .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + listingId));
+
+        if (!listing.getUsername().equals(username)) {
+            throw new ForbiddenException("You do not own listing: " + listingId);
         }
-        listingRepository.deleteById(id);
+
+        listingRepository.deleteById(listingId);
+
     }
 
     public ListingResponse getListingById(String id) {
@@ -163,24 +235,33 @@ public class ListingService {
                 .map(this::mapToResponse).toList();
     }
 
-    public ListingResponse updateListing(String id, ListingRequest req) {
-        if (!listingRepository.existsById(id)) {
-            throw new IllegalArgumentException("Listing not found: " + id);
-        }
+    public ListingResponse updateListing(String listingId, ListingRequest req, String token) {
+        String username = jwtService.extractUsername(token);
 
-        Listing existing = listingRepository.findById(id).get();
+        Listing existing = listingRepository.findById(listingId)
+                .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + listingId));
+
+        if (!existing.getUsername().equals(username)) {
+            throw new ForbiddenException("You do not own listing: " + listingId);
+        }
+        if (!listingRepository.existsById(listingId)) {
+            throw new IllegalArgumentException("Listing not found: " + listingId);
+        }
 
         existing.setItemType(req.itemType());
         existing.setListingType(req.listingType());
         existing.setPrice(req.price());
         existing.setTitle(req.gameTitle());
         existing.setDescription(truncateAfterWords(req.description(), 500));
-        existing.setImageUrl(req.imageUrl());
+        // existing.setImageUrl(req.imageUrl());
+        // TODO: add replace image
         existing.setGenres(req.genres());
         existing.setUpdatedAt(LocalDateTime.now());
 
-        if (req.rentalPeriod() != null) {
-            List<String> rentalPeriod = req.rentalPeriod();
+        if (req.rentalPeriod() != null && !req.rentalPeriod().isEmpty()) {
+            List<String> rentalPeriod = (req.rentalPeriod() == null || req.rentalPeriod().size() != 2)
+                    ? null
+                    : req.rentalPeriod();
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             LocalDate start = LocalDate.parse(rentalPeriod.get(0), dateFormatter);
             LocalDate end = LocalDate.parse(rentalPeriod.get(1), dateFormatter);
@@ -198,18 +279,19 @@ public class ListingService {
         return mapToResponse(saved);
     }
 
-    public List<ListingResponse> getUserListings(String id) {
+    public List<ListingResponse> getUserListings(String token) {
+        String username = jwtService.extractUsername(token);
         // if (!userRepository.existsById(id)) {
         // throw new IllegalArgumentException("User does not exist");
         // }
 
-        return listingRepository.findByUserId(id).stream().map(this::mapToResponse).toList();
+        return listingRepository.findByUsername(username).stream().map(this::mapToResponse).toList();
     }
 
     private ListingResponse mapToResponse(Listing listing) {
         return new ListingResponse(
                 listing.getId(),
-                listing.getUserId(),
+                listing.getUsername(),
                 listing.getTitle(),
                 listing.getItemType(),
                 listing.getListingType(),

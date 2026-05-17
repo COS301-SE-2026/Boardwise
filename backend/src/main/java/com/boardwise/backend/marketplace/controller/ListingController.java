@@ -2,18 +2,23 @@ package com.boardwise.backend.marketplace.controller;
 
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 
 import com.boardwise.backend.marketplace.dtos.listing.ListingRequest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
+import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.marketplace.service.*;
 
 import jakarta.validation.*;
@@ -24,6 +29,9 @@ import java.util.*;
 @RequestMapping("/api/marketplace")
 
 public class ListingController {
+    
+
+    
     private final ListingService listingService;
 
     public ListingController(ListingService listingService, ListingRepository listingRepository) {
@@ -59,36 +67,51 @@ public class ListingController {
     }
 
     // AC-MKT-03: Create a Listing
-    @PostMapping("/listings")
-    public ResponseEntity<ListingResponse> createListing(@RequestBody @Valid ListingRequest req) {
+    @PostMapping(value = "/listings", consumes = "multipart/form-data")
+    public ResponseEntity<ListingResponse> createListing(
+            @RequestPart("data") @Valid ListingRequest req,
+            @RequestPart("image") MultipartFile img,
+            @RequestHeader("Authorization") String token) {
         try {
-            ListingResponse response = listingService.createListing(req);
+            ListingResponse response = listingService.createListing(req, token.replace("Bearer ", ""), img);
             return ResponseEntity.status(201).body(response);
         } catch (IllegalArgumentException e) {
+            System.out.println(e.toString());
+
             return ResponseEntity.status(422).body(null);
         }
     }
 
     // AC-MKT-04: Update a Listing
     @PatchMapping("/listings/{listingId}")
-    public ResponseEntity<ListingResponse> updateListing(@RequestBody ListingRequest req,
-            @PathVariable String listingId) {
+    public ResponseEntity<ListingResponse> updateListing(
+            @RequestBody ListingRequest req,
+            @PathVariable String listingId,
+            @RequestHeader("Authorization") String token) {
         try {
-            listingService.updateListing(listingId, req);
-        } catch (Exception e) {
-            return ResponseEntity.status(404).body(null);
+            ListingResponse updated = listingService.updateListing(listingId, req, token.replace("Bearer ", ""));
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (ForbiddenException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        return null;
     }
 
     // AC-MKT-05: Delete a Listing
     @DeleteMapping("/listings/{listingId}")
-    public ResponseEntity<String> deleteListing(@PathVariable String listingId) {
+    public ResponseEntity<Void> deleteListing(
+            @PathVariable String listingId,
+            @RequestHeader("Authorization") String token) {
         try {
-            listingService.deleteListing(listingId);
-            return ResponseEntity.status(204).body("");
+            listingService.deleteListing(listingId, token.replace("Bearer ", ""));
+            return ResponseEntity.noContent().build();
+
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(404).body("Listing not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+
+        } catch (ForbiddenException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
 
@@ -110,7 +133,7 @@ public class ListingController {
         }
     }
 
-    @GetMapping("/listings/filter")
+    @GetMapping("/listings/search")
     public ResponseEntity<List<ListingResponse>> getFilteredListings(@RequestParam(required = false) String listingType,
             @RequestParam(required = false) String itemType,
             @RequestParam(required = false) Double minPrice,
@@ -124,10 +147,9 @@ public class ListingController {
             }
             return ResponseEntity.ok(listings);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    // TODO: AC-MKT-07: Get Retail Sources for a Game Title
 
 }

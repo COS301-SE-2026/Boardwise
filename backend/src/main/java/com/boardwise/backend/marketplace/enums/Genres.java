@@ -61,6 +61,7 @@ public enum Genres {
     PIKE_AND_SHOT("pike and shot"),
     PIRATES("pirates"),
     POLITICAL("political"),
+    STRATEGY("strategy"),
     POST_NAPOLEONIC("post-napoleonic"),
     PREHISTORIC("prehistoric"),
     PRINT_AND_PLAY("print & play"),

@@ -28,11 +28,8 @@ public class Listing {
     @Id
     private String id;
 
-    @Field("user_id")
-    private String userId;
-
-    @Field("game_id")
-    private String gameId;
+    @Field("username")
+    private String username;
 
     @Field("item_type")
     private String itemType;
