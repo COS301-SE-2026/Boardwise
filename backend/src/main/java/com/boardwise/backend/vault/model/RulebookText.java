@@ -22,6 +22,9 @@ public class RulebookText {
     @Field("rulebook_id")
     private ObjectId rulebookId;
 
+    @Field("game_id")
+    private ObjectId gameId;
+
     @Field("content")
     private String content;
 
