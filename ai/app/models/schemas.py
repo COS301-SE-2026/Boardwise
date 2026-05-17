@@ -6,6 +6,7 @@ class RulebookCreatedResponse(BaseModel):
     rulebook_id: str
     game_name: str
     edition: Optional[str]
+    game_id: str
     status: str
     message: str
 
