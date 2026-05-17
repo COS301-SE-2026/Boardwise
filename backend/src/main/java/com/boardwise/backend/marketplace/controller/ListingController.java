@@ -29,8 +29,6 @@ import java.util.*;
 
 public class ListingController {
     
-
-    
     private final ListingService listingService;
 
     public ListingController(ListingService listingService) {
@@ -75,8 +73,6 @@ public class ListingController {
             ListingResponse response = listingService.createListing(req, token.replace("Bearer ", ""), img);
             return ResponseEntity.status(201).body(response);
         } catch (IllegalArgumentException e) {
-            System.out.println(e.toString());
-
             return ResponseEntity.status(422).body(null);
         }
     }
