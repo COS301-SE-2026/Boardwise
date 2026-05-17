@@ -2,8 +2,8 @@
     <div class="header">
 
         <SectionTitle
-            title="Marketplace"
-            subtitle="Buy, rent and sell games"
+            title="Commmunity"
+            subtitle="Join a community"
         />
 
         <div class="search-row">
