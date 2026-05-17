@@ -57,7 +57,7 @@ public class User {
         this.firstName = firstName;
         this.lastName = lastName;
         this.password = password;
-        this.preferences = null;
+        this.preferences = new Preferences();
         this.emailAddress = email;
         this.ownedGames = new ArrayList<>();
         this.createdAt = Instant.now();

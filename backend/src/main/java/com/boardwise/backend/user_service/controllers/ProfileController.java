@@ -1,5 +1,6 @@
 package com.boardwise.backend.user_service.controllers;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -12,17 +13,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
 import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileResponseDTO;
 import com.boardwise.backend.user_service.dtos.UpdateProfileDTO;
 import com.boardwise.backend.user_service.services.ProfileService;
-
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
@@ -55,6 +58,7 @@ public class ProfileController {
         String token = extractToken(req);
         try{
             ProfileResponseDTO res = service.getOwnProfile(token);
+            
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(NoSuchElementException e){
@@ -88,7 +92,7 @@ public class ProfileController {
     ){
         try{
             String token = extractToken(req);
-            UpdateProfileDTO res = service.updateProfile(token, profileUpdateData);
+            Map<String, Object> res = service.updateProfile(token, profileUpdateData);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(Exception e){
@@ -100,13 +104,20 @@ public class ProfileController {
 
     @PostMapping("/profilePicture")
     public ResponseEntity<?> updateProfilePicture(
-        @RequestPart MultipartFile pfp,
+        @RequestPart("profilePicture") MultipartFile pfp,
         HttpServletRequest req
     ){
-         try{
+        try{
+            System.out.println("Is multipart: " + (req instanceof MultipartHttpServletRequest));
+            System.out.println("Parts: " + req.getParts());
             String token = extractToken(req);
             ProfilePictureResponseDTO res = service.changeProfilePicture(token, pfp);
             return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(IOException e){
+            Map<String, Object> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
         }
         catch(Exception e){
             Map<String, Object> res = new HashMap<>();
@@ -115,6 +126,22 @@ public class ProfileController {
         }
     }
 
+    @PutMapping("/preferences")
+    public ResponseEntity<?> updateOrSetPreferences(
+        @RequestBody PreferencesRequestDTO prefData,
+        HttpServletRequest req
+    ) {
+        try{
+            String token = extractToken(req);
+            Map<String, Object> res = service.updateOrSetPreferences(token, prefData);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(Exception e){
+            Map<String, Object> res = new HashMap<>();
+            res.put("message", "Something went wrong during profile picture update.");
+            return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     
 
     private String extractToken(HttpServletRequest req){

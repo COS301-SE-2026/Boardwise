@@ -1,5 +1,7 @@
 package com.boardwise.backend.user_service.dtos;
 
+import com.boardwise.backend.user_service.models.Preferences;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -13,5 +15,6 @@ public record UpdateProfileDTO(
     )
     String password,
     @Email(message = "Email format invalid")
-    String emailAddress
+    String emailAddress,
+    Preferences preferences
 ) {}
