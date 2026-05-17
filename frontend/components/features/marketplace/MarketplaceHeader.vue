@@ -20,6 +20,7 @@
 <script setup>
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BaseSearch from '~/components/ui/BaseSearch.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
 
 defineEmits(['create-listing'])
 </script>

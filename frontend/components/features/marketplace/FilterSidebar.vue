@@ -6,12 +6,12 @@
         <BaseFilterGroup title="Categories">
             <div 
                 v-for="category in categories" 
-                :key="category.id"
+                :key="category"
                 class="category-option"
-                :class="{ active: selectedCategory === category.id }"
-                @click="selectedCastegory = category.id"
+                :class="{ active: selectedCategory === category }"
+                @click="selectedCategory = category"
             >
-                {{  category.name }}
+                {{  category }}
             </div>
         </BaseFilterGroup>
 

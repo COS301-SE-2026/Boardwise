@@ -10,8 +10,8 @@ import BaseTabs from '~/components/ui/BaseTabs.vue'
 
 const tabs = [
   'Community',
-  'Browse'
+  'Web'
 ]
 
-const selectedTab = ref('Trending')
+const selectedTab = ref('Community')
 </script>

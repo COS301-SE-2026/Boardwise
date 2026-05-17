@@ -13,7 +13,10 @@
       <ListingGrid :listings="listings" />
     </div>
 
-    <AddListingModal v-model="showCreateListing" />
+    <AddListingModal
+      v-model="showCreateListing" 
+      @confirm="handle"
+    />
 
   </PageContainer>
 </template>
@@ -27,7 +30,7 @@ import MarketplaceTabs from '~/components/features/marketplace/MarketplaceTabs.v
 
 import FilterSidebar from '~/components/features/marketplace/FilterSidebar.vue'
 import ListingGrid from '~/components/features/marketplace/ListingGrid.vue'
-import AddListingModal from '~/components/features/marketplace/AddListingModal.vue'
+import AddListingModal from '~/components/features/profile/AddListingModal.vue'
 
 const activeTab = ref('Community')
 const showCreateListing = ref(false)

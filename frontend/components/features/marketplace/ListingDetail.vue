@@ -3,7 +3,7 @@
 
         <div class="image-container">
             <img 
-                :src="/games/catan.jpg" 
+                :src="/images/catan.jpg" 
                 :alt="listing.title" />
         </div>
 
