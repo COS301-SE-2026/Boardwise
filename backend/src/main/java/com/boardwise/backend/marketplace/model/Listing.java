@@ -11,17 +11,11 @@ import com.boardwise.backend.marketplace.enums.ListingStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
-@EqualsAndHashCode
 @Document(collection = "Listings")
 public class Listing {
 
