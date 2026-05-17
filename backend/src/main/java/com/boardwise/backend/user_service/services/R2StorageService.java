@@ -26,29 +26,11 @@ public class R2StorageService {
         this.s3Client = s3Client;
     }
 
-    public void Test(){
-        byte[] testBytes = "hello from java".getBytes();
-
-        PutObjectRequest req = PutObjectRequest.builder()
-                .bucket(bucketName)
-                .key("test/hello.txt")
-                .contentType("text/plain")
-                .contentLength((long) testBytes.length)
-                .build();
-
-        s3Client.putObject(req, RequestBody.fromBytes(testBytes));
-    }
-
     public String uploadFile(MultipartFile file, String folder) throws IOException {
         String encodedName = file.getOriginalFilename().replace(" ", "-");
         String fileName = folder + "/" + UUID.randomUUID() + "_" + encodedName;
         byte[] fileBytes = file.getBytes();
-
-        System.out.println("File name: " + file.getOriginalFilename());
-        System.out.println("File size from MultipartFile: " + file.getSize());
-        System.out.println("Actual byte array length: " + fileBytes.length);
-        System.out.println("Content type: " + file.getContentType());
-        
+ 
         if (fileBytes.length == 0) {
             throw new IOException("File bytes are empty before upload");
         }

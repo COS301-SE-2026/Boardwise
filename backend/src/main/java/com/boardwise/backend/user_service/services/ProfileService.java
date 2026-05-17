@@ -51,7 +51,6 @@ public class ProfileService {
     public ProfileResponseDTO getOwnProfile(String token) {
         // get username from token
         String extractedUsername = jwtService.extractUsername(token);
-        bucket.Test();
         return getProfile(extractedUsername);
     }
 

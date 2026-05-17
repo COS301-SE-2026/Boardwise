@@ -61,6 +61,7 @@ public class User {
         this.emailAddress = email;
         this.ownedGames = new ArrayList<>();
         this.createdAt = Instant.now();
+        this.profilePicture = null;
     }
 
 }
