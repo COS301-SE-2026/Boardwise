@@ -4,22 +4,27 @@
         <div class="community-item" @click="navigateToCommunity">
 
             <div class="image-container">
-                <BaseAvatar :label="image" :name="community.name" size="xl"  />
-            </div>
+                <img :src="community.image" :alt="community.name" />
+            </div>>
         
             <div class="content">
 
-                <h3 class="text-bold">{{ community.name }}</h3>
-                <BaseBadge :src="community.category" || type="secondary"/>
+                <h3>{{ community.name }}</h3>
+                <BaseBadge>{{ community.type }}</BaseBadge>
+                <p class="description">{{ community.description }}</p>
             </div>
+ 
+            <BaseButton @click="router.push(`/community/${community.id}/chat`)">
+                View
+            </BaseButton>
         </div>
     </BaseCard>
 </template>
 
 <script setup> 
-import BaseAvatar from '~/components/ui/BaseAvatar.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseBadge from '~/components/ui/BaseBadge.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps({
@@ -43,52 +48,38 @@ const navigateToCommunity = () => {
     flex-direction: column;
     gap: 12px;
 }
-
-.community-card__header {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-}
-.community-card__description {
-    font-size: 0.9rem;
-  color: var(--color-text-muted);
-}
-.community-card__footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: auto;
-}
+ 
 .image-container {
-    height: 240px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    background: #f5f5f5;
-    
+    height: 180px;
     border-radius: 12px;
     overflow: hidden;
+    background: #f5f5f5;
 }
-
-img {
+ 
+.image-container img {
     width: 100%;
     height: 100%;
-
-    object-fit: contain;
+    object-fit: cover;
 }
-
+ 
 .content {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    flex: 1;
 }
-
+ 
 h3 {
     margin: 0;
 }
-
-p {
+ 
+.description {
+    font-size: 0.85rem;
     color: #777;
-}
+    line-height: 1.5;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    }
 </style>

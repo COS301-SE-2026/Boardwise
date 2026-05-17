@@ -2,8 +2,8 @@
     <div class="header">
 
         <SectionTitle title="Community" subtitle="Find your people" />
-        <BaseInput placeholder="Explore communities " />
-        <ExploreTabs />
+        <!-- <BaseInput placeholder="Explore communities " /> -->
+        <!-- <ExploreTabs /> -->
 
     </div>
 </template>
