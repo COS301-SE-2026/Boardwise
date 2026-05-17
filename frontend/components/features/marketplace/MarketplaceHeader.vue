@@ -6,11 +6,11 @@
             subtitle="Buy, rent and sell games"
         />
 
-        <BaseInput 
+        <!-- <BaseInput 
             placeholder="Search games..."
         />
 
-        <MarketplaceTabs />
+        <MarketplaceTabs /> -->
 
     </div>
 </template>

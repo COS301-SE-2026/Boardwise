@@ -4,12 +4,7 @@
         <ProfileListingGrid 
             v-for="listing in listings"
             :key="listing.id"
-
-            :id="listing.id"
-            :title="listing.title"
-            :image="listing.image"
-            :price="listing.price"
-            :location="listing.location"
+            :listing="listing"
         />
     </div>
 </template>
@@ -38,11 +33,12 @@ const listings = [
 
 <style scoped>
 .grid {
-    display: grid;
+    display: flex;
 
     grid-template-columns:
         repeat(auto-fit, minmax(240px, 1fr)); /* auto wraps to the device (desktop and mobile) */
 
-    gap: 20px;
+    gap: 24px;
+    width: 100%;
 }
 </style>
