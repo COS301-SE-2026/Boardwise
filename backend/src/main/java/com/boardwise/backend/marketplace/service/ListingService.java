@@ -28,7 +28,7 @@ import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
 import com.boardwise.backend.marketplace.enums.*;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
-import com.boardwise.backend.user_service.repos.UserRepository;
+
 import java.util.*;
 
 @Service
@@ -180,16 +180,21 @@ public class ListingService {
 
         // TODO: Uncomment
 
-        try {
-            imageUrl = uploadImageToR2(System.getenv("R2_ACCESS_KEY"),
-                    System.getenv("R2_SECRET_KEY"),
-                    System.getenv("R2_LISTINGS_ENDPOINT"), System.getenv("R2_LISTINGS_BUCKET"),
-                    saved.getId(), img);
-
-            saved.setImageUrl(imageUrl);
-
-        } catch (IOException e) {
-            e.printStackTrace();
+        String r2Endpoint = System.getenv("R2_LISTINGS_ENDPOINT");
+        if (r2Endpoint != null) {
+            try {
+                imageUrl = uploadImageToR2(
+                        System.getenv("R2_ACCESS_KEY"),
+                        System.getenv("R2_SECRET_KEY"),
+                        r2Endpoint,
+                        System.getenv("R2_LISTINGS_BUCKET"),
+                        saved.getId(),
+                        img);
+                saved.setImageUrl(imageUrl);
+                listingRepository.save(saved);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         return mapToResponse(saved);
 
