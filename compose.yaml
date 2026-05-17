@@ -1,18 +1,20 @@
 services:
   mongodb:
     image: mongodb/mongodb-atlas-local
+    hostname: mongodb # <-- 1. ADD THIS: Fixes the replica set breaking on restart.
     environment:
       - MONGODB_INITDB_ROOT_USERNAME=${DB_USER}
       - MONGODB_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
+      - GLIBC_TUNABLES=glibc.pthread.rseq=0 # <-- 2. ADD THIS: Fixes the performance warning.
     ports:
-      - 27018:27017
+      - 27017:27017
     volumes:
       # - ./init:/docker-entrypoint-initdb.d
       - db:/data/db
       - configdb:/data/configdb
       - mongot:/data/mongot
+
 volumes:
   db:
   configdb:
   mongot:
-
