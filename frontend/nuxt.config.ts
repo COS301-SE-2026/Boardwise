@@ -6,7 +6,7 @@ export default defineNuxtConfig({
   components: [
     {
       path: '~/components',
-      pathPrefix: false,  // ← registers as BaseButton, CommunityView, Navbar, etc.
+      pathPrefix: false,  
     }
   ],
   modules: ['@vite-pwa/nuxt'],
