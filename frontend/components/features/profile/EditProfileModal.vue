@@ -34,7 +34,7 @@
           Cancel
         </BaseButton>
 
-        <BaseButton>
+        <BaseButton @click="handleSave">
           Save Changes
         </BaseButton>
 
@@ -52,11 +52,29 @@ import BaseTextarea from '~/components/ui/BaseTextArea.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 
 const open = defineModel()
+const emit = defineEmits(['save'])
 
-const name = ref('')
-const username = ref('')
-const location = ref('')
-const bio = ref('')
+const mockUser = {
+  name: 'Alexandra Lee',
+  username: 'alexalee',
+  location: 'Pretoria, South Africa',
+  bio: 'Board game lover • Strategy enthusiast'
+}
+
+const name = ref(mockUser.name)
+const username = ref(mockUser.username)
+const location = ref(mockUser.location)
+const bio = ref(mockUser.bio)
+
+const handleSave = () => {
+  emit('save', {
+    name: name.value,
+    username: username.value,
+    location: location.value,
+    bio: bio.value
+  })
+  open.value = false
+}
 </script>
 
 <style scoped>

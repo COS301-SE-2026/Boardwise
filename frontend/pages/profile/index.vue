@@ -77,14 +77,20 @@ const listings = ref([
   {
     id: 1,
     title: 'Catan',
+    type: 'sell',
     price: 650,
+    negotiable: true,
+    location: 'Pretoria',
     image: '/images/catan.jpg'
   },
-
   {
     id: 2,
     title: 'Dixit',
+    type: 'rent',
     price: 400,
+    rentalPeriod: '1 week',
+    negotiable: false,
+    location: 'Pretoria',
     image: '/images/dixit.jpg'
   }
 ])
