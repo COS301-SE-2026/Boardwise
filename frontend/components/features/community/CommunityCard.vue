@@ -10,7 +10,7 @@
             <div class="content">
 
                 <h3 class="text-bold">{{ community.name }}</h3>
-                <BaseBadge :label="community.category" type="secondary"/>
+                <BaseBadge :src="community.category" || type="secondary"/>
             </div>
         </div>
     </BaseCard>
@@ -24,7 +24,7 @@ import { useRouter } from 'vue-router'
 
 const props = defineProps({
     community: {
-        type: Object
+        type: Object, required: true 
     }
 })
 
@@ -38,7 +38,7 @@ const navigateToCommunity = () => {
 </script>
 
 <style scoped>
-.community-card {
+.community-item {
     display: flex;
     flex-direction: column;
     gap: 12px;

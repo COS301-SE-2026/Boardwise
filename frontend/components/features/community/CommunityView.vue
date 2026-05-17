@@ -1,5 +1,5 @@
 <template> 
-    <div class="gcommunity-view">
+    <div class="community-view">
         <SectionTitle title="Communities" subtitle="Join a community to connect with others"/>
 
         <div class="community-view__actions">
