@@ -17,5 +17,12 @@ export default defineNuxtConfig({
       background_color: '#FFF8F0',
       display: 'standalone'
     }
+  },
+
+  routeRules: {
+    // Route all requests starting with /api to Spring Boot
+    '/api/**': {
+      proxy: 'http://localhost:8080/api/**'
+    }
   }
 })
