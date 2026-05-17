@@ -1,6 +1,6 @@
 package com.boardwise.backend.user_service.models;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -25,12 +25,12 @@ public class GroupMembership {
     @Field("group_id")
     private String groupId;
     @Field("joined_at")
-    private LocalDateTime joinedAt;
+    private Instant joinedAt;
 
     public GroupMembership(String userId, String groupId){
         this.userId = userId;
         this.groupId = groupId;
-        this.joinedAt = LocalDateTime.now();
+        this.joinedAt = Instant.now();
     }
 
 }
