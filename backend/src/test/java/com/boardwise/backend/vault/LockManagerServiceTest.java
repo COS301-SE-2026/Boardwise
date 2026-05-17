@@ -1,4 +1,4 @@
-package com.boardwise.backend;
+package com.boardwise.backend.vault;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
