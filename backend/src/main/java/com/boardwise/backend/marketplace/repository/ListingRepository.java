@@ -11,14 +11,12 @@ import com.boardwise.backend.marketplace.enums.ListingType;
 
 @Repository
 public interface ListingRepository extends MongoRepository<Listing, String> {
-    List<Listing> findByUserId(String userId);
-
-    List<Listing> findByGameId(String gameId);
 
     List<Listing> findByItemType(ItemType itemType);
 
     List<Listing> findByStatus(ListingStatus status);
 
     List<Listing> findByListingType(ListingType listingType);
-    
+
+    List<Listing> findByUsername(String username);
 }
