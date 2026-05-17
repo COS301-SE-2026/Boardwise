@@ -15,6 +15,10 @@
     </div>
 </template>
 
+<script setup>
+import BaseButton from '~/components/ui/BaseButton.vue'
+</script>
+
 <style scoped>
 .container {
     height: 100vh;

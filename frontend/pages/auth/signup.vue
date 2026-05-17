@@ -1,23 +1,11 @@
 <template>
   <div class="container">
-    <AuthForm
-      title="Register"
-      buttonText="Register"
-      @submit="handleRegister"
-    />
+    <SignUpForm />
   </div>
 </template>
 
 <script setup>
-    import AuthForm from '~/components/features/auth/AuthForm.vue'
-
-    const router = useRouter()
-
-    const handleRegister = (data) => {
-    console.log('REGISTER DATA:', data)
-
-    router.push('/profile')
-    }
+import SignUpForm from '~/components/features/auth/SignUpForm.vue'
 </script>
 
 <style scoped>

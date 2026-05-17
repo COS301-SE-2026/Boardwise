@@ -1,18 +1,16 @@
 <template> 
-    <BaseCard> 
+    <BaseCard class="card" @click="openBook"> 
 
-        <div class="card" @click="openBookDetails">
-
-            <div class="image-container">
-                <img :src="image" :alt="title" />
-            </div>
-        
-            <div class="content">
-
-                <h3>{{ title }}</h3>
-                <p>{{ category }}</p>
-            </div>
+        <div class="image-wrapper">
+            <img :src="rulebook.image" :alt="rulebook.title" />
         </div>
+    
+        <div class="content">
+
+            <h3>{{ rulebook.title }}</h3>
+            <p>{{ rulebook.category }}</p>
+        </div>
+        
     </BaseCard>
 </template>
 
@@ -20,16 +18,11 @@
 import BaseCard from '~/components/ui/BaseCard.vue'
 
 const props = defineProps({
-    id: Number,
-    title: String,
-    image: String,
-    category: String
+    rulebook: Object
 })
 
-const router = useRouter()
-
 const openBook = () => {
-    router.push('/library/${props.id}')
+    navigateTo('/library/${props.rulebook.id}')
 }
 </script>
 
@@ -39,38 +32,28 @@ const openBook = () => {
     flex-direction: column;
     gap: 12px;
     cursor: pointer;
+    transition: 0.2s;
+    min-width: 180px;
+    max-width: 180px;
 }
 
-.image-container {
-    height: 240px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.card:hover {
+    transform: translate(-4px);
+}
 
-    background: #f5f5f5;
-    
-    border-radius: 12px;
-    overflow: hidden;
+.image-wrapper {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
 }
 
 img {
     width: 100%;
     height: 100%;
-
     object-fit: contain;
 }
 
 .content {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-h3 {
-    margin: 0;
-}
-
-p {
-    color: #777;
+    padding-top: 12px;
 }
 </style>

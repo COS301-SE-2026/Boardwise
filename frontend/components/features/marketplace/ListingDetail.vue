@@ -34,8 +34,7 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 .detail {
     display: grid;
 
-    grid-template-columns: column:
-        repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 
     gap: 24px;
 }

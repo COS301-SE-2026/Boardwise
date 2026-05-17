@@ -1,49 +1,42 @@
-<template> 
-    <BaseCard>
-        <div class="reader">
-            <h1>Catan Rules</h1>
+<template>
+  <div class="reader">
 
-            <p> 
-                Setup the board by placing the hexagonal tiles randomly.
-            </p>
+    <h1>{{ rulebook.title }}</h1>
 
-            <p>
-                Each player starts with two settlements and two roads.
-            </p>
+    <div class="page">
+      <p>
+        This is where the rulebook content will go.
+      </p>
 
-            <p>
-                Players collect resources to expand their settlements and earn victory points
-            </p>
+      <p>
+        You can later replace this with:
+      </p>
 
-            <p>
-                The first player to reach 10 victory points wins the game.
-            </p>
+      <ul>
+        <li>PDF Viewer</li>
+        <li>Markdown</li>
+        <li>Rich text</li>
+      </ul>
+    </div>
 
-        </div>
-    </BaseCard>
+  </div>
 </template>
 
 <script setup>
-import BaseCard from '~/components/ui/BaseCard.vue'
+const props = defineProps({
+  rulebook: Object
+})
 </script>
 
 <style scoped>
 .reader {
-    max-width: 900px;
-    margin: 0 auto;
-
-    display: flex;
-    flex-direction: column;
-
-    gap: 20px;
-    line-height: 1.8;
+  padding: 20px 0;
 }
 
-h1 {
-    margin-bottom: 12px;
-}
-
-p {
-    color: #444;
+.page {
+  margin-top: 20px;
+  padding: 24px;
+  background: white;
+  border-radius: 12px;
 }
 </style>
