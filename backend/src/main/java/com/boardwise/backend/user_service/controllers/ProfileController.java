@@ -144,7 +144,7 @@ public class ProfileController {
     }
     
 
-    private String extractToken(HttpServletRequest req){
+    public static String extractToken(HttpServletRequest req){
         String header = req.getHeader("Authorization");
         if(header == null || !header.startsWith("Bearer "))
             throw new IllegalArgumentException("Missing or invalid JWT token");
