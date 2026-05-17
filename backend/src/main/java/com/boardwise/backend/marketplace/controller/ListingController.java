@@ -1,6 +1,5 @@
 package com.boardwise.backend.marketplace.controller;
 
-import com.boardwise.backend.marketplace.repository.ListingRepository;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,7 +33,7 @@ public class ListingController {
     
     private final ListingService listingService;
 
-    public ListingController(ListingService listingService, ListingRepository listingRepository) {
+    public ListingController(ListingService listingService) {
         this.listingService = listingService;
     }
 
