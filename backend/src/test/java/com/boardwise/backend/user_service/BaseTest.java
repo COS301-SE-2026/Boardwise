@@ -1,8 +1,7 @@
 package com.boardwise.backend.user_service;
 
-import java.time.LocalDateTime;
-// import java.time.ZoneId;
-// import java.util.Date;
+
+import java.time.Instant;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +29,7 @@ public abstract class BaseTest {
     protected TokenBlackList createTestToken(String jti) {
         return new TokenBlackList(
             jti,
-            LocalDateTime.now().plusHours(1)
+            Instant.now().plusSeconds(1 * 60 * 60)
         );
     }
 

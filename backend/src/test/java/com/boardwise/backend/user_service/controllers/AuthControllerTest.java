@@ -6,7 +6,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -17,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -68,29 +66,21 @@ class AuthControllerTest {
     @Test
     void shouldRegisterUser_Successfully() throws Exception {
         String registerJson = """
-            {
-                "username": "testuser",
-                "emailAddress": "test@example.com",
-                "password": "StrongP@ss1!",
-                "firstName": "John",
-                "lastName": "Doe"
-            }
-            """;
-        
-        MockMultipartFile userData = new MockMultipartFile(
-            "userData", "", "application/json", registerJson.getBytes()
-        );
-        MockMultipartFile profilePic = new MockMultipartFile(
-            "profilePic", "test.jpg", "image/jpeg", "test".getBytes()
-        );
-
-        when(authService.register(any(), any()))
+        {
+            "username": "testuser",
+            "emailAddress": "test@example.com",
+            "password": "StrongP@ss1!",
+            "firstName": "John",
+            "lastName": "Doe"
+        }
+        """;
+    
+        when(authService.register(any()))
             .thenReturn(new AuthResponseDTO("User successfully register", "test.jwt.token"));
 
-        // Register endpoint is publicly accessible
-        mockMvc.perform(multipart("/api/auth/register")
-                .file(userData).file(profilePic)
-                .contentType(MediaType.MULTIPART_FORM_DATA))
+        mockMvc.perform(post("/api/auth/register")  // Changed from multipart to post
+                .contentType(MediaType.APPLICATION_JSON)  // JSON content type
+                .content(registerJson))  // Send JSON directly
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.message").value("User successfully register"))
                 .andExpect(jsonPath("$.accessToken").value("test.jwt.token"));
@@ -99,20 +89,16 @@ class AuthControllerTest {
     @Test
     void shouldReturn400_WhenRegisterDataInvalid() throws Exception {
         String invalidJson = """
-            {
-                "username": "ab",
-                "emailAddress": "invalid-email",
-                "password": "weak"
-            }
-            """;
-        
-        MockMultipartFile userData = new MockMultipartFile(
-            "userData", "", "application/json", invalidJson.getBytes()
-        );
+        {
+            "username": "ab",
+            "emailAddress": "invalid-email",
+            "password": "weak"
+        }
+        """;
 
-        mockMvc.perform(multipart("/api/auth/register")
-                .file(userData)
-                .contentType(MediaType.MULTIPART_FORM_DATA))
+        mockMvc.perform(post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidJson))
                 .andExpect(status().isBadRequest());
     }
 
