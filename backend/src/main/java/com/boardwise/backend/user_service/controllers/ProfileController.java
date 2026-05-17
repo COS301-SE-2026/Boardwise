@@ -138,14 +138,18 @@ public class ProfileController {
         }
         catch(Exception e){
             Map<String, Object> res = new HashMap<>();
-            res.put("message", "Something went wrong during profile picture update.");
+            res.put("message", "Something went wrong during preferences update.");
             return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     
 
     private String extractToken(HttpServletRequest req){
-        return req.getHeader("Authorization").split(" ")[1];
+        String header = req.getHeader("Authorization");
+        if(header == null || !header.startsWith("Bearer "))
+            throw new IllegalArgumentException("Missing or invalid JWT token");
+
+        return header.substring(7);
     }
 
 }

@@ -127,12 +127,12 @@ public class ProfileService {
             
         if(newEmail != null){
             user.setEmailAddress(newEmail);
-            toReturn.put("password", newPassword);
+            toReturn.put("email", newEmail);
         }
             
         if(newPassword != null){
             user.setPassword(newPassword);
-            toReturn.put("email", newEmail);
+            toReturn.put("password", newPassword);
         }
 
         userRepo.save(user);
@@ -152,6 +152,7 @@ public class ProfileService {
          
         User user = userRepo.findByUsername(username).get();
         user.setProfilePicture(url);
+        userRepo.save(user);
 
         return new ProfilePictureResponseDTO(message, url);
     }
