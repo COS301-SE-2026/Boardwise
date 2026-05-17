@@ -1,0 +1,7 @@
+#folders
+.vscode
+
+#files
+/backend/src/main/resources/application.properties
+/backend/src/test/resources/application-test.properties
+*env*
