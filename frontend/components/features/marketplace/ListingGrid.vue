@@ -16,7 +16,7 @@ import { listings } from '~/services/mockData/listings'
 
 <style scoped>
 .grid {
-    display: flex;
+    display: grid;
 
     grid-template-columns:
         repeat(auto-fit, minmax(240px, 1fr)); /* auto wraps to the device (desktop and mobile) */

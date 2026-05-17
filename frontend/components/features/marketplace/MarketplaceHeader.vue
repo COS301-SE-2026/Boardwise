@@ -6,19 +6,22 @@
             subtitle="Buy, rent and sell games"
         />
 
-        <!-- <BaseInput 
-            placeholder="Search games..."
-        />
-
-        <MarketplaceTabs /> -->
+        <div class="search-row">
+            <div class="search">
+                <BaseSearch placeholder="Search for games..." />
+            </div>
+            <BaseButton variant="secondary"> Filters</BaseButton>
+            <BaseButton @click="$emit('create-listing')">+ Create Listing</BaseButton>
+        </div>
 
     </div>
 </template>
 
 <script setup>
 import SectionTitle from '~/components/ui/SectionTitle.vue'
-import BaseInput from '~/components/ui/BaseInput.vue'
-import MarketplaceTabs from './MarketplaceTabs.vue'
+import BaseSearch from '~/components/ui/BaseSearch.vue'
+
+defineEmits(['create-listing'])
 </script>
 
 <style scoped>
@@ -26,5 +29,20 @@ import MarketplaceTabs from './MarketplaceTabs.vue'
     display: flex;
     flex-direction: column;
     gap: 20px;
+}
+
+.search-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.search { flex: 1; }
+
+@media (max-width: 700px) {
+  .search-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 </style>
