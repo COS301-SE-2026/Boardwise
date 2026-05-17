@@ -11,6 +11,8 @@
       :communities="8"
     />
 
+    <ProfileCommunities />
+
     <ProfileTabs
       :active-tab="activeTab"
       @change="activeTab = $event"
@@ -37,6 +39,7 @@ import PageContainer from '~/components/layout/PageContainer.vue'
 import ProfileHeader from '~/components/features/profile/ProfileHeader.vue'
 import ProfileStats from '~/components/features/profile/ProfileStats.vue'
 import ProfileTabs from '~/components/features/profile/ProfileTabs.vue'
+import ProfileCommunities from '~/components/features/profile/ProfileCommunities.vue'
 
 import GamesOwnedSection from '~/components/features/profile/GamesOwnedSection.vue'
 import ListingsSection from '~/components/features/profile/ListingsSection.vue'
