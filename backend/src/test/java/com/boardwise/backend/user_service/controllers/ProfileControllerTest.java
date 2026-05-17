@@ -29,13 +29,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.boardwise.backend.user_service.config.R2Config;
-import com.boardwise.backend.user_service.config.SecurityConfig;
+import com.boardwise.backend.shared.config.R2Config;
+import com.boardwise.backend.shared.config.SecurityConfig;
+import com.boardwise.backend.shared.security.JWTFilter;
 import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
 import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileResponseDTO;
 import com.boardwise.backend.user_service.dtos.UpdateProfileDTO;
-import com.boardwise.backend.user_service.filters.JWTFilter;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.models.Preferences;
 import com.boardwise.backend.user_service.services.JWTService;
