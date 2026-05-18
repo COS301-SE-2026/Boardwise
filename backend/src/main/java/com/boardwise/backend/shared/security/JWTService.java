@@ -1,4 +1,4 @@
-package com.boardwise.backend.user_service.services;
+package com.boardwise.backend.shared.security;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -10,6 +10,7 @@ import java.util.function.Function;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -41,8 +42,9 @@ public class JWTService {
         }
     }
 
-    public String generateToken(String username) {
+    public String generateToken(String username, String userId) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
         int ttl = 30 * 60 * 1000;
         return Jwts.builder()
                 .claims()
@@ -55,6 +57,12 @@ public class JWTService {
                 .signWith(getKey())
                 .compact();
                 
+    }
+
+    public ObjectId extractUserId(String token) {
+        String userId = extractClaim(token,
+                claims -> claims.get("userId", String.class));
+        return new ObjectId(userId);
     }
 
     private SecretKey getKey() {

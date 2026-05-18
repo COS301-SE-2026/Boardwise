@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
+import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.dtos.GroupCreationDTO;
 import com.boardwise.backend.user_service.dtos.GroupCreationResponseDTO;
 import com.boardwise.backend.user_service.dtos.GroupDTO;

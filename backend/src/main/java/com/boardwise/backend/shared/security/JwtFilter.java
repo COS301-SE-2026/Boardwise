@@ -14,7 +14,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.boardwise.backend.user_service.services.JWTService;
 import com.boardwise.backend.user_service.services.MyUserDetailsService;
 
 import io.jsonwebtoken.ExpiredJwtException;
@@ -27,7 +26,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import tools.jackson.databind.ObjectMapper;
 
 @Component
-public class JWTFilter extends OncePerRequestFilter{
+public class JwtFilter extends OncePerRequestFilter{
 
     @Autowired
     private JWTService service;

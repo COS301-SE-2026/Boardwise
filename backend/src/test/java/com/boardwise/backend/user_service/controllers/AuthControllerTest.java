@@ -21,12 +21,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.dtos.AuthResponseDTO;
 import com.boardwise.backend.user_service.dtos.LogoutResponseDTO;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.models.UserDetailImpl;
 import com.boardwise.backend.user_service.services.AuthService;
-import com.boardwise.backend.user_service.services.JWTService;
 import com.boardwise.backend.user_service.services.MyUserDetailsService;
 
 @SpringBootTest

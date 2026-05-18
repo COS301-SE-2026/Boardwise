@@ -17,6 +17,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
+import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.dtos.AuthResponseDTO;
 import com.boardwise.backend.user_service.dtos.LoginDTO;
 import com.boardwise.backend.user_service.dtos.LogoutResponseDTO;

@@ -13,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.models.TokenBlackList;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.models.UserDetailImpl;

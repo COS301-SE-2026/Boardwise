@@ -15,7 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.boardwise.backend.shared.security.JWTFilter;
+import com.boardwise.backend.shared.security.JwtFilter;
 import com.boardwise.backend.user_service.services.MyUserDetailsService;
 
 
@@ -27,7 +27,7 @@ public class SecurityConfig {
     private MyUserDetailsService userDetailsService; 
 
     @Autowired
-    private JWTFilter jwtFilter;
+    private JwtFilter jwtFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http){
