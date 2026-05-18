@@ -17,7 +17,7 @@ import PageContainer from '~/components/layout/PageContainer.vue'
 import RulebookDetails from '~/components/features/library/RulebookDetail.vue'
 import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue'
 
-import { books } from '~/services/mockData/rulebooks'
+import {rulebooks } from '~/services/mockData/rulebooks'
 
 const route = useRoute()
 
