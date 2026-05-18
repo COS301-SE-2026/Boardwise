@@ -1,27 +1,34 @@
 <template>
-  <PageContainer>
+  <ReaderLayout v-if="rulebook" :rulebook="rulebook" />
 
-    <Navbar />
-
-    <ReaderControls />
-
-    <ReaderContent :rulebook="rulebook" />
-
-  </PageContainer>
+  <div v-else class="not-found">
+    <p>Rulebook not found.</p>
+    <NuxtLink to="/library">← Back to Library</NuxtLink>
+  </div>
 </template>
 
 <script setup>
-import Navbar from '~/components/layout/Navbar.vue'
-import PageContainer from '~/components/layout/PageContainer.vue'
-
-import ReaderControls from '~/components/features/library/ReaderControls.vue'
-import ReaderContent from '~/components/features/library/ReaderContent.vue'
-
-import { rulebooks } from '~/services/mockData/rulebooks'
+import { rulebooks } from '~/services/mockData/rulebooks.js'
+import ReaderLayout from '~/components/features/library/ReaderLayout.vue'
 
 const route = useRoute()
 
-const rulebook = rulebooks.find(
-  item => item.id == route.params.id
+const rulebook = computed(() =>
+  rulebooks.find(item => item.id === Number(route.params.id))
 )
 </script>
+
+<style scoped>
+.not-found {
+  text-align: center;
+  margin-top: 80px;
+  color: #666;
+}
+
+.not-found a {
+  color: #6C3BFF;
+  text-decoration: none;
+  display: block;
+  margin-top: 12px;
+}
+</style>
