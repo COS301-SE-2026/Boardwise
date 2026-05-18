@@ -1,21 +1,21 @@
 <template>
   <NuxtLink
-    :to="`/rulebook/${book.id}`"
+    :to="`/library/${rulebook.id}`"
     class="card-link"
   >
 
     <BaseCard class="card">
 
       <img
-        :src="book.image"
-        :alt="book.title"
+        :src="rulebook.image"
+        :alt="rulebook.title"
       >
 
       <div class="content">
 
-        <h3>{{ book.title }}</h3>
+        <h3>{{ rulebook.title }}</h3>
 
-        <p>{{ book.category }}</p>
+        <p>{{ rulebook.category }}</p>
 
       </div>
 
@@ -28,7 +28,7 @@
 import BaseCard from '~/components/ui/BaseCard.vue'
 
 defineProps({
-  book: Object
+  rulebook: Object
 })
 </script>
 

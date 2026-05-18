@@ -8,9 +8,9 @@
     <div class="carousel">
 
       <RulebookCarouselCard
-        v-for="book in books"
-        :key="book.id"
-        :book="book"
+        v-for="rulebook in rulebooks"
+        :key="rulebook.id"
+        :book="rulebook"
       />
 
     </div>
@@ -24,7 +24,7 @@ import RulebookCarouselCard from './RulebookCarouselCard.vue'
 
 defineProps({
   title: String,
-  books: {
+  rulebooks: {
     type: Array,
     default: () => []
   }
@@ -32,9 +32,7 @@ defineProps({
 </script>
 
 <style scoped>
-.carousel-section {
-  margin-top: 40px;
-}
+.carousel-section { margin-top: 40px; }
 
 .carousel {
   display: flex;
@@ -43,9 +41,7 @@ defineProps({
   padding-bottom: 12px;
 }
 
-.carousel::-webkit-scrollbar {
-  height: 8px;
-}
+.carousel::-webkit-scrollbar { height: 8px; }
 
 .carousel::-webkit-scrollbar-thumb {
   background: #ddd;

@@ -37,7 +37,7 @@
 
     </div>
 
-    <Recommendedbooks
+    <RecommendedBooks
       :rulebooks="recommended"
     />
 
