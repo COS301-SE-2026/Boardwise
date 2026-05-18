@@ -97,7 +97,7 @@ class ProfileControllerTest {
         }).when(jwtFilter).doFilter(any(), any(), any());
 
         when(jwtService.extractUsername(anyString())).thenReturn(testUsername);
-        Preferences prefs = new Preferences(false, Arrays.asList("Strategy", "Adventure"));
+        Preferences prefs = new Preferences("public", Arrays.asList("Strategy", "Adventure"));
         List<Boardgame> games = Arrays.asList();
         
         mockProfileResponse = new ProfileResponseDTO(
@@ -111,7 +111,7 @@ class ProfileControllerTest {
         );
         
         preferencesRequestDTO = new PreferencesRequestDTO(
-            true, Arrays.asList("Horror", "Cooperative")
+            "public", Arrays.asList("Horror", "Cooperative")
         );
 
     }
@@ -349,7 +349,7 @@ class ProfileControllerTest {
     @Test
     @WithMockUser
     void shouldUpdatePreferences_WithNullGenres() throws Exception {
-        PreferencesRequestDTO nullGenresRequest = new PreferencesRequestDTO(true, null);
+        PreferencesRequestDTO nullGenresRequest = new PreferencesRequestDTO("public", null);
         
         Map<String, Object> prefResponse = new HashMap<>();
         prefResponse.put("message", "Preferences updated successfully.");

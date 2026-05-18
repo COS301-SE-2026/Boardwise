@@ -12,7 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Document(collection = "Board_Games")
+@Document(collection = "BOARD_GAMES")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter

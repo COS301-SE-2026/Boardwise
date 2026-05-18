@@ -80,13 +80,7 @@ public class ProfileService {
         DateTimeFormatter formatter = DateTimeFormatter
                                         .ofPattern("dd-MM-yyyy")
                                         .withZone(ZoneOffset.UTC);
-        Preferences userPref = user.getPreferences() == null ?
-                                null :
-                                (
-                                    user.getPreferences().isPrivate() ? 
-                                    null :
-                                    user.getPreferences()
-                                );
+        Preferences userPref = user.getPreferences();
                                 
         return new ProfileResponseDTO(
             user.getUsername(),
@@ -170,8 +164,8 @@ public class ProfileService {
             user.setPreferences(new Preferences());    
         }
         
-        if(prefData.isPrivate() != user.getPreferences().isPrivate())
-            user.getPreferences().setPrivate(prefData.isPrivate());
+        if(!prefData.visibility().equalsIgnoreCase(user.getPreferences().getVisibility()))
+            user.getPreferences().setVisibility(prefData.visibility());
             
         if(prefData.genres() != null)
             user.getPreferences().setGenres(prefData.genres());

@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Document(collection = "Group_Membership")
+@Document(collection = "GROUP_MEMBERSHIP")
 @NoArgsConstructor
 @Getter
 @Setter

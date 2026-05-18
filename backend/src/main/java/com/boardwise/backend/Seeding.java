@@ -5,10 +5,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+
 import org.bson.types.ObjectId;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.boardwise.backend.marketplace.enums.ListingStatus;
@@ -41,15 +42,15 @@ public class Seeding {
             WriteLockRepository writeLockRepository) {
         return args -> {
             // User Repository
-
             if (userRepository.count() == 0) {
+                BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
                 List<User> users = List.of(
-                        new User("IAmR3al", "John", "Doe", "johnsemail@test.com", "J0hnDo3_"),
-                        new User("bob", "Bob", "Smith", "bob.smith@example.com", "MyP@ssw0rd!"),
-                        new User("jane_doe", "Jane", "Doe", "jane.doe@company.co.uk", "C0mpl3x!P@ss#2024"),
-                        new User("sarah_dev", "Sarah", "Chen", "sarah.developer@techstartup.io", "K8$mPx2@vLq9"),
-                        new User("alex_games", "Alex", "Turner", "alex.turner@gmail.com", "G@m3rAl3x#99"),
-                        new User("mike_b", "Michael", "Brown", "michael.brown@outlook.com", "Br0wn!Mike_7"));
+                        new User("IAmR3al", "John", "Doe", "johnsemail@test.com", encoder.encode("J0hnDo3_")),
+                        new User("bob", "Bob", "Smith", "bob.smith@example.com", encoder.encode("MyP@ssw0rd!")),
+                        new User("jane_doe", "Jane", "Doe", "jane.doe@company.co.uk", encoder.encode("C0mpl3x!P@ss#2024")),
+                        new User("sarah_dev", "Sarah", "Chen", "sarah.developer@techstartup.io", encoder.encode("K8$mPx2@vLq9")),
+                        new User("alex_games", "Alex", "Turner", "alex.turner@gmail.com", encoder.encode("G@m3rAl3x#99")),
+                        new User("mike_b", "Michael", "Brown", "michael.brown@outlook.com", encoder.encode("Br0wn!Mike_7")));
                 userRepository.saveAll(users);
                 System.out.println("Seeded " + users.size() + " users");
             } else {
@@ -97,13 +98,22 @@ public class Seeding {
 
             // Groups
             if (groupRepository.count() == 0) {
+                List<String> usernames = List.of("IAmR3al", "sarah_dev", "bob", "alex_games", "jane_doe");
                 List<Group> groups = List.of(
-                        new Group("Board Game Enthusiasts", "A group for all board game lovers.", "IAmR3al", "public"),
-                        new Group("Strategy Masters", "Deep strategy games discussion.", "sarah_dev", "public"),
-                        new Group("Casual Gamers", "Laid back gaming sessions and trades.", "bob", "public"),
-                        new Group("RPG Adventurers", "Tabletop RPG and dungeon crawler fans.", "alex_games", "private"),
-                        new Group("Card & Tile Collectors", "For fans of card and tile-based games.", "jane_doe",
-                                "private"));
+                    new Group("Board Game Enthusiasts", "A group for all board game lovers.", null , "public"),
+                    new Group("Strategy Masters", "Deep strategy games discussion.", null , "public"),
+                    new Group("Casual Gamers", "Laid back gaming sessions and trades.", null , "public"),
+                    new Group("RPG Adventurers", "Tabletop RPG and dungeon crawler fans.", null , "private"),
+                    new Group("Card & Tile Collectors", "For fans of card and tile-based games.", null,
+                            "private")
+                );
+                
+                for(int i = 0; i < 5; i++){
+                    User user = userRepository.findByUsername(usernames.get(i)).get();
+                    groups.get(i).setOwnerId(user.getId());
+                }
+
+                
                 groupRepository.saveAll(groups);
                 System.out.println("Seeded " + groups.size() + " groups");
             } else {
@@ -121,7 +131,12 @@ public class Seeding {
                                 case "Card & Tile Collectors" -> List.of("jane_doe", "bob", "IAmR3al");
                                 default -> List.of();
                             };
-                            return members.stream().map(userId -> new GroupMembership(userId, group.getId()));
+
+
+                            return members.stream().map((username) ->{
+                                User user = userRepository.findByUsername(username).get();
+                                return new GroupMembership(user.getId(), group.getId());
+                            });
                         })
                         .toList();
                 groupMembershipRepository.saveAll(memberships);
