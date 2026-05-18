@@ -12,7 +12,7 @@
     </BaseButton>
 
     <BaseButton variant="primary">
-      + Start a community
+      + Create a community
     </BaseButton>
 
   </div>

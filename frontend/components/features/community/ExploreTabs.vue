@@ -1,18 +1,20 @@
 <template>
   <BaseTabs
     :tabs="tabs"
-    v-model="selectedTab"
+    :active-tab="activeTab"
+    @change="$emit('change', $event)"
   />
 </template>
 
 <script setup>
 import BaseTabs from '~/components/ui/BaseTabs.vue'
 
-const tabs = [
-  'Public',
-  'Private',
-  'New'
-]
+defineProps({
+  activeTab: String
+})
+ 
+defineEmits(['change'])
+ 
+const tabs = ['Chat', 'Members', 'About']
 
-const selectedTab = ref('Public')
 </script>
