@@ -101,6 +101,9 @@ public class ProfileService {
 
     public boolean deleteUser(String token) {
         String username = jwtService.extractUsername(token);
+        // add removal of associated data
+
+        // end associated data removal
         int deletedUsers = (int) userRepo.deleteByUsername(username);
         
         return deletedUsers == 1;
