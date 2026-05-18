@@ -41,13 +41,13 @@ class JWTServiceTest {
         testUser.setEmailAddress("test@example.com");
         
         userDetails = new UserDetailImpl(testUser);
-        validToken = jwtService.generateToken("testuser");
+        validToken = jwtService.generateToken("testuser", anyString());
     }
 
     @Test
     void shouldGenerateToken_WithAllRequiredClaims() {
         // When
-        String token = jwtService.generateToken("testuser");
+        String token = jwtService.generateToken("testuser", anyString());
 
         // Then
         assertThat(token).isNotNull();
@@ -60,8 +60,8 @@ class JWTServiceTest {
     @Test
     void shouldGenerateToken_WithUniqueJTI() {
         // When
-        String token1 = jwtService.generateToken("testuser");
-        String token2 = jwtService.generateToken("testuser");
+        String token1 = jwtService.generateToken("testuser", anyString());
+        String token2 = jwtService.generateToken("testuser", anyString());
 
         // Then
         assertThat(token1).isNotEqualTo(token2);
@@ -70,7 +70,7 @@ class JWTServiceTest {
     @Test
     void shouldExtractUsername_FromValidToken() {
         // Given
-        String token = jwtService.generateToken("john_doe");
+        String token = jwtService.generateToken("john_doe", anyString());
 
         // When
         String username = jwtService.extractUsername(token);
@@ -121,7 +121,7 @@ class JWTServiceTest {
     @Test
     void shouldAddTokenToBlacklist() {
         // Given
-        String token = jwtService.generateToken("testuser");
+        String token = jwtService.generateToken("testuser", anyString());
         when(tokenRepo.save(any(TokenBlackList.class))).thenReturn(null);
 
         // When
@@ -134,7 +134,7 @@ class JWTServiceTest {
     @Test
     void shouldCheckIfTokenIsBlacklisted() {
         // Given
-        String token = jwtService.generateToken("testuser");
+        String token = jwtService.generateToken("testuser", anyString());
         when(tokenRepo.existsByJti(anyString())).thenReturn(true);
 
         // When (calling validateToken which checks blacklist)
@@ -161,8 +161,8 @@ class JWTServiceTest {
     @Test
     void shouldGenerateDifferentTokens_ForDifferentUsers() {
         // When
-        String token1 = jwtService.generateToken("user1");
-        String token2 = jwtService.generateToken("user2");
+        String token1 = jwtService.generateToken("user1", anyString());
+        String token2 = jwtService.generateToken("user2", anyString());
 
         // Then
         String username1 = jwtService.extractUsername(token1);
