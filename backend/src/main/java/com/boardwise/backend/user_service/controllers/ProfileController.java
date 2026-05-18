@@ -67,6 +67,7 @@ public class ProfileController {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
         catch(Exception e){
+            e.printStackTrace();
             Map<String, Object> res = new HashMap<>();
             res.put("message", "Something went wrong on our end.");
             return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);

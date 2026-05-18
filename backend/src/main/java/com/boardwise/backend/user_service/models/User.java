@@ -47,6 +47,7 @@ public class User {
     @Field("created_at")
     private Instant createdAt;
     
+    @Field("owned_games")
     private List<String> ownedGames;
 
     public User(String username, String firstName, String lastName, String email, 
