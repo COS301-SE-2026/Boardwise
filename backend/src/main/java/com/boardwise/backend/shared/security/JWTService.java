@@ -1,14 +1,11 @@
 package com.boardwise.backend.shared.security;
 
 import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
 import org.bson.types.ObjectId;
@@ -22,7 +19,6 @@ import com.boardwise.backend.user_service.repos.TokenBlackListRepository;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
 @Service
