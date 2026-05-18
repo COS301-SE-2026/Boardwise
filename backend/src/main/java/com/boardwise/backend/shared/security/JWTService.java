@@ -1,5 +1,6 @@
 package com.boardwise.backend.shared.security;
 
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Date;
@@ -12,6 +13,7 @@ import javax.crypto.SecretKey;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -26,21 +28,23 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JWTService {
 
-    private String key = "";
+    @Value("${jwt.secret}")
+    private String key;
+
 
     @Autowired
     private TokenBlackListRepository tokenRepo;
 
-    public JWTService(){
-        try {
-            KeyGenerator generator = KeyGenerator.getInstance("HmacSHA256");
-            SecretKey secret = generator.generateKey();
-            key = Base64.getEncoder().encodeToString(secret.getEncoded());
+    // public JWTService(){
+    //     try {
+    //         KeyGenerator generator = KeyGenerator.getInstance("HmacSHA256");
+    //         SecretKey secret = generator.generateKey();
+    //         key = Base64.getEncoder().encodeToString(secret.getEncoded());
 
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    //     } catch (NoSuchAlgorithmException e) {
+    //         throw new RuntimeException(e);
+    //     }
+    // }
 
     public String generateToken(String username, String userId) {
         Map<String, Object> claims = new HashMap<>();
@@ -66,8 +70,9 @@ public class JWTService {
     }
 
     private SecretKey getKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(key);
-        return Keys.hmacShaKeyFor(keyBytes);
+        // byte[] keyBytes = Decoders.BASE64.decode(key);
+        // return Keys.hmacShaKeyFor(keyBytes);
+        return Keys.hmacShaKeyFor(key.getBytes(StandardCharsets.UTF_8));
     }
 
     public String extractUsername(String token) {
