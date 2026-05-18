@@ -1,0 +1,200 @@
+package com.boardwise.backend;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.bson.types.ObjectId;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
+
+import com.boardwise.backend.marketplace.enums.ListingStatus;
+import com.boardwise.backend.marketplace.model.Listing;
+import com.boardwise.backend.marketplace.model.RentalPeriod;
+import com.boardwise.backend.marketplace.repository.ListingRepository;
+import com.boardwise.backend.user_service.models.Boardgame;
+import com.boardwise.backend.user_service.models.Group;
+import com.boardwise.backend.user_service.models.GroupMembership;
+import com.boardwise.backend.user_service.models.User;
+import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
+import com.boardwise.backend.user_service.repos.GroupRepository;
+import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.vault.model.EditEvent;
+import com.boardwise.backend.vault.model.IngestionJob;
+import com.boardwise.backend.vault.model.Rulebook;
+import com.boardwise.backend.vault.model.WriteLock;
+import com.boardwise.backend.vault.repository.EditEventRepository;
+import com.boardwise.backend.vault.repository.IngestionJobRepository;
+import com.boardwise.backend.vault.repository.RulebookRepository;
+import com.boardwise.backend.vault.repository.WriteLockRepository;
+
+@Component
+public class Seeding {
+    @Bean
+    public CommandLineRunner seedDB(ListingRepository listingRepository, BoardGameRepository boardGameRepository, GroupMembershipRepository groupMembershipRepository,
+            GroupRepository groupRepository, UserRepository userRepository, EditEventRepository editEventRepository,
+            IngestionJobRepository ingestionJobRepository, RulebookRepository rulebookRepository,
+            WriteLockRepository writeLockRepository) {
+        return args -> {
+            // User Repository
+
+            if (userRepository.count() == 0) {
+                List<User> users = List.of(
+                        new User("IAmR3al", "John", "Doe", "johnsemail@test.com", "J0hnDo3_"),
+                        new User("bob", "Bob", "Smith", "bob.smith@example.com", "MyP@ssw0rd!"),
+                        new User("jane_doe", "Jane", "Doe", "jane.doe@company.co.uk", "C0mpl3x!P@ss#2024"),
+                        new User("sarah_dev", "Sarah", "Chen", "sarah.developer@techstartup.io", "K8$mPx2@vLq9"),
+                        new User("alex_games", "Alex", "Turner", "alex.turner@gmail.com", "G@m3rAl3x#99"),
+                        new User("mike_b", "Michael", "Brown", "michael.brown@outlook.com", "Br0wn!Mike_7"));
+                userRepository.saveAll(users);
+                System.out.println("Seeded " + users.size() + " users");
+            } else {
+                System.out.println("Users already seeded, skipping...");
+            }
+
+            // Listing
+            if (listingRepository.count() == 0) {
+
+                RentalPeriod rentalPeriod1 = new RentalPeriod();
+                rentalPeriod1.setStartDate(LocalDate.of(2026, 7, 16));
+                rentalPeriod1.setEndDate(LocalDate.of(2026, 9, 15));
+
+                RentalPeriod rentalPeriod2 = new RentalPeriod();
+                rentalPeriod2.setStartDate(LocalDate.of(2026, 7, 1));
+                rentalPeriod2.setEndDate(LocalDate.of(2026, 10, 1));
+
+                List<Listing> listings = List.of(
+                        new Listing(null, "IAmR3al", "boardgame", "sale", 29.99, "Monopoly",
+                                "Monopoly game with all details\n", "./databaseimages/monopoly_dummy.png",
+                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                                List.of("Strategy", "Action"), null),
+                        new Listing(null, "sarah_dev", "boardgame", "rental", 48.32, "Scrabble",
+                                "game of scrabble with Missing pieces", "./databaseimages/scrabble_dummy.jpg",
+                                ListingStatus.AVAILABLE, LocalDateTime.now().plusDays(5),
+                                LocalDateTime.now().plusDays(5), List.of("abstract strategy"), rentalPeriod1));
+
+                listingRepository.saveAll(listings);
+                System.out.println("Seeded " + listings.size() + " listings");
+            } else {
+                System.out.println("Listings already seeded, skipping...");
+            }
+
+            if (boardGameRepository.count() == 0) {
+                List<Boardgame> boardGames = List.of(
+                        new Boardgame(null, "Monopoly", "Classic property trading game.",
+                                "./databaseimages/monopoly_dummy.png", List.of("Strategy", "Trading")),
+                        new Boardgame(null, "Scrabble", "Word building board game.",
+                                "./databaseimages/scrabble_dummy.jpg", List.of("Word", "Abstract Strategy")));
+                boardGameRepository.saveAll(boardGames);
+                System.out.println("Seeded " + boardGames.size() + " board games");
+            } else {
+                System.out.println("Board games already seeded, skipping...");
+            }
+
+            // Groups
+            if (groupRepository.count() == 0) {
+                List<Group> groups = List.of(
+                        new Group("Board Game Enthusiasts", "A group for all board game lovers.", "IAmR3al", "public"),
+                        new Group("Strategy Masters", "Deep strategy games discussion.", "sarah_dev", "public"),
+                        new Group("Casual Gamers", "Laid back gaming sessions and trades.", "bob", "public"),
+                        new Group("RPG Adventurers", "Tabletop RPG and dungeon crawler fans.", "alex_games", "private"),
+                        new Group("Card & Tile Collectors", "For fans of card and tile-based games.", "jane_doe",
+                                "private"));
+                groupRepository.saveAll(groups);
+                System.out.println("Seeded " + groups.size() + " groups");
+            } else {
+                System.out.println("Groups already seeded, skipping...");
+            }
+            // Group Memberships
+            if (groupMembershipRepository.count() == 0) {
+                List<GroupMembership> memberships = groupRepository.findAll().stream()
+                        .flatMap(group -> {
+                            List<String> members = switch (group.getName()) {
+                                case "Board Game Enthusiasts" -> List.of("IAmR3al", "bob", "jane_doe", "mike_b");
+                                case "Strategy Masters" -> List.of("sarah_dev", "alex_games", "IAmR3al");
+                                case "Casual Gamers" -> List.of("bob", "mike_b", "jane_doe");
+                                case "RPG Adventurers" -> List.of("alex_games", "sarah_dev", "IAmR3al");
+                                case "Card & Tile Collectors" -> List.of("jane_doe", "bob", "IAmR3al");
+                                default -> List.of();
+                            };
+                            return members.stream().map(userId -> new GroupMembership(userId, group.getId()));
+                        })
+                        .toList();
+                groupMembershipRepository.saveAll(memberships);
+                System.out.println("Seeded " + memberships.size() + " group memberships");
+            } else {
+                System.out.println("Group memberships already seeded, skipping...");
+            }
+            // Rulebooks
+            if (rulebookRepository.count() == 0) {
+                ObjectId contributor1 = new ObjectId();
+                ObjectId contributor2 = new ObjectId();
+
+                List<Rulebook> rulebooks = List.of(
+                        Rulebook.builder().gameName("Monopoly").edition("Classic").status("Ready").version(1)
+                                .contributorId(contributor1).r2PdfKey("rulebooks/monopoly-classic.pdf")
+                                .uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
+                        Rulebook.builder().gameName("Scrabble").edition("Standard").status("Ready").version(1)
+                                .contributorId(contributor1).r2PdfKey("rulebooks/scrabble-standard.pdf")
+                                .uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
+                        Rulebook.builder().gameName("Catan").edition("5th Edition").status("Ready").version(2)
+                                .contributorId(contributor2).r2PdfKey("rulebooks/catan-5th.pdf")
+                                .uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
+                        Rulebook.builder().gameName("Pandemic").edition("2nd Edition").status("PendingReview")
+                                .version(1).contributorId(contributor2).r2PdfKey("rulebooks/pandemic-2nd.pdf")
+                                .uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
+                        Rulebook.builder().gameName("Ticket to Ride").edition("Original").status("Processing")
+                                .version(1).contributorId(contributor1).r2PdfKey("rulebooks/ticket-to-ride.pdf")
+                                .uploadedAt(Instant.now()).updatedAt(Instant.now()).build());
+                rulebookRepository.saveAll(rulebooks);
+                System.out.println("Seeded " + rulebooks.size() + " rulebooks");
+
+                // Ingestion Jobs
+                List<IngestionJob> jobs = List.of(
+                        IngestionJob.builder().rulebookId(rulebooks.get(0).getId()).stage("Extract").jobStatus("Ready")
+                                .startedAt(Instant.now().minusSeconds(300)).completedAt(Instant.now()).build(),
+                        IngestionJob.builder().rulebookId(rulebooks.get(1).getId()).stage("Extract").jobStatus("Ready")
+                                .startedAt(Instant.now().minusSeconds(200)).completedAt(Instant.now()).build(),
+                        IngestionJob.builder().rulebookId(rulebooks.get(2).getId()).stage("Sanitise").jobStatus("Ready")
+                                .startedAt(Instant.now().minusSeconds(500)).completedAt(Instant.now()).build(),
+                        IngestionJob.builder().rulebookId(rulebooks.get(3).getId()).stage("Extract")
+                                .jobStatus("PendingReview").startedAt(Instant.now().minusSeconds(100)).completedAt(null)
+                                .build(),
+                        IngestionJob.builder().rulebookId(rulebooks.get(4).getId()).stage("Sanitise")
+                                .jobStatus("Processing").startedAt(Instant.now().minusSeconds(60)).completedAt(null)
+                                .build());
+                ingestionJobRepository.saveAll(jobs);
+                System.out.println("Seeded " + jobs.size() + " ingestion jobs");
+
+                // Edit Events
+                List<EditEvent> editEvents = List.of(
+                        EditEvent.builder().rulebookId(rulebooks.get(0).getId()).editorId(contributor1)
+                                .delta("Fixed typo on page 3.").versionAfter(2)
+                                .committedAt(Instant.now().minusSeconds(120)).build(),
+                        EditEvent.builder().rulebookId(rulebooks.get(1).getId()).editorId(contributor1)
+                                .delta("Updated scoring section.").versionAfter(2)
+                                .committedAt(Instant.now().minusSeconds(90)).build(),
+                        EditEvent.builder().rulebookId(rulebooks.get(2).getId()).editorId(contributor2)
+                                .delta("Clarified trading rules.").versionAfter(3)
+                                .committedAt(Instant.now().minusSeconds(60)).build());
+                editEventRepository.saveAll(editEvents);
+                System.out.println("Seeded " + editEvents.size() + " edit events");
+
+                // Write Locks
+                List<WriteLock> writeLocks = List.of(
+                        WriteLock.builder().rulebookId(rulebooks.get(3).getId()).heldByUserId(contributor2)
+                                .acquiredAt(Instant.now().minusSeconds(10)).expiresAt(Instant.now().plusSeconds(20))
+                                .build());
+                writeLockRepository.saveAll(writeLocks);
+                System.out.println("Seeded " + writeLocks.size() + " write locks");
+
+            } else {
+                System.out.println("Rulebooks already seeded, skipping...");
+            }
+        };
+    }
+}
