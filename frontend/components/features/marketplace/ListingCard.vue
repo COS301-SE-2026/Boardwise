@@ -7,37 +7,63 @@
         <img 
           :src="listing.image" 
           :alt="listing.title" />
+
+        <BaseBadge 
+          class="badge"
+          :variant="listing.type === 'rent' ? 'rent' : 'sale'"
+        > 
+          {{ listing.type === 'rent' ? 'For Rent' : 'For Sale' }}
+        </BaseBadge>
       </div>
 
       <div class="content">
 
         <h3>{{ listing.title }}</h3>
 
+        <p class="price">
+          R{{ listing.price }}
+          <span v-if="listing.type === 'rent'" class="period">
+            {{  listing.rentPeriod ?? 'week' }}
+          </span>
+        </p>
+
         <div class="meta">
-          <p class="price">{{ listing.price }}</p>
-          <p class="location">{{ listing.location }}</p>
+          <span class="seller">@{{ listing.seller ?? 'unknown' }}</span>
+          <span class="location">📍 {{ listing.location }}</span>
         </div>
 
       </div>
-
     </div>
-
   </BaseCard>
 </template>
 
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseBadge from '~/components/ui/BaseBadge.vue'
 
-defineProps({
+const props = defineProps({
   listing: Object
 })
 
+const router = useRouter()
+
 const openListing = () => {
-  router.push(`/marketplace/${props.id}`)
+  router.push(`/marketplace/${props.listing.id}`)
 }
 </script>
 
 <style scoped>
+.card {
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
 .listing-card {
   display: flex;
   flex-direction: column;
@@ -46,12 +72,8 @@ const openListing = () => {
 }
 
 .image-container {
-  height: 220px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #f4f4f4;
-  border-radius: 12px;
+  position: relative;
+  height: 200px;
   overflow: hidden;
 }
 
@@ -61,27 +83,35 @@ img {
   object-fit: contain;
 }
 
+.badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+
 .content {
+  padding: 12px 16px 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 h3 {
   margin: 0;
+  font-size: 15px;
 }
 
 .meta {
   display: flex;
   justify-content: space-between;
+  font-size: 12px;
+  color: #888;
 }
 
 .price {
-  color: #7B2CBF;
-  font-weight: bold;
-}
-
-.location {
-  color: #777;
+  color: #6C3BFF;
+  font-weight: 700;
+  font-size: 15px;
+  margin: 0;
 }
 </style>
