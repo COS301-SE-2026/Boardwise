@@ -20,7 +20,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.boardwise.backend.shared.exception.GlobalExceptionHandler;
-import com.boardwise.backend.shared.security.JwtUtil;
+import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.vault.controller.RulebookController;
 import com.boardwise.backend.vault.dto.response.DownloadUrlResponseDto;
 import com.boardwise.backend.vault.dto.response.EditEventResponseDto;
@@ -41,7 +41,7 @@ public class RulebookControllerTest {
     private RulebookService rulebookService;
 
     @MockitoBean
-    private JwtUtil jwtUtil;
+    private JWTService jwtUtil;
 
     private ObjectId rulebookId;
     private ObjectId contributorId;

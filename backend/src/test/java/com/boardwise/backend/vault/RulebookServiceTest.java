@@ -20,7 +20,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import com.boardwise.backend.shared.security.JwtUtil;
+import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.vault.dto.response.DownloadUrlResponseDto;
 import com.boardwise.backend.vault.dto.response.EditHistoryResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookResponseDto;
@@ -38,8 +38,8 @@ import com.boardwise.backend.vault.service.RulebookService;
 
 @ExtendWith(MockitoExtension.class)
 public class RulebookServiceTest {
-        @MockitoBean
-        private JwtUtil jwtUtil;
+    @MockitoBean
+    private JWTService jwtUtil;
 
     @Mock
     private RulebookRepository rulebookRepository;
