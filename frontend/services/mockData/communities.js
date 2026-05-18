@@ -7,9 +7,9 @@ export const communities = [
     description: 'A community for Catan enthusiasts.',
     members: 9,
     members_list: [
-      { id: 1, name: 'Thabo M.', role: 'Admin', avatar: '/images/avatar.jpg' },
-      { id: 2, name: 'Lerato K.', role: 'Member', avatar: '/images/avatar.jpg' },
-      { id: 3, name: 'Sipho D.', role: 'Member', avatar: '/images/avatar.jpg' },
+      { id: 1, name: '@HB_pencil', role: 'Admin', avatar: '/images/avatar1.jpg' },
+      { id: 2, name: '@Lerato_K', role: 'Member', avatar: '/images/avatar.jpg' },
+      { id: 3, name: '@Nigga_L', role: 'Member', avatar: '/images/avatar.jpg' },
     ]
   },
   {
@@ -20,7 +20,7 @@ export const communities = [
     description: 'Magic and strategy board game fans.',
     members: 16,
     members_list: [
-      { id: 1, name: 'Amara N.', role: 'Admin', avatar: '/images/avatar.jpg' },
+      { id: 1, name: 'Amara N.', role: 'Admin', avatar: '/images/avatar1.jpg' },
       { id: 2, name: 'James O.', role: 'Member', avatar: '/images/avatar.jpg' },
     ]
   },
@@ -33,7 +33,7 @@ export const communities = [
     members: 20,
     members_list: [
       { id: 1, name: 'Zanele P.', role: 'Admin', avatar: '/images/avatar.jpg' },
-      { id: 2, name: 'Ruan V.', role: 'Member', avatar: '/images/avatar.jpg' },
+      { id: 2, name: 'Ruan V.', role: 'Member', avatar: '/images/avatar1.jpg' },
       { id: 3, name: 'Fatima A.', role: 'Member', avatar: '/images/avatar.jpg' },
     ]
   },
@@ -46,7 +46,7 @@ export const communities = [
     members: 8,
     members_list: [
       { id: 1, name: 'Tebogo M.', role: 'Admin', avatar: '/images/avatar.jpg' },
-      { id: 2, name: 'Claire B.', role: 'Member', avatar: '/images/avatar.jpg' },
+      { id: 2, name: 'Claire B.', role: 'Member', avatar: '/images/avatar1.jpg' },
     ]
   },
   {
