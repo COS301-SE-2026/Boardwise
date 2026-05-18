@@ -20,7 +20,6 @@ import com.boardwise.backend.user_service.models.Group;
 import com.boardwise.backend.user_service.models.GroupMembership;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
-import com.boardwise.backend.user_service.repos.FriendShipRepository;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
@@ -36,8 +35,7 @@ import com.boardwise.backend.vault.repository.WriteLockRepository;
 @Component
 public class Seeding {
     @Bean
-    public CommandLineRunner seedDB(ListingRepository listingRepository, BoardGameRepository boardGameRepository,
-            FriendShipRepository friendShipRepository, GroupMembershipRepository groupMembershipRepository,
+    public CommandLineRunner seedDB(ListingRepository listingRepository, BoardGameRepository boardGameRepository, GroupMembershipRepository groupMembershipRepository,
             GroupRepository groupRepository, UserRepository userRepository, EditEventRepository editEventRepository,
             IngestionJobRepository ingestionJobRepository, RulebookRepository rulebookRepository,
             WriteLockRepository writeLockRepository) {
