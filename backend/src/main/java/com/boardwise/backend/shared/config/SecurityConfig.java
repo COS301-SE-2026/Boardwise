@@ -1,41 +1,63 @@
 package com.boardwise.backend.shared.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.boardwise.backend.shared.security.JwtAuthEntryPoint;
-import com.boardwise.backend.shared.security.JwtFilter;
+import com.boardwise.backend.shared.security.JWTFilter;
+import com.boardwise.backend.user_service.services.MyUserDetailsService;
 
-import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
-    private final JwtFilter jwtFilter;
-    private final JwtAuthEntryPoint jwtAuthEntryPoint;
+
+    @Autowired
+    private MyUserDetailsService userDetailsService; 
+
+    @Autowired
+    private JWTFilter jwtFilter;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
-        http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                // .requestMatchers("/actuator/health").permitAll()
-                // .requestMatchers("/ws/vault/**").permitAll()
-                // .requestMatchers("/api/vault/rulebooks/*").permitAll()
-                // .anyRequest().authenticated()
-                .anyRequest().permitAll()
-            )
-            // .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-            .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthEntryPoint));
-            
-            return http.build();
+    public SecurityFilterChain securityFilterChain(HttpSecurity http){
+        return http
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(request -> 
+                    request.requestMatchers("/api/auth/register", "/api/auth/login")
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated()
+                )
+                .httpBasic(Customizer.withDefaults())
+                .sessionManagement(sess -> 
+                    sess.sessionCreationPolicy(
+                        SessionCreationPolicy.STATELESS
+                    )
+                )
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
+    @Bean
+    public AuthenticationProvider authenticationProvider(){
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+        provider.setPasswordEncoder(new BCryptPasswordEncoder(12));
+        return provider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config){
+        return config.getAuthenticationManager();
+    }
 }
