@@ -35,6 +35,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(request -> 
                     request.requestMatchers(
+                        "/api/auth/hello",
                         "/api/auth/register", 
                         "/api/auth/login",
                         "/api/marketplace/listings",
