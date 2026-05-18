@@ -1,7 +1,6 @@
 package com.boardwise.backend.marketplace.service;
 
 import com.boardwise.backend.marketplace.model.*;
-import com.boardwise.backend.user_service.services.*;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.s3.S3Client;
