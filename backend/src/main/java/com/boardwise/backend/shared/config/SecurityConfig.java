@@ -34,7 +34,14 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(request -> 
-                    request.requestMatchers("/api/auth/register", "/api/auth/login")
+                    request.requestMatchers(
+                        "/api/auth/register", 
+                        "/api/auth/login",
+                        "/api/marketplace/listings",
+                        "/api/marketplace/listings/{listingId}",
+                        "/api/vault/rulebooks",
+                        "/api/vault/rulebooks/{id}/text"
+                    )
                     .permitAll()
                     .anyRequest()
                     .authenticated()
