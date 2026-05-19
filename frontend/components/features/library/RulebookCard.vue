@@ -28,32 +28,43 @@ const openBook = () => {
 
 <style scoped>
 .card {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    cursor: pointer;
-    transition: 0.2s;
-    min-width: 180px;
-    max-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+  min-width: 180px;
+  max-width: 180px;
+  padding: 0;
+  overflow: hidden;
 }
 
 .card:hover {
-    transform: translate(-4px);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
 }
 
 .image-wrapper {
-    height: 100%;
-    width: 100%;
-    object-fit: contain;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
 }
 
 img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .content {
-    padding-top: 12px;
+  padding: 12px 16px 16px;
+}
+
+h3 { margin: 0; font-size: 14px; }
+
+p {
+  margin-top: 4px;
+  color: #777;
+  font-size: 12px;
 }
 </style>
