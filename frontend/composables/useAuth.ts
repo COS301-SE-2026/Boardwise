@@ -21,7 +21,22 @@ export const useAuth = () => {
     token.value = newToken;
     isAuthenticated.value = true;
   }
-  
+
+  const register = async (userData: any): Promise<boolean> => {
+    error.value = '';
+    loading.value = true;
+
+    try{
+      const response = await AuthService.register(userData);
+      setSession(response.data.accessToken);
+      return true;
+    }catch(err: any){
+      error.value = err.response?.data?.message || 'Registration failed';
+      return false;
+    }finally{
+      loading.value = false;
+    }
+  }
   return {
 
   }
