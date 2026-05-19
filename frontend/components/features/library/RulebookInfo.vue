@@ -1,14 +1,14 @@
 <template> 
     <div class="info">
 
-        <h1>{{ title }}</h1>
+        <h1>{{ rulebook.title }}</h1>
 
         <p class="category">
-            {{ category }}
+            {{ rulebook.category }}
         </p>
 
         <p class="description">
-            {{ description }}
+            {{ rulebook.description }}
         </p>
 
         <BaseButton @click="readBook">
@@ -20,17 +20,17 @@
 <script setup>
 import BaseButton from '~/components/ui/BaseButton.vue'
 
-const props = ({
-        id: Number,
-        title: String,
-        category: String,
-        description: String
+const props = defineProps ({
+        rulebook: {
+            type: Object,
+            required: true
+        }
 })
 
 const router = useRouter()
 
 const readBook = () => {
-    router.push('/library/${props.id}/read')
+    router.push('/rulebook/${props.rulebook.id}/read')
 }
 </script>
 
@@ -38,12 +38,11 @@ const readBook = () => {
 .info {
     display: flex;
     flex-direction: column;
-
     gap: 16px;
 }
 
 .category {
-    color: #7B2CBF;
+    color: #6C3BFF;
     font-weight: bold;
 }
 

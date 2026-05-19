@@ -7,30 +7,24 @@
 
         <div class="rulebooks-row">
             <RulebookCard   
-                v-for="rulebook in RecommendedBooks"
+                v-for="rulebook in rulebooks"
                 :key="rulebook.id"
                 :rulebook="rulebook"
             />
         </div>
-
-        <RulebookGrid />
     </div>
-
-    <div class="RulebooksGridbooks">
-      <RulebookCard
-        v-for="rulebook in rulebooks"
-        :key="rulebook.id"
-        :rulebook="rulebook"
-      />
-    </div>
-
 </template>
 
 <script setup>
 import SectionTitle from '~/components/ui/SectionTitle.vue'
-import RulebookGrid from './RulebookGrid.vue'
+import RulebookCard from './RulebookCard.vue'
 
-import { rulebooks } from '~/services/mockData/rulebooks'
+defineProps({
+    rulebooks: {
+        type: Array,
+        default: () => []
+    }
+})
 </script>
 
 <style scoped> 
