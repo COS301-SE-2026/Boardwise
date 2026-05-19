@@ -17,7 +17,7 @@ defineProps({
   modelValue: String
 })
 
-const inputValue = defineModel()
+defineEmits(['update:modelValue'])
 </script>
 
 <style scoped>
