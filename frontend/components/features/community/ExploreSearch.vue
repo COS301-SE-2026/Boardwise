@@ -3,16 +3,16 @@
 
     <div class="search">
       <BaseSearch
-        placeholder="Search for games..."
+        placeholder="Search for a community..."
       />
     </div>
 
     <BaseButton variant="secondary">
       Filters
     </BaseButton>
-./MarketplaceSearch.vue
+
     <BaseButton variant="primary">
-      + Create Listing
+      + Create a community
     </BaseButton>
 
   </div>

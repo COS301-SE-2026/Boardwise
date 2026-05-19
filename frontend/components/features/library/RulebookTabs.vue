@@ -8,23 +8,24 @@
             :class="{ active: selectedTab === tab}"
             
             @click="selectedTab = tab"
-        />
+        >
             {{ tab }}
 
         </BaseButton>
+
     </div>
 </template>
 
 <script setup>
-import BaseButton from './components/ui/BaseButton.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
 
 const tabs = [
-    {
-        'All',
-        'Strategy',
-        'Family',
-        'Party'
-    },
+    
+    'All',
+    'Strategy',
+    'Family',
+    'Party'
+    
 ]
 
 const selectedTab = ref('All')

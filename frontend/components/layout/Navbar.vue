@@ -25,7 +25,7 @@
                 Marketplace
             </NuxtLink>
 
-            <NuxtLink to="/profile">
+            <NuxtLink to="/community">
                 Community
             </NuxtLink>
 
