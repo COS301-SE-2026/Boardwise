@@ -9,7 +9,7 @@ export const AuthService = {
     return api.post('auth/login', credentials);
   },
   
-  // logout(){
-  //   return api.delete('auth/logout');
-  // },
+  logout(){
+    return api.delete('auth/logout');
+  },
 }

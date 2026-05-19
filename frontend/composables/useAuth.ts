@@ -1,3 +1,4 @@
+import { credentials } from 'happy-dom/lib/PropertySymbol';
 import {ref} from 'vue'
 import { useRouter } from 'vue-router'
 import { AuthService } from '~/services/authService'
@@ -37,7 +38,37 @@ export const useAuth = () => {
       loading.value = false;
     }
   }
-  return {
 
+  const login = async (credentials: any): Promise<boolean> => {
+    error.value = '';
+    loading.value = true;
+    try{
+      const response = await AuthService.login(credentials);
+      setSession(response.data.accessToken);
+      return true;
+    }catch(err: any){
+      error.value = err.response?.data?.message || 'Invalid credentials'
+      return false
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  const logout = () => {
+    if(import.meta.client){
+      localStorage.removeItem('access_token');
+    }
+    token.value = null
+    isAuthenticated.value = false;
+    router.push('/login');
+  }
+  return {
+    token,
+    isAuthenticated,
+    error,
+    loading,
+    login,
+    register,
+    logout
   }
 }
