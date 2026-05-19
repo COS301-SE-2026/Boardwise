@@ -16,7 +16,7 @@ Boardwise is a comprehensive digital ecosystem for board game enthusiasts that o
 
 ---
 
-# SHARED LIBRARY • MARKETPLACE • AI RULE ASSISTANT
+# SHARED LIBRARY • MARKETPLACE • COMMUNITY
 
 *A COS301 Capstone Project — University of Pretoria*
 
@@ -156,7 +156,6 @@ boardwise/
 │   ├── nuxt.config.ts     # Nuxt configuration
 │   └── package.json       # Frontend dependencies
 │
-├── tests/                 # Shared/integration tests
 └── README.md
 ```
 
