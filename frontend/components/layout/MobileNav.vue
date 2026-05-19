@@ -13,6 +13,14 @@
             Library
         </NuxtLink>
 
+        <NuxtLink to="/community">
+            Community
+        </NuxtLink>
+
+        <NuxtLink to="/profile">
+            Events
+        </NuxtLink>
+
         <NuxtLink to="/profile">
             Profile
         </NuxtLink>
