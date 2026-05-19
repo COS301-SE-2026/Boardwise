@@ -24,13 +24,8 @@
 </template>
 
 <script setup>
-// Mock data — replace with real data later
-const communities = [
-  { id: 1, name: 'Strategy', image: '/images/catan.jpg' },
-  { id: 2, name: 'Family', image: '/images/dixit.jpg' },
-  { id: 3, name: 'Abstract', image: '/images/azul.jpg' },
-  { id: 4, name: 'Get Together', image: '/images/catan.jpg' }
-]
+import { communities } from '~/services/mockData/communities'
+
 </script>
 
 <style scoped>
