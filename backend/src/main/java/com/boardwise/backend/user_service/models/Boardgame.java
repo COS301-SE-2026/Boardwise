@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -11,7 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Document(collection = "Board_Games")
+@Document(collection = "BOARD_GAMES")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -22,6 +23,7 @@ public class Boardgame {
     private String id;
     private String title;
     private String description;
+    @Field("image_url")
     private String imageURL;
     private List<String> genres;
 }
