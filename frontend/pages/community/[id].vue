@@ -7,8 +7,8 @@
  
       <CommunityBanner :community="community" />
  
-      <ExploreTabs :active-tab="activeTab" @change="activeTab = $event" />
- 
+      <CommunityTabs :active-tab="activeTab" @change="activeTab = $event" />
+      
       <CommunityChats v-if="activeTab === 'Chat'" :community="community" />
       <MemberList     v-if="activeTab === 'Members'" :community="community" />
       <CommunityAbout v-if="activeTab === 'About'" :community="community" />
@@ -21,12 +21,11 @@
 <script setup>
 import { ref } from 'vue'
 import { communities } from '~/services/mockData/communities'
- 
+import CommunityTabs from '~/components/features/community/CommunityTabs.vue'
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
  
 import CommunityBanner from '~/components/features/community/CommunityBanner.vue'
-import ExploreTabs from '~/components/features/community/ExploreTabs.vue'
 import CommunityChats from '~/components/features/community/CommunityChats.vue'
 import MemberList from '~/components/features/community/MemberList.vue'
 import CommunityAbout from '~/components/features/community/CommunityAbout.vue'
