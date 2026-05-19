@@ -19,9 +19,8 @@
 import AuthForm from './AuthForm.vue'
 
 const router = useRouter()
-const error = ref('')
 
-// const { login, error } = useAuth()
+const { login, error, loading} = useAuth()
 
 const fields = [
     { key: 'username', placeholder: 'Username', type: 'text' },
@@ -36,13 +35,12 @@ const handleSignIn = async (data) => {
         return
     }
 
-    // const success = await login({
-    //     username: data.username,
-    //     password: data.password
-    // })
+    const success = await login({
+        username: data.username,
+        password: data.password
+    })
 
-    // if (success) 
-    {
+    if (success){
         router.push('/library')
     }
 }

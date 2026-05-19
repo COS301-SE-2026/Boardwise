@@ -21,9 +21,8 @@
 
 <script setup>
 import AuthForm from './AuthForm.vue'
-
 const router = useRouter()
-// const { register, error } = useAuth()
+const { register, error } = useAuth()
 const localError = ref('')
 
 const fields = [
