@@ -81,6 +81,7 @@ class ProfileControllerTest {
     private AuthenticationManager authManager;
 
     private String testUsername = "testuser";
+    private String testFullname = "Test User";
     private ProfileResponseDTO mockProfileResponse;
     private UpdateProfileDTO updateProfileDTO;
     private PreferencesRequestDTO preferencesRequestDTO;
@@ -101,6 +102,7 @@ class ProfileControllerTest {
         List<Boardgame> games = Arrays.asList();
         
         mockProfileResponse = new ProfileResponseDTO(
+            testFullname,
             testUsername,
             "https://r2.example.com/profile.jpg",
             5, 3, 10, games, prefs, "15-05-2026"
