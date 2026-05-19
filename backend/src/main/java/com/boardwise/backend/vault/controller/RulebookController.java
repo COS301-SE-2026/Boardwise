@@ -59,7 +59,7 @@ public class RulebookController {
                 rulebookService.getDownloadUrl(toObjectId(id)));
     }
 
-    // z
+    // AC-VLT-09: Get Rulebook Edit History
     @GetMapping("/{id}/history")
     public ResponseEntity<EditHistoryResponseDto> getEditHistory(
             @PathVariable String id) {
