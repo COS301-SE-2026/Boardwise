@@ -15,8 +15,8 @@ import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.marketplace.model.Listing;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.marketplace.service.ListingService;
+import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.repos.UserRepository;
-import com.boardwise.backend.user_service.services.JWTService;
 
 import java.time.LocalDateTime;
 import java.util.List;

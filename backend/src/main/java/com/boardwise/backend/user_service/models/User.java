@@ -15,7 +15,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Document(collection = "Users")
+@Document(collection = "USERS")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -47,6 +47,7 @@ public class User {
     @Field("created_at")
     private Instant createdAt;
     
+    @Field("owned_games")
     private List<String> ownedGames;
 
     public User(String username, String firstName, String lastName, String email, 

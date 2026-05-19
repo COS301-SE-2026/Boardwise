@@ -21,7 +21,7 @@ public class R2Config {
     @Value("${R2_SECRET_KEY}")
     private String secretKey;
 
-    @Value("${R2_ACCOUNT_ID}")
+    @Value("${r2.account-id}")
     private String accountId;
 
     @Bean

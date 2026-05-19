@@ -31,14 +31,14 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.boardwise.backend.shared.config.R2Config;
 import com.boardwise.backend.shared.config.SecurityConfig;
-import com.boardwise.backend.shared.security.JWTFilter;
+import com.boardwise.backend.shared.security.JwtFilter;
+import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
 import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileResponseDTO;
 import com.boardwise.backend.user_service.dtos.UpdateProfileDTO;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.models.Preferences;
-import com.boardwise.backend.user_service.services.JWTService;
 import com.boardwise.backend.user_service.services.MyUserDetailsService;
 import com.boardwise.backend.user_service.services.ProfileService;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
@@ -69,7 +69,7 @@ class ProfileControllerTest {
     private JWTService jwtService;
 
     @MockitoBean
-    private JWTFilter jwtFilter;
+    private JwtFilter jwtFilter;
 
     @MockitoBean
     private MyUserDetailsService userDetailsService;
@@ -97,7 +97,7 @@ class ProfileControllerTest {
         }).when(jwtFilter).doFilter(any(), any(), any());
 
         when(jwtService.extractUsername(anyString())).thenReturn(testUsername);
-        Preferences prefs = new Preferences(false, Arrays.asList("Strategy", "Adventure"));
+        Preferences prefs = new Preferences("public", Arrays.asList("Strategy", "Adventure"));
         List<Boardgame> games = Arrays.asList();
         
         mockProfileResponse = new ProfileResponseDTO(
@@ -111,7 +111,7 @@ class ProfileControllerTest {
         );
         
         preferencesRequestDTO = new PreferencesRequestDTO(
-            true, Arrays.asList("Horror", "Cooperative")
+            "public", Arrays.asList("Horror", "Cooperative")
         );
 
     }
@@ -349,7 +349,7 @@ class ProfileControllerTest {
     @Test
     @WithMockUser
     void shouldUpdatePreferences_WithNullGenres() throws Exception {
-        PreferencesRequestDTO nullGenresRequest = new PreferencesRequestDTO(true, null);
+        PreferencesRequestDTO nullGenresRequest = new PreferencesRequestDTO("public", null);
         
         Map<String, Object> prefResponse = new HashMap<>();
         prefResponse.put("message", "Preferences updated successfully.");

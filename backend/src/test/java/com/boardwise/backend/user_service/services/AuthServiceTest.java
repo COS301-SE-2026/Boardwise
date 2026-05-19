@@ -17,6 +17,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
+import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.dtos.AuthResponseDTO;
 import com.boardwise.backend.user_service.dtos.LoginDTO;
 import com.boardwise.backend.user_service.dtos.LogoutResponseDTO;
@@ -65,7 +66,7 @@ class AuthServiceTest {
     @Test
     void shouldRegisterUser_Successfully() {
         // Given
-        when(jwt.generateToken(anyString())).thenReturn("test.jwt.token");
+        when(jwt.generateToken(anyString(), anyString())).thenReturn("test.jwt.token");
         when(userRepo.save(any())).thenReturn(null);
   
         // When
@@ -76,7 +77,7 @@ class AuthServiceTest {
         assertThat(response.message()).isEqualTo("User successfully register");
         assertThat(response.accessToken()).isEqualTo("test.jwt.token");
         verify(userRepo).save(any());
-        verify(jwt).generateToken("testuser");
+        verify(jwt).generateToken("testuser", anyString());
     }
 
     @Test
@@ -85,7 +86,7 @@ class AuthServiceTest {
         when(manager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
             .thenReturn(authentication);
         when(authentication.isAuthenticated()).thenReturn(true);
-        when(jwt.generateToken(anyString())).thenReturn("test.jwt.token");
+        when(jwt.generateToken(anyString(), anyString())).thenReturn("test.jwt.token");
 
         // When
         AuthResponseDTO response = authService.login(validLoginDTO);
@@ -95,7 +96,7 @@ class AuthServiceTest {
         assertThat(response.message()).isEqualTo("User logged in successfully");
         assertThat(response.accessToken()).isEqualTo("test.jwt.token");
         verify(manager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(jwt).generateToken("testuser");
+        verify(jwt).generateToken("testuser", anyString());
     }
 
     @Test
@@ -136,7 +137,7 @@ class AuthServiceTest {
             "Doe"
         );
         
-        when(jwt.generateToken(anyString())).thenReturn("test.jwt.token");
+        when(jwt.generateToken(anyString(), anyString())).thenReturn("test.jwt.token");
         when(userRepo.save(any())).thenReturn(null);
 
         // When
@@ -175,7 +176,7 @@ class AuthServiceTest {
             "Doe"
         );
         
-        when(jwt.generateToken(anyString())).thenReturn("test.jwt.token");
+        when(jwt.generateToken(anyString(), anyString())).thenReturn("test.jwt.token");
         when(userRepo.save(any())).thenReturn(null);
 
         // When
@@ -197,7 +198,7 @@ class AuthServiceTest {
         when(manager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
             .thenReturn(authentication);
         when(authentication.isAuthenticated()).thenReturn(true);
-        when(jwt.generateToken(anyString())).thenReturn("test.jwt.token");
+        when(jwt.generateToken(anyString(), anyString())).thenReturn("test.jwt.token");
 
         // When
         AuthResponseDTO response = authService.login(maliciousLogin);

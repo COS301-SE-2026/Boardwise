@@ -28,7 +28,7 @@ import java.util.*;
 @RequestMapping("/api/marketplace")
 
 public class ListingController {
-    
+
     private final ListingService listingService;
 
     public ListingController(ListingService listingService) {
@@ -53,7 +53,7 @@ public class ListingController {
     }
 
     // AC-MKT-02: Get Listing by ID
-    @GetMapping("/users/{userId}/listings") // to be changed
+    @GetMapping("/listings/{listingId}")
     public ResponseEntity<ListingResponse> getListingById(@PathVariable String userId) {
         try {
             return ResponseEntity.status(200).body(listingService.getListingById(userId));
@@ -111,9 +111,8 @@ public class ListingController {
     }
 
     // AC-MKT-06: Get Authenticated User's Listings
-    @GetMapping("/listings/{user}")
+    @GetMapping("/listings/user/{user}")
     public ResponseEntity<List<ListingResponse>> getUserListings(@PathVariable String user) {
-        // TODO: process GET request
         try {
             List<ListingResponse> listings = listingService.getUserListings(user);
             if (listings.isEmpty()) {
@@ -145,6 +144,5 @@ public class ListingController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
 
 }

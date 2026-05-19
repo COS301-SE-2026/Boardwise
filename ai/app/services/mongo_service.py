@@ -105,3 +105,15 @@ def update_rulebook_r2_key(rulebook_id: str, r2_key: str):
         {"_id": ObjectId(rulebook_id)},
         {"$set": {"r2_pdf_key": r2_key}}
     )
+
+def is_token_blacklisted(jti: str) -> bool:
+    """
+    Synchronously checks the shared MongoDB database to see if the 
+    Java backend has invalidated this token.
+    """
+    collection = db.get_collection("tokenBlackList") # Verify your exact collection name
+    
+    # Query for the document matching the jti
+    result = collection.find_one({"_id": jti})
+    
+    return result is not None

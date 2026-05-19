@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.dtos.AuthResponseDTO;
 import com.boardwise.backend.user_service.dtos.LoginDTO;
 import com.boardwise.backend.user_service.dtos.LogoutResponseDTO;
@@ -44,7 +45,7 @@ public class AuthService {
         userRepo.save(newUser);
 
         // generate JWT and return it
-        String token = jwt.generateToken(username);
+        String token = jwt.generateToken(username, newUser.getId());
         return new AuthResponseDTO("User successfully register", token);
     }
 
@@ -60,7 +61,7 @@ public class AuthService {
             throw new IllegalArgumentException("Incorrect user credentials");
 
         // generate JWT and return it
-        String token = jwt.generateToken(username);
+        String token = jwt.generateToken(username, userRepo.findByUsername(username).get().getId());
         return new AuthResponseDTO("User logged in successfully", token);
     }
 

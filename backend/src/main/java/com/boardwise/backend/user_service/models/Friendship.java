@@ -10,7 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Document(collection = "Friendship")
+@Document(collection = "FRIENDSHIP")
 @NoArgsConstructor
 @Getter
 @Setter

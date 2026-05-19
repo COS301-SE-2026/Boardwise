@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import lombok.Data;
 
-@Document(collection = "Groups")
+@Document(collection = "GROUP")
 @Data
 public class Group {
 

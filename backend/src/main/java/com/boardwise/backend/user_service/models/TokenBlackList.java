@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 
-@Document(collection = "Token_Blacklist")
+@Document(collection = "TOKEN_BLACKLIST")
 @Getter
 @Setter
 @EqualsAndHashCode

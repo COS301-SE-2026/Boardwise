@@ -1,16 +1,16 @@
-package com.boardwise.backend.user_service.services;
+package com.boardwise.backend.shared.security;
 
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -19,30 +19,32 @@ import com.boardwise.backend.user_service.repos.TokenBlackListRepository;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JWTService {
 
-    private String key = "";
+    @Value("${jwt.secret}")
+    private String key;
+
 
     @Autowired
     private TokenBlackListRepository tokenRepo;
 
-    public JWTService(){
-        try {
-            KeyGenerator generator = KeyGenerator.getInstance("HmacSHA256");
-            SecretKey secret = generator.generateKey();
-            key = Base64.getEncoder().encodeToString(secret.getEncoded());
+    // public JWTService(){
+    //     try {
+    //         KeyGenerator generator = KeyGenerator.getInstance("HmacSHA256");
+    //         SecretKey secret = generator.generateKey();
+    //         key = Base64.getEncoder().encodeToString(secret.getEncoded());
 
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    //     } catch (NoSuchAlgorithmException e) {
+    //         throw new RuntimeException(e);
+    //     }
+    // }
 
-    public String generateToken(String username) {
+    public String generateToken(String username, String userId) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
         int ttl = 30 * 60 * 1000;
         return Jwts.builder()
                 .claims()
@@ -57,9 +59,16 @@ public class JWTService {
                 
     }
 
+    public ObjectId extractUserId(String token) {
+        String userId = extractClaim(token,
+                claims -> claims.get("userId", String.class));
+        return new ObjectId(userId);
+    }
+
     private SecretKey getKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(key);
-        return Keys.hmacShaKeyFor(keyBytes);
+        // byte[] keyBytes = Decoders.BASE64.decode(key);
+        // return Keys.hmacShaKeyFor(keyBytes);
+        return Keys.hmacShaKeyFor(key.getBytes(StandardCharsets.UTF_8));
     }
 
     public String extractUsername(String token) {

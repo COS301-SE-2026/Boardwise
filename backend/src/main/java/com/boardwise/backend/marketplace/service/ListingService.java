@@ -1,13 +1,10 @@
 package com.boardwise.backend.marketplace.service;
 
 import com.boardwise.backend.marketplace.model.*;
-import com.boardwise.backend.user_service.services.*;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
-import com.boardwise.backend.user_service.repos.*;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -28,23 +25,20 @@ import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
 import com.boardwise.backend.marketplace.enums.*;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
+import com.boardwise.backend.shared.security.JWTService;
 
 import java.util.*;
 
 @Service
 public class ListingService {
 
-    private final BoardGameRepository boardGameRepository;
+    
     private final ListingRepository listingRepository;
-    private final UserRepository userRepository;
     private final JWTService jwtService;
 
-    public ListingService(ListingRepository listingRepository, UserRepository userRepository, JWTService jwtService,
-            BoardGameRepository boardGameRepository) {
+    public ListingService(ListingRepository listingRepository, JWTService jwtService) {
         this.listingRepository = listingRepository;
-        this.userRepository = userRepository;
         this.jwtService = jwtService;
-        this.boardGameRepository = boardGameRepository;
     }
 
     private static String truncateAfterWords(String text, int wordLimit) {
@@ -264,9 +258,12 @@ public class ListingService {
         existing.setUpdatedAt(LocalDateTime.now());
 
         if (req.rentalPeriod() != null && !req.rentalPeriod().isEmpty()) {
-            List<String> rentalPeriod = (req.rentalPeriod() == null || req.rentalPeriod().size() != 2)
-                    ? null
-                    : req.rentalPeriod();
+            
+            if(req.rentalPeriod().size() != 2){
+                throw new IllegalArgumentException("Only 2 dates are allowed");
+            }
+
+            List<String> rentalPeriod = req.rentalPeriod();
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             LocalDate start = LocalDate.parse(rentalPeriod.get(0), dateFormatter);
             LocalDate end = LocalDate.parse(rentalPeriod.get(1), dateFormatter);

@@ -20,7 +20,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.boardwise.backend.shared.exception.GlobalExceptionHandler;
-import com.boardwise.backend.shared.security.JwtUtil;
+import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.vault.controller.LockController;
 import com.boardwise.backend.vault.dto.response.CommitDeltaResponseDto;
 import com.boardwise.backend.vault.dto.response.LockResponseDto;
@@ -41,7 +41,7 @@ public class LockControllerTest {
     private LockManagerService lockManagerService;
 
     @MockitoBean
-    private JwtUtil jwtUtil;
+    private JWTService jwtUtil;
 
     private ObjectId rulebookId;
     private ObjectId userId;

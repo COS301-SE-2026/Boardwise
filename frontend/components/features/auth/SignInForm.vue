@@ -6,12 +6,22 @@
         @submit="handleSignIn"
     />
     <p v-if="error" class="error">{{ error }}</p>
+
+    <p class="redirect-text">
+        Don’t have an account?
+        <NuxtLink to="/auth/signup" class="redirect-link">
+            Sign Up
+        </NuxtLink>
+    </p>
 </template>
 
 <script setup>
 import AuthForm from './AuthForm.vue'
-// Destructure what we need from the composable
-const { login, error } = useAuth()
+
+const router = useRouter()
+const error = ref('')
+
+// const { login, error } = useAuth()
 
 const fields = [
     { key: 'username', placeholder: 'Username', type: 'text' },
@@ -26,14 +36,13 @@ const handleSignIn = async (data) => {
         return
     }
 
-    // Call the composable function
-    const success = await login({
-        username: data.username,
-        password: data.password
-    })
+    // const success = await login({
+    //     username: data.username,
+    //     password: data.password
+    // })
 
-    // If the composable successfully got a token, redirect
-    if (success) {
+    // if (success) 
+    {
         router.push('/library')
     }
 }
@@ -45,5 +54,23 @@ const handleSignIn = async (data) => {
     text-align: center;
     margin-top: 8px;
     font-size: 14px;
+}
+
+.redirect-text {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 14px;
+    color: #666;
+}
+
+.redirect-link {
+    color: #6C3BFF;
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: 4px;
+}
+
+.redirect-link:hover {
+    text-decoration: underline;
 }
 </style>

@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
 import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileResponseDTO;
@@ -79,13 +80,7 @@ public class ProfileService {
         DateTimeFormatter formatter = DateTimeFormatter
                                         .ofPattern("dd-MM-yyyy")
                                         .withZone(ZoneOffset.UTC);
-        Preferences userPref = user.getPreferences() == null ?
-                                null :
-                                (
-                                    user.getPreferences().isPrivate() ? 
-                                    null :
-                                    user.getPreferences()
-                                );
+        Preferences userPref = user.getPreferences();
                                 
         return new ProfileResponseDTO(
             user.getUsername(),
@@ -101,6 +96,9 @@ public class ProfileService {
 
     public boolean deleteUser(String token) {
         String username = jwtService.extractUsername(token);
+        // add removal of associated data
+
+        // end associated data removal
         int deletedUsers = (int) userRepo.deleteByUsername(username);
         
         return deletedUsers == 1;
@@ -166,8 +164,8 @@ public class ProfileService {
             user.setPreferences(new Preferences());    
         }
         
-        if(prefData.isPrivate() != user.getPreferences().isPrivate())
-            user.getPreferences().setPrivate(prefData.isPrivate());
+        if(!prefData.visibility().equalsIgnoreCase(user.getPreferences().getVisibility()))
+            user.getPreferences().setVisibility(prefData.visibility());
             
         if(prefData.genres() != null)
             user.getPreferences().setGenres(prefData.genres());

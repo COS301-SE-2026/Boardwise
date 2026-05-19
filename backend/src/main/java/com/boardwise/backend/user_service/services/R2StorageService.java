@@ -16,10 +16,10 @@ public class R2StorageService {
 
     private final S3Client s3Client;
     
-    @Value("${R2_BUCKET_PROFILES}")
+    @Value("${r2.bucket-profiles}")
     private String bucketName;
     
-    @Value("${R2_DEV_URL}") // <-- for when we have domain [CHANGE ME DURING PROD.]
+    @Value("${r2.dev-url}") // <-- for when we have domain [CHANGE ME DURING PROD.]
     private String publicUrl;
 
     public R2StorageService(S3Client s3Client) {
@@ -50,7 +50,7 @@ public class R2StorageService {
 
     public String getFileUrl(String fileName) {
         if (publicUrl != null && !publicUrl.isEmpty()) {
-            return publicUrl + "/" + fileName;
+            return publicUrl + fileName;
         }
         
         return String.format("https://%s.r2.cloudflarestorage.com/%s", 

@@ -3,7 +3,7 @@ package com.boardwise.backend.vault.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.boardwise.backend.shared.security.JwtUtil;
+import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.vault.dto.request.CommitDeltaRequestDto;
 import com.boardwise.backend.vault.dto.response.CommitDeltaResponseDto;
 import com.boardwise.backend.vault.dto.response.LockResponseDto;
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequiredArgsConstructor
 public class LockController {
     private final LockManagerService lockManagerService;
-    private final JwtUtil jwtUtil;
+    private final JWTService jwtService; // ← changed
 
     // AC-VLT-06: Acquire Write Lock
     @PostMapping("/{id}/lock")
@@ -65,7 +65,7 @@ public class LockController {
     // ----- private helpers -----
     private ObjectId extractUserId(Authentication authentication){
         String token = (String) authentication.getCredentials();
-        return jwtUtil.extractUserId(token);
+        return jwtService.extractUserId(token);
     }
 
     private ObjectId toObjectId(String id){

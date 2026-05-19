@@ -67,6 +67,7 @@ public class ProfileController {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
         catch(Exception e){
+            e.printStackTrace();
             Map<String, Object> res = new HashMap<>();
             res.put("message", "Something went wrong on our end.");
             return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -144,7 +145,7 @@ public class ProfileController {
     }
     
 
-    private String extractToken(HttpServletRequest req){
+    public static String extractToken(HttpServletRequest req){
         String header = req.getHeader("Authorization");
         if(header == null || !header.startsWith("Bearer "))
             throw new IllegalArgumentException("Missing or invalid JWT token");
