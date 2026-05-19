@@ -2,7 +2,7 @@
     <nav class="navbar">
 
         <NuxtLink to="/" class="logo">
-          <img src="/images/logo.png" alt="Boardwise" class="logo-img" />
+          <img src="/images/fulllogo.png" alt="Boardwise" class="logo-img" />
         </NuxtLink>
 
         <div class="center">
@@ -59,6 +59,12 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 }
 
 .logo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.logo-img {
   height: 40px;
   object-fit: contain;
 }
