@@ -5,31 +5,31 @@
 
       <div class="image-container">
         <img 
-          :src="listing.image" 
-          :alt="listing.title" />
+          :src="listing.imageUrl" 
+          :alt="listing.gameTitle" />
 
         <BaseBadge 
           class="badge"
-          :variant="listing.type === 'rent' ? 'rent' : 'sale'"
+          :variant="listing.listingType === 'rental' ? 'rental' : 'sale'"
         > 
-          {{ listing.type === 'rent' ? 'For Rent' : 'For Sale' }}
+          {{ listing.listingType === 'rental' ? 'For Rent' : 'For Sale' }}
         </BaseBadge>
       </div>
 
       <div class="content">
 
-        <h3>{{ listing.title }}</h3>
+        <h3>{{ listing.gameTitle }}</h3>
 
         <p class="price">
           R{{ listing.price }}
-          <span v-if="listing.type === 'rent'" class="period">
+          <span v-if="listing.type === 'rental'" class="period">
             {{  listing.rentPeriod ?? 'week' }}
           </span>
         </p>
 
         <div class="meta">
-          <span class="seller">@{{ listing.seller ?? 'unknown' }}</span>
-          <span class="location">📍 {{ listing.location }}</span>
+          <span class="seller">@{{ listing.username ?? 'unknown' }}</span>
+          <span class="location">📍 Pretoria </span> 
         </div>
 
       </div>
@@ -48,7 +48,7 @@ const props = defineProps({
 const router = useRouter()
 
 const openListing = () => {
-  router.push(`/marketplace/${props.listing.id}`)
+  router.push(`/marketplace/${props.listing.listingId}`)
 }
 </script>
 

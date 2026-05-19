@@ -3,7 +3,7 @@
 
         <ListingCard 
             v-for="listing in listings"
-            :key="listing.id"
+            :key="listing.listingId"
             :listing="listing"
         />
     </div>
@@ -11,7 +11,12 @@
 
 <script setup>
 import ListingCard from './ListingCard.vue'
-import { listings } from '~/services/mockData/listings'
+defineProps({
+    listings: {
+        type:Array,
+        default: () => []
+    }
+})
 </script>
 
 <style scoped>
