@@ -2,18 +2,14 @@
   <div class="search-row">
 
     <div class="search">
-      <BaseSearch
+      <BaseSearch v-model="search"
         placeholder="Search for a community..."
       />
     </div>
-
-    <BaseButton variant="secondary">
-      Filters
-    </BaseButton>
-
-    <BaseButton variant="primary">
-      + Create a community
-    </BaseButton>
+        
+    <BaseButton @click="emit('create')">
+          + Create a community
+        </BaseButton>
 
   </div>
 </template>
@@ -21,6 +17,10 @@
 <script setup>
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+
+
+const search = defineModel()
+const emit = defineEmits(['create'])
 </script>
 
 <style scoped>
