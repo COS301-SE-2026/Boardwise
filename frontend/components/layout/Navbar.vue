@@ -29,7 +29,7 @@
                 Community
             </NuxtLink>
 
-            <NuxtLink to="/profile">
+            <NuxtLink to="/events">
                 Events
             </NuxtLink>
 
