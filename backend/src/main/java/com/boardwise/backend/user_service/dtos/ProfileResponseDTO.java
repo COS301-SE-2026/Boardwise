@@ -6,6 +6,7 @@ import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.models.Preferences;
 
 public record ProfileResponseDTO(
+    String fullName,
     String username,
     String profilePicture,
     int friendCount,
