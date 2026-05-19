@@ -25,11 +25,21 @@ const searchQuery = ref('')
 const activeTab = ref('All')
  
 const communities = ref([
-    { id: 1, name: 'Board Game Lovers', category: 'General', memberCount: 120, 
+    { id: 1, 
+      name: 'Board Game Lovers', 
+    category: 'General', 
+    memberCount: 120, 
     description: 'A community for board game enthusiasts to share their love for all things board games.' },
-    { id: 2, name: 'Strategy Gamers', category: 'Strategy', memberCount: 450, description: 
-    'A community for fans of strategy games to discuss tactics, share game recommendations, and connect with like-minded players.' },
-    { id: 3, name: 'Family Game Night', category: 'Family', memberCount: 100, description: 
+    { id: 2, 
+      name: 'Strategy Gamers', 
+    category: 'Strategy', 
+    memberCount: 450, 
+    description: 'A community for fans of strategy games to discuss tactics, share game recommendations, and connect with like-minded players.' },
+    { id: 3, 
+      name: 'Family Game Night', 
+    category: 'Family', 
+    memberCount: 100, 
+    description: 
     'A community for families to play games together and build stronger relationships.' }
 ])
 
