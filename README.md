@@ -142,7 +142,45 @@ boardwise/
 ├── .github/               # GitHub workflows and CI/CD
 ├── .vscode/               # Workspace settings
 ├── ai/                    # AI services and RAG systems
+│   ├── app/
+│   │   ├── models/
+│   │   ├── pipeline/
+│   │   ├── routers/
+│   │   ├── services/
+│   │   ├── __init__.py
+│   │   ├── config.py
+│   │   └── dependencies.py
+│   ├── tests/
+│   ├── main.py
+│   ├── requirements.txt
+│   └── test_r2.py
+│
 ├── backend/               # Backend APIs and services
+│   ├── .mvn/wrapper/
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/com/boardwise/backend/
+│   │   │   │   ├── databaseimages/
+│   │   │   │   ├── marketplace/
+│   │   │   │   ├── shared/
+│   │   │   │   ├── user_service/
+│   │   │   │   ├── vault/
+│   │   │   │   ├── BackendApplication.java
+│   │   │   │   └── Seeding.java
+│   │   │   └── resources/
+│   │   │       ├── static/
+│   │   │       ├── templates/
+│   │   │       └── application.properties
+│   │   └── test/
+│   │       ├── java/com/boardwise/backend/
+│   │       │   ├── marketplace/
+│   │       │   ├── user_service/
+│   │       │   ├── vault/
+│   │       │   └── BackendApplicationTests.java
+│   │       └── resources/
+│   │           └── application-test.properties
+│   └── target/
+│
 ├── docs/                  # Documentation and SRS
 ├── frontend/              # Vue/Nuxt frontend application
 │   ├── .nuxt/             # Nuxt generated files
