@@ -81,8 +81,9 @@ public class ProfileService {
                                         .ofPattern("dd-MM-yyyy")
                                         .withZone(ZoneOffset.UTC);
         Preferences userPref = user.getPreferences();
-                                
+        String fullName = user.getFirstName() + user.getLastName();                 
         return new ProfileResponseDTO(
+            fullName,
             user.getUsername(),
             user.getProfilePicture(),
             friendCount,
