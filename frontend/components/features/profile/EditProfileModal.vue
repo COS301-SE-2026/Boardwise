@@ -30,12 +30,16 @@
         <BaseButton
           variant="secondary"
           @click="open = false"
+          
         >
           Cancel
         </BaseButton>
 
-        <BaseButton @click="handleSave">
-          Save Changes
+        <BaseButton 
+        @click="handleSave"
+        :disabled="isLoading"
+        >
+          {{ isLoading ? 'Saving...' : 'Save Changes' }}
         </BaseButton>
 
       </div>
@@ -50,9 +54,19 @@ import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseTextarea from '~/components/ui/BaseTextArea.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+import { useProfile } from '~/composables/useProfile'
+
+const { updateProfile, isLoading } = useProfile();
 
 const open = defineModel()
 const emit = defineEmits(['save'])
+
+const props = defineProps({
+  user : {
+    type: Object,
+    required : true
+  }
+})
 
 const mockUser = {
   name: 'Alexandra Lee',
@@ -61,18 +75,14 @@ const mockUser = {
   bio: 'Board game lover • Strategy enthusiast'
 }
 
-const name = ref(mockUser.name)
-const username = ref(mockUser.username)
+const name = ref(props.user.fullName)
+const username = ref(props.user.username)
 const location = ref(mockUser.location)
-const bio = ref(mockUser.bio)
+const bio = ref(props.user.preferences.genres.join('•'))
 
-const handleSave = () => {
-  emit('save', {
-    name: name.value,
-    username: username.value,
-    location: location.value,
-    bio: bio.value
-  })
+const handleSave = async () => {
+  const response = await updateProfile(username.value)
+  emit('save', response.data)  
   open.value = false
 }
 </script>
