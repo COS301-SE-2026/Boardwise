@@ -19,6 +19,7 @@ const props = defineProps({
   }
 })
 
+// Maps for color and style based on the variant prop
 const colorMap = {
   primary: 'primary',
   secondary: 'secondary',
