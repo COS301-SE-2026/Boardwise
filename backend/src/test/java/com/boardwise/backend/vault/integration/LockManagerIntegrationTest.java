@@ -33,12 +33,14 @@ import com.boardwise.backend.vault.repository.RulebookTextRepository;
 import com.boardwise.backend.vault.repository.WriteLockRepository;
 import com.boardwise.backend.vault.service.LockManagerService;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
 @Testcontainers
+@ActiveProfiles("test")
 public class LockManagerIntegrationTest {
 
     @Autowired

@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +25,9 @@ import com.boardwise.backend.user_service.dtos.LogoutResponseDTO;
 import com.boardwise.backend.user_service.dtos.RegisterDTO;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
+
+// Assuming you have a User entity class inside your domain layer
+import com.boardwise.backend.user_service.models.User; // <-- Verify this package matches your project structure!
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -48,27 +52,30 @@ class AuthServiceTest {
 
     private RegisterDTO validRegisterDTO;
     private LoginDTO validLoginDTO;
+    private User dummyUser;
 
     @BeforeEach
     void setUp() {
-        
         validRegisterDTO = new RegisterDTO(
-            "testuser",
-            "test@example.com",
-            "StrongP@ss1!",
-            "John",
-            "Doe"
-        );
+                "testuser",
+                "test@example.com",
+                "StrongP@ss1!",
+                "John",
+                "Doe");
 
         validLoginDTO = new LoginDTO("testuser", "StrongP@ss1!");
+
+        // Set up a valid dummy user entity for our repository lookups
+        dummyUser = new User();
+        dummyUser.setUsername("testuser");
     }
 
     @Test
     void shouldRegisterUser_Successfully() {
-        // Given
-        when(jwt.generateToken(anyString(), anyString())).thenReturn("test.jwt.token");
+        // Given - Changed the second parameter matcher to accept nulls
+        when(jwt.generateToken(anyString(), any())).thenReturn("test.jwt.token");
         when(userRepo.save(any())).thenReturn(null);
-  
+
         // When
         AuthResponseDTO response = authService.register(validRegisterDTO);
 
@@ -77,16 +84,18 @@ class AuthServiceTest {
         assertThat(response.message()).isEqualTo("User successfully register");
         assertThat(response.accessToken()).isEqualTo("test.jwt.token");
         verify(userRepo).save(any());
-        verify(jwt).generateToken("testuser", anyString());
+        verify(jwt).generateToken("testuser", null);
     }
 
     @Test
     void shouldLoginUser_Successfully() {
         // Given
         when(manager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-            .thenReturn(authentication);
+                .thenReturn(authentication);
         when(authentication.isAuthenticated()).thenReturn(true);
-        when(jwt.generateToken(anyString(), anyString())).thenReturn("test.jwt.token");
+        // Added the missing repository stubbing to supply an Optional user container
+        when(userRepo.findByUsername("testuser")).thenReturn(Optional.of(dummyUser));
+        when(jwt.generateToken(anyString(), any())).thenReturn("test.jwt.token");
 
         // When
         AuthResponseDTO response = authService.login(validLoginDTO);
@@ -96,14 +105,14 @@ class AuthServiceTest {
         assertThat(response.message()).isEqualTo("User logged in successfully");
         assertThat(response.accessToken()).isEqualTo("test.jwt.token");
         verify(manager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(jwt).generateToken("testuser", anyString());
+        verify(jwt).generateToken("testuser", null);
     }
 
     @Test
     void shouldThrowException_WhenLoginFails() {
         // Given
         when(manager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-            .thenReturn(authentication);
+                .thenReturn(authentication);
         when(authentication.isAuthenticated()).thenReturn(false);
 
         // When & Then
@@ -116,7 +125,7 @@ class AuthServiceTest {
     void shouldLogoutUser_Successfully() {
         // Given
         String token = "test.jwt.token";
-        
+
         // When
         LogoutResponseDTO response = authService.logout(token);
 
@@ -130,14 +139,13 @@ class AuthServiceTest {
     void shouldSanitizeHtml_InRegistration() {
         // Given
         RegisterDTO maliciousDTO = new RegisterDTO(
-            "<script>alert('xss')</script>",
-            "test@example.com",
-            "StrongP@ss1!",
-            "<b>John</b>",
-            "Doe"
-        );
-        
-        when(jwt.generateToken(anyString(), anyString())).thenReturn("test.jwt.token");
+                "<script>alert('xss')</script>",
+                "test@example.com",
+                "StrongP@ss1!",
+                "<b>John</b>",
+                "Doe");
+
+        when(jwt.generateToken(anyString(), any())).thenReturn("mock-jwt-token");
         when(userRepo.save(any())).thenReturn(null);
 
         // When
@@ -152,12 +160,11 @@ class AuthServiceTest {
     void shouldSanitizeNoSQLInjection_InRegistration() {
         // Given
         RegisterDTO maliciousDTO = new RegisterDTO(
-            "{$gt: ''}",
-            "test@example.com",
-            "StrongP@ss1!",
-            "John",
-            "Doe"
-        );
+                "{$gt: ''}",
+                "test@example.com",
+                "StrongP@ss1!",
+                "John",
+                "Doe");
 
         // When & Then
         assertThrows(IllegalArgumentException.class, () -> {
@@ -169,14 +176,14 @@ class AuthServiceTest {
     void shouldHandleNullPreferences_InRegistration() {
         // Given
         RegisterDTO dtoWithoutPrefs = new RegisterDTO(
-            "testuser",
-            "test@example.com",
-            "StrongP@ss1!",
-            "John",
-            "Doe"
-        );
-        
-        when(jwt.generateToken(anyString(), anyString())).thenReturn("test.jwt.token");
+                "testuser",
+                "test@example.com",
+                "StrongP@ss1!",
+                "John",
+                "Doe");
+
+        // Changed second parameter matcher to accept nulls
+        when(jwt.generateToken(anyString(), any())).thenReturn("test.jwt.token");
         when(userRepo.save(any())).thenReturn(null);
 
         // When
@@ -191,14 +198,20 @@ class AuthServiceTest {
     void shouldSanitizeLoginUsername() {
         // Given
         LoginDTO maliciousLogin = new LoginDTO(
-            "<script>alert('xss')</script>",
-            "StrongP@ss1!"
-        );
-        
+                "<script>alert('xss')</script>",
+                "StrongP@ss1!");
+
+        // Setting up user profile for the sanitized username lookup string
+        User sanitizedUser = new User();
+        sanitizedUser.setUsername("alert('xss')");
+
         when(manager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-            .thenReturn(authentication);
+                .thenReturn(authentication);
         when(authentication.isAuthenticated()).thenReturn(true);
-        when(jwt.generateToken(anyString(), anyString())).thenReturn("test.jwt.token");
+        // Added the missing repository stubbing using anyString() to easily capture
+        // sanitized outputs
+        when(userRepo.findByUsername(anyString())).thenReturn(Optional.of(sanitizedUser));
+        when(jwt.generateToken(anyString(), any())).thenReturn("test.jwt.token");
 
         // When
         AuthResponseDTO response = authService.login(maliciousLogin);
