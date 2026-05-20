@@ -1,8 +1,10 @@
 <template>
   <v-btn
-    class="btn"
-    :class="`btn--${variant}`"
+    :color="colorMap[variant]"
+    :variant="styleMap[variant]"
     :elevation="0"
+    rounded="lg"
+    class="text-none"
     v-bind="$attrs"
   >
     <slot />
@@ -10,10 +12,22 @@
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   variant: {
     type: String,
     default: 'primary'
   }
 })
+
+const colorMap = {
+  primary: 'primary',
+  secondary: 'secondary',
+  accent: 'error'
+}
+
+const styleMap = {
+  primary: 'flat',
+  secondary: 'outlined',
+  accent: 'flat'
+}
 </script>
