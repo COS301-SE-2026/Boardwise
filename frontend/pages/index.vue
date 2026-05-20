@@ -8,8 +8,8 @@
                 <BaseButton>Sign In</BaseButton>
             </NuxtLink>
 
-            <NuxtLink to="/auth/signup">
-                <BaseButton>Sign Up</BaseButton>
+            <NuxtLink to="./library">
+                <BaseButton>Rulebooks</BaseButton>
             </NuxtLink>
 
         </div>

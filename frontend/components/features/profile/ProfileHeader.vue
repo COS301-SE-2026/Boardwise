@@ -6,20 +6,20 @@
       <div class="left">
 
         <BaseAvatar
-          :src="user.avatar"
+          :src="user.profilePicture ?? '/images/avatar.jpg'"
           size="xl"
         />
 
         <div class="info">
 
-          <h1>{{ user.name }}</h1>
+          <h1>{{ user.fullName }}</h1>
 
           <p class="username">
             @{{ user.username }}
           </p>
 
-          <p class="bio">
-            {{ user.bio }}
+          <p class="bio" v-if="user.preferences.visibility === 'public'" v-for="genre in user.preferences.genres">
+            {{ genre }}
           </p>
 
         </div>
@@ -30,7 +30,7 @@
         Edit Profile
       </BaseButton>
 
-      <EditProfileModal  v-model="showEdit" />
+      <EditProfileModal  v-model="showEdit" :user="user" @save="$emit('save', $event)"/>
 
     </div>
 
