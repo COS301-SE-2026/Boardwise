@@ -1,5 +1,4 @@
-Your EditListingModal.vue script wasn't updated — it still has the old refs and is missing all the new fields. Replace the entire file:
-vue<template>
+<template>
   <BaseModal v-model="open">
     <div class="content">
 
@@ -76,36 +75,45 @@ import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 
+import { useMarketplace } from '~/composables/useMarketplace'
+const { editListing, loading } = useMarketplace()
+
 const open = defineModel()
 const props = defineProps({ listing: Object })
 const emit = defineEmits(['save'])
 
-const title = ref(props.listing?.title ?? '')
-const type = ref(props.listing?.type ?? '')
-const price = ref(props.listing?.price ?? '')
-const rentalPeriod = ref(props.listing?.rentalPeriod ?? '')
-const negotiable = ref(props.listing?.negotiable ?? false)
-const location = ref(props.listing?.location ?? '')
-const fileName = ref(props.listing?.image ?? '')
-const fileInput = ref(null)
+
+const gameTitle   = ref(props.listing?.gameTitle ?? '')
+const listingType = ref(props.listing?.listingType ?? 'sale')
+const imageFile   = ref(null)
+const itemType    = ref(props.listing?.itemType ?? '')
+const description = ref(props.listing?.description ?? '')
+const startDate   = ref(props.listing?.rentalPeriod?.startDate ?? '')
+const endDate     = ref(props.listing?.rentalPeriod?.endDate ?? '')
 
 const triggerUpload = () => fileInput.value?.click()
 
 const handleFileChange = (e) => {
-  const file = e.target.files[0]
-  if (file) fileName.value = file.name
+  imageFile.value = e.target.files[0] ?? null  // stores  File object
 }
 
-const handleSave = () => {
-  emit('save', {
-    title: title.value,
-    type: type.value,
-    price: price.value,
-    rentalPeriod: rentalPeriod.value,
-    negotiable: negotiable.value,
-    location: location.value,
-    image: fileName.value
-  })
+const handleSave = async () => {
+  const listingData = {
+    gameTitle: gameTitle.value,
+    itemType: itemType.value,
+    listingType: listingType.value,
+    price: Number(price.value),
+    description: description.value,
+    genres: props.listing?.genres ?? [],
+    rentalPeriod: listingType.value === 'rental'
+      ? [startDate.value, endDate.value]
+      : null
+  }
+  const currentImageName = computed(() =>
+  props.listing?.imageUrl ? props.listing.imageUrl.split('/').pop() : null
+)
+  await editListing(props.listing.listingId, listingData, imageFile.value ?? undefined)
+  emit('saved')
   open.value = false
 }
 </script>

@@ -16,3 +16,17 @@ export const createListing = (data: any, image : File) => {
 
 //GET USER LISTINGS 
 export const getUserListings = ()=> api.get('marketplace/listings/user');
+
+// UPDATE LISTING BY ID
+export const updateListing = (id: string, data: any, image?: File) => {
+    const formData = new FormData();
+    formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+
+    if (image) {
+        formData.append('image', image);
+    }
+
+    return api.patch(`marketplace/update/listing/${id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+}

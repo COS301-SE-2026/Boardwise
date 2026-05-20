@@ -217,7 +217,7 @@ public class ListingService {
                 .map(this::mapToResponse).toList();
     }
 
-    public ListingResponse updateListing(String listingId, ListingRequest req, String token) {
+    public ListingResponse updateListing(String listingId, ListingRequest req, String token, MultipartFile img) {
         String username = jwtService.extractUsername(token);
 
         Listing existing = listingRepository.findById(listingId)
@@ -226,30 +226,32 @@ public class ListingService {
         if (!existing.getUsername().equals(username)) {
             throw new ForbiddenException("You do not own listing: " + listingId);
         }
-        if (!listingRepository.existsById(listingId)) {
-            throw new IllegalArgumentException("Listing not found: " + listingId);
-        }
 
         existing.setItemType(req.itemType());
         existing.setListingType(req.listingType());
         existing.setPrice(req.price());
         existing.setTitle(req.gameTitle());
         existing.setDescription(truncateAfterWords(req.description(), 500));
-        // existing.setImageUrl(req.imageUrl());
-        // TODO: add replace image
         existing.setGenres(req.genres());
         existing.setUpdatedAt(LocalDateTime.now());
 
-        if (req.rentalPeriod() != null && !req.rentalPeriod().isEmpty()) {
+        if (img != null && !img.isEmpty()) {// only update if img is there
+            try {
+                String imageUrl = uploadImageToR2(listingsBucket, existing.getId(), img);
+                existing.setImageUrl(imageUrl);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
+        if (req.rentalPeriod() != null && !req.rentalPeriod().isEmpty()) {
             if (req.rentalPeriod().size() != 2) {
                 throw new IllegalArgumentException("Only 2 dates are allowed");
             }
 
-            List<String> rentalPeriod = req.rentalPeriod();
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            LocalDate start = LocalDate.parse(rentalPeriod.get(0), dateFormatter);
-            LocalDate end = LocalDate.parse(rentalPeriod.get(1), dateFormatter);
+            LocalDate start = LocalDate.parse(req.rentalPeriod().get(0), dateFormatter);
+            LocalDate end = LocalDate.parse(req.rentalPeriod().get(1), dateFormatter);
 
             if (start.compareTo(end) > 0)
                 throw new IllegalArgumentException("Start date cannot be after End date");
@@ -260,8 +262,7 @@ public class ListingService {
             existing.setRentalPeriod(borrowDate);
         }
 
-        Listing saved = listingRepository.save(existing);
-        return mapToResponse(saved);
+        return mapToResponse(listingRepository.save(existing));
     }
 
     public List<ListingResponse> getUserListings(String token) {

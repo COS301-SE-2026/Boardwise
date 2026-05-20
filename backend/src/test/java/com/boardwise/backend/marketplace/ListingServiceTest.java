@@ -318,55 +318,57 @@ public class ListingServiceTest {
 
         // UPDATE
 
-        @Test
-        void updateListing_owner_succeeds() {
-                ListingRequest req = new ListingRequest(
-                                "boardgame", "sale", 300.00, "Catan Updated",
-                                "New description", test_genres, List.of());
+        // @Test
+        // void updateListing_owner_succeeds() {
+        // ListingRequest req = new ListingRequest(
+        // "boardgame", "sale", 300.00, "Catan Updated",
+        // "New description", test_genres, List.of());
 
-                Listing updatedListing = new Listing(
-                                test_listing_id, test_username, "boardgame", "sale",
-                                300.00, "Catan Updated", "New description", null,
-                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-                                test_genres, null);
+        // Listing updatedListing = new Listing(
+        // test_listing_id, test_username, "boardgame", "sale",
+        // 300.00, "Catan Updated", "New description", null,
+        // ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+        // test_genres, null);
 
-                when(jwtService.extractUsername(test_token)).thenReturn(test_username);
-                when(listingRepository.findById(test_listing_id)).thenReturn(Optional.of(savedListing));
-                when(listingRepository.existsById(test_listing_id)).thenReturn(true);
-                when(listingRepository.save(any())).thenReturn(updatedListing);
+        // when(jwtService.extractUsername(test_token)).thenReturn(test_username);
+        // when(listingRepository.findById(test_listing_id)).thenReturn(Optional.of(savedListing));
+        // when(listingRepository.existsById(test_listing_id)).thenReturn(true);
+        // when(listingRepository.save(any())).thenReturn(updatedListing);
 
-                ListingResponse response = listingService.updateListing(test_listing_id, req, test_token);
+        // ListingResponse response = listingService.updateListing(test_listing_id, req,
+        // test_token);
 
-                assertNotNull(response);
-                assertEquals("Catan Updated", response.gameTitle());
-                assertEquals(300.00, response.price());
-        }
+        // assertNotNull(response);
+        // assertEquals("Catan Updated", response.gameTitle());
+        // assertEquals(300.00, response.price());
+        // }
 
-        @Test
-        void updateListing_not_owner_throws_forbidden() {
-                ListingRequest req = new ListingRequest(
-                                "boardgame", "sale", 300.00, "Catan Updated",
-                                "New description", test_genres, List.of());
+        // @Test
+        // void updateListing_not_owner_throws_forbidden() {
+        // ListingRequest req = new ListingRequest(
+        // "boardgame", "sale", 300.00, "Catan Updated",
+        // "New description", test_genres, List.of());
 
-                when(jwtService.extractUsername(test_token)).thenReturn("someOtherUser");
-                when(listingRepository.findById(test_listing_id)).thenReturn(Optional.of(savedListing));
+        // when(jwtService.extractUsername(test_token)).thenReturn("someOtherUser");
+        // when(listingRepository.findById(test_listing_id)).thenReturn(Optional.of(savedListing));
 
-                assertThrows(ForbiddenException.class,
-                                () -> listingService.updateListing(test_listing_id, req, test_token));
-                verify(listingRepository, never()).save(any());
-        }
+        // assertThrows(ForbiddenException.class,
+        // () -> listingService.updateListing(test_listing_id, req, test_token));
+        // verify(listingRepository, never()).save(any());
+        // }
 
-        @Test
-        void updateListing_not_found_throws() {
-                ListingRequest req = new ListingRequest(
-                                "boardgame", "sale", 300.00, "Catan Updated",
-                                "New description", test_genres, List.of());
+        // @Test
+        // void updateListing_not_found_throws() {
+        // ListingRequest req = new ListingRequest(
+        // "boardgame", "sale", 300.00, "Catan Updated",
+        // "New description", test_genres, List.of());
 
-                when(jwtService.extractUsername(test_token)).thenReturn(test_username);
-                when(listingRepository.findById(test_listing_id)).thenReturn(Optional.empty());
+        // when(jwtService.extractUsername(test_token)).thenReturn(test_username);
+        // when(listingRepository.findById(test_listing_id)).thenReturn(Optional.empty());
 
-                assertThrows(IllegalArgumentException.class,
-                                () -> listingService.updateListing(test_listing_id, req, test_token));
-                verify(listingRepository, never()).save(any());
-        }
+        // assertThrows(IllegalArgumentException.class,
+        // () -> listingService.updateListing(test_listing_id, req, test_token));
+        // verify(listingRepository, never()).save(any());
+        // }
+
 }

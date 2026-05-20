@@ -1,4 +1,4 @@
-import {getListings , createListing, getUserListings} from '@/services/marketplaceService'
+import { getListings, createListing, getUserListings, updateListing } from '@/services/marketplaceService'
 import { ref } from 'vue'
 import axios from 'axios'
 
@@ -39,7 +39,7 @@ export const useMarketplace = () =>{
         }
     }
 
-        const fetchUserListing = async () => {
+    const fetchUserListing = async () => {
     loading.value = true;
     error.value = null;
     try {
@@ -56,5 +56,22 @@ export const useMarketplace = () =>{
     }
 }
 
-    return { listings, loading, error, fetchListings, addListing, fetchUserListing };
+const editListing = async (id: string, listingData: any, image?: File) => {
+    loading.value = true;
+    error.value = null;
+    try {
+        await updateListing(id, listingData, image);
+        await fetchListings(); // refresh the list
+    } catch (err) {
+        if (axios.isAxiosError(err)) {
+            console.error('Status:', err.response?.status);
+            console.error('Response data:', err.response?.data);
+            error.value = err.response?.data?.message ?? 'Failed to update listing';
+        }
+    } finally {
+        loading.value = false;
+    }
+}
+
+return { listings, loading, error, fetchListings, addListing, fetchUserListing, editListing };
 }
