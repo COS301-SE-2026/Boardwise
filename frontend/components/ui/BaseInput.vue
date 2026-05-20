@@ -1,5 +1,5 @@
 <template>
-  <input class="base-input"
+  <input class="input"
     :placeholder="placeholder"
     :type="type"
     :value="modelValue"
@@ -19,13 +19,3 @@ defineProps({
 
 const inputValue = defineModel()
 </script>
-
-<style scoped>
-.base-input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-sizing: border-box;
-}
-</style>
