@@ -1,4 +1,3 @@
-import { credentials } from 'happy-dom/lib/PropertySymbol';
 import {ref} from 'vue'
 import { useRouter } from 'vue-router'
 import { AuthService } from '~/services/authService'
