@@ -198,11 +198,11 @@ public class ListingService {
 
     }
 
-    public ListingResponse getListingById(String id) {
-        if (!listingRepository.existsById(id)) {
-            throw new IllegalArgumentException("Listing not found: " + id);
+    public ListingResponse getListingById(String listingId) {
+        if (!listingRepository.existsById(listingId)) {
+            throw new IllegalArgumentException("Listing not found: " + listingId);
         }
-        return mapToResponse(listingRepository.findById(id).get());
+        return mapToResponse(listingRepository.findById(listingId).get());
     }
 
     public List<ListingResponse> getByFilter(String listingType, String itemType, Double minPrice, Double maxPrice,
@@ -266,10 +266,6 @@ public class ListingService {
 
     public List<ListingResponse> getUserListings(String token) {
         String username = jwtService.extractUsername(token);
-        // if (!userRepository.existsById(id)) {
-        // throw new IllegalArgumentException("User does not exist");
-        // }
-
         return listingRepository.findByUsername(username).stream().map(this::mapToResponse).toList();
     }
 
