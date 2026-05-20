@@ -1,5 +1,5 @@
 <template>
-    <div class="sidebar">
+    <v-sheet class="pa-4 rounded-lg" width="220" min-width="220">
 
         <h3>Filters</h3>
 
@@ -16,32 +16,28 @@
         </BaseFilterGroup>
 
         <BaseFilterGroup title="Listing Type">
-            <label><input type="checkbox" v-model="filters.rent" /> Rent</label>
-            <label><input type="checkbox" v-model="filters.sale" /> For Sale</label>
-        </BaseFilterGroup>
+            <v-checkbox v-model="filters.rent" label="Rent" density="compact" color="primary" hide-details />
+            <v-checkbox v-model="filters.sale" label="For Sale" density="compact" color="primary" hide-details />        </BaseFilterGroup>
 
         <BaseFilterGroup title="Price Range">
-            <div class="price-row">
-                <div class="price-input">
-                    <span>R</span>
-                    <input v-model="filters.minPrice" placeholder="Min" type="number" />
-                </div>
-
-                <div class="price-input">
-                    <span>R</span>
-                    <input v-model="filters.maxPrice" placeholder="Max" type="number" />
-                </div>
+            <div class="d-flex ga-2">
+                <v-text-field v-model="filters.minPrice" placeholder="Min" prefix="R" type="number" density="compact" variant="outlined" hide-details />
+                <v-text-field v-model="filters.maxPrice" placeholder="Max" prefix="R" type="number" density="compact" variant="outlined" hide-details />
             </div>
         </BaseFilterGroup>
 
         <BaseFilterGroup title="Condition">
-            <label v-for="c in conditions" :key="c">
-                <input type="checkbox" /> {{ c }}
-            </label>
+            <v-checkbox v-for="c in conditions" 
+                :key="c" 
+                :label="c" 
+                density="compact" 
+                color="primary" 
+                hide-details />
+
         </BaseFilterGroup>
 
-        <button class="reset-btn" @click="resetFilters">↺ Reset Filters</button>
-    </div>
+        <v-btn variant="text" color="primary" class="mt-4 pa-0" @click="resetFilters">↺ Reset Filters</v-btn>
+    </v-sheet>
 </template>
 
 <script setup>
@@ -69,16 +65,7 @@ const resetFilters = () => {
 </script>
 
 <style scoped>
-.sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 20px;
-    background: white;
-    border-radius: 12px;
-    min-width: 220px;
-    width: 220px;
-}
+
 
 .category-option {
   font-size: 13px;
@@ -89,55 +76,10 @@ const resetFilters = () => {
 
 .category-option:hover,
 .category-option.active {
-  color: #6C3BFF;
-  font-weight: 600;
+    color: rgb(var(--v-theme-primary));
+    font-weight: 600;
 }
 
-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #555;
-  cursor: pointer;
-}
 
-input[type="checkbox"] {
-  accent-color: #6C3BFF;
-}
 
-.price-row {
-  display: flex;
-  gap: 8px;
-}
-
-.price-input {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 6px 10px;
-  flex: 1;
-  font-size: 13px;
-}
-
-.price-input input {
-  border: none;
-  outline: none;
-  width: 100%;
-  font-size: 13px;
-}
-
-.reset-btn {
-  margin-top: 12px;
-  background: none;
-  border: none;
-  color: #6C3BFF;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: left;
-  padding: 0;
-}
 </style>
