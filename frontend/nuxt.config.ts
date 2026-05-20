@@ -54,5 +54,12 @@ export default defineNuxtConfig({
         }
       }
     }
+  },
+
+  // Add this block to proxy requests to Spring Boot
+  routeRules: {
+    '/api/**': {
+      proxy: 'http://localhost:8080/api/**'
+    }
   }
 })
