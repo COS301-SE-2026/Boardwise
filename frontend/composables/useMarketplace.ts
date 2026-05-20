@@ -1,4 +1,7 @@
-import {getListings , createListing} from '@/services/marketplaceService'
+import {getListings , createListing, getUserListings} from '@/services/marketplaceService'
+import { ref } from 'vue'
+import axios from 'axios'
+
 
 export const useMarketplace = () =>{
     //storing listings
@@ -35,6 +38,23 @@ export const useMarketplace = () =>{
             loading.value = false;
         }
     }
-    return {listings, loading, fetchListings, addListing};
 
+        const fetchUserListing = async () => {
+    loading.value = true;
+    error.value = null;
+    try {
+        const res = await getUserListings();
+        listings.value = res.data ?? [];
+    } catch (err) {
+        if (axios.isAxiosError(err)) {
+            console.error('Status:', err.response?.status);
+            console.error('Response data:', err.response?.data);
+            error.value = err.response?.data?.message ?? 'Failed to fetch user listings';
+        }
+    } finally {
+        loading.value = false;
+    }
+}
+
+    return { listings, loading, error, fetchListings, addListing, fetchUserListing };
 }

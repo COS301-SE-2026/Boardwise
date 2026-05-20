@@ -47,6 +47,9 @@ import GamesOwnedSection from '~/components/features/profile/GamesOwnedSection.v
 import ListingsSection from '~/components/features/profile/ListingsSection.vue'
 import { useProfile } from '~/composables/useProfile';
 
+import { useMarketplace } from '~/composables/useMarketplace'
+const { listings, fetchUserListing } = useMarketplace();
+
 const activeTab = ref('Games Owned')
 const { fetchCurrentUser, isLoading } = useProfile()
 
@@ -54,6 +57,7 @@ const user = ref(null)
 
 onMounted(async () => {
   user.value = await fetchCurrentUser()
+  await fetchUserListing();
   console.log(user.value)
 })
 
@@ -81,25 +85,25 @@ const games = ref([
   }
 ])
 
-const listings = ref([
-  {
-    id: 1,
-    title: 'Catan',
-    type: 'sell',
-    price: 650,
-    negotiable: true,
-    location: 'Pretoria',
-    image: '/images/catan.jpg'
-  },
-  {
-    id: 2,
-    title: 'Dixit',
-    type: 'rent',
-    price: 400,
-    rentalPeriod: '1 week',
-    negotiable: false,
-    location: 'Pretoria',
-    image: '/images/dixit.jpg'
-  }
-])
+// const listings = ref([
+//   {
+//     id: 1,
+//     title: 'Catan',
+//     type: 'sell',
+//     price: 650,
+//     negotiable: true,
+//     location: 'Pretoria',
+//     image: '/images/catan.jpg'
+//   },
+//   {
+//     id: 2,
+//     title: 'Dixit',
+//     type: 'rent',
+//     price: 400,
+//     rentalPeriod: '1 week',
+//     negotiable: false,
+//     location: 'Pretoria',
+//     image: '/images/dixit.jpg'
+//   }
+// ])
 </script>

@@ -2,13 +2,13 @@
   <BaseCard class="card">
 
     <img
-      :src="listing.image"
-      :alt="listing.title"
+      :src="listing.imageUrl"
+      :alt="listing.gameTitle"
     />
 
     <div class="content">
 
-      <h3>{{ listing.title }}</h3>
+      <h3>{{ listing.gameTitle }}</h3>
 
       <p class="price">
         R{{ listing.price }}

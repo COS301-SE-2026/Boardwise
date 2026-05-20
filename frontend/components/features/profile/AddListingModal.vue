@@ -156,8 +156,6 @@ const file = ref(null);
 const handleConfirm = () => {
   console.log('clicked', title.value, type.value, price.value);
   if (!title.value || !type.value || price.value < 0 || !fileName.value) return
-    console.log('past guard') // ← add this
-
   emit('confirm', {
     gameTitle: title.value,
     listingType: (type.value === 'rent')?'rental':'sale',

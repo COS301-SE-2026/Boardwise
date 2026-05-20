@@ -111,10 +111,10 @@ public class ListingController {
     }
 
     // AC-MKT-06: Get Authenticated User's Listings
-    @GetMapping("/listings/user/")
+    @GetMapping("/listings/user")
     public ResponseEntity<List<ListingResponse>> getUserListings(@RequestHeader("Authorization") String token) {
         try {
-            List<ListingResponse> listings = listingService.getUserListings(token);
+            List<ListingResponse> listings = listingService.getUserListings(token.replace("Bearer ", ""));
             if (listings.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }

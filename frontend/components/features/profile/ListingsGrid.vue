@@ -3,7 +3,7 @@
 
     <ProfileListingCard
       v-for="listing in listings"
-      :key="listing.id"
+      :key="listing.listingId"
       :listing="listing"
     />
 
@@ -15,6 +15,7 @@
 <script setup>
 import ProfileListingCard from './ProfileListingCard.vue'
 import AddListingCard from './AddListingCard.vue'
+
 
 defineProps({
   listings: {

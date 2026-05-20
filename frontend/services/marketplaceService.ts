@@ -13,3 +13,6 @@ export const createListing = (data: any, image : File) => {
         headers:{'Content-Type': 'multipart/form-data'}
     })
 }
+
+//GET USER LISTINGS 
+export const getUserListings = ()=> api.get('marketplace/listings/user');
