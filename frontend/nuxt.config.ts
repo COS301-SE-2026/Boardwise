@@ -1,30 +1,54 @@
 // nuxt.config.js
 export default defineNuxtConfig({
-  // 1. Load your design tokens explicitly
   css: ['~/assets/theme.css'],
 
   modules: ['vuetify-nuxt-module'],
 
   vuetify: {
     moduleOptions: {
-      // Directs Vuetify to load variable configurations before template compiling
-      styles: { configFile: 'assets/settings.scss' }
+      styles: {
+        configFile: 'assets/settings.scss'
+      }
     },
+
     vuetifyOptions: {
+      defaults: {
+        VBtn: {
+          rounded: 'lg',
+          elevation: 0,
+          class: 'text-none'
+        },
+
+        VCard: {
+          rounded: 'xl',
+          elevation: 1
+        },
+
+        VTextField: {
+          variant: 'outlined',
+          rounded: 'lg'
+        }
+      },
+
       theme: {
         defaultTheme: 'boardwise',
+
         themes: {
           boardwise: {
             dark: false,
+
             colors: {
-              // Direct mappings to the exact variables present in your theme.css
-              primary: 'var(--bw-maroon)',
-              'primary-dark': 'var(--bw-maroon-deep)',
-              secondary: 'var(--bw-navy)',
-              accent: 'var(--bw-gold)',
-              error: 'var(--bw-accent-coral)',
-              background: 'var(--color-bg)',
-              surface: 'var(--color-surface)',
+              primary: '#6D0037',
+              secondary: '#1A1430',
+              accent: '#C9A86A',
+              error: '#E4572E',
+
+              background: '#F9FAFB',
+              surface: '#FFFFFF',
+
+              success: '#2E7D5B',
+              warning: '#B7791F',
+              info: '#7C3AED'
             }
           }
         }
