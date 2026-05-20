@@ -6,7 +6,8 @@
 
 Boardwise is a comprehensive digital ecosystem for board game enthusiasts that optimises collection management, community engagement, and rulebook accessibility into one platform.
 
----
+
+## Team
 
 ![Vue](https://img.shields.io/badge/Vue-Frontend-42b883?style=for-the-badge&logo=vue.js&logoColor=white)
 ![Nuxt](https://img.shields.io/badge/Nuxt-Fullstack-00DC82?style=for-the-badge&logo=nuxt.js&logoColor=white)
