@@ -1,16 +1,19 @@
-<template> 
-    <button class="base-button">
-        <slot />
-    </button> 
+<template>
+  <v-btn
+    class="btn"
+    :class="`btn--${variant}`"
+    :elevation="0"
+    v-bind="$attrs"
+  >
+    <slot />
+  </v-btn>
 </template>
 
-<style scoped>
-.base-button {
-    padding: 10px 16px;
-    border: none;
-    border-radius: 8px; 
-    background: #7B2CBF;
-    color: white;
-    cursor: pointer;
-}
-</style>
+<script setup>
+defineProps({
+  variant: {
+    type: String,
+    default: 'primary'
+  }
+})
+</script>
