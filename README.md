@@ -6,7 +6,8 @@
 
 ### CONNECT • SHARE • PLAY
 
-**Your Table. Your Community. Your Game.**
+
+## Team
 
 Boardwise is a comprehensive digital ecosystem for board game enthusiasts that consolidates collection management, a peer-to-peer marketplace, community events, and a collaboratively maintained shared rulebook library into a single platform.
 
