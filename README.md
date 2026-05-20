@@ -49,10 +49,9 @@ The system is built around three core domains, each owned by a dedicated backend
 | Resource | Link |
 |---|---|
 | Software Requirements Specification (SRS) | [View SRS](./docs/srs.md) |
-| GitHub Project Board | [Open Board](#) |
-| Issue Tracker | [View Issues](#) |
+| GitHub Project Board | [Open Board](#https://github.com/orgs/COS301-SE-2026/projects/46) |
 | UI Wireframes & Designs | [Open Designs](./docs/design) |
-| Brand Style Guide | [View Guide](./docs/brandStyleGuide.pdf) |
+| Brand Style Guide | [View Guide](./docs/design/brandStyleGuide.pdf) |
 
 ---
 
@@ -229,7 +228,7 @@ cd ai && pip install -r requirements.txt && uvicorn main:app --reload
 | Document | Description |
 |---|---|
 | [SRS](./docs/srs.md) | Functional & non-functional requirements, use cases, domain model, API contracts, architecture |
-| [Brand Style Guide](./docs/brandStyleGuide.pdf) | Colour palette, typography, components, accessibility |
+| [Brand Style Guide](./docs/design/brandStyleGuide.pdf) | Colour palette, typography, components, accessibility |
 | [Wireframes](./docs/design) | UI/UX designs and navigation flows |
 | [Design Tokens](./frontend/assets/theme.css) | Global styling variables for frontend consistency |
 
