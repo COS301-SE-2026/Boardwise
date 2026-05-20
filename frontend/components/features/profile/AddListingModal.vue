@@ -27,11 +27,11 @@
         <label>Rental Period</label>
         <select v-model="rentalPeriod" class="select">
           <option value="" disabled>Select period</option>
-          <option>1 day</option>
-          <option>3 days</option>
-          <option>1 week</option>
-          <option>2 weeks</option>
-          <option>1 month</option>
+          <option value="1d">1 day</option>
+          <option value="3d">3 days</option>
+          <option value="1w">1 week</option>
+          <option value="2w">2 weeks</option>
+          <option value="1m">1 month</option>
         </select>
       </div>
 
@@ -98,9 +98,12 @@ const triggerUpload = () => {
   fileInput.value.click()
 }
 
-const handleFileChange = (e) => {
-  const file = e.target.files[0]
-  if(file) fileName.value = file.name
+const handleFileChange = (e) =>{
+  const toUpload = e.target.files[0];
+  if (toUpload){
+    fileName.value = toUpload.name;
+    file.value = toUpload;
+  }
 }
 
 const closeModal = () => {
@@ -114,17 +117,58 @@ const closeModal = () => {
   fileName.value = ''
 }
 
+//TEMPORARY FIX:
+const rentalDuration = ref('1w');
+
+const getRentalPeriod = () =>{
+  const start = new Date();
+  const end = new Date();
+
+  switch (rentalDuration.value) {
+    case '1d':
+    end.setDate(end.getDate() + 1); 
+    break;
+    case '3d':
+    end.setDate(end.getDate() + 3); 
+    break;
+    case '1w':
+    end.setDate(end.getDate() + 7); 
+    break;
+    case '2w':
+    end.setDate(end.getDate() + 14); 
+    break;
+    case '1m': 
+    end.setMonth(end.getMonth() + 1); 
+    break;
+  }
+
+  return[
+      start.toISOString().split('T')[0].toString(),
+      end.toISOString().split('T')[0].toString()
+    ]
+  
+}
+
+const file = ref(null);
+
+
+
 const handleConfirm = () => {
-  if (!title.value || !type.value) return
+  console.log('clicked', title.value, type.value, price.value);
+  if (!title.value || !type.value || price.value < 0 || !fileName.value) return
+    console.log('past guard') // ← add this
+
   emit('confirm', {
-    title: title.value,
-    type: type.value,
+    gameTitle: title.value,
+    listingType: (type.value === 'rent')?'rental':'sale',
     price: price.value,
-    rentalPeriod: rentalPeriod.value,
-    negotiable: negotiable.value,
-    location: location.value,
-    image: fileName.value
-  })
+    itemType: 'boardgame',
+    description: "This is the board game",
+    genres: ['strategy', 'negotiation'],
+    rentalPeriod: type.value === 'rent'? getRentalPeriod(): null ,
+    // negotiable: negotiable.value,
+    // location: location.value,
+  },file.value)
   closeModal()
 }
 

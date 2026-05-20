@@ -1,4 +1,4 @@
-import {getListings} from '@/services/marketplaceService'
+import {getListings , createListing} from '@/services/marketplaceService'
 
 export const useMarketplace = () =>{
     //storing listings
@@ -22,5 +22,19 @@ export const useMarketplace = () =>{
             loading.value = false; // set loading to false 
         }
     }
-    return {listings, loading, fetchListings};
+
+    const addListing = async (listingData: any, image: File)=>{
+        loading.value = true;
+        try{
+            await createListing(listingData,image);
+            await fetchListings();
+        }catch(err){
+            console.error(err);
+        }
+        finally{
+            loading.value = false;
+        }
+    }
+    return {listings, loading, fetchListings, addListing};
+
 }

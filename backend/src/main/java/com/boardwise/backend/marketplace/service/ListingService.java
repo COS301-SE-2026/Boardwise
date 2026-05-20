@@ -1,12 +1,9 @@
 package com.boardwise.backend.marketplace.service;
 
 import com.boardwise.backend.marketplace.model.*;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -15,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.sync.RequestBody;
 
 import java.io.IOException;
@@ -27,18 +23,24 @@ import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.shared.security.JWTService;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import java.util.*;
 
 @Service
 public class ListingService {
 
-    
+    @Value("${r2.bucket-listings}")
+    private String listingsBucket;
+
     private final ListingRepository listingRepository;
     private final JWTService jwtService;
+    private final S3Client s3Client;
 
-    public ListingService(ListingRepository listingRepository, JWTService jwtService) {
+    public ListingService(ListingRepository listingRepository, JWTService jwtService, S3Client s3Client) {
         this.listingRepository = listingRepository;
         this.jwtService = jwtService;
+        this.s3Client = s3Client;
     }
 
     private static String truncateAfterWords(String text, int wordLimit) {
@@ -59,25 +61,14 @@ public class ListingService {
         return String.join(" ", kept);
     }
 
-    public static String uploadImageToR2(
-            String accessKey,
-            String secretKey,
-            String endpoint,
+    public String uploadImageToR2(
             String bucket,
             String listingId,
             MultipartFile file) throws IOException {
 
-        S3Client r2Client = S3Client.builder()
-                .endpointOverride(URI.create(endpoint))
-                .credentialsProvider(
-                        StaticCredentialsProvider.create(
-                                AwsBasicCredentials.create(accessKey, secretKey)))
-                .region(Region.of("auto"))
-                .build();
-
         String key = "listings/" + listingId + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
 
-        r2Client.putObject(
+        s3Client.putObject(
                 PutObjectRequest.builder()
                         .bucket(bucket)
                         .key(key)
@@ -86,7 +77,7 @@ public class ListingService {
                         .build(),
                 RequestBody.fromBytes(file.getBytes()));
 
-        return endpoint + "/" + bucket + "/" + key;
+        return "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/" + key;
     }
 
     public ListingResponse createListing(ListingRequest req, String token, @RequestPart MultipartFile img) {
@@ -125,7 +116,8 @@ public class ListingService {
 
         }
 
-        List<String> rentalPeriod = (req.rentalPeriod().size() != 2) ? null : req.rentalPeriod();
+        List<String> rentalPeriod = (req.rentalPeriod() == null || req.rentalPeriod().size() != 2) ? null
+                : req.rentalPeriod();
 
         RentalPeriod borrowDate = null;
 
@@ -174,21 +166,12 @@ public class ListingService {
 
         // TODO: Uncomment
 
-        String r2Endpoint = System.getenv("R2_LISTINGS_ENDPOINT");
-        if (r2Endpoint != null) {
-            try {
-                imageUrl = uploadImageToR2(
-                        System.getenv("R2_ACCESS_KEY"),
-                        System.getenv("R2_SECRET_KEY"),
-                        r2Endpoint,
-                        System.getenv("R2_LISTINGS_BUCKET"),
-                        saved.getId(),
-                        img);
-                saved.setImageUrl(imageUrl);
-                listingRepository.save(saved);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        try {
+            imageUrl = uploadImageToR2(listingsBucket, saved.getId(), img);
+            saved.setImageUrl(imageUrl);
+            listingRepository.save(saved);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return mapToResponse(saved);
 
@@ -258,8 +241,8 @@ public class ListingService {
         existing.setUpdatedAt(LocalDateTime.now());
 
         if (req.rentalPeriod() != null && !req.rentalPeriod().isEmpty()) {
-            
-            if(req.rentalPeriod().size() != 2){
+
+            if (req.rentalPeriod().size() != 2) {
                 throw new IllegalArgumentException("Only 2 dates are allowed");
             }
 
