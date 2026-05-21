@@ -1,21 +1,14 @@
 <template>
-  <section class="carousel-section">
-
-    <div class="top">
-      <SectionTitle :title="title" />
-    </div>
-
-    <div class="carousel">
-
+  <div class="mt-10">
+    <SectionTitle :title="title" />
+    <div class="d-flex ga-5 overflow-x-auto pb-3 mt-4">
       <RulebookCarouselCard
-        v-for="rulebook in rulebooks"
-        :key="rulebook.id"
-        :book="rulebook"
+        v-for="book in books"
+        :key="book.id"
+        :rulebook="book"
       />
-
     </div>
-
-  </section>
+  </div>
 </template>
 
 <script setup>
@@ -30,21 +23,3 @@ defineProps({
   }
 })
 </script>
-
-<style scoped>
-.carousel-section { margin-top: 40px; }
-
-.carousel {
-  display: flex;
-  gap: 20px;
-  overflow-x: auto;
-  padding-bottom: 12px;
-}
-
-.carousel::-webkit-scrollbar { height: 8px; }
-
-.carousel::-webkit-scrollbar-thumb {
-  background: #ddd;
-  border-radius: 999px;
-}
-</style>
