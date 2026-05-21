@@ -1,5 +1,5 @@
 <template>
-  <div class="reader-page">
+  <div>
 
     <ReaderToolbar
       :rulebook="rulebook"
@@ -11,26 +11,28 @@
       :total-pages="rulebook?.pages?.length ?? 0"
     />
 
-    <div class="reader-layout">
+    <v-container fluid style="max-width: 1200px;">
+      <v-row>
+        <v-col cols="12" md="3">
+          <ReaderSidebar
+            :pages="rulebook?.pages ?? []"
+            :current-page="currentPage"
+            @change="currentPage = $event"
+          />
+        </v-col>
 
-      <ReaderSidebar
-        :pages="rulebook?.pages ?? []"
-        :current-page="currentPage"
-        @change="currentPage = $event"
-      />
-
-      <div class="main">
-        <ReaderPage
-          :rulebook="rulebook"
-          :page="activePage"
-          :is-first="currentPage === 0"
-          :is-last="currentPage === (rulebook?.pages?.length - 1)"
-          @prev="currentPage--"
-          @next="currentPage++"
-        />
-      </div>
-
-    </div>
+        <v-col cols="12" md="9">
+          <ReaderPage
+            :rulebook="rulebook"
+            :page="activePage"
+            :is-first="currentPage === 0"
+            :is-last="currentPage === (rulebook?.pages?.length ?? 1) - 1"
+            @prev="currentPage--"
+            @next="currentPage++"
+          />
+        </v-col>
+      </v-row>
+    </v-container>
 
   </div>
 </template>
@@ -51,28 +53,3 @@ const activePage = computed(() =>
   props.rulebook?.pages?.[currentPage.value]
 )
 </script>
-
-<style scoped>
-.reader-page {
-  min-height: 100vh;
-  background: #f6f6f6;
-}
-
-.reader-layout {
-  display: flex;
-  gap: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 32px 24px;
-  align-items: flex-start;
-}
-
-.main { flex: 1; }
-
-@media (max-width: 900px) {
-  .reader-layout {
-    flex-direction: column;
-    padding: 16px;
-  }
-}
-</style>
