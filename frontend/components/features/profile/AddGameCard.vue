@@ -1,21 +1,20 @@
 <template>
-  <BaseCard 
-    class="add-card" 
-    @click="$emit('add-game')"
-  >
-
-    <div class="plus">
-      +
-    </div>
-
-    <p>Add Game</p>
-
-  </BaseCard>
+  <v-card
+  class="add-card d-flex flex-column justify-center align-center"
+  variant="outlined"
+  @click="$emit('add-game')"
+  hover
+>
+  <span class="text-h3 font-weight-bold">
+    +
+  </span>
+  <p class="mt-3">
+    Add Game
+  </p>
+</v-card>
 </template>
 
 <script setup>
-import BaseCard from '~/components/ui/BaseCard.vue'
-
 defineEmits(['add-game'])
 </script>
 
@@ -31,14 +30,5 @@ defineEmits(['add-game'])
   align-items: center;
 
   cursor: pointer;
-}
-
-.plus {
-  font-size: 48px;
-  font-weight: bold;
-}
-
-p {
-  margin-top: 12px;
 }
 </style>
