@@ -4,7 +4,7 @@
 <template>
     <BaseCard>
         <div class="form">
-            <h2>{{ title }}</h2>
+            <h2 class="text-center mb-6">{{ title }}</h2>
 
             <BaseInput 
                 v-for="field in fields"
@@ -42,7 +42,7 @@ const values = reactive(
 )
 
 const submitForm = () => {
-        emit('submit', { ...values })
+    emit('submit', { ...values })
 }
 
 </script>
@@ -52,9 +52,5 @@ const submitForm = () => {
     display: flex;
     flex-direction: column;
     gap: 16px;
-}  
-
-h2 {
-    text-align: center;
-}
+} 
 </style>
