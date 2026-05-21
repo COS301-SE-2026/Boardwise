@@ -10,7 +10,7 @@
 
 const tabs = [
   'Community Listings',
-  'Web'
+  // 'Web'
 ]
 
 const selectedTab = ref('Community Listings')

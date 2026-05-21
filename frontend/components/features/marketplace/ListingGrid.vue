@@ -1,16 +1,18 @@
-<template> 
-    <div class="d-flex flex-wrap ga-6 w-100">
-
-
-        <ListingCard 
-            v-for="listing in listings"
-            :key="listing.listingId"
-            :listing="listing"
-        />
-    </div>
+<template>
+  <BaseGrid>
+    <ListingCard
+      v-for="listing in listings"
+      :key="listing.listingId"
+      :listing="listing"
+    />
+  </BaseGrid>
 </template>
 
 <script setup>
+import BaseGrid    from '~/components/ui/BaseGrid.vue'
 import ListingCard from './ListingCard.vue'
-import { listings } from '~/services/mockData/listings'
+
+defineProps({
+  listings: { type: Array, default: () => [] }
+})
 </script>

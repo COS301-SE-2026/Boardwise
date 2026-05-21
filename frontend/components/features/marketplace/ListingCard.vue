@@ -1,47 +1,51 @@
 <template>
-  <v-card class="listing-card-wrapper" hover @click="openListing">
+  <BaseCard class="listing-card">
 
-    <div class="listing-card">
-
-      <div class="image-container">
-        <img 
-          :src="listing.imageUrl" 
-          :alt="listing.gameTitle" />
-
-        <BaseBadge 
-          class="badge"
-          :variant="listing.listingType === 'rental' ? 'rental' : 'sale'"
-        > 
-          {{ listing.listingType === 'rental' ? 'For Rent' : 'For Sale' }}
-        </BaseBadge>
-      </div>
-
-      <div class="content">
-
-        <h3>{{ listing.gameTitle }}</h3>
-
-        <p class="price">
-          R{{ listing.price }}
-          <span v-if="listing.type === 'rental'" class="period">
-            {{  listing.rentPeriod ?? 'week' }}
-          </span>
-        </p>
-
-        <div class="meta">
-          <span class="seller">@{{ listing.username ?? 'unknown' }}</span>
-          <span class="location">📍 Pretoria </span> 
-        </div>
-
-      </div>
+    <div class="image-container">
+      <img
+        :src="listing.imageUrl ?? '/placeholder.png'"
+        :alt="listing.gameTitle"
+      />
+      <BaseBadge
+        class="badge"
+        :variant="listing.listingType === 'rental' ? 'rent' : 'sale'"
+      >
+        {{ listing.listingType === 'rental' ? 'For Rent' : 'For Sale' }}
+      </BaseBadge>
     </div>
-  </v-card>
+
+    <v-card-text class="d-flex flex-column ga-2 pa-4">
+      <h3>{{ listing.gameTitle }}</h3>
+
+      <p
+        class="price ma-0"
+        :style="{ color: listing.listingType === 'rental' ? 'var(--rent)' : 'var(--sale)' }"
+      >
+        R{{ listing.price }}
+        <span v-if="listing.listingType === 'rental'" class="period">
+          {{
+            listing.rentalPeriod
+              ? `${listing.rentalPeriod.startDate} – ${listing.rentalPeriod.endDate}`
+              : 'week'
+          }}
+        </span>
+      </p>
+
+      <div class="meta">
+        <span>@{{ listing.username ?? 'unknown' }}</span>
+        <span v-if="listing.location">📍 {{ listing.location }}</span>
+      </div>
+    </v-card-text>
+
+  </BaseCard>
 </template>
 
 <script setup>
+import BaseCard  from '~/components/ui/BaseCard.vue'
 import BaseBadge from '~/components/ui/BaseBadge.vue'
 
 const props = defineProps({
-  listing: Object
+  listing: { type: Object, required: true }
 })
 
 const router = useRouter()
@@ -52,18 +56,13 @@ const openListing = () => {
 </script>
 
 <style scoped>
-
-.listing-card-wrapper {
-  padding: 0;
-  overflow: hidden;
-  cursor: pointer;
-}
-
 .listing-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  cursor: pointer;
+  overflow: hidden;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+.listing-card:hover {
+  transform:  translateY(-2px);
+  box-shadow: var(--shadow-md) !important;
 }
 
 .image-container {
@@ -75,38 +74,33 @@ const openListing = () => {
 img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
 }
 
 .badge {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-}
-
-.content {
-  padding: 12px 16px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+color: white
 }
 
 h3 {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--fs-body);
+}
+
+.price {
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-body);
+}
+
+.period {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-regular);
+  color: var(--color-text-muted);
 }
 
 .meta {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
-  color: #888;
-}
-
-.price {
-color: rgb(var(--v-theme-primary));
-  font-weight: 700;
-  font-size: 15px;
-  margin: 0;
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
 }
 </style>
