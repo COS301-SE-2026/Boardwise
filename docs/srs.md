@@ -238,20 +238,7 @@ The User Service domain model centres on the `User` class, which holds core iden
 
 **Epic: Profile Management**
 
-##### US-PROF-01: Create a Profile
-
-**As a user, I want to create a personal profile, so that other users can identify me and I can personalise my experience on the platform.**
-
-**Acceptance Criteria:**
-- Given I have just registered, when I am directed to the profile setup page, then I can enter a display name and optionally upload a profile picture.
-- Given I am setting up my profile, when I submit the form with at least a display name, then my profile is created and saved successfully.
-- Given I am setting up my profile, when I submit the form without a display name, then the system displays a validation error and does not save the profile.
-- Given I am setting up my profile, when I add board games I enjoy, then those games are displayed on my profile and visible to other users by default.
-- Given I am setting up my profile, when I choose to make my game preferences and enjoyed games private, then other users cannot see my game preferences or enjoyed games on my profile.
-
----
-
-##### US-PROF-02: View a Profile
+##### US-PROF-01: View a Profile
 
 **As a user, I want to view my profile and the profiles of other users, so that I can see their information, game collections, and gaming preferences.**
 
@@ -262,7 +249,7 @@ The User Service domain model centres on the `User` class, which holds core iden
 
 ---
 
-##### US-PROF-03: Update a Profile
+##### US-PROF-02: Update a Profile
 
 **As a user, I want to update my profile information, so that I can keep my details accurate and up to date.**
 
@@ -273,7 +260,7 @@ The User Service domain model centres on the `User` class, which holds core iden
 
 ---
 
-##### US-PROF-04: Delete a Profile
+##### US-PROF-03: Delete a Profile
 
 **As a user, I want to delete my account and profile, so that I can remove my personal data from the platform.**
 
