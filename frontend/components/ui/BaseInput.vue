@@ -1,12 +1,8 @@
 <template>
-  <v-text-field 
-    :placeholder="placeholder"
-    :type="type"
-    v-model:model-value="inputValue"
-  />
-
+  <v-text-field v-bind="$attrs" v-model="inputValue" />
 </template>
 
-<script setup> 
+<script setup>
+defineOptions({ inheritAttrs: false })
 const inputValue = defineModel()
 </script>

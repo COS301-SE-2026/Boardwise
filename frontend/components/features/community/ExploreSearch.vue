@@ -4,14 +4,16 @@
     <div class="search">
       <BaseSearch
         placeholder="Search for a community..."
+        hide-details
+        v-model="model"
       />
     </div>
 
-    <BaseButton variant="secondary">
+    <BaseButton variant="secondary" class="row-btn">
       Filters
     </BaseButton>
 
-    <BaseButton variant="primary">
+    <BaseButton variant="primary" class="row-btn">
       + Create a community
     </BaseButton>
 
@@ -21,24 +23,37 @@
 <script setup>
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+
+let model = defineModel()
 </script>
 
 <style scoped>
 .search-row {
   display: flex;
-  gap: 16px;
-  align-items: center;
-  margin-top: 24px;
+  gap: var(--space-4);
+  align-items: stretch;
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-2);
 }
 
 .search {
   flex: 1;
 }
 
-@media (max-width: 700px) {
+.row-btn {
+  white-space: nowrap;
+  align-self: stretch;
+  height: auto;
+}
+
+@media (max-width: 768px) {
   .search-row {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .row-btn{
+    height: 55px;
   }
 }
 </style>
