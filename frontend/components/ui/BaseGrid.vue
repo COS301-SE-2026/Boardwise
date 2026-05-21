@@ -1,5 +1,5 @@
 <template> 
-    <div class="base-grid">
+    <div class="d-flex flex-wrap ga-6 w-100">
         <slot />
     </div>
 </template>
@@ -19,10 +19,10 @@ const props = defineProps({
 const gridColumns = computed(() => 'repeat(auto-fill, minmax(' + props.cols + ', 1fr))')
 </script>
 
-<style scoped> 
+<!-- <style scoped> 
 .base-grid {
-    display: grid;
+    /* display: grid;
     grid-template-columns: v-bind("'repeat(auto-fit, minmax(' + cols + ', 1fr))'");
-    gap: v-bind(gap);
+    gap: v-bind(gap); */
 }
-</style>
+</style> -->
