@@ -1,6 +1,6 @@
 <template>
   <v-img 
-    :src=" src"
+    :src="src"
     :alt="alt"
     :height="height"
     :width="width"
@@ -11,7 +11,7 @@
       <div class="d-flex align-center justify-center fill-height bg-grey-lighten-3">
         <span class="text-caption text-grey"> 
           {{  alt ?? 'Image' }}
-        </span>"
+        </span>
       </div>
     </template>
   </v-img>
