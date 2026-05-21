@@ -1,33 +1,35 @@
 <template>
   <PageContainer>
 
-    <Navbar />
+    <template v-if="user">
+      <Navbar />
 
-    <ProfileHeader :user="user" />
+      <ProfileHeader :user="user" @save="user.value = $event"/>
 
-    <ProfileStats
-      :games="games.length"
-      :friends="15"
-      :communities="8"
-    />
+      <ProfileStats
+        :games="games.length"
+        :friends="15"
+        :communities="user.groupCount"
+      />
 
-    <ProfileCommunities />
+      <ProfileCommunities />
 
-    <ProfileTabs
-      :active-tab="activeTab"
-      @change="activeTab = $event"
-    />
+      <ProfileTabs
+        :active-tab="activeTab"
+        @change="activeTab = $event"
+      />
 
-    <GamesOwnedSection
-      v-if="activeTab === 'Games Owned'"
-      :games="games"
-      @add-game="games.push($event)"
-    />
+      <GamesOwnedSection
+        v-if="activeTab === 'Games Owned'"
+        :games="games"
+        @add-game="games.push($event)"
+      />
 
-    <ListingsSection
-      v-else-if="activeTab === 'Listings'"
-      :listings="listings"
-    />
+      <ListingsSection
+        v-else-if="activeTab === 'Listings'"
+        :listings="listings"
+      />
+    </template >
 
   </PageContainer>
 </template>
@@ -43,15 +45,18 @@ import ProfileCommunities from '~/components/features/profile/ProfileCommunities
 
 import GamesOwnedSection from '~/components/features/profile/GamesOwnedSection.vue'
 import ListingsSection from '~/components/features/profile/ListingsSection.vue'
+import { useProfile } from '~/composables/useProfile';
 
 const activeTab = ref('Games Owned')
+const { fetchCurrentUser, isLoading } = useProfile()
 
-const user = {
-  name: 'Alexandra Lee',
-  username: 'alexalee',
-  bio: 'Board game lover • Strategy enthusiast',
-  avatar: '/images/avatar.jpg'
-}
+const user = ref(null)
+
+onMounted(async () => {
+  user.value = await fetchCurrentUser()
+  console.log(user.value)
+})
+
 
 const games = ref([
   {

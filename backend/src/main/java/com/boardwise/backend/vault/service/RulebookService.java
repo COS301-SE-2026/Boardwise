@@ -1,0 +1,147 @@
+package com.boardwise.backend.vault.service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.bson.types.ObjectId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import com.boardwise.backend.vault.dto.response.DownloadUrlResponseDto;
+import com.boardwise.backend.vault.dto.response.EditEventResponseDto;
+import com.boardwise.backend.vault.dto.response.EditHistoryResponseDto;
+import com.boardwise.backend.vault.dto.response.RulebookResponseDto;
+import com.boardwise.backend.vault.dto.response.RulebookTextResponseDto;
+import com.boardwise.backend.vault.exception.RulebookNotFoundException;
+import com.boardwise.backend.vault.model.EditEvent;
+import com.boardwise.backend.vault.model.Rulebook;
+import com.boardwise.backend.vault.model.RulebookText;
+import com.boardwise.backend.vault.model.WriteLock;
+import com.boardwise.backend.vault.repository.EditEventRepository;
+import com.boardwise.backend.vault.repository.RulebookRepository;
+import com.boardwise.backend.vault.repository.RulebookTextRepository;
+import com.boardwise.backend.vault.repository.WriteLockRepository;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor // automatically generates a constructor for specific fields(Removes need for manual boilerplate code)
+public class RulebookService {
+    private final RulebookRepository rulebookRepository;
+    private final RulebookTextRepository rulebookTextRepository;
+    private final WriteLockRepository writeLockRepository;
+    private final EditEventRepository editEventRepository;
+
+    // VC-002: List / Search Rulebooks
+    public Page<RulebookResponseDto> searchRulebooks(String search, int page, int limit){
+        Pageable pageable = PageRequest.of(
+            page-1,
+            Math.min(limit, 100),
+            Sort.by(Sort.Direction.DESC, "updated_at")
+        );
+
+        Page<RulebookResponseDto> dtoPage =
+            rulebookRepository.findByStatusAndGameNameContainingIgnoreCase("Ready", search, pageable).map(this::toRulebookResponse);
+
+        return dtoPage; // Page has the lockHeldBy field set to null. A book that is in state Ready does not have a write lock
+    }
+
+    // VC-003: Get Rulebook Detail
+    public RulebookResponseDto getRulebookById(ObjectId id){
+        Rulebook rulebook = findRulebookOrThrow(id);
+        return toRulebookResponse(rulebook);
+    }
+
+    // VC-005: Get Rulebook Text State
+    public RulebookTextResponseDto getRulebookText(ObjectId id){
+        findRulebookOrThrow(id);
+
+        RulebookText text = rulebookTextRepository
+            .findByRulebookId(id)
+            .orElseThrow(() -> new RulebookNotFoundException("Text content not found for rulebook: " + id));
+
+        WriteLock lock = writeLockRepository
+            .findByRulebookId(id)
+            .orElse(null);
+
+        return RulebookTextResponseDto.builder()
+            .rulebookId(id.toHexString())
+            .content(text.getContent())
+            .version(text.getVersion())
+            .lockHeldBy(lock != null ? lock.getHeldByUserId().toHexString() : null)
+            .updatedAt(text.getUpdatedAt())
+            .build();
+    }
+
+    // VC-004: Download Raw PDF - pre-signed URL generation placeholder
+    // R2 pre-signing will be wired in once R2Config is active
+    public DownloadUrlResponseDto getDownloadUrl(ObjectId id) {
+        Rulebook rulebook = findRulebookOrThrow(id);
+
+        if (rulebook.getR2PdfKey() == null) {
+            throw new RulebookNotFoundException(
+                    "PDF not yet available for rulebook: " + id);
+        }
+
+        // TODO: wire R2Presigner bean here in Phase 6
+        return DownloadUrlResponseDto.builder()
+                .downloadUrl("presigned-url-placeholder")
+                .expiresAt(java.time.Instant.now().plusSeconds(300))
+                .build();
+    }
+
+    // US-VLT-06: Edit History
+    public EditHistoryResponseDto getEditHistory(ObjectId id){
+        findRulebookOrThrow(id);
+
+        List<EditEvent> events = editEventRepository.findByRulebookIdOrderByCommittedAtAsc(id);
+
+        List<EditEventResponseDto> eventResponses = events.stream()
+            .map(this::toEditEventResponse)
+            .collect(Collectors.toList());
+
+        return EditHistoryResponseDto.builder()
+            .rulebookId(id.toHexString())
+            .totalEdits(eventResponses.size())
+            .edits(eventResponses)
+            .build();
+    }
+
+    // --- private helpers ---
+    private Rulebook findRulebookOrThrow(ObjectId id) {
+        return rulebookRepository.findById(id)
+            .orElseThrow(() -> new RulebookNotFoundException(id));
+    }
+
+    private RulebookResponseDto toRulebookResponse(Rulebook rulebook) {
+        WriteLock lock = writeLockRepository
+            .findByRulebookId(rulebook.getId())
+            .orElse(null);
+
+        return RulebookResponseDto.builder()
+                .id(rulebook.getId().toHexString())
+                .gameName(rulebook.getGameName())
+                .edition(rulebook.getEdition())
+                .status(rulebook.getStatus())
+                .version(rulebook.getVersion())
+                .contributorId(rulebook.getContributorId().toHexString())
+                .lockHeldBy(lock != null ? lock.getHeldByUserId().toHexString() : null)
+                .uploadedAt(rulebook.getUploadedAt())
+                .updatedAt(rulebook.getUpdatedAt())
+                .build();
+    }
+
+    private EditEventResponseDto toEditEventResponse(EditEvent event) {
+        return EditEventResponseDto.builder()
+            .id(event.getId().toHexString())
+            .rulebookId(event.getRulebookId().toHexString())
+            .editorId(event.getEditorId().toHexString())
+            .delta(event.getDelta())
+            .versionAfter(event.getVersionAfter())
+            .committedAt(event.getCommittedAt())
+            .build();
+    }
+}

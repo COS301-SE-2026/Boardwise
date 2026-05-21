@@ -1,8 +1,9 @@
 <template>
-  <div class="empty">
-    <h3>{{ title }}</h3>
-    <p>{{ message }}</p>
-  </div>
+  <v-empty-state 
+    :title="title" 
+    :text="description" 
+    icon="mdi-inbox-outline"
+  />
 </template>
 
 <script setup>
@@ -11,13 +12,3 @@ defineProps({
   message: String
 })
 </script>
-
-<style scoped>
-.empty {
-  text-align: center;
-
-  padding: 48px 24px;
-
-  color: #777;
-}
-</style>

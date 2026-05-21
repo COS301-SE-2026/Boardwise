@@ -9,7 +9,7 @@
 import BaseTabs from '~/components/ui/BaseTabs.vue'
 
 const tabs = [
-  'Community',
+  'Community Listings',
   'Web'
 ]
 
