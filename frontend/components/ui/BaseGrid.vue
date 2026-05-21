@@ -15,6 +15,8 @@ const props = defineProps({
         default: '20px'
     }
 })
+
+const gridColumns = computed(() => 'repeat(auto-fill, minmax(' + props.cols + ', 1fr))')
 </script>
 
 <style scoped> 
