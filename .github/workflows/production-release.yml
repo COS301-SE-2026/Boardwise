@@ -3,14 +3,12 @@ name: Production Release Pipeline
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   # --------------------------------------------------
-  # Phase 1: AI Gateway Gating
+  # Phase 1: Test the AI Gateway
   # --------------------------------------------------
-  ai-gate:
+  ai-test:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -27,11 +25,11 @@ jobs:
         run: pytest tests/
 
   # --------------------------------------------------
-  # Phase 2: Backend Compilation & Packaging
+  # Phase 2: Test & Package Java Backend
   # --------------------------------------------------
-  backend-gate:
+  backend-test:
     runs-on: ubuntu-latest
-    needs: ai-gate # <--- AI must pass first
+    needs: ai-test
     defaults:
       run:
         working-directory: ./backend
@@ -48,17 +46,18 @@ jobs:
           ./mvnw -B clean package
 
   # --------------------------------------------------
-  # Phase 3: Production Frontend Compilation
+  # Phase 3: Test & Build Frontend
   # --------------------------------------------------
-  frontend-gate:
+  frontend-test:
     runs-on: ubuntu-latest
-    needs: backend-gate # <--- Backend must pass first
+    needs: backend-test
     defaults:
       run:
         working-directory: ./frontend
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
@@ -67,3 +66,33 @@ jobs:
         run: |
           npm ci
           npm run build
+
+  # --------------------------------------------------
+  # Phase 4: Verify Containerization (Local Build Only)
+  # --------------------------------------------------
+  containerize:
+    runs-on: ubuntu-latest
+    # Ensures it still acts as the final gate after all tests pass
+    needs: [frontend-test, backend-test, ai-test]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Build AI Gateway Image (Verification Only)
+      - name: Verify AI Gateway Docker Build
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ai
+          file: ./ai/Dockerfile
+          push: false # <-- Tells Docker NOT to upload to a registry
+          tags: boardwise-ai:latest
+
+      # Build Backend Image (Verification Only)
+      - name: Verify Backend Docker Build
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: false # <-- Tells Docker NOT to upload to a registry
+          tags: boardwise-backend:latest
