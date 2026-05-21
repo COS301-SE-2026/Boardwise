@@ -1,21 +1,15 @@
 <template>
-    <div class="sidebar">
+    <div class="d-flex flex-column ga-sm-4 pa-sm-4 bg-white rounded-lg">
 
         <h3>Filters</h3>
 
-        <label> 
-            <input type="checkbox" />
-            Buy 
-        </label>
+        <v-checkbox label="Public" />
 
-        <label> 
-            <input type="checkbox" />
-            Rent 
-        </label>
+        <v-checkbox label="Private" />
     </div>
 </template>
 
-<style scoped>
+<!-- <style scoped>
 .sidebar {
     display: flex;
     flex-direction: column;
@@ -36,4 +30,4 @@ label {
     display: flex;
     gap: 8px;
 }
-</style>
+</style> -->

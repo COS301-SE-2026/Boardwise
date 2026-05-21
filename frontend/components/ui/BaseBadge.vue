@@ -1,9 +1,12 @@
 <template>
-  <span class="badge"
-    :class="variant"
+  <v-chip
+    :color="colorMap[variant]"
+    size="small"
+    rounded="lg"
+    v-bind="$attrs"
   >
     <slot />
-  </span>
+  </v-chip>
 </template>
 
 <script setup>
@@ -14,34 +17,12 @@ const props = defineProps({
   }
 })
 
+const colorMap = {
+  default: 'primary',
+  rent: 'purple',
+  sale: 'warning',
+  success: 'success',
+  warning: 'warning',
+  error: 'error'
+}
 </script>
-
-<style scoped>
-.badge {
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-block;
-}
-
-.rent {
-  background: #6c3bff;
-  color: white;
-}
-
-.sale {
-  background: #F59E0B;
-  color: white;
-}
-
-.warning {
-  background: #fef9c3;
-  color: #ca8a04;
-}
-
-.danger {
-  background: #fee2e2;
-  color: #dc2626;
-}
-</style>
