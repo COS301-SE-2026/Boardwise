@@ -1,18 +1,25 @@
 <template>
-<div class="signup-wrapper">
+    <div>
         <AuthForm
             title="Sign Up"
             buttonText="Sign Up"
             :fields="fields"
             @submit="handleSignUp"
         />
-        <p v-if="localError" class="error">{{ localError }}</p>
         
-        <p v-if="error" class="error">{{ error }}</p>
+            <v-alert 
+                v-if="localError || error"
+                type="error"
+                variant="tonal"
+                class="mt-4"
+                density="compact"
+            >
+                {{ localError || error }}
+            </v-alert>
 
-        <p class="redirect-text">
+        <p class="text-center text-body-2 mt-4 text-medium-emphasis">
             Already have an account?
-            <NuxtLink to="/auth/signin" class="redirect-link">
+            <NuxtLink to="/auth/signin" class="text-primary font-weight-bold ml-1">
                 Sign In
             </NuxtLink>
         </p>
@@ -56,30 +63,3 @@ const handleSignUp = async (data) => {
     }
 }
 </script>
-
-<style scoped>
-.error {
-    color: #c0392b;
-    text-align: center;
-    margin-top: 8px;
-    font-size: 14px;
-}
-
-.redirect-text {
-    text-align: center;
-    margin-top: 16px;
-    font-size: 14px;
-    color: #666;
-}
-
-.redirect-link {
-    color: #6C3BFF;
-    font-weight: 600;
-    text-decoration: none;
-    margin-left: 4px;
-}
-
-.redirect-link:hover {
-    text-decoration: underline;
-}
-</style>
