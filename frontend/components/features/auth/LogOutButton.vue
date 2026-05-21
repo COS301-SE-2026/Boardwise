@@ -9,7 +9,7 @@
 </template>
 
 <script setup>
-import BaseButton from '../ui/BaseButton.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
 
 const router = useRouter()
 const { logout } = useAuth()
