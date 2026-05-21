@@ -1,9 +1,7 @@
 <template>
-  <v-text-field
-    :model-value="modelValue"
+  <BaseInput
     :placeholder="placeholder"
-    variant:"outlined"
-    
+    v-model="search"
   />
 </template>
 

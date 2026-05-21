@@ -1,47 +1,23 @@
 <template>
-  <div class="description">
+  <BaseCard class="pa-7">
+    <h3 class="text-h6 font-weight-bold mb-4">
+      Description
+    </h3>
 
-    <h3>Description</h3>
-
-    <p>
+    <p class="text-medium-emphasis mb-0" style="line-height: 1.8;">
       {{ rulebook.description }}
     </p>
-
-  </div>
+  </BaseCard>
 </template>
 
 <script setup>
+import BaseCard from '~/components/ui/BaseCard.vue'
+
 defineProps({
   rulebook: {
     type: Object,
     required: true
   }
 })
+
 </script>
-
-<style scoped>
-.description {
-  background: white;
-
-  padding: 28px;
-
-  border-radius: 24px;
-
-  border: 1px solid #eee;
-}
-
-h3 {
-  margin-top: 0;
-  margin-bottom: 16px;
-
-  font-size: 22px;
-}
-
-p {
-  margin: 0;
-
-  color: #555;
-  line-height: 1.8;
-  font-size: 16px;
-}
-</style>

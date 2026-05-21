@@ -1,14 +1,11 @@
 <template>
-  <div class="meta">
-
-    <p class="category">
+  <div class="d-flex flex-column ga-3">
+    <p class="text-caption text-uppercase font-weight-bold text-primary mb-0">
       {{ rulebook.category }}
     </p>
-
-    <h1>
+    <h1 class="text-h3 font-weight-bold" style="line-height: 1.1;">
       {{ rulebook.title }}
     </h1>
-
   </div>
 </template>
 
@@ -20,35 +17,3 @@ defineProps({
   }
 })
 </script>
-
-<style scoped>
-.meta {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.category {
-  color: #6C3BFF;
-  font-weight: 600;
-  font-size: 15px;
-
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-h1 {
-  margin: 0;
-
-  font-size: 52px;
-  line-height: 1.1;
-
-  color: #1e1e1e;
-}
-
-@media (max-width: 768px) {
-  h1 {
-    font-size: 38px;
-  }
-}
-</style>

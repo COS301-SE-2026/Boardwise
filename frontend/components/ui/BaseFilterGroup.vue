@@ -1,9 +1,8 @@
 <template>
     <v-expansion-panels 
-      :model-value="isOpen ? [0] : []"
+      v-model="openPanels"
       variant="accordion"
       flat
-      @update:model-value="isOpen = $event.length > 0" 
     >
       <v-expansion-panel :title="title">
         <v-expansion-panel-text>
@@ -14,6 +13,7 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 
 const props = defineProps({
     title: String, 
@@ -23,5 +23,5 @@ const props = defineProps({
     }
 })
 
-const isOpen = ref(props.defaultOpen)
+const openPanels = ref(props.defaultOpen ? [0] : [])
 </script>
