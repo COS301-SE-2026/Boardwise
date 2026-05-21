@@ -3,7 +3,7 @@
 
         <SectionTitle
             title="Marketplace"
-            subtitle="Buy, Rent and List board games"
+            subtitle="Buy, Rent and List board games with the community"
         />
 
         <div class="search-row">

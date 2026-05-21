@@ -1,88 +1,65 @@
 <template> 
-    <nav class="navbar">
+  <v-app-bar flat border="b" color="surface" height="70">
 
-        <NuxtLink to="/" class="logo">
-            Boardwise
+    <NuxtLink to="/" class="logo ml-4">
+        Boardwise
+    </NuxtLink>
+
+    <div class="center">
+        <v-text-field 
+          placeholder="Search games, users, rules..."
+          prepend-inner-icon="mdi-magnify"
+          variant="outlined"
+          density="compact"
+          rounded="pill"
+          hide-details
+          style="min-width: 260px;"
+        />
+
+        <v-btn color="primary" rounded="pill" @click="$emit('ask-ai')">
+        <v-icon start>mdi-robot</v-icon>
+        Ask AI
+      </v-btn>
+    </div>
+
+    <div class="links mr-4">
+        <NuxtLink to="/library">
+            Library
+        </NuxtLink> 
+
+        <NuxtLink to="/marketplace">
+            Marketplace
         </NuxtLink>
 
-        <div class="center">
-            <div class="search-bar">
-                <span class="search-icon">i</span>
-                <input placeholder="Search games, users, rules..." />
-            </div>
+        <NuxtLink to="/community">
+            Community
+        </NuxtLink>
 
-            <BaseButton class="ask-ai-btn" @click="$emit('ask-ai')">
-                + Ask AI
-            </BaseButton>
-        </div>
+        <!-- <NuxtLink to="/events">
+            Events
+        </NuxtLink> -->
 
-        <div class="links">
-            <NuxtLink to="/library">
-                Library
-            </NuxtLink> 
-
-            <NuxtLink to="/marketplace">
-                Marketplace
-            </NuxtLink>
-
-            <NuxtLink to="/community">
-                Community
-            </NuxtLink>
-
-            <NuxtLink to="/events">
-                Events
-            </NuxtLink>
-
-            <NuxtLink to="/profile">
-                Profile
-            </NuxtLink>
-        </div>
-
-    </nav>
+        <NuxtLink to="/profile">
+            Profile
+        </NuxtLink>
+        <LogOutButton />
+    </div>
+  </v-app-bar>
 </template>
 
 <script setup>
+import LogOutButton from '~/components/features/auth/LogOutButton.vue'
 defineEmits(['ask-ai'])
-
-import BaseButton from '~/components/ui/BaseButton.vue'
 </script>
 
 <style scoped>
-.navbar {
-  height: 70px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 24px;
-  border-bottom: 1px solid #eee;
-  background: white;
-}
-
 .logo {
   font-size: 20px;
   font-weight: bold;
   text-decoration: none;
-  color: #6C3BFF;
+  color: #6D0037;
   white-space: nowrap;
   flex: 1;
-}
-
-.links {
-  display: flex;
-  gap: 20px;
-  flex: 1;
-  justify-content: center;
-}
-
-.links a {
-  text-decoration: none;
-  color: #333;
-  white-space: nowrap;
-  font-size: 14px;
-}
-
-.links a:hover {
-  color: #6C3BFF;
 }
 
 .center {
@@ -93,49 +70,24 @@ import BaseButton from '~/components/ui/BaseButton.vue'
   justify-content: center;
 }
 
-.search-bar {
+.links {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: #f5f5f5;
-  border: 1px solid #eee;
-  border-radius: 20px;
-  padding: 8px 14px;
-  min-width: 220px;
-}
-
-.search-bar input {
-  border: none;
-  background: transparent;
-  outline: none;
-  font-size: 14px;
-  color: #333;
-  width: 100%;
-}
-
-.search-icon {
-  font-size: 14px;
-  color: #888;
-}
-
-.ask-ai-btn {
-  background: #6C3BFF;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.2s;
-}
-
-.ask-ai-btn:hover {
-  background: #5a2de0;
-}
-
-.right {
+  gap: 20px;
   flex: 1;
+  justify-content: flex-end;
+}
+
+.links a {
+  text-decoration: none;
+  color: #333;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.links a:hover,
+.links a.router-link-active {
+  color: #6D0037;
+  font-weight: 600;
 }
 </style>
