@@ -17,9 +17,9 @@
             {{ error }}
         </v-alert>
 
-        <p class="text-center text-body-2 mt-4 text-medium-emphasis redirect-text">
+        <p class="text-center text-body-2 mt-4 text-medium-emphasis">
             Don’t have an account?
-            <NuxtLink to="/auth/signup" class="text-primary font-weight-bold ml-1 redirect-link">
+            <NuxtLink to="/auth/signup" class="text-primary font-weight-bold ml-1">
                 Sign Up
             </NuxtLink>
         </p>
