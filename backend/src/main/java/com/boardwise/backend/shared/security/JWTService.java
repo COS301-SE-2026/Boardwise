@@ -31,21 +31,10 @@ public class JWTService {
     @Autowired
     private TokenBlackListRepository tokenRepo;
 
-    // public JWTService(){
-    //     try {
-    //         KeyGenerator generator = KeyGenerator.getInstance("HmacSHA256");
-    //         SecretKey secret = generator.generateKey();
-    //         key = Base64.getEncoder().encodeToString(secret.getEncoded());
-
-    //     } catch (NoSuchAlgorithmException e) {
-    //         throw new RuntimeException(e);
-    //     }
-    // }
-
     public String generateToken(String username, String userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
-        int ttl = 30 * 60 * 1000;
+        int ttl = 90 * 60 * 1000;
         return Jwts.builder()
                 .claims()
                 .add(claims)
@@ -66,8 +55,6 @@ public class JWTService {
     }
 
     private SecretKey getKey() {
-        // byte[] keyBytes = Decoders.BASE64.decode(key);
-        // return Keys.hmacShaKeyFor(keyBytes);
         return Keys.hmacShaKeyFor(key.getBytes(StandardCharsets.UTF_8));
     }
 
