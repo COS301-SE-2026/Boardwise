@@ -1,12 +1,13 @@
 <template>
-  <main class="container">
-    <slot />
-  </main>
+  <v-main>
+    <v-container fluid class="container">
+      <slot />
+    </v-container>
+  </v-main>
 </template>
 
 <style scoped>
 .container {
-  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
   padding: 24px;
