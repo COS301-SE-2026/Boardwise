@@ -1,9 +1,9 @@
 <template>
-  <div class="communities-section">
+  <div class="mt-6">
 
-    <div class="header">
-      <h3>Communities</h3>
-      <NuxtLink to="/community" class="see-all">›</NuxtLink>
+    <div class="d-flex justify-space-between align-center mb-3">
+      <h3 class="text-subtitle-1 font-weight-semibold ma-0">Communities</h3>
+      <NuxtLink to="/community" class="text-primary text-decoration-none font-weight-bold" style="font-size: 20px;">›</NuxtLink>
     </div>
 
     <div class="cards-row">
@@ -11,12 +11,12 @@
         v-for="community in communities"
         :key="community.id"
         :to="`/community/${community.id}`"
-        class="community-card"
+        class="community-card text-decoration-none"
       >
-        <div class="card-image">
-          <img :src="community.image" :alt="community.name" />
-        </div>
-        <p class="card-name">{{ community.name }}</p>
+        <v-avatar size="64" rounded="lg" class="community-avatar">
+          <v-img :src="community.image" :alt="community.name" cover />
+        </v-avatar>
+        <p class="card-name text-grey">{{ community.name }}</p>
       </NuxtLink>
     </div>
 
@@ -25,34 +25,9 @@
 
 <script setup>
 import { communities } from '~/services/mockData/communities'
-
 </script>
 
 <style scoped>
-.communities-section {
-  margin-top: 24px;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.see-all {
-  font-size: 20px;
-  color: #6C3BFF;
-  text-decoration: none;
-  font-weight: bold;
-}
-
 .cards-row {
   display: flex;
   gap: 12px;
@@ -61,42 +36,28 @@ h3 {
   scrollbar-width: none;
 }
 
-.cards-row::-webkit-scrollbar {
-  display: none;
-}
+.cards-row::-webkit-scrollbar { display: none; }
 
 .community-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  text-decoration: none;
   flex-shrink: 0;
   cursor: pointer;
 }
 
-.card-image {
-  width: 64px;
-  height: 64px;
-  border-radius: 12px;
-  overflow: hidden;
+.community-avatar {
   border: 2px solid #eee;
   transition: border-color 0.2s;
 }
 
-.community-card:hover .card-image {
-  border-color: #6C3BFF;
-}
-
-.card-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.community-card:hover .community-avatar {
+  border-color: rgb(var(--v-theme-primary));
 }
 
 .card-name {
   font-size: 11px;
-  color: #555;
   text-align: center;
   margin: 0;
   max-width: 64px;

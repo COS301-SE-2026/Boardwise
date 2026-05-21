@@ -1,31 +1,29 @@
 <template>
-  <BaseCard class="stats-card">
+  <v-card class="d-flex justify-space-around align-center pa-6 flex-wrap ga-6" style="margin-top: -40px;">
 
-    <div class="stat">
-      <h2>{{ games }}</h2>
-      <p>Games</p>
+    <div class="text-center flex-grow-1">
+      <h2 class="ma-0" style="font-size: 32px;">{{ games }}</h2>
+      <p class="text-grey mt-2 ma-0">Games</p>
     </div>
 
-    <div class="divider" />
+    <v-divider vertical class="d-none d-sm-flex" style="height: 60px;" />
 
-    <div class="stat">
-      <h2>{{ friends }}</h2>
-      <p>Friends</p>
+    <div class="text-center flex-grow-1">
+      <h2 class="ma-0" style="font-size: 32px;">{{ friends }}</h2>
+      <p class="text-grey mt-2 ma-0">Friends</p>
     </div>
 
-    <div class="divider" />
+    <v-divider vertical class="d-none d-sm-flex" style="height: 60px;" />
 
-    <div class="stat">
-      <h2>{{ communities }}</h2>
-      <p>Communities</p>
+    <div class="text-center flex-grow-1">
+      <h2 class="ma-0" style="font-size: 32px;">{{ communities }}</h2>
+      <p class="text-grey mt-2 ma-0">Communities</p>
     </div>
 
-  </BaseCard>
+  </v-card>
 </template>
 
 <script setup>
-import BaseCard from '~/components/ui/BaseCard.vue'
-
 defineProps({
   games: Number,
   friends: Number,
@@ -33,45 +31,3 @@ defineProps({
   reviews: Number
 })
 </script>
-
-<style scoped>
-.stats-card {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding: 24px;
-  margin-top: -40px;
-}
-
-.stat {
-  text-align: center;
-  flex: 1;
-}
-
-.stat h2 {
-  margin: 0;
-  font-size: 32px;
-}
-
-.stat p {
-  color: #666;
-  margin-top: 8px;
-}
-
-.divider {
-  width: 1px;
-  height: 60px;
-  background: #eee;
-}
-
-@media (max-width: 768px) {
-  .stats-card {
-    flex-wrap: wrap;
-    gap: 24px;
-  }
-
-  .divider {
-    display: none;
-  }
-}
-</style>
