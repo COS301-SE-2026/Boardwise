@@ -1,28 +1,44 @@
-<template> 
-    <div class="d-flex flex-wrap ga-6 w-100">
-        <slot />
-    </div>
+<template>
+  <div class="base-grid">
+    <slot />
+  </div>
 </template>
 
 <script setup>
+import { computed } from 'vue'
+
 const props = defineProps({
-    cols: {
-        type: String,
-        default: '280px'
-    },
-    gap: {
-        type: String,
-        default: '20px'
-    }
+  cols: {
+    type: String,
+    default: '280px'
+  },
+  gap: {
+    type: String,
+    default: '20px'
+  }
 })
 
-const gridColumns = computed(() => 'repeat(auto-fill, minmax(' + props.cols + ', 1fr))')
+const gridColumns = computed(() => `repeat(auto-fill, minmax(${props.cols}, 300px))`)
 </script>
 
-<!-- <style scoped> 
+<style scoped>
 .base-grid {
-    /* display: grid;
-    grid-template-columns: v-bind("'repeat(auto-fit, minmax(' + cols + ', 1fr))'");
-    gap: v-bind(gap); */
+  display: grid;
+  grid-template-columns: v-bind(gridColumns);
+  gap: v-bind(gap);
+  align-items: stretch;
+  width: 100%;
 }
-</style> -->
+
+@media (max-width: 900px) {
+  .base-grid {
+    grid-template-columns: repeat(2, 300px);
+  }
+}
+
+@media (max-width: 600px) {
+  .base-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
