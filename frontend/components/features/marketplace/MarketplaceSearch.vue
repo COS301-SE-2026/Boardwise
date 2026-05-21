@@ -1,5 +1,6 @@
 <template>
-  <div class="search-row">
+  <div class="d-flex align-center ga-4 flex-wrap mt-6">
+
 
     <div class="search">
       <BaseSearch
@@ -7,38 +8,12 @@
       />
     </div>
 
-    <BaseButton variant="secondary">
-      Filters
-    </BaseButton>
-./MarketplaceSearch.vue
-    <BaseButton variant="primary">
-      + Create Listing
-    </BaseButton>
+    <v-btn variant="outlined" color="primary">Filters</v-btn>
+    <v-btn color="primary">+ Create Listing</v-btn>
 
   </div>
 </template>
 
 <script setup>
 import BaseSearch from '~/components/ui/BaseSearch.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
 </script>
-
-<style scoped>
-.search-row {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  margin-top: 24px;
-}
-
-.search {
-  flex: 1;
-}
-
-@media (max-width: 700px) {
-  .search-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-</style>
