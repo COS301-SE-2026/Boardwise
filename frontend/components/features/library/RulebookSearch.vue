@@ -5,7 +5,7 @@
       placeholder="Search rulebooks..."
       @update:model-value="$emit('search', $event)"
     />
-    <BaseButton variant="secondary" @click="$emit('upload')">
+    <BaseButton variant="primary" @click="$emit('upload')">
       <v-icon start>mdi-upload</v-icon>
       Upload Rulebook
     </BaseButton>
