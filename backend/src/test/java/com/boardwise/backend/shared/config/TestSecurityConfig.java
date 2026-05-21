@@ -1,4 +1,4 @@
-package com.boardwise.backend.user_service.config;
+package com.boardwise.backend.shared.config;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
