@@ -1,51 +1,20 @@
 <template>
-  <BaseModal v-model="open">
-
-    <div class="content">
+  <v-dialog v-model="open" max-width="400">
+    <v-card class="pa-6 d-flex flex-column ga-5">
 
       <h2>Delete Listing</h2>
 
-      <p>
-        Are you sure you want to delete this listing?
-      </p>
+      <p>Are you sure you want to delete this listing?</p>
 
-      <div class="actions">
-
-        <BaseButton
-          variant="secondary"
-          @click="open = false"
-        >
-          Cancel
-        </BaseButton>
-
-        <BaseButton>
-          Delete
-        </BaseButton>
-
+      <div class="d-flex justify-end ga-3">
+        <v-btn variant="outlined" color="primary" @click="open = false">Cancel</v-btn>
+        <v-btn color="error" @click="open = false">Delete</v-btn>
       </div>
 
-    </div>
-
-  </BaseModal>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
-import BaseModal from '~/components/ui/BaseModal.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
-
 const open = defineModel()
 </script>
-
-<style scoped>
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-</style>

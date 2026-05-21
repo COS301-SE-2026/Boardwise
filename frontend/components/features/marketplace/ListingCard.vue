@@ -1,7 +1,7 @@
 <template>
-  <BaseCard>
+  <v-card class="listing-card-wrapper" hover @click="openListing">
 
-    <div class="listing-card" @click="openListing">
+    <div class="listing-card">
 
       <div class="image-container">
         <img 
@@ -34,11 +34,10 @@
 
       </div>
     </div>
-  </BaseCard>
+  </v-card>
 </template>
 
 <script setup>
-import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseBadge from '~/components/ui/BaseBadge.vue'
 
 const props = defineProps({
@@ -53,15 +52,11 @@ const openListing = () => {
 </script>
 
 <style scoped>
-.card {
+
+.listing-card-wrapper {
   padding: 0;
   overflow: hidden;
   cursor: pointer;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
 }
 
 .listing-card {
@@ -109,7 +104,7 @@ h3 {
 }
 
 .price {
-  color: #6C3BFF;
+color: rgb(var(--v-theme-primary));
   font-weight: 700;
   font-size: 15px;
   margin: 0;

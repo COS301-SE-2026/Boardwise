@@ -1,54 +1,33 @@
 <template>
-  <BaseCard class="card">
+  <v-card style="overflow: hidden;">
 
-    <img
+    <v-img
       :src="listing.imageUrl"
       :alt="listing.gameTitle"
+      height="180"
+      cover
     />
 
-    <div class="content">
+    <v-card-text class="d-flex flex-column ga-2">
 
-      <h3>{{ listing.gameTitle }}</h3>
+      <h3 class="ma-0">{{ listing.gameTitle }}</h3>
 
-      <p class="price">
-        R{{ listing.price }}
-      </p>
+      <p class="text-primary font-weight-bold ma-0">R{{ listing.price }}</p>
 
-      <div class="actions">
-
-        <BaseButton
-          size="sm"
-          @click="showEdit = true"
-        >
-          Edit
-        </BaseButton>
-
-        <BaseButton
-          size="sm"
-          variant="secondary"
-          @click="showDelete = true"
-        >
-          Delete
-        </BaseButton>
-
+      <div class="d-flex ga-3 mt-2">
+        <v-btn size="small" color="primary" @click="showEdit = true">Edit</v-btn>
+        <v-btn size="small" variant="outlined" color="error" @click="showDelete = true">Delete</v-btn>
       </div>
 
-    </div>
+    </v-card-text>
 
-    <EditListingModal v-model="showEdit"
-      :listing="listing"
-    />
-    <DeleteListingModal v-model="showDelete" 
-      :listing="listing"
-    />
+    <EditListingModal v-model="showEdit" :listing="listing" />
+    <DeleteListingModal v-model="showDelete" :listing="listing" />
 
-  </BaseCard>
+  </v-card>
 </template>
 
 <script setup>
-import BaseCard from '~/components/ui/BaseCard.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
-
 import EditListingModal from './EditListingModal.vue'
 import DeleteListingModal from './DeleteListingModal.vue'
 
@@ -62,32 +41,3 @@ defineProps({
 const showEdit = ref(false)
 const showDelete = ref(false)
 </script>
-
-<style scoped>
-.card {
-  overflow: hidden;
-  padding: 0;
-}
-
-img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-}
-
-.content {
-  padding: 16px;
-}
-
-.price {
-  color: #6C3BFF;
-  font-weight: bold;
-  margin-top: 8px;
-}
-
-.actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 16px;
-}
-</style>

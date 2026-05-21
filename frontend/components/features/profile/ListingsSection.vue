@@ -1,17 +1,12 @@
 <template>
-  <section class="section">
+  <section class="mt-8">
 
-    <div class="top">
-
+    <div class="d-flex justify-space-between align-center mb-6 flex-wrap ga-4">
       <SectionTitle title="My Listings" />
-
-      <BaseButton @click="showAddListing = true">
-        + Add Listing
-      </BaseButton>
-
+      <v-btn color="primary" @click="showAddListing = true">+ Add Listing</v-btn>
     </div>
 
-    <ListingGrid 
+    <ListingGrid
       :listings="listings"
       @add-listing="showAddListing = true"
     />
@@ -24,8 +19,6 @@
 <script setup>
 import ListingGrid from './ListingsGrid.vue'
 import AddListingModal from './AddListingModal.vue'
-
-import BaseButton from '~/components/ui/BaseButton.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 
 defineProps({
@@ -34,25 +27,3 @@ defineProps({
 
 const showAddListing = ref(false)
 </script>
-
-<style scoped>
-.section {
-  margin-top: 32px;
-}
-
-.top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  margin-bottom: 24px;
-}
-
-@media (max-width: 768px) {
-  .top {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-}
-</style>

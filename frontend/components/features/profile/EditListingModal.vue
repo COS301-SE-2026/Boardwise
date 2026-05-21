@@ -1,80 +1,73 @@
 <template>
-  <BaseModal v-model="open">
-    <div class="content">
+ <v-dialog v-model="open" max-width="500">
+  <v-card class="pa-6 d-flex flex-column ga-5">
 
       <h2>Edit Listing</h2>
 
-      <div class="input-group">
-        <label>Listing Title</label>
-        <BaseInput v-model="title" placeholder="Game title" />
+      <v-text-field v-model="title" 
+      label="Listing Title" 
+      placeholder="Game title" 
+      variant="outlined" 
+      density="compact" 
+      hide-details />
+
+
+      <v-btn-toggle v-model="type" color="primary" variant="outlined" mandatory>
+        <v-btn value="sell">Sell</v-btn>
+        <v-btn value="rent">Rent</v-btn>
+      </v-btn-toggle>
+
+      <v-text-field v-if="type" 
+      v-model="price" 
+      label="Amount" 
+      prefix="R" 
+      placeholder="e.g. 650" 
+      type="number" 
+      variant="outlined"
+      density="compact" 
+      hide-details />
+
+
+      <v-select v-if="type === 'rent'" 
+      v-model="rentalPeriod" 
+      label="Rental Period" :items="['1 day','3 days','1 week','2 weeks','1 month']" 
+      variant="outlined" 
+      density="compact"
+       hide-details />
+
+
+      <v-checkbox v-if="type === 'sell'"
+       v-model="negotiable" 
+       label="Open to negotiation" 
+       color="primary" 
+       density="compact" 
+       hide-details />
+
+
+      <v-text-field v-model="location" 
+      label="Location" 
+      placeholder="e.g. Pretoria" 
+      variant="outlined" 
+      density="compact" 
+      hide-details />
+
+
+      <div class="d-flex align-center ga-3">
+        <v-btn variant="outlined" color="primary" @click="triggerUpload">Upload Image</v-btn>
+        <span class="text-grey text-body-2">{{ fileName || '···' }}</span>
+        <input ref="fileInput" type="file" accept="image/*" class="hidden-input" @change="handleFileChange" />
       </div>
 
-      <div class="input-group">
-        <label>Type</label>
-        <div class="toggle-row">
-          <button :class="['toggle-btn', { active: type === 'sell' }]" @click="type = 'sell'">Sell</button>
-          <button :class="['toggle-btn', { active: type === 'rent' }]" @click="type = 'rent'">Rent</button>
-        </div>
+      <div class="d-flex justify-end ga-3">
+        <v-btn variant="outlined" color="primary" @click="closeModal">Cancel</v-btn>
+        <v-btn color="primary" @click="handleConfirm">Create Listing</v-btn>
       </div>
 
-      <div v-if="type" class="input-group">
-        <label>Amount (R)</label>
-        <BaseInput v-model="price" placeholder="e.g. 650" type="number" />
-      </div>
-
-      <div v-if="type === 'rent'" class="input-group">
-        <label>Rental Period</label>
-        <select v-model="rentalPeriod" class="select">
-          <option value="" disabled>Select period</option>
-          <option>1 day</option>
-          <option>3 days</option>
-          <option>1 week</option>
-          <option>2 weeks</option>
-          <option>1 month</option>
-        </select>
-      </div>
-
-      <div v-if="type === 'sell'" class="input-group checkbox-row">
-        <input id="negotiate-edit" v-model="negotiable" type="checkbox" />
-        <label for="negotiate-edit">Open to negotiation</label>
-      </div>
-
-      <div class="input-group">
-        <label>Location</label>
-        <BaseInput v-model="location" placeholder="e.g. Pretoria" />
-      </div>
-
-      <div class="input-group">
-        <label>Game Cover</label>
-        <div class="upload-row">
-          <BaseButton variant="secondary" @click="triggerUpload">
-            Upload Image
-          </BaseButton>
-          <span class="filename">{{ fileName || '···' }}</span>
-          <input
-            ref="fileInput"
-            type="file"
-            accept="image/*"
-            class="hidden-input"
-            @change="handleFileChange"
-          />
-        </div>
-      </div>
-
-      <div class="actions">
-        <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
-        <BaseButton @click="handleSave">Save Changes</BaseButton>
-      </div>
-
-    </div>
-  </BaseModal>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
-import BaseModal from '~/components/ui/BaseModal.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
-import BaseInput from '~/components/ui/BaseInput.vue'
-
 import { useMarketplace } from '~/composables/useMarketplace'
 const { editListing, loading } = useMarketplace()
 
@@ -119,69 +112,5 @@ const handleSave = async () => {
 </script>
 
 <style scoped>
-.content { display: flex; flex-direction: column; gap: 20px; }
-h2 { margin: 0; font-size: 22px; }
-.input-group { display: flex; flex-direction: column; gap: 8px; }
-
-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-}
-
-.toggle-row { display: flex; gap: 12px; }
-
-.toggle-btn {
-  flex: 1;
-  padding: 10px;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  background: white;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  color: #555;
-  transition: all 0.2s;
-}
-
-.toggle-btn.active {
-  border-color: #6C3BFF;
-  background: #f3eeff;
-  color: #6C3BFF;
-}
-
-.select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-  background: #fff;
-  cursor: pointer;
-}
-
-.checkbox-row {
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
-}
-
-.checkbox-row input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: #6C3BFF;
-}
-
-.checkbox-row label { font-weight: 400; }
-.upload-row { display: flex; align-items: center; gap: 12px; }
-.filename { font-size: 14px; color: #888; }
 .hidden-input { display: none; }
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 8px;
-}
 </style>

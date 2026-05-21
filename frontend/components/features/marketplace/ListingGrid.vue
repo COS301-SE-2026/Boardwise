@@ -1,5 +1,6 @@
 <template> 
-    <div class="grid">
+    <div class="d-flex flex-wrap ga-6 w-100">
+
 
         <ListingCard 
             v-for="listing in listings"
@@ -11,22 +12,5 @@
 
 <script setup>
 import ListingCard from './ListingCard.vue'
-defineProps({
-    listings: {
-        type:Array,
-        default: () => []
-    }
-})
+import { listings } from '~/services/mockData/listings'
 </script>
-
-<style scoped>
-.grid {
-    display: flex;
-
-    grid-template-columns:
-        repeat(auto-fit, minmax(240px, 1fr)); /* auto wraps to the device (desktop and mobile) */
-
-    gap: 24px;
-    width: 100%;
-}
-</style>

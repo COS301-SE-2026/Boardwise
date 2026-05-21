@@ -1,69 +1,38 @@
 <template>
-  <BaseModal v-model="open">
-    <div class="content">
-
+  <v-dialog v-model="open" max-width="500">
+    <v-card class="pa-6 d-flex flex-column ga-6">
+      
       <h2>Add a Game</h2>
 
-      <div class="form">
-        <div class="input-group">
-          <label>Game Name</label>
-          <BaseInput
-            v-model="title"
-            placeholder="Please enter"
+      <div class="d-flex flex-column ga-4">
+        <v-text-field v-model="title" label="Game Name" placeholder="Please enter" variant="outlined" density="compact" hide-details />
+
+          <v-select
+            v-model="category"
+            label="Game Genre / Category"
+            :items="['Strategy','Family','Abstract','Party','Cooperative','Thematic','War','Other']"
+            variant="outlined"
+            density="compact"
+            hide-details
           />
-        </div>
 
-        <div class="input-group">
-          <label>Game Genre / Category</label>
-          <select v-model="category" class="select">
-            <option value="" disabled>Select Option</option>
-            <option>Strategy</option>
-            <option>Family</option>
-            <option>Abstract</option>
-            <option>Party</option>
-            <option>Cooperative</option>
-            <option>Thematic</option>
-            <option>War</option>
-            <option>Other</option>
-          </select>
-        </div>
-
-        <div class="input-group">
-          <label>Game Cover</label>
-          <div class="upload-row">
-            <BaseButton variant="secondary" @click="triggerUpload">
-              Upload Game Cover
-            </BaseButton>
-            <span class="filename">{{ fileName || '···' }}</span>
-            <input
-              ref="fileInput"
-              type="file"
-              accept="image/*"
-              class="hidden-input"
-              @change="handleFileChange"
-            />
-          </div>
+        <div class="d-flex align-center ga-3">
+          <v-btn variant="outlined" color="primary" @click="triggerUpload">Upload Game Cover</v-btn>
+          <span class="text-grey text-body-2">{{ fileName || '···' }}</span>
+          <input ref="fileInput" type="file" accept="image/*" class="hidden-input" @change="handleFileChange" />
         </div>
       </div>
 
-      <div class="actions">
-        <BaseButton variant="secondary" @click="closeModal">
-          Cancel
-        </BaseButton>
-        <BaseButton @click="handleConfirm">
-          Add
-        </BaseButton>
-      </div>
+        <div class="d-flex justify-space-between ga-3">
+          <v-btn variant="outlined" color="primary" @click="closeModal">Cancel</v-btn>
+          <v-btn color="primary" @click="handleConfirm">Add</v-btn>
+        </div>
 
-    </div>
-  </BaseModal>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
-import BaseModal from '~/components/ui/BaseModal.vue'
-import BaseInput from '~/components/ui/BaseInput.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
-
 const open = defineModel()
 const emit = defineEmits(['confirm'])
 
@@ -100,64 +69,14 @@ const handleConfirm = () => {
 </script>
 
 <style scoped>
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
+
 
 h2 {
   margin: 0;
   font-size: 24px;
 }
 
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-}
-
-.select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-  background: #fff;
-  cursor: pointer;
-  appearance: auto;
-}
-
-.upload-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.filename {
-  font-size: 14px;
-  color: #888;
-}
-
 .hidden-input {
   display: none;
-}
-
-.actions {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
 }
 </style>

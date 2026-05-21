@@ -1,43 +1,16 @@
 <template>
-  <BaseCard 
-    class="add-card"
-    @click="$emit('click')"
-  >
-
-    <div class="plus">
-      +
-    </div>
-
-    <p>Add Listing</p>
-
-  </BaseCard>
+<v-card
+  class="add-card d-flex flex-column justify-center align-center"
+  height="320"
+  variant="outlined"
+  style="border: 2px dashed #ccc; cursor: pointer;"
+  @click="$emit('click')"
+>
+  <span class="text-h3 font-weight-bold">+</span>
+  <p class="mt-3 font-weight-semibold">Add Listing</p>
+</v-card>
 </template>
 
 <script setup>
-import BaseCard from '~/components/ui/BaseCard.vue'
+
 </script>
-
-<style scoped>
-.add-card {
-  height: 320px;
-
-  border: 2px dashed #ccc;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-
-  cursor: pointer;
-}
-
-.plus {
-  font-size: 48px;
-  font-weight: bold;
-}
-
-p {
-  margin-top: 12px;
-  font-weight: 600;
-}
-</style>

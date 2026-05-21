@@ -1,87 +1,59 @@
 <template>
-  <BaseModal v-model="open">
-
-    <div class="content">
+  <v-dialog v-model="open" max-width="500">
+    <v-card class="pa-6 d-flex flex-column ga-5">
 
       <h2>Create Listing</h2>
 
-      <div class="input-group">
-        <label>Listing Title</label>
-        <BaseInput v-model="title" placeholder="Game title" />
-      </div>
+      <v-text-field v-model="title" label="Listing Title" placeholder="Game title" variant="outlined" density="compact" hide-details />
 
-      <div class="input-group">
-        <label>Type</label>
-        <div class="toggle-row">
-          <button :class="['toggle-btn', { active: type === 'sell' }]" @click="type = 'sell'">Sell</button>
-          <button :class="['toggle-btn', { active: type === 'rent' }]" @click="type = 'rent'">Rent</button>
-        </div>
-      </div>
 
-      <div v-if="type" class="input-group">
-        <label>Amount (R)</label>
-        <BaseInput v-model="price" placeholder="e.g. 650" type="number" />
-      </div>
+      <v-btn-toggle v-model="type" color="primary" variant="outlined" mandatory>
+        <v-btn value="sell">Sell</v-btn>
+        <v-btn value="rent">Rent</v-btn>
+      </v-btn-toggle>
 
-      <div v-if="type === 'rent'" class="input-group">
-        <label>Rental Period</label>
-        <select v-model="rentalPeriod" class="select">
-          <option value="" disabled>Select period</option>
-          <option value="1d">1 day</option>
-          <option value="3d">3 days</option>
-          <option value="1w">1 week</option>
-          <option value="2w">2 weeks</option>
-          <option value="1m">1 month</option>
-        </select>
-      </div>
+      <v-text-field v-if="type" v-model="price" label="Amount" prefix="R" placeholder="e.g. 650" type="number" variant="outlined" density="compact" hide-details />
 
-      <div v-if="type === 'sell'" class="input-group checkbox-row">
-        <input id="negotiate" v-model="negotiable" type="checkbox" />
-        <label for="negotiate">Open to negotiation</label>
-      </div>
+      <v-select v-if="type === 'rent'" v-model="rentalPeriod" 
+      label="Rental Period" 
+      :items="['1 day','3 days','1 week','2 weeks','1 month']" 
+      variant="outlined"
+      density="compact" 
+      hide-details />
 
-      <div class="input-group">
-        <label>Location</label>
-        <BaseInput v-model="location" placeholder="e.g. Pretoria" />
-      </div>
+
+      <v-checkbox v-if="type === 'sell'" v-model="negotiable" label="Open to negotiation" color="primary" density="compact" hide-details />
+
+
+      <v-text-field v-model="location" 
+      label="Location" 
+      placeholder="e.g. Pretoria" 
+      variant="outlined" 
+      density="compact" 
+      hide-details />
+
 
       <!-- <div class="input-group">
         <label>Image URL</label>
         <BaseInput v-model="image" placeholder="https://..." />
       </div> -->
 
-      <div class="input-group">
-        <label>Game Cover</label>
-        <div class="upload-row">
-          <BaseButton variant="secondary" @click="triggerUpload">
-            Upload Image
-          </BaseButton>
-          <span class="filename">{{ fileName || '···' }}</span>
-          <input
-            ref="fileInput"
-            type="file"
-            accept="image/*"
-            class="hidden-input"
-            @change="handleFileChange"
-          />
-        </div>
+      <div class="d-flex align-center ga-3">
+        <v-btn variant="outlined" color="primary" @click="triggerUpload">Upload Image</v-btn>
+        <span class="text-grey text-body-2">{{ fileName || '···' }}</span>
+        <input ref="fileInput" type="file" accept="image/*" class="hidden-input" @change="handleFileChange" />
       </div>
 
-      <div class="actions">
-        <BaseButton variant="secondary" @click="closeModal">Cancel</BaseButton>
-        <BaseButton @click="handleConfirm">Create Listing</BaseButton>
+      <div class="d-flex justify-end ga-3">
+        <v-btn variant="outlined" color="primary" @click="closeModal">Cancel</v-btn>
+        <v-btn color="primary" @click="handleConfirm">Create Listing</v-btn>
       </div>
 
-    </div>
-
-  </BaseModal>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
-import BaseModal from '~/components/ui/BaseModal.vue'
-import BaseInput from '~/components/ui/BaseInput.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
-
 const open = defineModel()
 const emit = defineEmits(['confirm'])
 
@@ -173,32 +145,6 @@ const handleConfirm = () => {
 </script>
 
 <style scoped>
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 8px;
-  box-sizing: border-box;
-  width: 100%;
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-.upload-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.filename {
-  font-size: 14px;
-  color: #888;
-}
-
 .hidden-input {
   display: none;
 }

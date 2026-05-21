@@ -1,5 +1,5 @@
 <template>
-  <div class="grid">
+  <div class="d-flex flex-wrap ga-6 mt-8">
 
     <GameCard
       v-for="game in games"
@@ -27,12 +27,3 @@ defineProps({
 
 defineEmits(['add-game'])
 </script>
-
-<style scoped>
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 24px;
-  margin-top: 32px;
-}
-</style>

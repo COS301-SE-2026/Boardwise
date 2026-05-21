@@ -1,47 +1,37 @@
 <template>
-  <BaseCard class="header">
+  <v-card class="pa-8 rounded-xl w-100" color="#F9F4E3" flat>
 
-    <div class="profile-top">
+    <div class="d-flex justify-space-between align-center flex-wrap ga-6">
 
-      <div class="left">
+      <div class="d-flex align-center ga-6 flex-wrap">
 
-        <BaseAvatar
-          :src="user.profilePicture ?? '/images/avatar.jpg'"
-          size="xl"
-        />
+        <v-avatar size="80">
+          <v-img :src="user.profilePicture ?? '/images/avatar.jpg'" cover />
+        </v-avatar>
 
-        <div class="info">
-
-          <h1>{{ user.fullName }}</h1>
-
-          <p class="username">
-            @{{ user.username }}
-          </p>
-
-          <p class="bio" v-if="user.preferences.visibility === 'public'" v-for="genre in user.preferences.genres">
-            {{ genre }}
-          </p>
-
+        <div class="d-flex flex-column ga-2">
+          <h1 class="ma-0" style="font-size: 42px;">{{ user.fullName }}</h1>
+          <p class="text-primary font-weight-bold ma-0">@{{ user.username }}</p>
+          <template v-if="user.preferences?.visibility === 'public'">
+            <p v-for="genre in user.preferences.genres" :key="genre" class="text-grey ma-0">
+              {{ genre }}
+            </p>
+          </template>
         </div>
 
       </div>
 
-      <BaseButton @click="showEdit = true">
-        Edit Profile
-      </BaseButton>
+      <v-btn color="primary" @click="showEdit = true">Edit Profile</v-btn>
 
-      <EditProfileModal  v-model="showEdit" :user="user" @save="$emit('save', $event)"/>
+      <EditProfileModal v-model="showEdit" :user="user" @save="$emit('save', $event)" />
 
     </div>
 
-  </BaseCard>
+  </v-card>
 </template>
 
 <script setup>
-import BaseAvatar from '~/components/ui/BaseAvatar.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
-import BaseCard from '~/components/ui/BaseCard.vue'
-import EditProfileModal from './EditProfileModal.vue';
+import EditProfileModal from './EditProfileModal.vue'
 
 defineProps({
   user: {
@@ -50,58 +40,7 @@ defineProps({
   }
 })
 
+defineEmits(['save'])
+
 const showEdit = ref(false)
 </script>
-
-<style scoped>
-.header {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 32px;
-    border-radius: 24px;
-    background: #F9F4E3;
-}
-
-.profile-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.left {
-  display: flex;
-  gap: 24px;
-  align-items: center;
-}
-
-.info h1 {
-  margin: 0;
-  font-size: 42px;
-}
-
-.username {
-  color: #6C3BFF;
-  font-weight: bold;
-  margin-top: 8px;
-}
-
-.bio {
-  color: #555;
-  margin-top: 12px;
-}
-
-@media (max-width: 768px) {
-  .profile-top {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 24px;
-  }
-
-  .left {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-</style> 

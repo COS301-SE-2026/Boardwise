@@ -1,32 +1,21 @@
 <template>
-  <BaseCard class="card" 
-    @click="showDetail = true"
-    style="cursor: pointer;"
-  >
+  <v-card hover @click="showDetail = true" style="cursor: pointer; overflow: hidden;">
 
-    <img
-      :src="image"
-      :alt="title"
-    />
+    <v-img :src="image" :alt="title" height="180" cover />
 
-    <div class="content">
-
-      <h3>{{ title }}</h3>
-
-      <p>{{ category }}</p>
-
-    </div>
-
+    <v-card-text>
+      <h3 class="mb-2">{{ title }}</h3>
+      <p class="text-grey">{{ category }}</p>
+    </v-card-text>
     <!-- <RulebookDetail 
       v-model="showDetail"
       :game = "{ title, category, image }"
     /> -->
 
-  </BaseCard>
+  </v-card>
 </template>
 
 <script setup>
-import BaseCard from '~/components/ui/BaseCard.vue'
 // import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
 
 defineProps({
@@ -37,33 +26,3 @@ defineProps({
 
 const showDetail = ref(false)
 </script>
-
-<style scoped>
-.card {
-  overflow: hidden;
-  padding: 0;
-}
-
-.card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-}
-
-.content {
-  padding: 16px;
-}
-
-h3 {
-  margin: 0;
-}
-
-p {
-  margin-top: 8px;
-  color: #666;
-}
-</style>
