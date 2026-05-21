@@ -16,7 +16,8 @@ import com.boardwise.backend.marketplace.model.Listing;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.marketplace.service.ListingService;
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.user_service.repos.UserRepository;
+
+import software.amazon.awssdk.services.s3.S3Client;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,8 +33,11 @@ public class ListingServiceTest {
         @Mock
         private ListingRepository listingRepository;
 
+        // ListingService constructor requires S3Client — must be mocked or @InjectMocks
+        // cannot instantiate the service. Upload calls are wrapped in try/catch so the
+        // S3Client mock silently does nothing (returns null), which is fine.
         @Mock
-        private UserRepository userRepository;
+        private S3Client s3Client;
 
         @Mock
         private JWTService jwtService;
@@ -63,7 +67,7 @@ public class ListingServiceTest {
                                 test_genres, null);
         }
 
-        // CREATE
+        // --- CREATE ------------------------------------------------------------------
 
         @Test
         void create_SALE_listing_valid_details() {
@@ -72,6 +76,9 @@ public class ListingServiceTest {
                                 test_description, test_genres, List.of());
 
                 when(jwtService.extractUsername(test_token)).thenReturn(test_username);
+                // createListing calls save TWICE: once to get the generated ID (before upload),
+                // then again after setting the imageUrl. Both calls must return a valid Listing
+                // or mapToResponse will NPE.
                 when(listingRepository.save(any())).thenReturn(savedListing);
 
                 ListingResponse response = listingService.createListing(req, test_token, test_image);
@@ -82,32 +89,8 @@ public class ListingServiceTest {
                 assertEquals(test_price, response.price());
                 assertEquals(test_username, response.username());
                 assertEquals(ListingStatus.AVAILABLE, response.status());
-                verify(listingRepository, times(1)).save(any());
-        }
-
-        @Test
-        void getByFilter_excludes_sold_listings() {
-                // ARRANGE
-                Listing availableListing = new Listing(
-                                "id1", test_username, "boardgame", "sale",
-                                100.00, "Catan", test_description, null,
-                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-                                List.of("economic"), null);
-
-                Listing soldListing = new Listing(
-                                "id2", test_username, "boardgame", "sale",
-                                200.00, "Monopoly", test_description, null,
-                                ListingStatus.SOLD, LocalDateTime.now(), LocalDateTime.now(),
-                                List.of("economic"), null);
-
-                when(listingRepository.findAll()).thenReturn(List.of(availableListing, soldListing));
-
-                // ACT
-                List<ListingResponse> results = listingService.getByFilter(null, null, null, null, null);
-
-                // ASSERT
-                assertEquals(1, results.size());
-                assertEquals("Catan", results.get(0).gameTitle());
+                // Exactly two saves: first to persist, second to attach the image URL
+                verify(listingRepository, times(2)).save(any());
         }
 
         @Test
@@ -130,7 +113,7 @@ public class ListingServiceTest {
 
                 assertNotNull(response);
                 assertEquals("rental", response.listingType());
-                verify(listingRepository, times(1)).save(any());
+                verify(listingRepository, times(2)).save(any());
         }
 
         @Test
@@ -174,6 +157,8 @@ public class ListingServiceTest {
 
         @Test
         void create_RENTAL_listing_missing_period_throws() {
+                // An empty list is normalised to null inside createListing, so the rental
+                // period check fires and throws.
                 ListingRequest req = new ListingRequest(
                                 "boardgame", "rental", test_price, "Catan",
                                 test_description, test_genres, List.of());
@@ -225,7 +210,7 @@ public class ListingServiceTest {
                 verify(listingRepository, never()).save(any());
         }
 
-        // DELETE
+        // --- DELETE ------------------------------------------------------------------
 
         @Test
         void delete_listing_owner_succeeds() {
@@ -257,7 +242,7 @@ public class ListingServiceTest {
                 verify(listingRepository, never()).deleteById(any());
         }
 
-        // GET BY ID
+        // --- GET BY ID ---------------------------------------------------------------
 
         @Test
         void getListingById_returns_listing_when_found() {
@@ -278,8 +263,8 @@ public class ListingServiceTest {
                                 () -> listingService.getListingById(test_listing_id));
         }
 
-        // GET ALL ACTIVE
-        //
+        // --- GET ALL ACTIVE
+        // -----------------------------------------------------------
 
         @Test
         void getAllActiveListings_returns_only_available() {
@@ -292,8 +277,8 @@ public class ListingServiceTest {
                 assertEquals(ListingStatus.AVAILABLE, results.get(0).status());
         }
 
-        // GET USER LISTINGS
-        //
+        // --- GET USER LISTINGS
+        // --------------------------------------------------------
 
         @Test
         void getUserListings_returns_listings_for_user() {
@@ -316,59 +301,149 @@ public class ListingServiceTest {
                 assertTrue(results.isEmpty());
         }
 
-        // UPDATE
+        // --- FILTER
+        // -------------------------------------------------------------------
 
-        // @Test
-        // void updateListing_owner_succeeds() {
-        // ListingRequest req = new ListingRequest(
-        // "boardgame", "sale", 300.00, "Catan Updated",
-        // "New description", test_genres, List.of());
+        @Test
+        void getByFilter_excludes_sold_listings() {
+                Listing availableListing = new Listing(
+                                "id1", test_username, "boardgame", "sale",
+                                100.00, "Catan", test_description, null,
+                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                                List.of("economic"), null);
 
-        // Listing updatedListing = new Listing(
-        // test_listing_id, test_username, "boardgame", "sale",
-        // 300.00, "Catan Updated", "New description", null,
-        // ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-        // test_genres, null);
+                Listing soldListing = new Listing(
+                                "id2", test_username, "boardgame", "sale",
+                                200.00, "Monopoly", test_description, null,
+                                ListingStatus.SOLD, LocalDateTime.now(), LocalDateTime.now(),
+                                List.of("economic"), null);
 
-        // when(jwtService.extractUsername(test_token)).thenReturn(test_username);
-        // when(listingRepository.findById(test_listing_id)).thenReturn(Optional.of(savedListing));
-        // when(listingRepository.existsById(test_listing_id)).thenReturn(true);
-        // when(listingRepository.save(any())).thenReturn(updatedListing);
+                when(listingRepository.findAll()).thenReturn(List.of(availableListing, soldListing));
 
-        // ListingResponse response = listingService.updateListing(test_listing_id, req,
-        // test_token);
+                List<ListingResponse> results = listingService.getByFilter(null, null, null, null, null);
 
-        // assertNotNull(response);
-        // assertEquals("Catan Updated", response.gameTitle());
-        // assertEquals(300.00, response.price());
-        // }
+                assertEquals(1, results.size());
+                assertEquals("Catan", results.get(0).gameTitle());
+        }
 
-        // @Test
-        // void updateListing_not_owner_throws_forbidden() {
-        // ListingRequest req = new ListingRequest(
-        // "boardgame", "sale", 300.00, "Catan Updated",
-        // "New description", test_genres, List.of());
+        @Test
+        void getByFilter_filters_by_listing_type() {
+                Listing saleListing = new Listing(
+                                "id1", test_username, "boardgame", "sale",
+                                100.00, "Catan", test_description, null,
+                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                                List.of("economic"), null);
 
-        // when(jwtService.extractUsername(test_token)).thenReturn("someOtherUser");
-        // when(listingRepository.findById(test_listing_id)).thenReturn(Optional.of(savedListing));
+                Listing rentalListing = new Listing(
+                                "id2", test_username, "boardgame", "rental",
+                                50.00, "Monopoly", test_description, null,
+                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                                List.of("economic"), null);
 
-        // assertThrows(ForbiddenException.class,
-        // () -> listingService.updateListing(test_listing_id, req, test_token));
-        // verify(listingRepository, never()).save(any());
-        // }
+                when(listingRepository.findAll()).thenReturn(List.of(saleListing, rentalListing));
 
-        // @Test
-        // void updateListing_not_found_throws() {
-        // ListingRequest req = new ListingRequest(
-        // "boardgame", "sale", 300.00, "Catan Updated",
-        // "New description", test_genres, List.of());
+                List<ListingResponse> results = listingService.getByFilter("sale", null, null, null, null);
 
-        // when(jwtService.extractUsername(test_token)).thenReturn(test_username);
-        // when(listingRepository.findById(test_listing_id)).thenReturn(Optional.empty());
+                assertEquals(1, results.size());
+                assertEquals("sale", results.get(0).listingType());
+        }
 
-        // assertThrows(IllegalArgumentException.class,
-        // () -> listingService.updateListing(test_listing_id, req, test_token));
-        // verify(listingRepository, never()).save(any());
-        // }
+        @Test
+        void getByFilter_filters_by_price_range() {
+                Listing cheap = new Listing(
+                                "id1", test_username, "boardgame", "sale",
+                                50.00, "Catan", test_description, null,
+                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                                List.of("economic"), null);
 
+                Listing expensive = new Listing(
+                                "id2", test_username, "boardgame", "sale",
+                                500.00, "Gloomhaven", test_description, null,
+                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                                List.of("adventure"), null);
+
+                when(listingRepository.findAll()).thenReturn(List.of(cheap, expensive));
+
+                List<ListingResponse> results = listingService.getByFilter(null, null, 0.0, 100.0, null);
+
+                assertEquals(1, results.size());
+                assertEquals("Catan", results.get(0).gameTitle());
+        }
+
+        @Test
+        void getByFilter_filters_by_genre() {
+                Listing economic = new Listing(
+                                "id1", test_username, "boardgame", "sale",
+                                100.00, "Catan", test_description, null,
+                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                                List.of("economic"), null);
+
+                Listing adventure = new Listing(
+                                "id2", test_username, "boardgame", "sale",
+                                200.00, "Gloomhaven", test_description, null,
+                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                                List.of("adventure"), null);
+
+                when(listingRepository.findAll()).thenReturn(List.of(economic, adventure));
+
+                List<ListingResponse> results = listingService.getByFilter(null, null, null, null, List.of("economic"));
+
+                assertEquals(1, results.size());
+                assertEquals("Catan", results.get(0).gameTitle());
+        }
+
+        // --- UPDATE ------------------------------------------------------------------
+
+        @Test
+        void updateListing_owner_succeeds() {
+                ListingRequest req = new ListingRequest(
+                                "boardgame", "sale", 300.00, "Catan Updated",
+                                "New description", test_genres, List.of());
+
+                Listing updatedListing = new Listing(
+                                test_listing_id, test_username, "boardgame", "sale",
+                                300.00, "Catan Updated", "New description", null,
+                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                                test_genres, null);
+
+                when(jwtService.extractUsername(test_token)).thenReturn(test_username);
+                when(listingRepository.findById(test_listing_id)).thenReturn(Optional.of(savedListing));
+                when(listingRepository.save(any())).thenReturn(updatedListing);
+
+                // Pass null image — update skips the upload branch when img is null/empty
+                ListingResponse response = listingService.updateListing(test_listing_id, req, test_token, null);
+
+                assertNotNull(response);
+                assertEquals("Catan Updated", response.gameTitle());
+                assertEquals(300.00, response.price());
+                verify(listingRepository, times(1)).save(any());
+        }
+
+        @Test
+        void updateListing_not_owner_throws_forbidden() {
+                ListingRequest req = new ListingRequest(
+                                "boardgame", "sale", 300.00, "Catan Updated",
+                                "New description", test_genres, List.of());
+
+                when(jwtService.extractUsername(test_token)).thenReturn("someOtherUser");
+                when(listingRepository.findById(test_listing_id)).thenReturn(Optional.of(savedListing));
+
+                assertThrows(ForbiddenException.class,
+                                () -> listingService.updateListing(test_listing_id, req, test_token, null));
+                verify(listingRepository, never()).save(any());
+        }
+
+        @Test
+        void updateListing_not_found_throws() {
+                ListingRequest req = new ListingRequest(
+                                "boardgame", "sale", 300.00, "Catan Updated",
+                                "New description", test_genres, List.of());
+
+                when(jwtService.extractUsername(test_token)).thenReturn(test_username);
+                when(listingRepository.findById(test_listing_id)).thenReturn(Optional.empty());
+
+                assertThrows(IllegalArgumentException.class,
+                                () -> listingService.updateListing(test_listing_id, req, test_token, null));
+                verify(listingRepository, never()).save(any());
+        }
 }
