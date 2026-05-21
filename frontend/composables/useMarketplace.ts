@@ -1,4 +1,4 @@
-import { getListings, createListing, getUserListings, updateListing } from '@/services/marketplaceService'
+import { getListings, createListing, getUserListings, updateListing, deleteListing  } from '@/services/marketplaceService'
 import { ref } from 'vue'
 import axios from 'axios'
 
@@ -73,5 +73,20 @@ const editListing = async (id: string, listingData: any, image?: File) => {
     }
 }
 
-return { listings, loading, error, fetchListings, addListing, fetchUserListing, editListing };
+const removeListing = async (id: string) => {
+  loading.value = true;
+  error.value = null;
+  try {
+    await deleteListing(id);
+    await fetchUserListing(); // refresh list after delete
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      error.value = err.response?.data?.message ?? 'Failed to delete listing';
+    }
+  } finally {
+    loading.value = false;
+  }
+}
+
+return { listings, loading, error, fetchListings, addListing, fetchUserListing, editListing, removeListing };
 }

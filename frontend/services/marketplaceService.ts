@@ -30,3 +30,7 @@ export const updateListing = (id: string, data: any, image?: File) => {
         headers: { 'Content-Type': 'multipart/form-data' }
     });
 }
+
+//DELETE LISTING 
+export const deleteListing = (id: string) => 
+  api.delete(`marketplace/delete/listing/${id}`)
