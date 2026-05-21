@@ -1,11 +1,11 @@
 <template>
-  <section class="section">
+  <section class="mt-8">
 
-    <div class="top">
+    <div class="d-flex justify-space-between align-center mb-6 flex-wrap ga-4">
       <SectionTitle title="My Games" />
-      <div class="actions">
-        <BaseButton variant="secondary">Filter</BaseButton>
-        <BaseButton @click="showAddGame = true">+ Add Game</BaseButton>
+      <div class="d-flex ga-3">
+        <v-btn variant="outlined" color="primary">Filter</v-btn>
+        <v-btn color="primary" @click="showAddGame = true">+ Add Game</v-btn>
       </div>
     </div>
 
@@ -26,7 +26,6 @@
 import GamesGrid from './GamesGrid.vue'
 import AddGameModal from './AddGameModal.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
 
 const props = defineProps({
   games: Array
@@ -43,27 +42,3 @@ const addGame = (game) => {
   })
 }
 </script>
-
-<style scoped>
-.section { margin-top: 32px; }
-
-.top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.actions {
-  display: flex;
-  gap: 12px;
-}
-
-@media (max-width: 768px) {
-  .top {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-}
-</style>

@@ -1,102 +1,122 @@
 <template>
-  <BaseModal v-model="open">
+  <v-dialog v-model="open" max-width="500">
+    <v-card class="pa-6 d-flex flex-column ga-5">
 
-    <div class="content">
+      <h2>Edit Listing</h2>
 
-      <h2>Edit Profile</h2>
+      <v-text-field v-model="gameTitle"
+        label="Game Title"
+        placeholder="e.g. Monopoly"
+        variant="outlined"
+        density="compact"
+        hide-details />
 
-      <BaseInput
-        v-model="name"
-        placeholder="Name"
-      />
+      <v-select v-model="itemType"
+        label="Item Type"
+        :items="['boardgame','card','puzzle']"
+        variant="outlined"
+        density="compact"
+        hide-details />
 
-      <BaseInput
-        v-model="username"
-        placeholder="Username"
-      />
+      <v-btn-toggle v-model="listingType" color="primary" variant="outlined" mandatory>
+        <v-btn value="sale">Sell</v-btn>
+        <v-btn value="rental">Rent</v-btn>
+      </v-btn-toggle>
 
-      <BaseInput
-        v-model="location"
-        placeholder="Location"
-      />
+      <v-text-field v-model="price"
+        label="Amount"
+        prefix="R"
+        placeholder="e.g. 650"
+        type="number"
+        variant="outlined"
+        density="compact"
+        hide-details />
 
-      <BaseTextarea
-        v-model="bio"
-        placeholder="Bio"
-      />
+      <v-text-field v-if="listingType === 'rental'"
+        v-model="startDate"
+        label="Start Date"
+        type="date"
+        variant="outlined"
+        density="compact"
+        hide-details />
 
-      <div class="actions">
+      <v-text-field v-if="listingType === 'rental'"
+        v-model="endDate"
+        label="End Date"
+        type="date"
+        variant="outlined"
+        density="compact"
+        hide-details />
 
-        <BaseButton
-          variant="secondary"
-          @click="open = false"
-          
-        >
-          Cancel
-        </BaseButton>
+      <v-textarea v-model="description"
+        label="Description"
+        placeholder="Describe the item..."
+        variant="outlined"
+        density="compact"
+        hide-details />
 
-        <BaseButton 
-        @click="handleSave"
-        :disabled="isLoading"
-        >
-          {{ isLoading ? 'Saving...' : 'Save Changes' }}
-        </BaseButton>
-
+      <div class="d-flex align-center ga-3">
+        <v-btn variant="outlined" color="primary" @click="triggerUpload">Upload Image</v-btn>
+        <span class="text-grey text-body-2">{{ imageFile?.name ?? currentImageName ?? '···' }}</span>
+        <input ref="fileInput" type="file" accept="image/*" class="hidden-input" @change="handleFileChange" />
       </div>
 
-    </div>
+      <div class="d-flex justify-end ga-3">
+        <v-btn variant="outlined" color="primary" @click="open = false">Cancel</v-btn>
+        <v-btn color="primary" :loading="loading" @click="handleSave">Save Changes</v-btn>
+      </div>
 
-  </BaseModal>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
-import BaseModal from '~/components/ui/BaseModal.vue'
-import BaseInput from '~/components/ui/BaseInput.vue'
-import BaseTextarea from '~/components/ui/BaseTextArea.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
-import { useProfile } from '~/composables/useProfile'
+import { useMarketplace } from '~/composables/useMarketplace'
 
-const { updateProfile, isLoading } = useProfile();
+const { editListing, loading } = useMarketplace()
 
 const open = defineModel()
-const emit = defineEmits(['save'])
+const props = defineProps({ listing: Object })
+const emit = defineEmits(['saved'])
 
-const props = defineProps({
-  user : {
-    type: Object,
-    required : true
-  }
-})
+const gameTitle   = ref(props.listing?.gameTitle ?? '')
+const itemType    = ref(props.listing?.itemType ?? '')
+const listingType = ref(props.listing?.listingType ?? 'sale')
+const price       = ref(props.listing?.price ?? '')
+const description = ref(props.listing?.description ?? '')
+const startDate   = ref(props.listing?.rentalPeriod?.startDate ?? '')
+const endDate     = ref(props.listing?.rentalPeriod?.endDate ?? '')
+const imageFile   = ref(null)
+const fileInput   = ref(null)
 
-const mockUser = {
-  name: 'Alexandra Lee',
-  username: 'alexalee',
-  location: 'Pretoria, South Africa',
-  bio: 'Board game lover • Strategy enthusiast'
+const currentImageName = computed(() =>
+  props.listing?.imageUrl ? props.listing.imageUrl.split('/').pop() : null
+)
+
+const triggerUpload = () => fileInput.value?.click()
+
+const handleFileChange = (e) => {
+  imageFile.value = e.target.files[0] ?? null
 }
 
-const name = ref(props.user.fullName)
-const username = ref(props.user.username)
-const location = ref(mockUser.location)
-const bio = ref(props.user.preferences.genres.join('•'))
-
 const handleSave = async () => {
-  const response = await updateProfile(username.value)
-  emit('save', response.data)  
+  const listingData = {
+    gameTitle: gameTitle.value,
+    itemType: itemType.value,
+    listingType: listingType.value,
+    price: Number(price.value),
+    description: description.value,
+    genres: props.listing?.genres ?? [],
+    rentalPeriod: listingType.value === 'rental'
+      ? [startDate.value, endDate.value]
+      : null
+  }
+  await editListing(props.listing.listingId, listingData, imageFile.value ?? undefined)
+  emit('saved')
   open.value = false
 }
 </script>
 
 <style scoped>
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
+.hidden-input { display: none; }
 </style>
