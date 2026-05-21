@@ -19,14 +19,30 @@ export default defineNuxtConfig({
           class: 'text-none'
         },
 
+        VTextField: {
+          variant: 'outlined',
+          density: 'compact',
+          hideDetails: true,
+          rounded: 'lg',
+        },
+
+        VSelect: {
+          variant: 'outlined',
+          density: 'compact',
+          hideDetails: true,
+          rounded: 'lg',
+        },
+
+        VTextarea: {
+          variant: 'outlined',
+          density: 'compact',
+          hideDetails: true,
+          rounded: 'lg',
+        },
+
         VCard: {
           rounded: 'xl',
           elevation: 1
-        },
-
-        VTextField: {
-          variant: 'outlined',
-          rounded: 'lg'
         }
       },
 
