@@ -1,7 +1,7 @@
 <template>
   <div class="message" :class="{ 'message--own': message.isOwn }">
 
-    <BaseAvatar :src="message.avatar" />
+    <BaseAvatar :src="message.avatar" size="md"/>
 
     <div class="message__body">
 
@@ -34,7 +34,7 @@ defineProps({
 <style scoped>
 .message {
   display: flex;
-  gap: 12px;
+  gap: var(--space-3);
   align-items: flex-start;
 }
 
@@ -45,7 +45,7 @@ defineProps({
 .message__body {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
   max-width: 60%;
 }
 
@@ -55,7 +55,7 @@ defineProps({
 
 .message__meta {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: baseline;
 }
 
@@ -64,27 +64,28 @@ defineProps({
 }
 
 .message__name {
-  font-weight: 600;
-  font-size: 0.875rem;
-  color: #111;
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-small);
+  color: var(--color-text);
 }
 
 .message__time {
-  font-size: 0.75rem;
-  color: #999;
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
 }
 
 .bubble :deep(p) {
   margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.5;
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
 }
 
 .message--own .bubble {
-  background: #6C3BFF;
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
 }
 
 .message--own .bubble :deep(p) {
-  color: white;
+  color: var(--color-text-inverse);
 }
 </style>
