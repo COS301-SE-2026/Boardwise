@@ -1,17 +1,17 @@
 <template>
-  <BaseTabs
-    :tabs="tabs"
-    v-model="selectedTab"
-  />
+  <v-tabs v-model="selectedTab" color="primary">
+    <v-tab v-for="tab in tabs" :key="tab" :value="tab">
+      {{ tab }}
+    </v-tab>
+  </v-tabs>
 </template>
 
 <script setup>
-import BaseTabs from '~/components/ui/BaseTabs.vue'
 
 const tabs = [
   'Community Listings',
   'Web'
 ]
 
-const selectedTab = ref('Community')
+const selectedTab = ref('Community Listings')
 </script>
