@@ -1,29 +1,21 @@
 <template>
   <section class="section">
 
-    <SectionTitle title="About" />
-
     <BaseCard class="about-card">
-
-      <div class="row">
+      <v-card-text class="row">
         <h3>Description</h3>
         <p>{{ community.description }}</p>
-      </div>
+      </v-card-text>
 
-      <div class="row">
-        <h3>Type</h3>
-        <BaseBadge>{{ community.type }}</BaseBadge>
-      </div>
-
-      <div class="row">
+      <v-card-text class="row">
         <h3>Members</h3>
         <p>{{ community.members }} members</p>
-      </div>
+      </v-card-text>
 
-      <div class="row">
+      <v-card-text class="row">
         <h3>Rules</h3>
         <p>Be respectful. Stay on topic. Have fun!</p>
-      </div>
+      </v-card-text>
 
     </BaseCard>
 

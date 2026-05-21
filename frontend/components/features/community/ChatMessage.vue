@@ -10,9 +10,9 @@
         <span class="message__time">{{ message.time }}</span>
       </div>
 
-      <BaseCard class="bubble">
+      <div class="bubble">
         <p>{{ message.text }}</p>
-      </BaseCard>
+      </div>
 
     </div>
 
@@ -21,7 +21,6 @@
 
 <script setup>
 import BaseAvatar from '~/components/ui/BaseAvatar.vue'
-import BaseCard from '~/components/ui/BaseCard.vue'
 
 defineProps({
   message: {
@@ -74,18 +73,27 @@ defineProps({
   color: var(--color-text-muted);
 }
 
-.bubble :deep(p) {
+.bubble {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2) var(--space-4);
+  width: fit-content;
+}
+
+.bubble p {
   margin: 0;
   font-size: var(--fs-body);
   line-height: var(--lh-normal);
+  color: var(--color-text);
 }
 
 .message--own .bubble {
-  background: var(--color-primary) !important;
-  border-color: var(--color-primary) !important;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
 }
 
-.message--own .bubble :deep(p) {
+.message--own .bubble p {
   color: var(--color-text-inverse);
 }
 </style>

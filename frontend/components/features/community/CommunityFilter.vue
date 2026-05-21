@@ -3,7 +3,10 @@
 
     <h3>Community Genre</h3>
 
-    <BaseFilterGroup title="Visibility">
+    <BaseFilterGroup 
+      title="Visibility" 
+      :default-open="false"
+    >
       <v-checkbox
         v-for="type in types"
         :key="type"
@@ -15,7 +18,7 @@
       />
     </BaseFilterGroup>
 
-    <BaseFilterGroup title="Category">
+    <BaseFilterGroup title="Category" :default-open="false">
       <v-checkbox
         v-for="cat in categories"
         :key="cat"
