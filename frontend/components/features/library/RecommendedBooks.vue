@@ -1,16 +1,17 @@
 <template> 
-    <div class="recommended">
+    <div class="mt-10">
 
         <SectionTitle 
             title="Recommended For You"
         />
 
-        <div class="rulebooks-row">
-            <RulebookCard   
-                v-for="rulebook in rulebooks"
-                :key="rulebook.id"
-                :rulebook="rulebook"
-            />
+        <div class="d-flex ga-4 overflow-x-auto pb-3 mt-4">
+        <RulebookCard
+            v-for="rulebook in rulebooks"
+            :key="rulebook.id"
+            :rulebook="rulebook"
+            style="min-width: 180px; max-width: 180px;"
+        />
         </div>
     </div>
 </template>
@@ -26,21 +27,3 @@ defineProps({
     }
 })
 </script>
-
-<style scoped> 
-.recommended {
-  margin-top: 40px;
-}
-
-.rulebooks-row {
-    display: flex;
-    gap: 16px;
-    overflow-x: auto;
-    padding-bottom: 8px;
-}
-
-/* Hide scrollbar */
-.rulebooks-row::webkit-scrollbar {
-    display: none;
-}
-</style>

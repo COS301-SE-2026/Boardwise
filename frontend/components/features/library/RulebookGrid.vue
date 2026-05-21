@@ -1,13 +1,16 @@
 <template> 
-    <div class="grid">
-
-        <RulebookCard 
-            v-for="rulebook in rulebooks"
-            :key="rulebook.id"
-            :rulebook="rulebook"
-            @click="$emit('select', rulebook)"
-        />
-    </div>
+    <v-row class="mt-8">
+    <v-col
+      v-for="rulebook in rulebooks"
+      :key="rulebook.id"
+      cols="6" sm="4" md="3" lg="2"
+    >
+      <RulebookCard
+        :rulebook="rulebook"
+        @click="$emit('select', rulebook)"
+      />
+    </v-col>
+  </v-row>
 </template>
 
 <script setup>
@@ -22,12 +25,3 @@ defineProps({
 
 defineEmits(['select'])
 </script>
-
-<style scoped>
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 24px;
-  margin-top: 32px;
-}
-</style>
