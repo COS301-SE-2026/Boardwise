@@ -1,6 +1,3 @@
-<!-- Reusable form shell -->
-<!-- Generic -->
-
 <template>
     <BaseCard>
         <div class="form">
