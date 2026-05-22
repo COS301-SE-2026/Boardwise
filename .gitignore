@@ -2,8 +2,8 @@
 .vscode
 /frontend/.nuxt
 /frontend/node_modules
-.pytest_cache
-__pycache__
+ai/.pytest_cache/
+ai/__pycache__/
 
 #files
 /backend/src/main/resources/application.properties
