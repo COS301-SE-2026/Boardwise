@@ -1,15 +1,18 @@
 <template>
   <v-dialog v-model="open" max-width="400">
-    <v-card class="pa-6 d-flex flex-column ga-5">
+    <v-card class="delete-modal">
+
+      <div class="modal-icon">
+        <v-icon size="28" color="error">mdi-trash-can-outline</v-icon>
+      </div>
 
       <h2>Delete Listing</h2>
+      <p>Are you sure you want to delete this listing? This action cannot be undone.</p>
 
-      <p>Are you sure you want to delete this listing?</p>
-
-      <div class="d-flex justify-end ga-3">
-        <v-btn variant="outlined" color="primary" @click="open = false">Cancel</v-btn>
-        <v-btn color="error" @click="open = false">Delete</v-btn>
-      </div>
+     <div class="d-flex justify-center ga-3 mt-2">
+      <v-btn variant="outlined" color="primary" @click="open = false">Cancel</v-btn>
+      <v-btn color="error" @click="confirm">Delete</v-btn>
+    </div>
 
     </v-card>
   </v-dialog>
@@ -17,4 +20,41 @@
 
 <script setup>
 const open = defineModel()
+const emit = defineEmits(['confirm'])
+
+const confirm = () => {
+  emit('confirm')
+  open.value = false
+}
 </script>
+
+<style scoped>
+.delete-modal {
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  border-radius: var(--radius-lg) !important;
+}
+
+.modal-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: #fdecea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+h2 {
+  margin: 0;
+  font-size: var(--fs-h3);
+}
+
+p {
+  margin: 0;
+  font-size: var(--fs-body);
+  color: var(--color-text-muted);
+}
+</style>

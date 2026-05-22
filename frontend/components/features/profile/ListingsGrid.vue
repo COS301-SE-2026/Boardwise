@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex flex-wrap ga-6 mt-8">
+  <BaseGrid cols="220px" gap="var(--space-6)">
 
     <ProfileListingCard
       v-for="listing in listings"
@@ -9,19 +9,16 @@
 
     <AddListingCard @click="$emit('add-listing')" />
 
-  </div>
+  </BaseGrid>
 </template>
 
 <script setup>
+import BaseGrid           from '~/components/ui/BaseGrid.vue'
 import ProfileListingCard from './ProfileListingCard.vue'
-import AddListingCard from './AddListingCard.vue'
-
+import AddListingCard     from './AddListingCard.vue'
 
 defineProps({
-  listings: {
-    type: Array,
-    default: () => []
-  }
+  listings: { type: Array, default: () => [] }
 })
 
 defineEmits(['add-listing'])

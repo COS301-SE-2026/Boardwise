@@ -56,6 +56,12 @@ import RulebookGrid from '~/components/features/library/RulebookGrid.vue'
 import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue'
 import RulebookDetails from '~/components/features/library/RulebookDetail.vue'
 
+onMounted(() => {
+  if (!localStorage.getItem('access_token')) {
+    router.push('/auth/signin')
+  }
+})
+
 const tabs = ['All', 'Strategy', 'Family', 'Party']
 const selectedTab = ref('All')
 const showModal = ref(false)

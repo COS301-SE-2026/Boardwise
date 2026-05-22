@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex flex-wrap ga-6 mt-8">
+  <BaseGrid cols="220px" gap="var(--space-6)">
 
     <GameCard
       v-for="game in games"
@@ -9,20 +9,18 @@
       :image="game.image"
     />
 
-    <AddGameCard @add-game="$emit('add-game')" />
+    <!-- <AddGameCard @add-game="$emit('add-game')" /> -->
 
-  </div>
+  </BaseGrid>
 </template>
 
 <script setup>
-import GameCard from './GameCard.vue'
+import BaseGrid    from '~/components/ui/BaseGrid.vue'
+import GameCard    from './GameCard.vue'
 import AddGameCard from './AddGameCard.vue'
 
 defineProps({
-  games: {
-    type: Array,
-    default: () => []
-  }
+  games: { type: Array, default: () => [] }
 })
 
 defineEmits(['add-game'])

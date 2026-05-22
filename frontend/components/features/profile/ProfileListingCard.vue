@@ -1,43 +1,120 @@
 <template>
-  <v-card style="overflow: hidden;">
+  <BaseCard class="profile-listing-card">
 
-    <v-img
-      :src="listing.imageUrl"
-      :alt="listing.gameTitle"
-      height="180"
-      cover
-    />
+    <div class="image-container">
+      <img
+        :src="listing.imageUrl ?? '/placeholder.png'"
+        :alt="listing.gameTitle"
+      />
+      <BaseBadge
+        class="badge"
+        :variant="listing.listingType === 'rental' ? 'rent' : 'sale'"
+      >
+        {{ listing.listingType === 'rental' ? 'For Rent' : 'For Sale' }}
+      </BaseBadge>
+    </div>
 
-    <v-card-text class="d-flex flex-column ga-2">
+    <v-card-text class="d-flex flex-column ga-2 pa-4">
+      <h3>{{ listing.gameTitle }}</h3>
 
-      <h3 class="ma-0">{{ listing.gameTitle }}</h3>
+      <p
+        class="price ma-0"
+        :style="{ color: listing.listingType === 'rental' ? 'var(--rent)' : 'var(--sale)' }"
+      >
+        R{{ listing.price }}
+        <span v-if="listing.listingType === 'rental'" class="period">
+          {{
+            listing.rentalPeriod
+              ? `(${listing.rentalPeriod.startDate} – ${listing.rentalPeriod.endDate})`
+              : 'week'
+          }}
+        </span>
+      </p>
 
-      <p class="text-primary font-weight-bold ma-0">R{{ listing.price }}</p>
-
-      <div class="d-flex ga-3 mt-2">
-        <v-btn size="small" color="primary" @click="showEdit = true">Edit</v-btn>
-        <v-btn size="small" variant="outlined" color="error" @click="showDelete = true">Delete</v-btn>
+      <div class="meta">
+        <span>@{{ listing.username ?? 'unknown' }}</span>
       </div>
 
+      <div class="d-flex ga-2 mt-1">
+        <v-btn size="small" color="primary" variant="tonal" @click.stop="showEdit = true">Edit</v-btn>
+        <v-btn size="small" color="error"   variant="tonal" @click.stop="showDelete = true">Delete</v-btn>
+      </div>
     </v-card-text>
 
-    <EditListingModal v-model="showEdit" :listing="listing" />
+    <EditListingModal   v-model="showEdit"   :listing="listing" />
     <DeleteListingModal v-model="showDelete" :listing="listing" />
 
-  </v-card>
+  </BaseCard>
 </template>
 
 <script setup>
-import EditListingModal from './EditListingModal.vue'
+import BaseCard           from '~/components/ui/BaseCard.vue'
+import BaseBadge          from '~/components/ui/BaseBadge.vue'
+import EditListingModal   from './EditListingModal.vue'
 import DeleteListingModal from './DeleteListingModal.vue'
 
-defineProps({
-  listing: {
-    type: Object,
-    required: true
-  }
+const props = defineProps({
+  listing: { type: Object, required: true }
 })
 
-const showEdit = ref(false)
+const router = useRouter()
+const showEdit   = ref(false)
 const showDelete = ref(false)
+
+const openListing = () => {
+  router.push(`/marketplace/${props.listing.listingId}`)
+}
 </script>
+
+<style scoped>
+.profile-listing-card {
+  /* cursor:     pointer; */
+  overflow: hidden;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+  width: 100%;
+}
+.profile-listing-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md) !important;
+}
+
+.image-container {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+  background: var(--color-surface-alt);
+}
+
+img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.badge {
+  position: absolute;
+  top:  var(--space-2);
+  left: var(--space-2);
+}
+
+h3 {
+  margin: 0;
+  font-size: var(--fs-body);
+}
+
+.price {
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-body);
+}
+
+.period {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-regular);
+  color: var(--color-text-muted);
+}
+
+.meta {
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+}
+</style>
