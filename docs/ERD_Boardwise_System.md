@@ -44,19 +44,17 @@ erDiagram
     USER {
         ObjectId _id
         String username
-        String email
+        String email_address
         String password
-        String display_name
-        String bio
-        String profile_pic
+        String profile_picture
         Array_ObjectId owned_games
         Object preferences
         Date created_at
     }
 
     PREFERENCES {
+        String visibility
         Array_String genres
-        Array_String mechanics
     }
 
     FRIEND_REQUEST {
@@ -77,6 +75,7 @@ erDiagram
         ObjectId _id
         String name
         String description
+        String visibility
         ObjectId owner_id
         Date created_at
     }
@@ -106,6 +105,13 @@ erDiagram
         ObjectId event_id
         String status
         Date responded_at
+    }
+    
+    TOKEN_BLACKLIST {
+	    ObjectId _id
+	    String jti
+	    Date created_at
+	    Date expires_at
     }
 
     %% ── SHARED ────────────────────────────────────────────────
@@ -148,24 +154,31 @@ erDiagram
 
     %% ── SHARED LIBRARY — THE VAULT ────────────────────────────
 
-    RULEBOOK {
-        ObjectId _id
-        String game_name
-        String edition
-        String status
-        int version
-        ObjectId contributor_id
-        String r2_pdf_key
-        Date uploaded_at
-        Date updated_at
+    RULEBOOK { 
+	    ObjectId _id 
+	    ObjectId game_id 
+	    String game_name
+	    String edition 
+	    String status 
+	    int version 
+	    ObjectId contributor_id 
+	    String r2_pdf_key 
+	    Date uploaded_at 
+	    Date updated_at 
     }
 
-    RULEBOOK_TEXT {
-        ObjectId _id
-        ObjectId rulebook_id
-        String content
-        int version
-        Date updated_at
+    RULEBOOK_TEXT { 
+	    ObjectId _id 
+	    ObjectId rulebook_id 
+	    int version 
+	    Date updated_at 
+	    Array_Object chunks 
+    } 
+    
+    CHUNK { 
+	    ObjectId chunk_id 
+	    int index 
+	    String content 
     }
 
     WRITE_LOCK {
