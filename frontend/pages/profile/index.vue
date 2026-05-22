@@ -10,7 +10,6 @@
         :games="games.length"
         :friends="15"
         :communities="user.groupCount"
-        :reviews="0"
       />
 
       <ProfileCommunities />
