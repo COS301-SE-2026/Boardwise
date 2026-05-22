@@ -1828,7 +1828,6 @@ The Vault domain model is centred on the `Rulebook` entity. The `IngestionPipeli
 |Status Code|Reason|
 |---|---|
 |`401 Unauthorized`|Missing or invalid JWT|
-|`422 Unprocessable Entity`|Missing or invalid required fields|
 |`500 Internal Server Error`|Unexpected server error|
 
 ---
@@ -1838,7 +1837,7 @@ The Vault domain model is centred on the `Rulebook` entity. The `IngestionPipeli
 |Field|Detail|
 |---|---|
 |**Contract ID**|AC-MKT-04|
-|**Endpoint**|`PATCH /api/marketplace/listings/{listingId}`|
+|**Endpoint**|`PATCH /api/marketplace/update/listings/{listingId}`|
 |**Description**|Partially updates an existing listing. Only the fields included in the request body are modified. Only the listing owner may perform this action.|
 |**Authentication**|Bearer token required|
 
@@ -1899,7 +1898,7 @@ The Vault domain model is centred on the `Rulebook` entity. The `IngestionPipeli
 |Field|Detail|
 |---|---|
 |**Contract ID**|AC-MKT-05|
-|**Endpoint**|`DELETE /api/marketplace/listings/{listingId}`|
+|**Endpoint**|`DELETE /api/delete/marketplace/listings/{listingId}`|
 |**Description**|Permanently removes a listing. Only the listing owner may perform this action.|
 |**Authentication**|Bearer token required|
 
@@ -1929,7 +1928,7 @@ The Vault domain model is centred on the `Rulebook` entity. The `IngestionPipeli
 |Field|Detail|
 |---|---|
 |**Contract ID**|AC-MKT-06|
-|**Endpoint**|`GET /api/marketplace/listings/user/{user}`|
+|**Endpoint**|`GET /api/marketplace/listings/user`|
 |**Description**|Returns all listings belonging to the specified user.|
 |**Authentication**|None required|
 
@@ -1968,58 +1967,6 @@ The Vault domain model is centred on the `Rulebook` entity. The `IngestionPipeli
 |Status Code|Reason|
 |---|---|
 |`204 No Content`|No listings found for this user|
-|`500 Internal Server Error`|Unexpected server error|
-
----
-
-#### AC-MKT-07: Get Filtered Listings
-
-|Field|Detail|
-|---|---|
-|**Contract ID**|AC-MKT-07|
-|**Endpoint**|`GET /api/marketplace/listings/search`|
-|**Description**|Returns listings filtered by listing type, item type, price range, and genres. All query parameters are optional.|
-|**Authentication**|None required|
-
-**Query Parameters:**
-
-|Parameter|Type|Required|Description|
-|---|---|---|---|
-|`listingType`|`string`|No|Filter by `RENT` or `SALE`|
-|`itemType`|`string`|No|Filter by `BOARD_GAME`, `MERCHANDISE`, or `EXPANSION`|
-|`minPrice`|`number`|No|Minimum price filter|
-|`maxPrice`|`number`|No|Maximum price filter|
-|`genres`|`string[]`|No|Filter by one or more genre values|
-
-**Request Body:** None
-
-**Success Response — 200 OK:**
-
-```json
-[
-  {
-    "listingId": "string",
-    "username": "string",
-    "gameTitle": "string",
-    "itemType": "string",
-    "listingType": "string",
-    "price": "number",
-    "description": "string",
-    "imageUrl": "string | null",
-    "genres": ["string"],
-    "rentalPeriod": "object | null",
-    "createdAt": "ISO8601 date string",
-    "updatedAt": "ISO8601 date string",
-    "status": "string"
-  }
-]
-```
-
-**Error Responses:**
-
-|Status Code|Reason|
-|---|---|
-|`204 No Content`|No listings match the applied filters|
 |`500 Internal Server Error`|Unexpected server error|
 
 
