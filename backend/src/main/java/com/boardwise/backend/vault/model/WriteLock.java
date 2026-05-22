@@ -4,6 +4,7 @@ import java.time.Instant;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -20,6 +21,7 @@ public class WriteLock {
     private ObjectId id;
 
     @Field("rulebook_id")
+    @Indexed(unique = true)
     private ObjectId rulebookId;
 
     @Field("held_by_user_id")

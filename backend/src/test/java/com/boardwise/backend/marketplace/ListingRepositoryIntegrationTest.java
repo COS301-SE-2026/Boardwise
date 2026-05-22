@@ -1,6 +1,5 @@
 package com.boardwise.backend.marketplace;
 
-import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
 import com.boardwise.backend.marketplace.enums.ListingStatus;
 import com.boardwise.backend.marketplace.model.Listing;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
@@ -9,9 +8,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.data.mongodb.test.autoconfigure.DataMongoTest;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -22,17 +22,14 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@DataMongoTest
 @Testcontainers
-public class ListingRepositoryIntegrationTest {
+@ActiveProfiles("test")
+class ListingRepositoryIntegrationTest {
 
     @Container
+    @ServiceConnection
     static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:7.0");
-
-    @DynamicPropertySource
-    static void setProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
-    }
 
     @Autowired
     private ListingRepository listingRepository;
@@ -53,7 +50,8 @@ public class ListingRepositoryIntegrationTest {
         listingRepository.deleteAll();
     }
 
-    // SAVE
+    // --- SAVE
+    // ---------------------------------------------------------------------
 
     @Test
     void save_listing_persists_to_db() {
@@ -65,7 +63,8 @@ public class ListingRepositoryIntegrationTest {
         assertEquals(ListingStatus.AVAILABLE, saved.getStatus());
     }
 
-    // FIND BY ID
+    // --- FIND BY ID
+    // ---------------------------------------------------------------
 
     @Test
     void findById_returns_listing_when_exists() {
@@ -84,7 +83,8 @@ public class ListingRepositoryIntegrationTest {
         assertTrue(found.isEmpty());
     }
 
-    // FIND BY STATUS
+    // --- FIND BY STATUS
+    // -----------------------------------------------------------
 
     @Test
     void findByStatus_returns_only_available_listings() {
@@ -103,7 +103,22 @@ public class ListingRepositoryIntegrationTest {
         assertEquals("Catan", available.get(0).getTitle());
     }
 
-    // FIND BY USERNAME
+    @Test
+    void findByStatus_returns_empty_when_none_match() {
+        Listing soldListing = new Listing(
+                null, "testuser", "boardgame", "sale",
+                100.00, "Monopoly", "Old Monopoly", null,
+                ListingStatus.SOLD, LocalDateTime.now(), LocalDateTime.now(),
+                List.of("economic"), null);
+        listingRepository.save(soldListing);
+
+        List<Listing> available = listingRepository.findByStatus(ListingStatus.AVAILABLE);
+
+        assertTrue(available.isEmpty());
+    }
+
+    // --- FIND BY USERNAME
+    // ---------------------------------------------------------
 
     @Test
     void findByUsername_returns_listings_for_user() {
@@ -129,7 +144,25 @@ public class ListingRepositoryIntegrationTest {
         assertTrue(userListings.isEmpty());
     }
 
-    // DELETE
+    @Test
+    void findByUsername_returns_multiple_listings_for_same_user() {
+        listingRepository.save(testListing);
+
+        Listing secondListing = new Listing(
+                null, "testuser", "boardgame", "rental",
+                50.00, "Ticket to Ride", "Great condition", null,
+                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                List.of("negotiation"), null);
+        listingRepository.save(secondListing);
+
+        List<Listing> userListings = listingRepository.findByUsername("testuser");
+
+        assertEquals(2, userListings.size());
+        assertTrue(userListings.stream().allMatch(l -> l.getUsername().equals("testuser")));
+    }
+
+    // --- DELETE
+    // -------------------------------------------------------------------
 
     @Test
     void deleteById_removes_listing_from_db() {
@@ -141,7 +174,8 @@ public class ListingRepositoryIntegrationTest {
         assertFalse(listingRepository.existsById(id));
     }
 
-    // EXISTS
+    // --- EXISTS
+    // -------------------------------------------------------------------
 
     @Test
     void existsById_returns_true_when_listing_exists() {
@@ -155,7 +189,8 @@ public class ListingRepositoryIntegrationTest {
         assertFalse(listingRepository.existsById("nonexistent-id"));
     }
 
-    // FILTER
+    // --- FIND ALL
+    // -----------------------------------------------------------------
 
     @Test
     void findAll_returns_all_listings() {
@@ -173,6 +208,9 @@ public class ListingRepositoryIntegrationTest {
         assertEquals(2, all.size());
     }
 
+    // --- GENRES
+    // -------------------------------------------------------------------
+
     @Test
     void save_listing_with_multiple_genres_persists_correctly() {
         testListing = new Listing(
@@ -187,5 +225,21 @@ public class ListingRepositoryIntegrationTest {
         assertTrue(saved.getGenres().contains("economic"));
         assertTrue(saved.getGenres().contains("negotiation"));
         assertTrue(saved.getGenres().contains("dice"));
+    }
+
+    // --- UPDATE
+    // -------------------------------------------------------------------
+
+    @Test
+    void save_updated_listing_reflects_changes() {
+        Listing saved = listingRepository.save(testListing);
+
+        saved.setPrice(999.00);
+        saved.setStatus(ListingStatus.SOLD);
+        listingRepository.save(saved);
+
+        Listing reloaded = listingRepository.findById(saved.getId()).orElseThrow();
+        assertEquals(999.00, reloaded.getPrice());
+        assertEquals(ListingStatus.SOLD, reloaded.getStatus());
     }
 }

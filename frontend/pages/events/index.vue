@@ -18,4 +18,13 @@
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+onMounted(() => {
+  if (!localStorage.getItem('access_token')) {
+    router.push('/auth/signin')
+  }
+})
 </script>

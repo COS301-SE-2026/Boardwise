@@ -1,77 +1,82 @@
 <template>
-  <BaseCard class="stats-card">
+  <v-card class="status-header pa-3">
+    <div class="status-header__stats">
 
-    <div class="stat">
-      <h2>{{ games }}</h2>
-      <p>Games</p>
+      <div class="status-header__stat">
+        <span class="status-header__value">{{ games }}</span>
+        <span class="status-header__label">Games</span>
+      </div>
+
+      <v-divider vertical class="status-header__divider d-none d-sm-flex" />
+
+      <div class="status-header__stat">
+        <span class="status-header__value">{{ friends }}</span>
+        <span class="status-header__label">Friends</span>
+      </div>
+
+      <v-divider vertical class="status-header__divider d-none d-sm-flex" />
+
+      <div class="status-header__stat">
+        <span class="status-header__value">{{ communities }}</span>
+        <span class="status-header__label">Communities</span>
+      </div>
+
+
+
     </div>
-
-    <div class="divider" />
-
-    <div class="stat">
-      <h2>{{ friends }}</h2>
-      <p>Friends</p>
-    </div>
-
-    <div class="divider" />
-
-    <div class="stat">
-      <h2>{{ communities }}</h2>
-      <p>Communities</p>
-    </div>
-
-  </BaseCard>
+  </v-card>
 </template>
 
 <script setup>
-import BaseCard from '~/components/ui/BaseCard.vue'
-
 defineProps({
-  games: Number,
-  friends: Number,
-  communities: Number,
-  reviews: Number
+  games: { type: Number, default: 0 },
+  friends: { type: Number, default: 0 },
+  communities: { type: Number, default: 0 },
+  reviews: { type: Number, default: 0 },
 })
 </script>
 
 <style scoped>
-.stats-card {
-  display: flex;
+.status-header {
+  border-radius:  var(--radius-lg) !important;
+  margin-inline:  var(--space-12);
+  margin-top: -50px;
+  max-height: fit-content;
+  min-height: auto;
+}
+
+.status-header__stats {
+  display:         flex;
   justify-content: space-around;
-  align-items: center;
-  padding: 24px;
-  margin-top: -40px;
+  align-items:     center;
+  flex-wrap:       wrap;
+  gap:             var(--space-6);
 }
 
-.stat {
-  text-align: center;
-  flex: 1;
+.status-header__stat {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            var(--space-2);
+  flex:           1;
 }
 
-.stat h2 {
-  margin: 0;
-  font-size: 32px;
+.status-header__value {
+  font-family: var(--font-display);
+  font-size:   var(--fs-h1);
+  font-weight: var(--fw-regular);
+  color:       var(--color-primary);
+  line-height: var(--lh-tight);
 }
 
-.stat p {
-  color: #666;
-  margin-top: 8px;
+.status-header__label {
+  font-family: var(--font-body);
+  font-size:   var(--fs-small);
+  color:       var(--color-text-muted);
 }
 
-.divider {
-  width: 1px;
-  height: 60px;
-  background: #eee;
-}
-
-@media (max-width: 768px) {
-  .stats-card {
-    flex-wrap: wrap;
-    gap: 24px;
-  }
-
-  .divider {
-    display: none;
-  }
+.status-header__divider {
+  height:      60px;
+  align-self:  center;
 }
 </style>

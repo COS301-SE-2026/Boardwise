@@ -5,27 +5,34 @@
  
     <ExploreHeader />
  
-    <ExploreSearch v-model="searchQuery" />
+    <ExploreSearch 
+      v-model="searchQuery"
+      @create-community="showCreateCommunity = true"
+    />
  
-    <ExploreTabs @change="activeTab = $event" />
     <div class="community-layout">
       <CommunityFilter @filter="handleFilter" />
       <CommunityGrid :communities="filteredCommunities" />
     </div>
+
+    <CommunityCreateForm 
+      v-model="showCreateCommunity"
+    />
+
   </PageContainer>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { communities } from '~/services/mockData/communities'
 import CommunityFilter from '~/components/features/community/CommunityFilter.vue'
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import ExploreHeader from '~/components/features/community/ExploreHeader.vue'
 import ExploreSearch from '~/components/features/community/ExploreSearch.vue'
-import ExploreTabs from '~/components/features/community/ExploreTabs.vue'
 import CommunityGrid from '~/components/features/community/CommunityGrid.vue'
-
+import CommunityCreateForm from '~/components/features/community/CommunityCreateForm.vue'
 // 1. Destructure the composable
 // const { communities, getAllCommunities, loading, error } = useCommunity()
 
@@ -33,7 +40,14 @@ const searchQuery = ref('')
 const activeTab = ref('All')
 const selectedTypes = ref([])
 const selectedCategories = ref([])
+const showCreateCommunity = ref(false)
+const router = useRouter()
 
+onMounted(() => {
+  if (!localStorage.getItem('access_token')) {
+    router.push('/auth/signin')
+  }
+})
 // 2. Trigger the fetch when the page loads
 // onMounted(() => {
 //   getAllCommunities()
@@ -51,6 +65,7 @@ const filteredCommunities = computed(() =>
     const matchesCategory = selectedCategories.value.length === 0 || selectedCategories.value.includes(c.category)
     return matchesSearch && matchesTab && matchesType && matchesCategory
   })
+
 
 )
 

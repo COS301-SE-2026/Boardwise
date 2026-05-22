@@ -9,6 +9,7 @@ import java.util.List;
 import org.bson.types.ObjectId;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +35,7 @@ import com.boardwise.backend.vault.repository.RulebookRepository;
 import com.boardwise.backend.vault.repository.WriteLockRepository;
 
 @Component
+@Profile("!test")
 public class Seeding {
     @Bean
     public CommandLineRunner seedDB(ListingRepository listingRepository, BoardGameRepository boardGameRepository, GroupMembershipRepository groupMembershipRepository,
@@ -70,11 +72,11 @@ public class Seeding {
 
                 List<Listing> listings = List.of(
                         new Listing(null, "IAmR3al", "boardgame", "sale", 29.99, "Monopoly",
-                                "Monopoly game with all details\n", "./databaseimages/monopoly_dummy.png",
+                                "Monopoly game with all details\n", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
                                 List.of("Strategy", "Action"), null),
                         new Listing(null, "sarah_dev", "boardgame", "rental", 48.32, "Scrabble",
-                                "game of scrabble with Missing pieces", "./databaseimages/scrabble_dummy.jpg",
+                                "game of scrabble with Missing pieces", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now().plusDays(5),
                                 LocalDateTime.now().plusDays(5), List.of("abstract strategy"), rentalPeriod1));
 
@@ -87,9 +89,9 @@ public class Seeding {
             if (boardGameRepository.count() == 0) {
                 List<Boardgame> boardGames = List.of(
                         new Boardgame(null, "Monopoly", "Classic property trading game.",
-                                "./databaseimages/monopoly_dummy.png", List.of("Strategy", "Trading")),
+                                "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png", List.of("Strategy", "Trading")),
                         new Boardgame(null, "Scrabble", "Word building board game.",
-                                "./databaseimages/scrabble_dummy.jpg", List.of("Word", "Abstract Strategy")));
+                                "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg", List.of("Word", "Abstract Strategy")));
                 boardGameRepository.saveAll(boardGames);
                 System.out.println("Seeded " + boardGames.size() + " board games");
             } else {

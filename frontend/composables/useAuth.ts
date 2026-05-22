@@ -53,9 +53,19 @@ export const useAuth = () => {
     }
   }
 
-  const logout = () => {
+  const logout = async () => {
+    error.value = '';
+    loading.value = true;
     if(import.meta.client){
-      localStorage.removeItem('access_token');
+      try{
+        const response = await AuthService.logout();
+        return true;
+      }catch(err: any){
+        error.value = err.response?.data?.message || 'Invalid credentials'
+      }finally{
+        localStorage.removeItem('access_token');
+        loading.value = false;
+      }
     }
     token.value = null
     isAuthenticated.value = false;

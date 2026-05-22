@@ -1,4 +1,4 @@
-package com.boardwise.backend.user_service.services;
+package com.boardwise.backend.shared.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -9,9 +9,9 @@ import static org.mockito.Mockito.when;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.models.TokenBlackList;
@@ -19,14 +19,15 @@ import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.models.UserDetailImpl;
 import com.boardwise.backend.user_service.repos.TokenBlackListRepository;
 
-
 @ExtendWith(MockitoExtension.class)
 class JWTServiceTest {
+
+    // The JWT secret used in application-test.properties
+    private static final String TEST_SECRET = "this-is-a-dummy-secret-key-for-testing-purposes-only-do-not-use";
 
     @Mock
     private TokenBlackListRepository tokenRepo;
 
-    @InjectMocks
     private JWTService jwtService;
 
     private User testUser;
@@ -35,141 +36,124 @@ class JWTServiceTest {
 
     @BeforeEach
     void setUp() {
+        jwtService = new JWTService();
+        ReflectionTestUtils.setField(jwtService, "key", TEST_SECRET);
+        ReflectionTestUtils.setField(jwtService, "tokenRepo", tokenRepo);
+
         testUser = new User();
         testUser.setUsername("testuser");
         testUser.setPassword("password123");
         testUser.setEmailAddress("test@example.com");
-        
+
         userDetails = new UserDetailImpl(testUser);
-        validToken = jwtService.generateToken("testuser", anyString());
+
+        // Use a real string for userId — anyString() is a Mockito matcher
+        // and returns null when called outside a when()/verify() context.
+        validToken = jwtService.generateToken("testuser", "user-id-123");
     }
+
+    // --- TOKEN GENERATION --------------------------------------------------------
 
     @Test
     void shouldGenerateToken_WithAllRequiredClaims() {
-        // When
-        String token = jwtService.generateToken("testuser", anyString());
+        String token = jwtService.generateToken("testuser", "user-id-123");
 
-        // Then
         assertThat(token).isNotNull();
-        assertThat(token.split("\\.")).hasSize(3); // JWT has 3 parts
-        
+        assertThat(token.split("\\.")).hasSize(3); // JWT has 3 parts: header.payload.signature
+
         String username = jwtService.extractUsername(token);
         assertThat(username).isEqualTo("testuser");
     }
 
     @Test
     void shouldGenerateToken_WithUniqueJTI() {
-        // When
-        String token1 = jwtService.generateToken("testuser", anyString());
-        String token2 = jwtService.generateToken("testuser", anyString());
+        // Two tokens for the same user should be different (UUID-based JTI)
+        String token1 = jwtService.generateToken("testuser", "user-id-123");
+        String token2 = jwtService.generateToken("testuser", "user-id-123");
 
-        // Then
         assertThat(token1).isNotEqualTo(token2);
     }
 
     @Test
-    void shouldExtractUsername_FromValidToken() {
-        // Given
-        String token = jwtService.generateToken("john_doe", anyString());
+    void shouldGenerateDifferentTokens_ForDifferentUsers() {
+        String token1 = jwtService.generateToken("user1", "id-1");
+        String token2 = jwtService.generateToken("user2", "id-2");
 
-        // When
-        String username = jwtService.extractUsername(token);
-
-        // Then
-        assertThat(username).isEqualTo("john_doe");
+        assertThat(jwtService.extractUsername(token1)).isEqualTo("user1");
+        assertThat(jwtService.extractUsername(token2)).isEqualTo("user2");
+        assertThat(token1).isNotEqualTo(token2);
     }
+
+    // --- USERNAME EXTRACTION -----------------------------------------------------
+
+    @Test
+    void shouldExtractUsername_FromValidToken() {
+        String token = jwtService.generateToken("john_doe", "some-id");
+
+        assertThat(jwtService.extractUsername(token)).isEqualTo("john_doe");
+    }
+
+    // --- TOKEN VALIDATION --------------------------------------------------------
 
     @Test
     void shouldValidateToken_WhenTokenIsValid() {
-        // Given
         when(tokenRepo.existsByJti(anyString())).thenReturn(false);
 
-        // When
         boolean isValid = jwtService.validateToken(validToken, userDetails);
 
-        // Then
         assertThat(isValid).isTrue();
     }
 
     @Test
     void shouldInvalidateToken_WhenTokenIsBlacklisted() {
-        // Given
         when(tokenRepo.existsByJti(anyString())).thenReturn(true);
 
-        // When
         boolean isValid = jwtService.validateToken(validToken, userDetails);
 
-        // Then
         assertThat(isValid).isFalse();
     }
 
     @Test
     void shouldInvalidateToken_WhenUsernameDoesNotMatch() {
-        // Given
         User otherUser = new User();
         otherUser.setUsername("otheruser");
         UserDetailImpl otherUserDetails = new UserDetailImpl(otherUser);
-        // when(tokenRepo.existsByJti(anyString())).thenReturn(false);
 
-        // When
         boolean isValid = jwtService.validateToken(validToken, otherUserDetails);
 
-        // Then
         assertThat(isValid).isFalse();
     }
 
     @Test
-    void shouldAddTokenToBlacklist() {
-        // Given
-        String token = jwtService.generateToken("testuser", anyString());
-        when(tokenRepo.save(any(TokenBlackList.class))).thenReturn(null);
-
-        // When
-        jwtService.addToBlackList(token);
-
-        // Then
-        verify(tokenRepo).save(any(TokenBlackList.class));
-    }
-
-    @Test
-    void shouldCheckIfTokenIsBlacklisted() {
-        // Given
-        String token = jwtService.generateToken("testuser", anyString());
+    void shouldCheckIfTokenIsBlacklisted_DuringValidation() {
+        String token = jwtService.generateToken("testuser", "user-id-123");
         when(tokenRepo.existsByJti(anyString())).thenReturn(true);
 
-        // When (calling validateToken which checks blacklist)
         boolean isValid = jwtService.validateToken(token, userDetails);
 
-        // Then
         assertThat(isValid).isFalse();
         verify(tokenRepo).existsByJti(anyString());
     }
 
     @Test
-    void shouldNotBlacklistToken_WhenTokenAlreadyExpired() {
-        // This test verifies behavior with expired tokens
-        // Since we can't easily create expired tokens with the service,
-        // we test that blacklist check works correctly
+    void shouldReturnTrue_WhenTokenIsNotBlacklisted() {
         when(tokenRepo.existsByJti(anyString())).thenReturn(false);
-        
+
         boolean isValid = jwtService.validateToken(validToken, userDetails);
-        
+
         assertThat(isValid).isTrue();
         verify(tokenRepo).existsByJti(anyString());
     }
 
-    @Test
-    void shouldGenerateDifferentTokens_ForDifferentUsers() {
-        // When
-        String token1 = jwtService.generateToken("user1", anyString());
-        String token2 = jwtService.generateToken("user2", anyString());
+    // --- BLACKLIST ---------------------------------------------------------------
 
-        // Then
-        String username1 = jwtService.extractUsername(token1);
-        String username2 = jwtService.extractUsername(token2);
-        
-        assertThat(username1).isEqualTo("user1");
-        assertThat(username2).isEqualTo("user2");
-        assertThat(token1).isNotEqualTo(token2);
+    @Test
+    void shouldAddTokenToBlacklist() {
+        String token = jwtService.generateToken("testuser", "user-id-123");
+        when(tokenRepo.save(any(TokenBlackList.class))).thenReturn(null);
+
+        jwtService.addToBlackList(token);
+
+        verify(tokenRepo).save(any(TokenBlackList.class));
     }
 }

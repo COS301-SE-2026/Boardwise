@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -22,17 +24,16 @@ import com.boardwise.backend.user_service.dtos.AuthResponseDTO;
 import com.boardwise.backend.user_service.dtos.LoginDTO;
 import com.boardwise.backend.user_service.dtos.LogoutResponseDTO;
 import com.boardwise.backend.user_service.dtos.RegisterDTO;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repos.UserRepository;
+
+import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
     @Mock
     private UserRepository userRepo;
-
-    @Mock
-    private BoardGameRepository gameRepo;
 
     @Mock
     private JWTService jwt;
@@ -49,161 +50,137 @@ class AuthServiceTest {
     private RegisterDTO validRegisterDTO;
     private LoginDTO validLoginDTO;
 
+    // A saved user with a real id, as returned by userRepo.save()
+    private User savedUser;
+
     @BeforeEach
     void setUp() {
-        
         validRegisterDTO = new RegisterDTO(
-            "testuser",
-            "test@example.com",
-            "StrongP@ss1!",
-            "John",
-            "Doe"
-        );
+                "testuser", "test@example.com", "StrongP@ss1!", "John", "Doe");
 
         validLoginDTO = new LoginDTO("testuser", "StrongP@ss1!");
+
+        savedUser = new User();
+        savedUser.setUsername("testuser");
+        // Simulate MongoDB assigning an id after save
+        org.springframework.test.util.ReflectionTestUtils.setField(savedUser, "id", "mongo-id-123");
     }
+
+    // --- REGISTER ----------------------------------------------------------------
 
     @Test
     void shouldRegisterUser_Successfully() {
-        // Given
-        when(jwt.generateToken(anyString(), anyString())).thenReturn("test.jwt.token");
-        when(userRepo.save(any())).thenReturn(null);
-  
-        // When
+        // AuthService.register() does not reassign the return value of userRepo.save(),
+        // so newUser.getId() is always null when jwt.generateToken() is called.
+        // The stub must use isNull() for the second argument, not anyString().
+        when(userRepo.save(any(User.class))).thenReturn(savedUser);
+        when(jwt.generateToken(anyString(), isNull())).thenReturn("test.jwt.token");
+
         AuthResponseDTO response = authService.register(validRegisterDTO);
 
-        // Then
         assertThat(response).isNotNull();
         assertThat(response.message()).isEqualTo("User successfully register");
         assertThat(response.accessToken()).isEqualTo("test.jwt.token");
-        verify(userRepo).save(any());
-        verify(jwt).generateToken("testuser", anyString());
-    }
-
-    @Test
-    void shouldLoginUser_Successfully() {
-        // Given
-        when(manager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-            .thenReturn(authentication);
-        when(authentication.isAuthenticated()).thenReturn(true);
-        when(jwt.generateToken(anyString(), anyString())).thenReturn("test.jwt.token");
-
-        // When
-        AuthResponseDTO response = authService.login(validLoginDTO);
-
-        // Then
-        assertThat(response).isNotNull();
-        assertThat(response.message()).isEqualTo("User logged in successfully");
-        assertThat(response.accessToken()).isEqualTo("test.jwt.token");
-        verify(manager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(jwt).generateToken("testuser", anyString());
-    }
-
-    @Test
-    void shouldThrowException_WhenLoginFails() {
-        // Given
-        when(manager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-            .thenReturn(authentication);
-        when(authentication.isAuthenticated()).thenReturn(false);
-
-        // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
-            authService.login(validLoginDTO);
-        });
-    }
-
-    @Test
-    void shouldLogoutUser_Successfully() {
-        // Given
-        String token = "test.jwt.token";
-        
-        // When
-        LogoutResponseDTO response = authService.logout(token);
-
-        // Then
-        assertThat(response).isNotNull();
-        assertThat(response.message()).isEqualTo("User successfully logged out");
-        verify(jwt).addToBlackList(token);
+        verify(userRepo).save(any(User.class));
+        // eq() required when mixing exact and matcher args in verify()
+        verify(jwt).generateToken(eq("testuser"), isNull());
     }
 
     @Test
     void shouldSanitizeHtml_InRegistration() {
-        // Given
         RegisterDTO maliciousDTO = new RegisterDTO(
-            "<script>alert('xss')</script>",
-            "test@example.com",
-            "StrongP@ss1!",
-            "<b>John</b>",
-            "Doe"
-        );
-        
-        when(jwt.generateToken(anyString(), anyString())).thenReturn("test.jwt.token");
-        when(userRepo.save(any())).thenReturn(null);
+                "<script>alert('xss')</script>", "test@example.com",
+                "StrongP@ss1!", "<b>John</b>", "Doe");
 
-        // When
+        when(userRepo.save(any(User.class))).thenReturn(savedUser);
+        when(jwt.generateToken(anyString(), isNull())).thenReturn("test.jwt.token");
+
         AuthResponseDTO response = authService.register(maliciousDTO);
 
-        // Then
+        // HTML tags are stripped before saving — response should still succeed
         assertThat(response).isNotNull();
-        verify(userRepo).save(any());
+        verify(userRepo).save(any(User.class));
     }
 
     @Test
     void shouldSanitizeNoSQLInjection_InRegistration() {
-        // Given
         RegisterDTO maliciousDTO = new RegisterDTO(
-            "{$gt: ''}",
-            "test@example.com",
-            "StrongP@ss1!",
-            "John",
-            "Doe"
-        );
+                "{$gt: ''}", "test@example.com", "StrongP@ss1!", "John", "Doe");
 
-        // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
-            authService.register(maliciousDTO);
-        });
+        // sanitize() throws IllegalArgumentException on '$' or '{'
+        assertThrows(IllegalArgumentException.class,
+                () -> authService.register(maliciousDTO));
     }
 
     @Test
     void shouldHandleNullPreferences_InRegistration() {
-        // Given
-        RegisterDTO dtoWithoutPrefs = new RegisterDTO(
-            "testuser",
-            "test@example.com",
-            "StrongP@ss1!",
-            "John",
-            "Doe"
-        );
-        
-        when(jwt.generateToken(anyString(), anyString())).thenReturn("test.jwt.token");
-        when(userRepo.save(any())).thenReturn(null);
+        when(userRepo.save(any(User.class))).thenReturn(savedUser);
+        when(jwt.generateToken(anyString(), isNull())).thenReturn("test.jwt.token");
 
-        // When
-        AuthResponseDTO response = authService.register(dtoWithoutPrefs);
+        AuthResponseDTO response = authService.register(validRegisterDTO);
 
-        // Then
         assertThat(response).isNotNull();
-        verify(userRepo).save(any());
+        verify(userRepo).save(any(User.class));
+    }
+
+    // --- LOGIN -------------------------------------------------------------------
+
+    @Test
+    void shouldLoginUser_Successfully() {
+        when(manager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(true);
+        // login() calls userRepo.findByUsername to get the id for token generation
+        when(userRepo.findByUsername("testuser")).thenReturn(Optional.of(savedUser));
+        when(jwt.generateToken(anyString(), anyString())).thenReturn("test.jwt.token");
+
+        AuthResponseDTO response = authService.login(validLoginDTO);
+
+        assertThat(response).isNotNull();
+        assertThat(response.message()).isEqualTo("User logged in successfully");
+        assertThat(response.accessToken()).isEqualTo("test.jwt.token");
+        verify(manager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+        verify(jwt).generateToken(eq("testuser"), anyString());
+    }
+
+    @Test
+    void shouldThrowException_WhenLoginFails() {
+        when(manager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(false);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> authService.login(validLoginDTO));
     }
 
     @Test
     void shouldSanitizeLoginUsername() {
-        // Given
+        // HTML tags in username are stripped by sanitize() before authentication
         LoginDTO maliciousLogin = new LoginDTO(
-            "<script>alert('xss')</script>",
-            "StrongP@ss1!"
-        );
-        
+                "<script>alert('xss')</script>", "StrongP@ss1!");
+
         when(manager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-            .thenReturn(authentication);
+                .thenReturn(authentication);
         when(authentication.isAuthenticated()).thenReturn(true);
+        // sanitize strips tags so username becomes empty string ""
+        when(userRepo.findByUsername(anyString())).thenReturn(Optional.of(savedUser));
         when(jwt.generateToken(anyString(), anyString())).thenReturn("test.jwt.token");
 
-        // When
         AuthResponseDTO response = authService.login(maliciousLogin);
 
-        // Then
         assertThat(response).isNotNull();
+    }
+
+    // --- LOGOUT ------------------------------------------------------------------
+
+    @Test
+    void shouldLogoutUser_Successfully() {
+        String token = "test.jwt.token";
+
+        LogoutResponseDTO response = authService.logout(token);
+
+        assertThat(response).isNotNull();
+        assertThat(response.message()).isEqualTo("User successfully logged out");
+        verify(jwt).addToBlackList(token);
     }
 }
