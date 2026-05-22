@@ -1,45 +1,22 @@
 <template>
-  <div 
-    v-if="modelValue" class="overlay"
-    @click.self="$emit('update:modelValue', false)"
+  <v-dialog
+    :model-value="modelValue"
+    max-width="600"
+    scrollable
+    @update:model-value="$emit('update:modelValue', $event)"
   >
-
-    <BaseCard class="modal">
-
-      <slot />
-
-    </BaseCard>
-
-  </div>
+    <v-card rounded="lg">
+      <v-card-text class="pa-6">
+        <slot />
+      </v-card-text>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
-import BaseCard from './BaseCard.vue'
-
 defineProps({
   modelValue: Boolean
 })
 
-defineEmits(['update:modalValue'])
+defineEmits(['update:modelValue'])
 </script>
-
-<style scoped>
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.modal {
-  width: 90%;
-  max-width: 1200px;
-  max-height: 150vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  box-sizing: border-box;
-}
-</style>

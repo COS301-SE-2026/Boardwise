@@ -1,11 +1,6 @@
 <template>
   <section class="section">
 
-    <div class="top">
-      <SectionTitle title="Members" />
-      <BaseButton @click="showInvite = true">+ Invite Member</BaseButton>
-    </div>
-
     <div class="members-grid">
       <MemberCard
         v-for="member in community.members_list"
@@ -14,10 +9,10 @@
       />
     </div>
 
-     <InviteMemberModal
+     <!-- <InviteMemberModal
       v-model="showInvite"
       @confirm="handleInvite"
-    />
+    /> -->
   </section>
 </template>
 
@@ -31,7 +26,7 @@ defineProps({
   community: { type: Object, required: true }
 })
 
-const showInvite = ref(false)
+// const showInvite = ref(false)
 
 const handleInvite = (invite) => {
   console.log('Invite:', invite)

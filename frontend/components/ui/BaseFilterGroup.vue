@@ -1,18 +1,19 @@
 <template>
-    <div class="filter-group">
-        <div class="filter-header" @click="isOpen = !isOpen">
-            <span>{{ title }}</span>
-            <span class="chevron">{{ isOpen ? '∧' : '∨' }}</span>
-        </div>
-
-        <div v-if="isOpen" class="filter-content">
-            <slot />
-        </div>
-
-    </div>
+    <v-expansion-panels 
+      v-model="openPanels"
+      variant="accordion"
+      flat
+    >
+      <v-expansion-panel :title="title">
+        <v-expansion-panel-text>
+          <slot />
+        </v-expansion-panel-text>
+      </v-expansion-panel>
+    </v-expansion-panels>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 
 const props = defineProps({
     title: String, 
@@ -22,35 +23,5 @@ const props = defineProps({
     }
 })
 
-const isOpen = ref(props.defaultOpen)
+const openPanels = ref(props.defaultOpen ? [0] : [])
 </script>
-
-<style scoped>
-.filter-group {
-  border-bottom: 1px solid #eee;
-  padding: 12px 0;
-}
-
-.filter-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
-  color: #222;
-  user-select: none;
-}
-
-.chevron {
-  font-size: 12px;
-  color: #888;
-}
-
-.filter-content {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 12px;
-}
-</style>

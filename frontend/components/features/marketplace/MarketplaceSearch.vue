@@ -2,16 +2,14 @@
   <div class="search-row">
 
     <div class="search">
-      <BaseSearch
-        placeholder="Search for games..."
-      />
+      <BaseSearch placeholder="Search for games..." />
     </div>
 
-    <BaseButton variant="secondary">
+    <!-- <BaseButton variant="secondary">
       Filters
-    </BaseButton>
-./MarketplaceSearch.vue
-    <BaseButton variant="primary">
+    </BaseButton> -->
+
+    <BaseButton variant="primary" @click="$emit('create-listing')">
       + Create Listing
     </BaseButton>
 
@@ -21,14 +19,16 @@
 <script setup>
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+
+defineEmits(['create-listing'])
 </script>
 
 <style scoped>
 .search-row {
-  display: flex;
-  gap: 16px;
+  display:     flex;
+  gap:         var(--space-4);
   align-items: center;
-  margin-top: 24px;
+  margin-top:  var(--space-6);
 }
 
 .search {
@@ -38,7 +38,7 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 @media (max-width: 700px) {
   .search-row {
     flex-direction: column;
-    align-items: stretch;
+    align-items:    stretch;
   }
 }
 </style>

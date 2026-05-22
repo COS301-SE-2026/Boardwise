@@ -1,13 +1,13 @@
 <template>
-  <BaseInput
-    :placeholder="placeholder"
-    v-model="search"
+  <v-text-field
+    :model-value="search"
+    placeholder="placeholder"
+    variant="outlined"
+    @update:model-value="search = $event"
   />
 </template>
 
 <script setup>
-import BaseInput from './BaseInput.vue'
-
 defineProps({
   placeholder: String
 })

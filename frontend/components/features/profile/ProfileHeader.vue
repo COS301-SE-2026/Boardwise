@@ -1,107 +1,138 @@
 <template>
-  <BaseCard class="header">
+  <v-card flat class="profile-header pa-10 w-100 ">
 
-    <div class="profile-top">
+    <div class="d-flex justify-space-between align-center flex-wrap ga-6">
 
-      <div class="left">
+      <div class="d-flex align-center ga-6 flex-wrap">
 
-        <BaseAvatar
-          :src="user.avatar"
-          size="xl"
-        />
+        <v-avatar size="80" class="profile-avatar">
+          <v-img
+            :src="user.profilePicture ?? '/images/avatar.jpg'"
+            :alt="`${user.fullName} profile picture`"
+            cover
+          />
+        </v-avatar>
 
-        <div class="info">
+        <div class="d-flex flex-column ga-3">
 
-          <h1>{{ user.name }}</h1>
+          <h1 class="profile-name ma-0">{{ user.fullName }}</h1>
 
-          <p class="username">
-            @{{ user.username }}
-          </p>
-
-          <p class="bio">
-            {{ user.bio }}
-          </p>
+          <p class="profile-bio profile-bio--empty ma-0">no available preferences</p>
+          <p class="profile-username ma-0">@{{ user.username }}</p>
+          
+          <div
+            v-if="user.preferences?.visibility === 'public' && user.preferences.genres?.length"
+            class="d-flex flex-wrap ga-1"
+          >
+            <v-chip
+              v-for="genre in user.preferences.genres"
+              :key="genre"
+              size="small"
+              class="genre-chip"
+            >
+              {{ genre }}
+            </v-chip>
+            <!-- <div v-else>
+              <p class = "no-pref">no prefrences</p>
+            </div> -->
+          </div>
 
         </div>
 
       </div>
 
-      <BaseButton @click="showEdit = true">
-        Edit Profile
-      </BaseButton>
-
-      <EditProfileModal  v-model="showEdit" />
+      <v-btn @click="showEdit = true">Edit Profile</v-btn>
 
     </div>
 
-  </BaseCard>
+    <EditProfileModal
+      v-model="showEdit"
+      :user="user"
+      @saved="$emit('saved', $event)"
+    />
+
+  </v-card>
 </template>
 
 <script setup>
-import BaseAvatar from '~/components/ui/BaseAvatar.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
-import BaseCard from '~/components/ui/BaseCard.vue'
-import EditProfileModal from './EditProfileModal.vue';
+import EditProfileModal from './EditProfileModal.vue'
 
 defineProps({
-  user: {
-    type: Object,
-    required: true
-  }
+  user: { type: Object, required: true }
 })
+
+defineEmits(['saved'])
 
 const showEdit = ref(false)
 </script>
 
 <style scoped>
-.header {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 32px;
-    border-radius: 24px;
-    background: #F9F4E3;
+.profile-header {
+  background:    var(--color-surface-alt) !important;
+  border-radius: var(--radius-lg) !important;
+  border:        1px solid var(--color-border);
+  box-shadow:    var(--shadow-sm) !important;
+  min-height: 197px; 
 }
 
-.profile-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.no-pref{
+
+}
+.profile-avatar {
+  border: 3px solid var(--color-border-strong);
 }
 
-.left {
-  display: flex;
-  gap: 24px;
-  align-items: center;
+.profile-bio--empty {
+  color:      var(--color-text-muted);
+  font-style: italic;
 }
 
-.info h1 {
-  margin: 0;
-  font-size: 42px;
+.profile-name {
+  font-family:  var(--font-display);
+  font-size:    var(--fs-h2);
+  font-weight:  var(--fw-regular);
+  color:        var(--color-secondary);
+  line-height:  var(--lh-tight);
 }
 
-.username {
-  color: #6C3BFF;
-  font-weight: bold;
-  margin-top: 8px;
+.profile-username {
+  font-family: var(--font-body);
+  font-size:   var(--fs-body);
+  font-weight: var(--fw-bold);
+  color:       var(--color-primary);
+  /* margin-bottom: 90px */
 }
 
-.bio {
-  color: #555;
-  margin-top: 12px;
+.profile-bio {
+  font-family: var(--font-body);
+  font-size:   var(--fs-body);
+  color:       var(--color-text-muted);
+  line-height: 4px;
+
 }
 
-@media (max-width: 768px) {
-  .profile-top {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 24px;
-  }
-
-  .left {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+.genre-chip {
+  font-family:  var(--font-body) !important;
+  font-size:    var(--fs-small) !important;
+  font-weight:  var(--fw-medium) !important;
+  background:   var(--bw-gold-muted) !important;
+  color:        var(--bw-navy-ink) !important;
+  border-radius: var(--radius-pill) !important;
 }
-</style> 
+
+:deep(.v-btn) {
+  font-family:    var(--font-button) !important;
+  background:     var(--color-primary) !important;
+  color:          var(--color-text-inverse) !important;
+  border-radius:  var(--radius-md) !important;
+  height:         44px !important;
+  padding:        0 var(--space-5) !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  box-shadow:     none !important;
+}
+
+:deep(.v-btn:hover) {
+  background: var(--color-primary-hover) !important;
+}
+</style>

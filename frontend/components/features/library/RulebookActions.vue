@@ -1,14 +1,18 @@
 <template>
-  <div class="actions">
-
+  <div class="d-flex flex-wrap ga-4">
     <BaseButton @click="goRead">
+      <v-icon start>
+        mdi-book-open-variant
+      </v-icon>
       Read Rulebook
     </BaseButton>
 
-    <BaseButton variant="secondary">
+    <BaseButton variant="secondary" @click="router.push('/marketplace')">
+      <v-icon start>
+        mdi-store
+      </v-icon>
       Marketplace
     </BaseButton>
-
   </div>
 </template>
 
@@ -28,17 +32,3 @@ const goRead = () => {
   router.push(`/rulebook/read/${props.rulebook.id}`)
 }
 </script>
-
-<style scoped>
-.actions {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-@media (max-width: 768px) {
-  .actions {
-    flex-direction: column;
-  }
-}
-</style>

@@ -1,44 +1,42 @@
 <template>
-  <BaseCard 
-    class="add-card" 
-    @click="$emit('add-game')"
+  <base-card
+    class="add-card d-flex flex-column justify-center align-center"
+    @click="showAdd = true"
   >
+    <span class="text-h3 font-weight-bold">+</span>
+    <p class="mt-3">Add Game</p>
 
-    <div class="plus">
-      +
-    </div>
-
-    <p>Add Game</p>
-
-  </BaseCard>
+  </base-card>
 </template>
 
 <script setup>
-import BaseCard from '~/components/ui/BaseCard.vue'
+import AddGameModal from '~/components/features/profile/AddGameModal.vue'
 
-defineEmits(['add-game'])
+const emit = defineEmits(['game-added'])
+const showAdd = ref(false)
+
+const handleConfirm = (game) => {
+  emit('game-added', {
+    id:       Date.now(),
+    title:    game.title,
+    category: game.category,
+    image:    '/listing-detail.png',
+  })
+}
 </script>
 
 <style scoped>
 .add-card {
-  height: 280px;
-
-  border: 2px dashed #ccc;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-
-  cursor: pointer;
+  cursor:     pointer;
+  overflow:   hidden;
+  height:     280px;
+  border:     2px dashed #ccc;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 
-.plus {
-  font-size: 48px;
-  font-weight: bold;
-}
-
-p {
-  margin-top: 12px;
+.add-card:hover {
+  transform:        translateY(-2px);
+  background-color: var(--color-surface-alt);
+  box-shadow:       var(--shadow-md) !important;
 }
 </style>

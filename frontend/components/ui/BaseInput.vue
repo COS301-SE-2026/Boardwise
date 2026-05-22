@@ -1,31 +1,8 @@
 <template>
-  <input class="base-input"
-    :placeholder="placeholder"
-    :type="type"
-    :value="modelValue"
-    @input="$emit('update:modelValue', $event.target.value)"
-  />
+  <v-text-field v-bind="$attrs" v-model="inputValue" />
 </template>
 
-<script setup> 
-defineProps({ 
-  placeholder: String,
-  type: {
-    type: String,
-    default: 'text'
-  },
-  modelValue: String
-})
-
+<script setup>
+defineOptions({ inheritAttrs: false })
 const inputValue = defineModel()
 </script>
-
-<style scoped>
-.base-input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-sizing: border-box;
-}
-</style>

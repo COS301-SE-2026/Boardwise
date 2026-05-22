@@ -1,31 +1,30 @@
 <template>
   <BaseCard class="banner">
-
     <div class="banner-top">
 
       <div class="left">
-
         <div class="banner-image">
           <img :src="community.image" :alt="community.name" />
         </div>
 
-        <div class="info">
+        <v-card-text class="info">
           <h1>{{ community.name }}</h1>
-          <BaseBadge>{{ community.type }}</BaseBadge>
+          <v-chip size="small">{{ community.type }}</v-chip>
           <p class="description">{{ community.description }}</p>
           <p class="members">{{ community.members }} members</p>
-        </div>
-
+        </v-card-text>
       </div>
 
-      <div class="banner-actions">
+      <v-card-actions>
         <BaseButton @click="showEdit = true">Edit</BaseButton>
         <BaseButton @click="joined = !joined">
           {{ joined ? 'Leave' : 'Join Community' }}
         </BaseButton>
+      </v-card-actions>
+
     </div>
-</div>
-     <CommunityEditModal
+
+    <CommunityEditModal
       v-model="showEdit"
       :community="community"
       @save="handleSave"
@@ -35,7 +34,6 @@
 
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
-import BaseBadge from '~/components/ui/BaseBadge.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import CommunityEditModal from './CommunityEditModal.vue'
 
@@ -55,8 +53,8 @@ const handleSave = (data) => {
 <style scoped>
 .banner {
   width: 100%;
-  padding: 32px;
-  border-radius: 24px;
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
   background: #F9F4E3;
 }
 
@@ -65,64 +63,62 @@ const handleSave = (data) => {
   justify-content: space-between;
   align-items: center;
 }
- 
+
 .left {
   display: flex;
-  gap: 24px;
+  gap: var(--space-6);
   align-items: center;
 }
- 
+
 .banner-image {
   width: 100px;
   height: 100px;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   overflow: hidden;
   flex-shrink: 0;
 }
- 
+
 .banner-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
- 
+
 .info {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
+  align-items: flex-start;
 }
- 
+
 .info h1 {
   margin: 0;
-  font-size: 2rem;
+  font-size: var(--fs-h1);
+  line-height: var(--lh-tight);
 }
- 
+
 .description {
-  color: #555;
+  color: var(--color-text-muted);
+  font-size: var(--fs-body);
   margin: 0;
 }
- 
+
 .members {
-  color: #999;
-  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
   margin: 0;
 }
- 
+
 @media (max-width: 768px) {
   .banner-top {
     flex-direction: column;
     align-items: flex-start;
-    gap: 24px;
+    gap: var(--space-6);
   }
- 
-  .banner-actions {
-  display: flex;
-  gap: 12px;
-}
+
   .left {
     flex-direction: column;
     align-items: flex-start;
   }
-
 }
 </style>

@@ -1,36 +1,40 @@
-<template> 
-    <BaseCard> 
+<template>
+  <BaseCard class="community-card" @click="navigateToCommunity">
 
-        <div class="community-item" @click="navigateToCommunity">
+    <v-img
+      :src="community.image"
+      height="180"
+      cover
+    />
 
-            <div class="image-container">
-                <img :src="community.image" :alt="community.name" />
-            </div>>
-        
-            <div class="content">
+    <v-card-text class="card-body">
+      <h3>{{ community.name }}</h3>
+      <BaseBadge :variant="community.type">
+        {{ community.type }}
+      </BaseBadge>
+      <p class="description">{{ community.description }}</p>
+    </v-card-text>
 
-                <h3>{{ community.name }}</h3>
-                <BaseBadge>{{ community.type }}</BaseBadge>
-                <p class="description">{{ community.description }}</p>
-            </div>
- 
-            <BaseButton @click="router.push(`/community/${community.id}/chat`)">
-                View
-            </BaseButton>
-        </div>
-    </BaseCard>
+    <v-card-actions class="card-actions">
+      <BaseButton
+        block
+        @click.stop="router.push(`/community/${community.id}/chat`)"
+      >
+        View
+      </BaseButton>
+    </v-card-actions>
+
+  </BaseCard>
 </template>
 
-<script setup> 
+<script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseBadge from '~/components/ui/BaseBadge.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps({
-    community: {
-        type: Object, required: true 
-    }
+  community: { type: Object, required: true }
 })
 
 defineEmits(['join'])
@@ -38,48 +42,49 @@ defineEmits(['join'])
 const router = useRouter()
 
 const navigateToCommunity = () => {
-    router.push(`/community/${props.community.id}`)
+  router.push(`/community/${props.community.id}`)
 }
 </script>
 
 <style scoped>
-.community-item {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+.community-card {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
 }
- 
-.image-container {
-    height: 180px;
-    border-radius: 12px;
-    overflow: hidden;
-    background: #f5f5f5;
+
+.community-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
- 
-.image-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1;
 }
- 
-.content {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    flex: 1;
-}
- 
+
 h3 {
-    margin: 0;
+  margin: 0;
+  font-size: var(--fs-h4);
+  color: var(--color-secondary);
 }
- 
+
 .description {
-    font-size: 0.85rem;
-    color: #777;
-    line-height: 1.5;
-    margin: 0;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    }
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+  line-height: var(--lh-normal);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-actions {
+  padding: 0 var(--space-4) var(--space-4);
+}
 </style>
