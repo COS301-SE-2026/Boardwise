@@ -63,10 +63,6 @@ import { useMarketplace } from '~/composables/useMarketplace'
 
 const { fetchCurrentUser } = useProfile()
 const { listings, fetchUserListing, loading, error } = useMarketplace()
-
-import { useMarketplace } from '~/composables/useMarketplace'
-const { listings, fetchUserListing } = useMarketplace();
-
 const activeTab = ref('Games Owned')
 const user      = ref(null)
 
