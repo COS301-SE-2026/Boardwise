@@ -17,6 +17,7 @@ import BaseGrid           from '~/components/ui/BaseGrid.vue'
 import ProfileListingCard from './ProfileListingCard.vue'
 import AddListingCard     from './AddListingCard.vue'
 
+
 defineProps({
   listings: { type: Array, default: () => [] }
 })

@@ -3,151 +3,89 @@
 
     <Navbar />
 
-    <div v-if="rulebook" class="layout">
+    <v-row v-if="rulebook" class="mt-12" align="start">
 
-      <div class="left">
+      <v-col cols="12" md="4">
+        <div style="position: sticky; top: 100px;">
+          <BaseImage
+            :src="rulebook.image"
+            :alt="rulebook.title"
+            height="480px"
+            fit="cover"
+            style="border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.15);"
+          />
+        </div>
+      </v-col>
 
-        <img
-          :src="rulebook.image"
-          :alt="rulebook.title"
-          class="cover"
-        />
+      <v-col cols="12" md="8">
+        <div class="d-flex flex-column ga-6">
 
-      </div>
+          <RulebookInfo :rulebook="rulebook" />
 
-      <div class="right">
+          <div class="d-flex flex-wrap ga-4">
+            <BaseButton @click="goRead">
+              <v-icon start>mdi-book-open-variant</v-icon>
+              Read
+            </BaseButton>
+            <BaseButton variant="secondary" @click="router.push('/marketplace')">
+              <v-icon start>mdi-store</v-icon>
+              Browse Marketplace
+            </BaseButton>
+          </div>
 
-        <RulebookInfo :rulebook="rulebook" />
-
-        <div class="buttons">
-
-          <BaseButton @click="goRead">
-            Read
-          </BaseButton>
-
-          <BaseButton variant="secondary">
-            Browse Marketplace
-          </BaseButton>
+          <BaseCard class="pa-6">
+            <h3 class="text-h6 font-weight-bold mb-3">Description</h3>
+            <p class="text-medium-emphasis mb-0" style="line-height: 1.8;">
+              {{ rulebook.description }}
+            </p>
+          </BaseCard>
 
         </div>
+      </v-col>
 
-        <ReaderContent :text="rulebook.description" />
+    </v-row>
 
-      </div>
+    <v-empty-state
+      v-else
+      title="Rulebook not found"
+      icon="mdi-book-off-outline"
+    >
+      <template #actions>
+        <BaseButton @click="router.push('/library')">← Back to Library</BaseButton>
+      </template>
+    </v-empty-state>
 
-    </div>
-
-    <RecommendedBooks
-      :rulebooks="recommended"
-    />
+    <RecommendedBooks :rulebooks="recommended" />
 
   </PageContainer>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-
 import { rulebooks } from '~/services/mockData/rulebooks.js'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseImage from '~/components/ui/BaseImage.vue'
 
 import RulebookInfo from '~/components/features/library/RulebookInfo.vue'
-import ReaderContent from '~/components/features/library/ReaderContent.vue'
 import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue'
-
-import BaseButton from '~/components/ui/BaseButton.vue'
 
 const router = useRouter()
 const route = useRoute()
 
-const rulebook = computed(() => {
-  return rulebooks.find(
-    item => item.id === Number(route.params.id)
-  )
-})
+const rulebook = computed(() =>
+  rulebooks.find(item => item.id === Number(route.params.id))
+)
 
-const recommended = computed(() => {
-  return rulebooks
+const recommended = computed(() =>
+  rulebooks
     .filter(item => item.id !== Number(route.params.id))
     .slice(0, 4)
-})
+)
 
 const goRead = () => {
-  router.push(`/rulebook/read/${book.value.id}`)
+  router.push(`/library/read/${rulebook.value.id}`)
 }
 </script>
-
-<style scoped>
-.layout {
-  display: grid;
-  grid-template-columns: 420px 1fr;
-
-  gap: 56px;
-
-  margin-top: 48px;
-  align-items: start;
-}
-
-.left {
-  position: sticky;
-  top: 100px;
-}
-
-.cover {
-  width: 100%;
-  height: auto;
-
-  border-radius: 28px;
-
-  object-fit: cover;
-
-  box-shadow:
-    0 20px 40px rgba(0,0,0,0.15);
-}
-
-.right {
-  display: flex;
-  flex-direction: column;
-}
-
-.buttons {
-  display: flex;
-  gap: 16px;
-
-  margin-top: 28px;
-  margin-bottom: 32px;
-}
-
-@media (max-width: 1100px) {
-  .layout {
-    grid-template-columns: 1fr;
-  }
-
-  .left {
-    position: relative;
-    top: unset;
-  }
-
-  .cover {
-    max-width: 420px;
-  }
-}
-
-@media (max-width: 768px) {
-  .layout {
-    gap: 32px;
-    margin-top: 32px;
-  }
-
-  .buttons {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .cover {
-    max-width: 100%;
-  }
-}
-</style>

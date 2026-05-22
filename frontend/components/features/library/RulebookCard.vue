@@ -1,14 +1,16 @@
 <template> 
     <BaseCard class="card" @click="openBook"> 
 
-        <div class="image-wrapper">
-            <img :src="rulebook.image" :alt="rulebook.title" />
-        </div>
-    
-        <div class="content">
+        <BaseImage :src="rulebook.image" :alt="rulebook.title" height="200px" fit="cover" />
 
-            <h3>{{ rulebook.title }}</h3>
-            <p>{{ rulebook.category }}</p>
+        <div class="pa-3">
+          <p class="text-body-2 font-weight-bold mb-1">
+            {{ rulebook.title }}
+          </p>
+
+          <p class="text-caption text-medium-emphasis mb-0">
+            {{ rulebook.category }}
+          </p>
         </div>
         
     </BaseCard>
@@ -16,6 +18,7 @@
 
 <script setup> 
 import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseImage from '~/components/ui/BaseImage.vue'
 
 const props = defineProps({
     rulebook: Object
@@ -28,43 +31,14 @@ const openBook = () => {
 
 <style scoped>
 .card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
   cursor: pointer;
-  transition: 0.2s;
-  min-width: 180px;
-  max-width: 180px;
-  padding: 0;
   overflow: hidden;
+  padding: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-}
-
-.image-wrapper {
-  width: 100%;
-  height: 200px;
-  overflow: hidden;
-}
-
-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.content {
-  padding: 12px 16px 16px;
-}
-
-h3 { margin: 0; font-size: 14px; }
-
-p {
-  margin-top: 4px;
-  color: #777;
-  font-size: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
 }
 </style>
