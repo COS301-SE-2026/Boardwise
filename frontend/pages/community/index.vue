@@ -24,6 +24,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { communities } from '~/services/mockData/communities'
 import CommunityFilter from '~/components/features/community/CommunityFilter.vue'
 import Navbar from '~/components/layout/Navbar.vue'
@@ -40,6 +41,7 @@ const activeTab = ref('All')
 const selectedTypes = ref([])
 const selectedCategories = ref([])
 const showCreateCommunity = ref(false)
+const router = useRouter()
 
 onMounted(() => {
   if (!localStorage.getItem('access_token')) {

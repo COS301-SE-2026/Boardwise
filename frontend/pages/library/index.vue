@@ -41,7 +41,9 @@ import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue
 import RulebookDetails from '~/components/features/library/RulebookDetail.vue'
 import RulebookSearch from '~/components/features/library/RulebookSearch.vue'
 import UploadRulebookModal from '~/components/features/library/UploadRulebookModal.vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 onMounted(() => {
   if (!localStorage.getItem('access_token')) {
     router.push('/auth/signin')
