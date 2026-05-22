@@ -106,9 +106,8 @@ The objectives of the system are to:
 
 ### 4.2 Marketplace Domain
 
-- **FR2.1:** The system must display user-generated listings for board game rentals and sales, including pricing and availability.
+- **FR2.1:** The system must display user-generated listings for board game rentals and sales, including pricing.
 - **FR2.2:** The system must allow users to create and manage their own rental and sale listings. Rental listings persist until the owner removes them. Sale listings are automatically removed once marked as sold.
-- **FR2.3:** The system must aggregate and display external retail purchasing links (online and in-store) for specific board games.
 
 ### 4.3 Community & Events Domain
 
@@ -853,23 +852,6 @@ The Marketplace domain model is centred on the `User`, `BoardGame`, `Listing`, a
 | **Alternative Flow** | **5a.** "Mark as Unavailable" sets the listing to an inactive state without deleting the record, allowing the user to reactivate it later. |
 | **Exception Flow** | **4a.** If the user cancels the confirmation prompt, no changes are made and the listing remains active. |
 | **Related FR** | FR2.2 |
-
----
-
-##### UC-MKT-06: View External Retail Purchase Links
-
-| Field | Detail |
-|---|---|
-| **Use Case ID** | UC-MKT-06 |
-| **Use Case Name** | View External Retail Purchase Links |
-| **Actor(s)** | Registered User, Guest User |
-| **Description** | A user viewing a board game in the marketplace accesses aggregated external retail links to find where they can purchase the title, both online and at nearby physical stores. |
-| **Preconditions** | The game title exists in the system's catalogue. The backend retail aggregation service has data for the title. |
-| **Postconditions** | The user is presented with one or more external retail options, or a graceful fallback if none are available. |
-| **Basic Flow** | 1. User navigates to a game's detail or search result page within the marketplace. <br> 2. The system calls the backend retail aggregation endpoint with the game title as the query parameter. <br> 3. The backend returns a list of retail sources including retailer name, link type (online/in-store), and URL. <br> 4. The system renders the "Where to Buy" section with the aggregated results. <br> 5. User clicks a retail link, which opens in a new browser tab. |
-| **Alternative Flow** | **3a.** If only online retailers are available, the "in-store" section is either hidden or displays a "No in-store listings found near you" message. |
-| **Exception Flow** | **2a.** If the retail aggregation service returns no results for the title, the system displays a fallback message: "No retail information available for this title at this time." <br> **2b.** If the aggregation service is unreachable, the system logs the failure and displays the fallback message. |
-| **Related FR** | FR2.3 |
 
 ---
 
@@ -2447,32 +2429,32 @@ The requirement traceability matrix maps functional requirements to their corres
 
 > **Note:** US-SOC-04 (Unfriend a User) is covered by **UC-SOC-02** (Manage Friends List), which includes both the View and Unfriend flows. There is no separate UC-SOC-04. This is explicitly reflected in the matrix below.
 
-| | FR0.1 | FR0.2 | FR0.3 | FR1.1 | FR1.2 | FR1.3 | FR1.4 | FR2.1 | FR2.2 | FR2.3 | FR3.1 | FR3.2 | FR4.1 | FR4.2 | FR4.3 | FR5.1 |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| UC-AUTH-01 | X | | | | | | | | | | | | | | | |
-| UC-AUTH-02 | | X | | | | | | | | | | | | | | |
-| UC-AUTH-03 | | | X | | | | | | | | | | | | | |
-| UC-PROF-01 | | | | X | | | | | | | | | | | | |
-| UC-PROF-02 | | | | X | X | X | | | | | | | | | | |
-| UC-PROF-03 | | | | | X | | | | | | | | | | | |
-| UC-PROF-04 | | | | | | X | | | | | | | | | | |
-| UC-SOC-01 | | | | | | | X | | | | | | | | | |
-| UC-SOC-02 (View + Unfriend) | | | | | | | X | | | | | | | | | |
-| UC-SOC-03 | | | | | | | X | | | | | | | | | |
-| UC-EVT-01 | | | | | | | | | | | X | | | | | X |
-| UC-EVT-02 | | | | | | | | | | | X | | | | | |
-| UC-EVT-03 | | | | | | | | | | | | X | | | | |
-| UC-MKT-01 | | | | | | | | X | | | | | | | | |
-| UC-MKT-02 | | | | | | | | X | | | | | | | | |
-| UC-MKT-03 | | | | | | | | | X | | | | | | | X |
-| UC-MKT-04 | | | | | | | | | X | | | | | | | |
-| UC-MKT-05 | | | | | | | | | X | | | | | | | |
-| UC-MKT-06 | | | | | | | | | | X | | | | | | |
-| UC-VLT-01 | | | | | | | | | | | | | X | | | X |
-| UC-VLT-02 | | | | | | | | | | | | | | X | | |
-| UC-VLT-03 | | | | | | | | | | | | | | X | | |
-| UC-VLT-04 | | | | | | | | | | | | | | X | | |
-| UC-VLT-05 | | | | | | | | | | | | | | | X | |
+| | FR0.1 | FR0.2 | FR0.3 | FR1.1 | FR1.2 | FR1.3 | FR1.4 | FR2.1 | FR2.2 | FR3.1 | FR3.2 | FR4.1 | FR4.2 | FR4.3 | FR5.1 |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| UC-AUTH-01 | X | | | | | | | | | | | | | | |
+| UC-AUTH-02 | | X | | | | | | | | | | | | | |
+| UC-AUTH-03 | | | X | | | | | | | | | | | | |
+| UC-PROF-01 | | | | X | | | | | | | | | | | |
+| UC-PROF-02 | | | | X | X | X | | | | | | | | | |
+| UC-PROF-03 | | | | | X | | | | | | | | | | |
+| UC-PROF-04 | | | | | | X | | | | | | | | | |
+| UC-SOC-01 | | | | | | | X | | | | | | | | |
+| UC-SOC-02 (View + Unfriend) | | | | | | X | | | | | | | | | |
+| UC-SOC-03 | | | | | | | X | | | | | | | | |
+| UC-EVT-01 | | | | | | | | | | X | | | | | X |
+| UC-EVT-02 | | | | | | | | | | | X | | | | |
+| UC-EVT-03 | | | | | | | | | | | | X | | | |
+| UC-MKT-01 | | | | | | | | X | | | | | | | |
+| UC-MKT-02 | | | | | | | | X | | | | | | | |
+| UC-MKT-03 | | | | | | | | | X | | | | | | X |
+| UC-MKT-04 | | | | | | | | | X | | | | | | |
+| UC-MKT-05 | | | | | | | | | X | | | | | | |
+| UC-MKT-06 | | | | | | | | | | X | | | | | |
+| UC-VLT-01 | | | | | | | | | | | | X | | | X |
+| UC-VLT-02 | | | | | | | | | | | | | X | | |
+| UC-VLT-03 | | | | | | | | | | | | | X | | |
+| UC-VLT-04 | | | | | | | | | | | | | X | | |
+| UC-VLT-05 | | | | | | | | | | | | | | X | |
 
 ---
 
