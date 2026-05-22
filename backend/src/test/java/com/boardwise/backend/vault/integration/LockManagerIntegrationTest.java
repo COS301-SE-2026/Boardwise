@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,6 +15,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.boardwise.backend.vault.dto.request.CommitDeltaRequestDto;
 import com.boardwise.backend.vault.dto.response.CommitDeltaResponseDto;
@@ -32,14 +35,22 @@ import com.boardwise.backend.vault.repository.RulebookRepository;
 import com.boardwise.backend.vault.repository.RulebookTextRepository;
 import com.boardwise.backend.vault.repository.WriteLockRepository;
 import com.boardwise.backend.vault.service.LockManagerService;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.testcontainers.containers.MongoDBContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+        "r2.access-key=test-access-key",
+        "r2.secret-key=test-secret-key",
+        "r2.account-id=test-account-id",
+        "r2.bucket-listings=test-listings-bucket",
+        "r2.bucket-profiles=test-profiles-bucket",
+        "r2.dev-url=http://localhost:9000", // ADDED: resolves ${r2.dev-url}
+        "jwt.secret=test-secret-key-that-is-long-enough-for-hmac"
+})
 @Testcontainers
 public class LockManagerIntegrationTest {
+
+    @Container
+    @ServiceConnection
+    static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:latest");
 
     @Autowired
     private LockManagerService lockManagerService;
@@ -56,13 +67,8 @@ public class LockManagerIntegrationTest {
     private ObjectId userId1;
     private ObjectId userId2;
 
-    @Container
-    @ServiceConnection
-    static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:latest");
-
     @BeforeEach
     void setUp() {
-        // clean state before each test
         writeLockRepository.deleteAll();
         editEventRepository.deleteAll();
         rulebookTextRepository.deleteAll();
@@ -72,7 +78,6 @@ public class LockManagerIntegrationTest {
         userId1 = new ObjectId();
         userId2 = new ObjectId();
 
-        // seed a rulebook
         rulebookRepository.save(Rulebook.builder()
                 .id(rulebookId)
                 .gameName("Catan")
@@ -85,7 +90,6 @@ public class LockManagerIntegrationTest {
                 .updatedAt(Instant.now())
                 .build());
 
-        // seed rulebook text
         rulebookTextRepository.save(RulebookText.builder()
                 .id(new ObjectId())
                 .rulebookId(rulebookId)
@@ -95,7 +99,9 @@ public class LockManagerIntegrationTest {
                 .build());
     }
 
-    // --- concurrent lock requests ---
+    // -------------------------------------------------------------------------
+    // Concurrent lock requests — only one must be granted
+    // -------------------------------------------------------------------------
 
     @Test
     void concurrentLockRequests_onlyOneGranted() throws InterruptedException {
@@ -104,7 +110,6 @@ public class LockManagerIntegrationTest {
         CountDownLatch latch = new CountDownLatch(1);
 
         List<Future<Boolean>> futures = new ArrayList<>();
-
         for (int i = 0; i < threadCount; i++) {
             ObjectId userId = i == 0 ? userId1 : userId2;
             futures.add(executor.submit(() -> {
@@ -132,14 +137,15 @@ public class LockManagerIntegrationTest {
                 .filter(Boolean::booleanValue)
                 .count();
 
-        // exactly one lock granted
+        // Exactly one thread wins the lock
         assertEquals(1, granted);
-
-        // exactly one lock document in DB
+        // Exactly one lock document persisted
         assertEquals(1, writeLockRepository.findAll().size());
     }
 
-    // --- voluntary lock release ---
+    // -------------------------------------------------------------------------
+    // Voluntary lock release
+    // -------------------------------------------------------------------------
 
     @Test
     void releaseLock_clearsLockDocument() {
@@ -157,63 +163,67 @@ public class LockManagerIntegrationTest {
         assertThrows(LockNotHeldException.class,
                 () -> lockManagerService.releaseLock(rulebookId, userId2));
 
-        // lock still exists
+        // Lock must still be present
         assertTrue(writeLockRepository.findByRulebookId(rulebookId).isPresent());
     }
 
-    // --- idle lock expiry ---
+    // -------------------------------------------------------------------------
+    // Expired lock — can be reclaimed
+    // -------------------------------------------------------------------------
 
     @Test
-    void expiredLock_isNotGrantable_untilExpired() throws InterruptedException {
-        // acquire lock with userId1
+    void expiredLock_canBeReclaimedByAnotherUser() {
         lockManagerService.acquireLock(rulebookId, userId1);
 
-        // manually backdate the lock expiry to simulate expiry
+        // Backdate the expiry to simulate timeout
         WriteLock lock = writeLockRepository.findByRulebookId(rulebookId).get();
         lock.setExpiresAt(Instant.now().minusSeconds(1));
         writeLockRepository.save(lock);
 
-        // userId2 should now be able to acquire since lock is expired
+        // userId2 should now be able to acquire the expired lock
         LockResponseDto response = lockManagerService.acquireLock(rulebookId, userId2);
 
         assertTrue(response.isLockGranted());
         assertEquals(userId2.toHexString(), response.getLockedBy());
 
-        // old lock cleared, new lock in DB
+        // New lock belongs to userId2
         WriteLock newLock = writeLockRepository.findByRulebookId(rulebookId).get();
         assertEquals(userId2, newLock.getHeldByUserId());
     }
 
-    // --- version mismatch ---
+    // -------------------------------------------------------------------------
+    // Version mismatch — no data corruption
+    // -------------------------------------------------------------------------
 
     @Test
     void commitDelta_versionMismatch_noDataCorruption() {
         lockManagerService.acquireLock(rulebookId, userId1);
 
         CommitDeltaRequestDto request = new CommitDeltaRequestDto();
-        request.setExpectedVersion(99); // wrong version
+        request.setExpectedVersion(99); // wrong — actual is 1
         request.setDelta("This should not be committed.");
 
         assertThrows(VersionMismatchException.class,
                 () -> lockManagerService.commitDelta(rulebookId, userId1, request));
 
-        // verify no edit event was appended
+        // No edit event appended
         List<EditEvent> events = editEventRepository
                 .findByRulebookIdOrderByCommittedAtAsc(rulebookId);
         assertTrue(events.isEmpty());
 
-        // verify version unchanged
+        // Rulebook version unchanged
         Rulebook rulebook = rulebookRepository.findById(rulebookId).get();
         assertEquals(1, rulebook.getVersion());
 
-        // verify text unchanged
-        RulebookText text = rulebookTextRepository
-                .findByRulebookId(rulebookId).get();
+        // Text content and version unchanged
+        RulebookText text = rulebookTextRepository.findByRulebookId(rulebookId).get();
         assertEquals("Original content.", text.getContent());
         assertEquals(1, text.getVersion());
     }
 
-    // --- successful commit ---
+    // -------------------------------------------------------------------------
+    // Successful commit — version incremented, edit event persisted
+    // -------------------------------------------------------------------------
 
     @Test
     void commitDelta_successfullyCommitsAndIncrementsVersion() {
@@ -229,14 +239,14 @@ public class LockManagerIntegrationTest {
         assertTrue(response.isCommitted());
         assertEquals(2, response.getNewVersion());
 
-        // verify edit event appended
+        // Exactly one edit event with the correct payload
         List<EditEvent> events = editEventRepository
                 .findByRulebookIdOrderByCommittedAtAsc(rulebookId);
         assertEquals(1, events.size());
         assertEquals("Updated content.", events.get(0).getDelta());
         assertEquals(2, events.get(0).getVersionAfter());
 
-        // verify rulebook version incremented
+        // Rulebook version incremented
         Rulebook rulebook = rulebookRepository.findById(rulebookId).get();
         assertEquals(2, rulebook.getVersion());
     }

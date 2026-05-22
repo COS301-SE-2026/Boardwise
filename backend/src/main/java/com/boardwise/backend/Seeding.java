@@ -9,6 +9,7 @@ import java.util.List;
 import org.bson.types.ObjectId;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +35,7 @@ import com.boardwise.backend.vault.repository.RulebookRepository;
 import com.boardwise.backend.vault.repository.WriteLockRepository;
 
 @Component
+@Profile("!test")
 public class Seeding {
     @Bean
     public CommandLineRunner seedDB(ListingRepository listingRepository, BoardGameRepository boardGameRepository, GroupMembershipRepository groupMembershipRepository,

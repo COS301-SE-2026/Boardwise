@@ -21,6 +21,7 @@ import com.boardwise.backend.vault.repository.RulebookRepository;
 import com.boardwise.backend.vault.repository.RulebookTextRepository;
 import com.boardwise.backend.vault.repository.WriteLockRepository;
 import com.boardwise.backend.vault.websocket.VaultEventPublisher;
+import com.mongodb.DuplicateKeyException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,27 +38,33 @@ public class LockManagerService {
     private final VaultEventPublisher eventPublisher;
     
     // AC-VLT-06: Acquire Write Lock
-    public LockResponseDto acquireLock(ObjectId rulebookId, ObjectId userId){
+    public LockResponseDto acquireLock(ObjectId rulebookId, ObjectId userId) {
         Rulebook rulebook = findRulebookOrThrow(rulebookId);
 
+        // Clean up any lock that has already expired.
+        // This is not atomic, but the subsequent insert is.
         writeLockRepository.findByRulebookId(rulebookId).ifPresent(existingLock -> {
-            // Check if the lock has expired
-            if(existingLock.getExpiresAt().isAfter(Instant.now())){
+            if (existingLock.getExpiresAt().isBefore(Instant.now())) {
+                writeLockRepository.delete(existingLock);
+            } else {
                 throw new LockConflictException(rulebookId);
             }
-            // expired lock - clear it before granting a new one
-            writeLockRepository.delete(existingLock);
         });
 
         Instant now = Instant.now();
         WriteLock lock = WriteLock.builder()
-            .rulebookId(rulebookId)
-            .heldByUserId(userId)
-            .acquiredAt(now)
-            .expiresAt(now.plusSeconds(LOCK_EXPIRY_SECONDS))
-            .build();
+                .rulebookId(rulebookId)
+                .heldByUserId(userId)
+                .acquiredAt(now)
+                .expiresAt(now.plusSeconds(LOCK_EXPIRY_SECONDS))
+                .build();
 
-        writeLockRepository.save(lock);
+        try {
+            // Atomic insert – fails if a lock for this rulebook already exists
+            writeLockRepository.insert(lock);
+        } catch (DuplicateKeyException e) {
+            throw new LockConflictException(rulebookId);
+        }
 
         eventPublisher.publishLockAcquired(
                 rulebookId,
@@ -66,11 +73,11 @@ public class LockManagerService {
                 rulebook.getVersion());
 
         return LockResponseDto.builder()
-            .lockGranted(true)
-            .lockedBy(userId.toHexString())
-            .expiresAt(lock.getExpiresAt())
-            .currentVersion(rulebook.getVersion())
-            .build();
+                .lockGranted(true)
+                .lockedBy(userId.toHexString())
+                .expiresAt(lock.getExpiresAt())
+                .currentVersion(rulebook.getVersion())
+                .build();
     }
 
     // AC-VLT-08: Release Write Lock

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.data.mongodb.test.autoconfigure.DataMongoTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.context.ActiveProfiles;
@@ -21,15 +22,14 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@DataMongoTest
 @Testcontainers
-@ActiveProfiles("test") // <--- ADD THIS LINE
-public class ListingRepositoryIntegrationTest {
+@ActiveProfiles("test")
+class ListingRepositoryIntegrationTest {
 
     @Container
     @ServiceConnection
     static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:7.0");
-
 
     @Autowired
     private ListingRepository listingRepository;
@@ -50,7 +50,8 @@ public class ListingRepositoryIntegrationTest {
         listingRepository.deleteAll();
     }
 
-    // --- SAVE ---------------------------------------------------------------------
+    // --- SAVE
+    // ---------------------------------------------------------------------
 
     @Test
     void save_listing_persists_to_db() {
@@ -62,7 +63,8 @@ public class ListingRepositoryIntegrationTest {
         assertEquals(ListingStatus.AVAILABLE, saved.getStatus());
     }
 
-    // --- FIND BY ID ---------------------------------------------------------------
+    // --- FIND BY ID
+    // ---------------------------------------------------------------
 
     @Test
     void findById_returns_listing_when_exists() {
@@ -81,7 +83,8 @@ public class ListingRepositoryIntegrationTest {
         assertTrue(found.isEmpty());
     }
 
-    // --- FIND BY STATUS -----------------------------------------------------------
+    // --- FIND BY STATUS
+    // -----------------------------------------------------------
 
     @Test
     void findByStatus_returns_only_available_listings() {
@@ -102,7 +105,6 @@ public class ListingRepositoryIntegrationTest {
 
     @Test
     void findByStatus_returns_empty_when_none_match() {
-        // Only a SOLD listing exists; querying AVAILABLE should return nothing
         Listing soldListing = new Listing(
                 null, "testuser", "boardgame", "sale",
                 100.00, "Monopoly", "Old Monopoly", null,
@@ -115,7 +117,8 @@ public class ListingRepositoryIntegrationTest {
         assertTrue(available.isEmpty());
     }
 
-    // --- FIND BY USERNAME ---------------------------------------------------------
+    // --- FIND BY USERNAME
+    // ---------------------------------------------------------
 
     @Test
     void findByUsername_returns_listings_for_user() {
@@ -158,7 +161,8 @@ public class ListingRepositoryIntegrationTest {
         assertTrue(userListings.stream().allMatch(l -> l.getUsername().equals("testuser")));
     }
 
-    // --- DELETE -------------------------------------------------------------------
+    // --- DELETE
+    // -------------------------------------------------------------------
 
     @Test
     void deleteById_removes_listing_from_db() {
@@ -170,7 +174,8 @@ public class ListingRepositoryIntegrationTest {
         assertFalse(listingRepository.existsById(id));
     }
 
-    // --- EXISTS -------------------------------------------------------------------
+    // --- EXISTS
+    // -------------------------------------------------------------------
 
     @Test
     void existsById_returns_true_when_listing_exists() {
@@ -184,7 +189,8 @@ public class ListingRepositoryIntegrationTest {
         assertFalse(listingRepository.existsById("nonexistent-id"));
     }
 
-    // --- FIND ALL -----------------------------------------------------------------
+    // --- FIND ALL
+    // -----------------------------------------------------------------
 
     @Test
     void findAll_returns_all_listings() {
@@ -202,7 +208,8 @@ public class ListingRepositoryIntegrationTest {
         assertEquals(2, all.size());
     }
 
-    // --- GENRES -------------------------------------------------------------------
+    // --- GENRES
+    // -------------------------------------------------------------------
 
     @Test
     void save_listing_with_multiple_genres_persists_correctly() {
@@ -220,7 +227,8 @@ public class ListingRepositoryIntegrationTest {
         assertTrue(saved.getGenres().contains("dice"));
     }
 
-    // --- UPDATE -------------------------------------------------------------------
+    // --- UPDATE
+    // -------------------------------------------------------------------
 
     @Test
     void save_updated_listing_reflects_changes() {

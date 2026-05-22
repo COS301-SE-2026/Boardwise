@@ -34,232 +34,248 @@ import com.boardwise.backend.vault.service.RulebookService;
 @Import(GlobalExceptionHandler.class)
 public class RulebookControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @MockitoBean
-    private RulebookService rulebookService;
+        @MockitoBean
+        private RulebookService rulebookService;
+        
+        @MockitoBean
+        private JWTService jwtService;
 
-    @MockitoBean
-    private JWTService jwtUtil;
 
-    private ObjectId rulebookId;
-    private ObjectId contributorId;
-    private ObjectId editorId;
-    private RulebookResponseDto mockRulebookResponseDto;
-    private RulebookTextResponseDto mockRulebookTextResponseDto;
-    private DownloadUrlResponseDto mockDownloadUrlResponseDto;
-    private EditHistoryResponseDto mockEditHistoryResponseDto;
+        private ObjectId rulebookId;
+        private ObjectId contributorId;
+        private ObjectId editorId;
+        private RulebookResponseDto mockRulebookResponseDto;
+        private RulebookTextResponseDto mockRulebookTextResponseDto;
+        private DownloadUrlResponseDto mockDownloadUrlResponseDto;
+        private EditHistoryResponseDto mockEditHistoryResponseDto;
 
-    @BeforeEach
-    void setUp() {
-        rulebookId = new ObjectId();
-        contributorId = new ObjectId();
-        editorId = new ObjectId();
+        @BeforeEach
+        void setUp() {
+                rulebookId = new ObjectId();
+                contributorId = new ObjectId();
+                editorId = new ObjectId();
 
-        mockRulebookResponseDto = RulebookResponseDto.builder()
-                .id(rulebookId.toHexString())
-                .gameName("Catan")
-                .edition("3rd Edition")
-                .status("Ready")
-                .version(3)
-                .contributorId(contributorId.toHexString())
-                .lockHeldBy(null)
-                .uploadedAt(Instant.now())
-                .updatedAt(Instant.now())
-                .build();
+                mockRulebookResponseDto = RulebookResponseDto.builder()
+                                .id(rulebookId.toHexString())
+                                .gameName("Catan")
+                                .edition("3rd Edition")
+                                .status("Ready")
+                                .version(3)
+                                .contributorId(contributorId.toHexString())
+                                .lockHeldBy(null)
+                                .uploadedAt(Instant.now())
+                                .updatedAt(Instant.now())
+                                .build();
 
-        mockRulebookTextResponseDto = RulebookTextResponseDto.builder()
-                .rulebookId(rulebookId.toHexString())
-                .content("These are the rules for Catan.")
-                .version(3)
-                .lockHeldBy(null)
-                .updatedAt(Instant.now())
-                .build();
-
-        mockDownloadUrlResponseDto = DownloadUrlResponseDto.builder()
-                .downloadUrl("https://r2.example.com/presigned-url")
-                .expiresAt(Instant.now().plusSeconds(300))
-                .build();
-
-        mockEditHistoryResponseDto = EditHistoryResponseDto.builder()
-                .rulebookId(rulebookId.toHexString())
-                .totalEdits(1)
-                .edits(List.of(
-                        EditEventResponseDto.builder()
-                                .id(new ObjectId().toHexString())
+                mockRulebookTextResponseDto = RulebookTextResponseDto.builder()
                                 .rulebookId(rulebookId.toHexString())
-                                .editorId(editorId.toHexString())
-                                .delta("Added setup instructions.")
-                                .versionAfter(3)
-                                .committedAt(Instant.now())
-                                .build()))
-                .build();
-    }
+                                .content("These are the rules for Catan.")
+                                .version(3)
+                                .lockHeldBy(null)
+                                .updatedAt(Instant.now())
+                                .build();
 
-    // --- GET /api/vault/rulebooks ---
+                mockDownloadUrlResponseDto = DownloadUrlResponseDto.builder()
+                                .downloadUrl("https://r2.example.com/presigned-url")
+                                .expiresAt(Instant.now().plusSeconds(300))
+                                .build();
 
-    @Test
-    @WithMockUser
-    void listRulebooks_returns200WithPagedResults() throws Exception {
-        when(rulebookService.searchRulebooks(anyString(), anyInt(), anyInt()))
-                .thenReturn(new PageImpl<>(List.of(mockRulebookResponseDto)));
+                mockEditHistoryResponseDto = EditHistoryResponseDto.builder()
+                                .rulebookId(rulebookId.toHexString())
+                                .totalEdits(1)
+                                .edits(List.of(
+                                                EditEventResponseDto.builder()
+                                                                .id(new ObjectId().toHexString())
+                                                                .rulebookId(rulebookId.toHexString())
+                                                                .editorId(editorId.toHexString())
+                                                                .delta("Added setup instructions.")
+                                                                .versionAfter(3)
+                                                                .committedAt(Instant.now())
+                                                                .build()))
+                                .build();
+        }
 
-        mockMvc.perform(get("/api/vault/rulebooks"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].gameName").value("Catan"))
-                .andExpect(jsonPath("$.content[0].status").value("Ready"));
-    }
+        // -------------------------------------------------------------------------
+        // GET /api/vault/rulebooks
+        // -------------------------------------------------------------------------
 
-    @Test
-    @WithMockUser
-    void listRulebooks_returns200WithSearchParam() throws Exception {
-        when(rulebookService.searchRulebooks(eq("Catan"), anyInt(), anyInt()))
-                .thenReturn(new PageImpl<>(List.of(mockRulebookResponseDto)));
+        @Test
+        @WithMockUser
+        void listRulebooks_returns200WithPagedResults() throws Exception {
+                when(rulebookService.searchRulebooks(anyString(), anyInt(), anyInt()))
+                                .thenReturn(new PageImpl<>(List.of(mockRulebookResponseDto)));
 
-        mockMvc.perform(get("/api/vault/rulebooks")
-                .param("search", "Catan"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].gameName").value("Catan"));
-    }
+                mockMvc.perform(get("/api/vault/rulebooks"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.content[0].gameName").value("Catan"))
+                                .andExpect(jsonPath("$.content[0].status").value("Ready"));
+        }
 
-    @Test
-    @WithMockUser
-    void listRulebooks_returns200WithEmptyPage() throws Exception {
-        when(rulebookService.searchRulebooks(anyString(), anyInt(), anyInt()))
-                .thenReturn(new PageImpl<>(List.of()));
+        @Test
+        @WithMockUser
+        void listRulebooks_returns200WithSearchParam() throws Exception {
+                when(rulebookService.searchRulebooks(eq("Catan"), anyInt(), anyInt()))
+                                .thenReturn(new PageImpl<>(List.of(mockRulebookResponseDto)));
 
-        mockMvc.perform(get("/api/vault/rulebooks")
-                .param("search", "Unknown"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isEmpty());
-    }
+                mockMvc.perform(get("/api/vault/rulebooks").param("search", "Catan"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.content[0].gameName").value("Catan"));
+        }
 
-    // --- GET /api/vault/rulebooks/{id} ---
+        @Test
+        @WithMockUser
+        void listRulebooks_returns200WithEmptyPage() throws Exception {
+                when(rulebookService.searchRulebooks(anyString(), anyInt(), anyInt()))
+                                .thenReturn(new PageImpl<>(List.of()));
 
-    @Test
-    @WithMockUser
-    void getRulebook_returns200ForValidId() throws Exception {
-        when(rulebookService.getRulebookById(any(ObjectId.class)))
-                .thenReturn(mockRulebookResponseDto);
+                mockMvc.perform(get("/api/vault/rulebooks").param("search", "Unknown"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.content").isEmpty());
+        }
 
-        mockMvc.perform(get("/api/vault/rulebooks/{id}", rulebookId.toHexString()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(rulebookId.toHexString()))
-                .andExpect(jsonPath("$.gameName").value("Catan"));
-    }
+        // -------------------------------------------------------------------------
+        // GET /api/vault/rulebooks/{id}
+        // -------------------------------------------------------------------------
 
-    @Test
-    @WithMockUser
-    void getRulebook_returns404ForUnknownId() throws Exception {
-        when(rulebookService.getRulebookById(any(ObjectId.class)))
-                .thenThrow(new RulebookNotFoundException(rulebookId));
+        @Test
+        @WithMockUser
+        void getRulebook_returns200ForValidId() throws Exception {
+                when(rulebookService.getRulebookById(any(ObjectId.class)))
+                                .thenReturn(mockRulebookResponseDto);
 
-        mockMvc.perform(get("/api/vault/rulebooks/{id}", rulebookId.toHexString()))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").exists());
-    }
+                mockMvc.perform(get("/api/vault/rulebooks/{id}", rulebookId.toHexString()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id").value(rulebookId.toHexString()))
+                                .andExpect(jsonPath("$.gameName").value("Catan"));
+        }
 
-    @Test
-    @WithMockUser
-    void getRulebook_returns400ForMalformedId() throws Exception {
-        mockMvc.perform(get("/api/vault/rulebooks/{id}", "not-a-valid-id"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").exists());
-    }
+        @Test
+        @WithMockUser
+        void getRulebook_returns404ForUnknownId() throws Exception {
+                when(rulebookService.getRulebookById(any(ObjectId.class)))
+                                .thenThrow(new RulebookNotFoundException(rulebookId));
 
-    // --- GET /api/vault/rulebooks/{id}/text ---
+                mockMvc.perform(get("/api/vault/rulebooks/{id}", rulebookId.toHexString()))
+                                .andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.error").exists());
+        }
 
-    @Test
-    @WithMockUser
-    void getRulebookText_returns200WithContent() throws Exception {
-        when(rulebookService.getRulebookText(any(ObjectId.class)))
-                .thenReturn(mockRulebookTextResponseDto);
+        @Test
+        @WithMockUser
+        void getRulebook_returns400ForMalformedId() throws Exception {
+                mockMvc.perform(get("/api/vault/rulebooks/{id}", "not-a-valid-id"))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.error").exists());
+        }
 
-        mockMvc.perform(get("/api/vault/rulebooks/{id}/text", rulebookId.toHexString()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").value("These are the rules for Catan."))
-                .andExpect(jsonPath("$.version").value(3));
-    }
+        // -------------------------------------------------------------------------
+        // GET /api/vault/rulebooks/{id}/text
+        // -------------------------------------------------------------------------
 
-    @Test
-    @WithMockUser
-    void getRulebookText_returns404ForUnknownId() throws Exception {
-        when(rulebookService.getRulebookText(any(ObjectId.class)))
-                .thenThrow(new RulebookNotFoundException(rulebookId));
+        @Test
+        @WithMockUser
+        void getRulebookText_returns200WithContent() throws Exception {
+                when(rulebookService.getRulebookText(any(ObjectId.class)))
+                                .thenReturn(mockRulebookTextResponseDto);
 
-        mockMvc.perform(get("/api/vault/rulebooks/{id}/text", rulebookId.toHexString()))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").exists());
-    }
+                mockMvc.perform(get("/api/vault/rulebooks/{id}/text", rulebookId.toHexString()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.content").value("These are the rules for Catan."))
+                                .andExpect(jsonPath("$.version").value(3));
+        }
 
-    // --- GET /api/vault/rulebooks/{id}/download ---
+        @Test
+        @WithMockUser
+        void getRulebookText_returns404ForUnknownId() throws Exception {
+                when(rulebookService.getRulebookText(any(ObjectId.class)))
+                                .thenThrow(new RulebookNotFoundException(rulebookId));
 
-    @Test
-    @WithMockUser
-    void downloadRulebook_returns200WithPresignedUrl() throws Exception {
-        when(rulebookService.getDownloadUrl(any(ObjectId.class)))
-                .thenReturn(mockDownloadUrlResponseDto);
+                mockMvc.perform(get("/api/vault/rulebooks/{id}/text", rulebookId.toHexString()))
+                                .andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.error").exists());
+        }
 
-        mockMvc.perform(get("/api/vault/rulebooks/{id}/download", rulebookId.toHexString()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.downloadUrl").value("https://r2.example.com/presigned-url"))
-                .andExpect(jsonPath("$.expiresAt").exists());
-    }
+        // -------------------------------------------------------------------------
+        // GET /api/vault/rulebooks/{id}/download
+        // -------------------------------------------------------------------------
 
-    @Test
-    @WithMockUser
-    void downloadRulebook_returns404WhenPdfNotAvailable() throws Exception {
-        when(rulebookService.getDownloadUrl(any(ObjectId.class)))
-                .thenThrow(new RulebookNotFoundException(rulebookId));
+        @Test
+        @WithMockUser
+        void downloadRulebook_returns200WithPresignedUrl() throws Exception {
+                when(rulebookService.getDownloadUrl(any(ObjectId.class)))
+                                .thenReturn(mockDownloadUrlResponseDto);
 
-        mockMvc.perform(get("/api/vault/rulebooks/{id}/download", rulebookId.toHexString()))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").exists());
-    }
+                mockMvc.perform(get("/api/vault/rulebooks/{id}/download", rulebookId.toHexString()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.downloadUrl").value("https://r2.example.com/presigned-url"))
+                                .andExpect(jsonPath("$.expiresAt").exists());
+        }
 
-    // --- GET /api/vault/rulebooks/{id}/history ---
+        @Test
+        @WithMockUser
+        void downloadRulebook_returns404WhenPdfNotAvailable() throws Exception {
+                when(rulebookService.getDownloadUrl(any(ObjectId.class)))
+                                .thenThrow(new RulebookNotFoundException(rulebookId));
 
-    @Test
-    @WithMockUser
-    void getEditHistory_returns200WithEvents() throws Exception {
-        when(rulebookService.getEditHistory(any(ObjectId.class)))
-                .thenReturn(mockEditHistoryResponseDto);
+                mockMvc.perform(get("/api/vault/rulebooks/{id}/download", rulebookId.toHexString()))
+                                .andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.error").exists());
+        }
 
-        mockMvc.perform(get("/api/vault/rulebooks/{id}/history", rulebookId.toHexString()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalEdits").value(1))
-                .andExpect(jsonPath("$.edits[0].delta").value("Added setup instructions."));
-    }
+        // -------------------------------------------------------------------------
+        // GET /api/vault/rulebooks/{id}/history
+        // -------------------------------------------------------------------------
 
-    @Test
-    @WithMockUser
-    void getEditHistory_returns404ForUnknownRulebook() throws Exception {
-        when(rulebookService.getEditHistory(any(ObjectId.class)))
-                .thenThrow(new RulebookNotFoundException(rulebookId));
+        @Test
+        @WithMockUser
+        void getEditHistory_returns200WithEvents() throws Exception {
+                when(rulebookService.getEditHistory(any(ObjectId.class)))
+                                .thenReturn(mockEditHistoryResponseDto);
 
-        mockMvc.perform(get("/api/vault/rulebooks/{id}/history", rulebookId.toHexString()))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").exists());
-    }
+                mockMvc.perform(get("/api/vault/rulebooks/{id}/history", rulebookId.toHexString()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.totalEdits").value(1))
+                                .andExpect(jsonPath("$.edits[0].delta").value("Added setup instructions."));
+        }
 
-    // --- 401 Unauthorized ---
+        @Test
+        @WithMockUser
+        void getEditHistory_returns404ForUnknownRulebook() throws Exception {
+                when(rulebookService.getEditHistory(any(ObjectId.class)))
+                                .thenThrow(new RulebookNotFoundException(rulebookId));
 
-    @Test
-    void allEndpoints_return401WithoutAuthentication() throws Exception {
-        mockMvc.perform(get("/api/vault/rulebooks"))
-                .andExpect(status().isUnauthorized());
+                mockMvc.perform(get("/api/vault/rulebooks/{id}/history", rulebookId.toHexString()))
+                                .andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.error").exists());
+        }
 
-        mockMvc.perform(get("/api/vault/rulebooks/{id}", rulebookId.toHexString()))
-                .andExpect(status().isUnauthorized());
+        // -------------------------------------------------------------------------
+        // 401 — unauthenticated requests
+        //
+        // Because SecurityConfig is NOT imported, the WebMvcTest slice uses Spring
+        // Boot's default security auto-config which requires authentication on every
+        // endpoint. All five requests below are made without @WithMockUser and must
+        // return 401.
+        // -------------------------------------------------------------------------
 
-        mockMvc.perform(get("/api/vault/rulebooks/{id}/text", rulebookId.toHexString()))
-                .andExpect(status().isUnauthorized());
+        @Test
+        void allEndpoints_return401WithoutAuthentication() throws Exception {
+                mockMvc.perform(get("/api/vault/rulebooks"))
+                                .andExpect(status().isUnauthorized());
 
-        mockMvc.perform(get("/api/vault/rulebooks/{id}/download", rulebookId.toHexString()))
-                .andExpect(status().isUnauthorized());
+                mockMvc.perform(get("/api/vault/rulebooks/{id}", rulebookId.toHexString()))
+                                .andExpect(status().isUnauthorized());
 
-        mockMvc.perform(get("/api/vault/rulebooks/{id}/history", rulebookId.toHexString()))
-                .andExpect(status().isUnauthorized());
-    }
+                mockMvc.perform(get("/api/vault/rulebooks/{id}/text", rulebookId.toHexString()))
+                                .andExpect(status().isUnauthorized());
+
+                mockMvc.perform(get("/api/vault/rulebooks/{id}/download", rulebookId.toHexString()))
+                                .andExpect(status().isUnauthorized());
+
+                mockMvc.perform(get("/api/vault/rulebooks/{id}/history", rulebookId.toHexString()))
+                                .andExpect(status().isUnauthorized());
+        }
 }
