@@ -3,7 +3,7 @@
 
     <div class="image-container">
       <img
-        :src="listing.imageUrl ?? '/placeholder.png'"
+        :src="listing.imageUrl ?? '/default-listing.png'"
         :alt="listing.gameTitle"
       />
     </div>

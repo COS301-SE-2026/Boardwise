@@ -20,7 +20,7 @@ const handleConfirm = (game) => {
     id:       Date.now(),
     title:    game.title,
     category: game.category,
-    image:    '/placeholder.png',
+    image:    '/listing-detail.png',
   })
 }
 </script>

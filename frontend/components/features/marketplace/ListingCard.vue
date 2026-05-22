@@ -3,7 +3,7 @@
 
     <div class="image-container">
       <img
-        :src="listing.imageUrl ?? '/placeholder.png'"
+        :src="listing.imageUrl ?? '/default-listing.png'"
         :alt="listing.gameTitle"
       />
       <BaseBadge
@@ -77,10 +77,9 @@ img {
   object-fit: cover;
 }
 
-.badge {
-color: white
+:deep(.badge) {
+  color: white;
 }
-
 h3 {
   margin: 0;
   font-size: var(--fs-body);

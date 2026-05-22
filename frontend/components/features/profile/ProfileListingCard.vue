@@ -3,7 +3,7 @@
 
     <div class="image-container">
       <img
-        :src="listing.imageUrl ?? '/placeholder.png'"
+        :src="listing.imageUrl ?? '/listing-detail.png'"
         :alt="listing.gameTitle"
       />
       <BaseBadge
@@ -37,7 +37,7 @@
 
       <div class="d-flex ga-2 mt-1">
         <v-btn size="small" color="primary" variant="tonal" @click.stop="showEdit = true">Edit</v-btn>
-        <v-btn size="small" color="error"   variant="tonal" @click.stop="showDelete = true">Delete</v-btn>
+        <!-- <v-btn size="small" color="error"   variant="tonal" @click.stop="showDelete = true">Delete</v-btn> -->
       </div>
     </v-card-text>
 
@@ -73,6 +73,10 @@ const openListing = () => {
   transition: transform var(--transition-base), box-shadow var(--transition-base);
   width: 100%;
 }
+:deep(.badge) {
+  color: white;
+}
+
 .profile-listing-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md) !important;
