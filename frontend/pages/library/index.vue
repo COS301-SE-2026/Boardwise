@@ -42,6 +42,12 @@ import RulebookDetails from '~/components/features/library/RulebookDetail.vue'
 import RulebookSearch from '~/components/features/library/RulebookSearch.vue'
 import UploadRulebookModal from '~/components/features/library/UploadRulebookModal.vue'
 
+onMounted(() => {
+  if (!localStorage.getItem('access_token')) {
+    router.push('/auth/signin')
+  }
+})
+
 const tabs = ['All', 'Strategy', 'Family', 'Party']
 const selectedTab = ref('All')
 const showModal = ref(false)

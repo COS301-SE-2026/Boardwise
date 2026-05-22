@@ -35,12 +35,18 @@ import FilterSidebar from '~/components/features/marketplace/FilterSidebar.vue'
 import ListingGrid from '~/components/features/marketplace/ListingGrid.vue'
 import AddListingModal from '~/components/features/profile/AddListingModal.vue'
 
+const router = useRouter();
 const activeTab = ref('Community')
 const showCreateListing = ref(false)
 
 const {listings, loading, fetchListings, addListing} = useMarketplace();
 
-onMounted(() => fetchListings())
+onMounted(() => {
+  if(!localStorage.getItem('access_token')){
+    router.push('/auth/signin');
+  }
+  fetchListings()
+})
 
 const handle = async (data, image) => {
   await addListing(data, image);

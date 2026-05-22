@@ -34,3 +34,7 @@ export const updateListing = (id: string, data: any, image?: File) => {
 //DELETE LISTING 
 export const deleteListing = (id: string) => 
   api.delete(`marketplace/delete/listing/${id}`)
+
+//GET LISTING BY ID
+export const getListingById = (id: string) => 
+  api.get(`marketplace/listings/${id}`)

@@ -1,25 +1,16 @@
 <template>
-  <BaseCard class="card" 
-    @click="showDetail = true"
-    style="cursor: pointer;"
-  >
+  <BaseCard class="game-card">
 
-    <img
-      :src="image"
-      :alt="title"
-    />
+    <v-img :src="image" :alt="title" height="180" cover />
 
-    <div class="content">
+    <v-card-text>
+      <h3 class="game-card__title ma-0">{{ title }}</h3>
+      <p class="game-card__category ma-0 mt-1">{{ category }}</p>
+    </v-card-text>
 
-      <h3>{{ title }}</h3>
-
-      <p>{{ category }}</p>
-
-    </div>
-
-    <!-- <RulebookDetail 
+    <!-- <RulebookDetail
       v-model="showDetail"
-      :game = "{ title, category, image }"
+      :game="{ title, category, image }"
     /> -->
 
   </BaseCard>
@@ -30,40 +21,36 @@ import BaseCard from '~/components/ui/BaseCard.vue'
 // import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
 
 defineProps({
-  title: String,
+  title:    String,
   category: String,
-  image: String
+  image:    String,
 })
 
 const showDetail = ref(false)
 </script>
 
 <style scoped>
-.card {
+
+.game-card {
+  /* cursor:     pointer; */
   overflow: hidden;
-  padding: 0;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+.game-card:hover {
+  transform:  translateY(-2px);
+  box-shadow: var(--shadow-md) !important;
 }
 
-.card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+.game-card__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-h4);
+  font-weight: var(--fw-regular);
+  color: var(--color-secondary);
 }
 
-img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-}
-
-.content {
-  padding: 16px;
-}
-
-h3 {
-  margin: 0;
-}
-
-p {
-  margin-top: 8px;
-  color: #666;
+.game-card__category {
+  font-family: var(--font-body);
+  font-size:   var(--fs-small);
+  color: var(--color-text-muted);
 }
 </style>

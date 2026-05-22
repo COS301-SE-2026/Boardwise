@@ -1,40 +1,57 @@
 <template>
-    <div class="header">
+  <div class="header">
 
-        <SectionTitle
-            title="Marketplace"
-            subtitle="Buy, Rent and List board games with the community"
-        />
+    <SectionTitle
+      title="Marketplace"
+      subtitle="Buy, Rent and List board games with the community"
+    />
 
-        <div class="search-row">
-            <div class="search">
-                <BaseSearch placeholder="Search for games..." />
-            </div>
-            <BaseButton variant="secondary"> Filters</BaseButton>
-            <BaseButton @click="$emit('create-listing')">+ Create Listing</BaseButton>
-        </div>
+    <div class="search-row">
+      <v-text-field
+        class="search"
+        placeholder="Search for games..."
+        variant="outlined"
+        density="compact"
+        hide-details
+        rounded="lg"
+      />
 
+      <!-- <v-btn
+        variant="outlined"
+        color="primary"
+        prepend-icon="mdi-filter-variant"
+      >
+        Filters
+      </v-btn> -->
+
+      <v-btn
+        color="primary"
+        prepend-icon="mdi-plus"
+        @click="$emit('create-listing')"
+      >
+        Create Listing
+      </v-btn>
     </div>
+
+  </div>
 </template>
 
 <script setup>
 import SectionTitle from '~/components/ui/SectionTitle.vue'
-import BaseSearch from '~/components/ui/BaseSearch.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
 
 defineEmits(['create-listing'])
 </script>
 
 <style scoped>
 .header {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
 }
 
 .search-row {
   display: flex;
-  gap: 12px;
+  gap: var(--space-3);
   align-items: center;
 }
 

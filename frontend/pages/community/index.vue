@@ -32,7 +32,6 @@ import ExploreHeader from '~/components/features/community/ExploreHeader.vue'
 import ExploreSearch from '~/components/features/community/ExploreSearch.vue'
 import CommunityGrid from '~/components/features/community/CommunityGrid.vue'
 import CommunityCreateForm from '~/components/features/community/CommunityCreateForm.vue'
-
 // 1. Destructure the composable
 // const { communities, getAllCommunities, loading, error } = useCommunity()
 
@@ -42,6 +41,11 @@ const selectedTypes = ref([])
 const selectedCategories = ref([])
 const showCreateCommunity = ref(false)
 
+onMounted(() => {
+  if (!localStorage.getItem('access_token')) {
+    router.push('/auth/signin')
+  }
+})
 // 2. Trigger the fetch when the page loads
 // onMounted(() => {
 //   getAllCommunities()
@@ -59,6 +63,7 @@ const filteredCommunities = computed(() =>
     const matchesCategory = selectedCategories.value.length === 0 || selectedCategories.value.includes(c.category)
     return matchesSearch && matchesTab && matchesType && matchesCategory
   })
+
 
 )
 

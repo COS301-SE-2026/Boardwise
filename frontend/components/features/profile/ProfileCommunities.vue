@@ -1,8 +1,8 @@
 <template>
-  <div class="communities-section">
+  <div class="mt-6">
 
-    <div class="header">
-      <h3>Communities</h3>
+    <div class="d-flex justify-space-between align-center mb-3">
+      <h3 class="section-title ma-0">Communities</h3>
       <NuxtLink to="/community" class="see-all">›</NuxtLink>
     </div>
 
@@ -11,11 +11,11 @@
         v-for="community in communities"
         :key="community.id"
         :to="`/community/${community.id}`"
-        class="community-card"
+        class="community-card text-decoration-none"
       >
-        <div class="card-image">
-          <img :src="community.image" :alt="community.name" />
-        </div>
+        <v-avatar size="64" rounded="lg" class="community-avatar">
+          <v-img :src="community.image" :alt="community.name" cover />
+        </v-avatar>
         <p class="card-name">{{ community.name }}</p>
       </NuxtLink>
     </div>
@@ -25,83 +25,62 @@
 
 <script setup>
 import { communities } from '~/services/mockData/communities'
-
 </script>
 
 <style scoped>
-.communities-section {
-  margin-top: 24px;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
+.section-title {
+  font-family: var(--font-display);
+  font-size:   var(--fs-h4);
+  font-weight: var(--fw-regular);
+  color:       var(--color-secondary);
 }
 
 .see-all {
-  font-size: 20px;
-  color: #6C3BFF;
+  font-family:     var(--font-body);
+  font-size:       var(--fs-body-lg);
+  font-weight:     var(--fw-bold);
+  color:           var(--color-primary);
   text-decoration: none;
-  font-weight: bold;
+}
+.see-all:hover {
+  color: var(--color-primary-hover);
 }
 
 .cards-row {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding-bottom: 8px;
+  display:        flex;
+  gap:            var(--space-3);
+  overflow-x:     auto;
+  padding-bottom: var(--space-2);
   scrollbar-width: none;
 }
-
-.cards-row::-webkit-scrollbar {
-  display: none;
-}
+.cards-row::-webkit-scrollbar { display: none; }
 
 .community-card {
-  display: flex;
+  display:        flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  text-decoration: none;
-  flex-shrink: 0;
-  cursor: pointer;
+  align-items:    center;
+  gap:            var(--space-2);
+  flex-shrink:    0;
+  cursor:         pointer;
 }
 
-.card-image {
-  width: 64px;
-  height: 64px;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 2px solid #eee;
-  transition: border-color 0.2s;
+.community-avatar {
+  border:     2px solid var(--color-border);
+  transition: border-color var(--transition-base);
 }
-
-.community-card:hover .card-image {
-  border-color: #6C3BFF;
-}
-
-.card-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.community-card:hover .community-avatar {
+  border-color: var(--color-primary);
 }
 
 .card-name {
-  font-size: 11px;
-  color: #555;
-  text-align: center;
-  margin: 0;
-  max-width: 64px;
-  white-space: nowrap;
-  overflow: hidden;
+  font-family:   var(--font-body);
+  font-size:     var(--fs-small);
+  color:         var(--color-text-muted);
+  text-align:    center;
+  margin:        0;
+  max-width:     64px;
+  white-space:   nowrap;
+  overflow:      hidden;
   text-overflow: ellipsis;
 }
 </style>
