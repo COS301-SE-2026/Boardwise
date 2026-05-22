@@ -8,14 +8,14 @@
 
 ---
 
-**Item:** Mini Project 2026 — Phase 1  
+**Item:** Capstone 2026 — Demo 1 
 **Team Name:** Works On My Machine
 
 **Team Members:**
 
 | Name | Surname | Student Number | % Contribution |
 |---|---|---|---|
-|Hayley\* |Booysen |u24868346 | --|
+|Hayley\* |Booysen\* |u24868346\* | --|
 |Bandile |Mnyandu |u24675394 | --|
 |Karabo |Nkomo |u24865169 |-- |
 |Palesa |Nkosi |u22664638 |-- |
@@ -44,6 +44,8 @@
     - [10.2 Marketplace API Contracts](#102-marketplace-api-contracts)
     - [10.3 The Vault API Contracts](#103-the-vault-api-contracts)
 11. [Traceability Matrix](#11-traceability-matrix)
+    - [11.1 Functional Requirements Traceability Matrix](#111-functional-requirements-traceability-matrix)
+    - [11.2 NFR–Architecture Traceability Matrix](#112-nfrarchitecture-traceability-matrix)
 12. [Architectural Requirements](#12-architectural-requirements)
     - [12.1 Overall Software Architecture](#121-overall-software-architecture)
     - [12.2 Architectural Quality Requirements](#122-architectural-quality-requirements)
@@ -82,26 +84,41 @@ The objectives of the system are to:
 - Enable peer-to-peer transactions (rental and sale) without dependence on a single retailer.
 - Foster community formation through groups, events, and social connections.
 - Democratise access to board game knowledge through a collaboratively maintained shared library of rulebooks.
+- Simplify the process of rule verification during a game-playing by employing AI that be asked about the ruling.
+- Provide a means to assist board game players to quickly setup new games without the need to read through manual.
 
 ---
 
 ## 4. Functional Requirements
 
+### 4.0 Authentication
+
+- **FR0.1:** The system must allow new users to register an account by providing a username, email address, and password.
+- **FR0.2:** The system must allow registered users to log in using their email address and password, issuing a secure session token upon successful authentication.
+- **FR0.3:** The system must allow authenticated users to log out, invalidating their active session token.
+
 ### 4.1 User Profile & Social Domain
 
 - **FR1.1:** The system must allow users to create, read, update, and delete (CRUD) personal profiles.
 - **FR1.2:** The system must enable users to maintain a digital inventory of owned board games.
-- **FR1.3:** The system must record and store user genre and game mechanic preferences.
+- **FR1.3:** The system must record and store user genre and game mechanic preferences. Users must be able to set their preferences as private, hiding them from other users' profile views.
 - **FR1.4:** The system must facilitate sending, accepting, and rejecting friend requests to form peer groups.
 
 ### 4.2 Marketplace Domain
 
+- **FR2.1:** The system must display user-generated listings for board game rentals and sales, including pricing.
+- **FR2.2:** The system must allow users to create and manage their own rental and sale listings. Rental listings persist until the owner removes them. Sale listings are automatically removed once marked as sold.
+
 ### 4.3 Community & Events Domain
 
-- **FR3.1:** The system must allow users to schedule gaming events, defining parameters such as date, time, game, and visibility (Public or Private).
-- **FR3.2:** The system must process event RSVPs, allowing users to join or decline event invitations.
+- **FR3.1:** The system must allow users to schedule gaming events, defining parameters such as name, date, time, location, game, and visibility. Visibility must support three modes: Public (visible to all users), Friends Only (visible only to the organiser's friends), and Private (visible only to explicitly invited users).
+- **FR3.2:** The system must process event RSVPs, allowing users to join or withdraw from events they have previously joined.
 
 ### 4.4 Shared Library Domain (The Vault)
+
+- **FR4.1:** The system must accept and store user-uploaded PDF documents representing board game rulebooks.
+- **FR4.2:** The system must provide a collaborative interface allowing users to view and update existing rulebook text.
+- **FR4.3:** The system must maintain a queryable, immutable audit log of all committed edits to a rulebook, recording the editor, the delta applied, the resulting version number, and the timestamp of each change.
 
 ### 4.5 UI & Usability
 
@@ -124,7 +141,7 @@ The objectives of the system are to:
 
 ### 5.3 Security & Reliability
 
-- **NFR3.1:** All P2P rental contracts and associated booking data processed by the Spring Boot backend must be ACID compliant.
+- **NFR3.1:** All `Listing` mutations (create, update, delete/deactivate) processed by the Marketplace Service backend must be ACID compliant, ensuring that listing state is never left in an inconsistent state during these operations.
 - **NFR3.2:** The Shared Library must implement Multi-Reader Single-Writer (MRSW) versioning to prevent data corruption when multiple users attempt to edit a rulebook simultaneously.
 - **NFR3.3:** The application must adhere to data privacy best practices, including encrypting passwords at rest and utilising secure JWTs for session management.
 
@@ -162,7 +179,7 @@ The system domain model illustrates the core entities across all subsystems and 
 
 The User entity is central to the entire system, forming the primary actor in all interactions across all domains. Each subsystem maintains its own set of domain classes, with cross-subsystem interactions mediated through service API calls rather than direct class coupling.
 
-![System Domain Model](./diagrams/domain-model-system.png)
+![System Domain Model](./diagrams/Boardwise_domain_model.png)
 
 ---
 
@@ -220,18 +237,7 @@ The User Service domain model centres on the `User` class, which holds core iden
 
 **Epic: Profile Management**
 
-##### US-PROF-01: Create a Profile
-
-**As a user, I want to create a personal profile, so that other users can identify me and I can personalise my experience on the platform.**
-
-**Acceptance Criteria:**
-- Given I have just registered, when I am directed to the profile setup page, then I can enter a display name, bio, and profile picture.
-- Given I am setting up my profile, when I submit the form with at least a display name, then my profile is created and saved successfully.
-- Given I am setting up my profile, when I submit the form without a display name, then the system displays a validation error and does not save the profile.
-
----
-
-##### US-PROF-02: View a Profile
+##### US-PROF-01: View a Profile
 
 **As a user, I want to view my profile and the profiles of other users, so that I can see their information, game collections, and gaming preferences.**
 
@@ -242,7 +248,7 @@ The User Service domain model centres on the `User` class, which holds core iden
 
 ---
 
-##### US-PROF-03: Update a Profile
+##### US-PROF-02: Update a Profile
 
 **As a user, I want to update my profile information, so that I can keep my details accurate and up to date.**
 
@@ -253,7 +259,7 @@ The User Service domain model centres on the `User` class, which holds core iden
 
 ---
 
-##### US-PROF-04: Delete a Profile
+##### US-PROF-03: Delete a Profile
 
 **As a user, I want to delete my account and profile, so that I can remove my personal data from the platform.**
 
@@ -406,7 +412,7 @@ The User Service domain model centres on the `User` class, which holds core iden
 
 **Acceptance Criteria:**
 - Given I am on the events page, when I select the create event option and provide a name, date, time, and game, then a new event is created and saved.
-- Given I am creating an event, when I set the visibility to Private, then only users I invite or friends can see and join the event.
+- Given I am creating an event, when I set the visibility to Private, then I must choose one of the following access options: (1) Only invited users — only users I explicitly invite can see and join the event, or (2) Friends only — only users on my friends list can see and join the event.
 - Given I am creating an event, when I set the visibility to Public, then any user on the platform can see and join the event.
 - Given I submit the event creation form with any required field missing, then the system displays a validation error and does not create the event.
 
@@ -439,8 +445,9 @@ The User Service domain model centres on the `User` class, which holds core iden
 
 **Acceptance Criteria:**
 - Given I am viewing a public event or a private event I have been invited to, when I select the join option, then my RSVP is recorded and I am added to the event's attendee list.
-- Given I have already joined an event, when I view that event, then the join option is replaced with an option to decline or withdraw my RSVP.
-- Given I select the decline option on an event I have joined, then I am removed from the attendee list.
+- Given I have already joined an event, when I view that event, then the join option is replaced with an option to withdraw my RSVP.
+- Given I select the withdraw option on an event I have joined, then I am removed from the attendee list.
+- Given I have previously RSVPed to an event, when I select the de-RSVP or withdraw option, then my RSVP is cancelled, I am removed from the attendee list, and the join option is restored.
 
 ---
 
@@ -667,8 +674,8 @@ The User Service domain model centres on the `User` class, which holds core iden
 | **Actor(s)** | Registered User |
 | **Description** | A registered user joins or withdraws from a gaming event to indicate their attendance intention. |
 | **Preconditions** | The user is authenticated and has an active session. The event exists and is visible to the user. |
-| **Postconditions** | **Join:** The user's RSVP is recorded and they are added to the attendee list. **Decline/Withdraw:** The user is removed from the attendee list. |
-| **Basic Flow** | **Join:** 1. User selects the join option on an event. 2. System records the RSVP and adds the user to the attendee list. 3. System replaces the join option with a decline or withdraw option. <br><br> **Decline/Withdraw:** 1. User selects the decline or withdraw option on an event they have previously joined. 2. System removes the user from the attendee list and updates their RSVP status. |
+| **Postconditions** | **Join:** The user's RSVP is recorded and they are added to the attendee list. **Withdraw:** The user is removed from the attendee list. |
+| **Basic Flow** | **Join:** 1. User selects the join option on an event. 2. System records the RSVP and adds the user to the attendee list. 3. System replaces the join option with a withdraw option. <br><br> **Withdraw:** 1. User selects the withdraw option on an event they have previously joined. 2. System removes the user from the attendee list and updates their RSVP status. |
 | **Alternative Flow** | None. |
 | **Exception Flow** | None. |
 | **Related FR** | FR3.2 |
@@ -677,145 +684,488 @@ The User Service domain model centres on the `User` class, which holds core iden
 
 ### 9.2 Marketplace Service
 
-### 9.3 Shared Library - The Vault Service
+The Marketplace Service is responsible for the peer-to-peer and retail discovery experience within Boardwise. It encompasses the ability for users to browse community listings for board games and board game themed merchandise available for rental or sale, create and manage their own listings, and discover where to purchase games both online and in-store. The marketplace enables the community to transact and trade independently of any single retailer.
+
+#### 9.2.1 Domain Model
+
+The Marketplace domain model is centred on the `User`, `BoardGame`, `Listing`, and `RetailSource` entities. A `User` makes zero or more `Listings` and has relationships with `BoardGame` through ownership, rental, and purchase associations. A `BoardGame` can have zero or more `Listings` associated with it, and zero or more `RetailSource` entries indicating where the game can be purchased externally.
+
+![Marketplace Domain Model](./diagrams/Marketplace_Domain_Model.png)
+
+#### 9.2.2 User Stories
 
 ---
 
-## 10. API Service Contracts
+**Epic: Browse & Discover**
 
-### 10.1 User Service API Contracts
+##### US-MKT-01: Browse Community Listings
 
-**Base URL:** `/api`  
-All protected endpoints require a valid JWT passed as a Bearer token in the `Authorization` header. Sensitive fields such as `_id` and `password` are excluded from all responses.
+**As a board game enthusiast, I want to browse listings created by other users, so that I can find board games available to rent or buy within my community.**
+
+**Acceptance Criteria:**
+- Given I am on the marketplace page, when the page loads, then all active listings are displayed, each showing the game title, listing type (rent or buy), price, and availability status.
+- Given I am on a mid-range device, when I open the app, then listings load within an acceptable response time and are paginated to maintain performance.
+- Given I am on the marketplace page, when I filter listings by listing type (rental or sale), price range, or game title, then only listings that meet the filter criteria are displayed.
+- Given I am a user on multiple devices, when I switch devices and open the marketplace, then the listing view is responsive and renders correctly across different screen sizes.
+- Given I am browsing the marketplace, when a listing is unavailable, then it is visually distinct from active listings and does not appear in search results.
+- Given I am browsing marketplace listings, the system displays two distinct categories: (1) user-generated peer listings (rentals and sales created by community members), and (2) external online retail listings (sourced from third-party retailers). These categories are presented separately so it is clear to users which type of listing they are viewing.
+- Given I am viewing an external online retail listing, the listing may display a status such as "Out of Stock" or "Available" reflecting its current availability at the retailer.
+- Given I am viewing a user-generated rental listing, the listing remains active on the marketplace until the listing owner manually removes it.
+- Given I am viewing a user-generated sale listing, the listing is automatically removed from the marketplace once the sale has been completed, since a user is unlikely to hold multiple copies of the same board game.
 
 ---
 
-#### AC-AUTH-01: Register a User
+##### US-MKT-02: View Listing Details
+
+**As a prospective buyer or renter, I want to view the full details of a specific listing, so that I can make an informed decision before contacting the seller.**
+
+**Acceptance Criteria:**
+- Given I am on the marketplace page, when I click on a listing, then I am navigated to a detail view displaying the game title, rental/sale price, listing description, and the seller's display name.
+- Given I am on a listing's detail view, when the page loads, then a call-to-action is visible that links to the seller to allow for communication through the Boardwise app.
+
+---
+
+##### US-MKT-03: Discover External Retail Sources
+
+**As a board game shopper, I want to see where I can purchase a specific game from online or in-store retailers, so that I can find options for titles not available through peer listings.**
+
+**Acceptance Criteria:**
+- Given I am on a game's detail or search result page, when the page loads, then an aggregated "Where to Buy" section is displayed containing available retail options.
+- Given I am viewing the "Where to Buy" section, when retail data is available, then a list of external retail links is shown, each displaying the retailer name and a direct link that opens in a new tab and is clearly shown as an external source.
+- Given I am viewing the "Where to Buy" section, when no retail data is available for the title, then a fallback message is displayed.
+
+---
+
+**Epic: Listing Management**
+
+##### US-MKT-04: Create a Rental or Sale Listing
+
+**As a board game owner, I want to create a listing to rent or sell one of my games, so that other community members can find and acquire it.**
+
+**Acceptance Criteria:**
+- Given I am a logged in user, when I am on the marketplace interface, then I can access a "Create Listing" form.
+- Given I am on the "Create Listing" form, when I open it, then I am prompted to fill in the following required fields: item image, game title, item type, listing type (rental or sale), and price, as well as an optional description field.
+- Given I am completing the "Create Listing" form, when I submit the form with one or more required fields missing or invalid, then errors are displayed clearly and the form is not submitted.
+- Given I am completing the "Create Listing" form, when I successfully submit the form, then the listing becomes immediately visible in the marketplace and I receive a success notification confirming it has been published.
+- Given I am an unauthenticated user, when I attempt to access the "Create Listing" form, then I am redirected to the login or registration page.
+- Given I have created a **rental** listing, when the listing is live, it remains active on the marketplace until I manually remove it, as a rental game can be offered repeatedly.
+- Given I have created a **sale** listing, when the sale is completed, the listing is automatically removed from the marketplace, since a sale is a one-time transaction and the game is no longer available.
+
+---
+
+##### US-MKT-05: Manage Own Listings
+
+**As a seller or lender, I want to edit or remove my active listings, so that I can keep my availability and pricing accurate.**
+
+**Acceptance Criteria:**
+- Given I am an authenticated user, when I navigate to my profile or marketplace dashboard, then I can view all of my own listings in a dedicated "My Listings" section.
+- Given I am viewing one of my own listings, when I select the "Edit" option, then a form pre-populated with the listing's existing data is presented and I am able to update any field.
+- Given I am viewing one of my own listings, when I select "Delete" or "Mark as Unavailable", then the listing is immediately removed from public view.
+- Given I am an authenticated user, when I save changes to one of my listings, then the updates are persisted and reflected in the marketplace view without requiring a full page reload.
+- Given I am an authenticated user, when I attempt to edit or delete a listing that belongs to another user, then the action is rejected and an authorisation error is returned.
+
+---
+
+#### 9.2.3 Use Cases
+
+![Marketplace Use Case Diagram](./diagrams/marketplace_use_case_diagram.png)
+
+##### UC-MKT-01: Browse and Filter Community Listings
 
 | Field | Detail |
 |---|---|
-| **Contract ID** | AC-AUTH-01 |
-| **Endpoint** | `POST /api/auth/register` |
-| **Description** | Registers a new user account on the Boardwise platform. Creates the user account and profile in a single operation. |
-| **Authentication** | None required |
+| **Use Case ID** | UC-MKT-01 |
+| **Use Case Name** | Browse and Filter Community Listings |
+| **Actor(s)** | Registered User, Guest User |
+| **Description** | A user navigates to the marketplace and browses active peer listings, optionally applying filters to narrow results. |
+| **Preconditions** | The marketplace contains at least one active listing. Network connectivity is stable. |
+| **Postconditions** | The user is presented with a filtered or unfiltered list of active listings. |
+| **Basic Flow** | 1. User navigates to the Marketplace section of the application. <br> 2. The system fetches and displays all active listings from the backend. <br> 3. Each listing card displays the game title, listing type, price, and availability. <br> 4. User optionally applies filters (type, price range, game title). <br> 5. The system re-queries and updates the listing display in response to filter changes. |
+| **Alternative Flow** | **4a.** User searches by game title using a search input — the system returns listings matching the title substring. |
+| **Exception Flow** | **2a.** If the backend fails to return listings, the system displays an error message and a retry option. <br> **2b.** If no listings match the applied filters, the system displays a "No listings found" message. |
+| **Related FR** | FR2.1 |
+
+---
+
+##### UC-MKT-02: View Full Listing Detail
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-MKT-02 |
+| **Use Case Name** | View Full Listing Detail |
+| **Actor(s)** | Registered User, Guest User |
+| **Description** | A user selects a listing from the marketplace browse view to inspect its full details before deciding to act. |
+| **Preconditions** | The listing exists and is in an active state. |
+| **Postconditions** | The user has viewed the complete listing information and may proceed to contact the seller or return to browsing. |
+| **Basic Flow** | 1. User clicks on a listing card in the marketplace. <br> 2. The system fetches the full listing record by ID and renders the detail view. <br> 3. The detail view displays game title, condition, price, listing type, description, and seller display name. <br> 4. User reviews the information and selects "Contact Seller" or navigates back. |
+| **Alternative Flow** | **4a.** User selects "Contact Seller" — the system routes the user to the relevant community profile or messaging interface. |
+| **Exception Flow** | **2a.** If the listing has been deleted between browse and click, the system displays a "Listing no longer available" message and returns the user to the browse view. |
+| **Related FR** | FR2.1 |
+
+---
+
+##### UC-MKT-03: Create a Rental or Sale Listing
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-MKT-03 |
+| **Use Case Name** | Create a Rental or Sale Listing |
+| **Actor(s)** | Registered User |
+| **Description** | An authenticated user creates a new listing to offer one of their board games for rent or sale on the marketplace. |
+| **Preconditions** | The user is authenticated. The user owns the board game they wish to list. |
+| **Postconditions** | A new listing is persisted in the database and immediately visible in the marketplace. |
+| **Basic Flow** | 1. User navigates to the marketplace and selects "Create Listing". <br> 2. The system displays the listing creation form. <br> 3. User fills in game title, listing type (rental/sale), price, and optional description. <br> 4. User submits the form. <br> 5. The system validates all required fields. <br> 6. The system persists the listing to the database, associated with the user's account. <br> 7. The system returns a success notification and the new listing appears in the marketplace. |
+| **Alternative Flow** | **3a.** User selects a game title from an autocomplete list populated by the existing board game catalogue. |
+| **Exception Flow** | **5a.** If required fields are missing or invalid, the system highlights the offending fields with inline error messages and halts submission. <br> **1a.** If the user is not authenticated, the system redirects to the login/registration page with a return URL to the listing form. |
+| **Related FR** | FR2.2 |
+
+---
+
+##### UC-MKT-04: Edit an Existing Listing
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-MKT-04 |
+| **Use Case Name** | Edit an Existing Listing |
+| **Actor(s)** | Registered User (listing owner) |
+| **Description** | A user updates the details of one of their own active listings, such as adjusting the price or updating availability. |
+| **Preconditions** | The user is authenticated and is the owner of the listing being edited. The listing is in an active state. |
+| **Postconditions** | The listing reflects the updated information in the marketplace immediately. |
+| **Basic Flow** | 1. User navigates to "My Listings" on their profile. <br> 2. The system fetches and displays all listings belonging to the authenticated user. <br> 3. User selects "Edit" on the target listing. <br> 4. The system displays the edit form pre-populated with the listing's current values. <br> 5. User modifies the desired fields and submits. <br> 6. The system validates the updated fields and persists the changes. <br> 7. The updated listing is reflected in the marketplace view. |
+| **Alternative Flow** | None. |
+| **Exception Flow** | **5a.** If validation fails on updated fields, inline errors are shown and the update is not persisted. <br> **3a.** If the listing was deleted by another session since the page loaded, the system notifies the user and refreshes "My Listings". |
+| **Related FR** | FR2.2 |
+
+---
+
+##### UC-MKT-05: Delete or Deactivate a Listing
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-MKT-05 |
+| **Use Case Name** | Delete or Deactivate a Listing |
+| **Actor(s)** | Registered User (listing owner) |
+| **Description** | A user removes or marks as unavailable one of their own listings so that it no longer appears in the public marketplace. |
+| **Preconditions** | The user is authenticated and owns the listing. The listing is currently active. |
+| **Postconditions** | The listing is no longer visible in the public marketplace browse view. |
+| **Basic Flow** | 1. User navigates to "My Listings". <br> 2. User selects "Delete" or "Mark as Unavailable" on the target listing. <br> 3. The system presents a confirmation prompt. <br> 4. User confirms the action. <br> 5. The system soft-deletes or flags the listing as inactive in the database. <br> 6. The listing is immediately removed from public marketplace results. <br> 7. The system confirms the action with a success notification. |
+| **Alternative Flow** | **5a.** "Mark as Unavailable" sets the listing to an inactive state without deleting the record, allowing the user to reactivate it later. |
+| **Exception Flow** | **4a.** If the user cancels the confirmation prompt, no changes are made and the listing remains active. |
+| **Related FR** | FR2.2 |
+
+---
+
+### 9.3 Shared Library — The Vault
+
+The Vault is the Shared Library subsystem of Boardwise. It provides a community-maintained digital repository of board game rulebooks, accessible to all registered users. The Vault enables contributors to upload PDF rulebooks and collaborators to edit and correct rulebook text using a strict Multi-Reader Single-Writer (MRSW) concurrency model. The subsystem is built on a dual-backend architecture: Spring Boot handles transactional operations (metadata management, MRSW lock management, edit history), while FastAPI handles the PDF ingestion pipeline.
+
+#### 9.3.1 Domain Model
+
+The Vault domain model is centred on the `Rulebook` entity. The `IngestionPipeline` processes the uploaded PDF and creates the `Rulebook` document itself. A `Rulebook` is guarded by a `WriteLock` (the MRSW lock), has current text stored in a `RulebookText` document, and tracks all historical changes via the `EditEvent` ledger (event sourcing).
+
+![Vault Domain Model](./diagrams/The%20Vault%20Domian%20Model.png)
+
+#### 9.3.2 User Stories
+
+---
+
+**Epic: Digital Vault Ingestion & Management**
+
+##### US-VLT-01: Upload a Rulebook
+
+**As a community contributor, I want to upload a PDF of a board game rulebook, so that it can be added to the Shared Library for others to view and edit.**
+
+**Acceptance Criteria:**
+- The system accepts `.pdf` file formats up to 50 MB.
+- The upload UI provides a clear progress indicator and a success or failure notification.
+- The raw PDF is securely stored in Cloudflare R2.
+- The Nuxt BFF proxies the upload request directly to FastAPI, which validates the JWT, sanitises the PDF, extracts text, and stores metadata in MongoDB Atlas.
+- The file is rejected with a clear error if it exceeds the size limit, is not a PDF, or fails sanitisation.
+- When a new version of a rulebook is uploaded, all previously uploaded versions of that rulebook remain available in the Vault and are not removed. Users can view and access any prior version at any time.
+
+---
+
+##### US-VLT-02: Browse the Vault Library
+
+**As a tabletop player, I want to search for and view existing rulebooks in the Vault, so that I can find and read the rules for a specific game.**
+
+**Acceptance Criteria:**
+- Users can search the Vault by game title using the `gameTitle` parameter.
+- The Nuxt BFF routes the search request to Spring Boot, which fetches rulebook metadata from MongoDB.
+- The UI displays rulebook cards with game name, edition, upload date, version number, and contributor username.
+- The interface scales appropriately for mobile and desktop screens.
+- Only rulebooks with status `Ready` appear in search results.
+
+---
+
+**Epic: Collaborative Rulebook Editor**
+
+##### US-VLT-03: View a Rulebook in the Editor
+
+**As a registered user, I want to view the text content of a rulebook in the collaborative editor, so that I can read the rules without downloading the PDF.**
+
+**Acceptance Criteria:**
+- The rulebook text content loads within 2 seconds of selection.
+- The current version number and last editor username are displayed.
+- Multiple users may view the same rulebook simultaneously in read-only mode without conflict.
+- If another user holds the write lock, a banner displays "Currently being edited by [username]" and the Edit button is disabled.
+
+---
+
+##### US-VLT-04: Edit a Rulebook
+
+**As a community contributor, I want to edit a specific section of a rulebook, so that I can correct an error or add an official publisher errata.**
+
+**Acceptance Criteria:**
+- The user interface provides an "Edit" button when viewing a rulebook that is not currently locked.
+- After acquiring the write lock via Spring Boot's MRSW lock manager, the editor becomes active.
+- Modifying the text triggers debounced auto-save; a full page reload is never required.
+- Other users viewing the document see committed changes in real time via WebSocket.
+
+---
+
+##### US-VLT-05: Concurrency Lock (MRSW)
+
+**As a reader, I want to be prevented from editing a rulebook that another user is currently working on, so that our changes do not overwrite each other.**
+
+**Acceptance Criteria:**
+- Spring Boot issues an exclusive write lock to the first user who requests edit access on a rulebook.
+- Other users viewing the document see a real-time banner: "Currently being edited by [username]" and the Edit button is disabled.
+- If the lock holder goes idle for 30 seconds, the lock is automatically released and all readers are notified.
+- WebSocket broadcasts ensure all active readers see lock state changes instantly.
+
+---
+
+##### US-VLT-06: Edit History
+
+**As a Vault user, I want to view the version history of a rulebook, so that I can see what changes have been made and by whom.**
+
+**Acceptance Criteria:**
+- Spring Boot logs every edit as an immutable event in the MongoDB `EDIT_EVENT` ledger.
+- Each commit increments a version counter and stores the delta, the editor's ID, and the resulting version number (`versionAfter`).
+- Authorised users can retrieve a full chronological list of edits for a rulebook via `GET /api/vault/rulebooks/{id}/history` (AC-VLT-09). The response includes the total number of edits (`totalEdits`) and an ordered array of edit entries, each containing a stable `id`, the `rulebookId`, the `editorId`, the committed `delta`, the `versionAfter`, and the `committedAt` timestamp.
+- If the provided rulebook `id` is not a valid ObjectId format, the endpoint returns `400 Bad Request`.
+- If no rulebook exists with the provided `id`, the endpoint returns `404 Not Found`.
+
+---
+
+#### 9.3.3 Use Cases
+
+![Vault Use Case Diagram](./diagrams/The%20Vault%20Use%20Case%20Diagram.png)
+
+##### UC-VLT-01: Upload a PDF Rulebook
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-VLT-01 |
+| **Use Case Name** | Upload a PDF Rulebook |
+| **Actor(s)** | Contributor (Registered User) |
+| **Description** | An authenticated user uploads a PDF rulebook to the Vault. The system sanitises and extracts the content, then makes it available to the community. |
+| **Preconditions** | User is authenticated. File is in PDF format and within the size limit. Network connectivity is stable. |
+| **Postconditions** | Rulebook metadata is stored in MongoDB. Raw PDF is stored in Cloudflare R2. Rulebook status is set to 'Ready'. |
+| **Basic Flow** | 1. User navigates to the Vault and selects 'Upload Rulebook'. <br> 2. System presents a file picker filtered to PDF only. <br> 3. User selects a file, enters the game name, and confirms the upload. <br> 4. System displays a real-time upload progress indicator. <br> 5. The Nuxt BFF proxies the request directly to FastAPI. <br> 6. FastAPI validates the JWT, sanitises the PDF, and extracts text. <br> 7. Raw PDF and extracted text are written to Cloudflare R2; rulebook metadata is stored in MongoDB Atlas. <br> 8. Rulebook status transitions to 'Ready' and the user receives an in-app notification. |
+| **Alternative Flow** | **3a.** User uploads a file without entering a game name — the system highlights the required field and prevents submission until it is filled. |
+| **Exception Flow** | **2a.** User selects a non-PDF file — the system rejects it with a clear format error message. <br> **4a.** File exceeds the size limit — the system rejects the upload and prompts the user to compress or split the file. <br> **6a.** Sanitisation detects unsafe content — the file is rejected, the attempt is logged, and the user sees a plain-language error. <br> **7a.** Text extraction fails — the raw PDF is stored to R2 with status 'Pending Review' and the user is notified. <br> **8a.** Network failure mid-upload — the system presents a retry option with the file still selected. |
+| **Related FR** | FR4.1 |
+
+---
+
+##### UC-VLT-02: View and Browse the Vault Library
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-VLT-02 |
+| **Use Case Name** | View and Browse the Vault Library |
+| **Actor(s)** | Registered User |
+| **Description** | An authenticated user navigates to the Vault, browses available rulebooks, and optionally searches by game name to find a specific rulebook. |
+| **Preconditions** | User is authenticated. At least one rulebook has 'Ready' status. Network connectivity is stable. |
+| **Postconditions** | The user is presented with a filtered or unfiltered list of ready rulebooks. No state changes are made to any rulebook document. |
+| **Basic Flow** | 1. User navigates to the Vault section of the application. <br> 2. The Nuxt BFF routes the request to Spring Boot. <br> 3. Spring Boot fetches and returns all 'Ready' rulebooks from MongoDB. <br> 4. Each rulebook card displays game name, upload date, version number, and contributor username. <br> 5. User optionally types a game name into the search bar. <br> 6. System re-queries Spring Boot using the `gameTitle` parameter and updates the displayed list. <br> 7. User selects a rulebook card to open its detail page. <br> 8. Detail page displays full metadata and options to view, edit, or download the rulebook. |
+| **Alternative Flow** | **4a.** User browses without searching — all 'Ready' rulebooks are displayed in order of most recently updated. <br> **8a.** User selects 'Download PDF' — Spring Boot generates a short-lived pre-signed URL for the Cloudflare R2 object; the client downloads directly from R2. |
+| **Exception Flow** | **2a.** Backend fails to return rulebooks — the system displays an error message and a retry option. <br> **5a.** Search returns no matching rulebooks — the system displays a 'No rulebooks found for [query]' message with a prompt to upload one. |
+| **Related FR** | FR4.2 |
+
+---
+
+##### UC-VLT-03: View a Rulebook in the Collaborative Editor
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-VLT-03 |
+| **Use Case Name** | View a Rulebook in the Collaborative Editor |
+| **Actor(s)** | Registered User |
+| **Description** | An authenticated user opens a rulebook in the collaborative editor to read its text content. Multiple users may view the same rulebook simultaneously in read-only mode. |
+| **Preconditions** | User is authenticated. The selected rulebook has 'Ready' status. Network connectivity is stable. |
+| **Postconditions** | The rulebook text is displayed to the user. No changes are made to the rulebook document or version counter. |
+| **Basic Flow** | 1. User selects a rulebook and selects 'View Rulebook'. <br> 2. Nuxt routes the request to Spring Boot, which fetches the current text state from MongoDB and returns it. <br> 3. The current version number and last editor username are displayed. <br> 4. If another user holds the write lock, a banner shows 'Currently being edited by [username]'. <br> 5. The user reads the rulebook in read-only mode. <br> 6. If the active editor commits a change, the user's view updates in real time via WebSocket without a page refresh. |
+| **Alternative Flow** | **4a.** No user holds the write lock — the user is presented with an 'Edit' button to request the write lock. |
+| **Exception Flow** | **2a.** Text content fails to load within 2 seconds — the system displays an error and a retry option. <br> **6a.** WebSocket connection drops — the UI shows a 'Reconnecting…' banner and re-syncs to the latest version on reconnect. |
+| **Related FR** | FR4.2 |
+
+---
+
+##### UC-VLT-04: Edit a Rulebook Collaboratively
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-VLT-04 |
+| **Use Case Name** | Edit a Rulebook Collaboratively |
+| **Actor(s)** | Collaborator — writer (primary), Collaborator — reader (secondary), Spring Boot (system) |
+| **Description** | An authenticated user acquires the write lock on a rulebook and makes edits. Changes are committed to MongoDB, the version counter is incremented, and a delta is broadcast in real time to all other active viewers. |
+| **Preconditions** | User is authenticated. Rulebook status is 'Ready'. No other user currently holds the write lock. |
+| **Postconditions** | MongoDB contains the updated text state and an incremented version number. The edit delta is appended to the EDIT_EVENT ledger. All active readers see the latest version. |
+| **Basic Flow** | 1. User opens a rulebook in read mode and selects 'Edit'. <br> 2. Spring Boot checks the lock state — no write lock is held. <br> 3. Spring Boot grants the write lock to the user; the editor becomes active. <br> 4. All other active viewers receive a WebSocket broadcast banner: 'Being edited by [username]'. <br> 5. User makes edits; each keystroke triggers a debounced auto-save. <br> 6. Spring Boot validates the edit against the current version counter. <br> 7. Edit passes the version check; Spring Boot commits the delta to MongoDB and increments the version counter. <br> 8. Delta is broadcast via WebSocket to all active readers; their views update without a refresh. <br> 9. User selects 'Done Editing'; Spring Boot releases the write lock. <br> 10. All active readers are notified that editing is now available. |
+| **Alternative Flow** | **1a.** User selects 'Edit' but the write lock is held by another user — the Edit button is disabled and a banner shows 'Being edited by [username]'. |
+| **Exception Flow** | **6a.** Version mismatch — Spring Boot rejects the edit, presents the latest version, and prompts the user to re-apply their change. <br> **9a.** User's session expires mid-edit — the write lock is automatically released after a 30-second idle timeout. <br> **8a.** WebSocket broadcast fails — affected readers are flagged with a 'View may be out of date' warning and prompted to refresh. |
+| **Related FR** | FR4.2 |
+
+---
+
+##### UC-VLT-05: View Rulebook Edit History
+
+| Field | Detail |
+|---|---|
+| **Use Case ID** | UC-VLT-05 |
+| **Use Case Name** | View Rulebook Edit History |
+| **Actor(s)** | Registered User (Vault user) |
+| **Description** | An authenticated user views the full chronological edit history of a specific rulebook, seeing each committed delta, the editor who made it, and the version it produced. Satisfies the auditability requirement from US-VLT-06. |
+| **Preconditions** | User is authenticated. A rulebook with the given `id` exists and its status is 'Ready'. |
+| **Postconditions** | The user is presented with an ordered list of all edit events for the rulebook. No state is modified. |
+| **Basic Flow** | 1. User opens a rulebook's detail page. <br> 2. User selects 'View Edit History'. <br> 3. The client sends `GET /api/vault/rulebooks/{id}/history` with a valid Bearer JWT. <br> 4. Spring Boot retrieves all entries from the `EDIT_EVENT` ledger for the given rulebook, ordered chronologically. <br> 5. The response returns `rulebookId`, `totalEdits`, and an `edits` array — each entry containing `id`, `rulebookId`, `editorId`, `delta`, `versionAfter`, and `committedAt`. <br> 6. The UI renders the edit history as a chronological list, displaying the editor, version number, timestamp, and delta for each entry. |
+| **Alternative Flow** | **4a.** The rulebook has no committed edits — Spring Boot returns `totalEdits: 0` and an empty `edits` array. The UI displays a 'No edits yet' message. |
+| **Exception Flow** | **3a.** The provided `id` is not a valid ObjectId format — Spring Boot returns `400 Bad Request` and the UI displays an appropriate error message. <br> **3b.** No rulebook exists with the provided `id` — Spring Boot returns `404 Not Found` and the UI navigates the user back to the Vault listing. <br> **3c.** JWT is missing or invalid — Spring Boot returns `401 Unauthorized` and the client redirects to the login page. |
+| **Related FR** | FR4.3 |
+
+## 10. API Service Contracts
+
+### 10.1 User Service
+
+#### AC-AUTH-01: Register an Account
+
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-AUTH-01|
+|**Endpoint**|`POST /api/auth/register`|
+|**Description**|Registers a new user account. Returns a JWT access token upon successful registration.|
+|**Authentication**|None required|
 
 **Request Body:**
+
 ```json
 {
-  "username": "string",
-  "email": "string",
-  "password": "string",
-  "displayName": "string",
-  "bio": "string"
+  "username": "string (min 3 chars)",
+  "emailAddress": "string (valid email format)",
+  "password": "string (min 8 chars, must contain uppercase, number, and symbol)",
+  "firstName": "string",
+  "lastName": "string"
 }
 ```
 
 **Success Response — 201 Created:**
+
 ```json
 {
-  "message": "Account created successfully.",
-  "user": {
-    "username": "string",
-    "email": "string",
-    "displayName": "string",
-    "bio": "string",
-    "profilePicture": "string | null",
-    "createdAt": "ISO8601 date string"
-  }
+  "message": "string",
+  "accessToken": "string (JWT)"
 }
 ```
 
 **Error Responses:**
 
-| Status Code | Reason |
+|Status Code|Reason|
 |---|---|
-| `400 Bad Request` | Missing or invalid required fields |
-| `409 Conflict` | Email address or username already registered |
-| `500 Internal Server Error` | Unexpected server error |
+|`400 Bad Request`|Missing or invalid required fields|
+|`500 Internal Server Error`|Unexpected server error|
 
 ---
 
 #### AC-AUTH-02: Log Into an Account
 
-| Field | Detail |
+|Field|Detail|
 |---|---|
-| **Contract ID** | AC-AUTH-02 |
-| **Endpoint** | `POST /api/auth/login` |
-| **Description** | Authenticates a registered user and returns a JWT for session management. |
-| **Authentication** | None required |
+|**Contract ID**|AC-AUTH-02|
+|**Endpoint**|`POST /api/auth/login`|
+|**Description**|Authenticates a registered user using their username and password. Returns a JWT access token upon success.|
+|**Authentication**|None required|
 
 **Request Body:**
+
 ```json
 {
-  "email": "string",
-  "password": "string"
+  "username": "string (min 3 chars)",
+  "password": "string (min 8 chars, must contain uppercase, number, and symbol)"
 }
 ```
 
 **Success Response — 200 OK:**
+
 ```json
 {
-  "message": "Login successful.",
-  "token": "string (JWT)",
-  "user": {
-    "username": "string",
-    "email": "string",
-    "displayName": "string",
-    "profilePicture": "string | null"
-  }
+  "message": "string",
+  "accessToken": "string (JWT)"
 }
 ```
 
 **Error Responses:**
 
-| Status Code | Reason |
+|Status Code|Reason|
 |---|---|
-| `400 Bad Request` | Missing required fields |
-| `401 Unauthorized` | Invalid email or password |
-| `500 Internal Server Error` | Unexpected server error |
+|`400 Bad Request`|Missing or invalid required fields|
+|`500 Internal Server Error`|Unexpected server error|
 
 ---
 
 #### AC-AUTH-03: Log Out of an Account
 
-| Field | Detail |
+|Field|Detail|
 |---|---|
-| **Contract ID** | AC-AUTH-03 |
-| **Endpoint** | `POST /api/auth/logout` |
-| **Description** | Terminates the authenticated user's session and invalidates their JWT. |
-| **Authentication** | Bearer token required |
+|**Contract ID**|AC-AUTH-03|
+|**Endpoint**|`DELETE /api/auth/logout`|
+|**Description**|Invalidates the authenticated user's active JWT, terminating their session.|
+|**Authentication**|Bearer token required|
+
+**Request Body:** None
 
 **Success Response — 200 OK:**
+
 ```json
 {
-  "message": "Logged out successfully."
+  "message": "string"
 }
 ```
 
 **Error Responses:**
 
-| Status Code | Reason |
+|Status Code|Reason|
 |---|---|
-| `401 Unauthorized` | Missing or invalid JWT |
-| `500 Internal Server Error` | Unexpected server error |
+|`401 Unauthorized`|Missing or invalid JWT|
+|`500 Internal Server Error`|Unexpected server error|
 
 ---
 
-#### AC-PROF-01: Get a User Profile
+#### AC-PROF-01: Get Another User's Profile
 
-| Field | Detail |
+|Field|Detail|
 |---|---|
-| **Contract ID** | AC-PROF-01 |
-| **Endpoint** | `GET /api/users/:username` |
-| **Description** | Retrieves the full profile view for a user, including their bio, game inventory, and social counts. |
-| **Authentication** | Bearer token required |
+|**Contract ID**|AC-PROF-01|
+|**Endpoint**|`GET /api/users/{username}`|
+|**Description**|Retrieves the public profile of a user by username, including their game inventory, preferences, and social counts.|
+|**Authentication**|Bearer token required|
+
+**Path Parameters:**
+
+|Parameter|Type|Description|
+|---|---|---|
+|`username`|`string`|The username of the profile to retrieve|
+
+**Request Body:** None
 
 **Success Response — 200 OK:**
+
 ```json
 {
+  "fullName": "string",
   "username": "string",
-  "displayName": "string",
-  "bio": "string",
   "profilePicture": "string | null",
   "friendCount": "number",
   "groupCount": "number",
@@ -830,8 +1180,8 @@ All protected endpoints require a valid JWT passed as a Bearer token in the `Aut
     }
   ],
   "preferences": {
-    "genres": ["string"],
-    "mechanics": ["string"]
+    "visibility": "string",
+    "genres": ["string"]
   },
   "createdAt": "ISO8601 date string"
 }
@@ -839,67 +1189,75 @@ All protected endpoints require a valid JWT passed as a Bearer token in the `Aut
 
 **Error Responses:**
 
-| Status Code | Reason |
+|Status Code|Reason|
 |---|---|
-| `401 Unauthorized` | Missing or invalid JWT |
-| `404 Not Found` | User with the given username does not exist |
-| `500 Internal Server Error` | Unexpected server error |
+|`401 Unauthorized`|Missing or invalid JWT|
+|`404 Not Found`|User with the given username does not exist|
+|`500 Internal Server Error`|Unexpected server error|
 
 ---
 
-#### AC-PROF-02: Update a User Profile
+#### AC-PROF-02: Get Own Profile
 
-| Field | Detail |
+|Field|Detail|
 |---|---|
-| **Contract ID** | AC-PROF-02 |
-| **Endpoint** | `PATCH /api/users/:username` |
-| **Description** | Updates the authenticated user's profile information. Only the authenticated user may update their own profile. |
-| **Authentication** | Bearer token required |
+|**Contract ID**|AC-PROF-02|
+|**Endpoint**|`GET /api/users/`|
+|**Description**|Retrieves the authenticated user's own profile, including their game inventory, preferences, and social counts. Identity is derived from the Bearer token.|
+|**Authentication**|Bearer token required|
 
-**Request Body:**
-```json
-{
-  "displayName": "string",
-  "bio": "string",
-  "profilePicture": "string | null"
-}
-```
+**Request Body:** None
 
 **Success Response — 200 OK:**
+
 ```json
 {
-  "message": "Profile updated successfully.",
-  "user": {
-    "username": "string",
-    "displayName": "string",
-    "bio": "string",
-    "profilePicture": "string | null"
-  }
+  "fullName": "string",
+  "username": "string",
+  "profilePicture": "string | null",
+  "friendCount": "number",
+  "groupCount": "number",
+  "ownedGameCount": "number",
+  "games": [
+    {
+      "title": "string",
+      "description": "string",
+      "image": "string | null",
+      "genre": ["string"],
+      "mechanics": ["string"]
+    }
+  ],
+  "preferences": {
+    "visibility": "string",
+    "genres": ["string"]
+  },
+  "createdAt": "ISO8601 date string"
 }
 ```
 
 **Error Responses:**
 
-| Status Code | Reason |
+|Status Code|Reason|
 |---|---|
-| `400 Bad Request` | Missing required fields |
-| `401 Unauthorized` | Missing or invalid JWT |
-| `403 Forbidden` | Authenticated user does not own this profile |
-| `404 Not Found` | User not found |
-| `500 Internal Server Error` | Unexpected server error |
+|`401 Unauthorized`|Missing or invalid JWT|
+|`404 Not Found`|User associated with token does not exist|
+|`500 Internal Server Error`|Unexpected server error|
 
 ---
 
-#### AC-PROF-03: Delete a User Account
+#### AC-PROF-03: Delete Own Account
 
-| Field | Detail |
+|Field|Detail|
 |---|---|
-| **Contract ID** | AC-PROF-03 |
-| **Endpoint** | `DELETE /api/users/:username` |
-| **Description** | Permanently deletes the authenticated user's account and all associated data. |
-| **Authentication** | Bearer token required |
+|**Contract ID**|AC-PROF-03|
+|**Endpoint**|`DELETE /api/users/`|
+|**Description**|Permanently deletes the authenticated user's account and all associated data. Identity is derived from the Bearer token.|
+|**Authentication**|Bearer token required|
+
+**Request Body:** None
 
 **Success Response — 200 OK:**
+
 ```json
 {
   "message": "Account deleted successfully."
@@ -908,318 +1266,158 @@ All protected endpoints require a valid JWT passed as a Bearer token in the `Aut
 
 **Error Responses:**
 
-| Status Code | Reason |
+|Status Code|Reason|
 |---|---|
-| `401 Unauthorized` | Missing or invalid JWT |
-| `403 Forbidden` | Authenticated user does not own this account |
-| `404 Not Found` | User not found |
-| `500 Internal Server Error` | Unexpected server error |
+|`401 Unauthorized`|Missing or invalid JWT|
+|`500 Internal Server Error`|Failed to delete account|
 
 ---
 
-#### AC-INV-01: Add a Game to Inventory
+#### AC-PROF-04: Update Own Profile
 
-| Field | Detail |
+|Field|Detail|
 |---|---|
-| **Contract ID** | AC-INV-01 |
-| **Endpoint** | `POST /api/users/:username/inventory` |
-| **Description** | Adds a board game to the authenticated user's game inventory. |
-| **Authentication** | Bearer token required |
+|**Contract ID**|AC-PROF-04|
+|**Endpoint**|`PATCH /api/users/`|
+|**Description**|Updates the authenticated user's profile fields. Only fields included in the request body are modified. Identity is derived from the Bearer token.|
+|**Authentication**|Bearer token required|
 
 **Request Body:**
-```json
-{
-  "title": "string",
-  "description": "string",
-  "image": "string | null",
-  "genre": ["string"],
-  "mechanics": ["string"]
-}
-```
 
-**Success Response — 201 Created:**
 ```json
 {
-  "message": "Game added to inventory successfully.",
-  "game": {
-    "title": "string",
-    "description": "string",
-    "image": "string | null",
-    "genre": ["string"],
-    "mechanics": ["string"]
+  "username": "string | null (min 3 chars)",
+  "emailAddress": "string | null (valid email format)",
+  "password": "string | null (min 8 chars, must contain uppercase, number, and symbol)",
+  "preferences": {
+    "visibility": "string | null",
+    "genres": ["string"] 
   }
 }
 ```
 
-**Error Responses:**
-
-| Status Code | Reason |
-|---|---|
-| `400 Bad Request` | Missing required fields |
-| `401 Unauthorized` | Missing or invalid JWT |
-| `403 Forbidden` | Authenticated user does not own this inventory |
-| `409 Conflict` | Game already exists in the user's inventory |
-| `500 Internal Server Error` | Unexpected server error |
-
----
-
-#### AC-INV-02: Remove a Game from Inventory
-
-| Field | Detail |
-|---|---|
-| **Contract ID** | AC-INV-02 |
-| **Endpoint** | `DELETE /api/users/:username/inventory/:gameTitle` |
-| **Description** | Removes a board game from the authenticated user's game inventory. |
-| **Authentication** | Bearer token required |
-
 **Success Response — 200 OK:**
+
 ```json
 {
-  "message": "Game removed from inventory successfully."
+  "username": "string (if updated)",
+  "email": "string (if updated)",
+  "password": "string (if updated)"
 }
 ```
 
 **Error Responses:**
 
-| Status Code | Reason |
+|Status Code|Reason|
 |---|---|
-| `401 Unauthorized` | Missing or invalid JWT |
-| `403 Forbidden` | Authenticated user does not own this inventory |
-| `404 Not Found` | Game not found in the user's inventory |
-| `500 Internal Server Error` | Unexpected server error |
+|`401 Unauthorized`|Missing or invalid JWT|
+|`500 Internal Server Error`|Unexpected server error during profile update|
+
+---
+
+#### AC-PROF-05: Update Profile Picture
+
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-PROF-05|
+|**Endpoint**|`POST /api/users/profilePicture`|
+|**Description**|Uploads a new profile picture for the authenticated user. Accepts a multipart file upload. Identity is derived from the Bearer token.|
+|**Authentication**|Bearer token required|
+|**Content-Type**|`multipart/form-data`|
+
+**Request Parts:**
+
+|Part|Type|Required|Description|
+|---|---|---|---|
+|`profilePicture`|`file`|Yes|The image file to set as the user's profile picture|
+
+**Success Response — 200 OK:**
+
+```json
+{
+  "message": "string",
+  "profilePictureUrl": "string"
+}
+```
+
+**Error Responses:**
+
+|Status Code|Reason|
+|---|---|
+|`401 Unauthorized`|Missing or invalid JWT|
+|`500 Internal Server Error`|IO error or unexpected failure during upload|
 
 ---
 
 #### AC-PREF-01: Set or Update Preferences
 
-| Field | Detail |
+|Field|Detail|
 |---|---|
-| **Contract ID** | AC-PREF-01 |
-| **Endpoint** | `PUT /api/users/:username/preferences` |
-| **Description** | Sets or updates the authenticated user's board game genre and mechanic preferences. Uses PUT as the entire preferences object is replaced on each save. |
-| **Authentication** | Bearer token required |
+|**Contract ID**|AC-PREF-01|
+|**Endpoint**|`PUT /api/users/preferences`|
+|**Description**|Sets or updates the authenticated user's board game genre preferences and visibility setting. Identity is derived from the Bearer token.|
+|**Authentication**|Bearer token required|
 
 **Request Body:**
+
 ```json
 {
-  "genres": ["string"],
-  "mechanics": ["string"]
+  "visibility": "string (Public | Private)",
+  "genres": ["string"]
 }
 ```
 
 **Success Response — 200 OK:**
+
 ```json
 {
   "message": "Preferences updated successfully.",
   "preferences": {
-    "genres": ["string"],
-    "mechanics": ["string"]
+    "visibility": "string",
+    "genres": ["string"]
   }
 }
 ```
 
 **Error Responses:**
 
-| Status Code | Reason |
+|Status Code|Reason|
 |---|---|
-| `400 Bad Request` | Invalid or malformed preferences body |
-| `401 Unauthorized` | Missing or invalid JWT |
-| `403 Forbidden` | Authenticated user does not own this profile |
-| `500 Internal Server Error` | Unexpected server error |
+|`401 Unauthorized`|Missing or invalid JWT|
+|`500 Internal Server Error`|Unexpected server error during preferences update|
 
 ---
 
-#### AC-SOC-01: Send a Friend Request
+#### AC-SOC-01: Create a Group
 
-| Field | Detail |
+|Field|Detail|
 |---|---|
-| **Contract ID** | AC-SOC-01 |
-| **Endpoint** | `POST /api/users/:username/friend-requests` |
-| **Description** | Sends a friend request from the authenticated user to the specified target user. |
-| **Authentication** | Bearer token required |
-
-**Success Response — 201 Created:**
-```json
-{
-  "message": "Friend request sent successfully.",
-  "friendRequest": {
-    "sender": "string (username)",
-    "recipient": "string (username)",
-    "status": "Pending",
-    "createdAt": "ISO8601 date string"
-  }
-}
-```
-
-**Error Responses:**
-
-| Status Code | Reason |
-|---|---|
-| `400 Bad Request` | User attempting to send a request to themselves |
-| `401 Unauthorized` | Missing or invalid JWT |
-| `404 Not Found` | Target user not found |
-| `409 Conflict` | Friend request already exists or users are already friends |
-| `500 Internal Server Error` | Unexpected server error |
-
----
-
-#### AC-SOC-02: Respond to a Friend Request
-
-| Field | Detail |
-|---|---|
-| **Contract ID** | AC-SOC-02 |
-| **Endpoint** | `PATCH /api/users/:username/friend-requests/:senderUsername` |
-| **Description** | Accepts or rejects an incoming friend request. Only the recipient of the request may respond to it. |
-| **Authentication** | Bearer token required |
+|**Contract ID**|AC-SOC-01|
+|**Endpoint**|`POST /api/social/groups`|
+|**Description**|Creates a new group. The authenticated user is automatically assigned as the group owner and first member.|
+|**Authentication**|Bearer token required|
 
 **Request Body:**
+
 ```json
 {
-  "status": "Accepted | Rejected"
-}
-```
-
-**Success Response — 200 OK:**
-```json
-{
-  "message": "Friend request accepted. | Friend request rejected.",
-  "friendRequest": {
-    "sender": "string (username)",
-    "recipient": "string (username)",
-    "status": "Accepted | Rejected"
-  }
-}
-```
-
-**Error Responses:**
-
-| Status Code | Reason |
-|---|---|
-| `400 Bad Request` | Invalid status value |
-| `401 Unauthorized` | Missing or invalid JWT |
-| `403 Forbidden` | Authenticated user is not the recipient of this request |
-| `404 Not Found` | Friend request not found |
-| `500 Internal Server Error` | Unexpected server error |
-
----
-
-#### AC-SOC-03: Get Friends List
-
-| Field | Detail |
-|---|---|
-| **Contract ID** | AC-SOC-03 |
-| **Endpoint** | `GET /api/users/:username/friends` |
-| **Description** | Retrieves the friends list for the specified user. |
-| **Authentication** | Bearer token required |
-
-**Success Response — 200 OK:**
-```json
-{
-  "friends": [
-    {
-      "username": "string",
-      "displayName": "string",
-      "profilePicture": "string | null"
-    }
-  ],
-  "friendCount": "number"
-}
-```
-
-**Error Responses:**
-
-| Status Code | Reason |
-|---|---|
-| `401 Unauthorized` | Missing or invalid JWT |
-| `404 Not Found` | User not found |
-| `500 Internal Server Error` | Unexpected server error |
-
----
-
-#### AC-SOC-04: Unfriend a User
-
-| Field | Detail |
-|---|---|
-| **Contract ID** | AC-SOC-04 |
-| **Endpoint** | `DELETE /api/users/:username/friends/:friendUsername` |
-| **Description** | Removes the friendship connection between the authenticated user and the specified friend. The connection is removed from both users' friends lists. |
-| **Authentication** | Bearer token required |
-
-**Success Response — 200 OK:**
-```json
-{
-  "message": "Friend removed successfully."
-}
-```
-
-**Error Responses:**
-
-| Status Code | Reason |
-|---|---|
-| `401 Unauthorized` | Missing or invalid JWT |
-| `403 Forbidden` | Authenticated user does not own this account |
-| `404 Not Found` | Friendship not found |
-| `500 Internal Server Error` | Unexpected server error |
-
----
-
-#### AC-GRP-01: Create a Group
-
-| Field | Detail |
-|---|---|
-| **Contract ID** | AC-GRP-01 |
-| **Endpoint** | `POST /api/groups` |
-| **Description** | Creates a new group. The authenticated user is automatically assigned as the group owner and first member. |
-| **Authentication** | Bearer token required |
-
-**Request Body:**
-```json
-{
-  "name": "string",
-  "description": "string | null"
+  "name": "string (min 3 chars, required)",
+  "description": "string | null",
+  "visibility": "string (default: Public)"
 }
 ```
 
 **Success Response — 201 Created:**
+
 ```json
 {
-  "message": "Group created successfully.",
+  "message": "string",
   "group": {
+    "groupId": "string",
     "name": "string",
     "description": "string | null",
     "owner": "string (username)",
-    "memberCount": 1,
-    "createdAt": "ISO8601 date string"
-  }
-}
-```
-
-**Error Responses:**
-
-| Status Code | Reason |
-|---|---|
-| `400 Bad Request` | Missing group name |
-| `401 Unauthorized` | Missing or invalid JWT |
-| `500 Internal Server Error` | Unexpected server error |
-
----
-
-#### AC-GRP-02: Join a Group
-
-| Field | Detail |
-|---|---|
-| **Contract ID** | AC-GRP-02 |
-| **Endpoint** | `POST /api/groups/:groupId/members` |
-| **Description** | Adds the authenticated user as a member of the specified group. |
-| **Authentication** | Bearer token required |
-
-**Success Response — 200 OK:**
-```json
-{
-  "message": "Joined group successfully.",
-  "group": {
-    "name": "string",
-    "description": "string | null",
+    "visibility": "string",
     "memberCount": "number"
   }
 }
@@ -1227,98 +1425,568 @@ All protected endpoints require a valid JWT passed as a Bearer token in the `Aut
 
 **Error Responses:**
 
-| Status Code | Reason |
+|Status Code|Reason|
 |---|---|
-| `401 Unauthorized` | Missing or invalid JWT |
-| `404 Not Found` | Group not found |
-| `409 Conflict` | User is already a member of this group |
-| `500 Internal Server Error` | Unexpected server error |
+|`401 Unauthorized`|Missing or invalid JWT|
+|`500 Internal Server Error`|Unexpected server error during group creation|
 
 ---
 
-#### AC-GRP-03: Get a Group
+#### AC-SOC-02: Get All Groups
 
-| Field | Detail |
+|Field|Detail|
 |---|---|
-| **Contract ID** | AC-GRP-03 |
-| **Endpoint** | `GET /api/groups/:groupId` |
-| **Description** | Retrieves the details and member list of a group. Members receive the full member list while non-members receive only the group's basic details. |
-| **Authentication** | Bearer token required |
+|**Contract ID**|AC-SOC-02|
+|**Endpoint**|`GET /api/social/groups`|
+|**Description**|Retrieves all groups visible to the authenticated user. Private groups are only returned if the user is a member.|
+|**Authentication**|Bearer token required|
 
-**Success Response — 200 OK (Member):**
+**Request Body:** None
+
+**Success Response — 200 OK:**
+
 ```json
 {
-  "name": "string",
-  "description": "string | null",
-  "owner": "string (username)",
-  "memberCount": "number",
-  "members": [
+  "groups": [
     {
-      "username": "string",
-      "displayName": "string",
-      "profilePicture": "string | null"
+      "groupId": "string",
+      "name": "string",
+      "description": "string | null",
+      "owner": "string (username)",
+      "visibility": "string",
+      "memberCount": "number"
     }
-  ],
-  "createdAt": "ISO8601 date string"
-}
-```
-
-**Success Response — 200 OK (Non-Member):**
-```json
-{
-  "name": "string",
-  "description": "string | null",
-  "owner": "string (username)",
-  "memberCount": "number",
-  "createdAt": "ISO8601 date string"
+  ]
 }
 ```
 
 **Error Responses:**
 
-| Status Code | Reason |
+|Status Code|Reason|
 |---|---|
-| `401 Unauthorized` | Missing or invalid JWT |
-| `404 Not Found` | Group not found |
-| `500 Internal Server Error` | Unexpected server error |
+|`401 Unauthorized`|Missing or invalid JWT|
+|`500 Internal Server Error`|Unexpected server error|
 
 ---
 
-#### AC-EVT-01: Create an Event
+#### AC-SOC-03: Get Group by ID
 
-| Field | Detail |
+|Field|Detail|
 |---|---|
-| **Contract ID** | AC-EVT-01 |
-| **Endpoint** | `POST /api/events` |
-| **Description** | Creates a new gaming event. The authenticated user is automatically assigned as the event creator. |
-| **Authentication** | Bearer token required |
+|**Contract ID**|AC-SOC-03|
+|**Endpoint**|`GET /api/social/groups/{groupId}`|
+|**Description**|Retrieves the full details and member list of a group by its ID. The response includes whether the authenticated user is a member.|
+|**Authentication**|Bearer token required|
 
-**Request Body:**
+**Path Parameters:**
+
+|Parameter|Type|Description|
+|---|---|---|
+|`groupId`|`string`|The ID of the group to retrieve|
+
+**Request Body:** None
+
+**Success Response — 200 OK:**
+
 ```json
 {
+  "groupId": "string",
   "name": "string",
-  "date": "ISO8601 date string",
-  "time": "string (HH:MM)",
-  "location": "string",
-  "game": "string (game title)",
-  "visibility": "Public | Private"
+  "description": "string | null",
+  "owner": "string (username)",
+  "memberCount": "number",
+  "members": ["object"],
+  "isMember": "boolean"
+}
+```
+
+**Error Responses:**
+
+|Status Code|Reason|
+|---|---|
+|`401 Unauthorized`|Missing or invalid JWT|
+|`404 Not Found`|Group with the given ID does not exist|
+|`500 Internal Server Error`|Unexpected server error|
+
+---
+
+#### AC-SOC-04: Join a Group
+
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-SOC-04|
+|**Endpoint**|`POST /api/social/groups/{groupId}`|
+|**Description**|Adds the authenticated user as a member of the specified group.|
+|**Authentication**|Bearer token required|
+
+**Path Parameters:**
+
+|Parameter|Type|Description|
+|---|---|---|
+|`groupId`|`string`|The ID of the group to join|
+
+**Request Body:** None
+
+**Success Response — 200 OK:**
+
+```json
+{
+  "message": "string",
+  "data": {}
+}
+```
+
+**Error Responses:**
+
+|Status Code|Reason|
+|---|---|
+|`401 Unauthorized`|Missing or invalid JWT|
+|`404 Not Found`|Group with the given ID does not exist|
+|`409 Conflict`|User is already a member of this group|
+|`500 Internal Server Error`|Unexpected server error|
+
+---
+
+#### AC-SOC-05: Leave a Group
+
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-SOC-05|
+|**Endpoint**|`DELETE /api/social/groups/{groupId}`|
+|**Description**|Removes the authenticated user from the specified group.|
+|**Authentication**|Bearer token required|
+
+**Path Parameters:**
+
+|Parameter|Type|Description|
+|---|---|---|
+|`groupId`|`string`|The ID of the group to leave|
+
+**Request Body:** None
+
+**Success Response — 200 OK:**
+
+```json
+{
+  "message": "string",
+  "data": {}
+}
+```
+
+**Error Responses:**
+
+|Status Code|Reason|
+|---|---|
+|`401 Unauthorized`|Missing or invalid JWT|
+|`404 Not Found`|Group with the given ID does not exist|
+|`409 Conflict`|User is not a member of this group|
+|`500 Internal Server Error`|Unexpected server error|
+
+---
+
+#### AC-SOC-06: Update a Group
+
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-SOC-06|
+|**Endpoint**|`PATCH /api/social/groups/{groupId}`|
+|**Description**|Updates the name or description of an existing group. Only the group owner may perform this action.|
+|**Authentication**|Bearer token required|
+
+**Path Parameters:**
+
+|Parameter|Type|Description|
+|---|---|---|
+|`groupId`|`string`|The ID of the group to update|
+
+**Request Body:**
+
+```json
+{
+  "name": "string | null (min 3 chars)",
+  "description": "string | null"
+}
+```
+
+**Success Response — 200 OK:**
+
+```json
+{
+  "message": "string",
+  "data": {}
+}
+```
+
+**Error Responses:**
+
+|Status Code|Reason|
+|---|---|
+|`401 Unauthorized`|Missing or invalid JWT|
+|`404 Not Found`|Group with the given ID does not exist|
+|`500 Internal Server Error`|Unexpected server error|
+
+---
+
+#### AC-SOC-07: Search Groups by Name
+
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-SOC-07|
+|**Endpoint**|`GET /api/social/groups/search/{groupName}`|
+|**Description**|Retrieves group information by searching for a group matching the given name.|
+|**Authentication**|None required|
+
+**Path Parameters:**
+
+|Parameter|Type|Description|
+|---|---|---|
+|`groupName`|`string`|The name of the group to search for|
+
+**Request Body:** None
+
+**Success Response — 200 OK:**
+
+```json
+{
+  "groupId": "string",
+  "name": "string",
+  "description": "string | null",
+  "owner": "string (username)",
+  "visibility": "string",
+  "memberCount": "number"
+}
+```
+
+**Error Responses:**
+
+|Status Code|Reason|
+|---|---|
+|`500 Internal Server Error`|Unexpected server error|
+
+---
+
+### 10.2 Marketplace Service
+
+#### AC-MKT-01: Get All Active Listings
+
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-MKT-01|
+|**Endpoint**|`GET /api/marketplace/listings`|
+|**Description**|Returns a list of all active community listings.|
+|**Authentication**|None required|
+
+**Request Body:** None
+
+**Success Response — 200 OK:**
+
+```json
+[
+  {
+    "listingId": "string",
+    "username": "string",
+    "gameTitle": "string",
+    "itemType": "string",
+    "listingType": "string",
+    "price": "number",
+    "description": "string",
+    "imageUrl": "string | null",
+    "genres": ["string"],
+    "rentalPeriod": "object | null",
+    "createdAt": "ISO8601 date string",
+    "updatedAt": "ISO8601 date string",
+    "status": "string"
+  }
+]
+```
+
+**Error Responses:**
+
+|Status Code|Reason|
+|---|---|
+|`204 No Content`|No active listings exist|
+|`500 Internal Server Error`|Unexpected server error|
+
+---
+
+#### AC-MKT-02: Get Listing by ID
+
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-MKT-02|
+|**Endpoint**|`GET /api/marketplace/listings/{listingId}`|
+|**Description**|Returns the full details of a single active listing by its unique ID.|
+|**Authentication**|None required|
+
+**Path Parameters:**
+
+|Parameter|Type|Description|
+|---|---|---|
+|`listingId`|`string`|The unique identifier of the listing|
+
+**Request Body:** None
+
+**Success Response — 200 OK:**
+
+```json
+{
+  "listingId": "string",
+  "username": "string",
+  "gameTitle": "string",
+  "itemType": "string",
+  "listingType": "string",
+  "price": "number",
+  "description": "string",
+  "imageUrl": "string | null",
+  "genres": ["string"],
+  "rentalPeriod": "object | null",
+  "createdAt": "ISO8601 date string",
+  "updatedAt": "ISO8601 date string",
+  "status": "string"
+}
+```
+
+**Error Responses:**
+
+|Status Code|Reason|
+|---|---|
+|`500 Internal Server Error`|Unexpected server error|
+
+---
+
+#### AC-MKT-03: Create a Listing
+
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-MKT-03|
+|**Endpoint**|`POST /api/marketplace/listings`|
+|**Description**|Creates a new rental or sale listing associated with the authenticated user's account.|
+|**Authentication**|Bearer token required|
+|**Content-Type**|`multipart/form-data`|
+
+**Request Parts:**
+
+|Part|Type|Required|Description|
+|---|---|---|---|
+|`data`|`JSON`|Yes|Listing details (see body below)|
+|`image`|`file`|Yes|Image file for the listing|
+
+**Request Body (`data` part):**
+
+```json
+{
+  "itemType": "string (required)",
+  "listingType": "string (required)",
+  "price": "number (positive, required)",
+  "gameTitle": "string (required)",
+  "description": "string (required)",
+  "genres": ["string (required, at least one)"],
+  "rentalPeriod": ["string | null"]
 }
 ```
 
 **Success Response — 201 Created:**
+
 ```json
 {
-  "message": "Event created successfully.",
-  "event": {
-    "name": "string",
-    "date": "ISO8601 date string",
-    "time": "string",
-    "location": "string",
-    "game": "string",
-    "visibility": "Public | Private",
-    "creator": "string (username)",
-    "createdAt": "ISO8601 date string"
+  "listingId": "string",
+  "username": "string",
+  "gameTitle": "string",
+  "itemType": "string",
+  "listingType": "string",
+  "price": "number",
+  "description": "string",
+  "imageUrl": "string",
+  "genres": ["string"],
+  "rentalPeriod": "object | null",
+  "createdAt": "ISO8601 date string",
+  "updatedAt": "ISO8601 date string",
+  "status": "ACTIVE"
+}
+```
+
+**Error Responses:**
+
+|Status Code|Reason|
+|---|---|
+|`401 Unauthorized`|Missing or invalid JWT|
+|`500 Internal Server Error`|Unexpected server error|
+
+---
+
+#### AC-MKT-04: Update a Listing
+
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-MKT-04|
+|**Endpoint**|`PATCH /api/marketplace/update/listings/{listingId}`|
+|**Description**|Partially updates an existing listing. Only the fields included in the request body are modified. Only the listing owner may perform this action.|
+|**Authentication**|Bearer token required|
+
+**Path Parameters:**
+
+|Parameter|Type|Description|
+|---|---|---|
+|`listingId`|`string`|The unique identifier of the listing to update|
+
+**Request Body:**
+
+```json
+{
+  "gameTitle": "string | null",
+  "listingType": "string | null",
+  "price": "number | null",
+  "description": "string | null",
+  "status": "string | null (ACTIVE | INACTIVE | DELETED)",
+  "imageUrl": "string | null",
+  "genres": ["string | null"],
+  "rentalPeriod": ["ISO8601 date string | null"]
+}
+```
+
+**Success Response — 200 OK:**
+
+```json
+{
+  "listingId": "string",
+  "username": "string",
+  "gameTitle": "string",
+  "itemType": "string",
+  "listingType": "string",
+  "price": "number",
+  "description": "string",
+  "imageUrl": "string | null",
+  "genres": ["string"],
+  "rentalPeriod": "object | null",
+  "createdAt": "ISO8601 date string",
+  "updatedAt": "ISO8601 date string",
+  "status": "string"
+}
+```
+
+**Error Responses:**
+
+|Status Code|Reason|
+|---|---|
+|`401 Unauthorized`|Missing or invalid JWT|
+|`403 Forbidden`|Authenticated user does not own this listing|
+|`404 Not Found`|No listing exists with the provided ID|
+|`500 Internal Server Error`|Unexpected server error|
+
+---
+
+#### AC-MKT-05: Delete a Listing
+
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-MKT-05|
+|**Endpoint**|`DELETE /api/delete/marketplace/listings/{listingId}`|
+|**Description**|Permanently removes a listing. Only the listing owner may perform this action.|
+|**Authentication**|Bearer token required|
+
+**Path Parameters:**
+
+|Parameter|Type|Description|
+|---|---|---|
+|`listingId`|`string`|The unique identifier of the listing to delete|
+
+**Request Body:** None
+
+**Success Response — 204 No Content:** No response body returned.
+
+**Error Responses:**
+
+|Status Code|Reason|
+|---|---|
+|`401 Unauthorized`|Missing or invalid JWT|
+|`403 Forbidden`|Authenticated user does not own this listing|
+|`404 Not Found`|No listing exists with the provided ID|
+|`500 Internal Server Error`|Unexpected server error|
+
+---
+
+#### AC-MKT-06: Get User's Own Listings
+
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-MKT-06|
+|**Endpoint**|`GET /api/marketplace/listings/user`|
+|**Description**|Returns all listings belonging to the specified user.|
+|**Authentication**|None required|
+
+**Path Parameters:**
+
+|Parameter|Type|Description|
+|---|---|---|
+|`user`|`string`|The username whose listings to retrieve|
+
+**Request Body:** None
+
+**Success Response — 200 OK:**
+
+```json
+[
+  {
+    "listingId": "string",
+    "username": "string",
+    "gameTitle": "string",
+    "itemType": "string",
+    "listingType": "string",
+    "price": "number",
+    "description": "string",
+    "imageUrl": "string | null",
+    "genres": ["string"],
+    "rentalPeriod": "object | null",
+    "createdAt": "ISO8601 date string",
+    "updatedAt": "ISO8601 date string",
+    "status": "string"
   }
+]
+```
+
+**Error Responses:**
+
+|Status Code|Reason|
+|---|---|
+|`204 No Content`|No listings found for this user|
+|`500 Internal Server Error`|Unexpected server error|
+
+
+### 10.3 The Vault API Contracts
+
+All Vault endpoints require JWT authentication unless noted otherwise. JWTs are issued by Spring Boot and independently verified by FastAPI using a shared secret.
+
+---
+
+#### AC-VLT-01: Upload a PDF Rulebook
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-VLT-01 |
+| **Endpoint** | `POST /api/vault/rulebooks` |
+| **Routes To** | FastAPI |
+| **Description** | Uploads a PDF rulebook. The BFF streams the multipart payload directly to FastAPI, which sanitises and extracts the content before writing metadata to MongoDB Atlas and the raw file to Cloudflare R2. Processing runs in the background; the endpoint returns 202 immediately. |
+| **Authentication** | Bearer JWT — verified by FastAPI via shared secret |
+| **Content-Type** | `multipart/form-data` |
+
+**Request Body (multipart/form-data):**
+
+| Field | Required | Description |
+|---|---|---|
+| `file` | Yes | PDF only, max 50 MB |
+| `game_name` | Yes | String, max 120 chars |
+| `edition` | No | e.g. `"3rd Edition"` |
+| `game_id` | Yes | MongoDB ObjectId string of the associated game catalogue entry |
+
+**Success Response — 202 Accepted:**
+```json
+{
+  "rulebook_id": "string",
+  "game_name":   "string",
+  "edition":     "string | null",
+  "game_id":     "string",
+  "status":      "Processing",
+  "message":     "Rulebook upload accepted. Processing in background."
 }
 ```
 
@@ -1326,35 +1994,331 @@ All protected endpoints require a valid JWT passed as a Bearer token in the `Aut
 
 | Status Code | Reason |
 |---|---|
-| `400 Bad Request` | Missing or invalid required fields |
-| `401 Unauthorized` | Missing or invalid JWT |
+| `401 Unauthorized` | JWT is missing, expired, or signature verification failed; or `userId` claim absent from token |
+| `413 Payload Too Large` | File exceeds the 50 MB size limit |
+| `415 Unsupported Media Type` | Uploaded file is not a valid PDF (`content_type != "application/pdf"`) |
+| `422 Unprocessable Entity` | Sanitisation stage detected unsafe embedded content |
 | `500 Internal Server Error` | Unexpected server error |
 
 ---
 
-#### AC-EVT-02: Get Events
+#### AC-VLT-02: List / Search Rulebooks
 
 | Field | Detail |
 |---|---|
-| **Contract ID** | AC-EVT-02 |
-| **Endpoint** | `GET /api/events` |
-| **Description** | Retrieves all events visible to the authenticated user. Returns all public events and any private events the user has been invited to or created. |
-| **Authentication** | Bearer token required |
+| **Contract ID** | AC-VLT-02 |
+| **Endpoint** | `GET /api/vault/rulebooks` |
+| **Routes To** | Spring Boot |
+| **Description** | Returns a paginated Spring `Page` response of rulebooks, ordered by most recently updated. Supports optional partial game-name search via the `search` parameter. |
+| **Authentication** | Bearer JWT |
+
+**Query Parameters:**
+
+| Parameter | Required | Default | Description |
+|---|---|---|---|
+| `search` | No | `""` | Partial game-name match (empty string returns all) |
+| `page` | No | `1` | Page number (1-indexed) |
+| `limit` | No | `20` | Page size |
+
+**Success Response — 200 OK:**
+
+Returns a Spring `Page` envelope. The `content` array contains rulebook summary objects.
+
+```json
+{
+  "content": [
+    {
+      "id":            "string",
+      "gameName":      "string",
+      "edition":       "string | null",
+      "status":        "string",
+      "version":       12,
+      "contributorId": "string",
+      "lockHeldBy":    "string | null",
+      "uploadedAt":    "ISO 8601",
+      "updatedAt":     "ISO 8601"
+    }
+  ],
+  "totalElements": 48,
+  "totalPages":    3,
+  "number":        0,
+  "size":          20
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `401 Unauthorized` | JWT is missing or invalid |
+| `500 Internal Server Error` | MongoDB query failed |
+
+---
+
+#### AC-VLT-03: Get Rulebook Detail
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-VLT-03 |
+| **Endpoint** | `GET /api/vault/rulebooks/{id}` |
+| **Routes To** | Spring Boot |
+| **Description** | Returns full metadata for a single rulebook, including its current processing status and active lock state. |
+| **Authentication** | Bearer JWT |
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | The ObjectId hex string of the rulebook |
 
 **Success Response — 200 OK:**
 ```json
 {
-  "events": [
+  "id":            "string",
+  "gameName":      "string",
+  "edition":       "string | null",
+  "status":        "Processing | Ready | PendingReview",
+  "version":       12,
+  "contributorId": "string",
+  "lockHeldBy":    "string | null",
+  "uploadedAt":    "ISO 8601",
+  "updatedAt":     "ISO 8601"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | `id` is not a valid ObjectId format |
+| `401 Unauthorized` | JWT is missing or invalid |
+| `404 Not Found` | No rulebook exists with the provided `id` |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-VLT-04: Download Raw PDF
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-VLT-04 |
+| **Endpoint** | `GET /api/vault/rulebooks/{id}/download` |
+| **Routes To** | Spring Boot |
+| **Description** | Generates a short-lived pre-signed URL to the raw PDF stored in Cloudflare R2 and returns it to the client. |
+| **Authentication** | Bearer JWT |
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | The ObjectId hex string of the rulebook |
+
+**Success Response — 200 OK:**
+```json
+{
+  "downloadUrl": "string",
+  "expiresAt":   "ISO 8601"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | `id` is not a valid ObjectId format |
+| `401 Unauthorized` | JWT is missing or invalid |
+| `404 Not Found` | Rulebook not found or PDF not yet stored in R2 |
+| `502 Bad Gateway` | R2 pre-sign request failed |
+
+---
+
+#### AC-VLT-05: Get Rulebook Text State
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-VLT-05 |
+| **Endpoint** | `GET /api/vault/rulebooks/{id}/text` |
+| **Routes To** | Spring Boot |
+| **Description** | Returns the current collaborative text state of the rulebook, including the version counter and active lock status. |
+| **Authentication** | Bearer JWT |
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | The ObjectId hex string of the rulebook |
+
+**Success Response — 200 OK:**
+```json
+{
+  "rulebookId": "string",
+  "content":    "string",
+  "version":    12,
+  "lockHeldBy": "string | null",
+  "updatedAt":  "ISO 8601"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | `id` is not a valid ObjectId format |
+| `401 Unauthorized` | JWT is missing or invalid |
+| `404 Not Found` | Rulebook not found or not in `Ready` status |
+| `500 Internal Server Error` | Unexpected server error |
+
+---
+
+#### AC-VLT-06: Acquire Write Lock (MRSW)
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-VLT-06 |
+| **Endpoint** | `POST /api/vault/rulebooks/{id}/lock` |
+| **Routes To** | Spring Boot |
+| **Description** | Requests the exclusive write lock on a rulebook from the MRSW lock manager. Succeeds only if no other user currently holds the lock. On success, a `LockAcquiredEvent` is broadcast to all WebSocket subscribers on `/topic/vault/rulebooks/{id}/lock/acquired`. |
+| **Authentication** | Bearer JWT |
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | The ObjectId hex string of the rulebook |
+
+**Success Response — 200 OK:**
+```json
+{
+  "lockGranted":    true,
+  "lockedBy":       "string",
+  "expiresAt":      "ISO 8601",
+  "currentVersion": 12
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | `id` is not a valid ObjectId format |
+| `401 Unauthorized` | JWT is missing or invalid |
+| `404 Not Found` | Rulebook not found |
+| `409 Conflict` | Write lock is already held by another user (`LockConflictException`) |
+
+---
+
+#### AC-VLT-07: Commit Edit Delta
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-VLT-07 |
+| **Endpoint** | `PATCH /api/vault/rulebooks/{id}/text` |
+| **Routes To** | Spring Boot |
+| **Description** | Commits a text delta to the rulebook. Spring Boot validates that the caller holds the write lock, performs an optimistic version check against `expectedVersion`, writes the delta to MongoDB, increments the version counter, appends to the `EDIT_EVENT` ledger, and broadcasts the delta to all WebSocket subscribers on `/topic/vault/rulebooks/{id}/delta`. |
+| **Authentication** | Bearer JWT — caller must be the current lock holder |
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | The ObjectId hex string of the rulebook |
+
+**Request Body:**
+```json
+{
+  "expectedVersion": 12,
+  "delta":           "string"
+}
+```
+
+**Success Response — 200 OK:**
+```json
+{
+  "committed":   true,
+  "newVersion":  13,
+  "committedAt": "ISO 8601"
+}
+```
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | `id` is not a valid ObjectId format |
+| `401 Unauthorized` | JWT is missing or invalid |
+| `403 Forbidden` | Caller does not hold the current write lock (`LockNotHeldException`) |
+| `404 Not Found` | Rulebook not found |
+| `409 Conflict` | `expectedVersion` does not match the stored version (`VersionMismatchException`) |
+| `500 Internal Server Error` | MongoDB write or WebSocket broadcast failed |
+
+---
+
+#### AC-VLT-08: Release Write Lock
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-VLT-08 |
+| **Endpoint** | `DELETE /api/vault/rulebooks/{id}/lock` |
+| **Routes To** | Spring Boot |
+| **Description** | Voluntarily releases the write lock held by the caller. Spring Boot clears the lock in MongoDB and broadcasts a `LockReleasedEvent` to all WebSocket subscribers on `/topic/vault/rulebooks/{id}/lock/released`. Returns `200 OK` with no response body. |
+| **Authentication** | Bearer JWT — caller must be the current lock holder |
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | The ObjectId hex string of the rulebook |
+
+**Success Response — 200 OK:** No response body.
+
+**Error Responses:**
+
+| Status Code | Reason |
+|---|---|
+| `400 Bad Request` | `id` is not a valid ObjectId format |
+| `401 Unauthorized` | JWT is missing or invalid |
+| `403 Forbidden` | Caller does not hold the write lock (`LockNotHeldException`) |
+| `404 Not Found` | Rulebook not found |
+
+---
+
+#### AC-VLT-09: Get Rulebook Edit History
+
+| Field | Detail |
+|---|---|
+| **Contract ID** | AC-VLT-09 |
+| **Endpoint** | `GET /api/vault/rulebooks/{id}/history` |
+| **Routes To** | Spring Boot |
+| **Description** | Returns the full chronological edit event ledger for a specific rulebook. Each entry represents an immutable committed delta, the editor who applied it, and the resulting version number. Satisfies the auditability requirement from FR4.3 and US-VLT-06. |
+| **Authentication** | Bearer JWT |
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | The ObjectId hex string of the rulebook |
+
+**Success Response — 200 OK:**
+```json
+{
+  "rulebookId": "string",
+  "totalEdits":  2,
+  "edits": [
     {
-      "name": "string",
-      "date": "ISO8601 date string",
-      "time": "string",
-      "location": "string",
-      "game": "string",
-      "visibility": "Public | Private",
-      "creator": "string (username)",
-      "attendeeCount": "number",
-      "createdAt": "ISO8601 date string"
+      "id":           "string",
+      "rulebookId":   "string",
+      "editorId":     "string",
+      "delta":        "string",
+      "versionAfter": 2,
+      "committedAt":  "ISO 8601"
+    },
+    {
+      "id":           "string",
+      "rulebookId":   "string",
+      "editorId":     "string",
+      "delta":        "string",
+      "versionAfter": 3,
+      "committedAt":  "ISO 8601"
     }
   ]
 }
@@ -1364,107 +2328,150 @@ All protected endpoints require a valid JWT passed as a Bearer token in the `Aut
 
 | Status Code | Reason |
 |---|---|
-| `401 Unauthorized` | Missing or invalid JWT |
+| `400 Bad Request` | `id` is not a valid ObjectId format |
+| `401 Unauthorized` | JWT is missing or invalid |
+| `404 Not Found` | No rulebook exists with the provided `id` |
 | `500 Internal Server Error` | Unexpected server error |
 
 ---
 
-#### AC-EVT-03: Update an Event
+#### WebSocket Event Contracts
+
+The Vault uses STOMP over WebSocket for all real-time broadcasts. The Spring Boot backend publishes to topic destinations; the Vue.js client subscribes to these topics.
+
+---
+
+##### WS-VLT-01: Sync Rulebook Text State
 
 | Field | Detail |
 |---|---|
-| **Contract ID** | AC-EVT-03 |
-| **Endpoint** | `PATCH /api/events/:eventId` |
-| **Description** | Updates the details of an existing event. Only the creator of the event may update it. |
-| **Authentication** | Bearer token required |
+| **Client sends to** | `/app/vault/rulebooks/{id}/sync` |
+| **Server broadcasts to** | `/topic/vault/rulebooks/{id}/sync` |
+| **Description** | Client sends a sync request (e.g. on reconnect); Spring Boot replies with the latest text state to the same topic. |
 
-**Request Body:**
+**Broadcast payload:**
 ```json
 {
-  "name": "string",
-  "date": "ISO8601 date string",
-  "time": "string (HH:MM)",
-  "location": "string",
-  "game": "string",
-  "visibility": "Public | Private"
+  "rulebookId": "string",
+  "content":    "string",
+  "version":    12,
+  "lockHeldBy": "string | null",
+  "updatedAt":  "ISO 8601"
 }
 ```
-
-**Success Response — 200 OK:**
-```json
-{
-  "message": "Event updated successfully.",
-  "event": {
-    "name": "string",
-    "date": "ISO8601 date string",
-    "time": "string",
-    "location": "string",
-    "game": "string",
-    "visibility": "Public | Private",
-    "creator": "string (username)"
-  }
-}
-```
-
-**Error Responses:**
-
-| Status Code | Reason |
-|---|---|
-| `400 Bad Request` | Missing or invalid required fields |
-| `401 Unauthorized` | Missing or invalid JWT |
-| `403 Forbidden` | Authenticated user is not the event creator |
-| `404 Not Found` | Event not found |
-| `500 Internal Server Error` | Unexpected server error |
 
 ---
 
-#### AC-EVT-04: RSVP to an Event
+##### WS-VLT-02: Lock Acquired Event
 
 | Field | Detail |
 |---|---|
-| **Contract ID** | AC-EVT-04 |
-| **Endpoint** | `PATCH /api/events/:eventId/rsvp` |
-| **Description** | Records or updates the authenticated user's RSVP status for an event. |
-| **Authentication** | Bearer token required |
+| **Server broadcasts to** | `/topic/vault/rulebooks/{id}/lock/acquired` |
+| **Trigger** | Fired by `LockManagerService` after a successful `POST /lock` (AC-VLT-06) |
+| **Description** | Notifies all active readers that a user has taken the write lock and editing is now in progress. |
 
-**Request Body:**
+**Broadcast payload:**
 ```json
 {
-  "status": "Joined | Declined"
+  "rulebookId":     "string",
+  "lockedBy":       "string",
+  "expiresAt":      "ISO 8601",
+  "currentVersion": 12
 }
 ```
 
-**Success Response — 200 OK:**
-```json
-{
-  "message": "RSVP recorded successfully.",
-  "rsvp": {
-    "event": "string (event name)",
-    "user": "string (username)",
-    "status": "Joined | Declined",
-    "respondedAt": "ISO8601 date string"
-  }
-}
-```
+---
 
-**Error Responses:**
+##### WS-VLT-03: Lock Released Event
 
-| Status Code | Reason |
+| Field | Detail |
 |---|---|
-| `400 Bad Request` | Invalid status value |
-| `401 Unauthorized` | Missing or invalid JWT |
-| `404 Not Found` | Event not found |
-| `500 Internal Server Error` | Unexpected server error |
+| **Server broadcasts to** | `/topic/vault/rulebooks/{id}/lock/released` |
+| **Trigger** | Fired by `LockManagerService` after a voluntary `DELETE /lock` (AC-VLT-08) or an automatic idle-timeout expiry |
+| **Description** | Notifies all active readers that the write lock has been freed and editing is now available. |
+
+**Broadcast payload:**
+```json
+{
+  "rulebookId": "string",
+  "releasedBy": "string",
+  "reason":     "voluntary | expired",
+  "releasedAt": "ISO 8601"
+}
+```
 
 ---
 
-### 10.2 Marketplace Service API Contracts
+##### WS-VLT-04: Delta Broadcast
 
-### 10.3 The Vault Service API Contracts
+| Field | Detail |
+|---|---|
+| **Server broadcasts to** | `/topic/vault/rulebooks/{id}/delta` |
+| **Trigger** | Fired by `LockManagerService` after a successful `PATCH /text` commit (AC-VLT-07) |
+| **Description** | Delivers the committed delta and new version number to all active readers so their views update in real time without a page refresh. |
 
----
+**Broadcast payload:**
+```json
+{
+  "rulebookId":  "string",
+  "editorId":    "string",
+  "delta":       "string",
+  "newVersion":  13,
+  "committedAt": "ISO 8601"
+}
+```
 
 ## 11. Traceability Matrix
+
+### 11.1 Functional Requirements Traceability Matrix
+
+The requirement traceability matrix maps functional requirements to their corresponding use cases, ensuring that all identified requirements are addressed and demonstrating which use cases satisfy which requirements.
+
+> **Note:** US-SOC-04 (Unfriend a User) is covered by **UC-SOC-02** (Manage Friends List), which includes both the View and Unfriend flows. There is no separate UC-SOC-04. This is explicitly reflected in the matrix below.
+
+| | FR0.1 | FR0.2 | FR0.3 | FR1.1 | FR1.2 | FR1.3 | FR1.4 | FR2.1 | FR2.2 | FR3.1 | FR3.2 | FR4.1 | FR4.2 | FR4.3 | FR5.1 |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| UC-AUTH-01 | X | | | | | | | | | | | | | | |
+| UC-AUTH-02 | | X | | | | | | | | | | | | | |
+| UC-AUTH-03 | | | X | | | | | | | | | | | | |
+| UC-PROF-01 | | | | X | | | | | | | | | | | |
+| UC-PROF-02 | | | | X | X | X | | | | | | | | | |
+| UC-PROF-03 | | | | | X | | | | | | | | | | |
+| UC-PROF-04 | | | | | | X | | | | | | | | | |
+| UC-SOC-01 | | | | | | | X | | | | | | | | |
+| UC-SOC-02 (View + Unfriend) | | | | | | X | | | | | | | | | |
+| UC-SOC-03 | | | | | | | X | | | | | | | | |
+| UC-EVT-01 | | | | | | | | | | X | | | | | X |
+| UC-EVT-02 | | | | | | | | | | | X | | | | |
+| UC-EVT-03 | | | | | | | | | | | | X | | | |
+| UC-MKT-01 | | | | | | | | X | | | | | | | |
+| UC-MKT-02 | | | | | | | | X | | | | | | | |
+| UC-MKT-03 | | | | | | | | | X | | | | | | X |
+| UC-MKT-04 | | | | | | | | | X | | | | | | |
+| UC-MKT-05 | | | | | | | | | X | | | | | | |
+| UC-MKT-06 | | | | | | | | | | X | | | | | |
+| UC-VLT-01 | | | | | | | | | | | | X | | | X |
+| UC-VLT-02 | | | | | | | | | | | | | X | | |
+| UC-VLT-03 | | | | | | | | | | | | | X | | |
+| UC-VLT-04 | | | | | | | | | | | | | X | | |
+| UC-VLT-05 | | | | | | | | | | | | | | X | |
+
+---
+
+### 11.2 NFR–Architecture Traceability Matrix
+
+The following matrix maps each Non-Functional Requirement to the architectural quality attribute it addresses and the architectural component(s) responsible for satisfying it.
+
+| NFR | Description | Quality Attribute | Addressed By |
+|---|---|---|---|
+| NFR1.1 | Collaborative rulebook updates without full page reload | Performance | The Vault — WebSocket delta push via Spring Boot; Vue.js reactive state |
+| NFR1.2 | Fast initial load times on mid-range devices | Performance | Frontend — Vue.js bundle optimisation, lazy loading, paginated API responses |
+| NFR1.3 | Graceful real-time state handling with loading fallback states | Performance / Reliability | Frontend — loading skeleton components; BFF — timeout and retry logic |
+| NFR2.1 | Fully responsive UI across mobile, tablet, and desktop | Usability | Frontend — responsive CSS layout, mobile-first design |
+| NFR2.2 | WCAG 2.1 Level AA accessibility compliance | Usability | Frontend — ARIA labels, sufficient contrast ratios, full keyboard navigation |
+| NFR3.1 | ACID-compliant Listing mutations | Reliability | Marketplace Service — multi-document transactions on MongoDB Atlas M0 replica set |
+| NFR3.2 | MRSW versioning for collaborative rulebook editing | Reliability | The Vault — Spring Boot lock manager, optimistic version checks, WebSocket broadcast |
+| NFR3.3 | Password encryption and secure JWT session management | Security | User Service — password hashing at rest, JWT issuance and validation, SecurityFilterChain rate limiting |
 
 ---
 
@@ -1561,10 +2568,16 @@ Security is measured by:
 The system must operate consistently and recover gracefully from failures, particularly given the free-tier infrastructure which may have cold-start latency.
 
 Reliability is measured by:
-- All database write operations in the Marketplace Service must be ACID compliant (NFR3.1).
+- All `Listing` mutations in the Marketplace Service must be ACID compliant (NFR3.1).
 - The Shared Library must implement MRSW versioning with optimistic version checks to prevent data corruption on concurrent edits (NFR3.2).
 - The frontend must implement loading skeleton states for all data-fetching operations to provide graceful degradation under slow network conditions (NFR1.3).
 - Free-tier cold start delays must be handled with appropriate timeout and retry logic in the BFF.
+
+**Known Free-Tier Reliability Risks:**
+
+*WebSocket stability on Render/Railway free tier:* The Vault's collaborative editor relies on persistent WebSocket connections for MRSW lock broadcasts and real-time delta delivery. Both Render and Railway free tiers hibernate idle services after a period of inactivity and impose limits on connection counts and durations. A service hibernation will forcibly close all open WebSocket connections. The system must handle this gracefully: the frontend must display a "Reconnecting…" banner on connection loss and attempt automatic reconnection with exponential back-off. As a fallback mitigation, the team should evaluate Server-Sent Events (SSE) or long-polling as a degraded-mode alternative if WebSocket connections prove unreliable in the free-tier deployment environment.
+
+*MongoDB Atlas M0 multi-document transactions:* NFR3.1 requires ACID compliance for Listing mutations. On MongoDB, ACID guarantees across multiple documents require multi-document transactions, which in turn require a replica set. The Atlas M0 free tier does run on a 3-node replica set, so transactions are technically supported. However, M0 imposes a hard connection limit of 500 concurrent connections shared across all services. The team must ensure that transaction usage, connection pooling settings, and the number of deployed service instances collectively stay within this limit. Connection pool sizes for each Spring Boot service should be explicitly configured and documented to avoid exhausting the M0 connection cap under concurrent load.
 
 #### 12.2.7 Usability
 
@@ -1586,10 +2599,29 @@ Testability is measured by:
 
 ---
 
+### 12.2.9 NFR–Architecture Traceability Matrix
+
+The following matrix maps each Non-Functional Requirement to the architectural quality attribute(s) it belongs to and the architectural component(s) responsible for satisfying it.
+
+| NFR | Description | Quality Attribute | Addressed By |
+|---|---|---|---|
+| NFR1.1 | Collaborative rulebook updates without full page reload | Performance | The Vault (WebSocket delta push) |
+| NFR1.2 | Fast initial load times on mid-range devices | Performance | Frontend (Vue.js bundle optimisation, lazy loading) |
+| NFR1.3 | Graceful real-time state handling with fallback states | Performance / Reliability | Frontend (loading skeletons), BFF (timeout/retry logic) |
+| NFR2.1 | Fully responsive UI across screen sizes | Usability | Frontend (responsive CSS, mobile-first layout) |
+| NFR2.2 | WCAG 2.1 Level AA accessibility compliance | Usability | Frontend (ARIA labels, contrast, keyboard navigation) |
+| NFR3.1 | ACID-compliant Listing mutations | Reliability | Marketplace Service (multi-document transactions on MongoDB Atlas M0 replica set) |
+| NFR3.2 | MRSW versioning for collaborative rulebook edits | Reliability | The Vault — Transactional backend (lock manager, version checks, WebSocket broadcast) |
+| NFR3.3 | Password encryption and secure session management | Security | User Service (BCrypt password hashing, JWT issuance and validation, SecurityFilterChain) |
+
+---
+
 ### 12.3 Architectural Constraints
 
 - **CON1 (Open Source Licensing):** The entire codebase must be released under an Open Source licence. This constrains the choice of third-party libraries to those with compatible licences (MIT, Apache 2.0, etc.). Proprietary frameworks or SDKs may not be used.
 - **CON2 (Free-Tier Infrastructure):** All backend services must be hosted within free-tier limits. This constrains the available compute, memory, storage, and network egress. MongoDB Atlas is limited to 512MB storage. Cloudflare R2 is used for PDF storage due to its zero-egress-cost model. Render or Railway free tiers are used for service hosting.
+
+  *Resource constraint risk:* Render and Railway free tiers provide very limited RAM that is shared across all deployments under a single account. The current architecture requires deploying at minimum: a Node.js/Nuxt BFF, a Spring Boot User Service, a Spring Boot Marketplace Service, a Spring Boot Vault transactional backend, and a FastAPI AI Gateway — five separate processes. Spring Boot services are particularly memory-hungry at startup (typically 256–512 MB each). Deploying multiple Spring Boot instances alongside Node.js and Python services on a shared free-tier RAM budget is likely to cause out-of-memory failures or service hibernation. The team must evaluate one or more of the following mitigations before Sprint 1 deployment: (1) consolidate the Spring Boot services into a single deployable where feasible, (2) tune JVM heap settings (e.g. `-Xmx128m`) to reduce per-instance memory footprint, or (3) distribute deployments across multiple free-tier accounts or platforms to avoid sharing a single RAM pool.
 - **CON3 (Target Hardware):** The application must be performant on mid-range mobile and desktop devices. This constrains the frontend bundle size, the complexity of client-side rendering, and the payload sizes returned by backend APIs.
 - **CON4 (Client-Mandated Architecture):** The client has mandated the use of Component-Based Architecture and Domain-Driven Architecture as required styles, with Pipe & Filter and SOA as recommended styles. These are not negotiable and must be reflected in the implementation.
 
@@ -1627,17 +2659,99 @@ The User Service is the identity and social backbone of the Boardwise platform. 
 | Authentication | Spring Security + JWT | Auth0 | Keycloak | Spring Security + JWT |
 | Database driver | Spring Data MongoDB | Morphia | Jongo | Spring Data MongoDB |
 
-**Technology Choice Justification:** Spring Boot was chosen for the User Service because it provides a mature, production-grade ecosystem for building REST APIs with built-in support for Spring Security, which directly satisfies the authentication and rate-limiting responsibilities. Spring Data MongoDB provides a clean repository abstraction over MongoDB, reducing boilerplate and maintaining consistency with the rest of the team's backend choices. Auth0 and Keycloak were ruled out as they introduce external service dependencies that conflict with CON1 (open source) and CON2 (free-tier constraints).
+**Technology Choice Justification:** Spring Boot was chosen for the User Service because it provides a mature, production-grade ecosystem for building REST APIs with built-in support for Spring Security, which directly satisfies the authentication and rate-limiting responsibilities. Spring Data MongoDB provides a clean repository abstraction over MongoDB, reducing boilerplate and maintaining consistency with the rest of the team's backend choices.
 
+It is strongly recommended to integrate an OAuth 2.0 provider (such as Google OAuth) alongside Spring Security rather than implementing credential management entirely from scratch. Managing authentication manually requires careful attention to secure password storage, token handling, brute-force prevention, and session invalidation — all of which an OAuth provider handles out of the box. Spring Security OAuth2 support makes this integration straightforward while retaining full control over authorisation logic.
+
+Auth0 and Keycloak were ruled out as they introduce external service dependencies that conflict with CON1 (open source) and CON2 (free-tier constraints).
 
 ---
 
 #### 12.4.2 Marketplace Service
 
+![Marketplace Service Component Diagram](./diagrams/marketplace_architecture_diagram.png)
+
+The Marketplace Service manages all peer-to-peer listing activity and external retail discovery on the Boardwise platform. It handles the creation, retrieval, update, and deletion of listings, as well as the aggregation of external retail purchase links for board games.
+
+**How it fits into the overall architecture:** The Marketplace Service is accessed via the BFF. Unauthenticated users may browse and view listings (read operations do not require a JWT). Write operations (create, update, delete listing) require a valid JWT which the BFF's Authentication Guard validates before forwarding to the Marketplace Service.
+
+**Quality Requirements:**
+
+*Reliability:* All listing write operations must be ACID compliant to ensure that listing state is never left in an inconsistent state during create, update, or delete operations.
+
+*Performance:* All listing browse endpoints must support pagination (default page size 20, maximum 50) to prevent large payloads from degrading performance on mid-range devices.
+
+*Security:* All mutating endpoints (create, update, delete) require a valid JWT. Ownership is verified server-side on every update and delete operation — a user may only modify their own listings.
+
+**Architectural Responsibilities:**
+- Listing CRUD operations (create, read, update, delete/deactivate)
+- Ownership enforcement on listing mutations
+- Pagination and filtering for listing browse operations
+- External retail link aggregation and serving
+
+**Frameworks and Technologies:**
+
+| Concern | Option 1 | Option 2 | Option 3 | Chosen |
+|---|---|---|---|---|
+| Backend framework | Spring Boot (Java/Kotlin) | Express.js | FastAPI | Spring Boot |
+| Database driver | Spring Data MongoDB | Morphia | Mongoose (Node) | Spring Data MongoDB |
+| Image storage | Cloudflare R2 | AWS S3 | Cloudinary | Cloudflare R2 |
+
+**Technology Choice Justification:** Spring Boot was chosen for consistency with the User Service and to leverage Spring Data MongoDB's repository pattern. Cloudflare R2 was chosen for listing image storage for several reasons beyond cost: R2 provides an S3-compatible API, meaning any AWS SDK or tooling can be used against it without code changes, which reduces lock-in and simplifies potential future migration. R2's zero-egress-cost model is critical under CON2, but it also removes a category of unpredictable billing risk entirely — with S3, egress fees scale with read traffic in a way that is difficult to cap on a free tier. R2's free tier also offers 10 GB storage and 10 million Class A operations per month, which is well suited to listing images. While AWS S3 does offer a free tier (5 GB storage, limited requests), it applies egress charges for data served to clients, making it unsuitable for a publicly browsed marketplace where listing images are fetched frequently. Cloudinary was ruled out as its free tier imposes transformation quotas and branding requirements that are not appropriate for a production platform.
+
 ---
 
 #### 12.4.3 Shared Library — The Vault
 
+![The Vault Architecture Diagram](./diagrams/The_Vault_Architecture_Diagram_v2.png)
+
+The Vault is the Shared Library component of the system. It provides the collaborative rulebook library and PDF ingestion pipeline. It consists of two backend components — a Spring Boot transactional backend and a FastAPI AI Gateway — and uses MongoDB Atlas (for metadata, collaborative text, and edit events) and Cloudflare R2 (for raw PDF blob storage).
+
+**How it fits into the overall architecture:** The Nuxt/Node.js BFF applies direct-to-microservice routing for Vault traffic: transactional requests (rulebook metadata, collaborative editing, lock management) are forwarded to Spring Boot via REST, while AI ingestion tasks (PDF upload and processing) are forwarded directly to the FastAPI AI Gateway via REST. Both services share the same JWT secret for authentication, allowing either to validate tokens independently without cross-service calls.
+
+**Quality Requirements:**
+
+*Reliability:* The Shared Library implements MRSW (Multi-Reader Single-Writer) concurrency control. Spring Boot's lock manager issues an exclusive write lock to the first user who requests edit access. Subsequent edit requests are rejected with a 409 Conflict until the lock is released. An automatic lock expiry (30 seconds of idle time) prevents deadlocks. WebSocket broadcasts notify all active readers of lock state changes in real time.
+
+*Security:* The FastAPI AI Gateway performs PDF sanitisation as the first step in the ingestion pipeline to prevent malicious content injection. The shared JWT secret allows FastAPI to independently verify tokens without calling Spring Boot, enabling the direct BFF routing model.
+
+*Performance:* The collaborative editor must reflect committed deltas to all active readers within 1 second via WebSocket. The ingestion pipeline processes PDFs asynchronously (202 Accepted immediately, then background processing) to prevent upload requests from timing out.
+
+*Scalability:* The ingestion pipeline processes PDFs asynchronously, and the collaborative editor is designed around WebSocket push rather than polling, ensuring the system scales gracefully under concurrent reader load without added per-request overhead.
+
+**Architectural Responsibilities:**
+- PDF upload proxying and secure storage to Cloudflare R2
+- AI ingestion pipeline (Sanitise → Extract) via FastAPI Pipe & Filter
+- MRSW lock management for collaborative editing via Spring Boot
+- Edit delta commit, version incrementing, and WebSocket broadcast via Spring Boot
+- Immutable edit event ledger (Event Sourcing) in MongoDB
+
+**Frameworks and Technologies:**
+
+| Concern | Option 1 | Option 2 | Option 3 | Chosen |
+|---|---|---|---|---|
+| AI Gateway framework | FastAPI (Python) | Flask | Django REST | FastAPI |
+| PDF storage | Cloudflare R2 | AWS S3 | Firebase Storage | Cloudflare R2 |
+| Real-time communication | WebSocket (Spring Boot) | Server-Sent Events | Long polling | WebSocket |
+
+**Technology Choice Justification:** FastAPI was chosen for the AI Gateway due to its native support for asynchronous processing, which is essential for the PDF ingestion pipeline. Flask and Django REST were ruled out due to limited async support and heavier overhead respectively. Cloudflare R2 was chosen for PDF storage for several reasons beyond cost: R2's S3-compatible API means the same tooling used for marketplace image storage applies here, keeping the storage integration consistent across services. Zero-egress pricing is particularly important for PDF storage because rulebook files can be up to 50 MB each — frequent downloads via S3 would accumulate non-trivial egress charges that cannot be capped on a free tier. While AWS S3 offers a free tier, its egress model makes it unsuitable for serving large binary files to end users at no cost. R2's 10 GB free storage tier is also sufficient for an MVP-scale rulebook library. WebSocket was chosen over Server-Sent Events for real-time collaborative editing because it supports bidirectional communication, which is required for lock acquisition acknowledgement and delta broadcasting.
+
 ---
 
 ### 12.5 Summary
+
+The Boardwise technology stack is summarised below. This stack reflects the architectural decisions made across all three services and will inform the deployment diagrams in future sprints.
+
+| Layer | Technology | Justification |
+|---|---|---|
+| Frontend | Vue.js | Component-based, cross-platform, responsive |
+| BFF | Nuxt / Node.js | Server-side rendering, JWT forwarding, direct-to-microservice route splitting |
+| User Service | Spring Boot (Java/Kotlin) + Spring Security | REST API, JWT issuance, SecurityFilterChain, Spring Data MongoDB |
+| Marketplace Service | Spring Boot (Java/Kotlin) | REST API, ACID-compliant operations, Spring Data MongoDB |
+| Vault — Transactional | Spring Boot (Java/Kotlin) | MRSW lock management, WebSocket, event sourcing, Spring Data MongoDB |
+| Vault — AI Gateway | FastAPI (Python) | Async ingestion pipeline, PDF pipe & filter |
+| Database | MongoDB Atlas | Flexible document schema, free-tier hosting |
+| File Storage | Cloudflare R2 | S3-compatible API; zero-egress-cost model for both listing images and large PDFs; free tier (10 GB / 10 M ops) sufficient for MVP scale |
+| Deployment | Render / Railway (free tier) | Free-tier hosting compliant with CON2 |
+
+The combination of Spring Boot for transactional services and FastAPI for AI workloads reflects a deliberate separation of concerns — each technology is chosen because it best satisfies the architectural responsibilities of its respective component, not out of preference. The unified MongoDB Atlas instance across all services reduces operational overhead while remaining within free-tier storage constraints.
