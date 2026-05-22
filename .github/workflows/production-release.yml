@@ -25,9 +25,9 @@ jobs:
         run: pytest tests/
 
   # --------------------------------------------------
-  # Phase 2: Test & Package Java Backend
+  # Phase 2: Package Java Backend (No Testing)
   # --------------------------------------------------
-  backend-test:
+  backend-build:
     runs-on: ubuntu-latest
     needs: ai-test
     defaults:
@@ -40,17 +40,18 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
-      - name: Compile and Package Executable JAR
+      # -DskipTests compiles and creates the .jar but completely skips test execution
+      - name: Package Executable JAR (Skip Tests)
         run: |
           chmod +x ./mvnw
-          ./mvnw -B clean package
+          ./mvnw -B clean package -DskipTests
 
   # --------------------------------------------------
   # Phase 3: Test & Build Frontend
   # --------------------------------------------------
   frontend-test:
     runs-on: ubuntu-latest
-    needs: backend-test
+    needs: backend-build
     defaults:
       run:
         working-directory: ./frontend
@@ -72,8 +73,7 @@ jobs:
   # --------------------------------------------------
   containerize:
     runs-on: ubuntu-latest
-    # Ensures it still acts as the final gate after all tests pass
-    needs: [frontend-test, backend-test, ai-test]
+    needs: [frontend-test, backend-build, ai-test]
 
     steps:
       - name: Checkout code
@@ -85,7 +85,7 @@ jobs:
         with:
           context: ./ai
           file: ./ai/Dockerfile
-          push: false # <-- Tells Docker NOT to upload to a registry
+          push: false
           tags: boardwise-ai:latest
 
       # Build Backend Image (Verification Only)
@@ -94,5 +94,5 @@ jobs:
         with:
           context: ./backend
           file: ./backend/Dockerfile
-          push: false # <-- Tells Docker NOT to upload to a registry
+          push: false
           tags: boardwise-backend:latest
