@@ -32,7 +32,6 @@ import ExploreHeader from '~/components/features/community/ExploreHeader.vue'
 import ExploreSearch from '~/components/features/community/ExploreSearch.vue'
 import CommunityGrid from '~/components/features/community/CommunityGrid.vue'
 import CommunityCreateForm from '~/components/features/community/CommunityCreateForm.vue'
-import { onMounted } from 'vue'
 // 1. Destructure the composable
 // const { communities, getAllCommunities, loading, error } = useCommunity()
 
