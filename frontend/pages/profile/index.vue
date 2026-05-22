@@ -59,6 +59,7 @@ import GamesOwnedSection  from '~/components/features/profile/GamesOwnedSection.
 import ListingsSection    from '~/components/features/profile/ListingsSection.vue'
 import { useProfile }     from '~/composables/useProfile'
 import { useMarketplace } from '~/composables/useMarketplace'
+import { useRouter } from 'vue-router'
 
 const { fetchCurrentUser } = useProfile()
 const { listings, fetchUserListing, loading, error } = useMarketplace()
@@ -78,6 +79,7 @@ const addGame = (game) => {
   localStorage.setItem('my-games', JSON.stringify(games.value))
 }
 
+const router = useRouter()
 onMounted(async () => {
   if (!localStorage.getItem('access_token')) router.push('/auth/signin')
 
