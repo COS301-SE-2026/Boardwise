@@ -17,7 +17,7 @@
 - `String?` denotes an optional field that may be null or absent.
 - `Decimal` denotes a numeric value stored as a decimal type for monetary precision.
 - Relationships are shown as logical references, not foreign key constraints, consistent with MongoDB's document model.
-- Field naming follows `snake_case` consistently across all collections.
+- Field naming follows `camelCase` consistently across all collections.
 - Collections are colour-grouped by service boundary:
   - **User Service** - USER, PREFERENCES, FRIEND_REQUEST, FRIENDSHIP, GROUP, GROUP_MEMBERSHIP, EVENT, RSVP
   - **Shared** - BOARD_GAME (referenced by both User Service and Marketplace Service)
@@ -28,8 +28,8 @@
 
 ## Cross-Service Notes
 
-- `BOARD_GAME` is a **shared collection** owned by the User Service but referenced by the Marketplace Service (via `game_id` on `LISTING` and `RETAIL_SOURCE`). Cross-service reads are mediated through the BFF and REST API calls - the Marketplace Service does not query the User Service database directly.
-- `USER` is owned exclusively by the User Service. The Marketplace Service stores only `user_id` as an `ObjectId` reference on `LISTING`. The Vault stores only `_id`, `username`, and `display_name` as a minimal cross-service stub for display purposes.
+- `BOARD_GAME` is a **shared collection** owned by the User Service but referenced by the Marketplace Service (via `gameId` on `LISTING` and `RETAIL_SOURCE`). Cross-service reads are mediated through the BFF and REST API calls - the Marketplace Service does not query the User Service database directly.
+- `USER` is owned exclusively by the User Service. The Marketplace Service stores only `userId` as an `ObjectId` reference on `LISTING`. The Vault stores only `_id`, `username`, and `display_name` as a minimal cross-service stub for display purposes.
 - All cross-service `ObjectId` references are logical references only - MongoDB does not enforce referential integrity across collections or databases.
 
 ---
@@ -125,29 +125,26 @@ erDiagram
 
     LISTING {
         ObjectId _id
-        ObjectId user_id
+        ObjectId userId
         ObjectId gameId
-        String game_title
-        String item_type
-        String listing_type
+        String location
+        String gameTitle
+        String itemType
+        String listingType
         Decimal price
         String description
-        String image_url
+        String imageUrl
         String status
-        Date created_at
-        Date updated_at
+        Date createdAt
+        Date updatedAt
     }
 
     RETAIL_SOURCE {
         ObjectId _id
         ObjectId gameId
-        String retailer_name
-        String link_type
-        String url
-        Decimal price_indication
+        String retailerName
+        String storeUrl
     }
-
-    %% -- SHARED LIBRARY - THE VAULT ----------------------------
 
     RULEBOOK {
 	    ObjectId _id
@@ -204,30 +201,30 @@ erDiagram
     }
 
     USER ||--|| PREFERENCES : "embeds"
-    USER }o--o{ BOARD_GAME : "owns (owned_games[])"
-    USER ||--o{ FRIEND_REQUEST : "sends (sender_id)"
-    USER ||--o{ FRIEND_REQUEST : "receives (receiver_id)"
+    USER }o--o{ BOARD_GAME : "owns (ownedGames[])"
+    USER ||--o{ FRIEND_REQUEST : "sends (senderId)"
+    USER ||--o{ FRIEND_REQUEST : "receives (receiverId)"
     USER ||--o{ FRIENDSHIP : "connected as (user_a_id)"
     USER ||--o{ FRIENDSHIP : "connected as (user_b_id)"
-    USER ||--o{ GROUP_MEMBERSHIP : "joins (user_id)"
-    USER ||--|| GROUP : "owns (owner_id)"
-    USER ||--o{ EVENT : "creates (creator_id)"
-    USER ||--o{ RSVP : "responds (user_id)"
-    GROUP ||--o{ GROUP_MEMBERSHIP : "has (group_id)"
-    EVENT ||--o{ RSVP : "has (event_id)"
+    USER ||--o{ GROUP_MEMBERSHIP : "joins (userId)"
+    USER ||--|| GROUP : "owns (ownerId)"
+    USER ||--o{ EVENT : "creates (creatorId)"
+    USER ||--o{ RSVP : "responds (userId)"
+    GROUP ||--o{ GROUP_MEMBERSHIP : "has (groupId)"
+    EVENT ||--o{ RSVP : "has (eventId)"
     EVENT ||--o| BOARD_GAME : "references (gameId)"
 
     BOARD_GAME ||--o{ LISTING : "has listings (gameId)"
     BOARD_GAME ||--o{ RETAIL_SOURCE : "has retail sources (gameId)"
-    USER ||--o{ LISTING : "creates (user_id)"
+    USER ||--o{ LISTING : "creates (userId)"
 
-    USER ||--o{ RULEBOOK : "contributes (contributor_id)"
-    USER ||--o{ WRITE_LOCK : "holds (held_by_user_id)"
-    USER ||--o{ EDIT_EVENT : "edits (editor_id)"
-    RULEBOOK ||--|| RULEBOOK_TEXT : "has text (rulebook_id)"
-    RULEBOOK ||--o| WRITE_LOCK : "guarded by (rulebook_id)"
-    RULEBOOK ||--o{ EDIT_EVENT : "tracks via (rulebook_id)"
-    RULEBOOK ||--|| INGESTION_JOB : "processed by (rulebook_id)"
+    USER ||--o{ RULEBOOK : "contributes (contributorId)"
+    USER ||--o{ WRITE_LOCK : "holds (held_by_userId)"
+    USER ||--o{ EDIT_EVENT : "edits (editorId)"
+    RULEBOOK ||--|| RULEBOOK_TEXT : "has text (rulebookId)"
+    RULEBOOK ||--o| WRITE_LOCK : "guarded by (rulebookId)"
+    RULEBOOK ||--o{ EDIT_EVENT : "tracks via (rulebookId)"
+    RULEBOOK ||--|| INGESTION_JOB : "processed by (rulebookId)"
 ```
 
 ---
@@ -272,14 +269,14 @@ Stores the board game catalogue entries shared across the system. Owned by the U
 ### MARKETPLACE SERVICE
 
 #### LISTING
-The primary collection for the Marketplace Service. Stores all peer-to-peer rental and sale listings created by authenticated users. The `user_id` field is an `ObjectId` reference to the `USER` document in the User Service - it is not embedded, as the User Service owns that domain. The `game_title` field is denormalised directly onto the `LISTING` document to allow efficient browse and filter queries without requiring a cross-service lookup to `BOARD_GAME` on every request.
+The primary collection for the Marketplace Service. Stores all peer-to-peer rental and sale listings created by authenticated users. The `userId` field is an `ObjectId` reference to the `USER` document in the User Service - it is not embedded, as the User Service owns that domain. The `gameTitle` field is denormalised directly onto the `LISTING` document to allow efficient browse and filter queries without requiring a cross-service lookup to `BOARD_GAME` on every request.
 
-The `item_type` field holds one of: `BOARD_GAME`, `MERCHANDISE`, `EXPANSION`.
-The `listing_type` field holds one of: `RENT`, `SALE`.
+The `itemType` field holds one of: `BOARD_GAME`, `MERCHANDISE`, `EXPANSION`.
+The `listingType` field holds one of: `RENT`, `SALE`.
 The `status` field holds one of: `ACTIVE`, `INACTIVE`, `DELETED`. `INACTIVE` represents a soft delete (mark as unavailable) that can be reversed. `DELETED` represents a permanent removal from public view.
 
 #### RETAIL_SOURCE
-Stores aggregated external retail purchase links for board game titles. Each document references a `gameId` linking it to a `BOARD_GAME` document. Retail sources are populated by the backend retail aggregation service and are never user-generated. The `link_type` field holds one of: `ONLINE`, `IN_STORE`. The `price_indication` and `in_stock_indication` fields are best-effort values and are not guaranteed to be real-time accurate.
+Stores aggregated external retail purchase links for board game titles. Each document references a `gameId` linking it to a `BOARD_GAME` document. Retail sources are populated by the backend retail aggregation service and are never user-generated. The `linkType` field holds one of: `ONLINE`, `IN_STORE`. The `inStockIndication` fields are best-effort values and are not guaranteed to be real-time accurate.
 
 ---
 
