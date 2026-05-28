@@ -126,7 +126,7 @@ erDiagram
     LISTING {
         ObjectId _id
         ObjectId user_id
-        ObjectId game_id
+        ObjectId gameId
         String game_title
         String item_type
         String listing_type
@@ -140,70 +140,68 @@ erDiagram
 
     RETAIL_SOURCE {
         ObjectId _id
-        ObjectId game_id
+        ObjectId gameId
         String retailer_name
         String link_type
         String url
         Decimal price_indication
     }
 
-    %% ── SHARED LIBRARY - THE VAULT ────────────────────────────
+    %% -- SHARED LIBRARY - THE VAULT ----------------------------
 
-    RULEBOOK { 
-	    ObjectId _id 
-	    ObjectId game_id 
-	    String game_name
-	    String edition 
-	    String status 
-	    int version 
-	    ObjectId contributor_id 
-	    String r2_pdf_key 
-	    Date uploaded_at 
-	    Date updated_at 
+    RULEBOOK {
+	    ObjectId _id
+	    ObjectId gameId
+	    String gameName
+	    String edition
+	    String status
+	    int version
+	    ObjectId contributorId
+	    String r2PdfKey
+	    Date uploadedAt
+	    Date updatedAt
     }
 
-    RULEBOOK_TEXT { 
-	    ObjectId _id 
-	    ObjectId rulebook_id 
-	    int version 
-	    Date updated_at 
-	    Array_Object chunks 
-    } 
+    RULEBOOK_TEXT {
+	    ObjectId _id
+	    ObjectId rulebookId
+	    int version
+	    Date updatedAt
+	    Array_Object chunks
+    }
     
-    CHUNK { 
-	    ObjectId chunk_id 
-	    int index 
-	    String content 
+    CHUNK {
+	    ObjectId _id
+	    int index
+	    String content
     }
 
     WRITE_LOCK {
         ObjectId _id
-        ObjectId rulebook_id
-        ObjectId held_by_user_id
-        Date acquired_at
-        Date expires_at
+        ObjectId rulebookId
+        ObjectId heldByUserId
+        Date acquiredAt
+        Date expiresAt
     }
 
     EDIT_EVENT {
         ObjectId _id
-        ObjectId rulebook_id
-        ObjectId editor_id
+        ObjectId rulebookId
+        ObjectId editorId
         String delta
-        int version_after
-        Date committed_at
+        int versionAfter
+        Date committedAt
     }
 
     INGESTION_JOB {
         ObjectId _id
-        ObjectId rulebook_id
+        ObjectId rulebookId
         String stage
-        String job_status
-        String failure_reason
-        Date started_at
-        Date completed_at
+        String jobStatus
+        String failureReason
+        Date startedAt
+        Date completedAt
     }
-
-    %% ── USER SERVICE RELATIONSHIPS ────────────────────────────
 
     USER ||--|| PREFERENCES : "embeds"
     USER }o--o{ BOARD_GAME : "owns (owned_games[])"
@@ -217,15 +215,11 @@ erDiagram
     USER ||--o{ RSVP : "responds (user_id)"
     GROUP ||--o{ GROUP_MEMBERSHIP : "has (group_id)"
     EVENT ||--o{ RSVP : "has (event_id)"
-    EVENT ||--o| BOARD_GAME : "references (game_id)"
+    EVENT ||--o| BOARD_GAME : "references (gameId)"
 
-    %% ── MARKETPLACE SERVICE RELATIONSHIPS ─────────────────────
-
-    BOARD_GAME ||--o{ LISTING : "has listings (game_id)"
-    BOARD_GAME ||--o{ RETAIL_SOURCE : "has retail sources (game_id)"
+    BOARD_GAME ||--o{ LISTING : "has listings (gameId)"
+    BOARD_GAME ||--o{ RETAIL_SOURCE : "has retail sources (gameId)"
     USER ||--o{ LISTING : "creates (user_id)"
-
-    %% ── VAULT RELATIONSHIPS ───────────────────────────────────
 
     USER ||--o{ RULEBOOK : "contributes (contributor_id)"
     USER ||--o{ WRITE_LOCK : "holds (held_by_user_id)"
@@ -285,23 +279,23 @@ The `listing_type` field holds one of: `RENT`, `SALE`.
 The `status` field holds one of: `ACTIVE`, `INACTIVE`, `DELETED`. `INACTIVE` represents a soft delete (mark as unavailable) that can be reversed. `DELETED` represents a permanent removal from public view.
 
 #### RETAIL_SOURCE
-Stores aggregated external retail purchase links for board game titles. Each document references a `game_id` linking it to a `BOARD_GAME` document. Retail sources are populated by the backend retail aggregation service and are never user-generated. The `link_type` field holds one of: `ONLINE`, `IN_STORE`. The `price_indication` and `in_stock_indication` fields are best-effort values and are not guaranteed to be real-time accurate.
+Stores aggregated external retail purchase links for board game titles. Each document references a `gameId` linking it to a `BOARD_GAME` document. Retail sources are populated by the backend retail aggregation service and are never user-generated. The `link_type` field holds one of: `ONLINE`, `IN_STORE`. The `price_indication` and `in_stock_indication` fields are best-effort values and are not guaranteed to be real-time accurate.
 
 ---
 
 ### SHARED LIBRARY - THE VAULT
 
 #### RULEBOOK
-The aggregate root for The Vault. Stores rulebook metadata including the Cloudflare R2 key for the raw PDF (`r2_pdf_key`). The `status` field holds one of: `Processing`, `Ready`, `PendingReview`. The `version` field is incremented on every accepted collaborative edit. Owns `RULEBOOK_TEXT`, `WRITE_LOCK`, `EDIT_EVENT`, and `INGESTION_JOB` via one-to-one or one-to-many relationships.
+The aggregate root for The Vault. Stores rulebook metadata including the Cloudflare R2 key for the raw PDF (`r2PdfKey`). The `status` field holds one of: `Processing`, `Ready`, `PendingReview`. The `version` field is incremented on every accepted collaborative edit. Owns `RULEBOOK_TEXT`, `WRITE_LOCK`, `EDIT_EVENT`, and `INGESTION_JOB` via one-to-one or one-to-many relationships.
 
 #### RULEBOOK_TEXT
 Stores the mutable collaborative text content of a rulebook. Separated from `RULEBOOK` intentionally - the text body can be large, and keeping it in a separate collection ensures that list and search queries on `RULEBOOK` remain lean and never load the full text unnecessarily.
 
 #### WRITE_LOCK
-Represents the MRSW exclusive write lock held on a rulebook during collaborative editing. A `RULEBOOK` either has a lock (`0..1` relationship) or it does not. The `expires_at` field drives the 30-second idle expiry - Spring Boot enforces this on every lock-check request.
+Represents the MRSW exclusive write lock held on a rulebook during collaborative editing. A `RULEBOOK` either has a lock (`0..1` relationship) or it does not. The `expiresAt` field drives the 30-second idle expiry — Spring Boot enforces this on every lock-check request.
 
 #### EDIT_EVENT
-The immutable event sourcing ledger for collaborative edits. Each document stores a delta (the change applied) and the `version_after` (the resulting version number). This enables full edit history reconstruction and rollback without joining back to `RULEBOOK_TEXT`.
+The immutable event sourcing ledger for collaborative edits. Each document stores a delta (the change applied) and the `versionAfter` (the resulting version number). This enables full edit history reconstruction and rollback without joining back to `RULEBOOK_TEXT`.
 
 #### INGESTION_JOB
-Tracks the state of the FastAPI pipe-and-filter ingestion pipeline for each uploaded rulebook. The `stage` field reflects the current or last completed pipeline stage: `Sanitise`, `Extract`, `Chunk`, `Vectorise`. The `job_status` field holds one of: `Processing`, `Ready`, `PendingReview`. The `failure_reason` field captures any error that caused a pipeline failure.
+Tracks the state of the FastAPI pipe-and-filter ingestion pipeline for each uploaded rulebook. The `stage` field reflects the current or last completed pipeline stage: `Sanitise`, `Extract`, `Chunk`, `Vectorise`. The `jobStatus` field holds one of: `Processing`, `Ready`, `PendingReview`. The `failureReason` field captures any error that caused a pipeline failure.
