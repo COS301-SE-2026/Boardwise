@@ -39,17 +39,16 @@
 ```mermaid
 erDiagram
 
-    %% ── USER SERVICE ──────────────────────────────────────────
-
     USER {
         ObjectId _id
         String username
-        String email_address
+        String emailAddress
         String password
-        String profile_picture
-        Array_ObjectId owned_games
+        String profilePicture
+        String location
+        Array_ObjectId ownedGames
         Object preferences
-        Date created_at
+        Date createdAt
     }
 
     PREFERENCES {
@@ -59,16 +58,16 @@ erDiagram
 
     FRIEND_REQUEST {
         ObjectId _id
-        ObjectId sender_id
-        ObjectId receiver_id
-        Date created_at
+        ObjectId senderId
+        ObjectId receiverId
+        Date createdAt
     }
 
     FRIENDSHIP {
         ObjectId _id
-        ObjectId user_a_id
-        ObjectId user_b_id
-        Date created_at
+        ObjectId userAId
+        ObjectId userBId
+        Date createdAt
     }
 
     GROUP {
@@ -76,15 +75,16 @@ erDiagram
         String name
         String description
         String visibility
-        ObjectId owner_id
-        Date created_at
+        String category
+        ObjectId ownerId
+        Date createdAt
     }
 
     GROUP_MEMBERSHIP {
         ObjectId _id
-        ObjectId user_id
-        ObjectId group_id
-        Date joined_at
+        ObjectId userId
+        ObjectId groupId
+        Date joinedAt
     }
 
     EVENT {
@@ -94,39 +94,34 @@ erDiagram
         String time
         String location
         String visibility
-        ObjectId creator_id
-        Array_ObjectId game_id
-        Date created_at
+        ObjectId creatorId
+        Array_ObjectId gameId
+        Date createdAt
     }
 
     RSVP {
         ObjectId _id
-        ObjectId user_id
-        ObjectId event_id
+        ObjectId userId
+        ObjectId eventId
         String status
-        Date responded_at
+        Date respondedAt
     }
     
     TOKEN_BLACKLIST {
 	    ObjectId _id
 	    String jti
-	    Date created_at
-	    Date expires_at
+	    Date createdAt
+	    Date expiresAt
     }
-
-    %% ── SHARED ────────────────────────────────────────────────
 
     BOARD_GAME {
         ObjectId _id
         String title
         String edition
         String description
-        String image_url
+        String imageUrl
         Array_String genre
-        Array_String mechanics
     }
-
-    %% ── MARKETPLACE SERVICE ───────────────────────────────────
 
     LISTING {
         ObjectId _id
