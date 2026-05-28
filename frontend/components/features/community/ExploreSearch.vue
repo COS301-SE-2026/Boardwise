@@ -2,7 +2,7 @@
   <div class="search-row">
 
     <div class="search">
-      <BaseSearch
+      <BaseSearch v-model="search"
         placeholder="Search for a community..."
         hide-details
       />
@@ -22,6 +22,10 @@
 <script setup>
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+
+
+const search = defineModel()
+const emit = defineEmits(['create'])
 </script>
 
 <style scoped>

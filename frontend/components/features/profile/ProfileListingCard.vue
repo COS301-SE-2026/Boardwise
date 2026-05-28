@@ -31,8 +31,23 @@
         </span>
       </p>
 
-      <div class="meta">
-        <span>@{{ listing.username ?? 'unknown' }}</span>
+      <div class="actions">
+
+        <!-- <BaseButton
+          size="sm"
+          @click="showEdit = true"
+        >
+          Edit
+        </BaseButton>
+
+        <BaseButton
+          size="sm"
+          variant="secondary"
+          @click="showDelete = true"
+        >
+          Delete
+        </BaseButton> -->
+
       </div>
 
       <div class="d-flex ga-2 mt-1">
