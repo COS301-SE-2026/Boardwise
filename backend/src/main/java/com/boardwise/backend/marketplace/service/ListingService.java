@@ -11,7 +11,6 @@ import java.time.format.DateTimeFormatter;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.client.HttpClientErrorException.Forbidden;
 import org.springframework.web.multipart.MultipartFile;
 
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -24,10 +23,12 @@ import com.boardwise.backend.marketplace.enums.*;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.user_service.repos.UserRepository;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 
 import java.util.*;
 
@@ -41,16 +42,16 @@ public class ListingService {
     private String publicUrl;
 
     private final ListingRepository listingRepository;
-    private final UserRepository userRepository;
     private final JWTService jwtService;
     private final S3Client s3Client;
+    private final MongoTemplate mongoTemplate;
 
-    public ListingService(ListingRepository listingRepository, JWTService jwtService, S3Client s3Client,
-            UserRepository userRepository) {
+
+    public ListingService(ListingRepository listingRepository, JWTService jwtService, S3Client s3Client, MongoTemplate mongoTemplate) {
         this.listingRepository = listingRepository;
         this.jwtService = jwtService;
         this.s3Client = s3Client;
-        this.userRepository = userRepository;
+        this.mongoTemplate = mongoTemplate;
     }
 
     private static String truncateAfterWords(String text, int wordLimit) {
@@ -222,9 +223,9 @@ public class ListingService {
 
     public List<ListingResponse> getAllActiveListings() {
         return listingRepository.findByStatus(ListingStatus.AVAILABLE)
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
+            .stream()
+            .map(this::mapToResponse)
+            .toList();
     }
 
     public void deleteListing(String listingId, String token) {
@@ -249,16 +250,29 @@ public class ListingService {
         return mapToResponse(listingRepository.findById(listingId).get());
     }
 
-    public List<ListingResponse> getByFilter(String listingType, String itemType, Double minPrice, Double maxPrice,
-            List<String> genres) {
-        return listingRepository.findAll().stream()
-                .filter(listing -> listing.getStatus() == ListingStatus.AVAILABLE)
-                .filter(listing -> listingType == null || listing.getListingType().equalsIgnoreCase(listingType))
-                .filter(listing -> itemType == null || listing.getItemType().equalsIgnoreCase(itemType))
-                .filter(listing -> minPrice == null || listing.getPrice() >= minPrice)
-                .filter(listing -> maxPrice == null || listing.getPrice() <= maxPrice).filter(listing -> genres == null
-                        || genres.isEmpty() || listing.getGenres().stream().anyMatch(genres::contains))
-                .map(this::mapToResponse).toList();
+    public List<ListingResponse> getByFilter(String title ,String listingType, String itemType, Double minPrice, Double maxPrice, List<String> conditions, List<String> genres) {
+        
+        //Search for AVAILABLE Listings 
+        Criteria criteria = Criteria.where("status").is(ListingStatus.AVAILABLE);
+
+        if( title != null) criteria.and("title").and(title).regex(title, "i");
+
+        if (listingType != null)criteria.and("listingType").regex(listingType, "i");
+
+        if (itemType != null) criteria.and("itemType").regex(itemType, "i");
+
+        if (minPrice != null && maxPrice != null) criteria.and("price").gte(minPrice).lte(maxPrice);
+        //minimum and up
+        else if (minPrice != null) criteria.and("price").gte(minPrice);
+        //maximum and down
+        else if (maxPrice != null) criteria.and("price").lte(maxPrice);
+
+        if (genres != null && !genres.isEmpty())criteria.and("genres").in(genres);
+
+        if(conditions != null && !conditions.isEmpty()) criteria.and("condition").in(conditions);
+        Query query = new Query(criteria);
+
+        return mongoTemplate.find(query, Listing.class).stream().map(this::mapToResponse).toList();
     }
 
     public ListingResponse updateListing(String listingId, ListingRequest req, String token, MultipartFile img) {
