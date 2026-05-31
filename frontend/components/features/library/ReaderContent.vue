@@ -1,7 +1,7 @@
 <template>
   <div> 
     <h1 class="text=h4 font-weight-bold mb-4">
-      {{  rulebook.title }}
+      {{  rulebook.gameName }}
     </h1>
 
     <v-card class="pa-6">

@@ -1,15 +1,15 @@
 <template>
   <NuxtLink :to="`/library/${rulebook.id}`" style="text-decoration: none; color: inherit;">
     <BaseCard class="carousel-card" style="width: 220px; flex-shrink: 0;">
-      <BaseImage :src="rulebook.image" :alt="rulebook.title" height="280px" fit="cover" />
+      <BaseImage :src="rulebook.image" :alt="rulebook.gameName" height="280px" fit="cover" />
       <div class="pa-4">
 
         <p class="text-body-2 font-weight-bold mb-1">
-          {{ rulebook.title }}
+          {{ rulebook.gameName }}
         </p>
 
         <p class="text-caption text-medium-emphasis mb-0">
-          {{ rulebook.category }}
+          {{ rulebook.edition }}
         </p>
 
       </div>

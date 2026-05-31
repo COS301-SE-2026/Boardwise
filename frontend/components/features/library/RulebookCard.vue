@@ -1,15 +1,15 @@
 <template> 
     <BaseCard class="card" @click="openBook"> 
 
-        <BaseImage :src="rulebook.image" :alt="rulebook.title" height="200px" fit="cover" />
+        <BaseImage :src="rulebook.image" :alt="rulebook.gameName" height="200px" fit="cover" />
 
         <div class="pa-3">
           <p class="text-body-2 font-weight-bold mb-1">
-            {{ rulebook.title }}
+            {{ rulebook.gameName }}
           </p>
 
           <p class="text-caption text-medium-emphasis mb-0">
-            {{ rulebook.category }}
+            {{ rulebook.edition }}
           </p>
         </div>
         

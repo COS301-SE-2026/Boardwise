@@ -5,7 +5,7 @@
       <div style="position: sticky; top: 100px;">
         <BaseImage
           :src="rulebook.image"
-          :alt="rulebook.title"
+          :alt="rulebook.gameName"
           height="480px"
           fit="cover"
           style="border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.15);"
