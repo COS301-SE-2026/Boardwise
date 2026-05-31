@@ -1,9 +1,12 @@
 <template>
-  <PageContainer>
+  <div v-if="rulebook">
+    <RulebookDetailsHero :rulebook="rulebook"/>
+  </div>
+  <!-- <PageContainer> -->
 
-    <Navbar />
+    <!-- <Navbar /> -->
 
-    <v-row v-if="rulebook" class="mt-12" align="start">
+    <!-- <v-row v-if="rulebook" class="mt-12" align="start">
 
       <v-col cols="12" md="4">
         <div style="position: sticky; top: 100px;">
@@ -43,49 +46,57 @@
         </div>
       </v-col>
 
-    </v-row>
+    </v-row> -->
 
     <v-empty-state
       v-else
       title="Rulebook not found"
       icon="mdi-book-off-outline"
     >
-      <template #actions>
+      <!-- <template #actions>
         <BaseButton @click="router.push('/library')">← Back to Library</BaseButton>
-      </template>
+      </template> -->
     </v-empty-state>
 
-    <RecommendedBooks :rulebooks="recommended" />
+    <!-- <RecommendedBooks :rulebooks="recommended" /> -->
 
-  </PageContainer>
+  <!-- </PageContainer> -->
 </template>
 
 <script setup>
-import { rulebooks } from '~/services/mockData/rulebooks.js'
+// import { rulebooks } from '~/services/mockData/rulebooks.js'
 
-import Navbar from '~/components/layout/Navbar.vue'
-import PageContainer from '~/components/layout/PageContainer.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
-import BaseCard from '~/components/ui/BaseCard.vue'
-import BaseImage from '~/components/ui/BaseImage.vue'
+// import Navbar from '~/components/layout/Navbar.vue'
+// import PageContainer from '~/components/layout/PageContainer.vue'
+// import BaseButton from '~/components/ui/BaseButton.vue'
+// import BaseCard from '~/components/ui/BaseCard.vue'
+// import BaseImage from '~/components/ui/BaseImage.vue'
 
-import RulebookInfo from '~/components/features/library/RulebookInfo.vue'
-import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue'
+// import RulebookInfo from '~/components/features/library/RulebookInfo.vue'
+// import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue'
+import RulebookDetailsHero from './RulebookDetailsHero.vue'
 
-const router = useRouter()
-const route = useRoute()
+// const router = useRouter()
+// const route = useRoute()
 
-const rulebook = computed(() =>
-  rulebooks.find(item => item.id === Number(route.params.id))
-)
+// const rulebook = computed(() =>
+//   rulebooks.find(item => item.id === Number(route.params.id))
+// )
 
-const recommended = computed(() =>
-  rulebooks
-    .filter(item => item.id !== Number(route.params.id))
-    .slice(0, 4)
-)
+// const recommended = computed(() =>
+//   rulebooks
+//     .filter(item => item.id !== Number(route.params.id))
+//     .slice(0, 4)
+// )
 
-const goRead = () => {
-  router.push(`/library/read/${rulebook.value.id}`)
-}
+// const goRead = () => {
+//   router.push(`/library/read/${rulebook.value.id}`)
+// }
+
+defineProps({
+  rulebook: {
+    type: Object,
+    required: true
+  }
+})
 </script>

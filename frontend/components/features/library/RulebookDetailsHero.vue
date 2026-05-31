@@ -1,7 +1,7 @@
 <template>
   <v-row class="mt-12" align="start">
 
-    <v-col cols="12" md="4">
+    <!-- <v-col cols="12" md="4">
       <div style="position: sticky; top: 100px;">
         <BaseImage
           :src="rulebook.image"
@@ -11,7 +11,7 @@
           style="border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.15);"
         />
       </div>
-    </v-col>
+    </v-col> -->
 
     <v-col cols="12" md="8">
       <div class="d-flex flex-column ga-7">

@@ -31,6 +31,6 @@ const props = defineProps ({
 const router = useRouter()
 
 const readBook = () => {
-    router.push('/rulebook/${props.rulebook.id}/read')
+    router.push(`/rulebook/${props.rulebook.id}/read`)
 }
 </script>

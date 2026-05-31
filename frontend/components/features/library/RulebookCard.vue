@@ -25,7 +25,7 @@ const props = defineProps({
 })
 
 const openBook = () => {
-    navigateTo('/library/${props.rulebook.id}')
+    navigateTo(`/library/${props.rulebook.id}`)
 }
 </script>
 

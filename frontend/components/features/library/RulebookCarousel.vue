@@ -3,7 +3,7 @@
     <SectionTitle :title="title" />
     <div class="d-flex ga-5 overflow-x-auto pb-3 mt-4">
       <RulebookCarouselCard
-        v-for="book in books"
+        v-for="book in rulebooks"
         :key="book.id"
         :rulebook="book"
       />
