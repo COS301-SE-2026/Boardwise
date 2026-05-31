@@ -35,7 +35,7 @@ public class RulebookService {
     private final WriteLockRepository writeLockRepository;
     private final EditEventRepository editEventRepository;
 
-    // VC-002: List / Search Rulebooks
+    // AC-VLT-02: List / Search Rulebooks
     public Page<RulebookResponseDto> searchRulebooks(String search, int page, int limit){
         Pageable pageable = PageRequest.of(
             page-1,
@@ -49,13 +49,13 @@ public class RulebookService {
         return dtoPage; // Page has the lockHeldBy field set to null. A book that is in state Ready does not have a write lock
     }
 
-    // VC-003: Get Rulebook Detail
+    // AC-VLT-03: Get Rulebook Detail
     public RulebookResponseDto getRulebookById(ObjectId id){
         Rulebook rulebook = findRulebookOrThrow(id);
         return toRulebookResponse(rulebook);
     }
 
-    // VC-005: Get Rulebook Text State
+    // AC-VLT-05: Get Rulebook Text State
     public RulebookTextResponseDto getRulebookText(ObjectId id){
         findRulebookOrThrow(id);
 
@@ -76,7 +76,7 @@ public class RulebookService {
             .build();
     }
 
-    // VC-004: Download Raw PDF - pre-signed URL generation placeholder
+    // AC-VLT-04: Download Raw PDF - pre-signed URL generation placeholder
     // R2 pre-signing will be wired in once R2Config is active
     public DownloadUrlResponseDto getDownloadUrl(ObjectId id) {
         Rulebook rulebook = findRulebookOrThrow(id);

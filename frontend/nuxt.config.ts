@@ -1,4 +1,3 @@
-// nuxt.config.js
 export default defineNuxtConfig({
   css: ['~/assets/theme.css'],
 
@@ -72,7 +71,7 @@ export default defineNuxtConfig({
     }
   },
 
-  // Add this block to proxy requests to Spring Boot
+  // Request proxy to Spring Boot
   routeRules: {
     '/api/**': {
       proxy: 'http://localhost:8080/api/**'

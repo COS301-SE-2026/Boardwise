@@ -34,6 +34,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http){
         return http
+                .cors(Customizer.withDefaults()) // So that preflight requests are not blocked
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(request -> 
                     request.requestMatchers(
@@ -43,6 +44,7 @@ public class SecurityConfig {
                         "/api/marketplace/listings",
                         "/api/marketplace/listings/{listingId}",
                         "/api/vault/rulebooks",
+                        "/api/vault/rulebooks/{id}",
                         "/api/vault/rulebooks/{id}/text"
                     )
                     .permitAll()
