@@ -1,21 +1,18 @@
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { LibraryService } from '~/services/libraryService'
 
 export const useLibrary = () => {
-    const router = useRouter();
-
     const token = ref<string|null>(
         import.meta.client ? localStorage.getItem('access_token') : null
     )
     const error = ref<string>('');
-    const loading = ref<boolean>(false);
-
+    const isLoading = ref<boolean>(false);
     const rulebooks = ref<any[]>([]);
+    const currentRulebook = ref<any>(null);
 
-    const getAllRulebooks = async () => {
+    const fetchAllRulebooks = async () => {
         error.value = '';
-        loading.value = true;
+        isLoading.value = true;
 
         try {
             const response = await LibraryService.getAllRulebooks();
@@ -27,15 +24,31 @@ export const useLibrary = () => {
             error.value = err.response?.data?.message || 'No rulebooks found'
             rulebooks.value = []
         } finally {
-            loading.value = false;
+            isLoading.value = false;
+        }
+    }
+
+    const fetchRulebookById = async (id: string) => {
+        error.value = '';
+        isLoading.value = true;
+        currentRulebook.value = null;
+
+        try{
+            currentRulebook.value = await LibraryService.getRulebookById(id);
+        }catch(err: any){
+            console.error(`Failed to fetch rulebook ${id}:`, err);
+            error.value = err.response?.data?.message || 'Failed to load rulebook details';
+        }finally{
+            isLoading.value = false;
         }
     }
 
     return {
         token,
         error,
-        loading,
+        isLoading,
         rulebooks,
-        getAllRulebooks
+        fetchAllRulebooks,
+        fetchRulebookById
     }
 }

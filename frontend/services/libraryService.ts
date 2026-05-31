@@ -10,5 +10,9 @@ export const LibraryService = {
                 limit: limit
             }
         });
+    },
+
+    getRulebookById(id: string){
+        return api.get(`vault/rulebooks/${id}`)
     }
 }
