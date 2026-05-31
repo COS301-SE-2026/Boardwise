@@ -2,7 +2,7 @@ package com.boardwise.backend.marketplace.enums;
 
 public enum ItemType {
     MERCHANDISE("merchandise"),
-    PARTIAL("partial"),
+    Assets("assets"),
     BOARDGAME("boardgame");
 
     private final String value;

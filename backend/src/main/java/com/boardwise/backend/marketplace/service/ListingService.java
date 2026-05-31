@@ -1,21 +1,19 @@
 package com.boardwise.backend.marketplace.service;
 
 import com.boardwise.backend.marketplace.model.*;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.client.HttpClientErrorException.Forbidden;
 import org.springframework.web.multipart.MultipartFile;
 
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.sync.RequestBody;
 
 import java.io.IOException;
@@ -26,19 +24,33 @@ import com.boardwise.backend.marketplace.enums.*;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.shared.security.JWTService;
+import com.boardwise.backend.user_service.repos.UserRepository;
+
+import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.*;
 
 @Service
 public class ListingService {
 
-    
-    private final ListingRepository listingRepository;
-    private final JWTService jwtService;
+    @Value("${r2.bucket-listings}")
+    private String listingsBucket;
 
-    public ListingService(ListingRepository listingRepository, JWTService jwtService) {
+    @Value("${r2.dev-url}")
+    private String publicUrl;
+
+    private final ListingRepository listingRepository;
+    private final UserRepository userRepository;
+    private final JWTService jwtService;
+    private final S3Client s3Client;
+
+    public ListingService(ListingRepository listingRepository, JWTService jwtService, S3Client s3Client,
+            UserRepository userRepository) {
         this.listingRepository = listingRepository;
         this.jwtService = jwtService;
+        this.s3Client = s3Client;
+        this.userRepository = userRepository;
     }
 
     private static String truncateAfterWords(String text, int wordLimit) {
@@ -59,38 +71,50 @@ public class ListingService {
         return String.join(" ", kept);
     }
 
-    public static String uploadImageToR2(
-            String accessKey,
-            String secretKey,
-            String endpoint,
-            String bucket,
+    public String uploadImageToR2(
             String listingId,
             MultipartFile file) throws IOException {
 
-        S3Client r2Client = S3Client.builder()
-                .endpointOverride(URI.create(endpoint))
-                .credentialsProvider(
-                        StaticCredentialsProvider.create(
-                                AwsBasicCredentials.create(accessKey, secretKey)))
-                .region(Region.of("auto"))
-                .build();
-
         String key = "listings/" + listingId + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
 
-        r2Client.putObject(
+        s3Client.putObject(
                 PutObjectRequest.builder()
-                        .bucket(bucket)
+                        .bucket(listingsBucket)
                         .key(key)
                         .contentType(file.getContentType())
                         .contentLength(file.getSize())
                         .build(),
                 RequestBody.fromBytes(file.getBytes()));
 
-        return endpoint + "/" + bucket + "/" + key;
+        return publicUrl + key;
+    }
+
+    public void deleteFile(String fileName) {
+        // no file provided to delete: theoretically shouldn't ever be triggered
+        if (fileName == null || fileName.isBlank()) {
+            return;
+        }
+
+        fileName = fileName.substring(publicUrl.length());
+        // request object
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder().bucket(listingsBucket)
+                .key(fileName)
+                .build();
+
+        s3Client.deleteObject(deleteObjectRequest);
+    }
+
+    public String replaceFile(String currentFile, String listingId, MultipartFile targetFile) throws IOException {
+        // currentFile is the current value already stored on the buckets
+        // targetFile is the file replacing current
+
+        // remove existing entry
+        deleteFile(currentFile);
+        return uploadImageToR2(listingId, targetFile);
     }
 
     public ListingResponse createListing(ListingRequest req, String token, @RequestPart MultipartFile img) {
-        String username = jwtService.extractUsername(token); // fails at filter level
+        ObjectId userId = jwtService.extractUserId(token); // fails at filter level
 
         String itemType = req.itemType();
 
@@ -101,6 +125,10 @@ public class ListingService {
 
         // Sanity check
         ListingType.fromValue(listingType);
+
+        // Sanity check
+        String condition = req.condition();
+        Condition.fromValue(condition);
 
         double price = req.price();
         if (price < 0) {
@@ -125,7 +153,8 @@ public class ListingService {
 
         }
 
-        List<String> rentalPeriod = (req.rentalPeriod().size() != 2) ? null : req.rentalPeriod();
+        List<String> rentalPeriod = (req.rentalPeriod() == null || req.rentalPeriod().size() != 2) ? null
+                : req.rentalPeriod();
 
         RentalPeriod borrowDate = null;
 
@@ -164,31 +193,28 @@ public class ListingService {
 
         LocalDateTime now = LocalDateTime.now();
         ListingStatus status = ListingStatus.AVAILABLE;
+        // TODO: uncomment
+        // String location = jwtService.extractLocation(token);
+        // TODO: delete when extract location is acquired
+        String location = req.location();
 
-        Listing toSave = new Listing(null, username, itemType, listingType, price, gameTitle,
+        // TODO:Verify by checking if version is available in db else add it
+        String version = req.version();
+
+        Listing toSave = new Listing(null, jwtService.extractUsername(token).toString(), userId, itemType,
+                listingType, price, location, req.isNegotiable(), condition, gameTitle, version,
                 description,
                 null,
                 status, now, now, genres, borrowDate);
 
         Listing saved = listingRepository.save(toSave);
 
-        // TODO: Uncomment
-
-        String r2Endpoint = System.getenv("R2_LISTINGS_ENDPOINT");
-        if (r2Endpoint != null) {
-            try {
-                imageUrl = uploadImageToR2(
-                        System.getenv("R2_ACCESS_KEY"),
-                        System.getenv("R2_SECRET_KEY"),
-                        r2Endpoint,
-                        System.getenv("R2_LISTINGS_BUCKET"),
-                        saved.getId(),
-                        img);
-                saved.setImageUrl(imageUrl);
-                listingRepository.save(saved);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        try {
+            imageUrl = uploadImageToR2(saved.getId(), img);
+            saved.setImageUrl(imageUrl);
+            listingRepository.save(saved);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return mapToResponse(saved);
 
@@ -202,24 +228,25 @@ public class ListingService {
     }
 
     public void deleteListing(String listingId, String token) {
-        String username = jwtService.extractUsername(token);
+        ObjectId userId = jwtService.extractUserId(token);
 
         Listing listing = listingRepository.findById(listingId)
                 .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + listingId));
 
-        if (!listing.getUsername().equals(username)) {
+        if (!listing.getUserId().equals(userId)) {
             throw new ForbiddenException("You do not own listing: " + listingId);
         }
 
+        deleteFile(listing.getImageUrl());
         listingRepository.deleteById(listingId);
 
     }
 
-    public ListingResponse getListingById(String id) {
-        if (!listingRepository.existsById(id)) {
-            throw new IllegalArgumentException("Listing not found: " + id);
+    public ListingResponse getListingById(String listingId) {
+        if (!listingRepository.existsById(listingId)) {
+            throw new IllegalArgumentException("Listing not found: " + listingId);
         }
-        return mapToResponse(listingRepository.findById(id).get());
+        return mapToResponse(listingRepository.findById(listingId).get());
     }
 
     public List<ListingResponse> getByFilter(String listingType, String itemType, Double minPrice, Double maxPrice,
@@ -234,59 +261,117 @@ public class ListingService {
                 .map(this::mapToResponse).toList();
     }
 
-    public ListingResponse updateListing(String listingId, ListingRequest req, String token) {
-        String username = jwtService.extractUsername(token);
+    public ListingResponse updateListing(String listingId, ListingRequest req, String token, MultipartFile img) {
+        ObjectId userId = jwtService.extractUserId(token);
 
         Listing existing = listingRepository.findById(listingId)
                 .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + listingId));
 
-        if (!existing.getUsername().equals(username)) {
-            throw new ForbiddenException("You do not own listing: " + listingId);
-        }
-        if (!listingRepository.existsById(listingId)) {
-            throw new IllegalArgumentException("Listing not found: " + listingId);
+        if (!userId.equals(existing.getUserId())) {
+            throw new ForbiddenException("Cannot update " + listingId);
         }
 
-        existing.setItemType(req.itemType());
-        existing.setListingType(req.listingType());
-        existing.setPrice(req.price());
-        existing.setTitle(req.gameTitle());
-        existing.setDescription(truncateAfterWords(req.description(), 500));
-        // existing.setImageUrl(req.imageUrl());
-        // TODO: add replace image
-        existing.setGenres(req.genres());
+        // sanity check
+        if (req != null && !req.itemType().equals(existing.getItemType())) {
+            ItemType.fromValue(req.itemType());
+            existing.setItemType(req.itemType());
+        }
+
+        // sanity check
+        if (!req.condition().equals(existing.getCondition())) {
+            existing.setCondition(req.condition());
+        }
+        ;
+
+        // sanity check
+        if (!req.listingType().equals(existing.getListingType())) {
+            ListingType.fromValue(req.listingType());
+            existing.setListingType(req.listingType());
+        }
+
+        double priceToAdd = req.price();
+        if (priceToAdd != existing.getPrice()) {
+            if (priceToAdd <= 0) { // bind it to curr
+                priceToAdd = existing.getPrice();
+            }
+            existing.setPrice(req.price());
+        }
+
+        // TODO: Uncomment when frontend automatically stores location
+        // String userLocation = jwtService.extractLocation(token);
+        // if(!existing.getLocation().equals((userLocation.isBlank())?null:
+        // userLocation)){
+        // existing.setLocation(token);
+        // }
+
+        if (!existing.getLocation().equals(req.location())) {
+            existing.setLocation(req.location());
+        }
+        // TODO: verify Title (check if title is in game list)
+        if (!existing.getTitle().equals(req.gameTitle())) {
+            existing.setTitle(req.gameTitle());
+        }
+
+        if (!req.description().isBlank() && !req.description().equals(existing.getDescription()))
+            existing.setDescription(truncateAfterWords(req.description(), 500));
+
+        // sanity check
+        if (!req.genres().equals(existing.getGenres())) {
+            // just validating genres
+            for (int i = 0; i < req.genres().size(); i++)
+                Genres.fromValue(req.genres().get(i)).getValue();
+
+            existing.setGenres(req.genres());
+        }
+
+        if (!req.condition().equals(existing.getCondition())) {
+            Condition.fromValue(req.condition()).getValue();
+            existing.setCondition(req.condition());
+        }
+
+        if (img != null && !img.isEmpty()) {// only update if img is there
+            try {
+                String imageUrl = replaceFile(existing.getImageUrl(), existing.getId(), img);
+                existing.setImageUrl(imageUrl);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (existing.getListingType().equalsIgnoreCase(ListingType.RENTAL.getValue())) {
+            if (req.rentalPeriod() != null && !req.rentalPeriod().isEmpty()) {
+                if (req.rentalPeriod().size() != 2) {
+                    throw new IllegalArgumentException("Only 2 dates are allowed");
+                }
+
+                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                LocalDate start = LocalDate.parse(req.rentalPeriod().get(0), dateFormatter);
+                LocalDate end = LocalDate.parse(req.rentalPeriod().get(1), dateFormatter);
+
+                if (start.compareTo(end) > 0)
+                    throw new IllegalArgumentException("Start date cannot be after End date");
+
+                RentalPeriod borrowDate = new RentalPeriod();
+                borrowDate.setStartDate(start);
+                borrowDate.setEndDate(end);
+                existing.setRentalPeriod(borrowDate);
+            }
+        }
+
+        if (!existing.getVersion().equals(req.version())) {
+            // TODO:implement check to see if version is alr on db or add it to db
+
+            existing.setVersion(req.version());
+        }
         existing.setUpdatedAt(LocalDateTime.now());
 
-        if (req.rentalPeriod() != null && !req.rentalPeriod().isEmpty()) {
-            
-            if(req.rentalPeriod().size() != 2){
-                throw new IllegalArgumentException("Only 2 dates are allowed");
-            }
+        existing.setIsNegotiable(req.isNegotiable());
 
-            List<String> rentalPeriod = req.rentalPeriod();
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            LocalDate start = LocalDate.parse(rentalPeriod.get(0), dateFormatter);
-            LocalDate end = LocalDate.parse(rentalPeriod.get(1), dateFormatter);
-
-            if (start.compareTo(end) > 0)
-                throw new IllegalArgumentException("Start date cannot be after End date");
-
-            RentalPeriod borrowDate = new RentalPeriod();
-            borrowDate.setStartDate(start);
-            borrowDate.setEndDate(end);
-            existing.setRentalPeriod(borrowDate);
-        }
-
-        Listing saved = listingRepository.save(existing);
-        return mapToResponse(saved);
+        return mapToResponse(listingRepository.save(existing));
     }
 
     public List<ListingResponse> getUserListings(String token) {
         String username = jwtService.extractUsername(token);
-        // if (!userRepository.existsById(id)) {
-        // throw new IllegalArgumentException("User does not exist");
-        // }
-
         return listingRepository.findByUsername(username).stream().map(this::mapToResponse).toList();
     }
 
@@ -294,12 +379,17 @@ public class ListingService {
         return new ListingResponse(
                 listing.getId(),
                 listing.getUsername(),
+                listing.getUserId(),
                 listing.getTitle(),
                 listing.getItemType(),
                 listing.getListingType(),
                 listing.getPrice(),
                 listing.getDescription(),
                 listing.getImageUrl(),
+                listing.getLocation(),
+                listing.getIsNegotiable(),
+                listing.getCondition(),
+                listing.getVersion(),
                 listing.getGenres(),
                 listing.getRentalPeriod(),
                 listing.getCreatedAt(),
