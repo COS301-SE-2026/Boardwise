@@ -1,5 +1,7 @@
 // nuxt.config.js
 export default defineNuxtConfig({
+  ssr: false,
+  
   css: ['~/assets/theme.css'],
 
   modules: ['vuetify-nuxt-module'],
