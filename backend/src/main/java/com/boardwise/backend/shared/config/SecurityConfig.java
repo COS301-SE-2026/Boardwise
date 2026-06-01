@@ -3,6 +3,7 @@ package com.boardwise.backend.shared.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -21,6 +22,7 @@ import com.boardwise.backend.user_service.services.MyUserDetailsService;
 
 @Configuration
 @EnableWebSecurity
+@Profile("!test")
 public class SecurityConfig {
 
     @Autowired
@@ -32,6 +34,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http){
         return http
+                .cors(Customizer.withDefaults()) // So that preflight requests are not blocked
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(request -> 
                     request.requestMatchers(
@@ -41,6 +44,7 @@ public class SecurityConfig {
                         "/api/marketplace/listings",
                         "/api/marketplace/listings/{listingId}",
                         "/api/vault/rulebooks",
+                        "/api/vault/rulebooks/{id}",
                         "/api/vault/rulebooks/{id}/text"
                     )
                     .permitAll()
