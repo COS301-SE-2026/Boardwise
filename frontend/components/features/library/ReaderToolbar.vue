@@ -1,17 +1,22 @@
 <template>
-  <div class="topbar">
+  <v-app-bar flat border="b" color="surface" height="64" style="position: sticky; top: 0; z-index: 20;">
 
-    <NuxtLink :to="`/library/${rulebook?.id}`" class="back">
-      ← Back
+    <NuxtLink :to="`/library/${rulebook?.id}`" class="text-primary font-weight-bold text-decoration-none ml-4">
+      <v-icon start>mdi-arrow-left</v-icon>
+      Back
     </NuxtLink>
 
-    <h2>{{ rulebook?.title }}</h2>
+    <v-app-bar-title class="text-body-1 font-weight-medium">
+      {{ rulebook?.title }}
+    </v-app-bar-title>
 
-    <span class="page-indicator">
-      {{ currentPage + 1 }} / {{ rulebook?.pages?.length }}
-    </span>
+    <template #append>
+      <span class="text-caption text-medium-emphasis mr-4">
+        {{ currentPage + 1 }} / {{ rulebook?.pages?.length }}
+      </span>
+    </template>
 
-  </div>
+  </v-app-bar>
 </template>
 
 <script setup>
@@ -20,41 +25,3 @@ defineProps({
   currentPage: Number
 })
 </script>
-
-<style scoped>
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background: white;
-  padding: 16px 32px;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  border-bottom: 1px solid #eee;
-}
-
-.back {
-  text-decoration: none;
-  color: #6C3BFF;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.topbar h2 {
-  margin: 0;
-  font-size: 18px;
-  flex: 1;
-}
-
-.page-indicator {
-  font-size: 13px;
-  color: #888;
-  white-space: nowrap;
-}
-
-@media (max-width: 768px) {
-  .topbar { padding: 16px; }
-  .topbar h2 { font-size: 15px; }
-}
-</style>

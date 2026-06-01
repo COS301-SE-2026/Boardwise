@@ -1,49 +1,47 @@
 <template>
-  <div class="reader-card">
+  <v-card rounded="xl" elevation="1">
 
-    <img
-      :src="rulebook?.image"
-      :alt="rulebook?.title"
-      class="banner"
-    />
+    <v-img :src="rulebook?.image" :alt="rulebook?.title" height="280" cover />
 
-    <div class="content">
+    <div class="pa-10">
 
-      <p class="category">{{ rulebook?.category }}</p>
-      <h1>{{ rulebook?.title }}</h1>
+      <p class="text-caption text-uppercase font-weight-bold text-primary mb-2">
+        {{ rulebook?.category }}
+      </p>
 
-      <div class="stats-row">
-        <span> {{ rulebook?.players }} players</span>
-        <span> {{ rulebook?.duration }}</span>
-        <span> {{ rulebook?.difficulty }}</span>
-        <span> Age {{ rulebook?.age }}</span>
+      <h1 class="text-h4 font-weight-bold mb-4">{{ rulebook?.title }}</h1>
+
+      <div class="d-flex flex-wrap gap-4 mb-2">
+        <v-chip size="small" prepend-icon="mdi-account-group">{{ rulebook?.players }} players</v-chip>
+        <v-chip size="small" prepend-icon="mdi-clock-outline">{{ rulebook?.duration }}</v-chip>
+        <v-chip size="small" prepend-icon="mdi-gauge">{{ rulebook?.difficulty }}</v-chip>
+        <v-chip size="small" prepend-icon="mdi-account">Age {{ rulebook?.age }}</v-chip>
       </div>
 
-      <div class="divider" />
+      <v-divider class="my-7" />
 
-      <h2>{{ page?.title }}</h2>
-      <p class="body-text">{{ page?.content }}</p>
+      <h2 class="text-h6 font-weight-bold mb-4">{{ page?.title }}</h2>
 
-      <div class="nav-buttons">
-        <BaseButton
-          variant="secondary"
-          :disabled="isFirst"
-          @click="$emit('prev')"
-        >
-          ← Previous
+      <p class="text-body-1 text-medium-emphasis" style="line-height: 1.9;">
+        {{ page?.content }}
+      </p>
+
+      <v-divider class="mt-10 mb-6" />
+
+      <div class="d-flex justify-space-between">
+        <BaseButton variant="secondary" :disabled="isFirst" @click="$emit('prev')">
+          <v-icon start>mdi-arrow-left</v-icon>
+          Previous
         </BaseButton>
 
-        <BaseButton
-          :disabled="isLast"
-          @click="$emit('next')"
-        >
-          Next →
+        <BaseButton :disabled="isLast" @click="$emit('next')">
+          Next
+          <v-icon end>mdi-arrow-right</v-icon>
         </BaseButton>
       </div>
 
     </div>
-
-  </div>
+  </v-card>
 </template>
 
 <script setup>
@@ -58,68 +56,3 @@ defineProps({
 
 defineEmits(['prev', 'next'])
 </script>
-
-<style scoped>
-.reader-card {
-  background: white;
-  border-radius: 28px;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-}
-
-.banner {
-  width: 100%;
-  height: 280px;
-  object-fit: cover;
-}
-
-.content { padding: 40px; }
-
-.category {
-  color: #6C3BFF;
-  font-weight: 600;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 0 0 8px;
-}
-
-h1 { margin: 0 0 16px; font-size: 40px; line-height: 1.1; }
-
-.stats-row {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  font-size: 13px;
-  color: #666;
-}
-
-.divider {
-  height: 1px;
-  background: #eee;
-  margin: 28px 0;
-}
-
-h2 { margin: 0 0 16px; font-size: 24px; color: #1e1e1e; }
-
-.body-text {
-  color: #444;
-  font-size: 16px;
-  line-height: 1.9;
-  margin: 0;
-}
-
-.nav-buttons {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 40px;
-  padding-top: 24px;
-  border-top: 1px solid #eee;
-}
-
-@media (max-width: 768px) {
-  .content { padding: 24px; }
-  h1 { font-size: 28px; }
-  .banner { height: 200px; }
-}
-</style>

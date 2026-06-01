@@ -9,7 +9,7 @@ export const communities = [
     members_list: [
       { id: 1, name: '@HB_pencil', role: 'Admin', avatar: '/images/avatar1.jpg' },
       { id: 2, name: '@Lerato_K', role: 'Member', avatar: '/images/avatar.jpg' },
-      { id: 3, name: '@Nigga_L', role: 'Member', avatar: '/images/avatar.jpg' },
+      { id: 3, name: '@Ponderer_T', role: 'Member', avatar: '/images/avatar.jpg' },
     ]
   },
   {

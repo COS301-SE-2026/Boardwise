@@ -1,16 +1,16 @@
 <template>
-  <div class="tabs">
-
-    <BaseButton
+  <v-btn-toggle
+    :model-value="activeTab"
+    @update:model-value="$emit('change', $event)"
+  >
+    <v-btn
       v-for="tab in tabs"
       :key="tab"
-      @click="$emit('change', tab)"
-      :class="{ active: tab === activeTab }"
+      :value="tab"
     >
       {{ tab }}
-    </BaseButton>
-
-  </div>
+    </v-btn>
+  </v-btn-toggle>
 </template>
 
 <script setup>
@@ -23,14 +23,3 @@ defineProps({
 
 defineEmits(['change'])
 </script>
-
-<style scoped>
-.tabs {
-  display: flex;
-  gap: 12px;
-}
-
-.active {
-  background: #4E2ACF;
-}
-</style>

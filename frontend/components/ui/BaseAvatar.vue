@@ -1,5 +1,7 @@
 <template>
-  <img :src="src" class="avatar" />
+  <v-avatar :size="sizeMap[size]">
+    <v-img :src="src"></v-img>
+  </v-avatar>
 </template>
 
 <script setup>

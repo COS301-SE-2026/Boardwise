@@ -1,20 +1,21 @@
-<template> 
-    <div class="info">
+<template>
+  <div class="d-flex flex-column ga-4">
+    <h1 class="text-h4 font-weight-bold">
+        {{ rulebook.title }}
+    </h1>
+    
+    <p class="text-primary font-weight-bold mb-0">
+        {{ rulebook.category }}
+    </p>
+    
+    <p class="text-medium-emphasis mb-0" style="line-height: 1.6;">
+        {{ rulebook.description }}
+    </p>
 
-        <h1>{{ rulebook.title }}</h1>
-
-        <p class="category">
-            {{ rulebook.category }}
-        </p>
-
-        <p class="description">
-            {{ rulebook.description }}
-        </p>
-
-        <BaseButton @click="readBook">
-            Read Rulebook
-        </BaseButton>
-    </div>
+    <BaseButton @click="readBook">
+        Read Rulebook
+    </BaseButton>
+  </div>
 </template>
 
 <script setup>
@@ -33,21 +34,3 @@ const readBook = () => {
     router.push('/rulebook/${props.rulebook.id}/read')
 }
 </script>
-
-<style scoped>
-.info {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.category {
-    color: #6C3BFF;
-    font-weight: bold;
-}
-
-.description {
-    line-height: 1.6;
-    color: #555;
-}
-</style>
