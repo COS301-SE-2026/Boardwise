@@ -18,18 +18,18 @@ public class EditEvent {
     @Id
     private ObjectId id;
 
-    @Field("rulebook_id")
+    @Field("rulebookId")
     private ObjectId rulebookId;
 
-    @Field("editor_id")
+    @Field("editorId")
     private ObjectId editorId;
 
     @Field("delta")
     private String delta;
 
-    @Field("version_after")
+    @Field("versionAfter")
     private int versionAfter;
 
-    @Field("committed_at")
+    @Field("committedAt")
     private Instant committedAt;
 }
