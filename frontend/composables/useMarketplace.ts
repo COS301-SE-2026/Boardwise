@@ -1,11 +1,10 @@
-import { getListings, createListing, getUserListings, updateListing, deleteListing,getListingById } from '@/services/marketplaceService'
+import { MarketplaceService, type ListingResponse } from '@/services/marketplaceService'
 import { ref } from 'vue'
-import axios from 'axios'
 
 
 export const useMarketplace = () =>{
     //storing listings
-    const listings = ref([]); //listings in db
+    const listings = ref<Array<ListingResponse>>([]); //listings in db
     
     //checks if it loads
     const loading = ref(false);
@@ -16,8 +15,8 @@ export const useMarketplace = () =>{
     const fetchListings = async () => {
         loading.value = true;
         try {
-            const res = await getListings();
-            listings.value = res.data; 
+            const res = await MarketplaceService.getListings();
+            listings.value = res;
         } catch(err) {
             console.error('Failed to fetch', err);
         } finally {
@@ -28,7 +27,7 @@ export const useMarketplace = () =>{
     const addListing = async (listingData: any, image: File)=>{
         loading.value = true;
         try{
-            await createListing(listingData,image);
+            await MarketplaceService.createListing(listingData,image);
             await fetchListings();
         }catch(err){
             console.error(err);
@@ -42,14 +41,11 @@ export const useMarketplace = () =>{
         loading.value = true;
         error.value = null;
         try {
-            const res = await getUserListings();
-            listings.value = res.data ?? [];
-        } catch (err) {
-            if (axios.isAxiosError(err)) {
-                error.value = err.response?.data?.message ?? 'Failed to fetch user listings';
-            } else {
+            const res = await MarketplaceService.getUserListings();
+            listings.value = res ?? [];
+        } catch (err: any) {
+            error.value = err.data?.message ?? 'Failed to fetch user listings';
             console.error(err);
-            }
         } finally {
             loading.value = false;
         }
@@ -59,14 +55,12 @@ const editListing = async (id: string, listingData: any, image?: File) => {
     loading.value = true;
     error.value = null;
     try {
-        await updateListing(id, listingData, image);
+        await MarketplaceService.updateListing(id, listingData, image);
         await fetchListings(); // refresh the list
-    } catch (err) {
-        if (axios.isAxiosError(err)) {
-            console.error('Status:', err.response?.status);
-            console.error('Response data:', err.response?.data);
-            error.value = err.response?.data?.message ?? 'Failed to update listing';
-        }
+    } catch (err: any) {
+        console.error('Status:', err.status);
+        console.error('Response data:', err.response?.data);
+        error.value = err.response?.data?.message ?? 'Failed to update listing';
     } finally {
         loading.value = false;
     }
@@ -76,12 +70,10 @@ const removeListing = async (id: string) => {
   loading.value = true;
   error.value = null;
   try {
-    await deleteListing(id);
+    await MarketplaceService.deleteListing(id);
     await fetchUserListing(); // refresh list after delete
-  } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? 'Failed to delete listing';
-    }
+  } catch (err: any) {
+      error.value = err.data?.message ?? 'Failed to delete listing';
   } finally {
     loading.value = false;
   }
@@ -91,12 +83,10 @@ const fetchListingById = async (id: string) => {
   loading.value = true
   error.value = null
   try {
-    const res = await getListingById(id)
-    return res.data
-  } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? 'Failed to fetch listing'
-    }
+    const res = await MarketplaceService.getListingById(id)
+    return res
+  } catch (err: any) {
+      error.value = err.data?.message ?? 'Failed to fetch listing'
     return null
   } finally {
     loading.value = false
