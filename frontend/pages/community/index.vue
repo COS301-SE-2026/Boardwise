@@ -22,7 +22,10 @@
   </PageContainer>
 </template>
 
-<script setup>
+<script setup lang="ts">
+definePageMeta({
+  middleware: 'auth'
+})
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { communities } from '~/services/mockData/communities'

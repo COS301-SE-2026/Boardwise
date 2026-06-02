@@ -1,6 +1,8 @@
 export default defineNuxtPlugin(() => {
+  const config = useRuntimeConfig();
+
   const api = $fetch.create({
-    baseURL: '/api/',
+    baseURL: config.public.apiBase as string,
 
     onRequest({options}){
       if(import.meta.client){
@@ -21,7 +23,7 @@ export default defineNuxtPlugin(() => {
           // Remove old token
           localStorage.removeItem('access_token');
           // Trigger router navigation to login.
-          navigateTo('/login');
+          navigateTo('auth/signin');
         }
       }
     }
