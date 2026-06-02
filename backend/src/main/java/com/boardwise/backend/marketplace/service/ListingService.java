@@ -26,6 +26,9 @@ import com.boardwise.backend.shared.security.JWTService;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -46,6 +49,7 @@ public class ListingService {
     private final S3Client s3Client;
     private final MongoTemplate mongoTemplate;
 
+    private final String defaultImage = "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/default-listing-images/default.png";// in frontend Images
 
     public ListingService(ListingRepository listingRepository, JWTService jwtService, S3Client s3Client, MongoTemplate mongoTemplate) {
         this.listingRepository = listingRepository;
@@ -115,14 +119,15 @@ public class ListingService {
     }
 
     public ListingResponse createListing(ListingRequest req, String token, @RequestPart MultipartFile img) {
+        
         ObjectId userId = jwtService.extractUserId(token); // fails at filter level
 
-        String itemType = req.itemType();
+        String itemType = req.itemType().trim();
 
         // Sanity check
         ItemType.fromValue(itemType);
 
-        String listingType = req.listingType();
+        String listingType = req.listingType().trim();
 
         // Sanity check
         ListingType.fromValue(listingType);
@@ -136,9 +141,12 @@ public class ListingService {
             throw new IllegalArgumentException("Negative pricing is not allowed");
         }
 
-        String description = truncateAfterWords(req.description(), 500);
+        String description = truncateAfterWords(req.description().trim(), 500);
 
         String imageUrl;
+
+        String listingTitle = req.listingTitle().trim();
+
         List<String> genres = req.genres();
 
         // Sanity check
@@ -202,21 +210,30 @@ public class ListingService {
         // TODO:Verify by checking if version is available in db else add it
         String version = req.version();
 
-        Listing toSave = new Listing(null, jwtService.extractUsername(token).toString(), userId, itemType,
-                listingType, price, location, req.isNegotiable(), condition, gameTitle, version,
+        Listing toSave = new Listing(null, jwtService.extractUsername(token).toString(),userId, itemType,
+                listingType, price, location, req.isNegotiable(),listingTitle, condition, gameTitle, version,
                 description,
                 null,
                 status, now, now, genres, borrowDate);
 
         Listing saved = listingRepository.save(toSave);
 
-        try {
-            imageUrl = uploadImageToR2(saved.getId(), img);
-            saved.setImageUrl(imageUrl);
-            listingRepository.save(saved);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (img != null && !img.isEmpty()) {
+            try {
+                imageUrl = uploadImageToR2(saved.getId(), img);
+                saved.setImageUrl(imageUrl);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+        //failsafe
+        else{
+            imageUrl = defaultImage;
+            saved.setImageUrl(imageUrl);
+        }
+
+        listingRepository.save(saved);
+
         return mapToResponse(saved);
 
     }
@@ -238,7 +255,8 @@ public class ListingService {
             throw new ForbiddenException("You do not own listing: " + listingId);
         }
 
-        deleteFile(listing.getImageUrl());
+        //trying not to delete the stored image 
+        if(!listing.getImageUrl().equals(defaultImage))deleteFile(listing.getImageUrl());
         listingRepository.deleteById(listingId);
 
     }
@@ -250,12 +268,14 @@ public class ListingService {
         return mapToResponse(listingRepository.findById(listingId).get());
     }
 
-    public List<ListingResponse> getByFilter(String title ,String listingType, String itemType, Double minPrice, Double maxPrice, List<String> conditions, List<String> genres) {
+    public Page<ListingResponse> getByFilter(String gameTitle, String listingTitle ,String listingType, String itemType, Double minPrice, Double maxPrice, List<String> conditions, List<String> genres, Integer page, Integer size) {
         
         //Search for AVAILABLE Listings 
         Criteria criteria = Criteria.where("status").is(ListingStatus.AVAILABLE);
 
-        if( title != null) criteria.and("title").and(title).regex(title, "i");
+        // if(listingTitle != null) criteria.and("listingTitle").regex(listingTitle, "i");
+
+        if(gameTitle != null) criteria.and("gameTitle").regex(gameTitle, "i");
 
         if (listingType != null)criteria.and("listingType").regex(listingType, "i");
 
@@ -270,9 +290,28 @@ public class ListingService {
         if (genres != null && !genres.isEmpty())criteria.and("genres").in(genres);
 
         if(conditions != null && !conditions.isEmpty()) criteria.and("condition").in(conditions);
-        Query query = new Query(criteria);
 
-        return mongoTemplate.find(query, Listing.class).stream().map(this::mapToResponse).toList();
+        PageRequest pageRequest = null;
+        Query query = new Query(criteria);
+        if(page != null && size != null){
+            if(page < 0 ) page = 0;
+            if(size < 0) size = Integer.MAX_VALUE;
+
+            //Pagination
+            pageRequest = PageRequest.of((page == 0)? 0 : page - 1 ,size); 
+            query.with(pageRequest);
+
+        }
+
+        if(pageRequest == null){
+            pageRequest = PageRequest.of(0, Integer.MAX_VALUE);
+        }
+
+        long total = mongoTemplate.count(new Query(criteria), Listing.class);
+
+        List<ListingResponse> res = mongoTemplate.find(query,Listing.class).stream().map(this::mapToResponse).toList();
+
+        return  new PageImpl<>(res, pageRequest, total);
     }
 
     public ListingResponse updateListing(String listingId, ListingRequest req, String token, MultipartFile img) {
@@ -322,8 +361,8 @@ public class ListingService {
             existing.setLocation(req.location());
         }
         // TODO: verify Title (check if title is in game list)
-        if (!existing.getTitle().equals(req.gameTitle())) {
-            existing.setTitle(req.gameTitle());
+        if (!existing.getGameTitle().equals(req.gameTitle())) {
+            existing.setGameTitle(req.gameTitle());
         }
 
         if (!req.description().isBlank() && !req.description().equals(existing.getDescription()))
@@ -344,12 +383,25 @@ public class ListingService {
         }
 
         if (img != null && !img.isEmpty()) {// only update if img is there
+            String imageUrl;
             try {
-                String imageUrl = replaceFile(existing.getImageUrl(), existing.getId(), img);
+                if(!existing.getImageUrl().equals(defaultImage)){
+                    imageUrl= replaceFile(existing.getImageUrl(), existing.getId(), img);
+                }
+                else{
+                    imageUrl = uploadImageToR2(listingId, img);
+                }
                 existing.setImageUrl(imageUrl);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            
+        }
+
+        String imgAsString = img.getOriginalFilename().toLowerCase(); 
+
+        if(!imgAsString.contains(".png") && !imgAsString.contains(".jpg") && !imgAsString.contains(".jpeg") && !imgAsString.contains(".webp")){
+            throw new IllegalArgumentException("Not a valid image file");
         }
 
         if (existing.getListingType().equalsIgnoreCase(ListingType.RENTAL.getValue())) {
@@ -392,9 +444,10 @@ public class ListingService {
     private ListingResponse mapToResponse(Listing listing) {
         return new ListingResponse(
                 listing.getId(),
+                listing.getListingTitle(),
                 listing.getUsername(),
                 listing.getUserId(),
-                listing.getTitle(),
+                listing.getGameTitle(),
                 listing.getItemType(),
                 listing.getListingType(),
                 listing.getPrice(),

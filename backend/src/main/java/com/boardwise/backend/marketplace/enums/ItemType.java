@@ -1,9 +1,10 @@
 package com.boardwise.backend.marketplace.enums;
 
 public enum ItemType {
-    MERCHANDISE("merchandise"),
-    Assets("assets"),
-    BOARDGAME("boardgame");
+    Merch("merch"),
+    FullBoardGame("full boardgame"),
+    PartialBoardGame("partial boardgame"),
+    Pieces("pieces");
 
     private final String value;
 

@@ -9,6 +9,7 @@ import com.boardwise.backend.marketplace.enums.ListingType;
 
 public record ListingUpdateRequest(
         String gameIitle,
+        String listingTitle,
         ListingType listingType,
         Double price,
         String description,

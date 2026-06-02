@@ -45,13 +45,17 @@ public class Listing {
     @Field("isNegotiable")
     private Boolean isNegotiable;
 
+    //TODO: ADD to ERD
+    @Field("listingTitle")
+    private String listingTitle;
+
     //TODO: Add to ERD
     @Field("condition")
     private String condition;
 
     //TODO: Make sure it goes through the pipeline
     @Field("gameTitle")
-    private String title;
+    private String gameTitle;
 
     //TODO: Add to ERD AND COMPARE AGAINST 
     @Field("version")

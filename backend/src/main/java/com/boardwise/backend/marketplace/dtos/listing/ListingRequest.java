@@ -1,7 +1,7 @@
 package com.boardwise.backend.marketplace.dtos.listing;
 
+import java.time.LocalDate;
 import java.util.List;
-import java.util.concurrent.locks.Condition;
 
 import jakarta.validation.constraints.*;
 
@@ -9,6 +9,7 @@ import jakarta.validation.constraints.*;
 public record ListingRequest(
         @NotNull String itemType,
         @NotNull String listingType,
+        @NotNull String listingTitle,
         @Positive double price,
         @NotBlank String gameTitle,
         @NotBlank String location,

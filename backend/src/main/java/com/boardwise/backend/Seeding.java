@@ -103,113 +103,68 @@ public class Seeding {
                 rp5.setEndDate(LocalDate.of(2026, 8, 15));
 
                 List<Listing> listings = List.of(
-                        new Listing(null, "IAmR3al", getObjectIdFromUsername("IAmR3al", userRepository) , "boardgame", "sale", 29.99,"Pretoria",true, "new" ,"Monopoly","millionaire e.d.",
+                        new Listing(null, "IAmR3al", getObjectIdFromUsername("IAmR3al", userRepository) , "full boardgame", "sale", 29.99,"Pretoria",true,"Monopoly board game for sale", "new" ,"Monopoly","millionaire e.d.",
                                 "Monopoly game with all details\n", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-                                List.of("Strategy", "Action"), null),
-                        new Listing(null, "sarah_dev",getObjectIdFromUsername("sarah_dev", userRepository), "boardgame", "rental", 48.32,"Johannesburg", false,"new", "Scrabble","base",
-                                "game of scrabble with Missing pieces", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg",
+                                List.of(Genres.STRATEGY.getValue(), Genres.ACTION_DEXTERITY.getValue()), null),
+                        
+                        new Listing(null, "sarah_dev",getObjectIdFromUsername("sarah_dev", userRepository), "pieces", "rental", 48.32,"Johannesburg", false,"Some pieces","new", "Scrabble","base",
+                                "game of scrabble pieces", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now().plusDays(5),
                                 LocalDateTime.now().plusDays(5), List.of("abstract strategy"), rentalPeriod1),
                         
                         new Listing(null, "bob", getObjectIdFromUsername("bob", userRepository),
-                                "boardgame", "sale", 350.00, "Cape Town",true, "new", "Catan","base",
+                                "partial boardgame", "sale", 350.00, "Cape Town",true,"2nd hand Catan game ", "new", "Catan","base",
                                 "Settlers of Catan 5th edition. Complete with all expansions. Excellent condition.",
                                 "/images/catan.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
                                 List.of(Genres.STRATEGY.getValue(), Genres.NEGOTIATION.getValue(), Genres.ECONOMIC.getValue()), null),
 
                         new Listing(null, "jane_doe", getObjectIdFromUsername("jane_doe", userRepository),
-                                "boardgame", "sale", 420.00, "Durban",true, "good", "Ticket to Ride","base",
+                                "full boardgame", "sale", 420.00, "Durban",true,"Ticker to Ride board game from my childhood", "good", "Ticket to Ride","base",
                                 "Ticket to Ride original edition. All cards and train pieces present. Box slightly worn.",
                                 "/images/ticket.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
                                 List.of(Genres.STRATEGY.getValue(), Genres.TRAINS.getValue(), Genres.TRANSPORTATION.getValue()), null),
 
                         new Listing(null, "alex_games", getObjectIdFromUsername("alex_games", userRepository),
-                                "boardgame", "rental", 55.00, "Johannesburg",false, "fair", "Azul","base",
+                                "full boardgame", "rental", 55.00, "Johannesburg",false, "Idk what Azul is but its going for cheap","fair", "Azul","base",
                                 "Azul tile-drafting game. Perfect condition, all tiles accounted for. Great for 2–4 players.",
                                 "/images/azul.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
                                 List.of(Genres.ABSTRACT_STRATEGY.getValue(), Genres.PUZZLE.getValue()), rp2),
 
                         new Listing(null, "mike_b", getObjectIdFromUsername("mike_b", userRepository),
-                                "boardgame", "sale", 280.00, "Pretoria", false, "fair", "Dixit","base",
+                                "full boardgame", "sale", 280.00, "Pretoria", false,"Dixit game set with all pieces, DM me", "fair", "Dixit","base",
                                 "Dixit base game with all 84 cards. Wonderful storytelling game for families.",
                                 "/images/dixit.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
                                 List.of(Genres.PARTY_GAME.getValue(), Genres.HUMOR.getValue()), null),
 
                         new Listing(null, "lena_play", getObjectIdFromUsername("lena_play", userRepository),
-                                "boardgame", "sale", 310.00, "Stellenbosch",true,"like new",  "Wingspan","base",
-                                "Wingspan with Oceania expansion included. Lightly played, all components intact.",
+                                "partial boardgame", "sale", 310.00, "Stellenbosch",true,"wingspan board game with a few missing pieces","like new",  "Wingspan","base",
+                                "Wingspan with Oceania expansion included. Lightly played, missing components intact.",
                                 "/images/wingspan.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
                                 List.of(Genres.STRATEGY.getValue(), Genres.ANIMALS.getValue(), Genres.FARMING.getValue()), null),
 
                         new Listing(null, "thandeka_m", getObjectIdFromUsername("thandeka_m", userRepository),
-                                "boardgame", "rental", 60.00, "Johannesburg",true, "like new", "Game of Thrones","base",
+                                "asset", "rental", 60.00, "Johannesburg",true,"GOT board game assets, for rent", "like new", "Game of Thrones","base",
                                 "Game of Thrones board game 2nd edition. Supports up to 6 players. Epic political strategy.",
                                 "/images/gameofthrones.png",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
                                 List.of(Genres.STRATEGY.getValue(), Genres.NEGOTIATION.getValue(), Genres.POLITICAL.getValue(), Genres.FANTASY.getValue()), rp3),
 
                         new Listing(null, "ruan_sa", getObjectIdFromUsername("ruan_sa", userRepository),
-                                "boardgame", "sale", 195.00, "Centurion", false,"like new","Kingdom Builder","base",
+                                "partial boardgame", "sale", 195.00, "Centurion", false,"","like new","Kingdom Builder","base",
                                 "Kingdom Builder base game. Complete, all tiles and tokens present. Minor box shelf wear.",
                                 "/images/kingdom.png",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
                                 List.of(Genres.STRATEGY.getValue(), Genres.TERRITORY_BUILDING.getValue()), null),
 
-                        new Listing(null, "gamer_kyle", getObjectIdFromUsername("gamer_kyle", userRepository),
-                                "boardgame", "sale", 240.00, "Sandton",true,"like new", "Castles of Burgundy","base",
-                                "Castles of Burgundy deluxe edition. All tiles and dice included. Excellent strategy game.",
-                                "/images/castle.png",
-                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-                                List.of(Genres.STRATEGY.getValue(), Genres.MEDIEVAL.getValue(), Genres.ECONOMIC.getValue()), null),
-
-                        new Listing(null, "priya_rolls", getObjectIdFromUsername("priya_rolls", userRepository),
-                                "boardgame", "rental", 45.00, "Midrand",true, "good","Civilization","base",
-                                "Civilization board game, complete set. Heavy strategy, best for experienced players.",
-                                "/images/civil.png",
-                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-                                List.of(Genres.STRATEGY.getValue(), Genres.CIVILIZATION.getValue(), Genres.ECONOMIC.getValue(), Genres.EXPLORATION.getValue()), rp4),
-
-                        new Listing(null, "deon_dice", getObjectIdFromUsername("deon_dice", userRepository),
-                                "boardgame", "sale", 175.00, "Pretoria East",false,"like new","One More Play","base",
-                                "One More Play — quick filler game, great for game nights. All cards in mint condition.",
-                                "/images/omp.png",
-                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-                                List.of(Genres.CARD_GAME.getValue(), Genres.PARTY_GAME.getValue()), null),
-
-                        new Listing(null, "zoe_tiles", getObjectIdFromUsername("zoe_tiles", userRepository),
-                                "boardgame", "rental", 50.00, "Roodepoort",false,"fair", "Azul","base",
-                                "Second copy of Azul available for rental. Perfect for groups wanting to try before they buy.",
-                                "/images/azul.jpg",
-                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-                                List.of(Genres.ABSTRACT_STRATEGY.getValue(), Genres.PUZZLE.getValue()), rp5),
-
-                        new Listing(null, "marco_strat", getObjectIdFromUsername("marco_strat", userRepository),
-                                "boardgame", "sale", 390.00, "Johannesburg North",true,"fair",  "Catan","base",
-                                "Catan with Seafarers expansion. Well maintained, all pieces bagged and sorted.",
-                                "/images/catan.jpg",
-                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-                                List.of(Genres.STRATEGY.getValue(), Genres.NEGOTIATION.getValue(), Genres.EXPLORATION.getValue(), Genres.EXPANSION_FOR_BASE_GAME.getValue()), null),
-
-                        new Listing(null, "amber_quest", getObjectIdFromUsername("amber_quest", userRepository),
-                                "boardgame", "sale", 265.00, "Boksburg",true,"fair",  "Wingspan","base",
-                                "Wingspan base game only. Played twice, still in near-mint condition with all components.",
-                                "/images/wingspan.jpg",
-                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-                                List.of(Genres.STRATEGY.getValue(), Genres.ANIMALS.getValue(), Genres.FARMING.getValue()), null),
-
-                        new Listing(null, "sipho_board", getObjectIdFromUsername("sipho_board", userRepository),
-                                "boardgame", "rental", 70.00, "Soweto", true,"new", "Game of Thrones","base",
-                                "Game of Thrones 2nd edition for rent. Great for long weekend gaming sessions with friends.",
-                                "/images/gameofthrones.png",
-                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-                                List.of(Genres.STRATEGY.getValue(), Genres.NEGOTIATION.getValue(), Genres.POLITICAL.getValue(), Genres.FANTASY.getValue()), rp2));
-
+                        new Listing(null, "zoe_tiles", getObjectIdFromUsername("zoe_tiles", userRepository),"merch","sale",650,"Braam",true,"Custom Monopoly hoodie", "fair","Monopoly","unknown",
+                                "2XL Monopoly man hoodie","/images/MonopolyManHoodie",ListingStatus.AVAILABLE,LocalDateTime.now(),LocalDateTime.now(), List.of(Genres.STRATEGY.getValue(),Genres.DICE.getValue()),null));
+                                
                 listingRepository.saveAll(listings);
                 System.out.println("Seeded " + listings.size() + " listings");
             } else {
@@ -219,9 +174,9 @@ public class Seeding {
             if (boardGameRepository.count() == 0) {
                 List<Boardgame> boardGames = List.of(
                         new Boardgame(null, "Monopoly", "Classic property trading game.",
-                                "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png", List.of("Strategy", "Trading")),
+                                "/images/MonopolyListing.jpg", List.of("Strategy", "Trading")),
                         new Boardgame(null, "Scrabble", "Word building board game.",
-                                "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg", List.of("Word", "Abstract Strategy")),
+                                "/images/ScrabbleListing.jpg", List.of("Word", "Abstract Strategy")),
                         new Boardgame(null, "Catan", "Resource trading and settlement building game.",
                                 "/images/catan.jpg",
                                 List.of(Genres.STRATEGY.getValue(), Genres.NEGOTIATION.getValue(), Genres.ECONOMIC.getValue())),

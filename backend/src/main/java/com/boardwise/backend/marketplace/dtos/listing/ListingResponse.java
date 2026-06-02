@@ -11,6 +11,7 @@ import com.boardwise.backend.marketplace.model.RentalPeriod;
 
 public record ListingResponse(
         String listingId,
+        String listingTitle,
         String username,
         ObjectId userId,
         String gameTitle,

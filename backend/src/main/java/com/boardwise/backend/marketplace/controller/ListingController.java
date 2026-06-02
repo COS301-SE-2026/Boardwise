@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -141,17 +142,21 @@ public class ListingController {
     }
 
     @GetMapping("/listings/search")
-    public ResponseEntity<List<ListingResponse>> getFilteredListings(
-            @RequestParam(required = false) String title,
+    public ResponseEntity<Page<ListingResponse>> getFilteredListings(
+            @RequestParam(required = false) String gameTitle,
+            @RequestParam(required = false) String listingTitle,
             @RequestParam(required = false) String listingType,
             @RequestParam(required = false) String itemType,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
             @RequestParam(required = false) List<String> conditions,
-            @RequestParam(required = false) List<String> genres) {
+            @RequestParam(required = false) List<String> genres,
+            @RequestParam(required = false) int page,
+            @RequestParam(required = false) int size
+            ) {
         try {
-            List<ListingResponse> listings = listingService.getByFilter(title, listingType, itemType, minPrice, maxPrice,
-                    conditions,genres);
+            Page<ListingResponse> listings = listingService.getByFilter(gameTitle, listingTitle, listingType, itemType, minPrice, maxPrice,
+                    conditions,genres, page, size);
             if (listings.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
