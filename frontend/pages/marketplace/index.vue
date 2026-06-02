@@ -7,13 +7,13 @@
 
     <MarketplaceTabs v-model="activeTab" />
 
-    <div class="marketplace-layout">
+    <div class="d-flex ga-6 mt-6 align-start">
 
-      <FilterSidebar />
+      <FilterSidebar @filter="handleFilter" />
       <!--TODO: Uncomment for loading -->
       <!-- <div v-if = "loading">Loading listings...</div> -->
       <!-- <ListingGrid  v-else :listings="listings" /> -->
-       <ListingGrid :listings="listings" />
+       <ListingGrid :listings="listings" class="flex-1-1" />
     </div>
 
     <AddListingModal
@@ -54,18 +54,3 @@ const handle = async (data, image) => {
   showCreateListing.value = false;
 }
 </script>
-
-<style scoped>
-.marketplace-layout {
-  display: flex;
-  gap: 24px;
-  margin-top: 24px;
-  align-items: flex-start;
-}
-
-@media (max-width: 900px) {
-  .marketplace-layout {
-    flex-direction: column;
-  }
-}
-</style>
