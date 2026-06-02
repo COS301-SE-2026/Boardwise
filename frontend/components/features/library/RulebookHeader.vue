@@ -10,12 +10,6 @@
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import RulebookSearch from './RulebookSearch.vue'
 import RulebookTabs from './RulebookTabs.vue'
-</script>
 
-<style scoped>
-.header {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-</style>
+defineEmits(['search', 'upload'])
+</script>
