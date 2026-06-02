@@ -2,27 +2,38 @@ export const listings = [
   {
     id: 1,
     title: 'Catan',
-    price: 'R650',
+    type: 'sell',
+    price: 650,
     location: 'Pretoria',
+    seller: 'PretoriaPlayer',
     image: '/images/catan.jpg',
-    description: 'Classic strategy board game.'
+    description: 'Classic strategy board game. Great condition, all pieces included.',
+    negotiable: true,
+    rulebookId: 1
   },
-
   {
     id: 2,
     title: 'Wingspan',
-    price: 'R900',
+    type: 'rent',
+    price: 90,
+    rentalPeriod: 'week',
     location: 'Cape Town',
+    seller: 'CapeTownGamer',
     image: '/images/wingspan.jpg',
-    description: 'Bird engine-building game.'
+    description: 'Bird engine-building game. All pieces included.',
+    negotiable: false,
+    rulebookId: 2
   },
-
   {
     id: 3,
-    title: 'Ticket To Ride',
-    price: 'R700',
+    title: 'Ticket to Ride',
+    type: 'sell',
+    price: 700,
     location: 'Johannesburg',
+    seller: 'JburgGames',
     image: '/images/ticket.jpg',
-    description: 'Railway route-building game.'
+    description: 'Railway route-building game. Barely used.',
+    negotiable: true,
+    rulebookId: 3
   }
 ]
