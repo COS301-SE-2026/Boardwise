@@ -17,7 +17,12 @@ export default defineNuxtPlugin(() => {
       if(response.status === 401){
         console.error('Unauthorized: Token may be invalid or expired');
 
-        // Trigger router navigation to login.
+        if(import.meta.client){
+          // Remove old token
+          localStorage.removeItem('access_token');
+          // Trigger router navigation to login.
+          navigateTo('/login');
+        }
       }
     }
   });
