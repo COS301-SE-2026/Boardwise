@@ -8,21 +8,19 @@
         @upload="showUpload = true"
         @search="handleSearch"
       />
-      <BaseTabs
-        :tabs="tabs"
-        :active-tab="selectedTab"
-        @change="selectedTab = $event"
-      />
     </div>
 
     <RecommendedBooks :rulebooks="recommended" />
 
     <SectionTitle title="All Rulebooks" class="mt-8" />
 
-    <RulebookGrid :rulebooks="filteredRulebooks" @select="openRulebook" />
+     <div class="d-flex ga-6 align-start">
+      <RulebookFilterSidebar @filter="handleFilter" />
+      <RulebookGrid :rulebooks="filteredRulebooks" @select="openRulebook" class="flex-1-1" />
+    </div>
 
-    <BaseModal v-model="showModal">
-      <RulebookDetails v-if="selectedRulebook" :rulebook="selectedRulebook" />
+    <BaseModal v-model="showModel">
+      <RulebookDetails v-if="selectedRulebook" :rulebook="selectedRulebook"/>
     </BaseModal>
 
     <UploadRulebookModal
@@ -34,31 +32,26 @@
 </template>
 
 <script setup>
-
+import { ref, computed, onMounted } from 'vue'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
-import BaseTabs from '~/components/ui/BaseTabs.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BaseModal from '~/components/ui/BaseModal.vue'
 
+import RulebookFilterSidebar from '~/components/features/library/RulebookFilterSidebar.vue'
 import RulebookGrid from '~/components/features/library/RulebookGrid.vue'
 import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue'
 import RulebookDetails from '~/components/features/library/RulebookDetail.vue'
 import RulebookSearch from '~/components/features/library/RulebookSearch.vue'
 import UploadRulebookModal from '~/components/features/library/UploadRulebookModal.vue'
-import { useRouter } from 'vue-router'
-import {ref, computed, onMounted} from 'vue'
 
-import {useLibrary} from '~/composables/useLibrary'
-
-const router = useRouter()
+import { useLibrary } from '~/composables/useLibrary'
 
 const {rulebooks, isLoading, fetchAllRulebooks} = useLibrary()
 
-const tabs = ['All', 'Strategy', 'Family', 'Party']
-const selectedTab = ref('All')
 const searchQuery = ref('')
+const activeFilters = ref({})
 const showModal = ref(false)
 const showUpload = ref(false)
 const selectedRulebook = ref(null)
@@ -67,17 +60,12 @@ onMounted(() => { // Does stuff when component loads
   fetchAllRulebooks()
 })
 
-// const recommended = rulebooks.slice(0, 5)
 const recommended = computed(() => {
   return rulebooks.value.slice(0, 5);
 })
 
 const filteredRulebooks = computed(() =>{
   let result = rulebooks.value
-
-  if(selectedTab.value !== 'All'){
-    result = rulebooks.filter(r => r.category === selectedTab.value)
-  }
 
   if(searchQuery.value){
     const lCaseQuery = searchQuery.value.toLowerCase()
@@ -87,8 +75,25 @@ const filteredRulebooks = computed(() =>{
     )
   }
 
+  if (activeFilters.value.genre && activeFilter.value.genre !== 'All') {
+    result = result.filter(r => r.genre === activeFilters.value.genre)
+  }
+
+  if (activeFilters.value.languages?.length) {
+    result = result.filter(r => activeFilters.value.languages.includes(r.language))
+  }
+
+  if (activeFilters.value.minPlayers) {
+    result = result.filter(r => r.minPlayers === Number(activeFilters.value.minPlayers))
+  }
+
+  if (activeFilters.value.maxPlayers) {
+    result = result.filter(r => r.maxPlayers === Number(activeFilters.value.maxPlayers))
+  }
+
   return result
 })
+
 
 const openRulebook = (rulebook) => {
   selectedRulebook.value = rulebook
@@ -97,6 +102,10 @@ const openRulebook = (rulebook) => {
 
 const handleSearch = (query) => {
   searchQuery.value = query
+}
+
+const handleFilter = (filters) => {
+  activeFilters.value = filters
 }
 
 const handleUploadRulebook = (newRulebook) => {
