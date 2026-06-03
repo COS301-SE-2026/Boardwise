@@ -102,12 +102,31 @@ public class Seeding {
             if (groupRepository.count() == 0) {
                 List<String> usernames = List.of("IAmR3al", "sarah_dev", "bob", "alex_games", "jane_doe");
                 List<Group> groups = List.of(
-                    new Group("Board Game Enthusiasts", "A group for all board game lovers.", null , "public"),
-                    new Group("Strategy Masters", "Deep strategy games discussion.", null , "public"),
-                    new Group("Casual Gamers", "Laid back gaming sessions and trades.", null , "public"),
-                    new Group("RPG Adventurers", "Tabletop RPG and dungeon crawler fans.", null , "private"),
-                    new Group("Card & Tile Collectors", "For fans of card and tile-based games.", null,
-                            "private")
+                    new Group("Board Game Enthusiasts", 
+                    "A group for all board game lovers.", 
+                    "General",
+                    null , 
+                    "public"),
+                    new Group("Strategy Masters", 
+                    "Deep strategy games discussion.", 
+                    "Strategy",
+                    null, 
+                    "public"),
+                    new Group("Casual Gamers", 
+                    "Laid back gaming sessions and trades.", 
+                    "General",
+                    null, 
+                    "public"),
+                    new Group("RPG Adventurers", 
+                    "Tabletop RPG and dungeon crawler fans.",
+                    "Role-Playing", 
+                    null , 
+                    "private"),
+                    new Group("Card & Tile Collectors", 
+                    "For fans of card and tile-based games.", 
+                    "General",
+                    null, 
+                    "private")
                 );
                 
                 for(int i = 0; i < 5; i++){
@@ -115,7 +134,7 @@ public class Seeding {
                     groups.get(i).setOwnerId(user.getId());
                 }
 
-                
+
                 groupRepository.saveAll(groups);
                 System.out.println("Seeded " + groups.size() + " groups");
             } else {
