@@ -39,21 +39,21 @@ public class JwtFilter extends OncePerRequestFilter{
             throws ServletException, IOException {
         
         String authHeader = request.getHeader("Authorization");
-        String username = null;
+        String userId = null;
         String token = null;
 
         try{
             if(authHeader != null && authHeader.startsWith("Bearer ")){
                 token = authHeader.split(" ")[1];
-                username = service.extractUsername(token);
+                userId = service.extractUserId(token).toString();
             }
             
-            if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
-                UserDetails userDeets = context.getBean(MyUserDetailsService.class).loadUserByUsername(username);
+            if(userId != null && SecurityContextHolder.getContext().getAuthentication() == null){
+                UserDetails userDeets = context.getBean(MyUserDetailsService.class).loadUserByUserId(userId);
                 
                 if(service.validateToken(token, userDeets)){
                     UsernamePasswordAuthenticationToken authToken = 
-                    new UsernamePasswordAuthenticationToken(userDeets, null ,userDeets.getAuthorities());
+                    new UsernamePasswordAuthenticationToken(userDeets, null, userDeets.getAuthorities());
                     
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -63,13 +63,16 @@ public class JwtFilter extends OncePerRequestFilter{
         catch (SignatureException e) {
             handleJwtException(response, "JWT signature is invalid or expired");
             return;
-        } catch (ExpiredJwtException e) {
+        } 
+        catch (ExpiredJwtException e) {
             handleJwtException(response, "JWT token has expired");
             return;
-        } catch (MalformedJwtException e) {
+        } 
+        catch (MalformedJwtException e) {
             handleJwtException(response, "JWT token is malformed");
             return;
-        } catch (Exception e) {
+        } 
+        catch (Exception e) {
             handleJwtException(response, "Invalid JWT token");
             return;
         }

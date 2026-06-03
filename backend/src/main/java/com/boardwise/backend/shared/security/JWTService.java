@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import com.boardwise.backend.user_service.models.TokenBlackList;
 import com.boardwise.backend.user_service.repos.TokenBlackListRepository;
+import com.boardwise.backend.user_service.repos.UserRepository;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -31,14 +32,16 @@ public class JWTService {
     @Autowired
     private TokenBlackListRepository tokenRepo;
 
-    public String generateToken(String username, String userId) {
+    @Autowired
+    private UserRepository userRepo;
+
+    public String generateToken(String userId) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId);
         int ttl = 90 * 60 * 1000;
         return Jwts.builder()
                 .claims()
                 .add(claims)
-                .subject(username)
+                .subject(userId)
                 .id(UUID.randomUUID().toString())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + ttl))
@@ -49,8 +52,7 @@ public class JWTService {
     }
 
     public ObjectId extractUserId(String token) {
-        String userId = extractClaim(token,
-                claims -> claims.get("userId", String.class));
+        String userId = extractClaim(token, Claims::getSubject);
         return new ObjectId(userId);
     }
 
@@ -59,7 +61,7 @@ public class JWTService {
     }
 
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        return "";
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> resolver){
@@ -76,9 +78,12 @@ public class JWTService {
     }
 
     public boolean validateToken(String token, UserDetails userDeets) {
-        String username = extractUsername(token);
-        return username.equals(userDeets.getUsername()) && !isTokenExpired(token) 
-        && !isTokenBlackListed(token);
+        String userId = extractUserId(token).toString();
+        String username = userRepo.findById(userId).get().getUsername();
+        
+        return username.equals(userDeets.getUsername()) && 
+        !isTokenExpired(token) && 
+        !isTokenBlackListed(token);
     }
 
     private boolean isTokenExpired(String token) {

@@ -27,4 +27,13 @@ public class MyUserDetailsService implements UserDetailsService {
         return new UserDetailImpl(user);
     }
 
+    public UserDetails loadUserByUserId(String userId) throws Exception {
+        User user = userRepo.findById(userId).orElse(null);
+
+        if(user == null) 
+            throw new Exception(userId + "does not exist");
+
+        return new UserDetailImpl(user);
+    }
+
 }

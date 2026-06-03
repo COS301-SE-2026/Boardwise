@@ -42,10 +42,10 @@ public class AuthService {
 
         // insert into db
         User newUser = new User(username, firstName, lastName, email, password);
-        userRepo.save(newUser);
+        newUser = userRepo.save(newUser);
 
         // generate JWT and return it
-        String token = jwt.generateToken(username, newUser.getId());
+        String token = jwt.generateToken(newUser.getId());
         return new AuthResponseDTO("User successfully register", token);
     }
 
@@ -61,7 +61,7 @@ public class AuthService {
             throw new IllegalArgumentException("Incorrect user credentials");
 
         // generate JWT and return it
-        String token = jwt.generateToken(username, userRepo.findByUsername(username).get().getId());
+        String token = jwt.generateToken(userRepo.findByUsername(username).get().getId());
         return new AuthResponseDTO("User logged in successfully", token);
     }
 
