@@ -41,26 +41,28 @@ public class ListingController {
         try {
             List<ListingResponse> listings = listingService.getAllActiveListings();
             if (listings.isEmpty()) {
-                return ResponseEntity.status(204).body(null);
+                return ResponseEntity.accepted().body(null);
             }
 
-            return ResponseEntity.status(200).body(listings);
+            return ResponseEntity.ok().body(listings);
 
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(listingService.getAllActiveListings());
+            return ResponseEntity.badRequest().body(null);
 
         }
     }
 
     // AC-MKT-02: Get Listing by ID
-    @GetMapping("/listings/{listingId}")
-    public ResponseEntity<ListingResponse> getListingById(@PathVariable String userId) {
+    @GetMapping("/listing/{listingId}")
+    public ResponseEntity<ListingResponse> getListingById(@PathVariable String listingId) {
         try {
-            return ResponseEntity.status(200).body(listingService.getListingById(userId));
+            return ResponseEntity.ok(listingService.getListingById(listingId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(null);
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(null);
         }
-
     }
 
     // AC-MKT-03: Create a Listing
@@ -71,59 +73,68 @@ public class ListingController {
             @RequestHeader("Authorization") String token) {
         try {
             ListingResponse response = listingService.createListing(req, token.replace("Bearer ", ""), img);
-            return ResponseEntity.status(201).body(response);
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(422).body(null);
+            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(null);
         }
     }
 
     // AC-MKT-04: Update a Listing
-    @PatchMapping("/listings/{listingId}")
+    @PatchMapping(value = "/update/listing/{listingId}", consumes = "multipart/form-data")
     public ResponseEntity<ListingResponse> updateListing(
-            @RequestBody ListingRequest req,
+            @RequestPart("data") @Valid ListingRequest req,
+            @RequestPart(value = "image", required = false) MultipartFile img, // ✅ optional
             @PathVariable String listingId,
             @RequestHeader("Authorization") String token) {
         try {
-            ListingResponse updated = listingService.updateListing(listingId, req, token.replace("Bearer ", ""));
+            ListingResponse updated = listingService.updateListing(listingId, req, token.replace("Bearer ", ""), img);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.notFound().build();
         } catch (ForbiddenException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
         }
     }
 
     // AC-MKT-05: Delete a Listing
-    @DeleteMapping("/listings/{listingId}")
+    @DeleteMapping("/delete/listing/{listingId}")
+
     public ResponseEntity<Void> deleteListing(
             @PathVariable String listingId,
             @RequestHeader("Authorization") String token) {
         try {
             listingService.deleteListing(listingId, token.replace("Bearer ", ""));
             return ResponseEntity.noContent().build();
-
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-
+            return ResponseEntity.notFound().build();
         } catch (ForbiddenException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
         }
     }
 
     // AC-MKT-06: Get Authenticated User's Listings
-    @GetMapping("/listings/user/{user}")
-    public ResponseEntity<List<ListingResponse>> getUserListings(@PathVariable String user) {
+    @GetMapping("/listings/user")
+    public ResponseEntity<List<ListingResponse>> getUserListings(@RequestHeader("Authorization") String token) {
         try {
-            List<ListingResponse> listings = listingService.getUserListings(user);
+            List<ListingResponse> listings = listingService.getUserListings(token.replace("Bearer ", ""));
             if (listings.isEmpty()) {
-                return ResponseEntity.status(204).body(null);
+                return ResponseEntity.noContent().build();
             }
 
-            return ResponseEntity.status(200).body(listings);
+            return ResponseEntity.ok(listings);
 
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(null);
-
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(null);
         }
     }
 
@@ -137,11 +148,11 @@ public class ListingController {
             List<ListingResponse> listings = listingService.getByFilter(listingType, itemType, minPrice, maxPrice,
                     genres);
             if (listings.isEmpty()) {
-                return ResponseEntity.status(204).body(null);
+                return ResponseEntity.noContent().build();
             }
             return ResponseEntity.ok(listings);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.internalServerError().build();
         }
     }
 
