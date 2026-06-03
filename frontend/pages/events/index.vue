@@ -14,7 +14,10 @@
   </PageContainer>
 </template>
 
-<script setup>
+<script setup lang="ts">
+definePageMeta({
+  middleware: 'auth'
+})
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
