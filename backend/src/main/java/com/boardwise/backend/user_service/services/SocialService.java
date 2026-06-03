@@ -47,11 +47,13 @@ public class SocialService {
 
         String groupName = AuthService.sanitize(group.name());
         String groupDesc = AuthService.sanitize(group.description());
+        String groupCategory = AuthService.sanitize(group.category());
         String visibility = group.visisbility() == null ? "public" : group.visisbility();
 
         Group newGroup = new Group(
             groupName, 
             groupDesc, 
+            groupCategory,
             user.getId(), 
             visibility
         );
