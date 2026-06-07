@@ -25,13 +25,13 @@
           hide-details="auto"
         />
 
-        <v-text-field
-          v-model="email"
-          label="Your email"
-          placeholder="e.g. nkosi_lesa@gmail.com"
-          type="email"
+        <v-textarea
+          v-model="message"
+          label="Message"
+          :placeholder="`Hey, I'm interested in your listing for ${listingTitle}...`"
           variant="outlined"
           density="comfortable"
+          :rows="4"
           hide-details="auto"
         />
 
@@ -44,6 +44,15 @@
 
     </div>
   </BaseModal>
+
+  <v-snackbar
+    v-model="showToast"
+    color="success"
+    :timeout="3000"
+    location="top"
+  >
+    Message sent! The lister will be in touch soon.
+  </v-snackbar>
 </template>
 
 <script setup>
@@ -65,6 +74,7 @@ const emit = defineEmits(['sent'])
 const name = ref('')
 const email = ref('')
 const message = ref('')
+const showToast = ref(false)
 
 const handleSend = () => {
   if (!name.value.trim() || !message.value.trim()) return
@@ -74,6 +84,7 @@ const handleSend = () => {
     message: message.value
   })
   open.value = false
+  showToast.value = true
   name.value = ''
   email.value = ''
   message.value = ''
