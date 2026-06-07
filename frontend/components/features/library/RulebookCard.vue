@@ -1,15 +1,16 @@
 <template> 
-    <BaseCard class="card" @click="openBook"> 
+    <BaseCard class="cursor-pointer overflow-hidden pa-0" 
+    @click="navigateTo(`/library/${rulebook.id}`)"> 
 
-        <BaseImage :src="rulebook.image" :alt="rulebook.gameName" height="200px" fit="cover" />
+        <BaseImage :src="rulebook.image" :alt="rulebook.title" height="200px" fit="cover" />
 
         <div class="pa-3">
           <p class="text-body-2 font-weight-bold mb-1">
-            {{ rulebook.gameName }}
+            {{ rulebook.title }}
           </p>
 
           <p class="text-caption text-medium-emphasis mb-0">
-            {{ rulebook.edition }}
+            {{ rulebook.genre }}
           </p>
         </div>
         
@@ -23,22 +24,4 @@ import BaseImage from '~/components/ui/BaseImage.vue'
 const props = defineProps({
     rulebook: Object
 })
-
-const openBook = () => {
-    navigateTo(`/library/${props.rulebook.id}`)
-}
 </script>
-
-<style scoped>
-.card {
-  cursor: pointer;
-  overflow: hidden;
-  padding: 0;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
-}
-</style>

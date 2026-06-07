@@ -1,15 +1,15 @@
 <template>
-  <NuxtLink :to="`/library/${rulebook.id}`" style="text-decoration: none; color: inherit;">
-    <BaseCard class="carousel-card" style="width: 220px; flex-shrink: 0;">
-      <BaseImage :src="rulebook.image" :alt="rulebook.gameName" height="280px" fit="cover" />
+  <NuxtLink :to="`/library/${rulebook.id}`" class="text-decoration-none text-inherit">
+    <BaseCard class="cursor-pointer overflow-hidden pa-0 " style="width: 220px; flex-shrink: 0;">
+      <BaseImage :src="rulebook.image" :alt="rulebook.title" height="280px" fit="cover" />
       <div class="pa-4">
 
         <p class="text-body-2 font-weight-bold mb-1">
-          {{ rulebook.gameName }}
+          {{ rulebook.title }}
         </p>
 
         <p class="text-caption text-medium-emphasis mb-0">
-          {{ rulebook.edition }}
+          {{ rulebook.genre }}
         </p>
 
       </div>
@@ -25,16 +25,3 @@ defineProps({
   rulebook: Object
 })
 </script>
-
-<style scoped>
-.carousel-card {
-  cursor: pointer;
-  overflow: hidden;
-  padding: 0;
-  transition: transform 0.2s ease;
-}
-
-.carousel-card:hover {
-  transform: translateY(-4px);
-}
-</style>

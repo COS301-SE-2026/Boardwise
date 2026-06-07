@@ -1,17 +1,11 @@
 <template>
   <div class="d-flex flex-wrap ga-4">
-    <BaseButton @click="goRead">
-      <v-icon start>
-        mdi-book-open-variant
-      </v-icon>
+    <BaseButton prepend-icon="mdi-book-open-variant" @click="navigateTo('/library/${rulebook.id}/read')">
       Read Rulebook
     </BaseButton>
 
-    <BaseButton variant="secondary" @click="router.push('/marketplace')">
-      <v-icon start>
-        mdi-store
-      </v-icon>
-      Marketplace
+    <BaseButton variant="secondary" prepend-icon="mdi-store" @click="navigateTo('/marketplace')">
+      Browse Marketplace
     </BaseButton>
   </div>
 </template>
@@ -28,8 +22,4 @@ const props = defineProps({
     required: true
   }
 })
-
-const goRead = () => {
-  router.push(`/rulebook/read/${props.rulebook.id}`)
-}
 </script>
