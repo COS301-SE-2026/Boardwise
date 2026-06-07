@@ -2,31 +2,31 @@
   <div class="hero">
 
     <div class="image-container">
-      <BaseImage :src="listing.image" :alt="listing.title" height="400px"/>
-      <BaseBadge :variant="listing.type === 'rent' ? 'rent' : 'sale'" class="badge">
-        {{ listing.type === 'rent' ? 'For rent' : 'For sale' }}
+      <BaseImage :src="listing.imageUrl" :alt="listing.listingTitle" height="400px"/>
+      <BaseBadge :variant="listing.listingType === 'rental' ? 'rent' : 'sale'" class="badge">
+        {{ listing.listingType === 'rental' ? 'For rent' : 'For sale' }}
       </BaseBadge>
     </div>
 
     <div class="info">
 
-      <h1>{{ listing.title }}</h1>
+      <h1>{{ listing.listingTitle }}</h1>
 
       <p class="price">
         R{{ listing.price }}
-        <span v-if="listing.type === 'rent'" class="period">
-          / {{ listing.rentalPeriod ?? 'week' }}
+        <span v-if="listing.listingType === 'rental' && rentalDates" class="period">
+          / {{ rentalDates }}
         </span>
       </p>
 
       <div class="meta">
-        <span>@{{ listing.seller ?? 'unknown' }}</span>
+        <span>@{{ listing.username ?? 'unknown' }}</span>
         <span>{{ listing.location }}</span>
       </div>
 
       <p class="description">{{ listing.description ?? 'No description provided.' }}</p>
 
-      <div v-if="listing.negotiable" class="negotiable">
+      <div v-if="listing.isNegotiable" class="negotiable">
         Open to negotiation
       </div>
 
@@ -41,7 +41,7 @@
     </div>
     <ContactListerModal
       v-model="showContact"
-      :listing-title="listing.title"
+      :listing-title="listing.listingTitle"
     />
   </div>
 </template>
@@ -61,6 +61,12 @@ defineProps({
 })
 
 const showContact = ref(false)
+
+const rentalDates = computed(() => {
+  const period = props.listing.rentalPeriod
+  if (!Array.isArray(period) || period.length < 2) return null
+  return `${period[0]} to ${period[1]}`
+})
 </script>
 
 <style scoped>
