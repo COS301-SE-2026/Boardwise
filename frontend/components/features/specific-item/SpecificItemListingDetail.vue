@@ -37,5 +37,3 @@ const rulebook = computed(() =>
   rulebooks.find(r => r.id === props.listing.rulebookId) ?? null
 )
 </script>
-
-<style scoped></style>
