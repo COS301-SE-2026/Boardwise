@@ -53,7 +53,7 @@ import BaseBadge from '~/components/ui/BaseBadge.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
 import ContactListerModal from './ContactListerModal.vue'
 
-defineProps({
+const props = defineProps({
   listing: {
     type: Object,
     required: true
@@ -92,12 +92,6 @@ const rentalDates = computed(() => {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-}
-
-h1 {
-  margin: 0;
-  font-size: var(--fs-h1);
-  color: var(--color-secondary);
 }
 
 .price {

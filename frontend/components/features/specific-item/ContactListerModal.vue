@@ -87,10 +87,6 @@ const handleSend = () => {
   gap: var(--space-6);
 }
 
-h2 {
-  margin: 0;
-}
-
 .form {
   display: flex;
   flex-direction: column;

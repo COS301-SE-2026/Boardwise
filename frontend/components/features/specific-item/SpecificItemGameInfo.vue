@@ -23,7 +23,7 @@ import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseBadge from '~/components/ui/BaseBadge.vue'
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue'
 
-defineProps({
+const props = defineProps({
   rulebook: { type: Object, default: null }
 })
 
@@ -62,7 +62,6 @@ const stats = computed(() => [
 .stat__label {
   font-size: var(--fs-small);
   color: var(--color-text-muted);
-  text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: var(--fw-medium);
 }

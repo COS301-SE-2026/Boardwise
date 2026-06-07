@@ -1,6 +1,6 @@
 export const listings = [
   {
-    id: "a1b2c3d4-0001-0000-0000-000000000001",
+    id: "1",
     username: "PretoriaPlayer",
     userId: "u1b2c3d4-0001-0000-0000-000000000001",
     itemType: "full game",
@@ -22,7 +22,7 @@ export const listings = [
     rulebookId: 1
   },
   {
-    id: "a1b2c3d4-0002-0000-0000-000000000002",
+    id: "2",
     username: "CapeTownGamer",
     userId: "u1b2c3d4-0002-0000-0000-000000000002",
     itemType: "full game",
@@ -44,7 +44,7 @@ export const listings = [
     rulebookId: 2
   },
   {
-    id: "a1b2c3d4-0003-0000-0000-000000000003",
+    id: "3",
     username: "JburgGames",
     userId: "u1b2c3d4-0003-0000-0000-000000000003",
     itemType: "full game",
