@@ -6,34 +6,34 @@
 
       <div class="form">
 
-        <div class="input-group">
-          <label for="contact-name">Your name</label>
-          <BaseInput
-            id="contact-name"
-            v-model="name"
-            placeholder="e.g. Lesa Nkosi"
-          />
-        </div>
+        <v-text-field
+          v-model="name"
+          label="Your name"
+          placeholder="e.g. Lesa Nkosi"
+          variant="outlined"
+          density="comfortable"
+          hide-details="auto"
+        />
 
-        <div class="input-group">
-          <label for="contact-email">Your email</label>
-          <BaseInput
-            id="contact-email"
-            v-model="email"
-            type="email"
-            placeholder="e.g. nkosi_lesa@gmail.com"
-          />
-        </div>
+        <v-text-field
+          v-model="email"
+          label="Your email"
+          placeholder="e.g. nkosi_lesa@gmail.com"
+          type="email"
+          variant="outlined"
+          density="comfortable"
+          hide-details="auto"
+        />
 
-        <div class="input-group">
-          <label for="contact-message">Message</label>
-          <BaseTextArea
-            id="contact-message"
-            v-model="message"
-            :placeholder="`Hey, I'm interested in your listing for ${listingTitle}...`"
-            :rows="4"
-          />
-        </div>
+        <v-text-field
+          v-model="email"
+          label="Your email"
+          placeholder="e.g. nkosi_lesa@gmail.com"
+          type="email"
+          variant="outlined"
+          density="comfortable"
+          hide-details="auto"
+        />
 
       </div>
 
@@ -49,8 +49,6 @@
 <script setup>
 import { ref } from 'vue'
 import BaseModal from '~/components/ui/BaseModal.vue'
-import BaseInput from '~/components/ui/BaseInput.vue'
-import BaseTextArea from '~/components/ui/BaseTextArea.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 
 const open = defineModel()
@@ -91,27 +89,12 @@ const handleSend = () => {
 
 h2 {
   margin: 0;
-  font-size: var(--fs-h3);
-  font-weight: var(--fw-bold);
-  color: var(--color-secondary);
 }
 
 .form {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-label {
-  font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
-  color: var(--color-text);
 }
 
 .actions {
