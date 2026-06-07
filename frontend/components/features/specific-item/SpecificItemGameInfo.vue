@@ -5,29 +5,10 @@
       <BaseFilterGroup title="Game details">
         <div class="stats">
 
-          <div class="stat">
-            <span class="stat__label">Players</span>
-            <span class="stat__value">{{ rulebook.players }}</span>
-          </div>
-
-          <div class="stat">
-            <span class="stat__label">Duration</span>
-            <span class="stat__value">{{ rulebook.duration }}</span>
-          </div>
-
-          <div class="stat">
-            <span class="stat__label">Age</span>
-            <span class="stat__value">{{ rulebook.age }}</span>
-          </div>
-
-          <div class="stat">
-            <span class="stat__label">Difficulty</span>
-            <BaseBadge>{{ rulebook.difficulty }}</BaseBadge>
-          </div>
-
-          <div class="stat">
-            <span class="stat__label">Category</span>
-            <span class="stat__value">{{ rulebook.category }}</span>
+          <div v-for="stat in stats" :key="stat.label" class="stat">
+            <span class="stat__label">{{ stat.label }}</span>
+            <BaseBadge v-if="stat.badge">{{ stat.value }}</BaseBadge>
+            <span v-else class="stat__value">{{ stat.value }}</span>
           </div>
 
         </div>
@@ -45,6 +26,14 @@ import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue'
 defineProps({
   rulebook: { type: Object, default: null }
 })
+
+const stats = computed(() => [
+  { label: 'Players',    value: props.rulebook?.players,    badge: false },
+  { label: 'Duration',   value: props.rulebook?.duration,   badge: false },
+  { label: 'Age',        value: props.rulebook?.age,        badge: false },
+  { label: 'Difficulty', value: props.rulebook?.difficulty, badge: true  },
+  { label: 'Category',   value: props.rulebook?.category,   badge: false },
+])
 </script>
 
 <style scoped>
