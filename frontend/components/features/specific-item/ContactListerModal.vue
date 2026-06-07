@@ -7,18 +7,28 @@
       <div class="form">
 
         <div class="input-group">
-          <label>Your name</label>
-          <BaseInput v-model="name" placeholder="e.g. Lesa Nkosi" />
+          <label for="contact-name">Your name</label>
+          <BaseInput
+            id="contact-name"
+            v-model="name"
+            placeholder="e.g. Lesa Nkosi"
+          />
         </div>
 
         <div class="input-group">
-          <label>Your email</label>
-          <BaseInput v-model="email" placeholder="e.g. nkosi_lesa@gmail.com" />
+          <label for="contact-email">Your email</label>
+          <BaseInput
+            id="contact-email"
+            v-model="email"
+            type="email"
+            placeholder="e.g. nkosi_lesa@gmail.com"
+          />
         </div>
 
         <div class="input-group">
-          <label>Message</label>
+          <label for="contact-message">Message</label>
           <BaseTextArea
+            id="contact-message"
             v-model="message"
             :placeholder="`Hey, I'm interested in your listing for ${listingTitle}...`"
             :rows="4"
