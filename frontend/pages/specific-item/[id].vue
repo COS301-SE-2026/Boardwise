@@ -26,9 +26,8 @@ import SpecificItemListingDetail from '~/components/features/specific-item/Speci
 
 const route = useRoute()
 
-const listing = listings.find(
-  item => item.id === Number(route.params.id)
-)
+const listing = listings.find(item => item.id === route.params.id)
+
 </script>
 
 <style scoped>

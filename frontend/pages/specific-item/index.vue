@@ -6,9 +6,9 @@
 
     <div class="grid">
       <SpecificItemListingCard
-        v-for="listing in listing"
-        :key="listing.id"
-        :listing="listing"
+        v-for="item in listings"
+        :key="item.id"
+        :listing="item"
       />
     </div>
 
@@ -16,6 +16,7 @@
 </template>
 
 <script setup>
+import { listings } from '~/services/mockData/listings'
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import PageHeader from '~/components/layout/PageHeader.vue'
