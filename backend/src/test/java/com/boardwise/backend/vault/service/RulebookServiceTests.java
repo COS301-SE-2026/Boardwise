@@ -54,10 +54,12 @@ public class RulebookServiceTests {
     // ---------- AC-VLT-02: List/ Search Rulebooks ----------
     @Nested
     class ListOrSearchRulebook{
-        long totalRulebooks = 25;
+        final long totalRulebooks = 25;
         List<Rulebook> mockRulebooks = new ArrayList<>();
         List<Boardgame> mockBoardgames = new ArrayList<>();
         Pageable pageable = null;
+        final int page = 1;
+        final int limit = 20;
 
         @BeforeEach
         void setup(){
@@ -88,7 +90,7 @@ public class RulebookServiceTests {
                         .updatedAt(now)
                         .build());
             }
-            pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "updatedAt"));
+            pageable = PageRequest.of(page-1, Math.min(limit, 100), Sort.by(Sort.Direction.DESC, "updatedAt"));
         }
 
         @Test
@@ -194,26 +196,126 @@ public class RulebookServiceTests {
             Assertions.assertThat(result.getTotalElements()).isEqualTo(0);
         }
 
-        // @Test
-        // public void testForLimitCapEnforcement(){
-        //     // Arrange
-        //     // Act
-        //     // Assert
-        // }
+        @Test
+        public void testForPageLimitCapEnforcement(){
+            // Arrange
+            List<Rulebook> mockRulebooksLimitTest = new ArrayList<>();
+            List<Boardgame> mockBoardgamesLimitTest = new ArrayList<>();
+            for (int i = 0; i < 200; i++) {
+                Instant now = Instant.now();
+                ObjectId gameId = new ObjectId();
+                List<String> genres = new ArrayList<>();
+                genres.add("This " + i);
+                genres.add("That " + i);
+                genres.add("The Third " + i);
+                mockBoardgamesLimitTest.add(Boardgame.builder()
+                        .id(gameId.toHexString())
+                        .title("mockGame" + i)
+                        .description("mock description " + i)
+                        .imageURL("mock-image-url-" + i)
+                        .genres(genres)
+                        .build());
+                mockRulebooksLimitTest.add(Rulebook.builder()
+                        .id(new ObjectId())
+                        .gameId(gameId)
+                        .gameName("mockGame" + i)
+                        .edition("Edition " + i)
+                        .status("Ready")
+                        .version(i)
+                        .contributorId(new ObjectId())
+                        .r2PdfKey("key-" + i)
+                        .uploadedAt(now)
+                        .updatedAt(now)
+                        .build());
+            }
+            for (Boardgame bg : mockBoardgamesLimitTest) {
+                Mockito.when(boardgameRepository.findById(bg.getId())).thenReturn(Optional.of(bg));
+            }
+            pageable = PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "updatedAt"));
+            Page<Rulebook> page = new PageImpl<>(mockRulebooksLimitTest, pageable, 200);
+            Mockito.when(rulebookRepository.findByStatusAndGameNameContainingIgnoreCase(
+                    Mockito.eq("Ready"), Mockito.eq(""), Mockito.any(Pageable.class)))
+                    .thenReturn(page);
+            // Act
+            Page<RulebookSummaryResponseDto> result = rulebookService.searchRulebooks("", 1, 200);
+            // Assert
+            Assertions.assertThat(result.getSize()).isEqualTo(100);
+        }
 
         // @Test
-        // public void testForOrderedByUpdatedAt(){
-        //     // Arrange
-        //     // Act
-        //     // Assert
-        // }
+        public void testForOrderedByUpdatedAt(){
+            // Arrange
+            for (Boardgame bg : mockBoardgames) {
+                Mockito.when(boardgameRepository.findById(bg.getId())).thenReturn(Optional.of(bg));
+            }
 
-        // @Test
-        // public void testForPageOffsetConversionBeingCorrect(){ // the 1-indexed must be translated to 0-indexed
-        //     // Arrange
-        //     // Act
-        //     // Assert
-        // }
+            Page<Rulebook> page = new PageImpl<>(mockRulebooks, pageable, totalRulebooks);
+            Mockito.when(rulebookRepository.findByStatusAndGameNameContainingIgnoreCase(
+                    Mockito.eq("Ready"), Mockito.eq(""), Mockito.any(Pageable.class)))
+                    .thenReturn(page);
+            // Act
+            Page<RulebookSummaryResponseDto> result = rulebookService.searchRulebooks("", 1, 20);
+
+            // Assert
+            Assertions.assertThat(result.getSort().isSorted()).isTrue();
+            int idx= 0;
+            Instant currentLargerThanNext = Instant.now();
+            for (Rulebook rb : page.getContent()) {
+                Assertions.assertThat(rb.getGameName().compareTo(result.getContent().get(idx++).getGameName()) == 0).isTrue();
+                Assertions.assertThat(currentLargerThanNext.compareTo(rb.getUpdatedAt()) > 0).isTrue();
+                currentLargerThanNext = rb.getUpdatedAt();
+            }
+        }
+
+        @Test
+        public void testForPageOffsetConversionBeingCorrect(){ // the 1-indexed must be translated to 0-indexed
+            // Arrange
+            int offsetPage = 4; // Should translate to page 3
+            int offsetPageSize = 5; // Should translate to page 3
+            for (Boardgame bg : mockBoardgames) {
+                Mockito.when(boardgameRepository.findById(bg.getId())).thenReturn(Optional.of(bg));
+            }
+            pageable = PageRequest.of(offsetPage - 1, offsetPageSize, Sort.by(Sort.Direction.DESC, "updatedAt"));
+            Page<Rulebook> page = new PageImpl<>(mockRulebooks, pageable, 200);
+            Mockito.when(rulebookRepository.findByStatusAndGameNameContainingIgnoreCase(
+                    Mockito.eq("Ready"), Mockito.eq(""), Mockito.any(Pageable.class)))
+                    .thenReturn(page);
+            // Act
+            Page<RulebookSummaryResponseDto> result = rulebookService.searchRulebooks("", offsetPage, offsetPageSize);
+            // Assert
+            Assertions.assertThat(result.getPageable().getPageNumber()).isEqualTo(offsetPage-1);
+        }
+
+        /*
+         * {
+         * "content": [],
+         * "empty": true,
+         * "first": true,
+         * "last": true,
+         * "number": 0,
+         * "numberOfElements": 0,
+         * "pageable": {
+         * "offset": 0,
+         * "pageNumber": 0,
+         * "pageSize": 20,
+         * "paged": true,
+         * "sort": {
+         * "empty": false,
+         * "sorted": true,
+         * "unsorted": false
+         * },
+         * "unpaged": false
+         * },
+         * "size": 20,
+         * "sort": {
+         * "empty": false,
+         * "sorted": true,
+         * "unsorted": false
+         * },
+         * "totalElements": 0,
+         * "totalPages": 0
+         * }
+         */
     }
     // 2. Pagination
     // 3. Search Edge Cases
