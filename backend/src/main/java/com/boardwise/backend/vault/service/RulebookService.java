@@ -52,7 +52,7 @@ public class RulebookService {
         Page<RulebookSummaryResponseDto> dtoPage =
             rulebookRepository.findByStatusAndGameNameContainingIgnoreCase("Ready", search, pageable).map(this::toRulebookSummaryResponse);
 
-        return dtoPage; // Page has the lockHeldBy field set to null. A book that is in state Ready does not have a write lock
+        return dtoPage;
     }
 
     // AC-VLT-03: Get Rulebook Detail
