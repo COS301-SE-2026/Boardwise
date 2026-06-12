@@ -2,6 +2,7 @@ package com.boardwise.backend.user_service.services;
 
 import org.owasp.encoder.Encode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -26,6 +27,7 @@ public class AuthService {
     private JWTService jwt;
 
     @Autowired
+    @Lazy
     private AuthenticationManager manager;
 
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);

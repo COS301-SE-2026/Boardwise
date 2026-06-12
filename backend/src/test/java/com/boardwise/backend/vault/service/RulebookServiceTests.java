@@ -57,6 +57,7 @@ public class RulebookServiceTests {
         long totalRulebooks = 25;
         List<Rulebook> mockRulebooks = new ArrayList<>();
         List<Boardgame> mockBoardgames = new ArrayList<>();
+        Pageable pageable = null;
 
         @BeforeEach
         void setup(){
@@ -87,17 +88,19 @@ public class RulebookServiceTests {
                         .updatedAt(now)
                         .build());
             }
-            for (Boardgame bg : mockBoardgames) {
-                Mockito.when(boardgameRepository.findById(bg.getId())).thenReturn(Optional.of(bg));
-            }
+            pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "updatedAt"));
         }
 
         @Test
         public void testThatSearchRulebooksWithNoParamsReturnsOrderedFirstPageOf20(){
             // Arrange
-            Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "updatedAt"));
+            for (Boardgame bg : mockBoardgames) {
+                Mockito.when(boardgameRepository.findById(bg.getId())).thenReturn(Optional.of(bg));
+            }
+
             Page<Rulebook> page = new PageImpl<>(mockRulebooks, pageable, totalRulebooks);
-            Mockito.when(rulebookRepository.findByStatusAndGameNameContainingIgnoreCase("Ready", "", pageable))
+            Mockito.when(rulebookRepository.findByStatusAndGameNameContainingIgnoreCase(
+                Mockito.eq("Ready"), Mockito.eq(""), Mockito.any(Pageable.class)))
                     .thenReturn(page);
             // Act
             Page<RulebookSummaryResponseDto> result = rulebookService.searchRulebooks("",1,20);
@@ -107,13 +110,18 @@ public class RulebookServiceTests {
         }
         
         @Test
-        public void testThatSearchRulebooksWithPartialNameReturnsMatchedRulebooks() {
+        public void testForPartialMatchReturingMatchingRulebooks(){
             // Arrange
-            Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "updatedAt"));
-
             List<Rulebook> filteredRulebooks = mockRulebooks.stream()
                 .filter(rb -> rb.getGameName().contains("Game1"))
                 .collect(Collectors.toList());
+                
+            List<Boardgame> filteredBoardgames = mockBoardgames.stream()
+                .filter(bg -> bg.getTitle().contains("Game1"))
+                .collect(Collectors.toList());
+            for (Boardgame bg : filteredBoardgames) {
+                Mockito.when(boardgameRepository.findById(bg.getId())).thenReturn(Optional.of(bg));
+            }
 
             Page<Rulebook> page = new PageImpl<>(filteredRulebooks, pageable, filteredRulebooks.size());
             Mockito.when(rulebookRepository.findByStatusAndGameNameContainingIgnoreCase(
@@ -128,8 +136,84 @@ public class RulebookServiceTests {
             for (RulebookSummaryResponseDto rb : result.getContent()) {
                 Assertions.assertThat(rb.getGameName().contains("Game1")).isTrue();
             }
-
         }
+
+        @Test
+        public void testForSearchCaseInsensitivity(){
+            // Arrange
+            List<Rulebook> filteredRulebooks = mockRulebooks.stream()
+                    .filter(rb -> rb.getGameName().contains("Game1"))
+                    .collect(Collectors.toList());
+
+            List<Boardgame> filteredBoardgames = mockBoardgames.stream()
+                    .filter(bg -> bg.getTitle().contains("Game1"))
+                    .collect(Collectors.toList());
+            for (Boardgame bg : filteredBoardgames) {
+                Mockito.when(boardgameRepository.findById(bg.getId())).thenReturn(Optional.of(bg));
+            }
+
+            Page<Rulebook> page = new PageImpl<>(filteredRulebooks, pageable, filteredRulebooks.size());
+            Mockito.when(rulebookRepository.findByStatusAndGameNameContainingIgnoreCase(
+                    Mockito.eq("Ready"), Mockito.eq("game1"), Mockito.any(Pageable.class)))
+                    .thenReturn(page);
+
+            // Act
+            Page<RulebookSummaryResponseDto> result = rulebookService.searchRulebooks("game1", 1, 20);
+
+            // Assert
+            Assertions.assertThat(result.getContent().size()).isEqualTo(11);
+            for (RulebookSummaryResponseDto rb : result.getContent()) {
+                Assertions.assertThat(rb.getGameName().contains("Game1")).isTrue();
+            }
+        }
+
+        @Test
+        public void testForSearchWithZeroMatches(){
+            // Arrange
+            List<Rulebook> filteredRulebooks = mockRulebooks.stream()
+                    .filter(rb -> rb.getGameName().contains("GameNotInTheList"))
+                    .collect(Collectors.toList());
+
+            List<Boardgame> filteredBoardgames = mockBoardgames.stream()
+                    .filter(bg -> bg.getTitle().contains("GameNotInTheList"))
+                    .collect(Collectors.toList());
+            for (Boardgame bg : filteredBoardgames) {
+                Mockito.when(boardgameRepository.findById(bg.getId())).thenReturn(Optional.of(bg));
+            }
+
+            Page<Rulebook> page = new PageImpl<>(filteredRulebooks, pageable, filteredRulebooks.size());
+            Mockito.when(rulebookRepository.findByStatusAndGameNameContainingIgnoreCase(
+                    Mockito.eq("Ready"), Mockito.eq("GameNotInTheList"), Mockito.any(Pageable.class)))
+                    .thenReturn(page);
+
+            // Act
+            Page<RulebookSummaryResponseDto> result = rulebookService.searchRulebooks("GameNotInTheList", 1, 20);
+
+            // Assert
+            Assertions.assertThat(result.getContent().size()).isEqualTo(0);
+            Assertions.assertThat(result.getTotalElements()).isEqualTo(0);
+        }
+
+        // @Test
+        // public void testForLimitCapEnforcement(){
+        //     // Arrange
+        //     // Act
+        //     // Assert
+        // }
+
+        // @Test
+        // public void testForOrderedByUpdatedAt(){
+        //     // Arrange
+        //     // Act
+        //     // Assert
+        // }
+
+        // @Test
+        // public void testForPageOffsetConversionBeingCorrect(){ // the 1-indexed must be translated to 0-indexed
+        //     // Arrange
+        //     // Act
+        //     // Assert
+        // }
     }
     // 2. Pagination
     // 3. Search Edge Cases
