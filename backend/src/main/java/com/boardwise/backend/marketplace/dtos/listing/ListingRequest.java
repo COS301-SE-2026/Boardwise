@@ -1,6 +1,5 @@
 package com.boardwise.backend.marketplace.dtos.listing;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import jakarta.validation.constraints.*;
@@ -14,6 +13,7 @@ public record ListingRequest(
         @NotBlank String gameTitle,
         @NotBlank String location,
         boolean isNegotiable,
+        String imageUrl,
         @NotBlank String version, 
         @NotBlank String condition,
         @NotBlank String description,

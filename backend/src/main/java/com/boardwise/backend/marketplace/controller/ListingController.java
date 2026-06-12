@@ -151,8 +151,8 @@ public class ListingController {
             @RequestParam(required = false) Double maxPrice,
             @RequestParam(required = false) List<String> conditions,
             @RequestParam(required = false) List<String> genres,
-            @RequestParam(required = false) int page,
-            @RequestParam(required = false) int size
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
             ) {
         try {
             Page<ListingResponse> listings = listingService.getByFilter(gameTitle, listingTitle, listingType, itemType, minPrice, maxPrice,

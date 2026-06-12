@@ -11,12 +11,14 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import com.boardwise.backend.marketplace.enums.ListingStatus;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Document(collection = "LISTINGS")
 public class Listing {
 

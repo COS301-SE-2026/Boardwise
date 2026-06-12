@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.bson.types.ObjectId;
 
-import com.boardwise.backend.marketplace.enums.Condition;
 import com.boardwise.backend.marketplace.enums.ListingStatus;
 import com.boardwise.backend.marketplace.model.RentalPeriod;
 
