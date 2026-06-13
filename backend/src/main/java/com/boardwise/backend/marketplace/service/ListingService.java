@@ -473,7 +473,8 @@ public class ListingService {
     }
 
     public List<ListingResponse> getUserListings(String token) {
-        return listingRepository.findByUserId(jwtService.extractUserId(token)).stream().map(this::mapToResponse).toList();
+        return listingRepository.findByUserId(jwtService.extractUserId(token))
+        .stream().map(this::mapToResponse).toList();
     }
 
     private ListingResponse mapToResponse(Listing listing) {

@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,6 +31,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.boardwise.backend.marketplace.dtos.listing.ListingRequest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
+import com.boardwise.backend.marketplace.enums.Condition;
 import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.marketplace.enums.ListingStatus;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
@@ -40,11 +42,14 @@ import com.boardwise.backend.marketplace.service.ListingService;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repos.UserRepository;
+import com.github.dockerjava.zerodep.shaded.org.apache.hc.core5.reactor.IOSession.Status;
 
 import software.amazon.awssdk.services.s3.S3Client;
 
+@DisplayName("Listing Service Tests")
 @ExtendWith(MockitoExtension.class) // auto create/inject mocks
 class ListingServiceTest {
+    
     private final String defaultIMG = "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/default-listing-images/default.png";
     @Mock
     private ListingRepository listingRepository; // fake version of ListingRepository
@@ -71,6 +76,7 @@ class ListingServiceTest {
     }
 
     @Test
+    @DisplayName("Should create a valid sale listing")
     void shouldCreateSaleListing() {
         // ARRANGE
         String fakeToken = "this is a fake token";
@@ -121,6 +127,7 @@ class ListingServiceTest {
     }
 
     @Test
+    @DisplayName("Should create a valid rental listing")
     void shouldCreateRentalListing() {
         // ARRANGE
         String fakeToken = "this is a fake token";
@@ -171,10 +178,10 @@ class ListingServiceTest {
     }
     
     @Test
+    @DisplayName("Should create a valid sale listing with the default image")
     void shouldCreateSaleListingWithDefaultImage() {
         // ARRANGE
         String fakeToken = "this is a fake token";
-        String fakeUser = "testBuddy";
         //Mocking image (Multipart File)
         MockMultipartFile mockMultipartFile = null;
         
@@ -199,10 +206,11 @@ class ListingServiceTest {
     }
 
     @Test
+        @DisplayName("Should create a valid rental listing with the default image")
+
     void shouldCreateRentalListingWithDefaultImage() {
         // ARRANGE
         String fakeToken = "this is a fake token";
-        String fakeUser = "testBuddy";
         //Mocking image (Multipart File)
         MockMultipartFile mockMultipartFile = null;
         
@@ -231,6 +239,7 @@ class ListingServiceTest {
     }
     
     @Test
+    @DisplayName("Should throw an illegal argument exception for an invalid starting date (date before today)")
     void shouldThrowIllegalArgumentExceptionForInvalidStartDate(){
         //ARRANGE 
         String fakeToken = "this is a fake token";
@@ -252,6 +261,7 @@ class ListingServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw an illegal argument exception for an invalid start date (start date after end date)")
     void shouldThrowIllegalArgumentExceptionForStartDateAfterEndDate(){
         //ARRANGE 
         String fakeToken = "this is a fake token";
@@ -273,6 +283,7 @@ class ListingServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw an illegal argument exception for an invalid end date (date before start date)")
     void shouldThrowIllegalArgumentExceptionForEndDateBeforeStartDate(){
         //ARRANGE 
         String fakeToken = "this is a fake token";
@@ -294,6 +305,7 @@ class ListingServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw an illegal argument exception for an Empty Rental Period for a rental listing)")
     void shouldThrowIllegalArgumentExceptionForEmptyRentalPeriod(){
         //ARRANGE 
         String fakeToken = "this is a fake token";
@@ -310,6 +322,7 @@ class ListingServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw an illegal argument exception for too many arguments in Date array")
     void shouldThrowIllegalArgumentExceptionForLargerDateArray(){
         //ARRANGE 
         String fakeToken = "this is a fake token";
@@ -331,6 +344,7 @@ class ListingServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw an illegal argument exception for: invalid listing type")
     void shouldThrowIllegalArgumentExceptionForInvalidListingType(){
         //ARRANGE 
         String fakeToken = "this is a fake token";
@@ -352,6 +366,7 @@ class ListingServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw an illegal argument exception for: Empty Description")
     void shouldThrowIllegalArgumentExceptionForEmptyDescription(){
         
         //ARRANGE 
@@ -374,6 +389,7 @@ class ListingServiceTest {
     }
     
     @Test
+    @DisplayName("Should throw an illegal argument exception for: invalid amount")
     void shouldThrowIllegalArgumentExceptionForInvalidAmount(){
         
         //ARRANGE 
@@ -396,6 +412,7 @@ class ListingServiceTest {
     }
     
     @Test
+    @DisplayName("Should throw an illegal argument exception for: invalid condition")
     void shouldThrowIllegalArgumentExceptionForInvalidCondition(){
         //ARRANGE 
         String fakeToken = "this is a fake token";
@@ -417,6 +434,7 @@ class ListingServiceTest {
     }
     
     @Test
+    @DisplayName("Should throw an illegal argument exception for: invalid genre")
     void shouldThrowIllegalArgumentExceptionForInvalidGenre(){
         
         //ARRANGE 
@@ -439,6 +457,7 @@ class ListingServiceTest {
     }
     
     @Test
+    @DisplayName("Should throw an illegal argument exception for: invalid end date")
     void shouldThrowIllegalArgumentExceptionForInvalidEndDate(){
         //ARRANGE 
         String fakeToken = "this is a fake token";
@@ -460,6 +479,7 @@ class ListingServiceTest {
     }
 
     @Test 
+    @DisplayName("Should delete a valid listing")
     void shouldDeleteListing(){
         // ARRANGE
         String fakeToken = "Fake-token";
@@ -479,6 +499,7 @@ class ListingServiceTest {
     }
 
     @Test 
+    @DisplayName("Should throw an forbidden argument exception for: listing not owned by you")
     void shouldThrowForbiddenWhenDeletingListingYouDontOwn(){
         //ARRANGE
         String fakeToken = "fake-token";
@@ -496,6 +517,7 @@ class ListingServiceTest {
     }
 
     @Test
+     @DisplayName("Should throw an Illegal argument exception for: Non-Existent Listing")
     void shouldThrowWhenDeletingNonExistentListing(){
         // ARRANGE
         String fakeToken = "fake-token";
@@ -507,22 +529,104 @@ class ListingServiceTest {
             () -> listingService.deleteListing("bad-id", fakeToken));
     }
 
-    @BeforeTestMethod
-    void addSaleListingToRepository(){
-        listingRepository.insert(
-            new Listing("fakeListingId", "IamReal", new ObjectId(), "full boardgame", "sale", 758.0, "Pretoria",
-            true, "Board game of Ludo", "fair", "Ludo","original","fake Ludo description", "/images/fakeImage.jpeg",
-            ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),List.of(Genres.BOOK.getValue(),Genres.AMERICAN_WEST.getValue()), null));
-    }
-
     @Test 
+    @DisplayName("Should Edit a listing")
     void shouldEditListing(){
         // ARRANGE
+        String fakeToken = "fake-Token";
+        String listingId = "fakeistingID";
+        ObjectId  userId = new ObjectId();
+
+        Listing existingListing = new Listing(listingId, "testBuddy", userId, "full boardgame", "sale", 100,
+        "Pretoria", false, "Old title", "like new", "Ludo", "original",
+        "old description", "fakeimage.png", ListingStatus.AVAILABLE,
+        LocalDateTime.now(), LocalDateTime.now(),
+        List.of("adventure", "strategy"), null);
+
+        ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "New title",
+        300, "Ludo", "Pretoria", false, "test.png", "original", "like new",
+        "updated description", List.of("adventure", "strategy"), null);
+
+        when(jwtService.extractUserId(fakeToken)).thenReturn(userId);
+        when(listingRepository.findById(listingId)).thenReturn(Optional.of(existingListing));
+        when(listingRepository.save(any(Listing.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
         // ACT
+        ListingResponse res = listingService.updateListing(listingId, listingRequest, fakeToken, null);
         // ASSERT
+        assertNotNull(res);
+        assertEquals(300, res.price());
+        assertEquals("updated description", res.description());
+        assertEquals("New title", res.listingTitle());
+        verify(listingRepository, times(1)).save(any(Listing.class));   
+    }
+
+    @Test   
+    @DisplayName("Placeholder")
+    void shouldThrowForbiddenWhenUpdatingListingYouDontOwn(){
+        //ARRANGE
+        //ACT 
+        //ASSERT 
     }
 
     @Test
+    @DisplayName("Placeholder")
+    void shouldThrowWhenUpdatingNonExistentListing(){
+        //ARRANGE
+        //ACT 
+        //ASSERT 
+    }
+
+    @Test
+    @DisplayName("Placeholder")
+    void shouldThrowForInvalidItemTypeOnUpdate (){
+        //ARRANGE
+        //ACT 
+        //ASSERT 
+    }
+
+    @Test
+    @DisplayName("Placeholder")
+    void shouldThrowForInvalidGenreOnUpdate(){
+        //ARRANGE
+        //ACT 
+        //ASSERT 
+    }
+
+    @Test
+    @DisplayName("Placeholder")
+    void shouldThrowWhenUpdateRentalPeriodHasStartDateInPast(){
+        //ARRANGE
+        //ACT 
+        //ASSERT 
+    }
+    @Test
+    @DisplayName("Placeholder")
+    void shouldThrowWhenUpdateRentalEndBeforeStart (){
+        //ARRANGE
+        //ACT 
+        //ASSERT 
+    }
+
+    @Test
+    @DisplayName("Placeholder")
+    void shouldUpdateImageWhenValidFileProvided(){
+        //ARRANGE
+        //ACT 
+        //ASSERT 
+    } 
+
+    @Test
+    @DisplayName("Placeholder")
+    void shouldThrowWhenImageFilenameIsNull(){
+        //ARRANGE
+        //ACT 
+        //ASSERT 
+    }
+
+
+    @Test
+    @DisplayName("Should get All Listings")
     void shouldGetEveryListing(){
         // ARRANGE
         Listing fakeListing = new Listing("fakeId", "testBuddy", new ObjectId(), "full boardgame", "sale", 250,
@@ -556,6 +660,7 @@ class ListingServiceTest {
     }
 
     @Test
+    @DisplayName("Should get Users Listings")
     void shouldGetUsersListings(){
         // ARRANGE
         String fakeToken = "fake-Token";
@@ -592,6 +697,7 @@ class ListingServiceTest {
     }
 
     @Test 
+    @DisplayName("Should get No listings : User does not have any listing")
     void shouldZeroUserListings(){
         //ARRANGE 
         String fakeToken = "fake-Token";
@@ -608,4 +714,40 @@ class ListingServiceTest {
         assertEquals(0,res.size());
     }
 
+    @Test
+    @DisplayName("Should return the Listing") 
+    void shouldGetListingById(){
+        // ARRANGE
+        String listingId = "fake";
+        Listing fakeListing = new Listing(listingId, "fakeUsername", new ObjectId(), "pieces", "sale", 4289,
+    "Pretoria", true, "fakeTitle", Condition.FAIR.getValue(), "Ludo", "Original",
+    "fake description", "", ListingStatus.AVAILABLE,
+            LocalDateTime.now(), LocalDateTime.now(),
+            List.of(Genres.ANCIENT.getValue()), null);
+                    
+        when(listingRepository.findById(listingId)).thenReturn(Optional.of(fakeListing));
+        //ACT 
+        ListingResponse res = listingService.getListingById(listingId);
+
+        // ASSERT 
+        assertNotNull(res);
+        assertEquals("fakeTitle", res.listingTitle());
+        assertEquals("Ludo", res.gameTitle());
+    }
+
+    @Test
+    @DisplayName("Should throw an Exception for: Non existent Id")
+    void shouldThrowWhenIdDoesNotExist(){
+        //ARRANGE 
+
+        String listingId = "fake";
+
+        when(listingRepository.findById(listingId)).thenReturn(Optional.empty());
+
+        //ACT & ASSERT
+        assertThrows(IllegalArgumentException.class,
+        ()-> listingService.getListingById(listingId));
+    }
+
+    
 }
