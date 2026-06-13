@@ -1,7 +1,7 @@
+
 package com.boardwise.backend.marketplace;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -19,7 +19,6 @@ import java.util.Optional;
 
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,7 +27,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.event.annotation.BeforeTestMethod;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.boardwise.backend.marketplace.dtos.listing.ListingRequest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
@@ -43,7 +41,6 @@ import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repos.UserRepository;
 
-import jakarta.validation.constraints.AssertTrue;
 import software.amazon.awssdk.services.s3.S3Client;
 
 @ExtendWith(MockitoExtension.class) // auto create/inject mocks
@@ -434,7 +431,7 @@ class ListingServiceTest {
         fakeRentalPeriod.setEndDate(LocalDate.parse("2030-06-01"));
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "something something something",
-        250, "Ludo", "Pretoria", true, "test.png","original", "like new", "", 
+        250, "Ludo", "Pretoria", true, "test.png","original", "like new", "title", 
         List.of("fakeGenre", "strategy", "negotiation"),null);
 
         //ACT AND ASSERT
@@ -468,7 +465,7 @@ class ListingServiceTest {
         String fakeToken = "Fake-token";
         String listingId = "listing-123";
         ObjectId userId = new ObjectId();
-
+    
         Listing fakeListing = new Listing(listingId, "testBuddy", userId, "full boardgame", "sale", 100, "Pretoria", false, "A title", 
         "like new", "ludo", "version", "description", "fakeimage.png", 
         ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(), 
@@ -521,7 +518,6 @@ class ListingServiceTest {
     @Test 
     void shouldEditListing(){
         // ARRANGE
-
         // ACT
         // ASSERT
     }
@@ -529,14 +525,87 @@ class ListingServiceTest {
     @Test
     void shouldGetEveryListing(){
         // ARRANGE
+        Listing fakeListing = new Listing("fakeId", "testBuddy", new ObjectId(), "full boardgame", "sale", 250,
+        "Pretoria", true, "fake title", "like new", "Ludo", "original",
+        "have you played ludo before?", null, ListingStatus.AVAILABLE,
+        LocalDateTime.now(), LocalDateTime.now(),
+        List.of("adventure", "strategy"), null);
+
+        Listing fakeListing_1 = new Listing("fakeId_2", "SomeoneElse", new ObjectId(), "partial boardgame", "sale", 250,
+        "Pretoria", true, "fake title", "like new", "Ludo", "original",
+        "have you played ludo before?", null, ListingStatus.AVAILABLE,
+        LocalDateTime.now(), LocalDateTime.now(),
+        List.of("adventure", "strategy"), null);
+
+        Listing fakeListing_2 = new Listing("fakeId_3", "anotherPerson", new ObjectId(), "pieces", "sale", 250,
+        "Pretoria", true, "fake title", "like new", "Ludo", "original",
+        "have you played ludo before?", null, ListingStatus.AVAILABLE,
+        LocalDateTime.now(), LocalDateTime.now(),
+        List.of("adventure", "strategy"), null);
+
+        when(listingRepository.findByStatus(ListingStatus.AVAILABLE)).thenReturn(List.of(fakeListing, fakeListing_1, fakeListing_2));
+
+
         // ACT
+        List<ListingResponse> res = listingService.getAllActiveListings();
+
         // ASSERT
+        assertNotNull(res);
+        assertTrue(res.size()>0);
+        assertTrue(res.size() == 3);
     }
 
     @Test
     void shouldGetUsersListings(){
         // ARRANGE
+        String fakeToken = "fake-Token";
+        ObjectId fakeUserId = new ObjectId();
+
+        Listing fakeListing = new Listing("fakeId", "testBuddy", fakeUserId, "full boardgame", "sale", 250,
+        "Pretoria", true, "fake title", "like new", "Ludo", "original",
+        "have you played ludo before?", null, ListingStatus.AVAILABLE,
+        LocalDateTime.now(), LocalDateTime.now(),
+        List.of("adventure", "strategy"), null);
+
+        Listing fakeListing_1 = new Listing("fakeId", "testBuddy", fakeUserId, "partial boardgame", "sale", 250,
+        "Pretoria", true, "fake title", "like new", "Ludo", "original",
+        "have you played ludo before?", null, ListingStatus.AVAILABLE,
+        LocalDateTime.now(), LocalDateTime.now(),
+        List.of("adventure", "strategy"), null);
+
+        Listing fakeListing_2 = new Listing("fakeId", "testBuddy", fakeUserId, "pieces", "sale", 250,
+        "Pretoria", true, "fake title", "like new", "Ludo", "original",
+        "have you played ludo before?", null, ListingStatus.AVAILABLE,
+        LocalDateTime.now(), LocalDateTime.now(),
+        List.of("adventure", "strategy"), null);
+
+        when (jwtService.extractUserId(fakeToken)).thenReturn(fakeUserId);
+        when(listingRepository.findByUserId(fakeUserId)).thenReturn(List.of(fakeListing, fakeListing_1, fakeListing_2));
+        
         // ACT
+        List<ListingResponse> res = listingService.getUserListings(fakeToken);
+
         // ASSERT
+        assertNotNull(res);
+        assertTrue(res.size()>0);
+        assertEquals(3,res.size());
     }
+
+    @Test 
+    void shouldZeroUserListings(){
+        //ARRANGE 
+        String fakeToken = "fake-Token";
+        ObjectId fakeUserId = new ObjectId();
+
+        when(jwtService.extractUserId(fakeToken)).thenReturn(fakeUserId);
+        when(listingRepository.findByUserId(fakeUserId)).thenReturn(List.of());
+        
+        //ACT
+        List<ListingResponse> res = listingService.getUserListings(fakeToken);
+
+        //ASSERT 
+        assertNotNull(res);
+        assertEquals(0,res.size());
+    }
+
 }
