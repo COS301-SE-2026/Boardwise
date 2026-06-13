@@ -52,7 +52,7 @@ public class ListingService {
     private final UserRepository userRepository;
     // private final GameRepository gameRepository;
 
-    private final String defaultImage = "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/default-listing-images/default.png";// in frontend Images
+    private final String defaultImage = "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/default-listing-images/default.png";//on bucket NEVER DELETE
 
     public ListingService(ListingRepository listingRepository, JWTService jwtService, S3Client s3Client, MongoTemplate mongoTemplate, UserRepository userRepository) {
         this.listingRepository = listingRepository;
@@ -148,8 +148,14 @@ public class ListingService {
             throw new IllegalArgumentException("Negative pricing is not allowed");
         }
 
-        
-        String description = truncateAfterWords(req.description().trim(), 500);
+        String description;
+        if(!req.description().isBlank()){
+
+           description = truncateAfterWords(req.description().trim(), 500);
+        }
+        else{
+            throw new IllegalArgumentException();
+        }
 
         String imageUrl;
 
@@ -181,7 +187,7 @@ public class ListingService {
                 throw new IllegalArgumentException("Rental period required for rental listings");
             }
             if (rentalPeriod.size() != 2) {
-                throw new RuntimeException("only 2 dates must be passed in.");
+                throw new IllegalArgumentException("only 2 dates must be passed in.");
             }
             borrowDate = new RentalPeriod();
 
@@ -193,15 +199,15 @@ public class ListingService {
             int comp = start.compareTo(end);
 
             if (comp > 0)
-                throw new RuntimeException("Start date cannot be after End date");
+                throw new IllegalArgumentException("Start date cannot be after End date");
 
             LocalDate today = LocalDate.now();
 
             if (today.compareTo(start) > 0)
-                throw new RuntimeException("Start Date cannot be a past date");
+                throw new IllegalArgumentException("Start Date cannot be a past date");
 
             if (today.compareTo(end) > 0)
-                throw new RuntimeException("End Date cannot be a past date");
+                throw new IllegalArgumentException("End Date cannot be a past date");
 
             borrowDate.setStartDate(start);
             borrowDate.setEndDate(end);
