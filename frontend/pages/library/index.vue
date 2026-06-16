@@ -19,10 +19,6 @@
       <RulebookGrid :rulebooks="filteredRulebooks" @select="openRulebook" class="flex-1-1" />
     </div>
 
-    <BaseModal v-model="showModel">
-      <RulebookDetails v-if="selectedRulebook" :rulebook="selectedRulebook"/>
-    </BaseModal>
-
     <UploadRulebookModal
       v-model="showUpload"
       @add="handleUploadRulebook"
@@ -37,12 +33,10 @@ import { ref, computed, onMounted } from 'vue'
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
-import BaseModal from '~/components/ui/BaseModal.vue'
 
 import RulebookFilterSidebar from '~/components/features/library/RulebookFilterSidebar.vue'
 import RulebookGrid from '~/components/features/library/RulebookGrid.vue'
 import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue'
-import RulebookDetails from '~/components/features/library/RulebookDetail.vue'
 import RulebookSearch from '~/components/features/library/RulebookSearch.vue'
 import UploadRulebookModal from '~/components/features/library/UploadRulebookModal.vue'
 
