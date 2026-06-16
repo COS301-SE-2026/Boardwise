@@ -10,7 +10,7 @@
       />
     </div>
 
-    <RecommendedBooks :rulebooks="recommended" />
+    <RecommendedBooks :rulebooks="recommended" @select ="openRulebook"/>
 
     <SectionTitle title="All Rulebooks" class="mt-8" />
 
@@ -18,6 +18,14 @@
       <RulebookFilterSidebar @filter="handleFilter" />
       <RulebookGrid :rulebooks="filteredRulebooks" @select="openRulebook" class="flex-1-1" />
     </div>
+
+    <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
+  <RulebookDetail
+    v-if="selectedRulebook"
+    :rulebook="selectedRulebook"
+    @close="showDetail = false"
+  />
+</v-navigation-drawer>
 
     <UploadRulebookModal
       v-model="showUpload"
@@ -39,6 +47,7 @@ import RulebookGrid from '~/components/features/library/RulebookGrid.vue'
 import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue'
 import RulebookSearch from '~/components/features/library/RulebookSearch.vue'
 import UploadRulebookModal from '~/components/features/library/UploadRulebookModal.vue'
+import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
 
 import { useLibrary } from '~/composables/useLibrary'
 
@@ -91,7 +100,7 @@ const filteredRulebooks = computed(() =>{
 
 const openRulebook = (rulebook) => {
   selectedRulebook.value = rulebook
-  showModal.value = true
+  showDetail.value = true
 }
 
 const handleSearch = (query) => {

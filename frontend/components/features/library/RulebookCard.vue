@@ -1,6 +1,6 @@
 <template> 
     <BaseCard class="cursor-pointer overflow-hidden pa-0" 
-    @click="navigateTo(`/library/${rulebook.id}`)"> 
+    @click="$emit('click', rulebook)"> 
 
         <BaseImage :src="rulebook.image" :alt="rulebook.title" height="200px" fit="cover" />
 
@@ -24,4 +24,6 @@ import BaseImage from '~/components/ui/BaseImage.vue'
 const props = defineProps({
     rulebook: Object
 })
+
+defineEmits(['click'])
 </script>
