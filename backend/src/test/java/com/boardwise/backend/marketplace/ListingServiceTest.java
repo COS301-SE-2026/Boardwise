@@ -7,11 +7,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,10 +27,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.event.annotation.BeforeTestMethod;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.boardwise.backend.marketplace.dtos.listing.ListingRequest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
@@ -562,58 +567,206 @@ class ListingServiceTest {
     }
 
     @Test   
-    @DisplayName("Placeholder")
+    @DisplayName("Edit Listing should throw Forbbiden when updating a listing you do not own")
     void shouldThrowForbiddenWhenUpdatingListingYouDontOwn(){
+
+        ObjectId  id = new ObjectId();
         //ARRANGE
-        //ACT 
-        //ASSERT 
+        Listing existingListing = new Listing("fakeId", "testBuddy", id, "full boardgame", "sale", 100,
+                "Pretoria", false, "Old title", "like new", "Ludo", "original",
+                "old description", "fakeimage.png", ListingStatus.AVAILABLE,
+                LocalDateTime.now(), LocalDateTime.now(),
+                List.of("adventure", "strategy"), null);
+
+        ObjectId altId = new ObjectId();
+
+        ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "something something something",
+        250, "Ludo", "Pretoria", true, "test.png","original", "like new", "AAAA", 
+        List.of("adventure", "strategy", "negotiation"),null);
+        when(listingRepository.findById("fakeId")).thenReturn(Optional.of(existingListing)); 
+        when(jwtService.extractUserId("fakeToken")).thenReturn(altId);
+        
+        //ACT & ASSERT 
+        assertThrows(ForbiddenException.class, ()->{
+            listingService.updateListing("fakeId", listingRequest, "fakeToken", null);
+        });
     }
 
     @Test
-    @DisplayName("Placeholder")
+    @DisplayName("Edit Listing should throw on updating a nonexistent ")
     void shouldThrowWhenUpdatingNonExistentListing(){
-        //ARRANGE
-        //ACT 
-        //ASSERT 
+        //ARRANGE 
+        ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "something something something",
+        250, "Ludo", "Pretoria", true, "test.png","original", "like new", "AAAA", 
+
+        List.of("adventure", "strategy", "negotiation"),null);
+        when(listingRepository.findById("fakeId")).thenReturn(Optional.empty()); 
+        
+        //ACT & ASSERT 
+        assertThrows(IllegalArgumentException.class, ()->{
+            listingService.updateListing("fakeId", listingRequest, "fakeToken", null);
+        });
     }
 
     @Test
-    @DisplayName("Placeholder")
+    @DisplayName("Edit Listing should throw an IllegalArgumentException on invalid ItemType")
     void shouldThrowForInvalidItemTypeOnUpdate (){
         //ARRANGE
-        //ACT 
-        //ASSERT 
+        String fakeToken = "fake-token";
+        String fakeUsername = "testBuddy";
+        String listingId = "listingId";
+        ObjectId userId = new ObjectId();
+        //RentalPeriod 
+        RentalPeriod rp = new RentalPeriod();
+        rp.setStartDate(LocalDate.now());
+        rp.setEndDate(LocalDate.now().plusDays(60));
+        Listing cmpListing = new Listing(listingId, fakeUsername, userId,"assets", "rental", 3210, "pretoria",
+         false,"MONOPOLY: whole bunch of nonsense", "fair","Monopoly", "Original","some monopoly",defaultIMG,
+         ListingStatus.AVAILABLE, LocalDateTime.now(),  LocalDateTime.now(), List.of(Genres.GAME_SYSTEM.getValue()),rp);
+
+        when(jwtService.extractUserId(fakeToken)).thenReturn(userId);
+        ListingRequest req = new ListingRequest("invalid", "rental", "MONOPOLY: whole bunch of nonsense", 3210, "Monopoly", "pretoria", 
+        false,defaultIMG, "Original","fair", "some monopoly",  
+        List.of(Genres.GAME_SYSTEM.getValue()),List.of(rp.getStartDate().toString(),rp.getEndDate().toString()));
+
+        when(listingRepository.findById(listingId)).thenReturn(Optional.of(cmpListing));
+        //ACT && ASSERT 
+        assertThrows(IllegalArgumentException.class, ()->{
+            listingService.updateListing(listingId, req, fakeToken, null);
+        });
     }
 
     @Test
-    @DisplayName("Placeholder")
+    @DisplayName("Edit Listing should throw an IllegalArgumentException on invalid Genres")
     void shouldThrowForInvalidGenreOnUpdate(){
         //ARRANGE
-        //ACT 
-        //ASSERT 
+        String fakeToken = "fake-token";
+        String fakeUsername = "testBuddy";
+        String listingId = "listingId";
+        ObjectId userId = new ObjectId();
+        //RentalPeriod 
+        RentalPeriod rp = new RentalPeriod();
+        rp.setStartDate(LocalDate.now());
+        rp.setEndDate(LocalDate.now().plusDays(60));
+        Listing cmpListing = new Listing(listingId, fakeUsername, userId,"assets", "rental", 3210, "pretoria",
+         false,"MONOPOLY: whole bunch of nonsense", "fair","Monopoly", "Original","some monopoly",defaultIMG,
+         ListingStatus.AVAILABLE, LocalDateTime.now(),  LocalDateTime.now(), List.of(Genres.GAME_SYSTEM.getValue()),rp);
+
+        when(jwtService.extractUserId(fakeToken)).thenReturn(userId);
+        ListingRequest req = new ListingRequest("assets", "rental", "MONOPOLY: whole bunch of nonsense", 3210, "Monopoly", "pretoria", 
+        false,defaultIMG, "Original","fair", "some monopoly",  
+        List.of("Fake Genre"),List.of(rp.getStartDate().toString(),rp.getEndDate().toString()));
+
+        when(listingRepository.findById(listingId)).thenReturn(Optional.of(cmpListing));
+        //ACT && ASSERT 
+        assertThrows(IllegalArgumentException.class, ()->{
+            listingService.updateListing(listingId, req, fakeToken, null);
+        });
     }
 
     @Test
-    @DisplayName("Placeholder")
+    @DisplayName("Edit Listing should throw if time of rental start is before today")
     void shouldThrowWhenUpdateRentalPeriodHasStartDateInPast(){
         //ARRANGE
-        //ACT 
-        //ASSERT 
-    }
-    @Test
-    @DisplayName("Placeholder")
-    void shouldThrowWhenUpdateRentalEndBeforeStart (){
-        //ARRANGE
-        //ACT 
-        //ASSERT 
+        String fakeToken = "fake-token";
+        String fakeUsername = "testBuddy";
+        String listingId = "listingId";
+        ObjectId userId = new ObjectId();
+        //RentalPeriod 
+        RentalPeriod rp = new RentalPeriod();
+        rp.setStartDate(LocalDate.now());
+        rp.setEndDate(LocalDate.now().plusDays(60));
+        Listing cmpListing = new Listing(listingId, fakeUsername, userId,"assets", "rental", 3210, "pretoria",
+         false,"MONOPOLY: whole bunch of nonsense", "fair","Monopoly", "Original","some monopoly",defaultIMG,
+         ListingStatus.AVAILABLE, LocalDateTime.now(),  LocalDateTime.now(), List.of(Genres.GAME_SYSTEM.getValue()),rp);
+
+        when(jwtService.extractUserId(fakeToken)).thenReturn(userId);
+        ListingRequest req = new ListingRequest("assets", "rental", "MONOPOLY: whole bunch of nonsense", 3210, "Monopoly", "pretoria", 
+        false,defaultIMG, "Original","fair", "some monopoly",  
+        List.of(Genres.GAME_SYSTEM.getValue()),List.of(LocalDate.now().minusDays(55).toString(),LocalDate.now().plusDays(81).toString()));
+
+        when(listingRepository.findById(listingId)).thenReturn(Optional.of(cmpListing));
+        //ACT && ASSERT 
+        assertThrows(IllegalArgumentException.class, ()->{
+            listingService.updateListing(listingId, req, fakeToken, null);
+        });
     }
 
     @Test
-    @DisplayName("Placeholder")
-    void shouldUpdateImageWhenValidFileProvided(){
+    @DisplayName("Edit listings should throw an Illegal argument Exception")
+    void shouldThrowWhenUpdateRentalEndBeforeStart (){
         //ARRANGE
+        String fakeToken = "fake-token";
+        String fakeUsername = "testBuddy";
+        String listingId = "listingId";
+        ObjectId userId = new ObjectId();
+        //RentalPeriod 
+        RentalPeriod rp = new RentalPeriod();
+        rp.setStartDate(LocalDate.now());
+        rp.setEndDate(LocalDate.now().plusDays(60));
+        Listing cmpListing = new Listing(listingId, fakeUsername, userId,"assets", "rental", 3210, "pretoria",
+         false,"MONOPOLY: whole bunch of nonsense", "fair","Monopoly", "Original","some monopoly",defaultIMG,
+         ListingStatus.AVAILABLE, LocalDateTime.now(),  LocalDateTime.now(), List.of(Genres.GAME_SYSTEM.getValue()),rp);
+
+        when(jwtService.extractUserId(fakeToken)).thenReturn(userId);
+        ListingRequest req = new ListingRequest("assets", "rental", "MONOPOLY: whole bunch of nonsense", 3210, "Monopoly", "pretoria", 
+        false,defaultIMG, "Original","fair", "some monopoly",  
+        List.of(Genres.GAME_SYSTEM.getValue()),List.of(rp.getStartDate().toString(),rp.getStartDate().minusDays(5).toString()));
+
+        when(listingRepository.findById(listingId)).thenReturn(Optional.of(cmpListing));
+        //ACT && ASSERT 
+        assertThrows(IllegalArgumentException.class, ()->{
+            listingService.updateListing(listingId, req, fakeToken, null);
+        });
+    }
+
+    @Test
+    @DisplayName("Edit Listing must successfully edit only the image nothing more")
+    void shouldUpdateImageWhenValidFileProvided(){
+//ARRANGE
+        String fakeToken = "fake-token";
+        String fakeUsername = "testBuddy";
+        String listingId = "listingId";
+        ObjectId userId = new ObjectId();
+        String newImageUrl = "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/listingId/newImage.jpg";
+        
+        //RentalPeriod 
+        RentalPeriod rp = new RentalPeriod();
+        rp.setStartDate(LocalDate.now());
+        rp.setEndDate(LocalDate.now().plusDays(60));
+
+        Listing cmpListing = new Listing(listingId, fakeUsername, userId,"assets", "rental", 3210, "pretoria",
+         false,"MONOPOLY: whole bunch of nonsense", "fair","Monopoly", "Original","some monopoly",defaultIMG,
+         ListingStatus.AVAILABLE, LocalDateTime.now(),  LocalDateTime.now(), List.of(Genres.GAME_SYSTEM.getValue()),rp);
+
+        when(jwtService.extractUserId(fakeToken)).thenReturn(userId);
+        
+        MockMultipartFile mockImg = new MockMultipartFile("image", "newImage.jpg", "image/jpeg", new byte[]{1, 2, 3});
+
+    
+        ListingRequest req = new ListingRequest("assets", "rental", "MONOPOLY: whole bunch of nonsense", 3210, "Monopoly", "pretoria",
+        false, defaultIMG, "Original", "fair", "some monopoly", 
+        List.of(Genres.GAME_SYSTEM.getValue()), List.of(rp.getStartDate().toString(), rp.getEndDate().toString()));
+        when(listingRepository.save(any(Listing.class))).thenAnswer(invocation->invocation.getArgument(0));
+        when(listingRepository.findById(listingId)).thenReturn(Optional.of(cmpListing));
+        
+        ListingService spyWithMockito = Mockito.spy(listingService);
+
+        try {
+            doReturn(newImageUrl).when(spyWithMockito).uploadImageToR2(eq(listingId), any(MultipartFile.class));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        
         //ACT 
+        ListingResponse res = spyWithMockito.updateListing(listingId, req, fakeToken, mockImg);
+        ReflectionTestUtils.setField(spyWithMockito, "publicUrl", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/");
+        ReflectionTestUtils.setField(spyWithMockito, "listingsBucket", "test-bucket");
+
         //ASSERT 
+        assertNotNull(res);
+        assertEquals(newImageUrl, res.imageUrl());
+        verify(listingRepository,times(1)).save(any(Listing.class));
     } 
 
     @Test
