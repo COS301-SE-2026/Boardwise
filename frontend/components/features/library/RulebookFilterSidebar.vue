@@ -1,8 +1,6 @@
 <template>
   <BaseFilterSidebar @reset="resetFilters">
 
-    <h3>Filters</h3>
-
     <BaseFilterGroup title="Genres">
       <div
         v-for="genre in genres"
@@ -42,9 +40,20 @@ import { ref, reactive, watch } from 'vue'
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue'
 import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue'
 
+const props = defineProps({
+  rulebooks: {
+    type: Array,
+    default: () => []
+  }
+})
+
 const emit = defineEmits(['filter'])
 
-const genres       = ['All', 'Strategy', 'Family', 'Party', 'Card', 'Abstract']
+const genres = computed(() => {
+  const unique = [...new Set(props.rulebooks.map(r => r.genre))]
+  return ['All', ...unique]
+})
+
 const languages       = ['English', 'Afrikaans', 'Zulu', 'Spanish']
 const selectedGenre  = ref('All')
 const selectedLanguages = ref([])
@@ -56,7 +65,7 @@ const filters = reactive({
 
 watch([selectedGenre, selectedLanguages, filters], () => {
   emit('filter', {
-    category:   selectedGenre.value,
+    genre:   selectedGenre.value,
     conditions: selectedLanguages.value,
     ...filters
   })

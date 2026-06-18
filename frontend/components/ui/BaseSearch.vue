@@ -1,7 +1,7 @@
 <template>
   <v-text-field
     v-bind="$attrs"
-    :model-value="search"
+    :model-value="modelValue"
     :placeholder="placeholder"
     variant="outlined"
     density="compact"

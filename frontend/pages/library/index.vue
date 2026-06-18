@@ -55,7 +55,7 @@ const {rulebooks, isLoading, fetchAllRulebooks} = useLibrary()
 
 const searchQuery = ref('')
 const activeFilters = ref({})
-const showModal = ref(false)
+const showDetail = ref(false)
 const showUpload = ref(false)
 const selectedRulebook = ref(null)
 
@@ -78,7 +78,7 @@ const filteredRulebooks = computed(() =>{
     )
   }
 
-  if (activeFilters.value.genre && activeFilter.value.genre !== 'All') {
+  if (activeFilters.value.genre && activeFilters.value.genre !== 'All') {
     result = result.filter(r => r.genre === activeFilters.value.genre)
   }
 
