@@ -47,8 +47,7 @@ public class ListingController {
             return ResponseEntity.ok().body(listings);
 
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(null);
-
+            return ResponseEntity.internalServerError().body(null);
         }
     }
 
