@@ -780,10 +780,28 @@ class ListingServiceTest {
 
     @Test
     @DisplayName("Edit Listing should throw if updating image is null")
-    void shouldThrowWhenImageFilenameIsNull(){
+    void shouldReplaceImageWhenImageFilenameIsNull(){
         //ARRANGE
-        //ACT 
-        //ASSERT 
+        String listingId = "someListingId";
+        String fakeUsername= "testBuddy";
+        ObjectId  userId = new ObjectId();
+        String token = "fake-token";
+        //RentalPeriod 
+        RentalPeriod rp = new RentalPeriod();
+        rp.setStartDate(LocalDate.now());
+        rp.setEndDate(LocalDate.now().plusDays(60));
+        Listing cmpListing = new Listing(listingId, fakeUsername, userId,"assets", "rental", 3210, "pretoria",
+         false,"MONOPOLY: whole bunch of nonsense", "fair","Monopoly", "Original","some monopoly",defaultIMG,
+         ListingStatus.AVAILABLE, LocalDateTime.now(),  LocalDateTime.now(), List.of(Genres.GAME_SYSTEM.getValue()),rp);
+
+        ListingRequest req = new ListingRequest(token, listingId, listingId, cmpListing.getPrice(), cmpListing.getGameTitle(), cmpListing.getLocation(), cmpListing.getIsNegotiable(),null, cmpListing.getVersion(), cmpListing.getCondition(),
+         cmpListing.getDescription(), cmpListing.getGenres(), List.of(cmpListing.getRentalPeriod().getStartDate().toString(),cmpListing.getRentalPeriod().getEndDate().toString()));
+        when(jwtService.extractUserId(token)).thenReturn(userId);
+        when(listingRepository.findById(listingId)).thenReturn(Optional.of(cmpListing));
+        
+        //ACT & ASSERT 
+        assertThrows(IllegalArgumentException.class, ()->listingService.updateListing(listingId, req, token, null));
+        
     }
 
 
