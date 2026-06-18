@@ -10,6 +10,8 @@
       />
     </div>
 
+  <RulebookCarousel :rulebooks="recommended" @select="openRulebook" />
+
     <RecommendedBooks :rulebooks="recommended" @select ="openRulebook"/>
 
     <SectionTitle title="All Rulebooks" class="mt-8" />
@@ -48,6 +50,7 @@ import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue
 import RulebookSearch from '~/components/features/library/RulebookSearch.vue'
 import UploadRulebookModal from '~/components/features/library/UploadRulebookModal.vue'
 import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
+import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue'
 
 import { useLibrary } from '~/composables/useLibrary'
 

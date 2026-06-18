@@ -1,6 +1,7 @@
 <template>
   <div class="mt-10">
-    <SectionTitle :title="title" />
+    <SectionTitle title="Popular Rulebooks" />
+    
     <div class="d-flex ga-5 overflow-x-auto pb-3 mt-4">
       <RulebookCarouselCard
         v-for="book in rulebooks"
