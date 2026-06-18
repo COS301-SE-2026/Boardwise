@@ -426,6 +426,9 @@ public class ListingService {
                 existing.setImageUrl(defaultImage);
             }
         }
+        else{
+            throw new IllegalArgumentException("image should not be null");
+        }
 
         if (existing.getListingType().equalsIgnoreCase(ListingType.RENTAL.getValue())) {
             if (req.rentalPeriod() != null && !req.rentalPeriod().isEmpty()) {

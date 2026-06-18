@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,6 +30,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.event.annotation.BeforeTestMethod;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -58,6 +62,9 @@ class ListingServiceTest {
     private final String defaultIMG = "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/default-listing-images/default.png";
     @Mock
     private ListingRepository listingRepository; // fake version of ListingRepository
+
+    @Mock
+    private MongoTemplate mongoTemplate;
 
     @Mock
     private JWTService jwtService;
@@ -556,8 +563,10 @@ class ListingServiceTest {
         when(listingRepository.findById(listingId)).thenReturn(Optional.of(existingListing));
         when(listingRepository.save(any(Listing.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
+        MockMultipartFile mockImg = new MockMultipartFile("image", "newImage.jpg", "image/jpeg", new byte[]{1, 2, 3});
+
         // ACT
-        ListingResponse res = listingService.updateListing(listingId, listingRequest, fakeToken, null);
+        ListingResponse res = listingService.updateListing(listingId, listingRequest, fakeToken, mockImg);
         // ASSERT
         assertNotNull(res);
         assertEquals(300, res.price());
@@ -723,7 +732,7 @@ class ListingServiceTest {
     @Test
     @DisplayName("Edit Listing must successfully edit only the image nothing more")
     void shouldUpdateImageWhenValidFileProvided(){
-//ARRANGE
+        //ARRANGE
         String fakeToken = "fake-token";
         String fakeUsername = "testBuddy";
         String listingId = "listingId";
@@ -770,13 +779,200 @@ class ListingServiceTest {
     } 
 
     @Test
-    @DisplayName("Placeholder")
+    @DisplayName("Edit Listing should throw if updating image is null")
     void shouldThrowWhenImageFilenameIsNull(){
         //ARRANGE
         //ACT 
         //ASSERT 
     }
 
+
+    @Test
+    @DisplayName("Filter should return listings filtered by gameTitle")
+    void shouldReturnListingFilteredByGameTitle(){
+        //ARRANGE
+        Listing fakeListing = new Listing("fakeId", "testBuddy", new ObjectId(), "full boardgame", "sale", 250,
+        "Pretoria", true, "fake title", "like new", "Monopoly", "original",
+        "have you played ludo before?", null, ListingStatus.AVAILABLE,
+        LocalDateTime.now(), LocalDateTime.now(),
+        List.of("adventure", "strategy"), null);
+        
+        when(mongoTemplate.count(any(Query.class), eq(Listing.class))).thenReturn(1L);
+        when(mongoTemplate.find(any(Query.class),eq(Listing.class))).thenReturn(List.of(fakeListing));
+
+        //ACT
+        Page<ListingResponse> res = listingService.getByFilter("Monopoly", null, null, null, null, null, null, null, null, null);
+
+        //ASSERT
+        assertNotNull(res);
+        assertEquals(1, res.getTotalElements());
+        assertEquals("Monopoly", res.getContent().get(0).gameTitle());
+    }
+
+    @Test
+    @DisplayName("Filter should return listings filtered by listingTitle")
+    void shouldReturnListingFilteredByListingTitle(){
+        //ARRANGE
+        Listing fakeListing = new Listing("fakeId", "testBuddy", new ObjectId(), "full boardgame", "sale", 250,
+        "Pretoria", true, "fake title", "like new", "Ludo", "original",
+        "have you played ludo before?", null, ListingStatus.AVAILABLE,
+        LocalDateTime.now(), LocalDateTime.now(),
+        List.of("adventure", "strategy"), null);
+        
+        when(mongoTemplate.count(any(Query.class), eq(Listing.class))).thenReturn(1L);
+        when(mongoTemplate.find(any(Query.class),eq(Listing.class))).thenReturn(List.of(fakeListing));
+
+        //ACT
+        Page<ListingResponse> res = listingService.getByFilter(null, "fake", null, null, null, null, null, null, null, null);
+
+        //ASSERT
+        assertNotNull(res);
+        assertEquals(1, res.getTotalElements());
+        assertTrue(res.getContent().get(0).listingTitle().contains("fake"));
+    }
+
+    @Test
+    @DisplayName("Filter should return listings filtered by condition")
+    void shouldReturnListingFilteredByCondition(){
+        //ARRANGE
+        Listing fakeListing = new Listing("fakeId", "testBuddy", new ObjectId(), "full boardgame", "sale", 250,
+        "Pretoria", true, "fake title", "fair", "Ludo", "original",
+        "have you played ludo before?", null, ListingStatus.AVAILABLE,
+        LocalDateTime.now(), LocalDateTime.now(),
+        List.of("adventure", "strategy"), null);
+        
+        RentalPeriod rp  = new RentalPeriod();
+        rp.setStartDate(LocalDate.now().plusDays(50));
+        rp.setEndDate(LocalDate.now().plusDays(51));
+
+        Listing fakeListing_1 = new Listing("fakeId_2", "sumwon", new ObjectId(), "partial boardgame", "rental", 3850,
+        "Pretoria", true, "titles dont have to be unique", "like new", "Ludo", "original",
+        "have you played ludo before?", null, ListingStatus.AVAILABLE,
+        LocalDateTime.now(), LocalDateTime.now(),
+        List.of("adventure", "strategy"),rp);
+        
+        Listing fakeListing_2 = new Listing("fakeId_3", "sumwonElse", new ObjectId(), "full boardgame", "sale", 250,
+        "Pretoria", true, "fake title", "like new", "Ludo", "original",
+        "have you played ludo before?", null, ListingStatus.AVAILABLE,
+        LocalDateTime.now(), LocalDateTime.now(),
+        List.of("adventure", "strategy"), null);
+        
+        when(mongoTemplate.count(any(Query.class), eq(Listing.class))).thenReturn(3L);
+        when(mongoTemplate.find(any(Query.class),eq(Listing.class))).thenReturn(List.of(fakeListing,fakeListing_1, fakeListing_2));
+
+        //ACT
+        Page<ListingResponse> res = listingService.getByFilter(null,null, null, null, null, null,  List.of("fair","like new") ,null, null, null);
+
+        //ASSERT
+        assertNotNull(res);
+        assertEquals(3, res.getTotalElements());
+    }
+  
+    @Test
+    @DisplayName("Filter should return listings filtered by price range")
+    void shouldReturnListingsFilteredByPriceRange(){
+        Listing fakeListing = new Listing("fakeId", "testBuddy", new ObjectId(), "full boardgame", "sale", 150,
+        "Pretoria", true, "fake title", "like new", "Ludo", "original",
+        "have you played ludo before?", null, ListingStatus.AVAILABLE,
+        LocalDateTime.now(), LocalDateTime.now(),
+        List.of("adventure", "strategy"), null);
+
+        when(mongoTemplate.count(any(Query.class), eq(Listing.class))).thenReturn(1L);
+        when(mongoTemplate.find(any(Query.class), eq(Listing.class))).thenReturn(List.of(fakeListing));
+        
+        //ACT
+        Page<ListingResponse> res = listingService.getByFilter(null, null, null, null, 100.0, 200.0, null, null, null, null);
+
+        //ASSERT
+        assertNotNull(res);
+        assertEquals(1, res.getTotalElements());
+        assertTrue(res.getContent().get(0).price() >= 100.0 && res.getContent().get(0).price() <= 200.0);
+    }
+
+    @Test
+    @DisplayName("Filter should return listings filtered by minPrice only")
+    void shouldReturnListingsFilteredByMinPrice(){
+        //ARRANGE
+        Listing fakeListing = new Listing("fakeId", "testBuddy", new ObjectId(), "full boardgame", "sale", 550,
+        "Pretoria", true, "fake title", "like new", "Ludo", "original",
+        "have you played ludo before?", null, ListingStatus.AVAILABLE,
+        LocalDateTime.now(), LocalDateTime.now(),
+        List.of("adventure", "strategy"), null);
+
+        when(mongoTemplate.count(any(Query.class), eq(Listing.class))).thenReturn(1L);
+        when(mongoTemplate.find(any(Query.class), eq(Listing.class))).thenReturn(List.of(fakeListing));
+
+        //ACT
+        Page<ListingResponse> res = listingService.getByFilter(null, null, null, null, 300.0, null, null, null, null, null);
+
+        //ASSERT
+        assertNotNull(res);
+        assertEquals(1, res.getTotalElements());
+        assertTrue(res.getContent().get(0).price() >= 300.0);
+    }
+
+    @DisplayName("Filter should return listings filtered by maxPrice only")
+    void shouldReturnListingsFilteredByMaxPrice(){
+        //ARRANGE
+        Listing fakeListing = new Listing("fakeId", "testBuddy", new ObjectId(), "full boardgame", "sale", 250,
+        "Pretoria", true, "fake title", "like new", "Ludo", "original",
+        "have you played ludo before?", null, ListingStatus.AVAILABLE,
+        LocalDateTime.now(), LocalDateTime.now(),
+        List.of("adventure", "strategy"), null);
+
+        when(mongoTemplate.count(any(Query.class), eq(Listing.class))).thenReturn(1L);
+        when(mongoTemplate.find(any(Query.class), eq(Listing.class))).thenReturn(List.of(fakeListing));
+
+        //ACT
+        Page<ListingResponse> res = listingService.getByFilter(null, null, null, null, null ,500.0, null, null, null, null);
+
+        //ASSERT
+        assertNotNull(res);
+        assertEquals(1, res.getTotalElements());
+        assertTrue(res.getContent().get(0).price() <= 500.0);
+    }
+
+    @Test
+    @DisplayName("Should return paginated listings")
+    void shouldReturnPaginatedListings(){
+        //ARRANGE
+        Listing l1 = new Listing("id1", "testBuddy", new ObjectId(), "full boardgame", "sale", 250,
+        "Pretoria", false, "title1", "like new", "Ludo", "original",
+        "desc", defaultIMG, ListingStatus.AVAILABLE,
+        LocalDateTime.now(), LocalDateTime.now(), List.of(Genres.ADVENTURE.getValue()), null);
+
+        Listing l2 = new Listing("id2", "testBuddy", new ObjectId(), "full boardgame", "sale", 300,
+        "Pretoria", false, "title2", "like new", "Chess", "original",
+        "desc", defaultIMG, ListingStatus.AVAILABLE,
+        LocalDateTime.now(), LocalDateTime.now(), List.of(Genres.ADVENTURE.getValue()), null);
+
+        when(mongoTemplate.count(any(Query.class), eq(Listing.class))).thenReturn(2L);
+        when(mongoTemplate.find(any(Query.class), eq(Listing.class))).thenReturn(List.of(l1, l2));
+        
+        //ACT
+        Page<ListingResponse> res = listingService.getByFilter(null, null, null, null, null, null, null, null, 1, 2);
+
+        //ASSERT
+        assertNotNull(res);
+        assertEquals(2, res.getTotalElements());
+        assertEquals(2, res.getContent().size());
+    }
+
+    @Test 
+    @DisplayName("Filter should return empty page when no listings match filter")
+    void shouldReturnEmptyPageWithNoMatch(){
+        //ARRANGE
+        when(mongoTemplate.count(any(Query.class), eq(Listing.class))).thenReturn(0L);
+        when(mongoTemplate.find(any(Query.class), eq(Listing.class))).thenReturn(List.of());
+
+        //ACT
+        Page<ListingResponse> res = listingService.getByFilter("NonExistentGame", null, null, null, null, null, null, null, null, null);
+
+        //ASSERT
+        assertNotNull(res);
+        assertEquals(0, res.getTotalElements());
+        assertTrue(res.getContent().isEmpty());
+    }
 
     @Test
     @DisplayName("Should get All Listings")
