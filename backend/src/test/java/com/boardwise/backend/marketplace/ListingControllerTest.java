@@ -13,6 +13,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -30,6 +32,8 @@ import com.boardwise.backend.marketplace.service.ListingService;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.repos.TokenBlackListRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
+
+import lombok.With;
 
 @WebMvcTest(ListingController.class)
 public class ListingControllerTest{
@@ -336,5 +340,84 @@ public class ListingControllerTest{
         .with(csrf()))
         .andExpect(status().isInternalServerError());    
     }
+
+    @Test
+    @WithMockUser 
+    @DisplayName("GET user listings returns 200 OK")
+    public void getUserListingsReturns_200() throws Exception{
+        //ARRANGE
+        when(listingService.getUserListings(any())).thenReturn(List.of(buildDefaultResponse()));
+
+        //ACT & ASSERT
+        mockMvc.perform(get("/api/marketplace/listings/user").header("Authorization", "Bearer fake")).andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET user listings returns 204 No Content")
+    public void getUserListingsReturns_204() throws Exception{
+        //ARRANGE 
+        when(listingService.getUserListings(any())).thenReturn(List.of());
+        //ACT & ASSERT
+        mockMvc.perform(get("/api/marketplace/listings/user").header("Authorization", "Bearer fake")).andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET user listings returns 500 Internal Server Error")
+    public void getUserListingsReturns_500() throws Exception{
+        //ARRANGE 
+        when(listingService.getUserListings(any())).thenThrow(new RuntimeException());
+        //ACT & ASSERT
+        mockMvc.perform(get("/api/marketplace/listings/user")
+        .header("Authorization", "Bearer fake"))
+        .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET filtered listings 200 OK")
+    public void getFilteredListingsReturns_200() throws Exception{
+        //ARRANGE   
+        Page<ListingResponse> page = new PageImpl(List.of(buildDefaultResponse()));
+
+        when(listingService.getByFilter(any(), any(), any(), any(), any(),
+            any(),any(), any(),any(), any())).thenReturn(page);
+        
+        //ACT & ASSERT
+
+        mockMvc.perform(get("/api/marketplace/listings/search")).andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET filtered listings 204 No Content")
+    public void getFilteredListingsReturns_204() throws Exception{
+        //ARRANGE   
+        Page<ListingResponse> page = new PageImpl(List.of());
+
+        when(listingService.getByFilter(any(), any(), any(), any(), any(),
+            any(),any(), any(),any(), any())).thenReturn(page);
+        
+        //ACT & ASSERT
+
+        mockMvc.perform(get("/api/marketplace/listings/search")).andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET filtered listings 500 Internal Server Error")
+    public void getFilteredListingsReturns_500() throws Exception{
+        //ARRANGE   
+        Page<ListingResponse> page = new PageImpl(List.of());
+
+        when(listingService.getByFilter(any(), any(), any(), any(), any(),
+            any(),any(), any(),any(), any())).thenThrow(new RuntimeException());
+        
+        //ACT & ASSERT
+        mockMvc.perform(get("/api/marketplace/listings/search")).andExpect(status().isInternalServerError());
+    }
+    
+
 
 }
