@@ -1,34 +1,25 @@
 package com.boardwise.backend.marketplace;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.jackson.autoconfigure.JacksonProperties.Json;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.client.RestTestClient;
-import org.springframework.web.client.HttpServerErrorException.InternalServerError;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import com.boardwise.backend.marketplace.enums.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import com.boardwise.backend.marketplace.controller.ListingController;
+import com.boardwise.backend.marketplace.dtos.listing.ListingRequest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
 import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.marketplace.enums.ListingStatus;
@@ -39,6 +30,8 @@ import com.boardwise.backend.user_service.repos.UserRepository;
 
 @WebMvcTest(ListingController.class)
 public class ListingControllerTest{
+
+    private final String defaultIMG = "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/default-listing-images/default.png";
 
     @MockitoBean
     private JWTService jwtService;
@@ -65,7 +58,7 @@ public class ListingControllerTest{
         "partial boardgame",
         "sale", 
         24673.0, 
-        "Some monoply assets ",
+        "Some monopoly assets ",
         null,
         "Pretoria",
         true,
@@ -77,6 +70,23 @@ public class ListingControllerTest{
         LocalDateTime.now(),
         ListingStatus.AVAILABLE
         );
+    }
+
+    private ListingRequest buildDefaultRequest(){
+        return new ListingRequest(
+            "full boardGame",
+            "sale",
+            "some listingTitle",
+            2468.2,
+            "Monopoly",
+            "Boksburg", 
+            true, 
+            defaultIMG,
+            "original",
+            "like new", 
+            "some description",
+            List.of(Genres.DICE.getValue()), 
+            null);
     }
 
     @Test
@@ -124,4 +134,77 @@ public class ListingControllerTest{
         //ACT & ASSERT
         mockMvc.perform(get("/api/marketplace/listing/someListingId")).andExpect(status().isOk());
     }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /listing returns 200")
+    public void getSpecificListingReturns_404() throws Exception{
+        // ARRANGE
+        String fakeListingId = "someListingId";
+        when(listingService.getListingById(fakeListingId)).thenThrow(IllegalArgumentException.class);
+
+        //ACT & ASSERT
+        mockMvc.perform(get("/api/marketplace/listing/someListingId")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /listing returns 500")
+    public void getSpecificListingReturns_500() throws Exception{
+        // ARRANGE
+        String fakeListingId = "someListingId";
+        when(listingService.getListingById(fakeListingId)).thenThrow(new RuntimeException());
+
+        //ACT & ASSERT
+        mockMvc.perform(get("/api/marketplace/listing/someListingId")).andExpect(status().is5xxServerError());
+    }
+
+
+    @Test
+    @WithMockUser
+    @DisplayName("POST /listings shoud return 200")
+    public void postCreateListingReturns_200() throws Exception{
+        //ARRANGE
+        MockMultipartFile image = new MockMultipartFile("image", "picture.png", "image/png", new byte[]{1,2,3});
+        MockMultipartFile data = new MockMultipartFile("data", "", "application/json",
+        "{\"itemType\":\"full boardGame\",\"listingType\":\"sale\",\"listingTitle\":\"some listingTitle\",\"price\":2468.2,\"gameTitle\":\"Monopoly\",\"location\":\"Boksburg\",\"isNegotiable\":true,\"imageUrl\":\"fake\",\"version\":\"original\",\"condition\":\"like new\",\"description\":\"some description\",\"genres\":[\"dice\"],\"rentalPeriod\":null}".getBytes());
+
+        when(listingService.createListing(any(), any(), any())).thenReturn(buildDefaultResponse());
+
+        //ACT & ASSERT
+        mockMvc.perform(multipart("/api/marketplace/listings").file(image).file(data).header("Authorization", "Bearer fake").with(csrf())).andExpect(status().isOk());        
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("POST /listings should return 403 BAD REQUEST")
+    public void postCreateListingReturns_403() throws Exception{
+        //ARRANGE
+        MockMultipartFile image = new MockMultipartFile("image", "picture.png", "image/png", new byte[]{1,2,3});
+        MockMultipartFile data = new MockMultipartFile("data", "", "application/json",
+        "{\"itemType\":\"full boardGame\",\"listingType\":\"sale\",\"listingTitle\":\"some listingTitle\",\"price\":2468.2,\"gameTitle\":\"Monopoly\",\"location\":\"Boksburg\",\"isNegotiable\":true,\"imageUrl\":\"fake\",\"version\":\"original\",\"condition\":\"like new\",\"description\":\"some description\",\"genres\":[\"dice\"],\"rentalPeriod\":null}".getBytes());
+
+        when(listingService.createListing(any(), any(), any())).thenThrow(IllegalArgumentException.class);
+
+        //ACT & ASSERT
+        mockMvc.perform(multipart("/api/marketplace/listings").file(image).file(data).header("Authorization", "Bearer fake").with(csrf())).andExpect(status().isBadRequest());        
+    }
+
+
+    @Test
+    @WithMockUser
+    @DisplayName("POST /listings should return 500 INTERNAL SERVER ERROR")
+    public void postCreateListingReturns_500() throws Exception{
+        //ARRANGE
+        MockMultipartFile image = new MockMultipartFile("image", "picture.png", "image/png", new byte[]{1,2,3});
+        MockMultipartFile data = new MockMultipartFile("data", "", "application/json",
+        "{\"itemType\":\"full boardGame\",\"listingType\":\"sale\",\"listingTitle\":\"some listingTitle\",\"price\":2468.2,\"gameTitle\":\"Monopoly\",\"location\":\"Boksburg\",\"isNegotiable\":true,\"imageUrl\":\"fake\",\"version\":\"original\",\"condition\":\"like new\",\"description\":\"some description\",\"genres\":[\"dice\"],\"rentalPeriod\":null}".getBytes());
+
+        when(listingService.createListing(any(), any(), any())).thenThrow(RuntimeException.class);
+
+        //ACT & ASSERT
+        mockMvc.perform(multipart("/api/marketplace/listings").file(image).file(data).header("Authorization", "Bearer fake").with(csrf())).andExpect(status().isInternalServerError()); 
+    }
+
+
 }

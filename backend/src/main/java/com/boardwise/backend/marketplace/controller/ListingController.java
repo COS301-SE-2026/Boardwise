@@ -59,7 +59,6 @@ public class ListingController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().body(null);
         }
     }
@@ -76,7 +75,6 @@ public class ListingController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(null);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().body(null);
         }
     }
@@ -92,13 +90,10 @@ public class ListingController {
             ListingResponse updated = listingService.updateListing(listingId, req, token.replace("Bearer ", ""), img);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
-            System.err.println("UPDATE ERROR: " + e.getClass().getName() + ": " + e.getMessage());
             return ResponseEntity.notFound().build();
         } catch (ForbiddenException e) {
-            System.err.println("Forbidden Exception -- UPDATE ERROR: " + e.getClass().getName() + ": " + e.getMessage());
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (Exception e) {
-            System.err.println("UPDATE ERROR: " + e.getClass().getName() + ": " + e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -135,7 +130,6 @@ public class ListingController {
             return ResponseEntity.ok(listings);
 
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().body(null);
         }
     }
