@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class RulebookController {
     private final RulebookService rulebookService;
 
-    // VC-002: List / Search Rulebooks
+    // AC-VLT-02: List / Search Rulebooks
     @GetMapping
     public ResponseEntity<Page<RulebookResponseDto>> listRulebooks(
         @RequestParam(defaultValue = "") String search,
@@ -34,7 +34,7 @@ public class RulebookController {
             );
     }
 
-    // VC-003: Get Rulebook Detail
+    // AC-VLT-03: Get Rulebook Detail
     @GetMapping("/{id}")
     public ResponseEntity<RulebookResponseDto> getRulebook(
         @PathVariable String id) {
@@ -43,7 +43,7 @@ public class RulebookController {
             );
     }
 
-    // VC-005: Get Rulebook Text State
+    // AC-VLT-05: Get Rulebook Text State
     @GetMapping("/{id}/text")
     public ResponseEntity<RulebookTextResponseDto> getRulebookText(
             @PathVariable String id) {
@@ -51,7 +51,7 @@ public class RulebookController {
                 rulebookService.getRulebookText(toObjectId(id)));
     }
 
-    // VC-004: Download Raw PDF
+    // AC-VLT-04: Download Raw PDF
     @GetMapping("/{id}/download")
     public ResponseEntity<DownloadUrlResponseDto> downloadRulebook(
             @PathVariable String id) {
