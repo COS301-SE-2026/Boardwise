@@ -1,6 +1,8 @@
 package com.boardwise.backend.marketplace;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
@@ -281,6 +283,58 @@ public class ListingControllerTest{
             request.setMethod("PATCH"); 
             return request;}))
         .andExpect(status().isForbidden());        
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("DELETE returns 204 No Content")
+    public void deleteListingReturns_204() throws Exception{
+        //ARRANGE
+        doNothing().when(listingService).deleteListing(any(), any());
+        //ACT & ASSERT
+        mockMvc.perform(delete("/api/marketplace/listing/someId")
+        .header("Authorization", "Bearer fake")
+        .with(csrf()))
+        .andExpect(status().isNoContent());        
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("DELETE returns 404 NOT FOUND")
+    public void deleteListingReturns_404() throws Exception{
+        //ARRANGE
+        doThrow(new IllegalArgumentException()).when(listingService).deleteListing(any(),any());
+        //ACT & ASSERT
+        mockMvc.perform(delete("/api/marketplace/listing/someId")
+        .header("Authorization", "Bearer fake")
+        .with(csrf()))
+        .andExpect(status().isNotFound());    
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("DELETE returns 403 FORBIDDEN")
+    public void deleteListingReturns_403() throws Exception{
+        //ARRANGE
+        doThrow(new ForbiddenException("err")).when(listingService).deleteListing(any(),any());
+        //ACT & ASSERT
+        mockMvc.perform(delete("/api/marketplace/listing/someId")
+        .header("Authorization", "Bearer fake")
+        .with(csrf()))
+        .andExpect(status().isForbidden());    
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("DELETE returns 500 Internal Server Error")
+    public void deleteListingReturns_500() throws Exception{
+        //ARRANGE
+        doThrow(new RuntimeException()).when(listingService).deleteListing(any(),any());
+        //ACT & ASSERT
+        mockMvc.perform(delete("/api/marketplace/listing/someId")
+        .header("Authorization", "Bearer fake")
+        .with(csrf()))
+        .andExpect(status().isInternalServerError());    
     }
 
 }
