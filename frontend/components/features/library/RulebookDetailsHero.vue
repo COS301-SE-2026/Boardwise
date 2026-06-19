@@ -1,31 +1,29 @@
 <template>
-  <v-row class="mt-12" align="start">
+  <div class="d-flex flex-column ga-6">
 
-    <v-col cols="12" md="4">
-      <div style="position: sticky; top: 100px;">
-        <BaseImage
-          :src="rulebook.image"
-          :alt="rulebook.title"
-          height="480px"
-          fit="cover"
-          style="border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.15);"
-        />
-      </div>
-    </v-col>
+    <BaseImage 
+      :src="rulebook.coverImage" 
+      :alt="rulebook.title" 
+      width="200px"
+      height="200px"
+      fit="cover"
+      style="border-radius: 16px;"
+    />
 
-    <v-col cols="12" md="8">
-      <div class="d-flex flex-column ga-7">
-        <RulebookMeta :rulebook="rulebook" />
-        <RulebookDescription :rulebook="rulebook" />
-        <RulebookActions :rulebook="rulebook" />
-      </div>
-    </v-col>
-
-  </v-row>
+    <RulebookMeta :rulebook="rulebook" />
+    <RulebookDescription :rulebook="rulebook" />
+    <RulebookActions :rulebook="rulebook" />
+    <RulebookYouMightLike 
+      :rulebooks="rulebooks" 
+      :current-id="rulebook.id"
+      @select="$emit('select', $event)"
+    />
+  </div>
 </template>
 
 <script setup>
 import BaseImage from '~/components/ui/BaseImage.vue'
+import RulebookYouMightLike from './RulebookYouMightLike.vue'
 import RulebookMeta from './RulebookMeta.vue'
 import RulebookDescription from './RulebookDescription.vue'
 import RulebookActions from './RulebookActions.vue'
@@ -34,6 +32,13 @@ defineProps({
   rulebook: {
     type: Object,
     required: true
+  },
+
+  rulebooks: {
+    type: Array,
+    default: () => []
   }
 })
+
+defineEmits(['select'])
 </script>

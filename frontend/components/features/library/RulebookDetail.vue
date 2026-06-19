@@ -5,7 +5,11 @@
         Close
       </BaseButton>
     </div>
-    <RulebookDetailsHero :rulebook="rulebook" />
+    <RulebookDetailsHero 
+      :rulebook="rulebook" 
+      :rulebooks="rulebooks"
+      @select="$emit('select', $event)"
+    />
   </div>
 </template>
 
@@ -17,8 +21,13 @@ defineProps({
   rulebook: {
     type: Object,
     required: true
+  },
+
+  rulebooks: {
+    type: Array,
+    default: () => []
   }
 })
 
-defineEmits(['close'])
+defineEmits(['select', 'close'])
 </script>

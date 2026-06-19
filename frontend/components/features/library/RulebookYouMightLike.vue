@@ -33,7 +33,7 @@ import { computed } from 'vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
 
 const props = defineProps({
-    rulebook: {
+    rulebooks: {
         type: Array,
         default: () => []
     },
@@ -46,7 +46,7 @@ const props = defineProps({
 defineEmits(['select'])
 
 const suggestions = computed(() => {
-    props.rulebooks
+    return props.rulebooks
         .filter(rb => rb.id !== props.currentId)
         .slice(0, 3)
 })

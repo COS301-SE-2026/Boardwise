@@ -21,7 +21,7 @@ const props = defineProps({
 })
 
 const goToMarketplace = () => {
-  navigateTo('/marketplace00')
+  navigateTo('/marketplace')
 }
 
 const goToReader = () => {

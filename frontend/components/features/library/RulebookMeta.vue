@@ -1,36 +1,31 @@
 <template>
-  <div class="d-flex flex-column ga-3">
-    <p class="text-caption text-uppercase font-weight-bold text-primary mb-0">
-      {{ rulebook.genre }}
-    </p>
-    <h1 class="text-h3 font-weight-bold" style="line-height: 1.1;">
+  <div class="d-flex flex-column ga-1">
+    <h2 class="text-h5 font-weight-bold mb-1">
       {{ rulebook.title }}
-    </h1>
-    <div class="d-flex flex-wrap ga-2 mt-2">
-      <v-chip size="small" variant="tonal">
-        {{ rulebook.players }}
-      </v-chip>
+    </h2>
 
-      <v-chip size="small" variant="tonal">
-        {{ rulebook.duration }}
-      </v-chip>
+    <p class="text-body-2 text-medium-emphasis mb-0">
+      Author: {{ rulebook.author || 'Unknown' }}
+    </p>
 
-      <v-chip size="small" variant="tonal">
-        Age {{ rulebook.age }}
-      </v-chip>
+    <p class="text-body-2 text-medium-emphasis mb-0">
+      Date of Issue: {{ formattedDate }}
+    </p>
 
-      <v-chip size="small" variant="tonal">
-        {{ rulebook.difficulty }}
-      </v-chip>
-    </div>
   </div>
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   rulebook: {
     type: Object,
     required: true
   }
+})
+
+const formattedDate = computed(() => {
+  return props.rulebook.uploadedAt ? new Date(props.rulebook.uploadedAt).toLocaleDateString() : 'Unknown'
 })
 </script>

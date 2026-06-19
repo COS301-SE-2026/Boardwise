@@ -10,24 +10,27 @@
       />
     </div>
 
-  <RulebookCarousel :rulebooks="recommended" @select="openRulebook" />
+  <RulebookCarousel :rulebooks="rulebooks" @select="openRulebook" />
 
-    <RecommendedBooks :rulebooks="recommended" @select ="openRulebook"/>
+  <RecommendedBooks :rulebooks="recommended" @select ="openRulebook"/>
 
-    <SectionTitle title="All Rulebooks" class="mt-8" />
+  <SectionTitle title="All Rulebooks" class="mt-8" />
 
-     <div class="d-flex ga-6 align-start">
-      <RulebookFilterSidebar @filter="handleFilter" />
-      <RulebookGrid :rulebooks="filteredRulebooks" @select="openRulebook" class="flex-1-1" />
-    </div>
+    <div class="d-flex ga-6 align-start">
+    <RulebookFilterSidebar :rulebooks="rulebooks" @filter="handleFilter" />
+    <RulebookGrid :rulebooks="filteredRulebooks" @select="openRulebook" class="flex-1-1" />
+  </div>
 
-    <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
-  <RulebookDetail
-    v-if="selectedRulebook"
-    :rulebook="selectedRulebook"
-    @close="showDetail = false"
-  />
-</v-navigation-drawer>
+  <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
+    <RulebookDetail
+      v-if="selectedRulebook"
+      :rulebook="selectedRulebook"
+      :rulebooks="rulebooks"
+      @select="openRulebook"
+      @close="showDetail = false"
+    />
+
+  </v-navigation-drawer>
 
     <UploadRulebookModal
       v-model="showUpload"
