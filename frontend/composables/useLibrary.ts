@@ -51,12 +51,26 @@ export const useLibrary = () => {
         }
     }
 
+    const rulebookText = ref<any>(null)
+
+    const fetchRulebookText = async (id: string) => {
+        try {
+            const response = await LibraryService.getRulebookText(id)
+            rulebookText.value = response.data
+        } catch (err: any) {
+            console.error(`Failed to fetch rulebook text ${id}:`, err)
+            rulebookText.value = null
+        }
+    }
+
     return {
         token,
         error,
         isLoading,
         rulebooks,
+        rulebookText,
         fetchAllRulebooks,
-        fetchRulebookById
+        fetchRulebookById,
+        fetchRulebookText
     }
 }

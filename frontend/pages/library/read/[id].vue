@@ -1,5 +1,13 @@
 <template>
-  <ReaderLayout v-if="rulebook" :rulebook="rulebook" />
+  <ReaderLayout 
+    v-if="currentRulebook" 
+    :rulebook="currentRulebook"
+    :chunks="rulebookText?.chunks ?? []" 
+  />
+
+  <div v-else-if="isLoading" class="d-flex justify-center align-center" style="height: 60vh;">
+    <v-progress-circular indeterminate color="primary" />
+  </div>
 
   <v-empty-state
     v-else
@@ -15,14 +23,23 @@
 </template>
 
 <script setup>
-import { rulebooks } from '~/services/mockData/rulebooks.js'
+import { useLibrary } from '~/composables/useLibrary'
 import ReaderLayout from '~/components/features/library/ReaderLayout.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 
 const route = useRoute()
 const router = useRouter()
 
-const rulebook = computed(() =>
-  rulebooks.find(item => item.id === Number(route.params.id))
-)
+const {
+  currentRulebook,
+  rulebookText,
+  isLoading,
+  fetchRulebookById,
+  fetchRulebookText
+} = useLibrary()
+
+onMounted(async () => {
+  await fetchRulebookById(route.params.id)
+  await fetchRulebookText(route.params.id)
+})
 </script>

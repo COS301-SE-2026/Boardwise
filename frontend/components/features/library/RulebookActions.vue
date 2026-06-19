@@ -25,6 +25,6 @@ const goToMarketplace = () => {
 }
 
 const goToReader = () => {
-  navigateTo('library/${props.rulebook.id}/read')
+  navigateTo(`/library/read/${props.rulebook.id}`)
 }
 </script>

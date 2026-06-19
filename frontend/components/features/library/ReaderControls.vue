@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex gap-3 mb-5">
+  <div class="d-flex ga-3 mb-5">
     <BaseButton variant="secondary">
       Previous
     </BaseButton>

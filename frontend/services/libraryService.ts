@@ -14,5 +14,9 @@ export const LibraryService = {
 
     getRulebookById(id: string){
         return api.get(`vault/rulebooks/${id}`)
+    },
+
+    getRulebookText(id: string) {
+        return api.get(`vault/rulebooks/${id}/text`)
     }
 }
