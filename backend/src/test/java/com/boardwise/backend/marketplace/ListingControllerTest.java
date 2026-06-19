@@ -23,6 +23,7 @@ import com.boardwise.backend.marketplace.dtos.listing.ListingRequest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
 import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.marketplace.enums.ListingStatus;
+import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.marketplace.service.ListingService;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.repos.TokenBlackListRepository;
@@ -162,7 +163,7 @@ public class ListingControllerTest{
 
     @Test
     @WithMockUser
-    @DisplayName("POST /listings shoud return 200")
+    @DisplayName("POST /listings should return 200")
     public void postCreateListingReturns_200() throws Exception{
         //ARRANGE
         MockMultipartFile image = new MockMultipartFile("image", "picture.png", "image/png", new byte[]{1,2,3});
@@ -203,8 +204,83 @@ public class ListingControllerTest{
         when(listingService.createListing(any(), any(), any())).thenThrow(RuntimeException.class);
 
         //ACT & ASSERT
-        mockMvc.perform(multipart("/api/marketplace/listings").file(image).file(data).header("Authorization", "Bearer fake").with(csrf())).andExpect(status().isInternalServerError()); 
+        mockMvc.perform(multipart("/api/marketplace/listings")
+        .file(image)
+        .file(data)
+        .with(csrf())
+        .with(request->{
+            request.setMethod("PATCH"); 
+            return request;})
+        .header("Authorization", "Bearer fake"))
+        .andExpect(status().isInternalServerError());
     }
 
+    @Test
+    @WithMockUser 
+    @DisplayName("PATCH /listing/{id} should return 200 OK")
+    public void patchUpdateListingReturns_200() throws Exception{
+        //ARRANGE
+        MockMultipartFile image = new MockMultipartFile("image", "picture.png", "image/png", new byte[]{1,2,3});
+        MockMultipartFile data = new MockMultipartFile("data", "", "application/json",
+        "{\"itemType\":\"full boardGame\",\"listingType\":\"sale\",\"listingTitle\":\"some listingTitle\",\"price\":2468.2,\"gameTitle\":\"Monopoly\",\"location\":\"Boksburg\",\"isNegotiable\":true,\"imageUrl\":\"fake\",\"version\":\"original\",\"condition\":\"like new\",\"description\":\"some description\",\"genres\":[\"dice\"],\"rentalPeriod\":null}".getBytes());
+
+        when(listingService.updateListing(any(),any(), any(), any())).thenReturn(buildDefaultResponse());
+
+        //ACT & ASSERT
+        mockMvc.perform(multipart("/api/marketplace/listing/someListingId")
+        .file(image)
+        .file(data)
+        .with(csrf())
+        .with(request->{
+            request.setMethod("PATCH"); 
+            return request;})
+        .header("Authorization", "Bearer fake")).andExpect(status().isOk());        
+    }
+    
+    @Test
+    @WithMockUser 
+    @DisplayName("PATCH /listing/{id} should return 404 NOT FOUND")
+    public void patchUpdateListingReturns_404() throws Exception{
+        //ARRANGE
+        MockMultipartFile image = new MockMultipartFile("image", "picture.png", "image/png", new byte[]{1,2,3});
+        MockMultipartFile data = new MockMultipartFile("data", "", "application/json",
+        "{\"itemType\":\"full boardGame\",\"listingType\":\"sale\",\"listingTitle\":\"some listingTitle\",\"price\":2468.2,\"gameTitle\":\"Monopoly\",\"location\":\"Boksburg\",\"isNegotiable\":true,\"imageUrl\":\"fake\",\"version\":\"original\",\"condition\":\"like new\",\"description\":\"some description\",\"genres\":[\"dice\"],\"rentalPeriod\":null}".getBytes());
+
+        when(listingService.updateListing(any(),any(), any(), any())).thenThrow(new IllegalArgumentException());
+
+        //ACT & ASSERT
+        mockMvc.perform(multipart("/api/marketplace/listing/someListingId")
+        .file(image)
+        .file(data)
+        .header("Authorization", "Bearer fake")
+        .with(csrf()) 
+        .with(request->{
+            request.setMethod("PATCH"); 
+            return request;})
+        ).andExpect(status().isNotFound());        
+    }
+
+    @Test
+    @WithMockUser 
+    @DisplayName("PATCH /listing/{id} should return 403 FORBIDDEN")
+    public void patchUpdateListingReturns_403() throws Exception{
+        //ARRANGE
+        MockMultipartFile image = new MockMultipartFile("image", "picture.png", "image/png", new byte[]{1,2,3});
+        MockMultipartFile data = new MockMultipartFile("data", "", "application/json",
+        "{\"itemType\":\"full boardGame\",\"listingType\":\"sale\",\"listingTitle\":\"some listingTitle\",\"price\":2468.2,\"gameTitle\":\"Monopoly\",\"location\":\"Boksburg\",\"isNegotiable\":true,\"imageUrl\":\"fake\",\"version\":\"original\",\"condition\":\"like new\",\"description\":\"some description\",\"genres\":[\"dice\"],\"rentalPeriod\":null}".getBytes());
+
+        when(listingService.updateListing(any(),any(), any(), any())).thenThrow(new ForbiddenException("err"));
+
+        //ACT & ASSERT
+        mockMvc.perform(multipart("/api/marketplace/listing/someListingId")
+        .file(image)
+        .file(data)
+        .header("Authorization", "Bearer fake")
+        .with(csrf())
+        .with(request->{
+            request.setMethod("PATCH"); 
+            return request;}))
+        .andExpect(status().isForbidden());        
+    }
 
 }
