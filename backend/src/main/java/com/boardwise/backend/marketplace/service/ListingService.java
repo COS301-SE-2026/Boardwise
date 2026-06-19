@@ -457,6 +457,9 @@ public class ListingService {
                 existing.setRentalPeriod(borrowDate);
             }
         }
+        else{ //Sale listing
+            existing.setRentalPeriod(null);// better to just always set it to null just incase
+        }
 
         if (!existing.getVersion().equals(req.version())) {
             // TODO:implement check to see if version is alr on db or add it to db
