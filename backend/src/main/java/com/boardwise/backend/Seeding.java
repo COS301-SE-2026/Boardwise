@@ -28,10 +28,12 @@ import com.boardwise.backend.user_service.repos.UserRepository;
 import com.boardwise.backend.vault.model.EditEvent;
 import com.boardwise.backend.vault.model.IngestionJob;
 import com.boardwise.backend.vault.model.Rulebook;
+import com.boardwise.backend.vault.model.RulebookText;
 import com.boardwise.backend.vault.model.WriteLock;
 import com.boardwise.backend.vault.repository.EditEventRepository;
 import com.boardwise.backend.vault.repository.IngestionJobRepository;
 import com.boardwise.backend.vault.repository.RulebookRepository;
+import com.boardwise.backend.vault.repository.RulebookTextRepository;
 import com.boardwise.backend.vault.repository.WriteLockRepository;
 
 @Component
@@ -40,7 +42,7 @@ public class Seeding {
     @Bean
     public CommandLineRunner seedDB(ListingRepository listingRepository, BoardGameRepository boardGameRepository, GroupMembershipRepository groupMembershipRepository,
             GroupRepository groupRepository, UserRepository userRepository, EditEventRepository editEventRepository,
-            IngestionJobRepository ingestionJobRepository, RulebookRepository rulebookRepository,
+            IngestionJobRepository ingestionJobRepository, RulebookRepository rulebookRepository, RulebookTextRepository rulebookTextRepository,
             WriteLockRepository writeLockRepository) {
         return args -> {
             // User Repository
@@ -169,6 +171,78 @@ public class Seeding {
                                 .uploadedAt(Instant.now()).updatedAt(Instant.now()).build());
                 rulebookRepository.saveAll(rulebooks);
                 System.out.println("Seeded " + rulebooks.size() + " rulebooks");
+
+                // Rulebook Text
+                List<RulebookText> rulebookTexts = List.of(
+                        RulebookText.builder().rulebookId(rulebooks.get(0).getId()).content("Objective: Bankrupt all opposing players by acquiring, developing, and trading real estate properties.\n" + //
+                                                                "\n" + //
+                                                                "Turn Structure:\n" + //
+                                                                "\n" + //
+                                                                "Roll two six-sided dice and move your token clockwise.\n" + //
+                                                                "\n" + //
+                                                                "Resolve the effect of the landed space (purchase unowned property, pay rent to the owner, draw a Chance/Community Chest card, pay taxes, or go to Jail).\n" + //
+                                                                "\n" + //
+                                                                "Rolling doubles grants an additional turn; rolling three consecutive doubles sends you immediately to Jail.\n" + //
+                                                                "\n" + //
+                                                                "Key Mechanics: Owning a complete color set allows for the construction of houses and hotels, significantly increasing rent. Properties can be mortgaged to the bank for emergency liquidity.\n" + //
+                                                                "\n" + //
+                                                                "End Game: The game concludes when only one player remains solvent.").version(rulebooks.get(0).getVersion()).updatedAt(rulebooks.get(0).getUpdatedAt()).build(),
+                        RulebookText.builder().rulebookId(rulebooks.get(1).getId()).content("Objective: Accumulate the highest score by spelling interlocking, valid dictionary words on a grid.\n" + //
+                                                                "\n" + //
+                                                                "Turn Structure:\n" + //
+                                                                "\n" + //
+                                                                "Choose one action: Place tiles to form/extend a word, exchange any number of tiles, or pass.\n" + //
+                                                                "\n" + //
+                                                                "Calculate the score of the newly formed word(s) using individual letter values and board multipliers (Double/Triple Letter or Word squares).\n" + //
+                                                                "\n" + //
+                                                                "Draw replacement tiles from the bag to restore your rack to exactly seven tiles.\n" + //
+                                                                "\n" + //
+                                                                "Key Mechanics: Playing all seven tiles in a single turn awards a 50-point bonus (a \"Bingo\").\n" + //
+                                                                "\n" + //
+                                                                "End Game: The game ends when the tile bag is empty and one player clears their rack, or when no further valid plays are possible.").version(rulebooks.get(1).getVersion()).updatedAt(rulebooks.get(1).getUpdatedAt()).build(),
+                        RulebookText.builder().rulebookId(rulebooks.get(2).getId()).content("Objective: Be the first player to accumulate 10 Victory Points (VPs).\n" + //
+                                                                "\n" + //
+                                                                "Turn Structure:\n" + //
+                                                                "\n" + //
+                                                                "Roll two dice to determine resource production for the turn. All players with settlements or cities adjacent to the rolled hex number collect corresponding resource cards.\n" + //
+                                                                "\n" + //
+                                                                "The active player may trade resources with other players or the bank (at a 4:1 baseline ratio).\n" + //
+                                                                "\n" + //
+                                                                "The active player may spend resources to build roads, settlements, cities, or buy Development Cards.\n" + //
+                                                                "\n" + //
+                                                                "Key Mechanics: Rolling a 7 activates the Robber: no resources are produced, players with more than 7 cards must discard half, and the active player moves the Robber to block a hex and steal one resource from an adjacent player.\n" + //
+                                                                "\n" + //
+                                                                "End Game: The game ends immediately on an active player's turn the moment they have 10 or more VPs.").version(rulebooks.get(2).getVersion()).updatedAt(rulebooks.get(2).getUpdatedAt()).build(),
+                        RulebookText.builder().rulebookId(rulebooks.get(3).getId()).content("Objective: Work cooperatively to discover cures for four distinct global diseases before a failure condition is triggered.\n" + //
+                                                                "\n" + //
+                                                                "Turn Structure:\n" + //
+                                                                "\n" + //
+                                                                "Take up to four actions (move around the map, treat disease cubes, share knowledge cards with another player, build a research station, or discard five matching city cards to discover a cure).\n" + //
+                                                                "\n" + //
+                                                                "Draw two Player cards. If an Epidemic card is drawn, the infection rate increases, the bottom card of the infection deck is drawn (adding 3 disease cubes), and the infection discard pile is shuffled and placed back on top of the deck.\n" + //
+                                                                "\n" + //
+                                                                "Draw Infection cards equal to the current infection rate, adding one disease cube to each drawn city.\n" + //
+                                                                "\n" + //
+                                                                "Key Mechanics: If a city requires a fourth disease cube of the same color, an Outbreak occurs instead, spreading cubes to all connected cities and increasing the Outbreak tracker.\n" + //
+                                                                "\n" + //
+                                                                "End Game: Players win immediately if all four cures are discovered. Players lose if the Outbreak tracker reaches eight, if any disease cube color runs out, or if a player needs to draw from an empty Player deck.").version(rulebooks.get(3).getVersion()).updatedAt(rulebooks.get(3).getUpdatedAt()).build(),
+                        RulebookText.builder().rulebookId(rulebooks.get(4).getId()).content("Objective: Score the highest number of points by claiming railway routes and completing hidden Destination Tickets.\n" + //
+                                                                "\n" + //
+                                                                "Turn Structure:\n" + //
+                                                                "\n" + //
+                                                                "Choose exactly one action per turn:\n" + //
+                                                                "\n" + //
+                                                                "Draw two Train Car cards (from the face-up pool or blind from the deck).\n" + //
+                                                                "\n" + //
+                                                                "Claim a route by discarding a set of matching colored cards equal to the route's length and placing plastic trains on the board (scoring points immediately).\n" + //
+                                                                "\n" + //
+                                                                "Draw three Destination Tickets and keep at least one.\n" + //
+                                                                "\n" + //
+                                                                "Key Mechanics: Destination Tickets provide bonus points at the end of the game if the listed cities are successfully connected, but subtract their point value if incomplete.\n" + //
+                                                                "\n" + //
+                                                                "End Game: The final round triggers when any player's plastic train supply drops to two or fewer. At the end of the game, a 10-point bonus is awarded to the player with the single longest continuous path.").version(rulebooks.get(4).getVersion()).updatedAt(rulebooks.get(4).getUpdatedAt()).build());
+                rulebookTextRepository.saveAll(rulebookTexts);
+                System.out.println("Seeded " + rulebookTexts.size() + " rulebookTexts");
 
                 // Ingestion Jobs
                 List<IngestionJob> jobs = List.of(
