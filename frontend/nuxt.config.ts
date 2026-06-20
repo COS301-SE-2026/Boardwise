@@ -1,4 +1,7 @@
+// nuxt.config.js
 export default defineNuxtConfig({
+  ssr: false,
+  
   css: ['~/assets/theme.css'],
 
   modules: ['vuetify-nuxt-module'],
@@ -6,7 +9,7 @@ export default defineNuxtConfig({
   vuetify: {
     moduleOptions: {
       styles: {
-        configFile: 'assets/settings.scss'
+        configFile: process.env.NODE_ENV === 'prod' ? 'assets/settings.scss' : 'assets/empty.scss'
       }
     },
 
@@ -70,11 +73,17 @@ export default defineNuxtConfig({
       }
     }
   },
+  runtimeConfig: {
+    public: {
+      // Once backend is deployed, we must change the URL to match
+      apiBase: process.env.NODE_ENV === 'prod' ? 'https://api.our-production-domain.com' : 'http://127.0.0.1:8080/api/'
+    }
+  },
 
-  // Request proxy to Spring Boot
+  // Proxy for requests to Spring Boot
   routeRules: {
     '/api/**': {
-      proxy: 'http://localhost:8080/api/**'
+      proxy: 'http://127.0.0.1:8080/api/**'
     }
   }
 })

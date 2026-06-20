@@ -1,10 +1,7 @@
 import {ref} from 'vue'
-import {useRouter} from 'vue-router'
-import { CommunityService } from '~/services/communityService'
+import { CommunityService } from '@/services/communityService'
 
 export const useCommunity = () => {
-    const router = useRouter();
-
     const token = ref<string|null>(
         import.meta.client ? localStorage.getItem('access_token') : null
     )
@@ -20,9 +17,9 @@ export const useCommunity = () => {
 
         try{
             const response = await CommunityService.getAllGroups();
-            communities.value = response.data.groups;
+            communities.value = response.groups;
         }catch(err: any){
-            error.value = err.response?.data?.message || 'No communities found'
+            error.value = err.data?.message || 'No communities found'
             communities.value = []
         }finally{
             loading.value = false;
