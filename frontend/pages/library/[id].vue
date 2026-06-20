@@ -44,20 +44,20 @@ import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue
 
 const route = useRoute()
 
-const { currentRulebook, rulebooks, isLoading, fetchRulebookById, fetchAllRulebooks } = useLibrary();
+const { currentRulebook, rulebooks, isLoading, getRulebookById, getAllRulebooks } = useLibrary();
 
 onMounted(async () => {
   const rulebookId = route.params.id;
-  await fetchRulebookById(rulebookId);
+  await getRulebookById(rulebookId);
 
   if(rulebooks.value.length === 0){
-    await fetchAllRulebooks(); // populates carousel if empty (for now)
+    await getAllRulebooks(); // populates carousel if empty (for now)
   }
 })
 
 const recommendedBooks = computed(() =>{
   if(!currentRulebook || !currentRulebook.value) return []
-  if(!rulebook || !rulebooks.value) return []
+  if(!rulebooks || !rulebooks.value) return []
   return rulebooks.value.filter(item => item.id !== currentRulebook.value.id)
 })
 </script>

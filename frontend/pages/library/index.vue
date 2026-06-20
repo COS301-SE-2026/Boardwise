@@ -57,7 +57,7 @@ import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue
 
 import { useLibrary } from '~/composables/useLibrary'
 
-const {rulebooks, isLoading, fetchAllRulebooks} = useLibrary()
+const {rulebooks, isLoading, getAllRulebooks } = useLibrary()
 
 const searchQuery = ref('')
 const activeFilters = ref({})
@@ -66,7 +66,7 @@ const showUpload = ref(false)
 const selectedRulebook = ref(null)
 
 onMounted(() => { // Does stuff when component loads
-  fetchAllRulebooks()
+  getAllRulebooks()
 })
 
 const recommended = computed(() => {

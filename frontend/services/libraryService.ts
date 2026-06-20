@@ -36,9 +36,17 @@ interface PaginatedRulebookResponse{
     totalElements: number;
     totalPages: number;
 }
+interface RulebookTextResponse{
+    rulebookId: string;
+    content: string;
+    version: number;
+    lockHeldBy: string;
+    updatedAt: string;
+}
+
 export const LibraryService = {
     // Optional parameters to control the pagination/search
-    getAllRulebooks(search = '', page = 1, limit = 20) {
+    fetchAllRulebooks(search = '', page = 1, limit = 20) {
         const { $api } = useNuxtApp();
         return $api<PaginatedRulebookResponse>('vault/rulebooks', {
             params: {
@@ -47,6 +55,16 @@ export const LibraryService = {
                 limit: limit
             }
         });
+    },
+
+    fetchRulebookById(id: string){
+      const { $api } = useNuxtApp();
+      return $api<RulebookResponse>(`vault/rulebooks/${id}`)
+    },
+
+    fetchRulebookText(id: string) {
+      const { $api } = useNuxtApp();
+      return $api<RulebookTextResponse>(`vault/rulebooks/${id}/text`)
     }
 }
 
