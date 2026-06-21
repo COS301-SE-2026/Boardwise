@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -80,7 +81,7 @@ public class RulebookServiceTests {
                 mockRulebooks.add(Rulebook.builder()
                         .id(new ObjectId())
                         .gameId(gameId)
-                        .gameName("mockGame" + i)
+                        .title("mockGame" + i)
                         .edition("Edition " + i)
                         .status("Ready")
                         .version(i)
@@ -101,7 +102,7 @@ public class RulebookServiceTests {
             }
 
             Page<Rulebook> page = new PageImpl<>(mockRulebooks, pageable, totalRulebooks);
-            Mockito.when(rulebookRepository.findByStatusAndGameNameContainingIgnoreCase(
+            Mockito.when(rulebookRepository.findByStatusAndTitleContainingIgnoreCase(
                 Mockito.eq("Ready"), Mockito.eq(""), Mockito.any(Pageable.class)))
                     .thenReturn(page);
             // Act
@@ -115,7 +116,7 @@ public class RulebookServiceTests {
         public void testForPartialMatchReturingMatchingRulebooks(){
             // Arrange
             List<Rulebook> filteredRulebooks = mockRulebooks.stream()
-                .filter(rb -> rb.getGameName().contains("Game1"))
+                .filter(rb -> rb.getTitle().contains("Game1"))
                 .collect(Collectors.toList());
                 
             List<Boardgame> filteredBoardgames = mockBoardgames.stream()
@@ -126,7 +127,7 @@ public class RulebookServiceTests {
             }
 
             Page<Rulebook> page = new PageImpl<>(filteredRulebooks, pageable, filteredRulebooks.size());
-            Mockito.when(rulebookRepository.findByStatusAndGameNameContainingIgnoreCase(
+            Mockito.when(rulebookRepository.findByStatusAndTitleContainingIgnoreCase(
                 Mockito.eq("Ready"), Mockito.eq("Game1"), Mockito.any(Pageable.class)))
                     .thenReturn(page);
             
@@ -136,7 +137,7 @@ public class RulebookServiceTests {
             // Assert
             Assertions.assertThat(result.getContent().size()).isEqualTo(11);
             for (RulebookSummaryResponseDto rb : result.getContent()) {
-                Assertions.assertThat(rb.getGameName().contains("Game1")).isTrue();
+                Assertions.assertThat(rb.getTitle().contains("Game1")).isTrue();
             }
         }
 
@@ -144,7 +145,7 @@ public class RulebookServiceTests {
         public void testForSearchCaseInsensitivity(){
             // Arrange
             List<Rulebook> filteredRulebooks = mockRulebooks.stream()
-                    .filter(rb -> rb.getGameName().contains("Game1"))
+                    .filter(rb -> rb.getTitle().contains("Game1"))
                     .collect(Collectors.toList());
 
             List<Boardgame> filteredBoardgames = mockBoardgames.stream()
@@ -155,7 +156,7 @@ public class RulebookServiceTests {
             }
 
             Page<Rulebook> page = new PageImpl<>(filteredRulebooks, pageable, filteredRulebooks.size());
-            Mockito.when(rulebookRepository.findByStatusAndGameNameContainingIgnoreCase(
+            Mockito.when(rulebookRepository.findByStatusAndTitleContainingIgnoreCase(
                     Mockito.eq("Ready"), Mockito.eq("game1"), Mockito.any(Pageable.class)))
                     .thenReturn(page);
 
@@ -165,7 +166,7 @@ public class RulebookServiceTests {
             // Assert
             Assertions.assertThat(result.getContent().size()).isEqualTo(11);
             for (RulebookSummaryResponseDto rb : result.getContent()) {
-                Assertions.assertThat(rb.getGameName().contains("Game1")).isTrue();
+                Assertions.assertThat(rb.getTitle().contains("Game1")).isTrue();
             }
         }
 
@@ -173,7 +174,7 @@ public class RulebookServiceTests {
         public void testForSearchWithZeroMatches(){
             // Arrange
             List<Rulebook> filteredRulebooks = mockRulebooks.stream()
-                    .filter(rb -> rb.getGameName().contains("GameNotInTheList"))
+                    .filter(rb -> rb.getTitle().contains("GameNotInTheList"))
                     .collect(Collectors.toList());
 
             List<Boardgame> filteredBoardgames = mockBoardgames.stream()
@@ -184,7 +185,7 @@ public class RulebookServiceTests {
             }
 
             Page<Rulebook> page = new PageImpl<>(filteredRulebooks, pageable, filteredRulebooks.size());
-            Mockito.when(rulebookRepository.findByStatusAndGameNameContainingIgnoreCase(
+            Mockito.when(rulebookRepository.findByStatusAndTitleContainingIgnoreCase(
                     Mockito.eq("Ready"), Mockito.eq("GameNotInTheList"), Mockito.any(Pageable.class)))
                     .thenReturn(page);
 
@@ -218,7 +219,7 @@ public class RulebookServiceTests {
                 mockRulebooksLimitTest.add(Rulebook.builder()
                         .id(new ObjectId())
                         .gameId(gameId)
-                        .gameName("mockGame" + i)
+                        .title("mockGame" + i)
                         .edition("Edition " + i)
                         .status("Ready")
                         .version(i)
@@ -233,7 +234,7 @@ public class RulebookServiceTests {
             }
             pageable = PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "updatedAt"));
             Page<Rulebook> page = new PageImpl<>(mockRulebooksLimitTest, pageable, 200);
-            Mockito.when(rulebookRepository.findByStatusAndGameNameContainingIgnoreCase(
+            Mockito.when(rulebookRepository.findByStatusAndTitleContainingIgnoreCase(
                     Mockito.eq("Ready"), Mockito.eq(""), Mockito.any(Pageable.class)))
                     .thenReturn(page);
             // Act
@@ -242,7 +243,7 @@ public class RulebookServiceTests {
             Assertions.assertThat(result.getSize()).isEqualTo(100);
         }
 
-        // @Test
+        @Test
         public void testForOrderedByUpdatedAt(){
             // Arrange
             for (Boardgame bg : mockBoardgames) {
@@ -250,20 +251,25 @@ public class RulebookServiceTests {
             }
 
             Page<Rulebook> page = new PageImpl<>(mockRulebooks, pageable, totalRulebooks);
-            Mockito.when(rulebookRepository.findByStatusAndGameNameContainingIgnoreCase(
+            Mockito.when(rulebookRepository.findByStatusAndTitleContainingIgnoreCase(
                     Mockito.eq("Ready"), Mockito.eq(""), Mockito.any(Pageable.class)))
                     .thenReturn(page);
             // Act
             Page<RulebookSummaryResponseDto> result = rulebookService.searchRulebooks("", 1, 20);
 
             // Assert
-            Assertions.assertThat(result.getSort().isSorted()).isTrue();
+            ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+            Mockito.verify(rulebookRepository).findByStatusAndTitleContainingIgnoreCase(
+                Mockito.eq("Ready"), Mockito.eq(""), pageableCaptor.capture());
+            
+            Pageable capturedPageable = pageableCaptor.getValue();
+
+            Assertions.assertThat(capturedPageable.getSort().getOrderFor("updatedAt")).isNotNull();
+            Assertions.assertThat(capturedPageable.getSort().getOrderFor("updatedAt").isDescending()).isTrue();
+
             int idx= 0;
-            Instant currentLargerThanNext = Instant.now();
             for (Rulebook rb : page.getContent()) {
-                Assertions.assertThat(rb.getGameName().compareTo(result.getContent().get(idx++).getGameName()) == 0).isTrue();
-                Assertions.assertThat(currentLargerThanNext.compareTo(rb.getUpdatedAt()) > 0).isTrue();
-                currentLargerThanNext = rb.getUpdatedAt();
+                Assertions.assertThat(rb.getTitle().compareTo(result.getContent().get(idx++).getTitle()) == 0).isTrue();
             }
         }
 
@@ -271,13 +277,13 @@ public class RulebookServiceTests {
         public void testForPageOffsetConversionBeingCorrect(){ // the 1-indexed must be translated to 0-indexed
             // Arrange
             int offsetPage = 4; // Should translate to page 3
-            int offsetPageSize = 5; // Should translate to page 3
+            int offsetPageSize = 5;
             for (Boardgame bg : mockBoardgames) {
                 Mockito.when(boardgameRepository.findById(bg.getId())).thenReturn(Optional.of(bg));
             }
             pageable = PageRequest.of(offsetPage - 1, offsetPageSize, Sort.by(Sort.Direction.DESC, "updatedAt"));
             Page<Rulebook> page = new PageImpl<>(mockRulebooks, pageable, 200);
-            Mockito.when(rulebookRepository.findByStatusAndGameNameContainingIgnoreCase(
+            Mockito.when(rulebookRepository.findByStatusAndTitleContainingIgnoreCase(
                     Mockito.eq("Ready"), Mockito.eq(""), Mockito.any(Pageable.class)))
                     .thenReturn(page);
             // Act
@@ -317,24 +323,44 @@ public class RulebookServiceTests {
          * }
          */
     }
-    // 2. Pagination
-    // 3. Search Edge Cases
-    // 4. Authentication
-    // 5. Response Shape
     // ---------- AC-VLT-03: Get Rulebook Detail ----------
-    Instant now1 = Instant.now();
-    Rulebook mockRulebook1 = Rulebook.builder()
-            .id(new ObjectId())
-            .gameId(new ObjectId())
-            .gameName("mockGame1")
-            .edition("1st Edition")
-            .status("Ready")
-            .version(1)
-            .contributorId(new ObjectId())
-            .r2PdfKey("key-1")
-            .uploadedAt(now1)
-            .updatedAt(now1)
-            .build();
+    // @Nested
+    // class GetRulebookDetail{
+
+    //     @Test
+    //     public void testForValidId(){
+    //         Instant now1 = Instant.now();
+    //         Rulebook mockRulebook1 = Rulebook.builder()
+    //                 .id(new ObjectId())
+    //                 .gameId(new ObjectId())
+    //                 .title("mockGame1")
+    //                 .edition("1st Edition")
+    //                 .status("Ready")
+    //                 .version(1)
+    //                 .contributorId(new ObjectId())
+    //                 .r2PdfKey("key-1")
+    //                 .uploadedAt(now1)
+    //                 .updatedAt(now1)
+    //                 .build();
+    //         // Arrange
+    //         // Act
+    //         // Assert
+    //     }
+        
+    //     @Test
+    //     public void testForLockHeldByPopulatedForExistingWriteLock(){
+    //         // Arrange
+    //         // Act
+    //         // Assert
+    //     }
+
+    //     @Test
+    //     public void testForLockHeldByIsNullWhenNoWriteLockExists(){
+    //         // Arrange
+    //         // Act
+    //         // Assert
+    //     }
+    // }
     // ---------- AC-VLT-04: Download Raw PDF ----------
     // ---------- AC-VLT-05: Get Rulebook Text State ----------
     // ---------- AC-VLT-09: Get Rulebook Edit History ----------
