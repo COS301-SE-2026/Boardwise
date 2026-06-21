@@ -30,6 +30,12 @@
 		<java.version>21</java.version>
 	</properties>
 	<dependencies>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>com.microsoft.playwright</groupId>
 			<artifactId>playwright</artifactId>

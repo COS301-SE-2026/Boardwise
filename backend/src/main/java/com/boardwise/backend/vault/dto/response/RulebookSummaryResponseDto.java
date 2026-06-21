@@ -1,5 +1,7 @@
 package com.boardwise.backend.vault.dto.response;
 
+import java.util.List;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -7,7 +9,9 @@ import lombok.Data;
 @Builder
 public class RulebookSummaryResponseDto {
     private String id;
-    private String gameName;
+    private String title;
+    private String language;
     private String edition;
     private int version;
+    private List<String> genres;
 }

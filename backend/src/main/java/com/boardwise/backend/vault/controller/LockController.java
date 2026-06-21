@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequiredArgsConstructor
 public class LockController {
     private final LockManagerService lockManagerService;
-    private final JWTService jwtService; // ← changed
+    private final JWTService jwtService;
 
     // AC-VLT-06: Acquire Write Lock
     @PostMapping("/{id}/lock")
@@ -40,6 +40,17 @@ public class LockController {
         );
     }
 
+    // AC-VLT-07: Commit Edit Delta
+    @PatchMapping("/{id}/text")
+    public ResponseEntity<CommitDeltaResponseDto> commitDelta(
+            @PathVariable String id,
+            @RequestBody CommitDeltaRequestDto request,
+            Authentication authentication) {
+        ObjectId userId = extractUserId(authentication);
+        return ResponseEntity.ok(
+                lockManagerService.commitDelta(toObjectId(id), userId, request));
+    }
+
     // AC-VLT-08: Release Write Lock
     @DeleteMapping("/{id}/lock")
     public ResponseEntity<Void> releaseLock(
@@ -48,18 +59,6 @@ public class LockController {
             ObjectId userId = extractUserId(authentication);
             lockManagerService.releaseLock(toObjectId(id), userId);
             return ResponseEntity.ok().build();
-    }
-
-    // AC-VLT-07: Commit Edit Delta
-    @PatchMapping("/{id}/text")
-    public ResponseEntity<CommitDeltaResponseDto> commitDelta(
-        @PathVariable String id,
-        @RequestBody CommitDeltaRequestDto request,
-        Authentication authentication){
-            ObjectId userId = extractUserId(authentication);
-            return ResponseEntity.ok(
-                lockManagerService.commitDelta(toObjectId(id), userId, request)
-            );
     }
 
     // ----- private helpers -----

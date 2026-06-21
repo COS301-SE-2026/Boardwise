@@ -25,6 +25,7 @@ import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.vault.model.Chunk;
 import com.boardwise.backend.vault.model.EditEvent;
 import com.boardwise.backend.vault.model.IngestionJob;
 import com.boardwise.backend.vault.model.Rulebook;
@@ -150,85 +151,81 @@ public class Seeding {
             }
             // Rulebooks
             if (rulebookRepository.count() == 0) {
-                ObjectId contributor1 = new ObjectId();
-                ObjectId contributor2 = new ObjectId();
+                record Contributor(ObjectId id, String username){}
+                Contributor con1 = new Contributor(new ObjectId(), "JustUploadsStuff");
+                Contributor con2 = new Contributor(new ObjectId(), "MiteBeReliable");
 
                 List<Rulebook> rulebooks = List.of(
-                        Rulebook.builder().gameName("Monopoly").edition("Classic").status("Ready").version(1)
-                                .contributorId(contributor1).r2PdfKey("rulebooks/monopoly-classic.pdf")
+                        Rulebook.builder().title("Monopoly").edition("Classic").status("Ready").version(1)
+                                .contributorId(con1.id()).contributorUsername(con1.username()).description("Objective: Bankrupt all opposing players by acquiring, developing, and trading real estate properties.").language("English").r2PdfKey("rulebooks/monopoly-classic.pdf")
                                 .uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
-                        Rulebook.builder().gameName("Scrabble").edition("Standard").status("Ready").version(1)
-                                .contributorId(contributor1).r2PdfKey("rulebooks/scrabble-standard.pdf")
+                        Rulebook.builder().title("Scrabble").edition("Standard").status("Ready").version(1)
+                                .contributorId(con1.id()).contributorUsername(con1.username()).description("Objective: Accumulate the highest score by spelling interlocking, valid dictionary words on a grid.").language("English").r2PdfKey("rulebooks/scrabble-standard.pdf")
                                 .uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
-                        Rulebook.builder().gameName("Catan").edition("5th Edition").status("Ready").version(2)
-                                .contributorId(contributor2).r2PdfKey("rulebooks/catan-5th.pdf")
+                        Rulebook.builder().title("Catan").edition("5th Edition").status("Ready").version(2)
+                                .contributorId(con2.id()).contributorUsername(con2.username()).description("Objective: Be the first player to accumulate 10 Victory Points (VPs).").language("Spanish").r2PdfKey("rulebooks/catan-5th.pdf")
                                 .uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
-                        Rulebook.builder().gameName("Pandemic").edition("2nd Edition").status("PendingReview")
-                                .version(1).contributorId(contributor2).r2PdfKey("rulebooks/pandemic-2nd.pdf")
+                        Rulebook.builder().title("Pandemic").edition("2nd Edition").status("PendingReview")
+                                .version(1).contributorId(con2.id()).contributorUsername(con2.username()).description("Objective: Work cooperatively to discover cures for four distinct global diseases before a failure condition is triggered.").language("Spanish").r2PdfKey("rulebooks/pandemic-2nd.pdf")
                                 .uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
-                        Rulebook.builder().gameName("Ticket to Ride").edition("Original").status("Processing")
-                                .version(1).contributorId(contributor1).r2PdfKey("rulebooks/ticket-to-ride.pdf")
+                        Rulebook.builder().title("Ticket to Ride").edition("Original").status("Processing")
+                                .version(1).contributorId(con1.id()).contributorUsername(con1.username()).description("Objective: Score the highest number of points by claiming railway routes and completing hidden Destination Tickets.").language("French").r2PdfKey("rulebooks/ticket-to-ride.pdf")
                                 .uploadedAt(Instant.now()).updatedAt(Instant.now()).build());
                 rulebookRepository.saveAll(rulebooks);
                 System.out.println("Seeded " + rulebooks.size() + " rulebooks");
 
-                // Rulebook Text
-                List<RulebookText> rulebookTexts = List.of(
-                        RulebookText.builder().rulebookId(rulebooks.get(0).getId()).content("Objective: Bankrupt all opposing players by acquiring, developing, and trading real estate properties.\n" + //
-                                                                "\n" + //
-                                                                "Turn Structure:\n" + //
+                // Rulebook Texts
+                List<Chunk> monopolyChunks = List.of(
+                        Chunk.builder().chunkId(new ObjectId()).index(0).content("Objective: Bankrupt all opposing players by acquiring, developing, and trading real estate properties.").build(),
+                        Chunk.builder().chunkId(new ObjectId()).index(1).content("Turn Structure:\n" + //
                                                                 "\n" + //
                                                                 "Roll two six-sided dice and move your token clockwise.\n" + //
                                                                 "\n" + //
                                                                 "Resolve the effect of the landed space (purchase unowned property, pay rent to the owner, draw a Chance/Community Chest card, pay taxes, or go to Jail).\n" + //
                                                                 "\n" + //
-                                                                "Rolling doubles grants an additional turn; rolling three consecutive doubles sends you immediately to Jail.\n" + //
-                                                                "\n" + //
-                                                                "Key Mechanics: Owning a complete color set allows for the construction of houses and hotels, significantly increasing rent. Properties can be mortgaged to the bank for emergency liquidity.\n" + //
-                                                                "\n" + //
-                                                                "End Game: The game concludes when only one player remains solvent.").version(rulebooks.get(0).getVersion()).updatedAt(rulebooks.get(0).getUpdatedAt()).build(),
-                        RulebookText.builder().rulebookId(rulebooks.get(1).getId()).content("Objective: Accumulate the highest score by spelling interlocking, valid dictionary words on a grid.\n" + //
-                                                                "\n" + //
-                                                                "Turn Structure:\n" + //
+                                                                "Rolling doubles grants an additional turn; rolling three consecutive doubles sends you immediately to Jail.").build(),
+                        Chunk.builder().chunkId(new ObjectId()).index(2).content("Key Mechanics: Owning a complete color set allows for the construction of houses and hotels, significantly increasing rent. Properties can be mortgaged to the bank for emergency liquidity.").build(),
+                        Chunk.builder().chunkId(new ObjectId()).index(3).content("End Game: The game concludes when only one player remains solvent.").build()
+                );
+                List<Chunk> scrabbleChunks = List.of(
+                        Chunk.builder().chunkId(new ObjectId()).index(0).content("Objective: Accumulate the highest score by spelling interlocking, valid dictionary words on a grid.").build(),
+                        Chunk.builder().chunkId(new ObjectId()).index(1).content("Turn Structure:\n" + //
                                                                 "\n" + //
                                                                 "Choose one action: Place tiles to form/extend a word, exchange any number of tiles, or pass.\n" + //
                                                                 "\n" + //
                                                                 "Calculate the score of the newly formed word(s) using individual letter values and board multipliers (Double/Triple Letter or Word squares).\n" + //
                                                                 "\n" + //
-                                                                "Draw replacement tiles from the bag to restore your rack to exactly seven tiles.\n" + //
-                                                                "\n" + //
-                                                                "Key Mechanics: Playing all seven tiles in a single turn awards a 50-point bonus (a \"Bingo\").\n" + //
-                                                                "\n" + //
-                                                                "End Game: The game ends when the tile bag is empty and one player clears their rack, or when no further valid plays are possible.").version(rulebooks.get(1).getVersion()).updatedAt(rulebooks.get(1).getUpdatedAt()).build(),
-                        RulebookText.builder().rulebookId(rulebooks.get(2).getId()).content("Objective: Be the first player to accumulate 10 Victory Points (VPs).\n" + //
-                                                                "\n" + //
-                                                                "Turn Structure:\n" + //
+                                                                "Draw replacement tiles from the bag to restore your rack to exactly seven tiles.").build(),
+                        Chunk.builder().chunkId(new ObjectId()).index(2).content("Key Mechanics: Playing all seven tiles in a single turn awards a 50-point bonus (a \"Bingo\").").build(),
+                        Chunk.builder().chunkId(new ObjectId()).index(3).content("End Game: The game ends when the tile bag is empty and one player clears their rack, or when no further valid plays are possible.").build()
+                );
+                List<Chunk> catanChunks = List.of(
+                        Chunk.builder().chunkId(new ObjectId()).index(0).content("Objective: Be the first player to accumulate 10 Victory Points (VPs).").build(),
+                        Chunk.builder().chunkId(new ObjectId()).index(1).content("Turn Structure:\n" + //
                                                                 "\n" + //
                                                                 "Roll two dice to determine resource production for the turn. All players with settlements or cities adjacent to the rolled hex number collect corresponding resource cards.\n" + //
                                                                 "\n" + //
                                                                 "The active player may trade resources with other players or the bank (at a 4:1 baseline ratio).\n" + //
                                                                 "\n" + //
-                                                                "The active player may spend resources to build roads, settlements, cities, or buy Development Cards.\n" + //
-                                                                "\n" + //
-                                                                "Key Mechanics: Rolling a 7 activates the Robber: no resources are produced, players with more than 7 cards must discard half, and the active player moves the Robber to block a hex and steal one resource from an adjacent player.\n" + //
-                                                                "\n" + //
-                                                                "End Game: The game ends immediately on an active player's turn the moment they have 10 or more VPs.").version(rulebooks.get(2).getVersion()).updatedAt(rulebooks.get(2).getUpdatedAt()).build(),
-                        RulebookText.builder().rulebookId(rulebooks.get(3).getId()).content("Objective: Work cooperatively to discover cures for four distinct global diseases before a failure condition is triggered.\n" + //
-                                                                "\n" + //
-                                                                "Turn Structure:\n" + //
+                                                                "The active player may spend resources to build roads, settlements, cities, or buy Development Cards.").build(),
+                        Chunk.builder().chunkId(new ObjectId()).index(2).content("Key Mechanics: Rolling a 7 activates the Robber: no resources are produced, players with more than 7 cards must discard half, and the active player moves the Robber to block a hex and steal one resource from an adjacent player.").build(),
+                        Chunk.builder().chunkId(new ObjectId()).index(3).content("End Game: The game ends immediately on an active player's turn the moment they have 10 or more VPs.").build()
+                );
+                List<Chunk> pandemicChunks = List.of(
+                        Chunk.builder().chunkId(new ObjectId()).index(0).content("Objective: Work cooperatively to discover cures for four distinct global diseases before a failure condition is triggered.").build(),
+                        Chunk.builder().chunkId(new ObjectId()).index(1).content("Turn Structure:\n" + //
                                                                 "\n" + //
                                                                 "Take up to four actions (move around the map, treat disease cubes, share knowledge cards with another player, build a research station, or discard five matching city cards to discover a cure).\n" + //
                                                                 "\n" + //
                                                                 "Draw two Player cards. If an Epidemic card is drawn, the infection rate increases, the bottom card of the infection deck is drawn (adding 3 disease cubes), and the infection discard pile is shuffled and placed back on top of the deck.\n" + //
                                                                 "\n" + //
-                                                                "Draw Infection cards equal to the current infection rate, adding one disease cube to each drawn city.\n" + //
-                                                                "\n" + //
-                                                                "Key Mechanics: If a city requires a fourth disease cube of the same color, an Outbreak occurs instead, spreading cubes to all connected cities and increasing the Outbreak tracker.\n" + //
-                                                                "\n" + //
-                                                                "End Game: Players win immediately if all four cures are discovered. Players lose if the Outbreak tracker reaches eight, if any disease cube color runs out, or if a player needs to draw from an empty Player deck.").version(rulebooks.get(3).getVersion()).updatedAt(rulebooks.get(3).getUpdatedAt()).build(),
-                        RulebookText.builder().rulebookId(rulebooks.get(4).getId()).content("Objective: Score the highest number of points by claiming railway routes and completing hidden Destination Tickets.\n" + //
-                                                                "\n" + //
-                                                                "Turn Structure:\n" + //
+                                                                "Draw Infection cards equal to the current infection rate, adding one disease cube to each drawn city.").build(),
+                        Chunk.builder().chunkId(new ObjectId()).index(2).content("Key Mechanics: If a city requires a fourth disease cube of the same color, an Outbreak occurs instead, spreading cubes to all connected cities and increasing the Outbreak tracker.").build(),
+                        Chunk.builder().chunkId(new ObjectId()).index(3).content("End Game: Players win immediately if all four cures are discovered. Players lose if the Outbreak tracker reaches eight, if any disease cube color runs out, or if a player needs to draw from an empty Player deck.").build()
+                );
+                List<Chunk> ticketToRideChunks = List.of(
+                        Chunk.builder().chunkId(new ObjectId()).index(0).content("Objective: Score the highest number of points by claiming railway routes and completing hidden Destination Tickets.").build(),
+                        Chunk.builder().chunkId(new ObjectId()).index(1).content("Turn Structure:\n" + //
                                                                 "\n" + //
                                                                 "Choose exactly one action per turn:\n" + //
                                                                 "\n" + //
@@ -236,13 +233,18 @@ public class Seeding {
                                                                 "\n" + //
                                                                 "Claim a route by discarding a set of matching colored cards equal to the route's length and placing plastic trains on the board (scoring points immediately).\n" + //
                                                                 "\n" + //
-                                                                "Draw three Destination Tickets and keep at least one.\n" + //
-                                                                "\n" + //
-                                                                "Key Mechanics: Destination Tickets provide bonus points at the end of the game if the listed cities are successfully connected, but subtract their point value if incomplete.\n" + //
-                                                                "\n" + //
-                                                                "End Game: The final round triggers when any player's plastic train supply drops to two or fewer. At the end of the game, a 10-point bonus is awarded to the player with the single longest continuous path.").version(rulebooks.get(4).getVersion()).updatedAt(rulebooks.get(4).getUpdatedAt()).build());
-                rulebookTextRepository.saveAll(rulebookTexts);
-                System.out.println("Seeded " + rulebookTexts.size() + " rulebookTexts");
+                                                                "Draw three Destination Tickets and keep at least one.").build(),
+                        Chunk.builder().chunkId(new ObjectId()).index(2).content("Key Mechanics: Destination Tickets provide bonus points at the end of the game if the listed cities are successfully connected, but subtract their point value if incomplete.").build(),
+                        Chunk.builder().chunkId(new ObjectId()).index(3).content("End Game: The final round triggers when any player's plastic train supply drops to two or fewer. At the end of the game, a 10-point bonus is awarded to the player with the single longest continuous path.").build()
+                );
+                List<RulebookText> texts = List.of(
+                        RulebookText.builder().rulebookId(rulebooks.get(0).getId()).version(0).chunks(monopolyChunks).updatedAt(Instant.now().plusSeconds(0)).build(),
+                        RulebookText.builder().rulebookId(rulebooks.get(1).getId()).version(1).chunks(scrabbleChunks).updatedAt(Instant.now().plusSeconds(10)).build(),
+                        RulebookText.builder().rulebookId(rulebooks.get(2).getId()).version(2).chunks(catanChunks).updatedAt(Instant.now().plusSeconds(50)).build(),
+                        RulebookText.builder().rulebookId(rulebooks.get(3).getId()).version(3).chunks(pandemicChunks).updatedAt(Instant.now().plusSeconds(100)).build(),
+                        RulebookText.builder().rulebookId(rulebooks.get(4).getId()).version(4).chunks(ticketToRideChunks).updatedAt(Instant.now().plusSeconds(500)).build());
+                rulebookTextRepository.saveAll(texts);
+                System.out.println("Seeded " + texts.size() + " rulebook texts");
 
                 // Ingestion Jobs
                 List<IngestionJob> jobs = List.of(
@@ -263,13 +265,13 @@ public class Seeding {
 
                 // Edit Events
                 List<EditEvent> editEvents = List.of(
-                        EditEvent.builder().rulebookId(rulebooks.get(0).getId()).editorId(contributor1)
+                        EditEvent.builder().rulebookId(rulebooks.get(0).getId()).editorId(con1.id())
                                 .delta("Fixed typo on page 3.").versionAfter(2)
                                 .committedAt(Instant.now().minusSeconds(120)).build(),
-                        EditEvent.builder().rulebookId(rulebooks.get(1).getId()).editorId(contributor1)
+                        EditEvent.builder().rulebookId(rulebooks.get(1).getId()).editorId(con1.id())
                                 .delta("Updated scoring section.").versionAfter(2)
                                 .committedAt(Instant.now().minusSeconds(90)).build(),
-                        EditEvent.builder().rulebookId(rulebooks.get(2).getId()).editorId(contributor2)
+                        EditEvent.builder().rulebookId(rulebooks.get(2).getId()).editorId(con2.id())
                                 .delta("Clarified trading rules.").versionAfter(3)
                                 .committedAt(Instant.now().minusSeconds(60)).build());
                 editEventRepository.saveAll(editEvents);
@@ -277,7 +279,7 @@ public class Seeding {
 
                 // Write Locks
                 List<WriteLock> writeLocks = List.of(
-                        WriteLock.builder().rulebookId(rulebooks.get(3).getId()).heldByUserId(contributor2)
+                        WriteLock.builder().rulebookId(rulebooks.get(3).getId()).heldByUserId(con2.id())
                                 .acquiredAt(Instant.now().minusSeconds(10)).expiresAt(Instant.now().plusSeconds(20))
                                 .build());
                 writeLockRepository.saveAll(writeLocks);

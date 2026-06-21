@@ -20,16 +20,16 @@ public class WriteLock {
     @Id
     private ObjectId id;
 
-    @Field("rulebook_id")
+    @Field("rulebookId")
     @Indexed(unique = true)
     private ObjectId rulebookId;
 
-    @Field("held_by_user_id")
+    @Field("heldByUserId")
     private ObjectId heldByUserId;
 
-    @Field("acquired_at")
+    @Field("acquiredAt")
     private Instant acquiredAt;
 
-    @Field("expires_at")
-    private Instant expiresAt;      // used for 30-second idle expiry
+    @Field("expiresAt")
+    private Instant expiresAt;
 }

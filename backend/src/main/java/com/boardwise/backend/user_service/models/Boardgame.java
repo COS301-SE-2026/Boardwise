@@ -7,17 +7,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Document(collection = "BOARD_GAMES")
+@Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
-@EqualsAndHashCode
 public class Boardgame {
     @Id
     private String id;

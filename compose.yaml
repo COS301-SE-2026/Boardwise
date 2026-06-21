@@ -1,11 +1,11 @@
 services:
   mongodb:
     image: mongodb/mongodb-atlas-local
-    hostname: mongodb # <-- 1. ADD THIS: Fixes the replica set breaking on restart.
+    hostname: mongodb
     environment:
       - MONGODB_INITDB_ROOT_USERNAME=${DB_USER}
       - MONGODB_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
-      - GLIBC_TUNABLES=glibc.pthread.rseq=0 # <-- 2. ADD THIS: Fixes the performance warning.
+      - GLIBC_TUNABLES=glibc.pthread.rseq=0
     ports:
       - 27017:27017
     volumes:

@@ -1974,9 +1974,8 @@ All Vault endpoints require JWT authentication unless noted otherwise. JWTs are 
 | Field | Required | Description |
 |---|---|---|
 | `file` | Yes | PDF only, max 50 MB |
-| `game_name` | Yes | String, max 120 chars |
-| `edition` | No | e.g. `"3rd Edition"` |
-| `game_id` | Yes | MongoDB ObjectId string of the associated game catalogue entry |
+| `title` | Yes | String, max 120 chars |
+| `edition` | No | e.g. "3rd Edition" |
 
 **Success Response — 202 Accepted:**
 ```json
@@ -1994,7 +1993,8 @@ All Vault endpoints require JWT authentication unless noted otherwise. JWTs are 
 
 | Status Code | Reason |
 |---|---|
-| `401 Unauthorized` | JWT is missing, expired, or signature verification failed; or `userId` claim absent from token |
+| `400 Bad Request` | Missing `title`, or file field is absent |
+| `401 Unauthorized` | JWT is missing, expired, or signature verification failed |
 | `413 Payload Too Large` | File exceeds the 50 MB size limit |
 | `415 Unsupported Media Type` | Uploaded file is not a valid PDF (`content_type != "application/pdf"`) |
 | `422 Unprocessable Entity` | Sanitisation stage detected unsafe embedded content |
@@ -2026,17 +2026,18 @@ Returns a Spring `Page` envelope. The `content` array contains rulebook summary 
 
 ```json
 {
-  "content": [
+  "total": 48,
+  "page": 1,
+  "limit": 20,
+  "rulebooks": [
     {
-      "id":            "string",
-      "gameName":      "string",
-      "edition":       "string | null",
-      "status":        "string",
-      "version":       12,
-      "contributorId": "string",
-      "lockHeldBy":    "string | null",
-      "uploadedAt":    "ISO 8601",
-      "updatedAt":     "ISO 8601"
+      "rulebookId": "string",
+      "title": "string",
+      "edition": "string | null",
+      "version": 12,
+      "contributorName": "string",
+      "uploadedAt": "ISO 8601",
+      "updatedAt": "ISO 8601"
     }
   ],
   "totalElements": 48,
@@ -2074,11 +2075,11 @@ Returns a Spring `Page` envelope. The `content` array contains rulebook summary 
 **Success Response — 200 OK:**
 ```json
 {
-  "id":            "string",
-  "gameName":      "string",
-  "edition":       "string | null",
-  "status":        "Processing | Ready | PendingReview",
-  "version":       12,
+  "rulebookId": "string",
+  "title": "string",
+  "edition": "string | null",
+  "status": "Processing | Ready | PendingReview",
+  "version": 12,
   "contributorId": "string",
   "lockHeldBy":    "string | null",
   "uploadedAt":    "ISO 8601",
