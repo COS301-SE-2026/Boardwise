@@ -22,8 +22,8 @@ public class Rulebook {
     @Field("gameId")
     private ObjectId gameId;
 
-    @Field("gameName")
-    private String gameName;
+    @Field("title")
+    private String title;
 
     @Field("edition")
     private String edition;
@@ -36,6 +36,15 @@ public class Rulebook {
 
     @Field("contributorId")
     private ObjectId contributorId;
+
+    @Field("contributorUsername")
+    private String contributorUsername;
+
+    @Field("description")
+    private String description;
+
+    @Field("language")
+    private String language;
 
     @Field("r2PdfKey")
     private String r2PdfKey;

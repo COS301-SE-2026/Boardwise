@@ -50,7 +50,7 @@ public class RulebookService {
         );
 
         Page<RulebookSummaryResponseDto> dtoPage =
-            rulebookRepository.findByStatusAndGameNameContainingIgnoreCase("Ready", search, pageable).map(this::toRulebookSummaryResponse);
+            rulebookRepository.findByStatusAndTitleContainingIgnoreCase("Ready", search, pageable).map(this::toRulebookSummaryResponse);
 
         return dtoPage;
     }
@@ -75,7 +75,7 @@ public class RulebookService {
 
         return RulebookTextResponseDto.builder()
             .rulebookId(id.toHexString())
-            .content(text.getContent())
+            .chunks(text.getChunks())
             .version(text.getVersion())
             .lockHeldBy(lock != null ? lock.getHeldByUserId().toHexString() : null)
             .updatedAt(text.getUpdatedAt())
@@ -99,7 +99,7 @@ public class RulebookService {
                 .build();
     }
 
-    // US-VLT-06: Edit History
+    // AC-VLT-09: Get Rulebook Edit History
     public EditHistoryResponseDto getEditHistory(ObjectId id){
         findRulebookOrThrow(id);
 
@@ -118,6 +118,9 @@ public class RulebookService {
 
     // --- private helpers ---
     private Boardgame findBoardgameOrThrow(ObjectId id){
+        if(id == null){
+            throw new IllegalArgumentException("Boardgame ID cannot be null");
+        }
         return boardgameRepository.findById(id.toHexString()).orElseThrow(() -> new BoardgameNotFoundException(id));
     }
 
@@ -127,15 +130,21 @@ public class RulebookService {
     }
 
     private RulebookSummaryResponseDto toRulebookSummaryResponse(Rulebook rulebook){
-        // fetch genres from boardgame document
-        Boardgame game = findBoardgameOrThrow(rulebook.getGameId());
+        List<String> genres = List.of();
+
+        if(rulebook.getGameId() != null){
+            // fetch genres from boardgame document
+            Boardgame game = findBoardgameOrThrow(rulebook.getGameId());
+            genres = game.getGenres();
+        }
 
         return RulebookSummaryResponseDto.builder()
-                .id(rulebook.getId().toHexString())
-                .gameName(rulebook.getGameName())
+                .id(rulebook.getId() != null ? rulebook.getId().toHexString() : null)
+                .title(rulebook.getTitle())
+                .language(rulebook.getLanguage())
                 .edition(rulebook.getEdition())
                 .version(rulebook.getVersion())
-                .genres(game.getGenres())
+                .genres(genres)
                 .build();
     }
 
@@ -144,17 +153,24 @@ public class RulebookService {
             .findByRulebookId(rulebook.getId())
             .orElse(null);
 
-        // fetch genres from boardgame document
-        Boardgame game = findBoardgameOrThrow(rulebook.getGameId());
+        List<String> genres = List.of();
+
+        if(rulebook.getGameId() != null){
+            // fetch genres from boardgame document
+            Boardgame game = findBoardgameOrThrow(rulebook.getGameId());
+            genres = game.getGenres();
+        }
 
         return RulebookResponseDto.builder()
                 .id(rulebook.getId().toHexString())
-                .gameName(rulebook.getGameName())
+                .title(rulebook.getTitle())
                 .edition(rulebook.getEdition())
-                .genres(game.getGenres())
-                .status(rulebook.getStatus())
+                .genres(genres)
                 .version(rulebook.getVersion())
-                .contributorId(rulebook.getContributorId().toHexString())
+                .status(rulebook.getStatus())
+                .contributorUsername(rulebook.getContributorUsername())
+                .description(rulebook.getDescription())
+                .language(rulebook.getLanguage())
                 .lockHeldBy(lock != null ? lock.getHeldByUserId().toHexString() : null)
                 .uploadedAt(rulebook.getUploadedAt())
                 .updatedAt(rulebook.getUpdatedAt())

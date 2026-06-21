@@ -9,8 +9,9 @@ import lombok.Data;
 @Builder
 public class RulebookSummaryResponseDto {
     private String id;
-    private String gameName;
+    private String title;
+    private String language;
     private String edition;
     private int version;
-    private List<String> genres; // Change to category if necessary
+    private List<String> genres;
 }

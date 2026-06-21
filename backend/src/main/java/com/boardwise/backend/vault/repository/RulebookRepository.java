@@ -10,7 +10,7 @@ import com.boardwise.backend.vault.model.Rulebook;
 
 @Repository
 public interface RulebookRepository extends MongoRepository<Rulebook, ObjectId> {
-    Page<Rulebook> findByStatusAndGameNameContainingIgnoreCase(
-        String status, String gameName, Pageable pageable
+    Page<Rulebook> findByStatusAndTitleContainingIgnoreCase(
+        String status, String title, Pageable pageable
     );
 }

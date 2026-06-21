@@ -10,12 +10,14 @@ import lombok.Data;
 @Builder
 public class RulebookResponseDto {
     private String id;
-    private String gameName;
+    private String title;
     private String edition;
     private List<String> genres;
     private int version;
     private String status;
-    private String contributorId;
+    private String contributorUsername;
+    private String description;
+    private String language;
     private String lockHeldBy;
     private Instant uploadedAt;
     private Instant updatedAt;
