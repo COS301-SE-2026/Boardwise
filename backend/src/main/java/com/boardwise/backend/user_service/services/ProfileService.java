@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.bson.types.ObjectId;
 import org.springframework.data.domain.Example;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -53,13 +55,13 @@ public class ProfileService {
 
     public ProfileResponseDTO getOwnProfile(String token) {
         // get username from token
-        String extractedUsername = jwtService.extractUsername(token);
-        return getProfile(extractedUsername);
+        ObjectId extractedUsername = jwtService.extractUserId(token);
+        return getProfile(extractedUsername.toString());
     }
 
-    public ProfileResponseDTO getProfile(String username) {
+    public ProfileResponseDTO getProfile(String userId) {
         // get user data from db
-        User user = userRepo.findByUsername(username)
+        User user = userRepo.findById(userId)
                                         .orElseThrow();
         
         
@@ -97,19 +99,17 @@ public class ProfileService {
         );
     }
 
-    public boolean deleteUser(String token) {
-        String username = jwtService.extractUsername(token);
+    public void deleteUser(String token) {
+        String userId = jwtService.extractUserId(token).toString();
         // add removal of associated data
 
         // end associated data removal
-        int deletedUsers = (int) userRepo.deleteByUsername(username);
-        
-        return deletedUsers == 1;
+        userRepo.deleteById(userId);
     }
 
     public Map<String, Object> updateProfile(String token, UpdateProfileDTO profileUpdateData) {
-        String username = jwtService.extractUsername(token);
-        User user = userRepo.findByUsername(username).get();
+        String userId = jwtService.extractUserId(token).toString();
+        User user = userRepo.findById(userId).get();
 
         String newUsername = AuthService.sanitize(profileUpdateData.username());
         String newEmail = AuthService.sanitize(profileUpdateData.emailAddress());
@@ -143,14 +143,14 @@ public class ProfileService {
     public ProfilePictureResponseDTO changeProfilePicture(String token, MultipartFile pfp) throws IOException {
         String url = "";
         String message = "";
-        String username = jwtService.extractUsername(token);
+        String userId = jwtService.extractUserId(token).toString();
 
         // logic here
-        String fileName = bucket.uploadFile(pfp, username);
+        String fileName = bucket.uploadFile(pfp, userId);
         url = bucket.getFileUrl(fileName);
         message = "Profile picture successfully update";
          
-        User user = userRepo.findByUsername(username).get();
+        User user = userRepo.findById(userId).get();
         user.setProfilePicture(url);
         userRepo.save(user);
 
@@ -160,8 +160,8 @@ public class ProfileService {
     public Map<String, Object> updateOrSetPreferences(
         String token, PreferencesRequestDTO prefData
     ){
-        String username = jwtService.extractUsername(token);
-        User user = userRepo.findByUsername(username).get();
+        String userId = jwtService.extractUserId(token).toString();
+        User user = userRepo.findByUsername(userId).get();
         
         if(user.getPreferences() == null){
             user.setPreferences(new Preferences());    

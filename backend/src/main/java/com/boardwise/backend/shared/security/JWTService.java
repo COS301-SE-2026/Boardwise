@@ -59,10 +59,6 @@ public class JWTService {
         return Keys.hmacShaKeyFor(key.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String extractUsername(String token) {
-        return "";
-    }
-
     private <T> T extractClaim(String token, Function<Claims, T> resolver){
         Claims claims = extractAllClaims(token);
         return resolver.apply(claims);

@@ -39,8 +39,8 @@ public class SocialService {
     }
 
     public GroupCreationResponseDTO createGroup(String token, GroupCreationDTO group) {
-        String username = jwtService.extractUsername(token);
-        User user = userRepo.findByUsername(username).get();
+        String userId = jwtService.extractUserId(token).toString();
+        User user = userRepo.findByUsername(userId).get();
 
         String groupName = AuthService.sanitize(group.name());
         String groupDesc = AuthService.sanitize(group.description());
@@ -51,13 +51,13 @@ public class SocialService {
             groupName, 
             groupDesc, 
             groupCategory,
-            user.getId(), 
+            userId, 
             visibility
         );
         newGroup = groupRepo.save(newGroup);
 
         GroupMembership membership = new GroupMembership(
-            user.getId(), 
+            userId, 
             newGroup.getId()
         );
         gmRepo.save(membership);
@@ -78,15 +78,14 @@ public class SocialService {
     }
 
     public List<?> getAllGroups(String token) {
-        String username = jwtService.extractUsername(token);
-        User user = userRepo.findByUsername(username).get();
+        String userId = jwtService.extractUserId(token).toString();
         List<GroupInfo> groups = new ArrayList<>();
 
         for(Group group : groupRepo.findAll()){
             if(group.getVisibility().equalsIgnoreCase("private")){
                 GroupMembership toCheck = new GroupMembership();
                 toCheck.setGroupId(group.getId());
-                toCheck.setUserId(user.getId());
+                toCheck.setUserId(userId);
 
                 if(!gmRepo.exists(Example.of(toCheck)))
                     continue;
@@ -114,7 +113,7 @@ public class SocialService {
     }
 
     public GroupDTO getGroup(String token, String groupId) {
-        String currentUsername = jwtService.extractUsername(token);
+        String userId = jwtService.extractUserId(token).toString();
         Group group = groupRepo.findById(groupId).orElseThrow(
             () -> {
                 throw new NoSuchElementException("Group with associated id does not exist");
@@ -136,7 +135,7 @@ public class SocialService {
             if(member == null)
                 continue;
 
-            if(member.getUsername().equals(currentUsername))
+            if(member.getId().equals(userId))
                 isMember = true;
 
             Map<String, String> userData = new HashMap<>();
@@ -158,13 +157,12 @@ public class SocialService {
     }
 
     public GroupMembershipResponseDTO addToGroup(String token, String groupId) {
-        String username = jwtService.extractUsername(token);
-        User user = userRepo.findByUsername(username).get();
+        String userId = jwtService.extractUserId(token).toString();
         Group group = groupRepo.findById(groupId).orElseThrow();
 
         GroupMembership gm = new GroupMembership();
         gm.setGroupId(group.getId());
-        gm.setUserId(user.getId());
+        gm.setUserId(userId);
 
         if(gmRepo.exists(Example.of(gm)))
             throw new IllegalStateException("User already a member of this group.");
@@ -206,18 +204,17 @@ public class SocialService {
     }
 
     public GroupMembershipResponseDTO removeFromGroup(String token, String groupId) {
-        String username = jwtService.extractUsername(token);
-        User user = userRepo.findByUsername(username).get();
+        String userId = jwtService.extractUserId(token).toString();
         Group group = groupRepo.findById(groupId).orElseThrow();
         
         GroupMembership example = new GroupMembership();
         example.setGroupId(group.getId());
-        example.setUserId(user.getId());
+        example.setUserId(userId);
 
         if(!gmRepo.exists(Example.of(example)))
             throw new IllegalStateException("User is not a member of this group.");
 
-        gmRepo.deleteByUserIdAndGroupId(user.getId(), group.getId());
+        gmRepo.deleteByUserIdAndGroupId(userId, group.getId());
 
         Map<String, Object> data = new HashMap<>();
 
@@ -278,11 +275,10 @@ public class SocialService {
     }
 
     public GroupUpdateResponseDTO updateGroup(String token, String groupId, GroupUpdateRequestDTO updateData) {
-        String username = jwtService.extractUsername(token);
-        User user = userRepo.findByUsername(username).get();
+        String userId = jwtService.extractUserId(token).toString();
         Group group = groupRepo.findById(groupId).orElseThrow();
         
-        if(!user.getId().equals(group.getOwnerId()))
+        if(!userId.equals(group.getOwnerId()))
             throw new IllegalStateException("This user is not the owner of this group");
 
         String newName = AuthService.sanitize(updateData.name());

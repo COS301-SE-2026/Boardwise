@@ -80,12 +80,9 @@ public class ProfileController {
     public ResponseEntity<?> deleteProfile(HttpServletRequest req){
         String token = extractToken(req);
         Map<String, Object> res = new HashMap<>();
-        if(service.deleteUser(token)){ 
-            res.put("message", "Account deleted successfully.");
-            return new ResponseEntity<>(res, HttpStatus.OK);
-        }
-        res.put("message", "Failed to delete account. Something went wrong on our side.");
-        return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+        service.deleteUser(token);
+        res.put("message", "Account deleted successfully.");
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     @PatchMapping("/")

@@ -31,7 +31,7 @@ public class MyUserDetailsService implements UserDetailsService {
         User user = userRepo.findById(userId).orElse(null);
 
         if(user == null) 
-            throw new Exception(userId + "does not exist");
+            throw new Exception("No user is associated with ID: " + userId);
 
         return new UserDetailImpl(user);
     }
