@@ -6,6 +6,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.mongodb.lang.Nullable;
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -22,7 +24,8 @@ public class Boardgame {
     @Id
     private String id;
     @Indexed(unique = true)
-    private int bggId;
+    @Nullable
+    private Integer bggId;
     private String title;
     private String description;
     private String imageURL;

@@ -39,7 +39,7 @@ public class BoardGameService {
     }
 
     public void populateDatabase(){
-        int nextBggId = gameRepo.findTopByOrderByBggIdDesc()
+        int nextBggId = gameRepo.findTopByBggIdNotNullOrderByBggIdDesc()
                         .map(game -> game.getBggId() + 1)
                         .orElse(1);
         
