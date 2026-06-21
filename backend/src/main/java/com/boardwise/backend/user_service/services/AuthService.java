@@ -1,7 +1,6 @@
 package com.boardwise.backend.user_service.services;
 
 import org.owasp.encoder.Encode;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,16 +18,16 @@ import com.boardwise.backend.user_service.repos.UserRepository;
 @Service
 public class AuthService {
     
-    @Autowired  
-    private UserRepository userRepo;
+    private final UserRepository userRepo;
+    private final JWTService jwt;
+    private final AuthenticationManager manager;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
 
-    @Autowired
-    private JWTService jwt;
-
-    @Autowired
-    private AuthenticationManager manager;
-
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
+    AuthService(UserRepository userRepo, JWTService jwt, AuthenticationManager manager) {
+        this.userRepo = userRepo;
+        this.jwt = jwt;
+        this.manager = manager;
+    }
 
     // inserts user into database generates JWT
     public AuthResponseDTO register(RegisterDTO dto){

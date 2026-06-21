@@ -8,13 +8,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
 import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
@@ -28,26 +25,31 @@ import com.boardwise.backend.user_service.repos.UserRepository;
 
 @Service
 public class ProfileService {
-    
-    @Autowired
-    private UserRepository userRepo;
 
-    @Autowired
-    private JWTService jwtService;
-
-    @Autowired
-    private FriendShipRepository fsRepo;
-
-    @Autowired
-    private GroupMembershipRepository gmRepo;
-
-    @Autowired
-    private BoardGameRepository gameRepo;
-
-    @Autowired
-    private R2StorageService bucket;
+    private final UserRepository userRepo;
+    private final JWTService jwtService;
+    private final FriendShipRepository fsRepo;
+    private final GroupMembershipRepository gmRepo;
+    private final BoardGameRepository gameRepo;
+    private final R2StorageService bucket;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+
+    ProfileService(
+        UserRepository userRepo, 
+        JWTService jwtService,
+        FriendShipRepository friendShipRepository,
+        GroupMembershipRepository groupMembershipRepository,
+        BoardGameRepository boardGameRepository,
+        R2StorageService r2StorageService
+    ){
+        this.userRepo = userRepo;
+        this.jwtService = jwtService;
+        this.fsRepo = friendShipRepository;
+        this.gmRepo = groupMembershipRepository;
+        this.gameRepo = boardGameRepository;
+        this.bucket = r2StorageService;
+    }
 
     public ProfileResponseDTO getOwnProfile(String token) {
         // get username from token

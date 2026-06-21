@@ -1,12 +1,9 @@
 package com.boardwise.backend.user_service.services;
 
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.models.UserDetailImpl;
 import com.boardwise.backend.user_service.repos.UserRepository;
@@ -14,8 +11,11 @@ import com.boardwise.backend.user_service.repos.UserRepository;
 @Service
 public class MyUserDetailsService implements UserDetailsService {
 
-    @Autowired
-    private UserRepository userRepo;
+    private final UserRepository userRepo;
+
+    MyUserDetailsService(UserRepository userRepo) {
+        this.userRepo = userRepo;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

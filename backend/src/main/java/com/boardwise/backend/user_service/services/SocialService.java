@@ -6,11 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
-
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.dtos.GroupCreationDTO;
 import com.boardwise.backend.user_service.dtos.GroupCreationResponseDTO;
@@ -29,17 +26,17 @@ import com.boardwise.backend.user_service.repos.UserRepository;
 @Service
 public class SocialService {
 
-    @Autowired
-    private UserRepository userRepo;
+    private final UserRepository userRepo;
+    private final GroupRepository groupRepo;
+    private final GroupMembershipRepository gmRepo;
+    private final JWTService jwtService;
 
-    @Autowired
-    private GroupRepository groupRepo;
-
-    @Autowired
-    private GroupMembershipRepository gmRepo;
-
-    @Autowired
-    private JWTService jwtService;
+    SocialService(UserRepository userRepo, GroupRepository groupRepo, GroupMembershipRepository gmRepo, JWTService jwtService) {
+        this.userRepo = userRepo;
+        this.groupRepo = groupRepo;
+        this.gmRepo = gmRepo;
+        this.jwtService = jwtService;
+    }
 
     public GroupCreationResponseDTO createGroup(String token, GroupCreationDTO group) {
         String username = jwtService.extractUsername(token);

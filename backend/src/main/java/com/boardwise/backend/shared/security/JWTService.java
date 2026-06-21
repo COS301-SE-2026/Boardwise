@@ -9,7 +9,6 @@ import java.util.function.Function;
 import javax.crypto.SecretKey;
 
 import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -27,13 +26,13 @@ public class JWTService {
 
     @Value("${jwt.secret}")
     private String key;
+    private final TokenBlackListRepository tokenRepo;
+    private final UserRepository userRepo;
 
-
-    @Autowired
-    private TokenBlackListRepository tokenRepo;
-
-    @Autowired
-    private UserRepository userRepo;
+    JWTService(TokenBlackListRepository tokenRepo, UserRepository userRepo) {
+        this.tokenRepo = tokenRepo;
+        this.userRepo = userRepo;
+    }
 
     public String generateToken(String userId) {
         Map<String, Object> claims = new HashMap<>();

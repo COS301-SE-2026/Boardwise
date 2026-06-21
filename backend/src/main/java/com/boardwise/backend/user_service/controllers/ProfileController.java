@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,8 +31,11 @@ import jakarta.servlet.http.HttpServletRequest;
 @RequestMapping("/api/users/")
 public class ProfileController {
 
-    @Autowired
-    private ProfileService service;
+    private final ProfileService service;
+
+    ProfileController(ProfileService service) {
+        this.service = service;
+    }
 
     @GetMapping("/{username}")
     public ResponseEntity<?> getProfile(@PathVariable String username){
