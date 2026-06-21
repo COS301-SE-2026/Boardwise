@@ -33,6 +33,8 @@ services:
       - R2_BUCKET_PROFILES=${R2_BUCKET_PROFILES}
       - R2_DEV_URL=${R2_DEV_URL}
       - R2_PROD_URL=${R2_PROD_URL}
+      - BBG_TOKEN={BGG_TOKEN}
+      - BGG_URL={BGG_URL}
     ports:
       - 8080:8080
     depends_on:
