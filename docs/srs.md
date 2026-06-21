@@ -2143,7 +2143,7 @@ All Vault endpoints require JWT authentication unless noted otherwise. JWTs are 
 | Field | Required | Description |
 |---|---|---|
 | `file` | Yes | PDF only, max 50 MB |
-| `gameName` | Yes | String, max 120 chars |
+| `title` | Yes | String, max 120 chars |
 | `edition` | No | e.g. "3rd Edition" |
 
 **Success Response — 202 Accepted:**
@@ -2159,7 +2159,7 @@ All Vault endpoints require JWT authentication unless noted otherwise. JWTs are 
 
 | Status Code | Reason |
 |---|---|
-| `400 Bad Request` | Missing `gameName`, or file field is absent |
+| `400 Bad Request` | Missing `title`, or file field is absent |
 | `401 Unauthorized` | JWT is missing, expired, or signature verification failed |
 | `413 Payload Too Large` | File exceeds the 50 MB size limit |
 | `415 Unsupported Media Type` | Uploaded file is not a valid PDF |
@@ -2195,7 +2195,7 @@ All Vault endpoints require JWT authentication unless noted otherwise. JWTs are 
   "rulebooks": [
     {
       "rulebookId": "string",
-      "gameName": "string",
+      "title": "string",
       "edition": "string | null",
       "version": 12,
       "contributorName": "string",
@@ -2229,7 +2229,7 @@ All Vault endpoints require JWT authentication unless noted otherwise. JWTs are 
 ```json
 {
   "rulebookId": "string",
-  "gameName": "string",
+  "title": "string",
   "edition": "string | null",
   "status": "Processing | Ready | PendingReview",
   "version": 12,
