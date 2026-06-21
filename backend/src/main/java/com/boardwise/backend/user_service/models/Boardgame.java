@@ -3,6 +3,7 @@ package com.boardwise.backend.user_service.models;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.AllArgsConstructor;
@@ -20,6 +21,8 @@ import lombok.Setter;
 public class Boardgame {
     @Id
     private String id;
+    @Indexed(unique = true)
+    private int bggId;
     private String title;
     private String description;
     private String imageURL;

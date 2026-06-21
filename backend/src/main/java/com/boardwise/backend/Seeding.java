@@ -88,9 +88,9 @@ public class Seeding {
 
             if (boardGameRepository.count() == 0) {
                 List<Boardgame> boardGames = List.of(
-                        new Boardgame(null, "Monopoly", "Classic property trading game.",
+                        new Boardgame(null, 1 ,"Monopoly", "Classic property trading game.",
                                 "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png", List.of("Strategy", "Trading")),
-                        new Boardgame(null, "Scrabble", "Word building board game.",
+                        new Boardgame(null, 2,"Scrabble", "Word building board game.",
                                 "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg", List.of("Word", "Abstract Strategy")));
                 boardGameRepository.saveAll(boardGames);
                 System.out.println("Seeded " + boardGames.size() + " board games");

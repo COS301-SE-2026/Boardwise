@@ -8,4 +8,6 @@ import com.boardwise.backend.user_service.models.Boardgame;
 
 public interface BoardGameRepository extends MongoRepository<Boardgame, String>{
     Optional<Boardgame> findByTitle(String title);
+
+    Optional<Boardgame> findTopByOrderByBggIdDesc();
 }
