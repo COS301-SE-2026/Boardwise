@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.mongodb.lang.Nullable;
@@ -26,6 +27,7 @@ public class Boardgame {
     @Indexed(unique = true)
     @Nullable
     private Integer bggId;
+    @TextIndexed
     private String title;
     private String description;
     private String imageURL;

@@ -2,12 +2,18 @@ package com.boardwise.backend.user_service.services;
 
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Limit;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.w3c.dom.Document;
@@ -106,4 +112,24 @@ public class BoardGameService {
         }
     }
 
+    public Map<String, Object> getBoardgames(String query){
+        Map<String, Object> result = new HashMap<>();
+        List<Boardgame> games;
+
+        if(query == null){
+            Limit maxRecords = Limit.of(10);
+            games = gameRepo.findAll(maxRecords);
+        }
+        else{
+            Pageable limit = PageRequest.of(0, 10);
+            TextCriteria criteria = TextCriteria.forDefaultLanguage().matchingAny(query);
+            games = gameRepo.findAllBy(criteria, limit);
+        }
+        
+        result.put("message", "Boardgames successfully fetched.");
+        result.put("boardGames", games);
+        
+        
+        return result; 
+    }
 }
