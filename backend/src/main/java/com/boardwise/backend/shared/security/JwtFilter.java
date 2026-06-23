@@ -60,7 +60,7 @@ public class JwtFilter extends OncePerRequestFilter{
             }
         }
         catch (SignatureException e) {
-            handleJwtException(response, "JWT signature is invalid or expired");
+            handleJwtException(response, "JWT signature is invalid. Not signed with server key.");
             return;
         } 
         catch (ExpiredJwtException e) {

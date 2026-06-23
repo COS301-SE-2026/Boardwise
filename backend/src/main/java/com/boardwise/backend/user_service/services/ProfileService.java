@@ -15,6 +15,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.boardwise.backend.shared.security.JWTService;
+import com.boardwise.backend.user_service.dtos.GameInventoryDTO;
+import com.boardwise.backend.user_service.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
 import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileResponseDTO;
@@ -66,11 +68,18 @@ public class ProfileService {
         
         
         // get the games from stored ids                                
-        List<Boardgame> games = new ArrayList<>();
+        List<GameInventoryDTO> games = new ArrayList<>();
         int ownedGameCount = user.getOwnedGames().size();
         for(String gameId : user.getOwnedGames()){
             Boardgame game = gameRepo.findById(gameId).get();
-            games.add(game);
+            GameInventoryDTO dto = new GameInventoryDTO(
+                game.getId(),
+                game.getTitle(),
+                game.getDescription(),
+                game.getImageURL(),
+                game.getGenres()
+            );
+            games.add(dto);
         }
 
         // get group count
@@ -84,6 +93,7 @@ public class ProfileService {
         DateTimeFormatter formatter = DateTimeFormatter
                                         .ofPattern("dd-MM-yyyy")
                                         .withZone(ZoneOffset.UTC);
+
         Preferences userPref = user.getPreferences();
         String fullName = user.getFirstName() + " " + user.getLastName();                 
         return new ProfileResponseDTO(
@@ -180,4 +190,93 @@ public class ProfileService {
         data.put("preferences", updatedUser.getPreferences());
         return data;
     }
+
+    public Map<String, Object> addGameToInventory(String token, String gameId) throws IllegalArgumentException {
+        Map<String, Object> result = new HashMap<>();
+        String userId = jwtService.extractUserId(token).toString();
+        User user = userRepo.findById(userId).get();
+
+        if(!gameRepo.existsById(gameId))
+            throw new IllegalArgumentException("A board game associated with ID: " + gameId + "does not exist.");
+
+        user.getOwnedGames().add(gameId);
+        user = userRepo.save(user);
+
+        List<GameInventoryDTO> games = new ArrayList<>();
+        int ownedGameCount = user.getOwnedGames().size();
+        for(String id : user.getOwnedGames()){
+            Boardgame game = gameRepo.findById(id).get();
+            GameInventoryDTO dto = new GameInventoryDTO(
+                game.getId(),
+                game.getTitle(),
+                game.getDescription(),
+                game.getImageURL(),
+                game.getGenres()
+            );
+            games.add(dto);
+        }
+
+        result.put("message", "game successfully added to user inventory.");
+        result.put("ownedGamesCount", ownedGameCount);
+        result.put("games", games);
+
+        return result;
+    }
+
+    public Map<String, Object> addGameToInventory(String token, OtherGameDTO gameInfo, MultipartFile gameImage) throws IOException {
+        Map<String, Object> result = new HashMap<>();
+        String userId = jwtService.extractUserId(token).toString();
+        User user = userRepo.findById(userId).get();
+
+        // add the user provided game
+        String gameTitle = AuthService.sanitize(gameInfo.title());
+        String gameDesc = AuthService.sanitize(gameInfo.description());
+        List<String> gameGenres = new ArrayList<>();
+        for(String genre : gameInfo.genres()){
+            String cleanGenre = AuthService.sanitize(genre);
+            gameGenres.add(cleanGenre);
+        }
+
+        String fileName = bucket.uploadFile(gameImage, gameTitle);
+        String imageUrl = bucket.getFileUrl(fileName);
+
+        Boardgame newGame = new Boardgame(
+            null,
+            null,
+            gameTitle,
+            gameDesc,
+            imageUrl,
+            gameGenres
+        );
+
+        newGame = gameRepo.save(newGame);
+        user.getOwnedGames().add(newGame.getId());
+        user = userRepo.save(user);
+
+        List<GameInventoryDTO> games = new ArrayList<>();
+        int ownedGameCount = user.getOwnedGames().size();
+        for(String id : user.getOwnedGames()){
+            Boardgame game = gameRepo.findById(id).get();
+            GameInventoryDTO dto = new GameInventoryDTO(
+                game.getId(),
+                game.getTitle(),
+                game.getDescription(),
+                game.getImageURL(),
+                game.getGenres()
+            );
+            games.add(dto);
+        }
+
+        result.put("message", "game successfully added to user inventory.");
+        result.put("ownedGamesCount", ownedGameCount);
+        result.put("games", games);
+
+        return result;
+    }
+
+    public Map<String, Object> removeGameFromInventory(String token, String gameId) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'removeGameFromInventory'");
+    }
+
 }

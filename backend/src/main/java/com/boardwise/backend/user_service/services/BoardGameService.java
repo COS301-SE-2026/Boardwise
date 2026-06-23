@@ -23,6 +23,8 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.boardwise.backend.user_service.dtos.GameListDTO;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 
@@ -114,16 +116,25 @@ public class BoardGameService {
 
     public Map<String, Object> getBoardgames(String query){
         Map<String, Object> result = new HashMap<>();
-        List<Boardgame> games;
+        List<Boardgame> dbGames;
 
         if(query == null){
             Limit maxRecords = Limit.of(10);
-            games = gameRepo.findAll(maxRecords);
+            dbGames = gameRepo.findAll(maxRecords);
         }
         else{
             Pageable limit = PageRequest.of(0, 10);
             TextCriteria criteria = TextCriteria.forDefaultLanguage().matchingAny(query);
-            games = gameRepo.findAllBy(criteria, limit);
+            dbGames = gameRepo.findAllBy(criteria, limit);
+        }
+
+        List<GameListDTO> games = new ArrayList<>();
+        for(Boardgame game : dbGames){
+            GameListDTO dto = new GameListDTO(
+                game.getId(),
+                game.getTitle()
+            );
+            games.add(dto);
         }
         
         result.put("message", "Boardgames successfully fetched.");
