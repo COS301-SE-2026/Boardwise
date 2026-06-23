@@ -38,11 +38,12 @@ public class BoardGameService {
     private String token;
 
     private final BoardGameRepository gameRepo;
-    private final RestClient client = RestClient.create();
+    private final RestClient client;
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
 
-    BoardGameService(BoardGameRepository gameRepo){
+    BoardGameService(BoardGameRepository gameRepo, RestClient bggRestClient){
         this.gameRepo = gameRepo;
+        this.client = bggRestClient;
     }
 
     public void populateDatabase(){
