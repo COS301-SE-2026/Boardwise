@@ -120,7 +120,7 @@ public class BoardGameService {
 
         if(query == null){
             Limit maxRecords = Limit.of(10);
-            dbGames = gameRepo.findAll(maxRecords);
+            dbGames = gameRepo.findAllBy(maxRecords);
         }
         else{
             Pageable limit = PageRequest.of(0, 10);

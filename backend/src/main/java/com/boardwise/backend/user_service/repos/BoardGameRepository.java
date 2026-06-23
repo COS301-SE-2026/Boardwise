@@ -17,5 +17,5 @@ public interface BoardGameRepository extends MongoRepository<Boardgame, String>{
 
     List<Boardgame> findAllBy(TextCriteria criteria, Pageable pageable);
 
-    List<Boardgame> findAll(Limit limit);
+    List<Boardgame> findAllBy(Limit limit);
 }
