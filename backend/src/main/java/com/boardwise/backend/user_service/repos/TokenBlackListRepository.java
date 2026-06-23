@@ -1,6 +1,7 @@
 package com.boardwise.backend.user_service.repos;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+
 
 import org.springframework.data.mongodb.repository.DeleteQuery;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -11,5 +12,5 @@ public interface TokenBlackListRepository extends MongoRepository<TokenBlackList
     boolean existsByJti(String jti);
 
     @DeleteQuery("{'expiresAt': {$lt: ?0}}")
-    void deleteAllExpired(LocalDateTime date);
+    void deleteAllExpired(Instant date);
 }

@@ -2,8 +2,18 @@
 .vscode
 /frontend/.nuxt
 /frontend/node_modules
+.pytest_cache
+__pycache__
 
 #files
 /backend/src/main/resources/application.properties
-/backend/src/test/resources/application-test.properties
 *env*
+error.txt
+err.txt
+mongodb-errors.txt
+/backend/src/test/resources/application-test.properties
+*.cpython*
+
+
+#ignore for backend
+frontend/*
