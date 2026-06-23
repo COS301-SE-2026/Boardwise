@@ -10,9 +10,12 @@ public class RestClientConfig {
 
     @Bean
     public RestClient bggRestClient(
-        
+        @Value("${bgg.token}") String token,
         @Value("${bgg.url}") String baseUrl
     ){
-        return RestClient.builder().baseUrl(baseUrl).build();
+        return RestClient.builder()
+                .baseUrl(baseUrl)
+                .defaultHeader("Authorization", "Bearer " + token)
+                .build();
     }
 }

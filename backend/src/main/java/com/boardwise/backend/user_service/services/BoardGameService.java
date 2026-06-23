@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,12 +30,6 @@ import com.boardwise.backend.user_service.repos.BoardGameRepository;
 @Service
 public class BoardGameService {
 
-    @Value("${bgg.url}")
-    private String baseUrl;
-
-    @Value("${bgg.token}")
-    private String token;
-
     private final BoardGameRepository gameRepo;
     private final RestClient client;
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
@@ -55,7 +48,7 @@ public class BoardGameService {
                         .mapToObj(Integer::toString)
                         .collect(Collectors.joining(","));
 
-        String requestUrl = baseUrl + "/thing?id=" + ids + "&subtype=boardgame";
+        String requestUrl = "/thing?id=" + ids + "&subtype=boardgame";
         String response = client.get()
                             .uri(requestUrl)
                             .retrieve()
