@@ -8,8 +8,14 @@ import jakarta.validation.constraints.*;
 public record ListingRequest(
         @NotNull String itemType,
         @NotNull String listingType,
+        @NotNull String listingTitle,
         @Positive double price,
         @NotBlank String gameTitle,
+        @NotBlank String location,
+        boolean isNegotiable,
+        String imageUrl,
+        @NotBlank String version, 
+        @NotBlank String condition,
         @NotBlank String description,
         @NotEmpty List<String> genres,
         List<String> rentalPeriod) {

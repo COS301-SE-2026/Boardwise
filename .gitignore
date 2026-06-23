@@ -16,4 +16,6 @@ mongodb-errors.txt
 /backend/src/test/resources/application-test.properties
 *.cpython*
 
-# Temporary Igngore
+
+#ignore for backend
+frontend/*
