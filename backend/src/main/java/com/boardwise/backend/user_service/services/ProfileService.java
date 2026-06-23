@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Example;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -171,7 +170,7 @@ public class ProfileService {
         String token, PreferencesRequestDTO prefData
     ){
         String userId = jwtService.extractUserId(token).toString();
-        User user = userRepo.findByUsername(userId).get();
+        User user = userRepo.findById(userId).get();
         
         if(user.getPreferences() == null){
             user.setPreferences(new Preferences());    
@@ -275,8 +274,33 @@ public class ProfileService {
     }
 
     public Map<String, Object> removeGameFromInventory(String token, String gameId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'removeGameFromInventory'");
+        Map<String, Object> result = new HashMap<>();
+        String userId = jwtService.extractUserId(token).toString();
+        User user = userRepo.findById(userId).get();
+
+        if(!user.getOwnedGames().remove(gameId))
+            throw new IllegalArgumentException("Board game with id: " + gameId + " was not found in user inventory.");
+            
+        
+        List<GameInventoryDTO> games = new ArrayList<>();
+        int ownedGameCount = user.getOwnedGames().size();
+        for(String id : user.getOwnedGames()){
+            Boardgame game = gameRepo.findById(id).get();
+            GameInventoryDTO dto = new GameInventoryDTO(
+                game.getId(),
+                game.getTitle(),
+                game.getDescription(),
+                game.getImageURL(),
+                game.getGenres()
+            );
+            games.add(dto);
+        }
+
+        result.put("message", "successfully removed game from inventory.");
+        result.put("ownedGamesCount", ownedGameCount);
+        result.put("games", games);
+   
+        return result;
     }
 
 }

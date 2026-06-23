@@ -188,8 +188,16 @@ public class ProfileController {
         HttpServletRequest req
     ){
         String token = extractToken(req);
-        Map<String, Object> res = service.removeGameFromInventory(token, gameId);
-        return new ResponseEntity<>(res, HttpStatus.NO_CONTENT);
+        Map<String, Object> res;
+        try{
+            res = service.removeGameFromInventory(token, gameId);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+            
+        } catch(IllegalArgumentException e){
+            res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
     }
 
     public static String extractToken(HttpServletRequest req){
