@@ -70,7 +70,7 @@ public class ListingController {
     @PostMapping(value = "/listings", consumes = "multipart/form-data")
     public ResponseEntity<ListingResponse> createListing(
             @RequestPart("data") @Valid ListingRequest req,
-            @RequestPart("image") MultipartFile img,
+            @RequestPart(value="image", required = false) MultipartFile img,
             @RequestHeader("Authorization") String token) {
         try {
             ListingResponse response = listingService.createListing(req, token.replace("Bearer ", ""), img);

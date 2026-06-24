@@ -47,10 +47,6 @@ public class SecurityConfig {
                         "/api/auth/hello",
                         "/api/auth/register", 
                         "/api/auth/login",
-                        "/api/marketplace/listings",
-                        "/api/marketplace/listing/{listingId}",
-                        "/api/marketplace/listings/user",
-                        "/api/marketplace/listings/search",
                         "/api/vault/rulebooks",
                         "/api/vault/rulebooks/{id}/text"
                     )
@@ -88,7 +84,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of("http://localhost:3000"));
 
         // Allow OPTIONS for preflight requests
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
 
         // Allow headers including bearer token
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));

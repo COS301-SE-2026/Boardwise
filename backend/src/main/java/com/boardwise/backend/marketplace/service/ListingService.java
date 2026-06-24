@@ -175,7 +175,6 @@ public class ListingService {
 
         if (gameTitle == null || gameTitle.isBlank()) {
             throw new IllegalArgumentException("Game Title cannot be blank");
-
         }
 
         List<String> rentalPeriod = (req.rentalPeriod() == null || req.rentalPeriod().size() != 2) ? null
@@ -341,6 +340,9 @@ public class ListingService {
                 .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + listingId));
 
         if (!userId.equals(existing.getUserId())) {
+            
+            System.out.println("token userId: " + userId);
+            System.out.println("listing userId: " + existing.getUserId());
             throw new ForbiddenException("Cannot update " + listingId);
         }
 
@@ -428,9 +430,7 @@ public class ListingService {
                 existing.setImageUrl(defaultImage);
             }
         }
-        else{
-            throw new IllegalArgumentException("image should not be null");
-        }
+
 
         if (existing.getListingType().equalsIgnoreCase(ListingType.RENTAL.getValue())) {
             if (req.rentalPeriod() != null && !req.rentalPeriod().isEmpty()) {

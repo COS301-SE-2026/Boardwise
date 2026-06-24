@@ -127,8 +127,15 @@ const closeModal = () => {
 }
 
 
-function getRentalPeriod(){
-  
+function get_rental_period() {
+  const fmt = (d) => {// reformat data
+    const date = new Date(d)// date
+    const y = date.getFullYear()// this year
+    const m = String(date.getMonth() + 1).padStart(2, '0')//format as MM
+    const day = String(date.getDate()).padStart(2, '0') // format as DD
+    return `${y}-${m}-${day}`
+  }
+  return [fmt(start_date.value), fmt(end_date.value)]
 }
 
 function get_valid_item_type(){
@@ -144,8 +151,30 @@ const handleConfirm = () => {
   if (!selected_item_type.value|| !game_title.value || !listing_title.value || !location.value ||!version.value ||
       !description.value || !selected_item_type.value || price.value < 0 || !selected_condition.value|| !description.value || 
       !selected_genres.value || selected_genres.value.length < 1){
-    isLoading.value = false;
-    return;
+        isLoading.value = false;
+        return;
+  }
+
+  if(listing_type.value === 'rent' ){
+    if(!start_date.value || !end_date.value){
+      return;
+    }
+    // date validation
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const a = new Date(start_date.value)
+    a.setHours(0, 0, 0, 0)
+
+    const b = new Date(end_date.value)
+    b.setHours(0, 0, 0, 0)
+
+    //start is before today
+
+    if (a < today) return
+
+    //end date is before today
+    if (b < today) return
   }
 
   isLoading.value = true;
@@ -163,7 +192,7 @@ const handleConfirm = () => {
       description: description.value,
       genres: getValidGenres(),
       isNegotiable: negotiable.value,
-      rentalPeriod: listing_type.value === 'rent' ? getRentalPeriod() : null,
+      rentalPeriod: listing_type.value === 'rent' ? get_rental_period() : null,
     }, file.value)
 
     closeModal();
