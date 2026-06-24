@@ -1,7 +1,31 @@
 import api from './api' // import API
 
 //GET ALL LISTINGS
-export const getListings = () => api.get('marketplace/listings');
+export const getListings = (filters:{
+    listingType?: string | null,
+    genres?: string[] | null,
+    conditions?: string[] | null,
+    minPrice?: number | null,
+    maxPrice?: number | null,
+    page?: number,
+    size?: number,
+}) =>{ 
+
+    const applied_filters: Record<string,any> = {};
+
+    if (filters?.listingType) applied_filters.listingType = filters.listingType
+    if (filters?.genres?.length) applied_filters.genres = filters.genres
+    if (filters?.conditions?.length) applied_filters.conditions = filters.conditions
+    if (filters?.minPrice != null) applied_filters.minPrice = filters.minPrice
+    if (filters?.maxPrice != null) applied_filters.maxPrice = filters.maxPrice
+    if (filters?.page != null) applied_filters.page = filters.page
+    if (filters?.size != null) applied_filters.size = filters.size
+
+    const hasFilters = Object.keys(applied_filters).length > 0;
+
+    if(!hasFilters) return api.get('marketplace/listings');
+    else return api.get('marketplace/listings/search', {params:applied_filters} );
+}
 
 //CREATE LISTING
 export const createListing = (data: any, image : File) => {

@@ -47,55 +47,70 @@
 
 <script setup>
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue'
-import BaseButton      from '~/components/ui/BaseButton.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
 
 const emit = defineEmits(['filter'])
 
-const categories       = ['All', 'Strategy', 'Family', 'Party', 'Card', 'Abstract']
-const conditions       = ['New', 'Like New', 'Good', 'Fair']
-const selectedCategory  = ref('All')
+const categories = ['All', 'Strategy', 'Family', 'Party', 'Card', 'Abstract']
+const conditions = ['New', 'Like New', 'Good', 'Fair']
+const selectedCategory = ref('All')
 const selectedConditions = ref([])
 
 const filters = reactive({
-  rent:     false,
-  sale:     false,
+  rent: false,
+  sale: false,
   minPrice: '',
   maxPrice: '',
 })
 
-watch([selectedCategory, selectedConditions, filters], () => {
+const categoryGenreMap = {
+  'Strategy': 'strategy',
+  'Family': 'family',
+  'Party':'party',
+  'Card':'card',
+  'Abstract': 'abstract strategy'
+}
+
+
+watch([selectedCategory, selectedConditions, () => ({ ...filters })], () => {
+  const genres = selectedCategory.value !== 'All' ? [categoryGenreMap[selectedCategory.value] ?? selectedCategory.value.toLowerCase()] : null
+  
+  console.log("genres to find: " , selectedConditions.value)
   emit('filter', {
-    category:   selectedCategory.value,
+    genres,
+    category: selectedCategory.value,
     conditions: selectedConditions.value,
-    rent:       filters.rent,
-    sale:       filters.sale,
-    minPrice:   filters.minPrice,
-    maxPrice:   filters.maxPrice,
+    rent: filters.rent,
+    sale: filters.sale,
+    minPrice: filters.minPrice !== '' ? Number(filters.minPrice) : null,
+    maxPrice: filters.maxPrice !== '' ? Number(filters.maxPrice) : null,
   })
 }, { deep: true })
 
 const resetFilters = () => {
-  selectedCategory.value   = 'All'
+  selectedCategory.value = 'All'
   selectedConditions.value = []
-  filters.rent     = false
-  filters.sale     = false
+  filters.rent= false
+  filters.sale = false
   filters.minPrice = ''
   filters.maxPrice = ''
 }
+
+
 </script>
 
 <style scoped>
 .sidebar {
-    display:        flex;
+    display: flex;
     flex-direction: column;
-    gap:            var(--space-4);
-    padding:        var(--space-5);
-    background:     var(--color-surface);
-    border-radius:  var(--radius-lg);
-    border:         1px solid var(--color-border);
-    box-shadow:     var(--shadow-sm);
-    min-width:      220px;
-    max-width:      300px;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    min-width: 220px;
+    max-width: 300px;
 }
 
 @media (max-width: 900px) {
@@ -103,22 +118,22 @@ const resetFilters = () => {
 }
 
 h3 {
-  margin:      0;
-  font-size:   var(--fs-body);
+  margin: 0;
+  font-size: var(--fs-body);
   font-weight: var(--fw-bold);
-  color:       var(--color-text);
+  color: var(--color-text);
 }
 
 .category-option {
   font-size: var(--fs-small);
-  color:     var(--color-text-muted);
-  cursor:    pointer;
-  padding:   4px 0;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px 0;
 }
 
 .category-option:hover,
 .category-option.active {
-  color:       var(--color-primary);
+  color: var(--color-primary);
   font-weight: var(--fw-bold);
 }
 
@@ -128,6 +143,6 @@ h3 {
 
 :deep(.v-label) {
   font-size: var(--fs-body);
-  color:     var(--color-text);
+  color: var(--color-text);
 }
 </style>

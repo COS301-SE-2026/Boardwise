@@ -9,16 +9,18 @@
 
     <div class="marketplace-layout">
 
-      <FilterSidebar />
+      <FilterSidebar @filter="handleFilter"/>
       <!--TODO: Uncomment for loading -->
       <!-- <div v-if = "loading">Loading listings...</div> -->
       <!-- <ListingGrid  v-else :listings="listings" /> -->
        <ListingGrid :listings="listings" />
     </div>
+    
+    <div ref="sentinel" style="height:1px" />
 
     <AddListingModal
       v-model="showCreateListing" 
-      @confirm="handle"
+      @confirm="handleAdd"
     />
     
   </PageContainer>
@@ -35,24 +37,45 @@ import FilterSidebar from '~/components/features/marketplace/FilterSidebar.vue'
 import ListingGrid from '~/components/features/marketplace/ListingGrid.vue'
 import AddListingModal from '~/components/features/profile/AddListingModal.vue'
 import { useRouter } from 'vue-router'
+import { useMarketplace } from '~/composables/useMarketplace'
+import { useIntersectionObserver } from '@vueuse/core'
 
 const router = useRouter();
 const activeTab = ref('Community')
 const showCreateListing = ref(false)
 
-const {listings, loading, fetchListings, addListing} = useMarketplace();
+const {listings, loading, fetchListings, addListing, loadMore} = useMarketplace();
 
 onMounted(() => {
   if(!localStorage.getItem('access_token')){
     router.push('/auth/signin');
   }
-  fetchListings()
+  fetchListings({}, true) 
 })
 
-const handle = async (data, image) => {
+const handleAdd = async (data, image) => {
   await addListing(data, image);
   showCreateListing.value = false;
 }
+
+const sentinel = ref(null)
+useIntersectionObserver(sentinel,([entry])=>{
+  if(entry.isIntersecting) loadMore()
+})
+
+const handleFilter = (filters)=>{
+
+  const  lt= (filters.rent && filters.sale) ? null : filters.rent ? 'rental' : filters.sale ? 'sale' : null;
+
+  fetchListings({
+    listingType: lt,
+    genres: filters.genres,
+    conditions: filters.conditions.length ? filters.conditions.map(c => c.toLowerCase()) : null,
+    minPrice: filters.minPrice ? Number(filters.minPrice) : null,
+    maxPrice: filters.maxPrice ? Number(filters.maxPrice) : null,
+  },true);
+}
+
 </script>
 
 <style scoped>
