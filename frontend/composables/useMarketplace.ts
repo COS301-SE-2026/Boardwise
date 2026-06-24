@@ -33,6 +33,7 @@ export const useMarketplace = () =>{
         maxPrice?: number | null,
         page?: number,
         size?: number,
+        search?: string | null
 
     }, reset = false)=> {
         if(reset){

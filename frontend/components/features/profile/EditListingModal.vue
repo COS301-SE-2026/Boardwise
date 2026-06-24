@@ -176,6 +176,11 @@ const closeModal = () => {
   file_name.value = ''
   file.value = null
 }
+const conditions = ['New', 'Like New', 'Good', 'Fair']
+
+const item_types  = ["Merch", "Full Boardgame","Partial Boardgame","Pieces"]
+
+const genre_list = ['Strategy', 'Family', 'Adventure', 'Abstract', 'Party', 'Abstract Strategy','Card Game', 'Dice', 'Economic', 'Fantasy','Fighting','Electronic', 'Environmental', 'Horror', 'Humor', 'Mafia']
 
 </script>
 

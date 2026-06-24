@@ -293,7 +293,13 @@ public class ListingService {
 
         // if(listingTitle != null) criteria.and("listingTitle").regex(listingTitle, "i");
 
-        if(gameTitle != null) criteria.and("gameTitle").regex(gameTitle, "i");
+        if (gameTitle != null) {
+            Criteria searchCriteria = new Criteria().orOperator(
+                Criteria.where("gameTitle").regex(gameTitle, "i"),
+                Criteria.where("listingTitle").regex(gameTitle, "i")
+            );
+            criteria = new Criteria().andOperator(criteria, searchCriteria);
+        }
 
         if (listingType != null)criteria.and("listingType").regex(listingType, "i");
 
@@ -307,10 +313,11 @@ public class ListingService {
 
         if (genres != null && !genres.isEmpty())criteria.and("genres").in(genres);
 
-        if (conditions != null && !conditions.isEmpty())criteria.and("conditions").in(conditions);
+        if (conditions != null && !conditions.isEmpty())criteria.and("condition").in(conditions);
         
         // if(conditions != null) criteria.and("condition").regex(conditions, "i");
 
+        
         PageRequest pageRequest = null;
         Query query = new Query(criteria);
         if(page != null && size != null){

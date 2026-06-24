@@ -3,7 +3,7 @@
 
     <Navbar />
 
-    <MarketplaceHeader @create-listing="showCreateListing = true" />
+    <MarketplaceHeader v-model="searchQ" @create-listing="showCreateListing = true" />
 
     <MarketplaceTabs v-model="activeTab" />
 
@@ -63,17 +63,32 @@ useIntersectionObserver(sentinel,([entry])=>{
   if(entry.isIntersecting) loadMore()
 })
 
-const handleFilter = (filters)=>{
+const searchQ = ref('');
+const activeFilterState = ref({})
+
+
+watch(searchQ,(q)=>{
+  fetchListings({
+    ...activeFilterState.value,
+    search: q || null},true)
+  })
+
+
+  const handleFilter = (filters)=>{
+
+  const conditions = filters.conditions.length ? filters.conditions.map(c => c.toLowerCase()) : null
+  console.log('conditions:', conditions)
 
   const  lt= (filters.rent && filters.sale) ? null : filters.rent ? 'rental' : filters.sale ? 'sale' : null;
 
-  fetchListings({
+   activeFilterState.value = {
     listingType: lt,
     genres: filters.genres,
-    conditions: filters.conditions.length ? filters.conditions.map(c => c.toLowerCase()) : null,
-    minPrice: filters.minPrice ? Number(filters.minPrice) : null,
-    maxPrice: filters.maxPrice ? Number(filters.maxPrice) : null,
-  },true);
+    conditions: conditions,
+    minPrice: filters.minPrice,
+    maxPrice: filters.maxPrice,
+  }
+  fetchListings({ ...activeFilterState.value, search: searchQ.value || null }, true);
 }
 
 </script>

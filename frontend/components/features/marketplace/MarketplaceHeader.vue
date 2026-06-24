@@ -8,21 +8,17 @@
 
     <div class="search-row">
       <v-text-field
+        v-model="searchQ"
+        :model-value="modelValue"
+        @update:model-value="$emit('update:modelValue', $event)"
         class="search"
         placeholder="Search for games..."
         variant="outlined"
         density="compact"
         hide-details
         rounded="lg"
+        clearable
       />
-
-      <!-- <v-btn
-        variant="outlined"
-        color="primary"
-        prepend-icon="mdi-filter-variant"
-      >
-        Filters
-      </v-btn> -->
 
       <v-btn
         color="primary"
@@ -39,7 +35,9 @@
 <script setup>
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 
-defineEmits(['create-listing'])
+defineProps({ modelValue: String })
+defineEmits(['create-listing', 'update:modelValue'])
+
 </script>
 
 <style scoped>

@@ -9,6 +9,7 @@ export const getListings = (filters:{
     maxPrice?: number | null,
     page?: number,
     size?: number,
+    search?:string,
 }) =>{ 
 
     const applied_filters: Record<string,any> = {};
@@ -21,6 +22,10 @@ export const getListings = (filters:{
     if (filters?.page != null) applied_filters.page = filters.page
     if (filters?.size != null) applied_filters.size = filters.size
 
+    if (filters?.search) {
+        applied_filters.gameTitle = filters.search
+    }
+    
     const hasFilters = Object.keys(applied_filters).length > 0;
 
     if(!hasFilters) return api.get('marketplace/listings');
