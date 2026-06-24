@@ -5,7 +5,7 @@
     </h2>
 
     <p class="text-body-2 text-medium-emphasis mb-0">
-      Author: {{ rulebook.author || 'Unknown' }}
+      Contributor: {{ rulebook.contributorUsername || 'Unknown' }}
     </p>
 
     <p class="text-body-2 text-medium-emphasis mb-0">
