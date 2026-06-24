@@ -173,40 +173,10 @@ public class Seeding {
 
             if (boardGameRepository.count() == 0) {
                 List<Boardgame> boardGames = List.of(
-                        new Boardgame(null, "Monopoly", "Classic property trading game.",
-                                "/images/MonopolyListing.jpg", List.of("Strategy", "Trading")),
-                        new Boardgame(null, "Scrabble", "Word building board game.",
-                                "/images/ScrabbleListing.jpg", List.of("Word", "Abstract Strategy")),
-                        new Boardgame(null, "Catan", "Resource trading and settlement building game.",
-                                "/images/catan.jpg",
-                                List.of(Genres.STRATEGY.getValue(), Genres.NEGOTIATION.getValue(), Genres.ECONOMIC.getValue())),
-                        new Boardgame(null, "Ticket to Ride", "Cross-country train adventure game.",
-                                "/images/ticket.jpg",
-                                List.of(Genres.STRATEGY.getValue(), Genres.TRAINS.getValue(), Genres.TRANSPORTATION.getValue())),
-                        new Boardgame(null, "Azul", "Abstract tile drafting game.",
-                                "/images/azul.jpg",
-                                List.of(Genres.ABSTRACT_STRATEGY.getValue(), Genres.PUZZLE.getValue())),
-                        new Boardgame(null, "Dixit", "Imaginative storytelling card game.",
-                                "/images/dixit.jpg",
-                                List.of(Genres.PARTY_GAME.getValue(), Genres.HUMOR.getValue())),
-                        new Boardgame(null, "Wingspan", "Bird collection engine building game.",
-                                "/images/wingspan.jpg",
-                                List.of(Genres.STRATEGY.getValue(), Genres.ANIMALS.getValue(), Genres.FARMING.getValue())),
-                        new Boardgame(null, "Game of Thrones", "Political strategy and area control game.",
-                                "/images/gameofthrones.png",
-                                List.of(Genres.STRATEGY.getValue(), Genres.NEGOTIATION.getValue(), Genres.POLITICAL.getValue(), Genres.FANTASY.getValue())),
-                        new Boardgame(null, "Kingdom Builder", "Territory building strategy game.",
-                                "/images/kingdom.png",
-                                List.of(Genres.STRATEGY.getValue(), Genres.TERRITORY_BUILDING.getValue())),
-                        new Boardgame(null, "Castles of Burgundy", "Tile placement and estate building game.",
-                                "/images/castle.png",
-                                List.of(Genres.STRATEGY.getValue(), Genres.MEDIEVAL.getValue(), Genres.ECONOMIC.getValue())),
-                        new Boardgame(null, "Civilization", "Epic civilization building strategy game.",
-                                "/images/civil.png",
-                                List.of(Genres.STRATEGY.getValue(), Genres.CIVILIZATION.getValue(), Genres.ECONOMIC.getValue(), Genres.EXPLORATION.getValue())),
-                        new Boardgame(null, "One More Play", "Quick filler card game.",
-                                "/images/omp.png",
-                                List.of(Genres.CARD_GAME.getValue(), Genres.PARTY_GAME.getValue())));
+                        new Boardgame(null, 1 ,"Monopoly", "Classic property trading game.",
+                                "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png", List.of("Strategy", "Trading")),
+                        new Boardgame(null, 2,"Scrabble", "Word building board game.",
+                                "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg", List.of("Word", "Abstract Strategy")));
                 boardGameRepository.saveAll(boardGames);
                 System.out.println("Seeded " + boardGames.size() + " board games");
             } else {
@@ -217,12 +187,31 @@ public class Seeding {
             if (groupRepository.count() == 0) {
                 List<String> usernames = List.of("IAmR3al", "sarah_dev", "bob", "alex_games", "jane_doe");
                 List<Group> groups = List.of(
-                    new Group("Board Game Enthusiasts", "A group for all board game lovers.", null , "public"),
-                    new Group("Strategy Masters", "Deep strategy games discussion.", null , "public"),
-                    new Group("Casual Gamers", "Laid back gaming sessions and trades.", null , "public"),
-                    new Group("RPG Adventurers", "Tabletop RPG and dungeon crawler fans.", null , "private"),
-                    new Group("Card & Tile Collectors", "For fans of card and tile-based games.", null,
-                            "private")
+                    new Group("Board Game Enthusiasts", 
+                    "A group for all board game lovers.", 
+                    "General",
+                    null , 
+                    "public"),
+                    new Group("Strategy Masters", 
+                    "Deep strategy games discussion.", 
+                    "Strategy",
+                    null, 
+                    "public"),
+                    new Group("Casual Gamers", 
+                    "Laid back gaming sessions and trades.", 
+                    "General",
+                    null, 
+                    "public"),
+                    new Group("RPG Adventurers", 
+                    "Tabletop RPG and dungeon crawler fans.",
+                    "Role-Playing", 
+                    null , 
+                    "private"),
+                    new Group("Card & Tile Collectors", 
+                    "For fans of card and tile-based games.", 
+                    "General",
+                    null, 
+                    "private")
                 );
                 
                 for(int i = 0; i < 5; i++){
@@ -230,7 +219,7 @@ public class Seeding {
                     groups.get(i).setOwnerId(user.getId());
                 }
 
-                
+
                 groupRepository.saveAll(groups);
                 System.out.println("Seeded " + groups.size() + " groups");
             } else {

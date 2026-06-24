@@ -1,6 +1,5 @@
 package com.boardwise.backend.shared.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -15,10 +14,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 import com.boardwise.backend.shared.security.JwtFilter;
 import com.boardwise.backend.user_service.services.MyUserDetailsService;
-
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -31,11 +28,14 @@ import java.util.List;
 @Profile("!test")
 public class SecurityConfig {
 
-    @Autowired
-    private MyUserDetailsService userDetailsService; 
+    private final MyUserDetailsService userDetailsService; 
 
-    @Autowired
-    private JwtFilter jwtFilter;
+    private final JwtFilter jwtFilter;
+
+    SecurityConfig(MyUserDetailsService userDetailsService, JwtFilter jwtFilter) {
+        this.userDetailsService = userDetailsService;
+        this.jwtFilter = jwtFilter;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http){
@@ -47,6 +47,7 @@ public class SecurityConfig {
                         "/api/auth/hello",
                         "/api/auth/register", 
                         "/api/auth/login",
+                        "/api/boardgames/",
                         "/api/marketplace/listings",
                         "/api/marketplace/listing/{listingId}",
                         "/api/marketplace/listings/user",
