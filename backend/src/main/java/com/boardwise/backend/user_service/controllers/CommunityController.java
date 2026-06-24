@@ -1,5 +1,6 @@
 package com.boardwise.backend.user_service.controllers;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -48,8 +49,21 @@ public class CommunityController {
         HttpServletRequest req
     ) {
         String token = ProfileController.extractToken(req);
-        Map<String, Object> res = service.createEvent(token, eventInfo, eventImg);
-        return new ResponseEntity<>(res, HttpStatus.CREATED);
+        Map<String, Object> res;
+        try{
+            res = service.createEvent(token, eventInfo, eventImg);
+            return new ResponseEntity<>(res, HttpStatus.CREATED);
+        }
+        catch(IllegalArgumentException e){
+            res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        catch(Exception e){
+            res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PatchMapping("/{eventId}")
