@@ -1,5 +1,7 @@
 package com.boardwise.backend.marketplace.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum Genres {
     ABSTRACT_STRATEGY("abstract strategy"),
     ACTION_DEXTERITY("action / dexterity"),
@@ -53,6 +55,7 @@ public enum Genres {
     MUSIC("music"),
     MYTHOLOGY("mythology"),
     NAPOLEONIC("napoleonic"),
+    FAMILY("family"),
     NAUTICAL("nautical"),
     NEGOTIATION("negotiation"),
     NOVEL_BASED("novel-based"),
@@ -94,6 +97,7 @@ public enum Genres {
         this.value = value;
     }
 
+    @JsonValue
     public String getValue() {
         return value;
     }

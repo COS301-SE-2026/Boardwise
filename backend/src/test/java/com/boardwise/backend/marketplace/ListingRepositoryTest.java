@@ -129,7 +129,7 @@ public class ListingRepositoryTest {
         // ARRANGE
         ItemType type = ItemType.FullBoardGame;
         // ACT
-        List<Listing> res = listingRepository.findByItemType(type);
+        List<Listing> res = listingRepository.findByItemType(type.getValue());
         // ASSERT
         assertNotNull(res);
         assertTrue(res.size() > 0);

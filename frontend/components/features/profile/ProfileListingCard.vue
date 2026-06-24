@@ -37,7 +37,7 @@
 
       <div class="d-flex ga-2 mt-1">
         <v-btn size="small" color="primary" variant="tonal" @click.stop="showEdit = true">Edit</v-btn>
-        <!-- <v-btn size="small" color="error"   variant="tonal" @click.stop="showDelete = true">Delete</v-btn> -->
+        <v-btn size="small" color="error"   variant="tonal" @click.stop="showDelete = true">Delete</v-btn>
       </div>
     </v-card-text>
 
@@ -68,7 +68,7 @@ const openListing = () => {
 
 <style scoped>
 .profile-listing-card {
-  /* cursor:     pointer; */
+  cursor:     pointer;
   overflow: hidden;
   transition: transform var(--transition-base), box-shadow var(--transition-base);
   width: 100%;

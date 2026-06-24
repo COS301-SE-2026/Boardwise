@@ -13,7 +13,7 @@ import org.bson.types.ObjectId;
 @Repository
 public interface ListingRepository extends MongoRepository<Listing, String> {
 
-    List<Listing> findByItemType(ItemType itemType);
+    List<Listing> findByItemType(String itemType);
 
     List<Listing> findByStatus(ListingStatus status);
 

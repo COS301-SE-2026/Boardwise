@@ -26,14 +26,14 @@ export const updateListing = (id: string, data: any, image?: File) => {
         formData.append('image', image);
     }
 
-    return api.patch(`marketplace/update/listing/${id}`, formData, {
+    return api.patch(`marketplace/listing/${id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     });
 }
 
 //DELETE LISTING 
 export const deleteListing = (id: string) => 
-  api.delete(`marketplace/delete/listing/${id}`)
+  api.delete(`marketplace/listing/${id}`)
 
 //GET LISTING BY ID
 export const getListingById = (id: string) => 
