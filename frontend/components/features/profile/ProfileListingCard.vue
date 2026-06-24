@@ -42,16 +42,17 @@
     </v-card-text>
 
     <EditListingModal   v-model="showEdit"   :listing="listing" />
-    <DeleteListingModal v-model="showDelete" :listing="listing" />
+    <DeleteListingModal v-model="showDelete" :listing="listing" @confirm="handleDelete"  />
 
   </BaseCard>
 </template>
 
 <script setup>
-import BaseCard           from '~/components/ui/BaseCard.vue'
-import BaseBadge          from '~/components/ui/BaseBadge.vue'
-import EditListingModal   from './EditListingModal.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseBadge from '~/components/ui/BaseBadge.vue'
+import EditListingModal from './EditListingModal.vue'
 import DeleteListingModal from './DeleteListingModal.vue'
+import { deleteListing } from '~/services/marketplaceService.js'
 
 const props = defineProps({
   listing: { type: Object, required: true }
@@ -64,6 +65,12 @@ const showDelete = ref(false)
 const openListing = () => {
   router.push(`/marketplace/${props.listing.listingId}`)
 }
+const handleDelete = async () => {
+  await deleteListing(props.listing.listingId);
+  emit('deleted', props.listing.listingId)
+};
+
+const emit = defineEmits(['deleted']);
 </script>
 
 <style scoped>

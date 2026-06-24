@@ -60,6 +60,7 @@ public enum Genres {
     NEGOTIATION("negotiation"),
     NOVEL_BASED("novel-based"),
     NUMBER("number"),
+    PARTY("party"),
     PARTY_GAME("party game"),
     PIKE_AND_SHOT("pike and shot"),
     PIRATES("pirates"),
