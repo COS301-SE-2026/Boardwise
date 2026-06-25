@@ -32,28 +32,35 @@ export const getListings = (filters:{
     else return api.get('marketplace/listings/search', {params:applied_filters} );
 }
 
-//CREATE LISTING
-export const createListing = (data: any, image : File) => {
-    const formData = new FormData();
-    formData.append('data', new Blob([JSON.stringify(data)],{type:'application/json'}));
-    formData.append('image',image);
+    //CREATE LISTING
+    createListing(data: any, image : File){
+        const { $api } = useNuxtApp();
+        const formData = new FormData();
+        formData.append('data', new Blob([JSON.stringify(data)],{type:'application/json'}));
+        formData.append('image',image);
 
-    return api.post('marketplace/listings',formData,{
-        headers:{'Content-Type': 'multipart/form-data'}
-    })
-}
+        return $api<ListingResponse>('marketplace/listings',{
+            method: 'POST',
+            headers:{'Content-Type': 'multipart/form-data'},
+            body: formData,
+        });
+    },
 
-//GET USER LISTINGS 
-export const getUserListings = ()=> api.get('marketplace/listings/user');
+    //GET USER LISTINGS 
+    getUserListings(){
+        const { $api } = useNuxtApp();
+        return $api<Array<ListingResponse>>('marketplace/listings/user');
+    },
 
-// UPDATE LISTING BY ID
-export const updateListing = (id: string, data: any, image?: File) => {
-    const formData = new FormData();
-    formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+    // UPDATE LISTING BY ID
+    updateListing(id: string, data: any, image?: File){
+        const { $api } = useNuxtApp();
+        const formData = new FormData();
+        formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
 
-    if (image) {
-        formData.append('image', image);
-    }
+        if (image) {
+            formData.append('image', image);
+        }
 
     return api.patch(`marketplace/listing/${id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }

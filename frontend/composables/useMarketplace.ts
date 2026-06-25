@@ -1,6 +1,5 @@
-import { getListings, createListing, getUserListings, updateListing, deleteListing,getListingById } from '@/services/marketplaceService'
+import { MarketplaceService, type ListingResponse } from '@/services/marketplaceService'
 import { ref } from 'vue'
-import axios from 'axios'
 
 
 export const useMarketplace = () =>{
@@ -11,7 +10,7 @@ export const useMarketplace = () =>{
     const pageSize = 10
 
     //storing listings
-    const listings = ref([]); //listings in db
+    const listings = ref<Array<ListingResponse>>([]); //listings in db
     
     //checks if it loads
     const loading = ref(false);
@@ -62,7 +61,7 @@ export const useMarketplace = () =>{
     const addListing = async (listingData: any, image: File)=>{
         loading.value = true;
         try{
-            await createListing(listingData,image);
+            await MarketplaceService.createListing(listingData,image);
             await fetchListings();
         }catch(err){//TODO: ADD SNACKBAR
             console.error(err);
@@ -84,7 +83,6 @@ export const useMarketplace = () =>{
                 error.value = err.response?.data?.message ?? 'Failed to fetch user listings';
             } else {
             console.error(err);
-            }
         } finally {
             loading.value = false;
         }
@@ -94,7 +92,7 @@ const editListing = async (id: string, listingData: any, image?: File) => {
     loading.value = true;
     error.value = null;
     try {
-        await updateListing(id, listingData, image);
+        await MarketplaceService.updateListing(id, listingData, image);
         await fetchListings(); // refresh the list
     } catch (err) {//TODO: ADD SNACKBAR
         if (axios.isAxiosError(err)) {
@@ -111,7 +109,7 @@ const removeListing = async (id: string) => {
   loading.value = true;
   error.value = null;
   try {
-    await deleteListing(id);
+    await MarketplaceService.deleteListing(id);
     await fetchUserListing(); // refresh list after delete
   } catch (err) { //TODO: ADD SNACKBAR
     if (axios.isAxiosError(err)) {

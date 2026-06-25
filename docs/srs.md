@@ -863,7 +863,7 @@ The Vault is the Shared Library subsystem of Boardwise. It provides a community-
 
 The Vault domain model is centred on the `Rulebook` entity. The `IngestionPipeline` processes the uploaded PDF and creates the `Rulebook` document itself. A `Rulebook` is guarded by a `WriteLock` (the MRSW lock), has current text stored in a `RulebookText` document, and tracks all historical changes via the `EditEvent` ledger (event sourcing).
 
-![Vault Domain Model](./diagrams/The%20Vault%20Domian%20Model.png)
+![Vault Domain Model](./diagrams/The_Vault_Domian_Model.png)
 
 #### 9.3.2 User Stories
 
@@ -951,7 +951,7 @@ The Vault domain model is centred on the `Rulebook` entity. The `IngestionPipeli
 
 #### 9.3.3 Use Cases
 
-![Vault Use Case Diagram](./diagrams/The%20Vault%20Use%20Case%20Diagram.png)
+![Vault Use Case Diagram](./diagrams/The_Vault_Use_Case_Diagram.png)
 
 ##### UC-VLT-01: Upload a PDF Rulebook
 
