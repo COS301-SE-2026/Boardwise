@@ -13,8 +13,6 @@ public class RestClientConfig {
         @Value("${bgg.token}") String token,
         @Value("${bgg.url}") String baseUrl
     ){
-        System.out.println("BGG TOKEN: " + token);
-        System.out.println("BGG URL: " + baseUrl);
         return RestClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeader("Authorization", "Bearer " + token)
