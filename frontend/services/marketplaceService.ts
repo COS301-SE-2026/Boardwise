@@ -66,4 +66,4 @@ export const deleteListing = (id: string) =>
 
 //GET LISTING BY ID
 export const getListingById = (id: string) => 
-  api.get(`marketplace/listings/${id}`)
+  api.get(`marketplace/listing/${id}`)
