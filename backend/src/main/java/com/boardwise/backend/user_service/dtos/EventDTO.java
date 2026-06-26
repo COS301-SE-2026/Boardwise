@@ -11,6 +11,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 public record EventDTO(
     String id,
     String name,
+    String description,
+    String imageUrl,
     LocalDate date,
 
     @JsonFormat(pattern = "HH:mm")
@@ -31,6 +33,8 @@ public record EventDTO(
         return new EventDTO(
             event.getId(),
             event.getName(),
+            event.getDescription(),
+            event.getEventImg(),
             event.getStartDateTime().toLocalDate(),
             event.getStartDateTime().toLocalTime(),
             event.getEndDateTime().toLocalTime(),

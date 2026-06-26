@@ -1,11 +1,17 @@
 package com.boardwise.backend.user_service.services;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.geo.Point;
@@ -24,6 +30,7 @@ import com.boardwise.backend.user_service.dtos.GameInventoryDTO;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.models.Event;
 import com.boardwise.backend.user_service.models.User;
+import com.boardwise.backend.user_service.models.Visibility;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.EventsRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
@@ -32,7 +39,6 @@ import com.google.maps.GeocodingApi;
 import com.google.maps.errors.ApiException;
 import com.google.maps.model.GeocodingResult;
 
-// import ch.qos.logback.classic.pattern.DateConverter;
 
 @Service
 public class CommunityService {
@@ -94,7 +100,7 @@ public class CommunityService {
         return result;
     }
 
-    public Map<String, Object> createEvent(String token, EventInfoDTO eventInfo, MultipartFile eventImg) throws ApiException, InterruptedException, IllegalArgumentException, IOException {
+    public Map<String, Object> createEvent(String token, EventInfoDTO eventInfo, MultipartFile eventImg) throws ApiException, InterruptedException, NoSuchElementException, IOException {
         Map<String, Object> result = new HashMap<>();
         User user = getUserFromToken(token);
 
@@ -122,7 +128,7 @@ public class CommunityService {
         GeocodingResult[] results = GeocodingApi.geocode(geoApiContext, eventLocationText).await();
 
         if(results.length == 0)
-            throw new IllegalArgumentException("Could not find coordinates for location: " + eventLocationText);
+            throw new NoSuchElementException("Could not find coordinates for location: " + eventLocationText);
 
         double latitude = results[0].geometry.location.lat;
         double longitude = results[0].geometry.location.lng;
@@ -170,9 +176,152 @@ public class CommunityService {
         return result;
     }
 
-    public Map<String, Object> updateEvent(String token, EventUpdateDTO newInfo, MultipartFile newImage) {
+    public Map<String, Object> updateEvent(String token, String eventId, EventUpdateDTO newInfo, MultipartFile newImage) throws IllegalAccessException, IllegalArgumentException, NoSuchElementException, IOException, ApiException, InterruptedException {
+        User user = getUserFromToken(token);
+        Event event = eventRepo.findById(eventId).get();
+        boolean eventChanged = false;
+        Map<String, Object> result = new HashMap<>();
+
+        if(!event.getCreatorId().equals(user.getId()))
+            throw new IllegalAccessException("This user is not the host of this event.");
+
+        if(newImage != null){
+            eventChanged = true;
+            String fileName = bucket.uploadFile(newImage, eventId);
+            String imageUrl = bucket.getFileUrl(fileName);
+            event.setEventImg(imageUrl);
+        }
+
+        if(newInfo != null){
+            String newName = AuthService.sanitize(newInfo.name());
+            String newDesc = AuthService.sanitize(newInfo.description());
+            String newLocation = AuthService.sanitize(newInfo.location());
+            LocalDate newDate = newInfo.date();
+            LocalTime newStart = newInfo.startTime();
+            LocalTime newEnd = newInfo.endTime();
+            Visibility newVisibility = newInfo.visibility();
+            List<String> newGames = new ArrayList<>();
+            if(newInfo.games() != null){
+                for(String game : newInfo.games()){
+                    String id = AuthService.sanitize(game);
+                    newGames.add(id);
+                }
+            }
+            
+
+
+            if(newName != null && !event.getName().equals(newName)){
+                eventChanged = true;
+                event.setName(newName);
+            }
+            if(newDesc != null && !event.getDescription().equals(newDesc)){
+                eventChanged = true;
+                event.setDescription(newDesc);
+            }
+            if(newLocation != null && !event.getLocationText().equals(newLocation)){
+                eventChanged = true;
+                event.setLocationText(newLocation);
+
+                GeocodingResult[] results = GeocodingApi.geocode(geoApiContext, newLocation).await();
+                if(results.length == 0)
+                    throw new NoSuchElementException("Could not find coordinates for location: " + newLocation);
+
+                double latitude = results[0].geometry.location.lat;
+                double longitude = results[0].geometry.location.lng;
+
+                GeoJsonPoint point = new GeoJsonPoint(new Point(longitude, latitude));
+                event.setLocation(point);
+            }
+            if(newDate != null && !event.getStartDateTime().toLocalDate().equals(newDate)){
+                eventChanged = true;
+                LocalDateTime startDateTime = LocalDateTime.of(
+                    newDate, 
+                    event.getStartDateTime().toLocalTime()
+                );
+
+                boolean ifPlusOne = event.getStartDateTime().toLocalDate()
+                                    .isBefore(event.getEndDateTime().toLocalDate());
+
+                LocalDateTime endDateTime = ifPlusOne ? 
+                                            LocalDateTime.of(newDate.plusDays(1), event.getEndDateTime().toLocalTime()) :
+                                            LocalDateTime.of(newDate, event.getEndDateTime().toLocalTime());
+
+                event.setStartDateTime(startDateTime);
+                event.setEndDateTime(endDateTime);
+            }
+            if(newStart != null && !event.getStartDateTime().toLocalTime().equals(newStart)){
+                LocalDateTime startDateTime = LocalDateTime.of(
+                    event.getStartDateTime().toLocalDate(), newStart
+                );
+
+                if(startDateTime.isAfter(event.getEndDateTime()) || startDateTime.isEqual(event.getEndDateTime()))
+                    throw new IllegalArgumentException("Event start time must be before end time.");
+
+                event.setStartDateTime(startDateTime);
+                eventChanged = true;
+                
+            }
+            if(newEnd != null && !event.getEndDateTime().toLocalTime().equals(newEnd)){
+                LocalDateTime endDateTime = LocalDateTime.of(
+                    event.getEndDateTime().toLocalDate(), newEnd
+                );
+
+                if(endDateTime.isBefore(event.getStartDateTime()) || endDateTime.isEqual(event.getStartDateTime()))
+                    throw new IllegalArgumentException("Event end time must be after start time.");
+
+                event.setEndDateTime(endDateTime);
+                eventChanged = true;
+                
+            }
+            if(newVisibility != null && event.getVisibility() != newVisibility){
+                eventChanged = true;
+                event.setVisibility(newVisibility);
+            }
+            if(newGames.size() != 0){
+                Set<String> newGameSet = new HashSet<>(newGames);
+                Set<String> oldGameSet = new HashSet<>(event.getGames());
+
+                if(!oldGameSet.equals(newGameSet)){
+                    eventChanged = true;
+                    event.setGames(newGames);
+                }
+            }
+        }
+        
+        if(eventChanged){
+            event = eventRepo.save(event);
+            EventHostInfo hostInfo = new EventHostInfo(
+                user.getUsername(), user.getProfilePicture()
+            );
+
+            List<Boardgame> dbGames = gameRepo.findAllById(event.getGames());
+            List<GameInventoryDTO> games = new ArrayList<>();
+            for(Boardgame game : dbGames){
+                GameInventoryDTO dto = new GameInventoryDTO(
+                    game.getId(), 
+                    game.getTitle(), 
+                    game.getDescription(), 
+                    game.getImageURL(), 
+                    game.getGenres()
+                );
+                games.add(dto);
+            }
+            
+            
+            EventDTO data = EventDTO.fromEntity(event, hostInfo, games);
+            result.put("message", "Event successfully updated.");
+            result.put("data", data);
+        }
+        else{
+            result.put("message", "Event was not updated. No new data was provided.");
+        }    
+
+        return result;
+    }
+
+    public Map<String, Object> deleteEvent(String token, String eventId) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'updateEvent'");
+        throw new UnsupportedOperationException("Unimplemented method 'deleteEvent'");
     }
 
     public Map<String, Object> rsvp(String token, String eventId) {
@@ -188,11 +337,6 @@ public class CommunityService {
     public Map<String, Object> inviteToEvent(String token, EventInviteDTO inviteInfo) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'inviteToEvent'");
-    }
-
-    public Map<String, Object> deleteEvent(String token, String eventId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteEvent'");
     }
 
     // TODO: processing event invite responses (accepting and declining)

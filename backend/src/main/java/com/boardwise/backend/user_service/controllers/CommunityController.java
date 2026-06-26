@@ -1,7 +1,9 @@
 package com.boardwise.backend.user_service.controllers;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,7 +57,7 @@ public class CommunityController {
             res = service.createEvent(token, eventInfo, eventImg);
             return new ResponseEntity<>(res, HttpStatus.CREATED);
         }
-        catch(IllegalArgumentException e){
+        catch(NoSuchElementException e){
             res = new HashMap<>();
             res.put("message", e.getMessage());
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
@@ -70,13 +72,39 @@ public class CommunityController {
     @PatchMapping("/{eventId}")
     public ResponseEntity<?> updateEvent(
         @PathVariable String eventId,
-        @RequestPart("EventInfo") EventUpdateDTO newInfo,
-        @RequestPart("EventImage") MultipartFile newImage,
+        @RequestPart(name = "EventInfo", required = false) 
+        EventUpdateDTO newInfo,
+        @RequestPart(name = "EventImage", required = false) 
+        MultipartFile newImage,
         HttpServletRequest req
     ){
         String token = ProfileController.extractToken(req);
-        Map<String, Object> res = service.updateEvent(token, newInfo, newImage);
-        return new ResponseEntity<>(res, HttpStatus.OK);
+        Map<String, Object> res;
+        try{
+            res = service.updateEvent(token, eventId, newInfo, newImage);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        } catch(IllegalAccessException e){
+            res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.FORBIDDEN);
+        } catch(IllegalArgumentException e){
+            res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }catch(NoSuchElementException e){
+            res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        } catch(IOException e){
+            res = new HashMap<>();
+            res.put("message", "Failed to update event details. Something went wrong with event image.");
+            return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch(Exception e){
+            res = new HashMap<>();
+            e.printStackTrace();
+            res.put("message", "Failed to update event details. Something went wrong on our end.");
+            return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @DeleteMapping("/{eventId}")
