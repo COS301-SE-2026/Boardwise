@@ -45,8 +45,7 @@ public record EventInfoDTO(
         
         if(visibility == null)
             visibility = Visibility.PUBLIC;
-
-
+        
         if(date != null && startTime != null && endTime != null){
             LocalDateTime startDateTime = LocalDateTime.of(date, startTime);
             LocalDateTime endDateTime = endTime.isBefore(startTime) ?

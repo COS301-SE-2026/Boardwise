@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Data;
 
-@Document(collection = "GROUP")
+@Document(collection = "GROUPS")
 @Data
 public class Group {
 
@@ -23,12 +23,12 @@ public class Group {
     private String category;
     private Instant createdAt;
 
-    public Group(String name, String description, String catagory, String ownerId, String visibility){
+    public Group(String name, String description, String category, String ownerId, String visibility){
         this.name = name;
         this.description = description;
         this.ownerId = ownerId;
         this.visibility = visibility;
-        this.category = catagory;
+        this.category = category;
         this.createdAt = Instant.now();
     }
 }

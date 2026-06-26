@@ -36,6 +36,7 @@ public class CommunityController {
         this.service = service;
     }
 
+    // TODO: make it versatile. Optional query parameters. /?name=queryName, filter params
     @GetMapping("/")
     public ResponseEntity<?> getEvents(){
         Map<String, Object> res = service.getEvents();
@@ -118,6 +119,6 @@ public class CommunityController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
     
-    
+    // TODO: Add endpoint for responding to invites
     
 }

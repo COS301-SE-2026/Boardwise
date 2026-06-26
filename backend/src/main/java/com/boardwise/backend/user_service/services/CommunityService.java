@@ -63,12 +63,34 @@ public class CommunityService {
     public Map<String, Object> getEvents() {
         Map<String, Object> result = new HashMap<>();
         Pageable page = PageRequest.of(0, 25);
-        List<Event> events = eventRepo.findAll(page).getContent();
+        List<Event> dbEvents = eventRepo.findAll(page).getContent();
+        
+        List<EventDTO> events = new ArrayList<>();
+        for(Event event : dbEvents){
+            List<Boardgame> eventGames = gameRepo.findAllById(event.getGames());
+            User host = userRepo.findById(event.getCreatorId()).get();
+            EventHostInfo hostInfo = new EventHostInfo(
+                host.getUsername(),
+                host.getProfilePicture()
+            );
+            List<GameInventoryDTO> games = new ArrayList<>();
+            for(Boardgame game : eventGames){
+                GameInventoryDTO dto = new GameInventoryDTO(
+                    game.getId(), 
+                    game.getTitle(), 
+                    game.getDescription(), 
+                    game.getImageURL(), 
+                    game.getGenres()
+                );
+                games.add(dto);
+            }
 
-        // TODO: use the EventDTO instead of the model
+            events.add(EventDTO.fromEntity(event, hostInfo, games));
+        }
 
         result.put("message", "Events successfully retrieved");
         result.put("events", events);
+
         return result;
     }
 
@@ -128,9 +150,9 @@ public class CommunityService {
 
         EventHostInfo hostInfo = new EventHostInfo(user.getUsername(), user.getProfilePicture());
 
+        List<Boardgame> dbGames = gameRepo.findAllById(newEvent.getGames());
         List<GameInventoryDTO> games = new ArrayList<>();
-        for(String gameId : newEvent.getGames()){
-            Boardgame game = gameRepo.findById(gameId).get();
+        for(Boardgame game : dbGames){
             GameInventoryDTO dto = new GameInventoryDTO(
                 game.getId(), 
                 game.getTitle(), 
@@ -172,6 +194,8 @@ public class CommunityService {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'deleteEvent'");
     }
+
+    // TODO: processing event invite responses (accepting and declining)
 
     private User getUserFromToken(String token){
         String userId = jwtService.extractUserId(token).toString();
