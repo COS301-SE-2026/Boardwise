@@ -41,7 +41,7 @@ public class ProfileController {
     @GetMapping("/{username}")
     public ResponseEntity<?> getProfile(@PathVariable String username){
         try{
-            ProfileResponseDTO res = service.getProfile(username);
+            ProfileResponseDTO res = service.getProfile(username, null);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(NoSuchElementException e){
