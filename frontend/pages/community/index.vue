@@ -28,11 +28,11 @@ import { communities } from '~/services/mockData/communities'
 import CommunityFilter from '~/components/features/community/CommunityFilter.vue'
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
-import ExploreHeader from '~/components/features/community/ExploreHeader.vue'
-import ExploreSearch from '~/components/features/community/ExploreSearch.vue'
-import CommunityGrid from '~/components/features/community/CommunityGrid.vue'
-import CommunityCreateForm from '~/components/features/community/CommunityCreateForm.vue'
-
+import CommunityFilter from '~/components/features/community/feed/CommunityFilter.vue'
+import ExploreHeader from '~/components/features/community/explore/ExploreHeader.vue'
+import ExploreSearch from '~/components/features/community/explore/ExploreSearch.vue'
+import CommunityGrid from '~/components/features/community/explore/CommunityGrid.vue'
+import CommunityCreateForm from '~/components/features/community/modals/CommunityCreateForm.vue'
 // 1. Destructure the composable
 // const { communities, getAllCommunities, loading, error } = useCommunity()
 

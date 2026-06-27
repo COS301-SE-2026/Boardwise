@@ -10,8 +10,8 @@
 
 <script setup>
 import { ref } from 'vue'
-import ChatFeed from './ChatFeed.vue'
-import ChatInput from './ChatInput.vue'
+import ChatFeed from './chat/ChatFeed.vue'
+import ChatInput from './chat/ChatInput.vue'
 
 defineProps({
   community: { type: Object, required: true }
