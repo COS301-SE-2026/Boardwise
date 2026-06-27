@@ -24,12 +24,10 @@ import { communities } from '~/services/mockData/communities'
 import CommunityTabs from '~/components/features/community/CommunityTabs.vue'
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
- 
-import CommunityBanner from '~/components/features/community/CommunityBanner.vue'
+import CommunityBanner from '~/components/features/community/shared/CommunityBanner.vue'
 import CommunityChats from '~/components/features/community/CommunityChats.vue'
-import MemberList from '~/components/features/community/MemberList.vue'
-import CommunityAbout from '~/components/features/community/CommunityAbout.vue'
-
+import MemberList from '~/components/features/community/members/MemberList.vue'
+import CommunityAbout from '~/components/features/community/shared/CommunityAbout.vue'
 const route = useRoute()
 
 const community = communities.find(
