@@ -44,7 +44,7 @@ export const useMarketplace = () =>{
         if (!hasMore.value) return
         loading.value = true;
         try {
-            const res = await MarketplaceService.getListings({ ...(activeFilters.value ?? {}), page: page.value, size: pageSize })
+            const res = await MarketplaceService.getListings({ ...(activeFilters.value), page: page.value, size: pageSize })
             const incoming = res.content ?? res
             listings.value = reset ? incoming : [...listings.value, ...incoming]
             hasMore.value = res.last === false
