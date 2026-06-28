@@ -9,8 +9,14 @@
 <script setup>
 import BaseTabs from '~/components/ui/BaseTabs.vue'
 
-defineProps({ activeTab: String })
+defineProps({
+  activeTab: {
+    type: String,
+    default: 'Collection'
+  }
+})
+
 defineEmits(['change'])
 
-const tabs = ['Chat', 'Members', 'About']
+const tabs = ['Collection', 'Events', 'Members', 'Discussion', 'About']
 </script>
