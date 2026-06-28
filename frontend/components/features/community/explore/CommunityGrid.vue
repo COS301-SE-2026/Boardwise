@@ -1,52 +1,43 @@
-<template> 
-  <BaseGrid
-    cols="280px"
-    gap="20px"
-  >
+<template>
+  <BaseGrid cols="280px" gap="24px">
     <BaseEmptyState
       v-if="communities.length === 0"
-      title="No communities yet"
-      class="justify-center"
+      title="No communities found"
+      message="Try adjusting your search or create a new community"
+      class="empty-state"
     />
+    
     <CommunityCard
-      v-for="item in communities"
-      :key="item.id"
-      :community="item"
-      @join="$emit('join-request', item.id)"
+      v-for="community in communities"
+      :key="community.id"
+      :community="community"
+      @click="handleView(community.id)"
     />
   </BaseGrid>
 </template>
 
 <script setup>
-import BaseGrid from '~/components/ui/BaseGrid.vue';
+import BaseGrid from '~/components/ui/BaseGrid.vue'
 import CommunityCard from './CommunityCard.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
 defineProps({
-    communities: {
-        type: Array,
-        default: () => [],
-    }
+  communities: {
+    type: Array,
+    default: () => []
+  }
 })
+
+const emit = defineEmits(['join-request', 'view-community'])
+
+const handleView = (communityId) => {
+  emit('view-community', communityId)
+}
 </script>
-<!-- 
+
 <style scoped>
-.community-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: var(--space-5);
-  align-items: start;
+.empty-state {
+  grid-column: 1 / -1;
+  padding: var(--space-10) 0;
 }
-
-@media (max-width: 900px) {
-  .community-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
-  .community-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style> -->
+</style>
