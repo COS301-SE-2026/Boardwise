@@ -1,6 +1,6 @@
+import os
 import logging
 import boto3
-import os
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ def upload_to_r2(file_bytes: bytes, r2_key: str, content_type: str) -> bool:
             logger.info(f"R2 Upload Success: {response_object}")
         return True
     except Exception as e:
-        logging.error(f"Failed to upload to R2: {str(e)}", exc_info=True)
+        logger.error(f"Failed to upload to R2: {str(e)}", exc_info=True)
         return False
 
 def generate_pdf_key(rulebook_id: str, filename: str)->str:

@@ -3,14 +3,13 @@ from bson import ObjectId
 from datetime import datetime, timezone
 
 from app.config import settings
-from app.models.schemas import Chunk
 
 client = MongoClient(settings.MONGODB_URL)
 db = client[settings.MONGODB_DATABASE]
 
 rulebook_collection = db["RULEBOOK"]
 rulebook_text_collection = db["RULEBOOK_TEXT"]
-ingestion_job_collection = db["RULEBOOK"]
+ingestion_job_collection = db["INGESTION_JOB"]
 boardgame_collection = db["BOARD_GAME"]
 user_collection = db["USER"]
 token_blacklist_collection = db["TOKEN_BLACKLIST"]
@@ -24,21 +23,29 @@ def create_rulebook(
     r2_cover_key: str
 ) -> str:
     """Inserts a new document into the RULEBOOK collection"""
-
     now = datetime.now(timezone.utc)
+
+    boardgame = boardgame_collection.find_one({"title": title})
+    if not boardgame:
+        raise ValueError(f"Boardgame '{title}' not found.")
+
+    user = user_collection.find_one({"_id": ObjectId(contributor_id)})
+    if not user:
+        raise ValueError(f"User '{contributor_id}' not found.")
+    
     rulebook_id = ObjectId()
-    boardgame_id = boardgame_collection.find_one({"title": title})["_id"]
+
 
     rulebook_collection.insert_one({
         "_id": rulebook_id,
-        "gameId": boardgame_id,
+        "gameId": boardgame["_id"],
         "title": title,
         "edition": edition,
         "status": "Processing",
         "version": 0,
-        "contributorId": contributor_id,
-        "contributorUsername": user_collection.find_one({"_id": contributor_id})["username"],
-        "description": boardgame_collection.find_one({"_id": boardgame_id})["description"],
+        "contributorId": ObjectId(contributor_id),
+        "contributorUsername": user.get("username", "Unknown"),
+        "description": boardgame.get("description", ""),
         "language": language,
         "r2PdfKey": r2_pdf_key,
         "r2CoverKey": r2_cover_key,
@@ -48,11 +55,14 @@ def create_rulebook(
 
     return str(rulebook_id)
 
-def update_rulebook_status(rulebook_id: str, status: str) -> str:
+def update_rulebook_status(rulebook_id: str, status: str, version: int = None) -> str:
     """Updates the status of the specific rulebook"""
 
     filter_by_id = {"_id": ObjectId(rulebook_id)}
     update = {"$set": {"status": status}}
+
+    if version is not None:
+        update["$set"]["version"] = version
 
     rulebook_collection.update_one(filter_by_id, update)
 
@@ -67,6 +77,16 @@ def update_rulebook_r2_pdf_key(rulebook_id: str, r2_pdf_key: str) -> str:
     )
 
     return "Rulebook R2 PDF key update was successful."
+
+def update_rulebook_r2_cover_key(rulebook_id: str, r2_cover_key: str) -> str:
+    """Updates the R2 PDF Cover key of the specific rulebook"""
+
+    rulebook_collection.update_one(
+        {"_id": ObjectId(rulebook_id)},
+        {"$set": {"r2CoverKey": r2_cover_key}}
+    )
+
+    return "Rulebook R2 PDF Cover key update was successful."
 
 def create_ingestion_job(rulebook_id: str) -> str:
     """Inserts a new document into the INGESTION_JOB collection"""
@@ -109,9 +129,9 @@ def update_ingestion_job(
 
 def create_rulebook_text(
     rulebook_id: str,
-    chunks: list[Chunk]
+    chunks_list: list[dict]
 ) -> str:
-    """Inserts a new document into the RULEBOOK_TEXT collection"""
+    """Creates the RULEBOOK_TEXT document containing the array of embedded CHUNK subdocuments"""
 
     now = datetime.now(timezone.utc)
     rulebook_text_id = ObjectId()
@@ -120,13 +140,13 @@ def create_rulebook_text(
         "_id": rulebook_text_id,
         "rulebookId": ObjectId(rulebook_id),
         "version": 0,
-        "chunks": chunks,
+        "chunks": chunks_list,
         "updatedAt": now
     })
 
     return str(rulebook_text_id)
 
-def if_token_blacklisted(jti: str) -> bool:
+def is_token_valid(jti: str) -> bool:
     """Checks the MongoDB database to see if the token has been invalidated"""
 
     doc = token_blacklist_collection.find_one({"_id": ObjectId(jti)})
