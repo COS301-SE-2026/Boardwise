@@ -35,7 +35,7 @@
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
-import CommunityEditModal from './CommunityEditModal.vue'
+import CommunityEditModal from '~/CommunityEditModal.vue'
 
 defineProps({
   community: { type: Object, required: true }
