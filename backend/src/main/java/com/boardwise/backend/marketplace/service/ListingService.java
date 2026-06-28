@@ -510,8 +510,6 @@ public class ListingService {
                 listing.getVersion(),
                 listing.getGenres(),
                 listing.getRentalPeriod(),
-                listing.getCreatedAt(),
-                listing.getUpdatedAt(),
                 listing.getStatus());
     }
 

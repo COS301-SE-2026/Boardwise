@@ -76,13 +76,19 @@ watch(searchQ,(q)=>{
     search: q || null},true)
   })
 
+  const getListingType = (rent, sale)=> { 
+    if (rent && sale) return null;
+    if (rent) return 'rental';
+    if (sale) return 'sale';
+    return null;
+  }
 
   const handleFilter = (filters)=>{
 
   const conditions = filters.conditions.length ? filters.conditions.map(c => c.toLowerCase()) : null
   console.log('conditions:', conditions)
 
-  const  lt= (filters.rent && filters.sale) ? null : filters.rent ? 'rental' : filters.sale ? 'sale' : null;
+  const  lt= getListingType(filters.rent,filters.sale);
 
    activeFilterState.value = {
     listingType: lt,

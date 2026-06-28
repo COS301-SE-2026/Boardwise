@@ -23,25 +23,24 @@ import { computed,ref,onMounted } from 'vue'
 import { rulebooks } from '~/services/mockData/rulebooks'
 import ContentSection from '~/components/layout/ContentSection.vue'
 import SpecificItemHero from './SpecificItemHero.vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter  } from 'vue-router'
 import SpecificItemGameInfo from './SpecificItemGameInfo.vue'
 import SpecificItemRulebook from './SpecificItemRulebook.vue'
-import { getListingById } from '~/services/marketplaceService.js'
+import { MarketplaceService } from '~/services/marketplaceService.js'
 const route = useRoute()
 const router = useRouter()
 
 const listing = ref(null)
 const loading = ref(true)
-
+const error = ref('')
 
 onMounted(async ()=>{
   const itemId = route.params.id;
-  res = await getListingById(itemId);
+  const res = await MarketplaceService.getListingById(itemId);
 
-  if(!res){
-    //TODO: add an error
+  if(res === null){
+    error.value = 'Listing not found'
     router.push('/marketplace');
-    return;
   }
   else{
     listing.value = res;
@@ -49,14 +48,8 @@ onMounted(async ()=>{
   }
 })
 
-const props = defineProps ({
-    listing: {
-        type: Object,
-        required: true
-    }
-})
 
-const rulebook = computed(() =>
-  rulebooks.find(r => r.id === props.listing.rulebookId) ?? null
-)
+// const rulebook = computed(() =>
+//   rulebooks.find(r => r.id === props.listing.rulebookId) ?? null
+// )
 </script>

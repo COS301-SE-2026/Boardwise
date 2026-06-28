@@ -73,7 +73,7 @@ const categoryGenreMap = {
 
 
 watch([selectedCategory, selectedConditions, () => ({ ...filters })], () => {
-  const genres = selectedCategory.value !== 'All' ? [categoryGenreMap[selectedCategory.value] ?? selectedCategory.value.toLowerCase()] : null
+  const genres = selectedCategory.value === 'All' ? null : [categoryGenreMap[selectedCategory.value] ?? selectedCategory.value.toLowerCase()] 
   
   console.log("genres to find: " , selectedConditions.value)
   emit('filter', {
@@ -82,8 +82,8 @@ watch([selectedCategory, selectedConditions, () => ({ ...filters })], () => {
     conditions: selectedConditions.value,
     rent: filters.rent,
     sale: filters.sale,
-    minPrice: filters.minPrice !== '' ? Number(filters.minPrice) : null,
-    maxPrice: filters.maxPrice !== '' ? Number(filters.maxPrice) : null,
+    minPrice: filters.minPrice === '' ? null : Number(filters.minPrice),
+    maxPrice: filters.maxPrice === '' ? null : Number(filters.maxPrice),
   })
 }, { deep: true })
 

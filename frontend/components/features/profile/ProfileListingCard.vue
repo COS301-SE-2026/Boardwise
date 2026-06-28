@@ -67,7 +67,7 @@ import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseBadge from '~/components/ui/BaseBadge.vue'
 import EditListingModal from './EditListingModal.vue'
 import DeleteListingModal from './DeleteListingModal.vue'
-import { deleteListing } from '~/services/marketplaceService.js'
+import { MarketplaceService } from '~/services/marketplaceService.js'
 const props = defineProps({
   listing: { type: Object, required: true }
 })
@@ -81,7 +81,7 @@ const openListing = () => {
 }
 
 const handleDelete = async () => {
-  await deleteListing(props.listing.listingId);
+  await MarketplaceService.deleteListing(props.listing.listingId);
   emit('deleted', props.listing.listingId)
 };
 

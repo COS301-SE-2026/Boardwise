@@ -25,6 +25,4 @@ public record ListingResponse(
         String version,
         List<String> genres,
         RentalPeriod rentalPeriod,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt,
         ListingStatus status) {}

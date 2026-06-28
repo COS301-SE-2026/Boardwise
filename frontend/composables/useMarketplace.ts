@@ -44,14 +44,13 @@ export const useMarketplace = () =>{
         if (!hasMore.value) return
         loading.value = true;
         try {
-            const res = await getListings({ ...(activeFilters.value ?? {}), page: page.value, size: pageSize })
-            const data = res.data
-            const incoming = data.content ?? data
+            const res = await MarketplaceService.getListings({ ...(activeFilters.value ?? {}), page: page.value, size: pageSize })
+            const incoming = res.content ?? res
             listings.value = reset ? incoming : [...listings.value, ...incoming]
-            hasMore.value = data.last === false
+            hasMore.value = res.last === false
             page.value++
 
-        } catch(err) {//TODO: ADD SNACKBAR
+        } catch(err) {
             console.error('Failed to fetch', err); 
         } finally {
             loading.value = false;
@@ -60,11 +59,12 @@ export const useMarketplace = () =>{
 
     const addListing = async (listingData: any, image: File)=>{
         loading.value = true;
+        error.value = null;
         try{
-            await MarketplaceService.createListing(listingData,image);
-            await fetchListings();
+            return await MarketplaceService.createListing(listingData,image);
         }catch(err){//TODO: ADD SNACKBAR
             console.error(err);
+            return null;
         }
         finally{
             loading.value = false;
@@ -75,14 +75,10 @@ export const useMarketplace = () =>{
         loading.value = true;
         error.value = null;
         try {
-            const res = await getUserListings();
-            console.log(res.data);
-            listings.value = res.data.content ?? res.data;
-        } catch (err) {//TODO: ADD SNACKBAR
-            if (axios.isAxiosError(err)) {
-                error.value = err.response?.data?.message ?? 'Failed to fetch user listings';
-            } else {
-            console.error(err);
+            const res = await MarketplaceService.getUserListings();
+            listings.value = (res as any).content ?? res
+        } catch (err:any) {
+            error.value = err.response?.data?.message ?? 'Failed to fetch user listings';
         } finally {
             loading.value = false;
         }
@@ -93,13 +89,11 @@ const editListing = async (id: string, listingData: any, image?: File) => {
     error.value = null;
     try {
         await MarketplaceService.updateListing(id, listingData, image);
-        await fetchListings(); // refresh the list
-    } catch (err) {//TODO: ADD SNACKBAR
-        if (axios.isAxiosError(err)) {
+        await fetchListings(undefined, true); // refresh the list
+    } catch (err:any) {//TODO: ADD SNACKBAR
             console.error('Status:', err.response?.status);
             console.error('Response data:', err.response?.data);
             error.value = err.response?.data?.message ?? 'Failed to update listing';
-        }
     } finally {
         loading.value = false;
     }
@@ -111,10 +105,9 @@ const removeListing = async (id: string) => {
   try {
     await MarketplaceService.deleteListing(id);
     await fetchUserListing(); // refresh list after delete
-  } catch (err) { //TODO: ADD SNACKBAR
-    if (axios.isAxiosError(err)) {
+  } catch (err:any) { //TODO: ADD SNACKBAR
       error.value = err.response?.data?.message ?? 'Failed to delete listing';
-    }
+    
   } finally {
     loading.value = false;
   }
@@ -124,12 +117,9 @@ const fetchListingById = async (id: string) => {
   loading.value = true
   error.value = null
   try {
-    const res = await getListingById(id)
-    return res.data
-  } catch (err) { //TODO: ADD SNACKBAR
-    if (axios.isAxiosError(err)) {
+    return await MarketplaceService.getListingById(id)
+  } catch (err:any) { //TODO: ADD SNACKBAR
       error.value = err.response?.data?.message ?? 'Failed to fetch listing'
-    }
     return null
   } finally {
     loading.value = false

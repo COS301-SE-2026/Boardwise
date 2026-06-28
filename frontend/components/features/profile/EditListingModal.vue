@@ -10,7 +10,6 @@
 
       <v-text-field v-model="version" label="Version" placeholder="e.g. Original" variant ="outlined" density="compact" hide-details/>
 
-      <!--TODO: GET ALL AVAILABLE GENRES -->
       <v-select v-model="selected_genres"
         label="Genres"
         :items="genre_list"
@@ -56,7 +55,7 @@
       <div class="d-flex align-center ga-3">
         <v-btn variant="outlined" color="primary" @click="triggerUpload">Upload Image</v-btn>
         <span class="text-grey text-body-2">{{ file_name || '···' }}</span>
-        <input ref="file_input" type="file" accept="image/*" class="hidden-input" @change="handleFileChange" />
+        <input id = "image-upload" ref="file_input" type="file" accept="image/*" class="hidden-input" @change="handleFileChange" />
       </div>
 
       <div class="d-flex justify-end ga-3">
@@ -140,7 +139,6 @@ const handleSave = async () => {
   const listingData = {
     listingTitle: listing_title.value,
     gameTitle: game_title.value,
-    itemType: selected_item_type.value,
     listingType:(listing_type.value === 'rent')?'rental':'sale',
     itemType: selected_item_type.value,
     description: description.value,
