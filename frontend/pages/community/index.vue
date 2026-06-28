@@ -1,31 +1,42 @@
 <template>
-     <PageContainer>
+  <PageContainer>
+    <Navbar />
+
     <div class="community-page">
-      <div class="community-header">
-        <SectionTitle title="Communities" subtitle="Join a community to connect with others"/>
-        
-        <div class="community-actions">
-          <BaseSearch v-model="searchQuery" placeholder="Find a community..." />
-          <BaseTag :tabs="['All', 'My groups', 'Trending']" v-model="activeTab" />
-        </div>
+      <SectionTitle title="Communities" subtitle="Join a community to connect with others" />
+
+      <div class="community-toolbar">
+        <BaseSearch v-model="searchQuery" placeholder="Find a community..." class="community-search" />
+        <BaseButton variant="primary" @click="showCreateModal = true" class="create-btn">
+          <v-icon left size="18">mdi-plus</v-icon>
+          Create Community
+        </BaseButton>
       </div>
 
-      <CommunityGrid 
-        :communities="filteredCommunities"
-        @join-request="handleJoin"
-        @view-community="handleViewCommunity"
-      />
+      <div class="community-layout">
+        <aside class="community-sidebar">
+          <CommunityFilter 
+            :active-tab="activeTab"
+            @filter-change="handleFilterChange"
+          />
+        </aside>
 
-      <v-btn
-        color="primary"
-        size="large"
-        rounded="pill"
-        class="create-btn"
-        @click="showCreateModal = true"
-      >
-        <v-icon left>mdi-plus</v-icon>
-        Create Community
-      </v-btn>
+        <main class="community-main">
+          <div class="filter-tabs">
+            <BaseTag 
+              :tabs="['All', 'My groups', 'Trending']" 
+              v-model="activeTab" 
+            />
+            <span class="community-count">{{ filteredCommunities.length }} communities</span>
+          </div>
+
+          <CommunityGrid 
+            :communities="filteredCommunities"
+            @join-request="handleJoin"
+            @view-community="handleViewCommunity"
+          />
+        </main>
+      </div>
 
       <CommunityCreateForm
         v-model="showCreateModal"
@@ -36,27 +47,24 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 import BaseTag from '~/components/ui/BaseTag.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
 import CommunityGrid from '~/components/features/community/explore/CommunityGrid.vue'
+import CommunityFilter from '~/components/features/community/feed/CommunityFilter.vue'
 import CommunityCreateForm from '~/components/features/community/models/CommunityCreateForm.vue'
-import { communities as mockCommunities } from '~/mockdata/communities.js'
-
+import { communities as mockCommunities } from '~/services/mockData/communities.js'
 
 const router = useRouter()
 const searchQuery = ref('')
 const activeTab = ref('All')
 const showCreateModal = ref(false)
 
-onMounted(() => {
-  console.log(' Communities loaded:', mockCommunities)
-  console.log(' Total communities:', mockCommunities.length)
-  console.log(' First community:', mockCommunities[0])
-})
 const communities = ref(mockCommunities)
 
 const filteredCommunities = computed(() => {
@@ -119,44 +127,80 @@ const handleCreate = (newCommunity) => {
 }
 </script>
 
-<style scoped>.community-page {
-  padding-bottom: 80px;
+<style scoped>
+.community-page {
+  padding-bottom: var(--space-8);
 }
 
-.community-header {
-  margin-bottom: var(--space-6);
-}
-
-.community-actions {
+.community-toolbar {
   display: flex;
   gap: var(--space-4);
   align-items: center;
-  margin-top: var(--space-4);
-  flex-wrap: wrap;
+  margin: var(--space-4) 0 var(--space-6);
 }
 
-.community-actions .base-search {
+.community-search {
   flex: 1;
-  min-width: 200px;
+  max-width: 400px;
 }
 
 .create-btn {
-  position: fixed;
-  bottom: 32px;
-  right: 32px;
-  z-index: 100;
-  box-shadow: var(--shadow-lg);
+  font-family: var(--font-button);
+  font-weight: var(--fw-bold);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-5);
+}
+
+.community-layout {
+  display: flex;
+  gap: var(--space-6);
+  align-items: flex-start;
+}
+
+.community-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+}
+
+.community-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.filter-tabs {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+.community-count {
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
 }
 
 @media (max-width: 768px) {
-  .community-actions {
+  .community-toolbar {
     flex-direction: column;
     align-items: stretch;
   }
-  
-  .create-btn {
-    bottom: 80px;
-    right: 16px;
+
+  .community-search {
+    max-width: none;
+  }
+
+  .community-layout {
+    flex-direction: column;
+  }
+
+  .community-sidebar {
+    width: 100%;
+  }
+
+  .filter-tabs {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2);
   }
 }
 </style>
