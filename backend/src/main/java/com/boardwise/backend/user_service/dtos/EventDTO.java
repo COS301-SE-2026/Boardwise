@@ -20,6 +20,7 @@ public record EventDTO(
 
     @JsonFormat(pattern = "HH:mm")
     LocalTime endTime,
+    int attendeeCount,
     String location,
     Visibility visibility,
     EventHostInfo host,
@@ -27,6 +28,7 @@ public record EventDTO(
 ) {
     public static EventDTO fromEntity(
         Event event,
+        int attendeeCount,
         EventHostInfo hostInfo,
         List<GameInventoryDTO> games
     ){
@@ -38,6 +40,7 @@ public record EventDTO(
             event.getStartDateTime().toLocalDate(),
             event.getStartDateTime().toLocalTime(),
             event.getEndDateTime().toLocalTime(),
+            attendeeCount,
             event.getLocationText(),
             event.getVisibility(),
             hostInfo,

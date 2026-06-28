@@ -10,8 +10,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.geo.Point;
@@ -29,9 +31,12 @@ import com.boardwise.backend.user_service.dtos.EventUpdateDTO;
 import com.boardwise.backend.user_service.dtos.GameInventoryDTO;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.models.Event;
+import com.boardwise.backend.user_service.models.EventAttendee;
+import com.boardwise.backend.user_service.models.RSVPStatus;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.models.Visibility;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.user_service.repos.EventAttendeeRepository;
 import com.boardwise.backend.user_service.repos.EventsRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
 import com.google.maps.GeoApiContext;
@@ -49,11 +54,13 @@ public class CommunityService {
     private final JWTService jwtService;
     private final GeoApiContext geoApiContext;
     private final R2StorageService bucket;
+    private final EventAttendeeRepository eaRepo;
 
     CommunityService(
         EventsRepository eventRepo, 
         UserRepository userRepo, 
         BoardGameRepository gameRepo,
+        EventAttendeeRepository eaRepo,
         JWTService jwtService, 
         GeoApiContext geoApiContext,
         R2StorageService bucket
@@ -61,6 +68,7 @@ public class CommunityService {
         this.eventRepo = eventRepo;
         this.userRepo = userRepo;
         this.gameRepo = gameRepo;
+        this.eaRepo = eaRepo;
         this.jwtService = jwtService;
         this.geoApiContext = geoApiContext;
         this.bucket = bucket;
@@ -75,6 +83,12 @@ public class CommunityService {
         for(Event event : dbEvents){
             List<Boardgame> eventGames = gameRepo.findAllById(event.getGames());
             User host = userRepo.findById(event.getCreatorId()).get();
+
+            EventAttendee forExample = new EventAttendee();
+            forExample.setEventId(event.getId());
+            Example<EventAttendee> example = Example.of(forExample);
+            int attendeeCount = (int) eaRepo.count(example);
+
             EventHostInfo hostInfo = new EventHostInfo(
                 host.getUsername(),
                 host.getProfilePicture()
@@ -91,7 +105,7 @@ public class CommunityService {
                 games.add(dto);
             }
 
-            events.add(EventDTO.fromEntity(event, hostInfo, games));
+            events.add(EventDTO.fromEntity(event, attendeeCount, hostInfo, games));
         }
 
         result.put("message", "Events successfully retrieved");
@@ -169,7 +183,7 @@ public class CommunityService {
             games.add(dto);
         }
 
-        EventDTO data = EventDTO.fromEntity(newEvent, hostInfo, games);
+        EventDTO data = EventDTO.fromEntity(newEvent, 1, hostInfo, games);
         result.put("message", "Event successfully created.");
         result.put("data", data);
 
@@ -290,6 +304,12 @@ public class CommunityService {
         
         if(eventChanged){
             event = eventRepo.save(event);
+
+            EventAttendee forExample = new EventAttendee();
+            forExample.setEventId(event.getId());
+            Example<EventAttendee> example = Example.of(forExample);
+            int attendeeCount = (int) eaRepo.count(example);
+
             EventHostInfo hostInfo = new EventHostInfo(
                 user.getUsername(), user.getProfilePicture()
             );
@@ -308,7 +328,7 @@ public class CommunityService {
             }
             
             
-            EventDTO data = EventDTO.fromEntity(event, hostInfo, games);
+            EventDTO data = EventDTO.fromEntity(event, attendeeCount, hostInfo, games);
             result.put("message", "Event successfully updated.");
             result.put("data", data);
         }
@@ -324,19 +344,115 @@ public class CommunityService {
         throw new UnsupportedOperationException("Unimplemented method 'deleteEvent'");
     }
 
-    public Map<String, Object> rsvp(String token, String eventId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'rsvp'");
+    public Map<String, Object> rsvp(String token, String eventId) throws NoSuchElementException{
+        User user = getUserFromToken(token);
+        Event event = eventRepo.findById(eventId).get();
+        Map<String, Object> result = new HashMap<>();
+
+        if(event == null)
+            throw new NoSuchElementException("Event with ID: " + eventId + " does not exist.");
+
+        EventAttendee newAttendee = new EventAttendee(
+            user.getId(), eventId, RSVPStatus.ATTENDING
+        );
+        
+        newAttendee = eaRepo.save(newAttendee);
+        EventAttendee forExample = new EventAttendee();
+        forExample.setEventId(eventId);
+        Example<EventAttendee> example = Example.of(forExample);
+        int attendeeCount = ((int) eaRepo.count(example)) + 1;
+        
+        EventHostInfo hostInfo = new EventHostInfo(user.getUsername(), user.getProfilePicture());
+
+        List<Boardgame> dbGames = gameRepo.findAllById(event.getGames());
+        List<GameInventoryDTO> games = new ArrayList<>();
+        for(Boardgame game : dbGames){
+            GameInventoryDTO dto = new GameInventoryDTO(
+                game.getId(), 
+                game.getTitle(), 
+                game.getDescription(), 
+                game.getImageURL(), 
+                game.getGenres()
+            );
+            games.add(dto);
+        }
+
+        EventDTO data = EventDTO.fromEntity(event, attendeeCount, hostInfo, games);
+
+
+        result.put("message", "User attendance successfully recorded.");
+        result.put("data", data);
+
+        return result;
     }
 
-    public Map<String, Object> deRsvp(String token, DeRsvpDTO dto) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deRsvp'");
+    public Map<String, Object> deRsvp(String token, DeRsvpDTO dto) throws IllegalAccessException, NoSuchElementException {
+        User user = getUserFromToken(token);
+        Event event = eventRepo.findById(dto.eventId()).get();
+        Map<String, Object> result = new HashMap<>();
+
+        if(event == null)
+            throw new NoSuchElementException("Event with ID: " + dto.eventId() + " does not exist.");
+
+        Optional<EventAttendee> deleted = eaRepo.deleteByUserIdAndEventId(user.getId(), event.getId());
+
+        if(deleted.isEmpty()){
+            throw new IllegalAccessException("User has not RSVP'd for this event.");
+        }
+
+        EventAttendee forExample = new EventAttendee();
+        forExample.setEventId(dto.eventId());
+        Example<EventAttendee> example = Example.of(forExample);
+        int attendeeCount = ((int) eaRepo.count(example)) + 1;
+        
+        EventHostInfo hostInfo = new EventHostInfo(user.getUsername(), user.getProfilePicture());
+
+        List<Boardgame> dbGames = gameRepo.findAllById(event.getGames());
+        List<GameInventoryDTO> games = new ArrayList<>();
+        for(Boardgame game : dbGames){
+            GameInventoryDTO gDto = new GameInventoryDTO(
+                game.getId(), 
+                game.getTitle(), 
+                game.getDescription(), 
+                game.getImageURL(), 
+                game.getGenres()
+            );
+            games.add(gDto);
+        }
+
+        EventDTO data = EventDTO.fromEntity(event, attendeeCount, hostInfo, games);
+
+        result.put("message", "User attendance successfully removed.");
+        result.put("data", data);
+
+        return result;
     }
 
-    public Map<String, Object> inviteToEvent(String token, EventInviteDTO inviteInfo) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'inviteToEvent'");
+    public Map<String, Object> inviteToEvent(String token, EventInviteDTO inviteInfo) throws NoSuchElementException{
+        User inviter = getUserFromToken(token);
+        Map<String, Object> result = new HashMap<>();
+        
+        if(!userRepo.existsById(inviteInfo.invitee()))
+            throw new NoSuchElementException(
+                "Failed to send invite. User with ID: " + 
+                inviteInfo.invitee() +
+                " does not exist."
+            );
+        else if(!eventRepo.existsById(inviteInfo.eventId()))
+            throw new NoSuchElementException(
+                "Failed to send invite. Event with ID: " + 
+                inviteInfo.invitee() +
+                " does not exist."
+            );
+
+        EventAttendee newAttendee = new EventAttendee(
+            inviteInfo.invitee(), inviteInfo.eventId(), RSVPStatus.PENDING 
+        );
+        eaRepo.save(newAttendee);
+
+        // TODO: send invite to the invitee (will require websockets)
+
+        return result;
     }
 
     // TODO: processing event invite responses (accepting and declining)

@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -123,8 +124,16 @@ public class CommunityController {
         HttpServletRequest req
     ) {
         String token = ProfileController.extractToken(req);
-        Map<String, Object> res = service.rsvp(token, eventId);
-        return new ResponseEntity<>(res, HttpStatus.OK);
+        Map<String, Object> res;
+        try{
+            res = service.rsvp(token, eventId);
+            return new ResponseEntity<>(res, HttpStatus.CREATED);
+        }
+        catch(NoSuchElementException e){
+            res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
     }
 
     @DeleteMapping("/")
@@ -133,8 +142,21 @@ public class CommunityController {
         HttpServletRequest req
     ){
         String token = ProfileController.extractToken(req);
-        Map<String, Object> res = service.deRsvp(token, dto);
-        return new ResponseEntity<>(res, HttpStatus.OK);
+        Map<String, Object> res;
+        try{
+            res = service.deRsvp(token, dto);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(IllegalAccessException e){
+            res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        } 
+        catch(NoSuchElementException e){
+            res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
     }
 
     @PostMapping("/invite")
@@ -143,10 +165,21 @@ public class CommunityController {
         HttpServletRequest req
     ) {
         String token = ProfileController.extractToken(req);
-        Map<String, Object> res = service.inviteToEvent(token, inviteInfo);        
-        return new ResponseEntity<>(res, HttpStatus.OK);
+        Map<String, Object> res;
+        try{
+            res = service.inviteToEvent(token, inviteInfo);        
+            return new ResponseEntity<>(res, HttpStatus.CREATED);
+        }
+        catch(NoSuchElementException e){
+            res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
     }
     
-    // TODO: Add endpoint for responding to invites
+    @PatchMapping("/invite")
+    public ResponseEntity<?> respondToInvite(){
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
     
 }
