@@ -20,7 +20,7 @@ public enum Condition {
     }
 
     public boolean isEqual(String x) {
-        return value.equals(x); 
+        return value.equalsIgnoreCase(x); 
     }
 
     public static Condition fromValue(String value) {

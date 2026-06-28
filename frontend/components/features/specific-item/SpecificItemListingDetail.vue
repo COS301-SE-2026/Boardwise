@@ -19,8 +19,7 @@
 </template>
 
 <script setup>
-import { computed,ref,onMounted } from 'vue'
-import { rulebooks } from '~/services/mockData/rulebooks'
+import {ref,onMounted } from 'vue'
 import ContentSection from '~/components/layout/ContentSection.vue'
 import SpecificItemHero from './SpecificItemHero.vue'
 import { useRoute, useRouter  } from 'vue-router'

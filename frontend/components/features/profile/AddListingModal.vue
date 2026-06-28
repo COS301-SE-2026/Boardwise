@@ -53,7 +53,7 @@
 
       <div class="d-flex align-center ga-3">
         <v-btn variant="outlined" color="primary" @click="triggerUpload">Upload Image</v-btn>
-        <span class="text-grey text-body-2">{{ file_name || '···' }}</span>
+        <label for="image-upload" class="text-grey text-body-2">{{ file_name || '···' }}</label>
         <input id="image-upload" ref="file_input" type="file" accept="image/*" class="hidden-input" @change="handleFileChange" />
       </div>
 

@@ -54,8 +54,8 @@
 
       <div class="d-flex align-center ga-3">
         <v-btn variant="outlined" color="primary" @click="triggerUpload">Upload Image</v-btn>
-        <span class="text-grey text-body-2">{{ file_name || '···' }}</span>
-        <input id = "image-upload" ref="file_input" type="file" accept="image/*" class="hidden-input" @change="handleFileChange" />
+        <label for="edit-image-upload" class="text-grey text-body-2">{{ file_name || '···' }}</label>
+        <input id="edit-image-upload" ref="file_input" type="file" accept="image/*" class="hidden-input" @change="handleFileChange" />
       </div>
 
       <div class="d-flex justify-end ga-3">
@@ -172,7 +172,7 @@ const closeModal = () => {
   negotiable.value = false
   location.value = ''
   file_name.value = ''
-  file.value = null
+  image_file.value = null
 }
 const conditions = ['New', 'Like New', 'Good', 'Fair']
 

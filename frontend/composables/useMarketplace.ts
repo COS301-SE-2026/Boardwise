@@ -62,7 +62,7 @@ export const useMarketplace = () =>{
         error.value = null;
         try{
             return await MarketplaceService.createListing(listingData,image);
-        }catch(err){//TODO: ADD SNACKBAR
+        }catch(err){
             console.error(err);
             return null;
         }
@@ -90,7 +90,7 @@ const editListing = async (id: string, listingData: any, image?: File) => {
     try {
         await MarketplaceService.updateListing(id, listingData, image);
         await fetchListings(undefined, true); // refresh the list
-    } catch (err:any) {//TODO: ADD SNACKBAR
+    } catch (err:any) {
             console.error('Status:', err.response?.status);
             console.error('Response data:', err.response?.data);
             error.value = err.response?.data?.message ?? 'Failed to update listing';
@@ -105,7 +105,7 @@ const removeListing = async (id: string) => {
   try {
     await MarketplaceService.deleteListing(id);
     await fetchUserListing(); // refresh list after delete
-  } catch (err:any) { //TODO: ADD SNACKBAR
+  } catch (err:any) {
       error.value = err.response?.data?.message ?? 'Failed to delete listing';
     
   } finally {
@@ -118,7 +118,7 @@ const fetchListingById = async (id: string) => {
   error.value = null
   try {
     return await MarketplaceService.getListingById(id)
-  } catch (err:any) { //TODO: ADD SNACKBAR
+  } catch (err:any) { 
       error.value = err.response?.data?.message ?? 'Failed to fetch listing'
     return null
   } finally {
