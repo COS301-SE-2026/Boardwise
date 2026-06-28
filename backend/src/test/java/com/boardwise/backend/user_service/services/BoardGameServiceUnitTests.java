@@ -114,6 +114,8 @@ public class BoardGameServiceUnitTests {
         assertTrue(argument.get(0).getDescription().contains("Extremely vicious"));
         assertEquals(argument.get(0).getImageURL(), "https://cf.geekdo-images.com/3EmD1SEI5fVpR4rbdkU0AA__original/img/pic882119.jpg");
         assertEquals(argument.get(0).getGenres(), List.of("Economic"));
+        assertTrue(argument.get(0).getMinPlayers() == 2);
+        assertTrue(argument.get(0).getMaxPlayers() == 7);
     }
     
     @Test
@@ -121,7 +123,16 @@ public class BoardGameServiceUnitTests {
     void shouldPopulateBoardGameCollectionWithGamesStartingAtLastKnownBggId(){
         // Arrange
         when(gameRepo.findTopByBggIdNotNullOrderByBggIdDesc())
-            .thenReturn(Optional.of(new Boardgame(null, 420, null, null, null, null)));
+            .thenReturn(Optional.of(new Boardgame(
+                null,
+                420,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            )));
 
         String requestUrl = baseUrl + "/thing?id=421,422,423,424,425,426,427,428,429,430,431,432,433,434,435,436,437,438,439,440&subtype=boardgame";
         String mockResponse = """
@@ -184,6 +195,8 @@ public class BoardGameServiceUnitTests {
         assertTrue(argument.get(0).getDescription().contains("Extremely vicious"));
         assertEquals(argument.get(0).getImageURL(), "https://cf.geekdo-images.com/3EmD1SEI5fVpR4rbdkU0AA__original/img/pic882119.jpg");
         assertEquals(argument.get(0).getGenres(), List.of("Economic"));
+        assertTrue(argument.get(0).getMinPlayers() == 2);
+        assertTrue(argument.get(0).getMaxPlayers() == 7);
     }
     
     @Test

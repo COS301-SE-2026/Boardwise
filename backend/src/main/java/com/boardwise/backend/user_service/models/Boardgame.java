@@ -31,5 +31,7 @@ public class Boardgame {
     private String title;
     private String description;
     private String imageURL;
+    private Integer minPlayers;
+    private Integer maxPlayers;
     private List<String> genres;
 }

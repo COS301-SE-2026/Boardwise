@@ -84,6 +84,21 @@ public class BoardGameService {
                                                     .item(0)
                                                     .getTextContent();
 
+                String preMin = element.getElementsByTagName("minplayers")
+                                            .item(0)
+                                            .getAttributes()
+                                            .getNamedItem("value")
+                                            .getNodeValue();
+
+                int minPlayers = Integer.parseInt(preMin);
+                
+                String preMax = element.getElementsByTagName("maxplayers")
+                                            .item(0)
+                                            .getAttributes()
+                                            .getNamedItem("value")
+                                            .getNodeValue();
+                int maxPlayers = Integer.parseInt(preMax);       
+
                 NodeList gameGenres = element.getElementsByTagName("link");
                 List<String> genres = new ArrayList<>();
                 for(int j = 0; j < gameGenres.getLength(); j++){
@@ -96,7 +111,16 @@ public class BoardGameService {
                         genres.add(genre);
                     }
                 }
-                Boardgame game = new Boardgame(preBggId, bggId, gameTitle, gameDesc, gameImage, genres);
+                Boardgame game = new Boardgame(
+                    null,
+                    bggId,
+                    gameTitle,
+                    gameDesc,
+                    gameImage,
+                    minPlayers,
+                    maxPlayers,
+                    genres
+                );
                 boardgames.add(game);
             }
 

@@ -56,14 +56,17 @@ public class ProfileService {
 
     public ProfileResponseDTO getOwnProfile(String token) {
         // get username from token
-        ObjectId extractedUsername = jwtService.extractUserId(token);
-        return getProfile(extractedUsername.toString());
+        ObjectId userId = jwtService.extractUserId(token);
+        User extractedUser = userRepo.findById(userId.toString()).get();
+        return getProfile(null, extractedUser);
     }
 
-    public ProfileResponseDTO getProfile(String userId) {
+    public ProfileResponseDTO getProfile(String username, User own) {
         // get user data from db
-        User user = userRepo.findById(userId)
-                                        .orElseThrow();
+        User user = own == null ? 
+                    userRepo.findByUsername(username)
+                                        .orElseThrow() :
+                    own;
         
         
         // get the games from stored ids                                
@@ -110,9 +113,8 @@ public class ProfileService {
 
     public void deleteUser(String token) {
         String userId = jwtService.extractUserId(token).toString();
-        // add removal of associated data
+        // TODO: add removal of associated data
 
-        // end associated data removal
         userRepo.deleteById(userId);
     }
 
@@ -245,6 +247,8 @@ public class ProfileService {
             gameTitle,
             gameDesc,
             imageUrl,
+            gameInfo.minPlayers(),
+            gameInfo.maxPlayers(),
             gameGenres
         );
 

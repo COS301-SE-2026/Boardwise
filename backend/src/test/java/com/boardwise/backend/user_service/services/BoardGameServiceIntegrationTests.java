@@ -48,6 +48,7 @@ public class BoardGameServiceIntegrationTests {
         assertTrue(first.getDescription().contains("different regions of Germany"));
         assertTrue(first.getImageURL().equals("https://cf.geekdo-images.com/rpwCZAjYLD940NWwP3SRoA__original/img/yR0aoBVKNrAmmCuBeSzQnMflLYg=/0x0/filters:format(jpeg)/pic4718279.jpg"));
         assertTrue(first.getGenres().equals(List.of("Economic", "Negotiation", "Political")));
-
+        assertTrue(first.getMinPlayers() == 3);
+        assertTrue(first.getMaxPlayers() == 5);
     }
 }

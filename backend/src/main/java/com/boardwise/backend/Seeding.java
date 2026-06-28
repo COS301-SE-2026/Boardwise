@@ -38,12 +38,12 @@ import com.boardwise.backend.marketplace.enums.Genres;
 @Profile("!test")
 public class Seeding {
 
-        private ObjectId getObjectIdFromUsername(String username, UserRepository userRepository) {
-                return new ObjectId(userRepository.findByUsername(username).get().getId());
-        }
+    private ObjectId getObjectIdFromUsername(String username, UserRepository userRepository) {
+            return new ObjectId(userRepository.findByUsername(username).get().getId());
+    }
 
-        @Bean
-
+        
+    @Bean
     public CommandLineRunner seedDB(ListingRepository listingRepository, BoardGameRepository boardGameRepository, GroupMembershipRepository groupMembershipRepository,
             GroupRepository groupRepository, UserRepository userRepository, EditEventRepository editEventRepository,
             IngestionJobRepository ingestionJobRepository, RulebookRepository rulebookRepository,
@@ -174,9 +174,11 @@ public class Seeding {
             if (boardGameRepository.count() == 0) {
                 List<Boardgame> boardGames = List.of(
                         new Boardgame(null, 1 ,"Monopoly", "Classic property trading game.",
-                                "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png", List.of("Strategy", "Trading")),
+                                "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png", 2, 8, 
+                                List.of("Strategy", "Trading")),
                         new Boardgame(null, 2,"Scrabble", "Word building board game.",
-                                "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg", List.of("Word", "Abstract Strategy")));
+                                "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg", 2, 4, 
+                                List.of("Word", "Abstract Strategy")));
                 boardGameRepository.saveAll(boardGames);
                 System.out.println("Seeded " + boardGames.size() + " board games");
             } else {
