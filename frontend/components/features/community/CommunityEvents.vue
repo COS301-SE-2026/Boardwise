@@ -5,7 +5,10 @@
         <v-icon left>mdi-calendar</v-icon>
         Upcoming Events
       </h2>
-      <BaseButton @click="$emit('create-event')">+ Create Event</BaseButton>
+      <BaseButton @click="$emit('create-event')">
+        <v-icon left size="18">mdi-plus</v-icon>
+        Create Event
+      </BaseButton>
     </div>
 
     <div class="events-list">
@@ -28,9 +31,10 @@
               <v-icon size="16">mdi-account</v-icon>
               Hosted by {{ event.organiser }}
             </span>
-            <BaseBadge :variant="event.visibility.toLowerCase()">
-              {{ event.visibility }}
+            <BaseBadge :variant="event.visibility?.toLowerCase() || 'public'">
+              {{ event.visibility || 'Public' }}
             </BaseBadge>
+            <span v-if="event.rsvped" class="rsvp-badge">✅ RSVP'd</span>
           </div>
         </div>
         <BaseButton 
@@ -44,15 +48,26 @@
       <div v-if="events.length === 0" class="event-empty">
         <v-icon size="48" color="var(--color-text-muted)">mdi-calendar-blank</v-icon>
         <p>No events scheduled for this community</p>
-        <BaseButton variant="secondary" @click="$emit('create-event')">Plan an Event</BaseButton>
+        <BaseButton variant="secondary" @click="$emit('create-event')">
+          <v-icon left size="18">mdi-plus</v-icon>
+          Plan an Event
+        </BaseButton>
       </div>
     </div>
+
+    <CreateEventModal
+      v-model="showCreateModal"
+      :community-id="communityId"
+      @confirm="handleCreateEvent"
+    />
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseBadge from '~/components/ui/BaseBadge.vue'
+import CreateEventModal from './CreateEventModal.vue'
 
 defineProps({
   communityId: {
@@ -67,6 +82,8 @@ defineProps({
 
 defineEmits(['create-event', 'join-event'])
 
+const showCreateModal = ref(false)
+
 const formatDay = (dateStr) => {
   if (!dateStr) return '--'
   return new Date(dateStr).getDate().toString().padStart(2, '0')
@@ -80,6 +97,11 @@ const formatMonth = (dateStr) => {
 const formatTime = (timeStr) => {
   if (!timeStr) return '--:--'
   return timeStr.slice(0, 5)
+}
+
+const handleCreateEvent = (eventData) => {
+  emit('create-event', eventData)
+  showCreateModal.value = false
 }
 </script>
 
@@ -182,6 +204,11 @@ const formatTime = (timeStr) => {
   display: flex;
   align-items: center;
   gap: var(--space-1);
+}
+
+.rsvp-badge {
+  color: var(--color-success);
+  font-weight: var(--fw-bold);
 }
 
 .event-empty {
