@@ -5,7 +5,13 @@
         <v-icon left>mdi-grid</v-icon>
         Collection
       </h2>
-      <span class="game-count">{{ games.length }} games</span>
+      <div class="header-actions">
+        <span class="game-count">{{ games.length }} games</span>
+        <BaseButton variant="secondary" size="sm" @click="$emit('add-game')">
+          <v-icon left size="18">mdi-plus</v-icon>
+          Add Game
+        </BaseButton>
+      </div>
     </div>
 
     <BaseGrid cols="260px" gap="24px">
@@ -25,6 +31,13 @@
           <BaseBadge v-if="game.isEssential" variant="primary" class="game-badge">
             Essential
           </BaseBadge>
+          <button 
+            class="remove-game-btn"
+            @click.stop="removeGame(game.id)"
+            title="Remove from collection"
+          >
+            <v-icon size="16">mdi-close</v-icon>
+          </button>
         </div>
         <div class="game-info">
           <h3>{{ game.title || game.name }}</h3>
@@ -44,13 +57,22 @@
         <p class="add-game-subtitle">Suggest a game to add to the vault</p>
       </BaseCard>
     </BaseGrid>
+
+    <AddGameModal
+      v-model="showAddModal"
+      @confirm="handleAddGame"
+    />
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseGrid from '~/components/ui/BaseGrid.vue'
 import BaseBadge from '~/components/ui/BaseBadge.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
+import AddGameModal from './AddGameModal.vue'
+
 
 defineProps({
   games: {
@@ -59,15 +81,27 @@ defineProps({
   }
 })
 
-defineEmits(['add-game'])
+const emit = defineEmits(['add-game', 'remove-game'])
+
+const showAddModal = ref(false)
 
 const viewGame = (gameId) => {
   console.log('View game:', gameId)
 }
+
+const removeGame = (gameId) => {
+  if (confirm('Remove this game from the collection?')) {
+    emit('remove-game', gameId)
+  }
+}
+
+const handleAddGame = (gameData) => {
+  emit('add-game', gameData)
+  showAddModal.value = false
+}
 </script>
 
-<style scoped>
-.collection-grid {
+<style scoped>.collection-grid {
   padding: var(--space-2) 0;
 }
 
@@ -88,6 +122,12 @@ const viewGame = (gameId) => {
   margin: 0;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 .game-count {
   font-size: var(--fs-small);
   color: var(--color-text-muted);
@@ -98,6 +138,7 @@ const viewGame = (gameId) => {
   overflow: hidden;
   cursor: pointer;
   transition: transform var(--transition-base), box-shadow var(--transition-base);
+  position: relative;
 }
 
 .game-card:hover {
@@ -117,6 +158,32 @@ const viewGame = (gameId) => {
   position: absolute;
   top: var(--space-2);
   right: var(--space-2);
+}
+
+.remove-game-btn {
+  position: absolute;
+  bottom: var(--space-2);
+  right: var(--space-2);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.game-card:hover .remove-game-btn {
+  opacity: 1;
+}
+
+.remove-game-btn:hover {
+  background: var(--color-error);
 }
 
 .game-info {
