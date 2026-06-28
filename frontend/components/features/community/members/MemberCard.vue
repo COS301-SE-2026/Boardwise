@@ -1,63 +1,55 @@
 <template>
-  <BaseCard class="card">
-
-    <div class="avatar-container">
-      <BaseAvatar :src="member.avatar" />
+  <BaseCard class="member-card">
+    <div class="member-avatar">
+      <v-avatar size="64">
+        <v-img :src="member.avatar || '/images/avatar.jpg'" />
+      </v-avatar>
     </div>
-
-    <div class="content">
+    <div class="member-info">
       <h3>{{ member.name }}</h3>
-      <p>{{ member.role }}</p>
+      <BaseBadge :variant="member.role.toLowerCase()">
+        {{ member.role }}
+      </BaseBadge>
     </div>
-
   </BaseCard>
 </template>
 
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
-import BaseAvatar from '~/components/ui/BaseAvatar.vue'
+import BaseBadge from '~/components/ui/BaseBadge.vue'
 
 defineProps({
-  member: { type: Object, required: true }
+  member: {
+    type: Object,
+    required: true
+  }
 })
 </script>
 
 <style scoped>
-.card {
-  overflow: hidden;
-  padding: 0;
-  cursor: pointer;
-}
-
-.card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-.avatar-container {
-  width: 100%;
-  height: 120px;
-  background: #f5f5f5;
+.member-card {
+  padding: var(--space-4);
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  text-align: center;
+  gap: var(--space-2);
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 
-.avatar-container :deep(.avatar) {
-  width: 72px;
-  height: 72px;
+.member-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
-.content {
-  padding: 16px;
+.member-avatar {
+  margin-bottom: var(--space-1);
 }
 
-h3 {
-  margin: 0;
-}
-
-p {
-  margin-top: 6px;
-  color: #666;
-  font-size: 0.875rem;
+.member-info h3 {
+  margin: 0 0 var(--space-1) 0;
+  font-size: var(--fs-h4);
+  font-weight: var(--fw-bold);
+  color: var(--color-secondary);
 }
 </style>
