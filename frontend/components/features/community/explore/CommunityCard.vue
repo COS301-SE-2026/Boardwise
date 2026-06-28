@@ -1,29 +1,48 @@
 <template>
-  <BaseCard class="community-card" @click="navigateToCommunity">
-
-    <v-img
-      :src="community.image"
-      height="180"
-      cover
-    />
-
-    <v-card-text class="card-body">
-      <h3>{{ community.name }}</h3>
-      <BaseBadge :variant="community.type">
+  <BaseCard class="community-card">
+    <div class="card-image">
+      <v-img
+        :src="community.image || '/images/community-default.jpg'"
+        height="160"
+        cover
+        class="community-image"
+      />
+      <BaseBadge :variant="community.type.toLowerCase()" class="card-badge">
         {{ community.type }}
       </BaseBadge>
-      <p class="description">{{ community.description }}</p>
-    </v-card-text>
+    </div>
 
-    <v-card-actions class="card-actions">
-      <BaseButton
+    <div class="card-content">
+      <h3 class="community-name">{{ community.name }}</h3>
+      <p class="community-description">{{ community.description }}</p>
+      
+      <div class="community-meta">
+        <div class="member-avatars">
+          <v-avatar 
+            v-for="(member, index) in community.members_list?.slice(0, 3) || []" 
+            :key="index"
+            size="28"
+            class="member-avatar"
+          >
+            <v-img :src="member.avatar || '/images/avatar.jpg'" />
+          </v-avatar>
+          <span v-if="community.members > 3" class="member-more">
+            +{{ community.members - 3 }}
+          </span>
+        </div>
+        <span class="member-count">{{ community.members }} members</span>
+      </div>
+    </div>
+
+    <div class="card-actions">
+      <BaseButton 
+        variant="primary" 
         block
-        @click.stop="router.push(`/community/${community.id}/chat`)"
+        @click.stop="$emit('click')"
       >
         View
       </BaseButton>
-    </v-card-actions>
-
+    </div>
   </BaseCard>
 </template>
 
@@ -31,60 +50,135 @@
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseBadge from '~/components/ui/BaseBadge.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
-import { useRouter } from 'vue-router'
 
-const props = defineProps({
-  community: { type: Object, required: true }
+defineProps({
+  community: {
+    type: Object,
+    required: true
+  }
 })
 
-defineEmits(['join'])
+defineEmits(['click'])
+</script>
 
-const router = useRouter()
+<script setup>
+import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseBadge from '~/components/ui/BaseBadge.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
 
-const navigateToCommunity = () => {
-  router.push(`/community/${props.community.id}`)
-}
+defineProps({
+  community: {
+    type: Object,
+    required: true
+  }
+})
+
+defineEmits(['click', 'join'])
 </script>
 
 <style scoped>
 .community-card {
+  padding: 0;
+  overflow: hidden;
   cursor: pointer;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
   display: flex;
   flex-direction: column;
   height: 100%;
-  transition: box-shadow var(--transition-base), transform var(--transition-base);
 }
 
 .community-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
 }
 
-.card-body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  flex: 1;
-}
-
-h3 {
-  margin: 0;
-  font-size: var(--fs-h4);
-  color: var(--color-secondary);
-}
-
-.description {
-  font-size: var(--fs-small);
-  color: var(--color-text-muted);
-  line-height: var(--lh-normal);
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+.card-image {
+  position: relative;
   overflow: hidden;
 }
 
+.community-image {
+  transition: transform 0.3s ease;
+}
+
+.community-card:hover .community-image {
+  transform: scale(1.05);
+}
+
+.card-badge {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+}
+
+.card-content {
+  padding: var(--space-4);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.community-name {
+  margin: 0;
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-bold);
+  color: var(--color-secondary);
+}
+
+.community-description {
+  margin: 0;
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+  line-height: var(--lh-normal);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+.community-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.member-avatars {
+  display: flex;
+  align-items: center;
+}
+
+.member-avatar {
+  border: 2px solid var(--color-surface);
+  margin-right: -8px;
+}
+
+.member-avatar:last-child {
+  margin-right: 0;
+}
+
+.member-more {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-muted);
+  margin-left: var(--space-1);
+}
+
+.member-count {
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+  margin-left: auto;
+}
+
 .card-actions {
-  padding: 0 var(--space-4) var(--space-4);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 600px) {
+  .community-card {
+    max-width: 100%;
+  }
 }
 </style>
