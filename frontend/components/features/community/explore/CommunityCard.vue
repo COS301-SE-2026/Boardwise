@@ -1,15 +1,15 @@
 <template>
-  <BaseCard class="community-card">
+  <div class="community-card" @click="$emit('click')">
     <div class="card-image">
       <v-img
         :src="community.image || '/images/community-default.jpg'"
-        height="160"
+        height="140"
         cover
         class="community-image"
       />
-      <BaseBadge :variant="community.type.toLowerCase()" class="card-badge">
-        {{ community.type }}
-      </BaseBadge>
+      <span class="card-badge" :class="community.type?.toLowerCase() || 'public'">
+        {{ community.type || 'Public' }}
+      </span>
     </div>
 
     <div class="card-content">
@@ -17,40 +17,22 @@
       <p class="community-description">{{ community.description }}</p>
       
       <div class="community-meta">
-        <div class="member-avatars">
-          <v-avatar 
-            v-for="(member, index) in community.members_list?.slice(0, 3) || []" 
-            :key="index"
-            size="28"
-            class="member-avatar"
-          >
-            <v-img :src="member.avatar || '/images/avatar.jpg'" />
-          </v-avatar>
-          <span v-if="community.members > 3" class="member-more">
-            +{{ community.members - 3 }}
-          </span>
+        <div class="member-info">
+          <v-icon size="16" color="var(--color-text-muted)">mdi-account-group</v-icon>
+          <span class="member-count">{{ community.members }} members</span>
         </div>
-        <span class="member-count">{{ community.members }} members</span>
       </div>
     </div>
 
     <div class="card-actions">
-      <BaseButton 
-        variant="primary" 
-        block
-        @click.stop="$emit('click')"
-      >
+      <button class="btn btn--primary btn--block" @click.stop="$emit('click')">
         View
-      </BaseButton>
+      </button>
     </div>
-  </BaseCard>
+  </div>
 </template>
 
 <script setup>
-import BaseCard from '~/components/ui/BaseCard.vue'
-import BaseBadge from '~/components/ui/BaseBadge.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
-
 defineProps({
   community: {
     type: Object,
@@ -61,24 +43,13 @@ defineProps({
 defineEmits(['click'])
 </script>
 
-<script setup>
-import BaseCard from '~/components/ui/BaseCard.vue'
-import BaseBadge from '~/components/ui/BaseBadge.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
-
-defineProps({
-  community: {
-    type: Object,
-    required: true
-  }
-})
-
-defineEmits(['click', 'join'])
-</script>
-
 <style scoped>
+
 .community-card {
-  padding: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
   cursor: pointer;
   transition: transform var(--transition-base), box-shadow var(--transition-base);
@@ -89,16 +60,17 @@ defineEmits(['click', 'join'])
 
 .community-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
 }
 
 .card-image {
   position: relative;
   overflow: hidden;
+  background: var(--color-surface-alt);
 }
 
 .community-image {
-  transition: transform 0.3s ease;
+  transition: transform var(--transition-base);
 }
 
 .community-card:hover .community-image {
@@ -107,8 +79,24 @@ defineEmits(['click', 'join'])
 
 .card-badge {
   position: absolute;
-  top: var(--space-3);
-  right: var(--space-3);
+  top: var(--space-2);
+  right: var(--space-2);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--bw-gold-muted);
+  color: var(--bw-navy-ink);
+}
+
+.card-badge.public {
+  background: var(--bw-gold-muted);
+  color: var(--bw-navy-ink);
+}
+
+.card-badge.private {
+  background: var(--bw-navy);
+  color: var(--color-text-inverse);
 }
 
 .card-content {
@@ -121,14 +109,15 @@ defineEmits(['click', 'join'])
 
 .community-name {
   margin: 0;
-  font-size: var(--fs-h3);
+  font-size: var(--fs-h4);
   font-weight: var(--fw-bold);
   color: var(--color-secondary);
+  font-family: var(--font-display);
 }
 
 .community-description {
   margin: 0;
-  font-size: var(--fs-small);
+  font-size: var(--fs-body);
   color: var(--color-text-muted);
   line-height: var(--lh-normal);
   display: -webkit-box;
@@ -140,35 +129,19 @@ defineEmits(['click', 'join'])
 .community-meta {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
   margin-top: var(--space-2);
 }
 
-.member-avatars {
+.member-info {
   display: flex;
   align-items: center;
-}
-
-.member-avatar {
-  border: 2px solid var(--color-surface);
-  margin-right: -8px;
-}
-
-.member-avatar:last-child {
-  margin-right: 0;
-}
-
-.member-more {
+  gap: var(--space-1);
   font-size: var(--fs-small);
-  font-weight: var(--fw-medium);
   color: var(--color-text-muted);
-  margin-left: var(--space-1);
 }
 
 .member-count {
-  font-size: var(--fs-small);
-  color: var(--color-text-muted);
-  margin-left: auto;
+  font-weight: var(--fw-medium);
 }
 
 .card-actions {
@@ -176,9 +149,8 @@ defineEmits(['click', 'join'])
   border-top: 1px solid var(--color-border);
 }
 
-@media (max-width: 600px) {
-  .community-card {
-    max-width: 100%;
-  }
+.btn--block {
+  width: 100%;
+  justify-content: center;
 }
 </style>
