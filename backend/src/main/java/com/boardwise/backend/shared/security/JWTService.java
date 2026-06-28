@@ -51,7 +51,7 @@ public class JWTService {
     }
 
     public ObjectId extractUserId(String token) {
-        String userId = extractClaim(token, Claims::getSubject);
+        String userId = extractClaim(token, claims -> claims.getSubject());
         return new ObjectId(userId);
     }
 
@@ -82,12 +82,12 @@ public class JWTService {
     }
 
     private boolean isTokenExpired(String token) {
-        Date expiry = extractClaim(token, Claims::getExpiration);
+        Date expiry = extractClaim(token, claims -> claims.getExpiration());
         return expiry.before(new Date());
     }
     
     private boolean isTokenBlackListed(String token){
-        String jti = extractClaim(token, Claims::getId);
+        String jti = extractClaim(token, claims -> claims.getId());
         return tokenRepo.existsByJti(jti);
     }
 

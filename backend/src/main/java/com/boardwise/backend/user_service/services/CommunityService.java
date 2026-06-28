@@ -339,9 +339,26 @@ public class CommunityService {
         return result;
     }
 
-    public Map<String, Object> deleteEvent(String token, String eventId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteEvent'");
+    public Map<String, Object> deleteEvent(String token, String eventId) throws NoSuchElementException, IllegalAccessException {
+        Map<String, Object> result = new HashMap<>();
+        String userId = jwtService.extractUserId(token).toString();
+        Optional<Event> event = eventRepo.findById(eventId);
+
+        if(!userRepo.existsById(userId))
+            throw new NoSuchElementException("User with ID: " + userId + " does not exist.");
+        else if(event.isEmpty())
+            throw new NoSuchElementException("Event with ID: " + eventId + " does not exist.");
+        else if(!event.get().getCreatorId().equals(userId))
+            throw new IllegalAccessException("User with ID: " + userId + " is not the host of this event.");
+
+        // delete recorded attendees
+        eaRepo.deleteByEventId(eventId);
+        
+        // delete actual event
+        eventRepo.deleteById(eventId);
+
+        result.put("message", "Event successfully deleted.");
+        return result;
     }
 
     public Map<String, Object> rsvp(String token, String eventId) throws NoSuchElementException{
