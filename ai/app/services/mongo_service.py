@@ -20,7 +20,8 @@ def create_rulebook(
     edition: str,
     contributor_id: str,
     language: str,
-    r2_pdf_key: str
+    r2_pdf_key: str,
+    r2_cover_key: str
 ) -> str:
     """Inserts a new document into the RULEBOOK collection"""
 
@@ -40,6 +41,7 @@ def create_rulebook(
         "description": boardgame_collection.find_one({"_id": boardgame_id})["description"],
         "language": language,
         "r2PdfKey": r2_pdf_key,
+        "r2CoverKey": r2_cover_key,
         "uploadedAt":now,
         "updatedAt":now,
     })
