@@ -34,8 +34,11 @@ watch(
   () => props.messages.length,
   async () => {
     await nextTick()
-    feedEl.value?.scrollTo({ top: feedEl.value.scrollHeight, behavior: 'smooth' })
-  }
+    if (feedEl.value) {
+      feedEl.value.scrollTo({ top: feedEl.value.scrollHeight, behavior: 'smooth' })
+    }
+  },
+  { immediate: true }
 )
 </script>
 
@@ -43,12 +46,12 @@ watch(
 .chat-feed {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  height: 420px;
+  gap: var(--space-3);
+  height: 400px;
   overflow-y: auto;
-  padding: 16px;
-  background: #f9f9f9;
-  border-radius: 16px;
-  border: 1px solid #eee;
+  padding: var(--space-4);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
 }
 </style>

@@ -1,6 +1,5 @@
 <template>
   <div class="chat-input">
-
     <BaseTextArea
       v-model="text"
       placeholder="Write a message..."
@@ -11,11 +10,11 @@
     <BaseButton @click="handleSend">
       Send
     </BaseButton>
-
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import BaseTextArea from '~/components/ui/BaseTextArea.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 
@@ -33,7 +32,7 @@ const handleSend = () => {
 <style scoped>
 .chat-input {
   display: flex;
-  gap: 12px;
+  gap: var(--space-3);
   align-items: flex-end;
 }
 
