@@ -1,6 +1,5 @@
 package com.boardwise.backend.scraper;
-import java.nio.file.Files;
-import java.nio.file.Path;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -27,7 +26,6 @@ public class TakealotScraper implements WebScraper {
     private final String site = "https://www.takealot.com";
 
     public List<ScrapeResponse> scrape(String toSearch) {
-        System.out.println("Searching for..."+toSearch);
         if(toSearch.isBlank()){
             return null;
         }

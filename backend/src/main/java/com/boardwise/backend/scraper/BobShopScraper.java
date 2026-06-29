@@ -1,12 +1,9 @@
 package com.boardwise.backend.scraper;
-import java.nio.file.Files;
-import java.nio.file.Path;
+
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.AbstractMap.SimpleEntry;
-
-import org.springframework.stereotype.Service;
 
 import com.boardwise.backend.scraper.dtos.ScrapeResponse;
 import com.microsoft.playwright.Browser;
@@ -15,22 +12,17 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 
-@Service
-public class ToysRUsScraper implements WebScraper {
-
-    public ToysRUsScraper(){} 
-    //DEBUG LINE : DELETE EVERYTHING UNDER
-    Path fileToDelete = Path.of("backend/src/main/java/com/boardwise/backend/scraper/deleteMe.pdf");
-
-    //END OF DEBUG
-    private float stringMatch = 0.25f; // >=30% string match gets Returned
-    private float prefixScale = 0.5f;  
+public class BobShopScraper implements WebScraper{
+   
+    public BobShopScraper(){} 
+    
+    private float stringMatch = 0.5f; // >=50% string match gets Returned
+    private float prefixScale = 0.2f;  
     private final int MAXNUMITEMS = 15;
-    private String searchSelector = "input[placeholder='The search for fun starts here...']";
-    private final String site = "https://www.toysrus.co.za/";
+    private final String site = "https://www.bobshop.co.za";
 
+    
     public List<ScrapeResponse> scrape(String toSearch) {
-        System.out.println("Searching for... \"" + toSearch + "\"");
         if(toSearch.isBlank()){
             return null;
         }
@@ -42,32 +34,24 @@ public class ToysRUsScraper implements WebScraper {
 
             //website
             page.navigate(site);
-            page.waitForSelector(searchSelector);
-
-            Files.write(fileToDelete,page.pdf());
 
             //find search bar
-            Locator searchBar = page.getByPlaceholder("The search for fun starts here...");
+            Locator searchBar = page.getByPlaceholder("Search for anything");
 
             if(searchBar.count() == 0){
-                throw new RuntimeException("Error while trying to find the search bar for Toys R US");
+                throw new RuntimeException("Error while trying to find the search bar on Bob Shop");
             }
-
 
             //update value found in search bar
             searchBar.fill(toSearch);
             searchBar.press("Enter");
-
-            // page.waitForSelector("article[data-ref='product-card']");
-
-            String contentOfPage = page.content();
-
-            if(contentOfPage.contains("We couldn’t find anything to match your search.")){ // 
-                return null;
-            }
+            page.waitForLoadState();
+            page.waitForSelector("a.product-card-container");
 
             //find article 
-            List<Locator> cards =  page.locator("li.product-item").all();
+            List<Locator> cards = page.locator("a.product-card-container").all();
+            System.out.println(cards.size());
+
             List<ScrapeResponse> matching = new ArrayList<>();
 
             if(cards.isEmpty()){
@@ -75,17 +59,19 @@ public class ToysRUsScraper implements WebScraper {
             }
 
             for(Locator card : cards){
-                Locator titleElement = card.locator("a.product-item-link").first();          
-                if (titleElement.count() == 0) continue;
-                
-                
-                String title = titleElement.innerText().trim();
+                String classAttr = card.getAttribute("class");
+                if (classAttr != null && classAttr.contains("sponsored")) continue;
 
-                String url = card.locator("a.product-item-link").first().getAttribute("href");
+                String title = card.locator("div.product-card-title").innerText().trim();
+                if (title.isBlank()) continue;
 
-            // Jaro-Winkler - similarity between 2 sequences
+                String url = card.getAttribute("href");
+
+                // Jaro-Winkler - similarity between 2 sequences
                 float val = JaroWinklerSimilarity(toSearch,title);
-                if(val >= stringMatch && !url.contains("offer_pref")){// remove sponsored items
+
+                
+                if(val >= stringMatch){
                     SimpleEntry<String, Float> toAdd = new SimpleEntry<String,Float>(url, val);
                     matching.add(new ScrapeResponse(site,toAdd));
                 }
@@ -100,14 +86,12 @@ public class ToysRUsScraper implements WebScraper {
             for(ScrapeResponse x: matching){
                 System.out.println(x.details().getKey());
             }
-
             return matching;
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-        //if you ever exit this... wow
-        throw new RuntimeException("somehow reached a place you shouldn't have ");
+        return null;
     }
 
     private int countMatchingChars(String x, String y){
@@ -116,6 +100,7 @@ public class ToysRUsScraper implements WebScraper {
         }
         int lenOfX = x.length();
         int lenOfY = y.length();
+        
         int matchWindow = Math.max(1, Math.max(lenOfX, lenOfY)/2-1);
         boolean[] yMatches = new boolean[lenOfY];
         int count = 0;
@@ -216,8 +201,4 @@ public class ToysRUsScraper implements WebScraper {
         return i;
     }
 
-    public static void main(String[] args){
-        WebScraper ws = new ToysRUsScraper();
-        ws.scrape("Monopoly");
-    }
 }
