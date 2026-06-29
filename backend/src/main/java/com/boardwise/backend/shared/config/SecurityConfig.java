@@ -48,10 +48,6 @@ public class SecurityConfig {
                         "/api/auth/register", 
                         "/api/auth/login",
                         "/api/boardgames/",
-                        "/api/marketplace/listings",
-                        "/api/marketplace/listing/{listingId}",
-                        "/api/marketplace/listings/user",
-                        "/api/marketplace/listings/search",
                         "/api/vault/rulebooks",
                         "/api/vault/rulebooks/{id}/text"
                     )

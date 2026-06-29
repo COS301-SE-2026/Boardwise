@@ -1,5 +1,7 @@
 package com.boardwise.backend.marketplace.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum Condition {
     New("new"),
     LIKE_NEW("like new"),
@@ -12,12 +14,13 @@ public enum Condition {
         this.value = value;
     };
 
+    @JsonValue
     public String getValue() {
         return value;
     }
 
     public boolean isEqual(String x) {
-        return value.equals(x); 
+        return value.equalsIgnoreCase(x); 
     }
 
     public static Condition fromValue(String value) {
