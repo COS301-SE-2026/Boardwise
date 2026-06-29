@@ -1,12 +1,10 @@
 package com.boardwise.backend.scraper;
-import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+import java.util.AbstractMap.SimpleEntry;
 
 import org.springframework.stereotype.Service;
 
@@ -21,13 +19,11 @@ import com.microsoft.playwright.Playwright;
 public class TakealotScraper implements WebScraper {
 
     public TakealotScraper(){} 
-
-    private Path testPdf = Path.of("backend/src/main/java/com/boardwise/backend/scraper/stuff.pdf");
-
-    private float stringMatch = 0.4f; // >=40% string match gets Returned
-    float prefixScale = 0.1f;  
+    
+    private float stringMatch = 0.5f; // >=50% string match gets Returned
+    private float prefixScale = 0.2f;  
+    private final int MAXNUMITEMS = 15;
     private String searchSelector = "input[placeholder='Search for products, brands...']";
-    private Map<Integer,String> map = new HashMap<>(); 
     private final String site = "https://www.takealot.com";
 
     public List<ScrapeResponse> scrape(String toSearch) {
@@ -57,49 +53,51 @@ public class TakealotScraper implements WebScraper {
             searchBar.press("Enter");
             page.waitForSelector("article[data-ref='product-card']");
 
-            //Levenshtein distance - distance between two strings
-            String tempComp = "FARMVILLE";
-            boolean accept = acceptLevenshteinDistance(toSearch, tempComp);
+            String contentOfPage = page.content();
 
-            // Jaro-Winkler - similarity between 2 sequences
-            boolean accept_2 = acceptJaroWinklerSimilarity(toSearch, tempComp);
+            if(contentOfPage.contains("We couldn't find results for")){ // 
+                return null;// if its null no results were found
+            }
 
-            Files.write(testPdf, page.pdf());
+            //find article 
+            List<Locator> cards =  page.locator("article[data-ref='product-card']").all();
+            List<ScrapeResponse> matching = new ArrayList<>();
+
+            if(cards.isEmpty()){
+                return matching;// for some reason?? should lowkey an exception because wow
+            }
+
+            for(Locator card : cards){
+                String title = card.locator("[data-ref='panel-content'] h4").innerText();
+                String url = card.locator("a[title='Go to product details']").getAttribute("href");
+
+                // Jaro-Winkler - similarity between 2 sequences
+                float val = JaroWinklerSimilarity(toSearch,title);
+
+                if(val >= stringMatch && !url.contains("offer_pref")){// remove sponsored items
+                    String officialUrl = site.substring(0,site.length()) + url;
+                    SimpleEntry<String, Float> toAdd = new SimpleEntry<String,Float>(officialUrl, val);
+                    matching.add(new ScrapeResponse(site,toAdd));
+                }
+            
+                if(matching.size() >= MAXNUMITEMS) break;
+            }
+            
             page.close();
+
+            matching.sort(Comparator.comparingDouble(r-> r.details().getValue())); // sort in terms of float
+
+            for(ScrapeResponse x: matching){
+                System.out.println(x.details().getKey());
+            }
+            return matching;
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return null;
     }
 
-    private float LevenshteinDistance(String a, String b){
-        int[] prev = new int[b.length()+1];
-        int[] curr = new int[b.length()+1];
-
-        for (int j = 0; j <= b.length(); j++) prev[j] = j; // placeholder
-
-        for (int i = 1; i <= a.length(); i++) {
-            curr[0] = i; 
-            for (int j = 1; j <= b.length(); j++) {
-                int match = (a.charAt(i - 1) == b.charAt(j - 1)) ? 0 : 1;
-                curr[j] = Math.min(Math.min(curr[j-1] +1, prev[j]+1), prev[j-1] + match);
-            }
-            int[] temp = prev;
-            prev = curr;
-            curr = temp;
-        }
-        return prev[b.length()];    
-    }
-
-    private boolean acceptLevenshteinDistance(String toSearch, String b){
-            float LevDist = LevenshteinDistance(toSearch.toLowerCase(), b.toLowerCase()); // for inc accuracy purposes: remove spaces & compare numbers
-            float percOfNeg = LevDist/(float)toSearch.length();
-            float res = 1 - percOfNeg;
-            System.out.println("Levenshtein Distance: "+res +"%" + " vs " + stringMatch+"%");
-            return res >= stringMatch;
-    } 
-    
     private int countMatchingChars(String x, String y){
         if(x.isBlank()|| y.isBlank()){
             throw new RuntimeException("Cannot pass in empty strings");
@@ -195,16 +193,19 @@ public class TakealotScraper implements WebScraper {
 
     private float JaroWinklerSimilarity(String toSearch, String comp){
         float result = JaroSimilarity(toSearch, comp);
-        System.out.println("Result in JW : " + result);
-        return result +(prefixScale* (1- result));
+        int l = commonPrefixLength(toSearch, comp);//common prefix len
+        return result +(l* prefixScale * (1-result));
     }
 
-    private boolean acceptJaroWinklerSimilarity(String toSearch, String toComp){        
-        float res = JaroWinklerSimilarity(toSearch.toLowerCase(), toComp.toLowerCase());
-         return res >= stringMatch;
+    private int commonPrefixLength(String a, String b) {
+        int max = Math.min(4, Math.min(a.length(), b.length()));
+        int i = 0;
+        while (i < max && a.charAt(i) == b.charAt(i)) i++;
+        return i;
     }
+
     public static void main(String[] args){
         WebScraper ws = new TakealotScraper();
-        ws.scrape("FAREMVIEL");
+        ws.scrape("Iphone 16 pro phone");
     }
 }
