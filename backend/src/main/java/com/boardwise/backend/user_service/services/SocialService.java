@@ -157,6 +157,7 @@ public class SocialService {
     }
 
     public GroupMembershipResponseDTO addToGroup(String token, String groupId) {
+         // TODO: return the entire resource with update applied
         String userId = jwtService.extractUserId(token).toString();
         Group group = groupRepo.findById(groupId).orElseThrow();
 
@@ -204,6 +205,7 @@ public class SocialService {
     }
 
     public GroupMembershipResponseDTO removeFromGroup(String token, String groupId) {
+         // TODO: return the entire resource with update applied
         String userId = jwtService.extractUserId(token).toString();
         Group group = groupRepo.findById(groupId).orElseThrow();
         
@@ -275,6 +277,8 @@ public class SocialService {
     }
 
     public GroupUpdateResponseDTO updateGroup(String token, String groupId, GroupUpdateRequestDTO updateData) {
+        // TODO: return the entire resource with update applied
+        
         String userId = jwtService.extractUserId(token).toString();
         Group group = groupRepo.findById(groupId).orElseThrow();
         

@@ -119,6 +119,7 @@ public class ProfileService {
     }
 
     public Map<String, Object> updateProfile(String token, UpdateProfileDTO profileUpdateData) {
+        // TODO: return the entire resource with update applied
         String userId = jwtService.extractUserId(token).toString();
         User user = userRepo.findById(userId).get();
 
@@ -152,6 +153,7 @@ public class ProfileService {
     }
 
     public ProfilePictureResponseDTO changeProfilePicture(String token, MultipartFile pfp) throws IOException {
+         // TODO: return the entire resource with update applied
         String url = "";
         String message = "";
         String userId = jwtService.extractUserId(token).toString();
@@ -171,6 +173,7 @@ public class ProfileService {
     public Map<String, Object> updateOrSetPreferences(
         String token, PreferencesRequestDTO prefData
     ){
+        // TODO: return the entire resource with update applied
         String userId = jwtService.extractUserId(token).toString();
         User user = userRepo.findById(userId).get();
         

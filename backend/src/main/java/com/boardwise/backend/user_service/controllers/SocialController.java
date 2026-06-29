@@ -57,6 +57,7 @@ public class SocialController {
         }
     }
 
+    // TODO: enhance this endpoint with query parameters. search
     @GetMapping("/groups")
     public ResponseEntity<?> getAllGroups(
         HttpServletRequest req
