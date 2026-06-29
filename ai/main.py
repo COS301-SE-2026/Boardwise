@@ -1,12 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from app.routers import rulebook
 
 app = FastAPI(
-    title="Boardwise AI Gateway",
-    description="FastAPI ingestion pipeline for The Vault",
-    version="1.0.0"
+    title="Boardwise AI Gateway Skeleton",
+    description="Rebuild of the FastAPI ingestion pipeline"
 )
 
 app.add_middleware(
@@ -19,7 +17,6 @@ app.add_middleware(
 
 app.include_router(rulebook.router)
 
-
 @app.get("/health")
 def health_check():
-    return {"status": "ok"}
+    return{"status": "ok", "message": "Gateway is breathing."}

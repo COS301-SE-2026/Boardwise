@@ -22,6 +22,10 @@
   </div>
 
   <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
+    <div v-if="isLoading" class="d-flex justify-center align-center h-100">
+      <v-progress-circular indeterminate color="primary"/>
+    </div>
+
     <RulebookDetail
       v-if="selectedRulebook"
       :rulebook="selectedRulebook"
@@ -57,7 +61,7 @@ import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue
 
 import { useLibrary } from '~/composables/useLibrary'
 
-const {rulebooks, isLoading, getAllRulebooks } = useLibrary()
+const {rulebooks, isLoading, getAllRulebooks, getRulebookById, currentRulebook } = useLibrary()
 
 const searchQuery = ref('')
 const activeFilters = ref({})
@@ -79,13 +83,13 @@ const filteredRulebooks = computed(() =>{
   if(searchQuery.value){
     const lCaseQuery = searchQuery.value.toLowerCase()
     result = result.filter(r =>
-      r.title.toLowerCase().includes(lCaseQuery) ||
+      r.title?.toLowerCase().includes(lCaseQuery) ||
       (r.description && r.description.toLowerCase().includes(lCaseQuery))
     )
   }
 
   if (activeFilters.value.genre && activeFilters.value.genre !== 'All') {
-    result = result.filter(r => r.genre === activeFilters.value.genre)
+    result = result.filter(r => r.genres && r.genres.includes(activeFilters.value.genre))
   }
 
   if (activeFilters.value.languages?.length) {
@@ -104,9 +108,11 @@ const filteredRulebooks = computed(() =>{
 })
 
 
-const openRulebook = (rulebook) => {
-  selectedRulebook.value = rulebook
-  showDetail.value = true
+const openRulebook = async (rulebook) => {
+  selectedRulebook.value = null;
+  showDetail.value = true;
+  await getRulebookById(rulebook.id);
+  selectedRulebook.value = currentRulebook.value;
 }
 
 const handleSearch = (query) => {

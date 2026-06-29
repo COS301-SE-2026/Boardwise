@@ -1,22 +1,7 @@
 from pydantic import BaseModel
-from typing import Optional
-from datetime import datetime
+from bson import ObjectId
 
-class RulebookCreatedResponse(BaseModel):
-    rulebook_id: str
-    game_name: str
-    edition: Optional[str]
-    game_id: str
-    status: str
-    message: str
-
-class IngestionStatusResponse(BaseModel):
-    rulebook_id: str
-    stage: str
-    job_status: str
-    failure_reason: Optional[str]
-    started_at: Optional[datetime]
-    completed_at: Optional[datetime]
-
-class ErrorResponse(BaseModel):
-    error: str
+class Chunk(BaseModel):
+    chunk_id: ObjectId
+    index: int
+    content: str
