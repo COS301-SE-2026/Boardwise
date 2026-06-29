@@ -6,17 +6,30 @@
       <div class="form">
         <div class="input-group">
           <label for="create-name">Community Name</label>
-          <BaseInput id="create-name" v-model="name" placeholder="e.g. Catan Lovers" />
+          <BaseInput 
+            id="create-name"
+            v-model="name" 
+            placeholder="e.g. Catan Lovers" 
+          />
         </div>
 
         <div class="input-group">
           <label for="create-description">Description</label>
-          <BaseTextArea v-model="description" placeholder="What is this community about?" :rows="3" />
+          <BaseTextArea 
+            id="create-description"
+            v-model="description" 
+            placeholder="What is this community about?" 
+            :rows="3" 
+          />
         </div>
 
         <div class="input-group">
           <label for="create-category">Category</label>
-          <select id="create-category" v-model="category" class="select">
+          <select 
+            id="create-category"
+            v-model="category" 
+            class="select"
+          >
             <option value="" disabled>Select a category</option>
             <option>Strategy</option>
             <option>Family</option>
@@ -27,17 +40,21 @@
         </div>
 
         <div class="input-group">
-          <span class="label-text">Type</span>
-          <div class="toggle-row">
+          <label>Type</label>
+          <div class="toggle-row" role="group" aria-label="Community Type">
             <button 
               :class="['toggle-btn', { active: type === 'Public' }]" 
               @click="type = 'Public'"
+              role="radio"
+              :aria-checked="type === 'Public'"
             >
               Public
             </button>
             <button 
               :class="['toggle-btn', { active: type === 'Private' }]" 
               @click="type = 'Private'"
+              role="radio"
+              :aria-checked="type === 'Private'"
             >
               Private
             </button>
@@ -52,6 +69,7 @@
             </BaseButton>
             <span class="filename">{{ fileName || '···' }}</span>
             <input 
+              id="create-image"
               ref="fileInput" 
               type="file" 
               accept="image/*" 

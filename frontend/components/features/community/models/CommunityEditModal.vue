@@ -5,26 +5,39 @@
 
       <div class="input-group">
         <label for="edit-name">Community Name</label>
-        <BaseInput id="edit-name" v-model="name" placeholder="Community name" />
+        <BaseInput 
+          id="edit-name"
+          v-model="name" 
+          placeholder="Community name" 
+        />
       </div>
 
       <div class="input-group">
         <label for="edit-description">Description</label>
-        <BaseTextArea v-model="description" placeholder="What is this community about?" :rows="3" />
+        <BaseTextArea 
+          id="edit-description"
+          v-model="description" 
+          placeholder="What is this community about?" 
+          :rows="3" 
+        />
       </div>
 
       <div class="input-group">
-        <span class="label-text">Type</span>
-        <div class="toggle-row">
+        <label>Type</label>
+        <div class="toggle-row" role="group" aria-label="Community Type">
           <button 
             :class="['toggle-btn', { active: type === 'Public' }]" 
             @click="type = 'Public'"
+            role="radio"
+            :aria-checked="type === 'Public'"
           >
             Public
           </button>
           <button 
             :class="['toggle-btn', { active: type === 'Private' }]" 
             @click="type = 'Private'"
+            role="radio"
+            :aria-checked="type === 'Private'"
           >
             Private
           </button>
@@ -39,6 +52,7 @@
           </BaseButton>
           <span class="filename">{{ fileName || '···' }}</span>
           <input
+            id="edit-image"
             ref="fileInput"
             type="file"
             accept="image/*"
