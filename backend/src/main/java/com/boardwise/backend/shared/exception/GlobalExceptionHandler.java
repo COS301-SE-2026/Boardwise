@@ -3,6 +3,7 @@ package com.boardwise.backend.shared.exception;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -93,6 +94,21 @@ public class GlobalExceptionHandler {
         }
         
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<Map<String, Object>> handleFailedUserDeletion(OptimisticLockingFailureException ex){
+        Map<String, Object> res = new HashMap<>();
+        res.put("message", "Failed to delete account. Something went wrong on our side.");
+        return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException e){
+        Map<String, String> res = new HashMap<>();
+        String message = e.getMessage();
+        res.put("message", message);        
+        return ResponseEntity.badRequest().body(res);
     }
 
     @ExceptionHandler(Exception.class)

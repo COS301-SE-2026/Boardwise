@@ -4,6 +4,10 @@
 /frontend/node_modules
 ai/.pytest_cache/
 ai/__pycache__/
+/frontend/dist
+/frontend/.output
+.pytest_cache
+__pycache__
 
 #files
 /backend/src/main/resources/application.properties
