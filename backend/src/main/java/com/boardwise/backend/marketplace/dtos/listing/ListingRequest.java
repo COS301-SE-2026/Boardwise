@@ -9,7 +9,7 @@ public record ListingRequest(
         @NotNull String itemType,
         @NotNull String listingType,
         @NotNull String listingTitle,
-        @Positive double price,
+        @PositiveOrZero double price,
         @NotBlank String gameTitle,
         @NotBlank String location,
         boolean isNegotiable,

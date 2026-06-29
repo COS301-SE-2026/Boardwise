@@ -1,5 +1,7 @@
 package com.boardwise.backend.marketplace.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum ItemType {
     Merch("merch"),
     FullBoardGame("full boardgame"),
@@ -10,6 +12,11 @@ public enum ItemType {
 
     ItemType(String value) {
         this.value = value;
+    }
+
+    @JsonValue
+    public String getValue() {
+        return value;
     }
 
     public static ItemType fromValue(String value) {

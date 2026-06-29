@@ -47,6 +47,7 @@ public class ListingController {
             return ResponseEntity.ok().body(listings);
 
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().body(null);
         }
     }
@@ -57,8 +58,10 @@ public class ListingController {
         try {
             return ResponseEntity.ok(listingService.getListingById(listingId));
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().body(null);
         }
     }
@@ -67,14 +70,16 @@ public class ListingController {
     @PostMapping(value = "/listings", consumes = "multipart/form-data")
     public ResponseEntity<ListingResponse> createListing(
             @RequestPart("data") @Valid ListingRequest req,
-            @RequestPart("image") MultipartFile img,
+            @RequestPart(value="image", required = false) MultipartFile img,
             @RequestHeader("Authorization") String token) {
         try {
             ListingResponse response = listingService.createListing(req, token.replace("Bearer ", ""), img);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(null);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().body(null);
         }
     }
@@ -90,10 +95,13 @@ public class ListingController {
             ListingResponse updated = listingService.updateListing(listingId, req, token.replace("Bearer ", ""), img);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
             return ResponseEntity.notFound().build();
         } catch (ForbiddenException e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -109,8 +117,10 @@ public class ListingController {
             
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
             return ResponseEntity.notFound().build();
         } catch (ForbiddenException e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (Exception e) {
             e.printStackTrace();
@@ -126,10 +136,10 @@ public class ListingController {
             if (listings.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
-
             return ResponseEntity.ok(listings);
 
         } catch (Exception e) {
+            e.printStackTrace(); 
             return ResponseEntity.internalServerError().body(null);
         }
     }
@@ -155,6 +165,7 @@ public class ListingController {
             }
             return ResponseEntity.ok(listings);
         } catch (Exception e) {
+            e.printStackTrace(); 
             return ResponseEntity.internalServerError().build();
         }
     }

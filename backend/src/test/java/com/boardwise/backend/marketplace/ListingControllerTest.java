@@ -73,8 +73,6 @@ public class ListingControllerTest{
         "original",
         List.of(Genres.DICE.getValue()),
         null,
-        LocalDateTime.now(),
-        LocalDateTime.now(),
         ListingStatus.AVAILABLE
         );
     }

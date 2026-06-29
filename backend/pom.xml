@@ -192,6 +192,15 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<configuration>
+					<environmentVariables>
+						<PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD>firefox,webkit</PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD>
+					</environmentVariables>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
