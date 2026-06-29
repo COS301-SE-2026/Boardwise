@@ -4,13 +4,13 @@
       <h2>Invite Member</h2>
 
       <div class="input-group">
-        <label>Email Address</label>
-        <BaseInput v-model="email" placeholder="Enter member's email" />
+        <label for="invite-email">Email Address</label>
+        <BaseInput id="invite-email" v-model="email" placeholder="Enter member's email" />
       </div>
 
       <div class="input-group">
-        <label>Role</label>
-        <select v-model="role" class="select">
+        <label for="invite-role">Role</label>
+        <select id="invite-role" v-model="role" class="select">
           <option value="Member">Member</option>
           <option value="Moderator">Moderator</option>
           <option value="Admin">Admin</option>

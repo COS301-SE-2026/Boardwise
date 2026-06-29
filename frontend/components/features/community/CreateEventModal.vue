@@ -5,32 +5,32 @@
 
       <div class="form">
         <div class="input-group">
-          <label>Event Name</label>
-          <BaseInput v-model="name" placeholder="e.g. Catan Night" />
+          <label for="event-name">Event Name</label>
+          <BaseInput id="event-name" v-model="name" placeholder="e.g. Catan Night" />
         </div>
 
         <div class="input-group">
-          <label>Game</label>
-          <BaseInput v-model="game" placeholder="e.g. Catan" />
+          <label for="event-game">Game</label>
+          <BaseInput id="event-game" v-model="game" placeholder="e.g. Catan" />
         </div>
 
         <div class="input-group">
-          <label>Date</label>
-          <input type="date" v-model="date" class="date-input" />
+          <label for="event-date">Date</label>
+          <input id="event-date" type="date" v-model="date" class="date-input" />
         </div>
 
         <div class="input-group">
-          <label>Time</label>
-          <input type="time" v-model="time" class="date-input" />
+          <label for="event-time">Time</label>
+          <input id="event-time" type="time" v-model="time" class="date-input" />
         </div>
 
         <div class="input-group">
-          <label>Location</label>
-          <BaseInput v-model="location" placeholder="e.g. Pretoria, Online" />
+          <label for="event-location">Location</label>
+          <BaseInput id="event-location" v-model="location" placeholder="e.g. Pretoria, Online" />
         </div>
 
         <div class="input-group">
-          <label>Visibility</label>
+          <span class="label-text">Visibility</span>
           <div class="toggle-row">
             <button 
               :class="['toggle-btn', { active: visibility === 'Public' }]" 

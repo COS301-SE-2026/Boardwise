@@ -4,17 +4,17 @@
       <h2>Edit Community</h2>
 
       <div class="input-group">
-        <label>Community Name</label>
-        <BaseInput v-model="name" placeholder="Community name" />
+        <label for="edit-name">Community Name</label>
+        <BaseInput id="edit-name" v-model="name" placeholder="Community name" />
       </div>
 
       <div class="input-group">
-        <label>Description</label>
+        <label for="edit-description">Description</label>
         <BaseTextArea v-model="description" placeholder="What is this community about?" :rows="3" />
       </div>
 
       <div class="input-group">
-        <label>Type</label>
+        <span class="label-text">Type</span>
         <div class="toggle-row">
           <button 
             :class="['toggle-btn', { active: type === 'Public' }]" 
@@ -32,7 +32,7 @@
       </div>
 
       <div class="input-group">
-        <label>Community Image</label>
+        <label for="edit-image">Community Image</label>
         <div class="upload-row">
           <BaseButton variant="secondary" @click="triggerUpload">
             Upload Image

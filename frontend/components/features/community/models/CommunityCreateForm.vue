@@ -5,18 +5,18 @@
 
       <div class="form">
         <div class="input-group">
-          <label>Community Name</label>
-          <BaseInput v-model="name" placeholder="e.g. Catan Lovers" />
+          <label for="create-name">Community Name</label>
+          <BaseInput id="create-name" v-model="name" placeholder="e.g. Catan Lovers" />
         </div>
 
         <div class="input-group">
-          <label>Description</label>
+          <label for="create-description">Description</label>
           <BaseTextArea v-model="description" placeholder="What is this community about?" :rows="3" />
         </div>
 
         <div class="input-group">
-          <label>Category</label>
-          <select v-model="category" class="select">
+          <label for="create-category">Category</label>
+          <select id="create-category" v-model="category" class="select">
             <option value="" disabled>Select a category</option>
             <option>Strategy</option>
             <option>Family</option>
@@ -27,7 +27,7 @@
         </div>
 
         <div class="input-group">
-          <label>Type</label>
+          <span class="label-text">Type</span>
           <div class="toggle-row">
             <button 
               :class="['toggle-btn', { active: type === 'Public' }]" 
@@ -45,7 +45,7 @@
         </div>
 
         <div class="input-group">
-          <label>Community Image</label>
+          <label for="create-image">Community Image</label>
           <div class="upload-row">
             <BaseButton variant="secondary" @click="triggerUpload">
               Upload Image

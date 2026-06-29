@@ -5,18 +5,18 @@
 
       <div class="form">
         <div class="input-group">
-          <label>Game Name</label>
-          <BaseInput v-model="name" placeholder="e.g. Catan" />
+          <label for="game-name">Game Name</label>
+          <BaseInput id="game-name" v-model="name" placeholder="e.g. Catan" />
         </div>
 
         <div class="input-group">
-          <label>Image URL</label>
-          <BaseInput v-model="image" placeholder="https://example.com/image.jpg" />
+          <label for="game-image">Image URL</label>
+          <BaseInput id="game-image" v-model="image" placeholder="https://example.com/image.jpg" />
         </div>
 
         <div class="input-group">
-          <label>Category</label>
-          <select v-model="category" class="select">
+          <label for="game-category">Category</label>
+          <select id="game-category" v-model="category" class="select">
             <option value="" disabled>Select a category</option>
             <option>Strategy</option>
             <option>Family</option>
@@ -27,8 +27,8 @@
         </div>
 
         <div class="input-group">
-          <label>Tags (comma separated)</label>
-          <BaseInput v-model="tagsInput" placeholder="Strategy, Engine Building" />
+          <label for="game-tags">Tags (comma separated)</label>
+          <BaseInput id="game-tags" v-model="tagsInput" placeholder="Strategy, Engine Building" />
         </div>
 
         <div class="input-group">
