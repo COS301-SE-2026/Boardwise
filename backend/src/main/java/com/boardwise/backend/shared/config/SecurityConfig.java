@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -42,13 +43,13 @@ public class SecurityConfig {
         return http
                 .cors(Customizer.withDefaults()) // Enables CORS integration
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(request -> 
-                    request.requestMatchers(
+                .authorizeHttpRequests(request ->
+                request 
+                    .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
+                    .requestMatchers(
                         "/api/auth/hello",
                         "/api/auth/register", 
                         "/api/auth/login",
-                        "/api/marketplace/listings",
-                        "/api/marketplace/listings/{listingId}",
                         "/api/vault/rulebooks",
                         "/api/vault/rulebooks/{id}/text"
                     )
@@ -83,13 +84,14 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Specify frontend origin
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000","http://127.0.0.1:3000"));
 
         // Allow OPTIONS for preflight requests
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
 
         // Allow headers including bearer token
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept","Access-Control-Request-Headers", "Access-Control-Request-Method"));
+        configuration.setExposedHeaders(List.of("Authorization"));
 
         // To use cookies or auth headers across domains
         configuration.setAllowCredentials(true);

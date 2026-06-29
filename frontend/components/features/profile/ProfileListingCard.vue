@@ -1,9 +1,9 @@
 <template>
-  <BaseCard class="profile-listing-card">
+  <BaseCard class="profile-listing-card" @click="openListing">
 
     <div class="image-container">
-      <img
-        :src="listing.imageUrl ?? '/listing-detail.png'"
+      <img 
+        :src="listing.imageUrl ?? '/images/default-listing.png'"
         :alt="listing.gameTitle"
       />
       <BaseBadge
@@ -52,22 +52,22 @@
 
       <div class="d-flex ga-2 mt-1">
         <v-btn size="small" color="primary" variant="tonal" @click.stop="showEdit = true">Edit</v-btn>
-        <!-- <v-btn size="small" color="error"   variant="tonal" @click.stop="showDelete = true">Delete</v-btn> -->
+        <v-btn size="small" color="error"   variant="tonal" @click.stop="showDelete = true">Delete</v-btn>
       </div>
     </v-card-text>
 
     <EditListingModal   v-model="showEdit"   :listing="listing" />
-    <DeleteListingModal v-model="showDelete" :listing="listing" />
+    <DeleteListingModal v-model="showDelete" :listing="listing" @confirm="handleDelete"  />
 
   </BaseCard>
 </template>
 
 <script setup>
-import BaseCard           from '~/components/ui/BaseCard.vue'
-import BaseBadge          from '~/components/ui/BaseBadge.vue'
-import EditListingModal   from './EditListingModal.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseBadge from '~/components/ui/BaseBadge.vue'
+import EditListingModal from './EditListingModal.vue'
 import DeleteListingModal from './DeleteListingModal.vue'
-
+import { MarketplaceService } from '~/services/marketplaceService.js'
 const props = defineProps({
   listing: { type: Object, required: true }
 })
@@ -79,11 +79,18 @@ const showDelete = ref(false)
 const openListing = () => {
   router.push(`/marketplace/${props.listing.listingId}`)
 }
+
+const handleDelete = async () => {
+  await MarketplaceService.deleteListing(props.listing.listingId);
+  emit('deleted', props.listing.listingId)
+};
+
+const emit = defineEmits(['deleted']);
 </script>
 
 <style scoped>
 .profile-listing-card {
-  /* cursor:     pointer; */
+  cursor:     pointer;
   overflow: hidden;
   transition: transform var(--transition-base), box-shadow var(--transition-base);
   width: 100%;
