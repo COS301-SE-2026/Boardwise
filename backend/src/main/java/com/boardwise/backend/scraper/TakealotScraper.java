@@ -18,6 +18,7 @@ public class TakealotScraper implements WebScraper {
     public TakealotScraper(){}
     
     private double stringMatch = 0.4; // >=40% string match gets Returned
+    private String searchSelector = "input[placeholder='Search for products, brands...']";
     private final String site = "https://www.takealot.com";
 
     public List<ScrapeResponse> scrape(String toSearch) {
@@ -32,25 +33,30 @@ public class TakealotScraper implements WebScraper {
             Page page = context.newPage();
 
             //website
-            page.navigate("https://www.takealot.com/all?_sb=1&_r=1&qsearch=volkano%20headphones&via=suggestions&_si=ab92cbd997f7d434d9c6f023068e673e");
+            page.navigate(site);
+            page.waitForSelector(searchSelector);
 
             //find search bar
             Locator searchBar = page.getByPlaceholder("Search for products, brands...");
 
+            if(searchBar.count() == 0){
+                throw new RuntimeException("Error while trying to search Takealot");
+            }
+
             //update value found in search bar
             searchBar.fill(toSearch);
+            searchBar.press("Enter");
+            page.waitForSelector("article[data-ref='product-card']");
 
-        
+            //Levenshtein distance - distance between two strings
+
+            // Jaro-Winkler - similarity betwen 2 sequences
+            Files.write(Path.of("currPage.pdf"), page.pdf());
             page.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        
-        //Levenshtein distance - distance between two strings
-
-        // Jaro-Winkler - similarity betwen 2 sequences
-    
         return null;
     }
 
