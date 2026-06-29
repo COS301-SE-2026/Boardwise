@@ -40,26 +40,18 @@
         </div>
 
         <div class="input-group">
-          <label>Type</label>
-          <div class="toggle-row" role="group" aria-label="Community Type">
-            <button 
-              :class="['toggle-btn', { active: type === 'Public' }]" 
-              @click="type = 'Public'"
-              role="radio"
-              :aria-checked="type === 'Public'"
-            >
-              Public
-            </button>
-            <button 
-              :class="['toggle-btn', { active: type === 'Private' }]" 
-              @click="type = 'Private'"
-              role="radio"
-              :aria-checked="type === 'Private'"
-            >
-              Private
-            </button>
-          </div>
+        <span class="label-text">Type</span>
+        <div class="toggle-row">
+          <label class="toggle-option">
+            <input type="radio" value="Public" v-model="type" />
+            <span class="toggle-label">Public</span>
+          </label>
+          <label class="toggle-option">
+            <input type="radio" value="Private" v-model="type" />
+            <span class="toggle-label">Private</span>
+          </label>
         </div>
+      </div>
 
         <div class="input-group">
           <label for="create-image">Community Image</label>
@@ -196,6 +188,42 @@ const handleCreate = () => {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(109, 0, 55, 0.15);
+}
+
+.toggle-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: var(--space-2) var(--space-4);
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  transition: all var(--transition-base);
+}
+
+.toggle-option:has(input:checked) {
+  border-color: var(--color-primary);
+  background: rgba(109, 0, 55, 0.06);
+}
+
+.toggle-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-label {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.toggle-option:has(input:checked) .toggle-label {
+  color: var(--color-primary);
 }
 
 .toggle-row {
