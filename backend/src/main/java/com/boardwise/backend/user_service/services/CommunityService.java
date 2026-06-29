@@ -446,24 +446,25 @@ public class CommunityService {
     }
 
     public Map<String, Object> inviteToEvent(String token, EventInviteDTO inviteInfo) throws NoSuchElementException{
-        User inviter = getUserFromToken(token);
+        // User inviter = getUserFromToken(token);
+        Optional<User> invitee = userRepo.findByUsername(inviteInfo.invitee());
         Map<String, Object> result = new HashMap<>();
         
-        if(!userRepo.existsById(inviteInfo.invitee()))
+        if(invitee.isEmpty())
             throw new NoSuchElementException(
-                "Failed to send invite. User with ID: " + 
+                "Failed to send invite. User with username: " + 
                 inviteInfo.invitee() +
                 " does not exist."
             );
         else if(!eventRepo.existsById(inviteInfo.eventId()))
             throw new NoSuchElementException(
                 "Failed to send invite. Event with ID: " + 
-                inviteInfo.invitee() +
+                inviteInfo.eventId() +
                 " does not exist."
             );
 
         EventAttendee newAttendee = new EventAttendee(
-            inviteInfo.invitee(), inviteInfo.eventId(), RSVPStatus.PENDING 
+            invitee.get().getId(), inviteInfo.eventId(), RSVPStatus.PENDING 
         );
         eaRepo.save(newAttendee);
 
