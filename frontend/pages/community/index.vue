@@ -35,34 +35,44 @@ import ExploreSearch from '~/components/features/community/ExploreSearch.vue'
 import CommunityGrid from '~/components/features/community/CommunityGrid.vue'
 import CommunityCreateForm from '~/components/features/community/CommunityCreateForm.vue'
 
+import CommunityFilter from '~/components/features/community/CommunityFilter.vue'
+import { useCommunity } from '~/composables/useCommunity'
+
 // 1. Destructure the composable
-// const { communities, getAllCommunities, loading, error } = useCommunity()
+const { communities, getAllCommunities, loading, error } = useCommunity()
 
 const searchQuery = ref('')
 const activeTab = ref('All')
-const selectedTypes = ref([])
-const selectedCategories = ref([])
+const selectedTypes = ref<string[]>([])
+const selectedCategories = ref<string[]>([])
 const showCreateCommunity = ref(false)
 
 // 2. Trigger the fetch when the page loads
-// onMounted(() => {
-//   getAllCommunities()
-// })
+onMounted(() => {
+  getAllCommunities()
+})
 
-const handleFilter = ({ types, categories }) => {
-  selectedTypes.value = types
-  selectedCategories.value = categories
+const handleFilter = ({types, categories,}: 
+  {
+    types: string[]
+    categories: string[]
+  }) => {
+    selectedTypes.value = types
+    selectedCategories.value = categories
 }
-const filteredCommunities = computed(() =>
-  communities.filter(c => {
-    const matchesSearch = c.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesTab = activeTab.value === 'All' || c.type === activeTab.value
-    const matchesType = selectedTypes.value.length === 0 || selectedTypes.value.includes(c.type)
-    const matchesCategory = selectedCategories.value.length === 0 || selectedCategories.value.includes(c.category)
-    return matchesSearch && matchesTab && matchesType && matchesCategory
-  })
 
-)
+const filteredCommunities = computed(() => {
+  return communities.value.filter(c => {
+    const matchesSearch =
+      c.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+
+    const matchesVisibility =
+      selectedTypes.value.length === 0 ||
+      selectedTypes.value.includes(c.visibility)
+
+    return matchesSearch && matchesVisibility
+  })
+})
 
 // // 3. Filter the reactive array synchronously
 // const filteredCommunities = computed(() => {
