@@ -1,6 +1,7 @@
 import os
 import logging
 import boto3
+from botocore.exceptions import ClientError
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -46,3 +47,11 @@ def generate_pdf_key(rulebook_id: str, filename: str)->str:
 def generate_pdf_cover_key(rulebook_id: str)->str:
     """Returns: rulebooks/{rulebook_id}/cover.png"""
     return f"rulebooks/{rulebook_id}/cover.png"
+
+def ping_r2_storage():
+    """Pings the S3 compatible object storage"""
+    try:
+        s3.head_bucket(Bucket=settings.R2_BUCKET_RULEBOOKS)
+    except ClientError as e:
+        logger.error(f"R2 Connection failed: {e}")
+        raise e

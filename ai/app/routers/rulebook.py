@@ -1,18 +1,37 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status, BackgroundTasks
-from typing import Optional
+import logging
+from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, Depends,HTTPException, status
+from app.dependencies import verify_jwt
+from app.models.schemas import UploadResponse, JobStatusResponse
+from app.services import mongo_service
 from app.config import settings
 from app.pipeline.ingestion import run_ingestion_pipeline
+from typing import Optional
+from bson import ObjectId
 
-router = APIRouter(prefix="/api/vault/rulebooks", tags=["rulebooks"])
+logger = logging.getLogger(__name__)
 
-@router.post("",status_code=status.HTTP_202_ACCEPTED)
+router = APIRouter(
+    prefix="/api/vault/rulebooks",
+    tags=["rulebooks"]
+)
+
+@router.post(
+    "/upload",
+    response_model=UploadResponse,
+    status_code=status.HTTP_202_ACCEPTED
+)
 async def upload_rulebook(
     background_tasks: BackgroundTasks,
     title: str = Form(...),
     edition: Optional[str] = Form(None),
     language: str = Form(...),
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    payload: dict = Depends(verify_jwt)
 ):
+    """
+    Accepts a PDF rulebook upload, initialises the database state,
+    and starts the ingestion pipeline.
+    """
     # Validate file type
     if file.content_type != "application/pdf":
         raise HTTPException(
@@ -20,7 +39,7 @@ async def upload_rulebook(
             detail="Only PDF files are allowed."
         )
 
-    # Read and validate file size
+    # Read file and validate file size
     file_bytes = await file.read()
     max_bytes = settings.MAX_FILE_SIZE_MB * 1024 * 1024
     if len(file_bytes) > max_bytes:
@@ -29,13 +48,87 @@ async def upload_rulebook(
             detail=f"File exceeds {settings.MAX_FILE_SIZE_MB}MB limit."
         )
 
-    # Send bytes to background task
-    background_tasks.add_task(run_ingestion_pipeline, file_bytes, file.filename)
+    if not file_bytes or not file_bytes.startswith(b"%PDF"):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="The uploaded file is empty or corrupted."
+        )
 
-    return {
-        "rulebook_id": "mock_id",
-        "title": title,
-        "edition": edition,
-        "status": "Processing",
-        "message":"Rulebook upload accepted. Processing in background."
-    }
+    contributor_id = payload.get("userId")
+    if not contributor_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="userId is missing from token."
+        )
+
+    try:
+        # Initialise database
+        rulebook_id = mongo_service.create_rulebook(
+            title=title,
+            edition=edition,
+            contributor_id=contributor_id,
+            language=language,
+            r2_pdf_key="",
+            r2_cover_key=""
+        )
+
+        job_id = mongo_service.create_ingestion_job(rulebook_id)
+
+    except ValueError as e:
+        logger.warning(f"Upload rejected: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to initialise upload: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An internal server error occured while initialising the upload."
+        )
+
+    # Send bytes to background task
+    background_tasks.add_task(
+        run_ingestion_pipeline,
+        file_bytes=file_bytes,
+        filename=file.filename,
+        rulebook_id=rulebook_id,
+        job_id=job_id
+    )
+
+    logger.info(f"Accepted upload for '{title}'. Rulebook ID: {rulebook_id}, Job ID: {job_id}")
+
+    return UploadResponse(
+        message="Rulebook upload accepted. Ingestion has started.",
+        rulebook_id=rulebook_id,
+        job_id=job_id
+    )
+
+@router.get(
+    "/status/{job_id}",
+    response_model=JobStatusResponse,
+    status_code=status.HTTP_200_OK
+)
+async def get_job_status(job_id: str, payload: dict = Depends(verify_jwt)):
+    """
+    Allows the frontend to poll for the current status of an ingestion job.
+    """
+    # Validation
+    if not ObjectId.is_valid(job_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid job_id format."
+        )
+
+    # Database Fetch
+    ingestion_job = mongo_service.get_ingestion_job(job_id)
+
+    # Response Handling
+    if not ingestion_job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Ingestion job with id '{job_id}' does not exist."
+        )
+
+    return ingestion_job

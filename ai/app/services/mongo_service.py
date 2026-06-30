@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure
 from bson import ObjectId
 from datetime import datetime, timezone
 
@@ -149,6 +150,23 @@ def create_rulebook_text(
 def is_token_valid(jti: str) -> bool:
     """Checks the MongoDB database to see if the token has been invalidated"""
 
-    doc = token_blacklist_collection.find_one({"_id": ObjectId(jti)})
+    doc = token_blacklist_collection.find_one({"_id": jti})
 
     return doc is None
+
+def get_ingestion_job(job_id: str) -> dict | None:
+    """Returns a single INGESTION_JOB document with the matching id"""
+    doc = ingestion_job_collection.find_one({"_id": ObjectId(job_id)})
+
+    if doc:
+        doc["job_id"] = str(doc.pop("_id")) # Effectively replacing the _id field with the job_id field
+        doc["rulebookId"] = str(doc["rulebook_id"])
+
+    return doc
+
+def ping_database():
+    """Pings the MongoDB database to check if it is available"""
+    try:
+        client.admin.command('ping')
+    except ConnectionFailure as e:
+        raise e

@@ -1,8 +1,8 @@
+import io
+import logging
 import fitz
 import pytesseract
 from PIL import Image
-import io
-import logging
 
 logger = logging.getLogger(__name__)
 
