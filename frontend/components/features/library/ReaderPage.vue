@@ -34,13 +34,13 @@ const {
   currentRulebook,
   rulebookText,
   isLoading,
-  fetchRulebookById,
-  fetchRulebookText
+  getRulebookById,
+  getRulebookText
 } = useLibrary()
 
 onMounted(async () => {
-  await fetchRulebookById(route.params.id)
-  await fetchRulebookText(route.params.id)
+  await getRulebookById(route.params.id)
+  await getRulebookText(route.params.id)
 })
 
 </script>
