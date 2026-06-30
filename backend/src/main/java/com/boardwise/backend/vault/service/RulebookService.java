@@ -14,8 +14,10 @@ import com.boardwise.backend.vault.dto.response.DownloadUrlResponseDto;
 import com.boardwise.backend.vault.dto.response.EditEventResponseDto;
 import com.boardwise.backend.vault.dto.response.EditHistoryResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookResponseDto;
+import com.boardwise.backend.vault.dto.response.RulebookSummaryResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookTextResponseDto;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
+import com.boardwise.backend.vault.exception.BoardgameNotFoundException;
 import com.boardwise.backend.vault.model.EditEvent;
 import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.model.RulebookText;
@@ -27,6 +29,9 @@ import com.boardwise.backend.vault.repository.WriteLockRepository;
 
 import lombok.RequiredArgsConstructor;
 
+import com.boardwise.backend.user_service.models.Boardgame;
+import com.boardwise.backend.user_service.repos.BoardGameRepository;
+
 @Service
 @RequiredArgsConstructor // automatically generates a constructor for specific fields(Removes need for manual boilerplate code)
 public class RulebookService {
@@ -34,28 +39,29 @@ public class RulebookService {
     private final RulebookTextRepository rulebookTextRepository;
     private final WriteLockRepository writeLockRepository;
     private final EditEventRepository editEventRepository;
+    private final BoardGameRepository boardgameRepository;
 
-    // VC-002: List / Search Rulebooks
-    public Page<RulebookResponseDto> searchRulebooks(String search, int page, int limit){
+    // AC-VLT-02: List / Search Rulebooks
+    public Page<RulebookSummaryResponseDto> searchRulebooks(String search, int page, int limit){
         Pageable pageable = PageRequest.of(
             page-1,
             Math.min(limit, 100),
-            Sort.by(Sort.Direction.DESC, "updated_at")
+            Sort.by(Sort.Direction.DESC, "updatedAt")
         );
 
-        Page<RulebookResponseDto> dtoPage =
-            rulebookRepository.findByStatusAndGameNameContainingIgnoreCase("Ready", search, pageable).map(this::toRulebookResponse);
+        Page<RulebookSummaryResponseDto> dtoPage =
+            rulebookRepository.findByStatusAndTitleContainingIgnoreCase("Ready", search, pageable).map(this::toRulebookSummaryResponse);
 
-        return dtoPage; // Page has the lockHeldBy field set to null. A book that is in state Ready does not have a write lock
+        return dtoPage;
     }
 
-    // VC-003: Get Rulebook Detail
+    // AC-VLT-03: Get Rulebook Detail
     public RulebookResponseDto getRulebookById(ObjectId id){
         Rulebook rulebook = findRulebookOrThrow(id);
         return toRulebookResponse(rulebook);
     }
 
-    // VC-005: Get Rulebook Text State
+    // AC-VLT-05: Get Rulebook Text State
     public RulebookTextResponseDto getRulebookText(ObjectId id){
         findRulebookOrThrow(id);
 
@@ -69,14 +75,14 @@ public class RulebookService {
 
         return RulebookTextResponseDto.builder()
             .rulebookId(id.toHexString())
-            .content(text.getContent())
+            .chunks(text.getChunks())
             .version(text.getVersion())
             .lockHeldBy(lock != null ? lock.getHeldByUserId().toHexString() : null)
             .updatedAt(text.getUpdatedAt())
             .build();
     }
 
-    // VC-004: Download Raw PDF - pre-signed URL generation placeholder
+    // AC-VLT-04: Download Raw PDF - pre-signed URL generation placeholder
     // R2 pre-signing will be wired in once R2Config is active
     public DownloadUrlResponseDto getDownloadUrl(ObjectId id) {
         Rulebook rulebook = findRulebookOrThrow(id);
@@ -93,7 +99,7 @@ public class RulebookService {
                 .build();
     }
 
-    // US-VLT-06: Edit History
+    // AC-VLT-09: Get Rulebook Edit History
     public EditHistoryResponseDto getEditHistory(ObjectId id){
         findRulebookOrThrow(id);
 
@@ -111,9 +117,35 @@ public class RulebookService {
     }
 
     // --- private helpers ---
+    private Boardgame findBoardgameOrThrow(ObjectId id){
+        if(id == null){
+            throw new IllegalArgumentException("Boardgame ID cannot be null");
+        }
+        return boardgameRepository.findById(id.toHexString()).orElseThrow(() -> new BoardgameNotFoundException(id));
+    }
+
     private Rulebook findRulebookOrThrow(ObjectId id) {
         return rulebookRepository.findById(id)
             .orElseThrow(() -> new RulebookNotFoundException(id));
+    }
+
+    private RulebookSummaryResponseDto toRulebookSummaryResponse(Rulebook rulebook){
+        List<String> genres = List.of();
+
+        if(rulebook.getGameId() != null){
+            // fetch genres from boardgame document
+            Boardgame game = findBoardgameOrThrow(rulebook.getGameId());
+            genres = game.getGenres();
+        }
+
+        return RulebookSummaryResponseDto.builder()
+                .id(rulebook.getId() != null ? rulebook.getId().toHexString() : null)
+                .title(rulebook.getTitle())
+                .language(rulebook.getLanguage())
+                .edition(rulebook.getEdition())
+                .version(rulebook.getVersion())
+                .genres(genres)
+                .build();
     }
 
     private RulebookResponseDto toRulebookResponse(Rulebook rulebook) {
@@ -121,13 +153,24 @@ public class RulebookService {
             .findByRulebookId(rulebook.getId())
             .orElse(null);
 
+        List<String> genres = List.of();
+
+        if(rulebook.getGameId() != null){
+            // fetch genres from boardgame document
+            Boardgame game = findBoardgameOrThrow(rulebook.getGameId());
+            genres = game.getGenres();
+        }
+
         return RulebookResponseDto.builder()
                 .id(rulebook.getId().toHexString())
-                .gameName(rulebook.getGameName())
+                .title(rulebook.getTitle())
                 .edition(rulebook.getEdition())
-                .status(rulebook.getStatus())
+                .genres(genres)
                 .version(rulebook.getVersion())
-                .contributorId(rulebook.getContributorId().toHexString())
+                .status(rulebook.getStatus())
+                .contributorUsername(rulebook.getContributorUsername())
+                .description(rulebook.getDescription())
+                .language(rulebook.getLanguage())
                 .lockHeldBy(lock != null ? lock.getHeldByUserId().toHexString() : null)
                 .uploadedAt(rulebook.getUploadedAt())
                 .updatedAt(rulebook.getUpdatedAt())

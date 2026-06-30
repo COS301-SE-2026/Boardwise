@@ -1,5 +1,5 @@
 <template>
-  <div class="grid">
+  <BaseGrid cols="220px" gap="var(--space-6)">
 
     <GameCard
       v-for="game in games"
@@ -9,30 +9,19 @@
       :image="game.image"
     />
 
-    <AddGameCard @add-game="$emit('add-game')" />
+    <!-- <AddGameCard @add-game="$emit('add-game')" /> -->
 
-  </div>
+  </BaseGrid>
 </template>
 
 <script setup>
-import GameCard from './GameCard.vue'
+import BaseGrid    from '~/components/ui/BaseGrid.vue'
+import GameCard    from './GameCard.vue'
 import AddGameCard from './AddGameCard.vue'
 
 defineProps({
-  games: {
-    type: Array,
-    default: () => []
-  }
+  games: { type: Array, default: () => [] }
 })
 
 defineEmits(['add-game'])
 </script>
-
-<style scoped>
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 24px;
-  margin-top: 32px;
-}
-</style>

@@ -4,13 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "nuxt dev",
-    "build": "nuxt build",
+    "build": "nuxt generate",
+    "preview:static": "nuxt generate && npx serve .output/public",
     "test": "vitest"
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
     "@vite-pwa/nuxt": "^1.1.1",
-    "axios": "^1.16.1",
     "nuxt": "^4.4.4",
     "sass": "^1.99.0",
     "vue": "^3.5.33",
@@ -20,8 +20,13 @@
   },
   "devDependencies": {
     "@vue/test-utils": "^2.4.10",
-    "axios": "^1.16.1",
     "happy-dom": "^20.9.0",
     "vitest": "^4.1.6"
+  },
+  "allowScripts": {
+    "@parcel/watcher@2.5.6": true,
+    "esbuild@0.28.0": true,
+    "esbuild@0.25.12": true,
+    "esbuild@0.27.7": true
   }
 }

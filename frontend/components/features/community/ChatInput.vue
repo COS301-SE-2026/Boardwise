@@ -6,9 +6,13 @@
       placeholder="Write a message..."
       :rows="2"
       @keydown.enter.prevent="handleSend"
+      class="flex-1"
+      hide-details
     />
 
-    <BaseButton @click="handleSend">
+    <BaseButton @click="handleSend"
+      class="align-stretch h-auto"
+    >
       Send
     </BaseButton>
 
@@ -33,8 +37,8 @@ const handleSend = () => {
 <style scoped>
 .chat-input {
   display: flex;
-  gap: 12px;
-  align-items: flex-end;
+  gap: var(--space-3);
+  align-items: stretch;
 }
 
 .chat-input :deep(.base-textarea) {

@@ -1,6 +1,6 @@
 import {ref} from 'vue'
 import { useRouter } from 'vue-router'
-import { AuthService } from '~/services/authService'
+import { AuthService } from '@/services/authService'
 
 export const useAuth = () => {
   const router = useRouter();
@@ -11,7 +11,7 @@ export const useAuth = () => {
   )
   const isAuthenticated = ref<boolean>(!!token.value)
   const error = ref<string>('');
-  const loading = ref<boolean>(false);
+  const isLoading = ref<boolean>(false);
 
   // Helper for session management
   const setSession = (newToken: string) => {
@@ -24,48 +24,58 @@ export const useAuth = () => {
 
   const register = async (userData: any): Promise<boolean> => {
     error.value = '';
-    loading.value = true;
+    isLoading.value = true;
 
     try{
       const response = await AuthService.register(userData);
-      setSession(response.data.accessToken);
+      setSession(response.accessToken);
       return true;
     }catch(err: any){
-      error.value = err.response?.data?.message || 'Registration failed';
+      error.value = err.data?.message || 'Registration failed';
       return false;
     }finally{
-      loading.value = false;
+      isLoading.value = false;
     }
   }
 
   const login = async (credentials: any): Promise<boolean> => {
     error.value = '';
-    loading.value = true;
+    isLoading.value = true;
     try{
       const response = await AuthService.login(credentials);
-      setSession(response.data.accessToken);
+      setSession(response.accessToken);
       return true;
     }catch(err: any){
-      error.value = err.response?.data?.message || 'Invalid credentials'
-      return false
+      error.value = err.data?.message || 'Invalid credentials';
+      return false;
     } finally {
-      loading.value = false;
+      isLoading.value = false;
     }
   }
 
-  const logout = () => {
+  const logout = async () => {
+    error.value = '';
+    isLoading.value = true;
     if(import.meta.client){
-      localStorage.removeItem('access_token');
+      try{
+        const response = await AuthService.logout();
+        return true;
+      }catch(err: any){
+        error.value = err.data?.message || 'Invalid credentials';
+      }finally{
+        localStorage.removeItem('access_token');
+        isLoading.value = false;
+      }
     }
     token.value = null
     isAuthenticated.value = false;
-    router.push('/login');
+    router.push('auth/signin');
   }
   return {
     token,
     isAuthenticated,
     error,
-    loading,
+    isLoading,
     login,
     register,
     logout

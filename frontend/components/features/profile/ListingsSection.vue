@@ -1,22 +1,20 @@
 <template>
-  <section class="section">
+  <section class="mt-8">
 
-    <div class="top">
-
+    <div class="d-flex justify-space-between align-center mb-6 flex-wrap ga-4">
       <SectionTitle title="My Listings" />
-
-      <BaseButton @click="showAddListing = true">
-        + Add Listing
-      </BaseButton>
-
+      <!-- <v-btn color="primary" @click="showAddListing = false">+ Add Listing</v-btn> -->
     </div>
 
-    <ListingGrid 
+    <ListingGrid
       :listings="listings"
-      @add-listing="showAddListing = true"
+      @add-listing="showAddListing = false"
+      @delete-listing="openDelete"
     />
 
     <AddListingModal v-model="showAddListing" />
+
+    <DeleteModal v-model="showDelete" @confirm="handleDelete" />
 
   </section>
 </template>
@@ -24,35 +22,29 @@
 <script setup>
 import ListingGrid from './ListingsGrid.vue'
 import AddListingModal from './AddListingModal.vue'
-
-import BaseButton from '~/components/ui/BaseButton.vue'
+import DeleteModal from './DeleteListingModal.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
+import { useMarketplace } from '~/composables/useMarketplace'
 
 defineProps({
   listings: Array
 })
 
+const { removeListing } = useMarketplace()
+
 const showAddListing = ref(false)
-</script>
+const showDelete = ref(false)
+const selectedId = ref(null)
 
-<style scoped>
-.section {
-  margin-top: 32px;
+const openDelete = (id) => {
+  selectedId.value = id
+  showDelete.value = true
 }
 
-.top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  margin-bottom: 24px;
-}
-
-@media (max-width: 768px) {
-  .top {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
+const handleDelete = async () => {
+  if (selectedId.value) {
+    await removeListing(selectedId.value)
+    selectedId.value = null
   }
 }
-</style>
+</script>

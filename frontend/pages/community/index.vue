@@ -22,10 +22,12 @@
   </PageContainer>
 </template>
 
-<script setup>
+<script setup lang="ts">
+definePageMeta({
+  middleware: 'auth'
+})
 import { ref, computed, onMounted } from 'vue'
-import { communities } from '~/services/mockData/communities'
-import CommunityFilter from '~/components/features/community/CommunityFilter.vue'
+import { useRouter } from 'vue-router'
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import ExploreHeader from '~/components/features/community/ExploreHeader.vue'

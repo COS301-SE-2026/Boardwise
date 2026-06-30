@@ -4,7 +4,10 @@
       variant="accordion"
       flat
     >
-      <v-expansion-panel :title="title">
+      <v-expansion-panel>
+        <v-expansion-panel-title class="text-body-2 font-weight-bold">
+          {{ title }}
+        </v-expansion-panel-title>
         <v-expansion-panel-text>
           <slot />
         </v-expansion-panel-text>

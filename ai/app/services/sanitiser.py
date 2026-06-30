@@ -1,42 +1,57 @@
-from pypdf import PdfReader
-from io import BytesIO
+import logging
 
+logger = logging.getLogger(__name__)
 
 UNSAFE_PATTERNS = [
-    "/JavaScript",
-    # "/JS",
-    "/AA",
-    "/OpenAction",
-    "/Launch",
-    "/EmbeddedFile",
-    "/XFA"
+    b"/JavaScript",
+    b"/AA",
+    b"/OpenAction",
+    b"/Launch",
+    b"/EmbeddedFile",
+    b"/XFA"
 ]
 
-SAFE_EXCEPTIONS = [
-    "/Type /Catalog",
-    "/AcroForm"
+SAFE_CONTEXTS = [
+    b"/Type /Catalog",
+    b"/AcroForm"
 ]
-
 
 def sanitise_pdf(file_bytes: bytes) -> tuple[bool, str]:
-    try:
-        reader = PdfReader(BytesIO(file_bytes))
-    except Exception:
-        return False, "File could not be parsed as a valid PDF"
-
-    raw_content = file_bytes.decode("latin-1", errors="ignore")
+    """
+    Scans raw PDF bytes for potentially dangerous execution patterns.
+    Returns:
+        (True, "") if the PDF is safe.
+        (False, "failure_reason") if an unsafe pattern is found outside a safe context
+    """
+    if not file_bytes:
+        return (False, "File is empty")
+    if not file_bytes.startswith(b"%PDF"):
+        return (False, "File bytes are not of a PDF file")
 
     for pattern in UNSAFE_PATTERNS:
-        if pattern in raw_content:
-            # check if it appears in a safe context
-            pattern_index = raw_content.find(pattern)
-            surrounding = raw_content[max(0, pattern_index - 50):pattern_index + 50]
+        start_search = 0
+        while True:
+            pattern_index = file_bytes.find(pattern, start_search)
 
-            is_safe_context = any(
-                exception in surrounding for exception in SAFE_EXCEPTIONS
-            )
+            if pattern_index == -1:
+                break
 
-            if not is_safe_context:
-                return False, f"Unsafe PDF content detected: {pattern}"
+            # Proximity window
+            slice_start = max(0, pattern_index - 100)
+            slice_end = min(len(file_bytes), pattern_index + len(pattern) + 100 )
+            file_bytes_slice = file_bytes[slice_start:slice_end]
 
-    return True, ""
+            # Check if any safe context exists in this window
+            is_safe = False
+            for safe_context in SAFE_CONTEXTS:
+                if safe_context in file_bytes_slice:
+                    is_safe = True
+                    break
+
+            if not is_safe:
+                logger.warning(f"Unsafe PDF: Contains {pattern.decode('utf-8')}")
+                return (False, f"Unsafe PDF: Contains {pattern.decode('utf-8')}")
+
+            start_search = pattern_index + len(pattern)
+
+    return (True, "")

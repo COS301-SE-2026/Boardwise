@@ -1,162 +1,214 @@
 <template>
-  <BaseModal v-model="open">
-
-    <div class="content">
-
+  <v-dialog v-model="open" max-width="500">
+    <BaseCard class="pa-6 d-flex flex-column ga-5" style="background: var(--color-surface) !important; overflow-y: auto;">
       <h2>Create Listing</h2>
 
-      <div class="input-group">
-        <label>Listing Title</label>
-        <BaseInput v-model="title" placeholder="Game title" />
+      <v-text-field v-model="listing_title" label="Listing Title" placeholder="Listing title" variant="outlined" density="compact" hide-details />
+
+      <v-text-field v-model="game_title" label="Game Title" placeholder="Game title" variant ="outlined" density="compact" hide-details/>
+
+      <v-text-field v-model="version" label="Version" placeholder="e.g. Original" variant ="outlined" density="compact" hide-details/>
+
+      <v-select v-model="selected_genres"
+        label="Genres"
+        :items="genre_list"
+        multiple
+        chips
+      ></v-select>
+
+      <v-select v-model="selected_condition" 
+      label="Condition"
+      :items="conditions">
+    </v-select>
+
+      <v-select v-model="selected_item_type" 
+      label="Item Type"
+      :items="item_types">
+    </v-select>
+
+     <div class="d-flex">
+        <v-btn-toggle v-model="listing_type" color="primary" variant="outlined" mandatory divided>
+          <v-btn value="sell">Sell</v-btn>
+          <v-btn value="rent">Rent</v-btn>
+        </v-btn-toggle>
       </div>
 
-      <div class="input-group">
-        <label>Type</label>
-        <div class="toggle-row">
-          <button :class="['toggle-btn', { active: type === 'sell' }]" @click="type = 'sell'">Sell</button>
-          <button :class="['toggle-btn', { active: type === 'rent' }]" @click="type = 'rent'">Rent</button>
+
+      <v-text-field  v-model="price" label="Amount" prefix="R" placeholder="e.g. 650" type="number" variant="outlined" density="compact" hide-details />
+
+      <div class="RentalPeriod">
+        <div v-if="listing_type === 'rent'">
+            <v-date-input v-model ="start_date" label="Start Date" variant="outlined"></v-date-input>
+            <v-date-input  v-model ="end_date" label="End Date" variant="outlined"></v-date-input>
+        </div>
+        <div v-else>
+              <v-checkbox v-model="negotiable" label="Open to negotiation" color="primary" density="compact" hide-details />
         </div>
       </div>
 
-      <div v-if="type" class="input-group">
-        <label>Amount (R)</label>
-        <BaseInput v-model="price" placeholder="e.g. 650" type="number" />
+
+      <v-text-field v-model="location" label="Location" placeholder="e.g. Pretoria" variant="outlined" density="compact" hide-details />
+
+      <v-textarea v-model="description" label="Description" placeholder="description" variant ="outlined" density="compact" hide-details/>
+
+      <div class="d-flex align-center ga-3">
+        <v-btn variant="outlined" color="primary" @click="triggerUpload">Upload Image</v-btn>
+        <label for="image-upload" class="text-grey text-body-2">{{ file_name || '···' }}</label>
+        <input id="image-upload" ref="file_input" type="file" accept="image/*" class="hidden-input" @change="handleFileChange" />
       </div>
 
-      <div v-if="type === 'rent'" class="input-group">
-        <label>Rental Period</label>
-        <select v-model="rentalPeriod" class="select">
-          <option value="" disabled>Select period</option>
-          <option>1 day</option>
-          <option>3 days</option>
-          <option>1 week</option>
-          <option>2 weeks</option>
-          <option>1 month</option>
-        </select>
+      <div class="d-flex justify-end ga-3">
+        <v-btn variant="outlined" color="primary" @click="closeModal">Cancel</v-btn>
+        <v-btn color="primary" @click="handleConfirm">Create Listing</v-btn>
       </div>
 
-      <div v-if="type === 'sell'" class="input-group checkbox-row">
-        <input id="negotiate" v-model="negotiable" type="checkbox" />
-        <label for="negotiate">Open to negotiation</label>
-      </div>
-
-      <div class="input-group">
-        <label>Location</label>
-        <BaseInput v-model="location" placeholder="e.g. Pretoria" />
-      </div>
-
-      <!-- <div class="input-group">
-        <label>Image URL</label>
-        <BaseInput v-model="image" placeholder="https://..." />
-      </div> -->
-
-      <div class="input-group">
-        <label>Game Cover</label>
-        <div class="upload-row">
-          <BaseButton variant="secondary" @click="triggerUpload">
-            Upload Image
-          </BaseButton>
-          <span class="filename">{{ fileName || '···' }}</span>
-          <input
-            ref="fileInput"
-            type="file"
-            accept="image/*"
-            class="hidden-input"
-            @change="handleFileChange"
-          />
-        </div>
-      </div>
-
-      <div class="actions">
-        <BaseButton variant="secondary" @click="closeModal">Cancel</BaseButton>
-        <BaseButton @click="handleConfirm">Create Listing</BaseButton>
-      </div>
-
-    </div>
-
-  </BaseModal>
+    </BaseCard>
+  </v-dialog>
 </template>
 
 <script setup>
-import BaseModal from '~/components/ui/BaseModal.vue'
-import BaseInput from '~/components/ui/BaseInput.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
+
+const isLoading = ref(false);
 
 const open = defineModel()
 const emit = defineEmits(['confirm'])
 
-const title = ref('')
-const type = ref('')
-const rentalPeriod = ref('')
+const listing_title = ref('')
+const game_title = ref('')
+const description = ref('')
+const listing_type = ref('sell')
+const rental_period = ref('')
 const negotiable = ref(false)
-const price = ref('')
-const location = ref('')
-const fileName = ref('')
-const fileInput = ref(null)
+const price = ref(0)
+const location= ref('')
+const file_name = ref('')
+const file_input= ref(null)
+const file= ref(null);
+const version = ref('');
 
-const triggerUpload = () => {
-  fileInput.value.click()
-}
+const selected_genres = ref([])
+const selected_condition = ref(null)
+const selected_item_type = ref(null)
+
+const start_date = ref(null);
+const end_date = ref(null);
+
+const triggerUpload = () => file_input.value.click()
 
 const handleFileChange = (e) => {
-  const file = e.target.files[0]
-  if(file) fileName.value = file.name
+  const toUpload = e.target.files[0]
+  if (toUpload) {
+    file_name.value = toUpload.name
+    file.value = toUpload
+  }
+}
+function getValidGenres(){
+  return selected_genres.value.map(g => g.toLowerCase())
 }
 
 const closeModal = () => {
+  isLoading.value = false;
   open.value = false
-  title.value = ''
-  type.value = ''
+  listing_title.value = ''
+  game_title.value =''
+  version.value = ''
+  description.value = ''
+  selected_condition.value=''
+  selected_genres.value =[]
+  selected_item_type.value=''
+  listing_type.value = 'sell'
   price.value = ''
-  rentalPeriod.value = ''
+  rental_period.value = ''
   negotiable.value = false
   location.value = ''
-  fileName.value = ''
+  file_name.value = ''
+  file.value = null
 }
+
+
+function get_rental_period() {
+  const fmt = (d) => {// reformat data
+    const date = new Date(d)// date
+    const y = date.getFullYear()// this year
+    const m = String(date.getMonth() + 1).padStart(2, '0')//format as MM
+    const day = String(date.getDate()).padStart(2, '0') // format as DD
+    return `${y}-${m}-${day}`
+  }
+  return [fmt(start_date.value), fmt(end_date.value)]
+}
+
+function get_valid_item_type(){
+  return selected_item_type.value.toLowerCase()
+}
+
+function get_valid_condition(){
+  return selected_condition.value.toLowerCase()
+}
+
 
 const handleConfirm = () => {
-  if (!title.value || !type.value) return
-  emit('confirm', {
-    title: title.value,
-    type: type.value,
-    price: price.value,
-    rentalPeriod: rentalPeriod.value,
-    negotiable: negotiable.value,
-    location: location.value,
-    image: fileName.value
-  })
-  closeModal()
+  if (!selected_item_type.value|| !game_title.value || !listing_title.value || !location.value ||!version.value ||
+      !description.value || !selected_item_type.value || price.value < 0 || !selected_condition.value|| !description.value || 
+      !selected_genres.value || selected_genres.value.length < 1){
+        isLoading.value = false;
+        return;
+  }
+
+  if(listing_type.value === 'rent' ){
+    if(!start_date.value || !end_date.value){
+      return;
+    }
+    // date validation
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const a = new Date(start_date.value)
+    a.setHours(0, 0, 0, 0)
+
+    const b = new Date(end_date.value)
+    b.setHours(0, 0, 0, 0)
+
+    //start is before today
+
+    if (a < today) return
+
+    //end date is before today
+    if (b < today) return
+  }
+
+  isLoading.value = true;
+
+  try{
+    emit('confirm', {
+      listingTitle: listing_title.value,
+      gameTitle: game_title.value,
+      listingType: listing_type.value === 'rent' ? 'rental' : 'sale', 
+      price: Number(price.value),
+      itemType: get_valid_item_type(),
+      condition:get_valid_condition(),
+      version: version.value,
+      location: location.value,
+      description: description.value,
+      genres: getValidGenres(),
+      isNegotiable: negotiable.value,
+      rentalPeriod: listing_type.value === 'rent' ? get_rental_period() : null,
+    }, file.value)
+
+    closeModal();
+  }
+  finally{
+    isLoading.value = false
+  }
 }
 
+const conditions = ['New', 'Like New', 'Good', 'Fair']
+
+const item_types  = ["Merch", "Full Boardgame","Partial Boardgame","Pieces"]
+
+const genre_list = ['Strategy', 'Family', 'Adventure', 'Abstract', 'Party', 'Abstract Strategy','Card Game', 'Dice', 'Economic', 'Fantasy','Fighting','Electronic', 'Environmental', 'Horror', 'Humor', 'Mafia', 'Age of Reason', 'City Building']
 </script>
 
 <style scoped>
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 8px;
-  box-sizing: border-box;
-  width: 100%;
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-.upload-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.filename {
-  font-size: 14px;
-  color: #888;
-}
-
 .hidden-input {
   display: none;
 }

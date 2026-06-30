@@ -1,4 +1,4 @@
-import { userService } from "~/services/userService";
+import { userService } from "@/services/userService";
 import { useRouter } from "vue-router";
 
 export const useProfile = () => {
@@ -11,13 +11,16 @@ export const useProfile = () => {
 
         try{
             const res = await userService.getCurrentUser()
-            console.log(res.data)
-            return res.data
+            console.log(res)
+            return res
         }
         catch(err: any){
-            error.value = err.response?.data?.message || "This user does not exist"
-            if(err.response?.status === 401)
+            error.value = err.data?.message || "This user does not exist"
+            if(err.response?.status === 401){
+                localStorage.removeItem("access_token")
                 router.push('/auth/signin')
+            }
+                
         }
         finally{
             isLoading.value = false
@@ -29,11 +32,11 @@ export const useProfile = () => {
 
         try{
             const res = await userService.updateProfile(username)
-            console.log(res.data)
-            return res.data
+            console.log(res)
+            return res
         }
         catch(err: any){
-            error.value = err.response?.data?.message || "Profile update failed"
+            error.value = err.data?.message || "Profile update failed"
             if(err.response?.status === 401)
                 router.push('/auth/signin')
         }

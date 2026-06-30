@@ -7,7 +7,7 @@
     >
       <RulebookCard
         :rulebook="rulebook"
-        @click="$emit('select', rulebook)"
+        @click="$emit('select', $event)"
       />
     </v-col>
   </v-row>
