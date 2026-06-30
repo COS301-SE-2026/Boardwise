@@ -95,17 +95,4 @@ h3 {
   font-size: var(--fs-body);
   color: var(--color-text);
 }
-
-h3 {
-  margin: 0 0 8px;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-input[type="checkbox"] {
-  accent-color: #6C3BFF;
-  width: 15px;
-  height: 15px;
-  cursor: pointer;
-}
 </style>

@@ -1,5 +1,6 @@
 <template>
   <div class="chat-input">
+
     <BaseTextArea
       v-model="text"
       placeholder="Write a message..."
@@ -14,11 +15,11 @@
     >
       Send
     </BaseButton>
+
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
 import BaseTextArea from '~/components/ui/BaseTextArea.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 
