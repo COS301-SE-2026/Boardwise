@@ -45,7 +45,7 @@ defineProps({
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  max-width: 70%;
+  max-width: 60%;
 }
 
 .message--own .message__body {
