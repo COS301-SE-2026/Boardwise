@@ -4,11 +4,8 @@ import java.util.Optional;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
-
 import com.boardwise.backend.vault.model.RulebookText;
 
-@Repository
 public interface RulebookTextRepository extends MongoRepository<RulebookText, ObjectId> {
     Optional<RulebookText> findByRulebookId(ObjectId rulebookId);
 }

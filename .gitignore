@@ -2,6 +2,8 @@
 .vscode
 /frontend/.nuxt
 /frontend/node_modules
+/frontend/dist
+/frontend/.output
 .pytest_cache
 __pycache__
 
@@ -14,5 +16,6 @@ mongodb-errors.txt
 /backend/src/test/resources/application-test.properties
 *.cpython*
 
-# Temporary Igngore
-frontend/
+
+#ignore for backend
+frontend/*
