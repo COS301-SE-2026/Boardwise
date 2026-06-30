@@ -5,6 +5,8 @@
       v-for="listing in listings"
       :key="listing.listingId"
       :listing="listing"
+      @deleted="listings = listings.filter(l => l.listingId !== $event)" 
+
     />
 
     <AddListingCard @click="$emit('add-listing')" />

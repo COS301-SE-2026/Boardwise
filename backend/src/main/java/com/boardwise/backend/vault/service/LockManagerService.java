@@ -1,6 +1,7 @@
 package com.boardwise.backend.vault.service;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import com.boardwise.backend.vault.exception.LockConflictException;
 import com.boardwise.backend.vault.exception.LockNotHeldException;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.exception.VersionMismatchException;
+import com.boardwise.backend.vault.model.Chunk;
 import com.boardwise.backend.vault.model.EditEvent;
 import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.model.RulebookText;
@@ -119,8 +121,9 @@ public class LockManagerService {
         // Commit delta
         Instant now = Instant.now();
         int newVersion = text.getVersion() + 1;
+        ;
 
-        text.setContent(request.getDelta());
+        text.setChunks(List.of(Chunk.builder().content(request.getDelta()).build())); // TODO: Modify this accordingly
         text.setVersion(newVersion);
         text.setUpdatedAt(now);
         rulebookTextRepository.save(text);

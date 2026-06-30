@@ -1,5 +1,7 @@
 package com.boardwise.backend.marketplace.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum ListingType {
     RENTAL("rental"),
     SALE("sale");
@@ -10,6 +12,7 @@ public enum ListingType {
         this.value = value;
     }
 
+    @JsonValue
     public String getValue() {
         return value;
     }

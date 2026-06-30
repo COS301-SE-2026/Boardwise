@@ -22,6 +22,7 @@
 <script setup>
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+import CommunityCreateForm from './CommunityCreateForm.vue';
 </script>
 
 <style scoped>

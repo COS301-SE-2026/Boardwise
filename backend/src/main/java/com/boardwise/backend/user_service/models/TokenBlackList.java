@@ -4,7 +4,6 @@ import java.time.Instant;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -21,11 +20,9 @@ public class TokenBlackList {
     private String id;
     @Indexed(unique = true)
     private String jti;
-    @Field("created_at")
     private Instant createdAt;
 
     @Indexed(expireAfter = "1s")
-    @Field("expires_at")
     private Instant expiresAt;
 
     public TokenBlackList(String jti, Instant expiresAt){

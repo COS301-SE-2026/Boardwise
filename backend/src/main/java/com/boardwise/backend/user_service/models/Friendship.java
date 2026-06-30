@@ -3,7 +3,6 @@ package com.boardwise.backend.user_service.models;
 import java.time.Instant;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -19,11 +18,9 @@ public class Friendship {
 
     @Id
     private String id;
-    @Field("user_a_id")
+
     private String userAId;
-    @Field("user_b_id")
     private String userBId;
-    @Field("created_at")
     private Instant createdAt;
 
     public Friendship(String userAId, String userBId){

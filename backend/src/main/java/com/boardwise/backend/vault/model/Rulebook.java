@@ -19,27 +19,39 @@ public class Rulebook {
     @Id
     private ObjectId id;
 
-    @Field("game_name")
-    private String gameName;
+    @Field("gameId")
+    private ObjectId gameId;
+
+    @Field("title")
+    private String title;
 
     @Field("edition")
     private String edition;
 
     @Field("status")
-    private String status; // Processing | Ready | PendingReview
+    private String status; // Processing | Ready | PendingReview | Failed
 
     @Field("version")
     private int version;
 
-    @Field("contributor_id")
+    @Field("contributorId")
     private ObjectId contributorId;
 
-    @Field("r2_pdf_key")
+    @Field("contributorUsername")
+    private String contributorUsername;
+
+    @Field("description")
+    private String description;
+
+    @Field("language")
+    private String language;
+
+    @Field("r2PdfKey")
     private String r2PdfKey;
 
-    @Field("uploaded_at")
+    @Field("uploadedAt")
     private Instant uploadedAt;
 
-    @Field("updated_at")
+    @Field("updatedAt")
     private Instant updatedAt;
 }

@@ -1,25 +1,17 @@
 <template>
   <div class="d-flex flex-wrap ga-4">
-    <BaseButton @click="goRead">
-      <v-icon start>
-        mdi-book-open-variant
-      </v-icon>
+    <BaseButton prepend-icon="mdi-book-open-variant" @click="goToReader">
       Read Rulebook
     </BaseButton>
 
-    <BaseButton variant="secondary" @click="router.push('/marketplace')">
-      <v-icon start>
-        mdi-store
-      </v-icon>
-      Marketplace
+    <BaseButton variant="secondary" prepend-icon="mdi-store" @click="goToMarketplace">
+      Browse Marketplace
     </BaseButton>
   </div>
 </template>
 
 <script setup>
 import BaseButton from '~/components/ui/BaseButton.vue'
-
-const router = useRouter()
 
 const props = defineProps({
   rulebook: {
@@ -28,7 +20,11 @@ const props = defineProps({
   }
 })
 
-const goRead = () => {
-  router.push(`/rulebook/read/${props.rulebook.id}`)
+const goToMarketplace = () => {
+  navigateTo('/marketplace')
+}
+
+const goToReader = () => {
+  navigateTo(`/library/read/${props.rulebook.id}`)
 }
 </script>

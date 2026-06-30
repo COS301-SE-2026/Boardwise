@@ -3,6 +3,7 @@ package com.boardwise.backend.shared.exception;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -15,13 +16,14 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import com.boardwise.backend.vault.exception.LockConflictException;
 import com.boardwise.backend.vault.exception.LockNotHeldException;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
+import com.boardwise.backend.vault.exception.BoardgameNotFoundException;
 import com.boardwise.backend.vault.exception.VersionMismatchException;
 import com.mongodb.DuplicateKeyException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(RulebookNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleNotFound(RulebookNotFoundException ex){
+    @ExceptionHandler({RulebookNotFoundException.class, BoardgameNotFoundException.class})
+    public ResponseEntity<Map<String, String>> handleNotFound(RuntimeException ex){
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
     }
 
@@ -93,6 +95,13 @@ public class GlobalExceptionHandler {
         }
         
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<Map<String, Object>> handleFailedUserDeletion(OptimisticLockingFailureException ex){
+        Map<String, Object> res = new HashMap<>();
+        res.put("message", "Failed to delete account. Something went wrong on our side.");
+        return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(Exception.class)

@@ -1,119 +1,173 @@
-from datetime import datetime, timezone
-from bson import ObjectId
 from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure
+from bson import ObjectId
+from datetime import datetime, timezone
 
 from app.config import settings
 
-client = MongoClient(settings.MONGODB_URI)
-db = client[settings.MONGODB_DATABASE]
+client = MongoClient(settings.MONGODB_URL)
+db_name = settings.MONGODB_DATABASE or "ci_fallback_db"
+db = client[db_name]
 
-rulebook_collection     = db["RULEBOOK"]
+rulebook_collection = db["RULEBOOK"]
 rulebook_text_collection = db["RULEBOOK_TEXT"]
 ingestion_job_collection = db["INGESTION_JOB"]
+boardgame_collection = db["BOARD_GAME"]
+user_collection = db["USER"]
+token_blacklist_collection = db["TOKEN_BLACKLIST"]
 
-
-def create_rulebook_document(
-    game_name: str,
+def create_rulebook(
+    title: str,
     edition: str,
     contributor_id: str,
-    game_id: str,
-    r2_pdf_key: str
+    language: str,
+    r2_pdf_key: str,
+    r2_cover_key: str
 ) -> str:
+    """Inserts a new document into the RULEBOOK collection"""
     now = datetime.now(timezone.utc)
+
+    boardgame = boardgame_collection.find_one({"title": title})
+    if not boardgame:
+        raise ValueError(f"Boardgame '{title}' not found.")
+
+    user = user_collection.find_one({"_id": ObjectId(contributor_id)})
+    if not user:
+        raise ValueError(f"User '{contributor_id}' not found.")
+    
     rulebook_id = ObjectId()
+
 
     rulebook_collection.insert_one({
         "_id": rulebook_id,
-        "game_name": game_name,
+        "gameId": boardgame["_id"],
+        "title": title,
         "edition": edition,
         "status": "Processing",
         "version": 0,
-        "contributor_id": ObjectId(contributor_id),
-        "game_id": ObjectId(game_id),
-        "r2_pdf_key": r2_pdf_key,
-        "uploaded_at": now,
-        "updated_at": now
+        "contributorId": ObjectId(contributor_id),
+        "contributorUsername": user.get("username", "Unknown"),
+        "description": boardgame.get("description", ""),
+        "language": language,
+        "r2PdfKey": r2_pdf_key,
+        "r2CoverKey": r2_cover_key,
+        "uploadedAt":now,
+        "updatedAt":now,
     })
 
     return str(rulebook_id)
 
+def update_rulebook_status(rulebook_id: str, status: str, version: int = None) -> str:
+    """Updates the status of the specific rulebook"""
+
+    filter_by_id = {"_id": ObjectId(rulebook_id)}
+    update = {"$set": {"status": status}}
+
+    if version is not None:
+        update["$set"]["version"] = version
+
+    rulebook_collection.update_one(filter_by_id, update)
+
+    return "Rulebook status update was successful."
+
+def update_rulebook_r2_pdf_key(rulebook_id: str, r2_pdf_key: str) -> str:
+    """Updates the R2 PDF key of the specific rulebook"""
+
+    rulebook_collection.update_one(
+        {"_id": ObjectId(rulebook_id)},
+        {"$set": {"r2PdfKey": r2_pdf_key}}
+    )
+
+    return "Rulebook R2 PDF key update was successful."
+
+def update_rulebook_r2_cover_key(rulebook_id: str, r2_cover_key: str) -> str:
+    """Updates the R2 PDF Cover key of the specific rulebook"""
+
+    rulebook_collection.update_one(
+        {"_id": ObjectId(rulebook_id)},
+        {"$set": {"r2CoverKey": r2_cover_key}}
+    )
+
+    return "Rulebook R2 PDF Cover key update was successful."
 
 def create_ingestion_job(rulebook_id: str) -> str:
+    """Inserts a new document into the INGESTION_JOB collection"""
     now = datetime.now(timezone.utc)
     job_id = ObjectId()
 
     ingestion_job_collection.insert_one({
         "_id": job_id,
-        "rulebook_id": ObjectId(rulebook_id),
+        "rulebookId": ObjectId(rulebook_id),
         "stage": "Sanitise",
-        "job_status": "Processing",
-        "failure_reason": None,
-        "started_at": now,
-        "completed_at": None
+        "jobStatus": "Processing",
+        "failureReason": None,
+        "startedAt": now,
+        "completedAt": None,
     })
 
     return str(job_id)
 
-
 def update_ingestion_job(
     job_id: str,
     stage: str,
-    job_status: str,                   # Processing | Completed | Failed
+    job_status: str, # Processing | Completed | Failed
     failure_reason: str = None
-):
+) -> str:
+    """Updates the specified Injestion Job document"""
     now = datetime.now(timezone.utc)
+    filter_by_id = {"_id": ObjectId(job_id)}
     update = {
         "$set": {
             "stage": stage,
-            "job_status": job_status,
-            "failure_reason": failure_reason,
-            "completed_at": now if job_status in ["Completed", "Failed"] else None
+            "jobStatus": job_status,
+            "failureReason": failure_reason,
+            "completedAt": now if job_status in ["Completed", "Failed"] else None
         }
     }
-    ingestion_job_collection.update_one(
-        {"_id": ObjectId(job_id)},
-        update
-    )
 
-def create_rulebook_text(rulebook_id: str, content: str):
+    ingestion_job_collection.update_one(filter_by_id, update)
+
+    return "Ingestion job update was successful."
+
+def create_rulebook_text(
+    rulebook_id: str,
+    chunks_list: list[dict]
+) -> str:
+    """Creates the RULEBOOK_TEXT document containing the array of embedded CHUNK subdocuments"""
+
     now = datetime.now(timezone.utc)
+    rulebook_text_id = ObjectId()
+
     rulebook_text_collection.insert_one({
-        "_id": ObjectId(),
-        "rulebook_id": ObjectId(rulebook_id),
-        "content": content,
-        "version": 1,
-        "updated_at": now
+        "_id": rulebook_text_id,
+        "rulebookId": ObjectId(rulebook_id),
+        "version": 0,
+        "chunks": chunks_list,
+        "updatedAt": now
     })
 
+    return str(rulebook_text_id)
 
-def update_rulebook_status(rulebook_id: str, status: str, version: int = None):
-    now = datetime.now(timezone.utc)
-    update_fields = {
-        "status": status,
-        "updated_at": now
-    }
-    if version is not None:
-        update_fields["version"] = version
+def is_token_valid(jti: str) -> bool:
+    """Checks the MongoDB database to see if the token has been invalidated"""
 
-    rulebook_collection.update_one(
-        {"_id": ObjectId(rulebook_id)},
-        {"$set": update_fields}
-    )
+    doc = token_blacklist_collection.find_one({"_id": jti})
 
-def update_rulebook_r2_key(rulebook_id: str, r2_key: str):
-    rulebook_collection.update_one(
-        {"_id": ObjectId(rulebook_id)},
-        {"$set": {"r2_pdf_key": r2_key}}
-    )
+    return doc is None
 
-def is_token_blacklisted(jti: str) -> bool:
-    """
-    Synchronously checks the shared MongoDB database to see if the 
-    Java backend has invalidated this token.
-    """
-    collection = db.get_collection("tokenBlackList") # Verify your exact collection name
-    
-    # Query for the document matching the jti
-    result = collection.find_one({"_id": jti})
-    
-    return result is not None
+def get_ingestion_job(job_id: str) -> dict | None:
+    """Returns a single INGESTION_JOB document with the matching id"""
+    doc = ingestion_job_collection.find_one({"_id": ObjectId(job_id)})
+
+    if doc:
+        doc["job_id"] = str(doc.pop("_id")) # Effectively replacing the _id field with the job_id field
+        doc["rulebookId"] = str(doc["rulebook_id"])
+
+    return doc
+
+def ping_database():
+    """Pings the MongoDB database to check if it is available"""
+    try:
+        client.admin.command('ping')
+    except ConnectionFailure as e:
+        raise e
