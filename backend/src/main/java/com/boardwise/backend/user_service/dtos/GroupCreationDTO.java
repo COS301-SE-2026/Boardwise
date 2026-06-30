@@ -9,9 +9,15 @@ import jakarta.validation.constraints.Size;
 public record GroupCreationDTO(
     @NotNull
     @NotBlank
-    @Size(min = 3, message = "Group name must be at least 3 characters long, not composed of whitespaces")
+    @Size(
+        min = 3, 
+        message = "Group name must be at least 3 characters long, not composed of whitespaces"
+    )
     String name,
     String description,
+    @NotNull
+    @NotBlank
+    String category,
     @DefaultValue("Public")
     String visisbility
 ) {}

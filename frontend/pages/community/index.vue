@@ -46,8 +46,11 @@
   </PageContainer>
 </template>
 
-<script setup>
-import { ref, computed } from 'vue'
+<script setup lang="ts">
+definePageMeta({
+  middleware: 'auth'
+})
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'

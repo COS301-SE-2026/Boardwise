@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import com.boardwise.backend.user_service.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
 import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileResponseDTO;
@@ -29,16 +29,19 @@ import com.boardwise.backend.user_service.services.ProfileService;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api/users/")
+@RequestMapping("/api/users")
 public class ProfileController {
 
-    @Autowired
-    private ProfileService service;
+    private final ProfileService service;
+
+    ProfileController(ProfileService service) {
+        this.service = service;
+    }
 
     @GetMapping("/{username}")
     public ResponseEntity<?> getProfile(@PathVariable String username){
         try{
-            ProfileResponseDTO res = service.getProfile(username);
+            ProfileResponseDTO res = service.getProfile(username, null);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(NoSuchElementException e){
@@ -78,12 +81,9 @@ public class ProfileController {
     public ResponseEntity<?> deleteProfile(HttpServletRequest req){
         String token = extractToken(req);
         Map<String, Object> res = new HashMap<>();
-        if(service.deleteUser(token)){ 
-            res.put("message", "Account deleted successfully.");
-            return new ResponseEntity<>(res, HttpStatus.OK);
-        }
-        res.put("message", "Failed to delete account. Something went wrong on our side.");
-        return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+        service.deleteUser(token);
+        res.put("message", "Account deleted successfully.");
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     @PatchMapping("/")
@@ -143,7 +143,62 @@ public class ProfileController {
             return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    
+ 
+    // add game (when the game comes from our list)
+    @PostMapping("/gameInventory/{gameId}")
+    public ResponseEntity<?> addGameToInventory(
+        @PathVariable String gameId,
+        HttpServletRequest req
+    ){
+        String token = extractToken(req);
+        Map<String, Object> res;
+        try{
+            res = service.addGameToInventory(token, gameId);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        } catch(IllegalArgumentException e){
+            res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // add game (when game is not in our database, other is selected)
+    @PostMapping("/gameInventory")
+    public ResponseEntity<?> addGameToInventory(
+        @RequestPart("gameInfo") OtherGameDTO gameInfo,
+        @RequestPart("gameImage") MultipartFile gameImage,
+        HttpServletRequest req
+    ){
+        String token = extractToken(req);
+        Map<String, Object> res;
+        try{
+            res = service.addGameToInventory(token, gameInfo, gameImage);
+            return new ResponseEntity<>(res, HttpStatus.CREATED);
+        } catch(IOException e){
+            res = new HashMap<>();
+            res.put("message", "Something went wrong while adding game to inventory.");
+            return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // remove game
+    @DeleteMapping("/gameInventory/{gameId}")
+    public ResponseEntity<?> removeGameFromInventory(
+        @PathVariable String gameId,
+        HttpServletRequest req
+    ){
+        String token = extractToken(req);
+        Map<String, Object> res;
+        try{
+            res = service.removeGameFromInventory(token, gameId);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+            
+        } catch(IllegalArgumentException e){
+            res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+    }
 
     public static String extractToken(HttpServletRequest req){
         String header = req.getHeader("Authorization");

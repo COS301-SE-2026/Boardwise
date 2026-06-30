@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,11 +30,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 
 @RestController
-@RequestMapping("/api/social/")
+@RequestMapping("/api/social")
 public class SocialController {
 
-    @Autowired
-    private SocialService service;
+    private final SocialService service;
+
+    SocialController(SocialService service) {
+        this.service = service;
+    }
 
     @PostMapping("/groups")
     public ResponseEntity<?> createGroup(
@@ -55,6 +57,7 @@ public class SocialController {
         }
     }
 
+    // TODO: enhance this endpoint with query parameters. search
     @GetMapping("/groups")
     public ResponseEntity<?> getAllGroups(
         HttpServletRequest req

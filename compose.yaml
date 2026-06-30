@@ -35,6 +35,9 @@ services:
       - R2_BUCKET_LISTINGS=${R2_BUCKET_LISTINGS}
       - R2_DEV_URL=${R2_DEV_URL}
       - R2_PROD_URL=${R2_PROD_URL}
+      - BBG_TOKEN={BGG_TOKEN}
+      - BGG_URL={BGG_URL}
+      - GOOGLE_MAP_API_KEY=${GOOGLE_MAP_API_KEY}
     ports:
       - 8080:8080
     depends_on:
@@ -47,30 +50,28 @@ services:
       retries: 3
       start_period: 20s
 
-  ai-gateway:
-    build: ./ai/
-    restart: on-failure
-    environment:
-      - DB_URL=${DB_URL}
-      - DB_NAME=${DB_NAME}
-      - JWT_SECRET=${JWT_SECRET}
-      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
-      - R2_BUCKET_RULEBOOKS=${R2_BUCKET_RULEBOOKS}
-      - R2_ACCESS_KEY=${R2_ACCESS_KEY}
-      - R2_SECRET_KEY=${R2_SECRET_KEY}
-      - R2_BUCKET_LISTINGS=${R2_BUCKET_LISTINGS}
-      - R2_LISTINGS_ENDPOINT=${R2_LISTINGS_ENDPOINT}
-    ports:
-      - 8000:8000
-    depends_on:
-      mongodb:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 20s
+  # ai-gateway:
+  #   build: ./ai/
+  #   restart: on-failure
+  #   environment:
+  #     - DB_URL=${DB_URL}
+  #     - DB_NAME=${DB_NAME}
+  #     - JWT_SECRET=${JWT_SECRET}
+  #     - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+  #     - R2_BUCKET_RULEBOOKS=${R2_BUCKET_RULEBOOKS}
+  #     - R2_ACCESS_KEY=${R2_ACCESS_KEY}
+  #     - R2_SECRET_KEY=${R2_SECRET_KEY}
+  #   ports:
+  #     - 8000:8000
+  #   depends_on:
+  #     mongodb:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 20s
 
 
 volumes:

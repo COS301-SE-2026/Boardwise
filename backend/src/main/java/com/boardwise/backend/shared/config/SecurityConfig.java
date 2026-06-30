@@ -1,9 +1,9 @@
 package com.boardwise.backend.shared.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -15,10 +15,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 import com.boardwise.backend.shared.security.JwtFilter;
 import com.boardwise.backend.user_service.services.MyUserDetailsService;
-
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -31,24 +29,28 @@ import java.util.List;
 @Profile("!test")
 public class SecurityConfig {
 
-    @Autowired
-    private MyUserDetailsService userDetailsService; 
+    private final MyUserDetailsService userDetailsService; 
 
-    @Autowired
-    private JwtFilter jwtFilter;
+    private final JwtFilter jwtFilter;
+
+    SecurityConfig(MyUserDetailsService userDetailsService, JwtFilter jwtFilter) {
+        this.userDetailsService = userDetailsService;
+        this.jwtFilter = jwtFilter;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http){
         return http
                 .cors(Customizer.withDefaults()) // Enables CORS integration
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(request -> 
-                    request.requestMatchers(
+                .authorizeHttpRequests(request ->
+                request 
+                    .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
+                    .requestMatchers(
                         "/api/auth/hello",
                         "/api/auth/register", 
                         "/api/auth/login",
-                        "/api/marketplace/listings",
-                        "/api/marketplace/listings/{listingId}",
+                        "/api/boardgames/",
                         "/api/vault/rulebooks",
                         "/api/vault/rulebooks/{id}",
                         "/api/vault/rulebooks/{id}/text"
@@ -84,13 +86,14 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Specify frontend origin
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000","http://127.0.0.1:3000"));
 
         // Allow OPTIONS for preflight requests
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
 
         // Allow headers including bearer token
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept","Access-Control-Request-Headers", "Access-Control-Request-Method"));
+        configuration.setExposedHeaders(List.of("Authorization"));
 
         // To use cookies or auth headers across domains
         configuration.setAllowCredentials(true);

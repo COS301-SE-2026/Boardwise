@@ -54,8 +54,8 @@ const selectedGenre  = ref('All')
 const selectedConditions = ref([])
 
 const filters = reactive({
-  rent:     false,
-  sale:     false,
+  rent: false,
+  sale: false,
   minPrice: '',
   maxPrice: '',
 })
@@ -64,20 +64,22 @@ watch([selectedGenre, selectedConditions, filters], () => {
   emit('filter', {
     genre:   selectedGenre.value,
     conditions: selectedConditions.value,
-    rent:       filters.rent,
-    sale:       filters.sale,
-    minPrice:   filters.minPrice,
-    maxPrice:   filters.maxPrice,
+    rent: filters.rent,
+    sale: filters.sale,
+    minPrice: filters.minPrice === '' ? null : Number(filters.minPrice),
+    maxPrice: filters.maxPrice === '' ? null : Number(filters.maxPrice),
   })
 }, { deep: true })
 
 const resetFilters = () => {
   selectedGenre.value   = 'All'
   selectedConditions.value = []
-  filters.rent     = false
-  filters.sale     = false
+  filters.rent= false
+  filters.sale = false
   filters.minPrice = ''
   filters.maxPrice = ''
 }
+
+
 </script>
 

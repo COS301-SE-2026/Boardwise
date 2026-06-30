@@ -1,6 +1,5 @@
 package com.boardwise.backend.user_service.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,11 +20,14 @@ import jakarta.validation.Valid;
 
 
 @RestController
-@RequestMapping("/api/auth/")
+@RequestMapping("/api/auth")
 public class Authcontrollers {
 
-    @Autowired
-    private AuthService service;
+    private final AuthService service;
+
+    Authcontrollers(AuthService service) {
+        this.service = service;
+    }
 
     @GetMapping("/hello")
     public ResponseEntity<String> hello(){
