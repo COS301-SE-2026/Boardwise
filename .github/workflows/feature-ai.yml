@@ -18,7 +18,7 @@ jobs:
           MONGODB_URL: "mongodb://localhost:27017"
           MONGODB_DATABASE: "vault_test"
           MAX_FILE_SIZE_MB: "50"
-          R2_ACCOUNT_ID: "dummy_account"
+          R2_ACCOUNT_ID: "dummy-account"
           R2_ACCESS_KEY_ID: "dummy_key"
           R2_SECRET_ACCESS_KEY: "dummy_secret"
           R2_BUCKET_RULEBOOKS: "dummy_bucket"
