@@ -6,7 +6,8 @@ from datetime import datetime, timezone
 from app.config import settings
 
 client = MongoClient(settings.MONGODB_URL)
-db = client[settings.MONGODB_DATABASE]
+db_name = settings.MONGODB_DATABASE or "ci_fallback_db"
+db = client[db_name]
 
 rulebook_collection = db["RULEBOOK"]
 rulebook_text_collection = db["RULEBOOK_TEXT"]
