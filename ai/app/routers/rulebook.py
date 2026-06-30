@@ -26,6 +26,7 @@ async def upload_rulebook(
     edition: Optional[str] = Form(None),
     language: str = Form(...),
     file: UploadFile = File(...),
+    cover_file: UploadFile | str | None = File(None),
     payload: dict = Depends(verify_jwt)
 ):
     """
@@ -88,13 +89,31 @@ async def upload_rulebook(
             detail="An internal server error occured while initialising the upload."
         )
 
+    custom_cover_bytes = None
+    custom_cover_mime = None
+
+    if isinstance(cover_file, UploadFile) and cover_file.filename:
+        allowed_image_types = ["image/jpeg", "image/png", "image/webp"]
+        if cover_file.content_type not in allowed_image_types:
+            raise HTTPException(
+                status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                detail=f"Cover myst be an image({', '.join(allowed_image_types)})"
+            )
+        custom_cover_bytes = await cover_file.read()
+        custom_cover_mime = cover_file.content_type
+
+        if len(custom_cover_bytes) == 0:
+            custom_cover_bytes = None
+
     # Send bytes to background task
     background_tasks.add_task(
         run_ingestion_pipeline,
         file_bytes=file_bytes,
         filename=file.filename,
         rulebook_id=rulebook_id,
-        job_id=job_id
+        job_id=job_id,
+        custom_cover_bytes=custom_cover_bytes,
+        custom_cover_mime=custom_cover_mime
     )
 
     logger.info(f"Accepted upload for '{title}'. Rulebook ID: {rulebook_id}, Job ID: {job_id}")
