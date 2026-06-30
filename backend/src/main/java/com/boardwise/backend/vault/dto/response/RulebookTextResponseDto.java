@@ -1,6 +1,9 @@
 package com.boardwise.backend.vault.dto.response;
 
 import java.time.Instant;
+import java.util.List;
+
+import com.boardwise.backend.vault.model.Chunk;
 
 import lombok.Builder;
 import lombok.Data;
@@ -9,7 +12,7 @@ import lombok.Data;
 @Builder
 public class RulebookTextResponseDto {
     private String rulebookId;
-    private String content;
+    private List<Chunk> chunks;
     private int version;
     private String lockHeldBy;
     private Instant updatedAt;
