@@ -2,7 +2,7 @@ export const rulebooks = [
   {
     id: 1,
     title: 'Catan',
-    category: 'Strategy',
+    genre: 'Strategy',
     image: '/images/catan.jpg',
     description: 'Trade resources and build settlements on the island of Catan. Collect and trade resources like wood, brick, wheat, ore and sheep to build roads, settlements and cities.',
     players: '3-4',
@@ -35,7 +35,7 @@ export const rulebooks = [
   {
     id: 2,
     title: 'Wingspan',
-    category: 'Engine Builder',
+    genre: 'Engine Builder',
     image: '/images/wingspan.jpg',
     description: 'Attract birds to your wildlife preserve in this engine-building game. Each bird extends a chain of actions in one of three habitats.',
     players: '1-5',
@@ -68,7 +68,7 @@ export const rulebooks = [
   {
     id: 3,
     title: 'Ticket To Ride',
-    category: 'Family',
+    genre: 'Family',
     image: '/images/ticket.jpg',
     description: 'Build railway routes across countries to connect cities and complete destination tickets.',
     players: '2-5',

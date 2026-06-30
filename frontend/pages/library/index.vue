@@ -4,66 +4,126 @@
 
     <div class="d-flex flex-column ga-5 mb-6">
       <SectionTitle title="Library" subtitle="Browse community rulebooks" />
-      <RulebookSearch @upload="showUpload = true" />
-      <BaseTabs
-        :tabs="tabs"
-        :active-tab="selectedTab"
-        @change="selectedTab = $event"
+      <RulebookSearch
+        @upload="showUpload = true"
+        @search="handleSearch"
       />
     </div>
 
-    <RecommendedBooks :rulebooks="recommended" />
+  <RulebookCarousel :rulebooks="rulebooks" @select="openRulebook" />
 
-    <SectionTitle title="All Rulebooks" class="mt-8" />
+  <RecommendedBooks :rulebooks="recommended" @select ="openRulebook"/>
 
-    <RulebookGrid :rulebooks="filteredRulebooks" @select="openRulebook" />
+  <SectionTitle title="All Rulebooks" class="mt-8" />
 
-    <BaseModal v-model="showModal">
-      <RulebookDetails v-if="selectedRulebook" :rulebook="selectedRulebook" />
-    </BaseModal>
+    <div class="d-flex ga-6 align-start">
+    <RulebookFilterSidebar :rulebooks="rulebooks" @filter="handleFilter" />
+    <RulebookGrid :rulebooks="filteredRulebooks" @select="openRulebook" class="flex-1-1" />
+  </div>
 
-    <UploadRulebookModal v-model="showUpload" />
+  <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
+    <div v-if="isLoading" class="d-flex justify-center align-center h-100">
+      <v-progress-circular indeterminate color="primary"/>
+    </div>
+
+    <RulebookDetail
+      v-if="selectedRulebook"
+      :rulebook="selectedRulebook"
+      :rulebooks="rulebooks"
+      @select="openRulebook"
+      @close="showDetail = false"
+    />
+
+  </v-navigation-drawer>
+
+    <UploadRulebookModal
+      v-model="showUpload"
+      @add="handleUploadRulebook"
+    />
 
   </PageContainer>
 </template>
 
 <script setup>
-import { rulebooks } from '~/services/mockData/rulebooks.js'
+import { ref, computed, onMounted } from 'vue'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
-import BaseTabs from '~/components/ui/BaseTabs.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
-import BaseModal from '~/components/ui/BaseModal.vue'
 
+import RulebookFilterSidebar from '~/components/features/library/RulebookFilterSidebar.vue'
 import RulebookGrid from '~/components/features/library/RulebookGrid.vue'
 import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue'
-import RulebookDetails from '~/components/features/library/RulebookDetail.vue'
 import RulebookSearch from '~/components/features/library/RulebookSearch.vue'
 import UploadRulebookModal from '~/components/features/library/UploadRulebookModal.vue'
-import { useRouter } from 'vue-router'
+import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
+import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue'
 
-const router = useRouter()
-onMounted(() => {
+import { useLibrary } from '~/composables/useLibrary'
 
-})
+const {rulebooks, isLoading, getAllRulebooks, getRulebookById, currentRulebook } = useLibrary()
 
-const tabs = ['All', 'Strategy', 'Family', 'Party']
-const selectedTab = ref('All')
-const showModal = ref(false)
+const searchQuery = ref('')
+const activeFilters = ref({})
+const showDetail = ref(false)
 const showUpload = ref(false)
 const selectedRulebook = ref(null)
 
-const recommended = rulebooks.slice(0, 5)
+onMounted(() => { // Does stuff when component loads
+  getAllRulebooks()
+})
 
-const filteredRulebooks = computed(() =>
-  selectedTab.value === 'All'
-    ? rulebooks
-    : rulebooks.filter(r => r.category === selectedTab.value)
-)
+const recommended = computed(() => {
+  return rulebooks.value.slice(0, 5);
+})
 
-const openRulebook = (rulebook) => {
-  selectedRulebook.value = rulebook
-  showModal.value = true
+const filteredRulebooks = computed(() =>{
+  let result = rulebooks.value
+
+  if(searchQuery.value){
+    const lCaseQuery = searchQuery.value.toLowerCase()
+    result = result.filter(r =>
+      r.title?.toLowerCase().includes(lCaseQuery) ||
+      (r.description && r.description.toLowerCase().includes(lCaseQuery))
+    )
+  }
+
+  if (activeFilters.value.genre && activeFilters.value.genre !== 'All') {
+    result = result.filter(r => r.genres && r.genres.includes(activeFilters.value.genre))
+  }
+
+  if (activeFilters.value.languages?.length) {
+    result = result.filter(r => activeFilters.value.languages.includes(r.language))
+  }
+
+  if (activeFilters.value.minPlayers) {
+    result = result.filter(r => r.minPlayers === Number(activeFilters.value.minPlayers))
+  }
+
+  if (activeFilters.value.maxPlayers) {
+    result = result.filter(r => r.maxPlayers === Number(activeFilters.value.maxPlayers))
+  }
+
+  return result
+})
+
+
+const openRulebook = async (rulebook) => {
+  selectedRulebook.value = null;
+  showDetail.value = true;
+  await getRulebookById(rulebook.id);
+  selectedRulebook.value = currentRulebook.value;
+}
+
+const handleSearch = (query) => {
+  searchQuery.value = query
+}
+
+const handleFilter = (filters) => {
+  activeFilters.value = filters
+}
+
+const handleUploadRulebook = (newRulebook) => {
+  console.log("New rulebook: ", newRulebook)
 }
 </script>

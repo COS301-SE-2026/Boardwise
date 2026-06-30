@@ -24,7 +24,9 @@
             </span>
           </v-avatar>
         </template>
-        <v-list-item-title class="text-body-2">{{ page.title }}</v-list-item-title>
+        <v-list-item-title class="text-body-2">
+          Section {{ index + 1 }}
+        </v-list-item-title>
       </v-list-item>
     </v-list>
 

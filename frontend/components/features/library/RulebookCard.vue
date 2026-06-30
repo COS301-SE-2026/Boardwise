@@ -1,5 +1,6 @@
 <template> 
-    <BaseCard class="card" @click="openBook"> 
+    <BaseCard class="cursor-pointer overflow-hidden pa-0" 
+    @click="$emit('click', rulebook)"> 
 
         <BaseImage :src="rulebook.image" :alt="rulebook.title" height="200px" fit="cover" />
 
@@ -9,7 +10,7 @@
           </p>
 
           <p class="text-caption text-medium-emphasis mb-0">
-            {{ rulebook.category }}
+            {{ rulebook.genre }}
           </p>
         </div>
         
@@ -24,21 +25,5 @@ const props = defineProps({
     rulebook: Object
 })
 
-const openBook = () => {
-    navigateTo('/library/${props.rulebook.id}')
-}
+defineEmits(['click'])
 </script>
-
-<style scoped>
-.card {
-  cursor: pointer;
-  overflow: hidden;
-  padding: 0;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
-}
-</style>

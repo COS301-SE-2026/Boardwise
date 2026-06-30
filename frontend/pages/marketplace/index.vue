@@ -7,13 +7,13 @@
 
     <MarketplaceTabs v-model="activeTab" />
 
-    <div class="marketplace-layout">
+    <div class="d-flex ga-6 mt-6 align-start">
 
       <FilterSidebar @filter="handleFilter"/>
       <!--TODO: Uncomment for loading -->
       <!-- <div v-if = "loading">Loading listings...</div> -->
       <!-- <ListingGrid  v-else :listings="listings" /> -->
-       <ListingGrid :listings="listings" />
+       <ListingGrid :listings="listings" class="flex-1-1" />
     </div>
     
     <div ref="sentinel" style="height:1px" />

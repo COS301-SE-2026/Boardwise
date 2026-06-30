@@ -11,6 +11,7 @@
             :key="rulebook.id"
             :rulebook="rulebook"
             style="min-width: 180px; max-width: 180px;"
+            @click="$emit('select', $event)"
         />
         </div>
     </div>
@@ -26,4 +27,6 @@ defineProps({
         default: () => []
     }
 })
+
+defineEmits(['select'])
 </script>

@@ -14,7 +14,7 @@ Get-Content ".env" | ForEach-Object {
 Write-Host "Starting Boardwise AI Gateway..." -ForegroundColor Cyan
 Set-Location -Path "ai"
 
-python -m uvicorn main:app --reload --port 8000
+python -m uvicorn app.main:app --reload --port 8000
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "AI Gateway failed to start." -ForegroundColor Red

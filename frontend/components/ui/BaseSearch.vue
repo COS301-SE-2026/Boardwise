@@ -1,16 +1,24 @@
 <template>
   <v-text-field
-    :model-value="search"
-    placeholder="placeholder"
+    v-bind="$attrs"
+    :model-value="modelValue"
+    :placeholder="placeholder"
     variant="outlined"
-    @update:model-value="search = $event"
+    density="compact"
+    hide-details
+    rounded="lg"
+    @update:model-value="$emit('update:modelValue', $event)"
   />
 </template>
 
 <script setup>
 defineProps({
-  placeholder: String
+  modelValue: String, 
+  placeholder: {
+    type: String,
+    default: 'Search'
+  }
 })
 
-const search = defineModel()
+defineEmits(['update:modelValue'])
 </script>

@@ -12,7 +12,7 @@
 
     <template #append>
       <span class="text-caption text-medium-emphasis mr-4">
-        {{ currentPage + 1 }} / {{ rulebook?.pages?.length }}
+        {{ currentPage + 1 }} / {{ totalPages }}
       </span>
     </template>
 
@@ -22,6 +22,7 @@
 <script setup>
 defineProps({
   rulebook: Object,
-  currentPage: Number
+  currentPage: Number,
+  totalPages: Number
 })
 </script>
