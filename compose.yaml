@@ -1,11 +1,11 @@
 services:
   mongodb:
     image: mongodb/mongodb-atlas-local
-    hostname: mongodb # <-- 1. ADD THIS: Fixes the replica set breaking on restart.
+    hostname: mongodb
     environment:
       - MONGODB_INITDB_ROOT_USERNAME=${DB_USER}
       - MONGODB_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
-      - GLIBC_TUNABLES=glibc.pthread.rseq=0 # <-- 2. ADD THIS: Fixes the performance warning.
+      - GLIBC_TUNABLES=glibc.pthread.rseq=0
     ports:
       - 27017:27017
     volumes:
@@ -49,28 +49,28 @@ services:
       retries: 3
       start_period: 20s
 
-  ai-gateway:
-    build: ./ai/
-    restart: on-failure
-    environment:
-      - DB_URL=${DB_URL}
-      - DB_NAME=${DB_NAME}
-      - JWT_SECRET=${JWT_SECRET}
-      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
-      - R2_BUCKET_RULEBOOKS=${R2_BUCKET_RULEBOOKS}
-      - R2_ACCESS_KEY=${R2_ACCESS_KEY}
-      - R2_SECRET_KEY=${R2_SECRET_KEY}
-    ports:
-      - 8000:8000
-    depends_on:
-      mongodb:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 20s
+  # ai-gateway:
+  #   build: ./ai/
+  #   restart: on-failure
+  #   environment:
+  #     - DB_URL=${DB_URL}
+  #     - DB_NAME=${DB_NAME}
+  #     - JWT_SECRET=${JWT_SECRET}
+  #     - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+  #     - R2_BUCKET_RULEBOOKS=${R2_BUCKET_RULEBOOKS}
+  #     - R2_ACCESS_KEY=${R2_ACCESS_KEY}
+  #     - R2_SECRET_KEY=${R2_SECRET_KEY}
+  #   ports:
+  #     - 8000:8000
+  #   depends_on:
+  #     mongodb:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 20s
 
 
 volumes:

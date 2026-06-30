@@ -16,13 +16,14 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import com.boardwise.backend.vault.exception.LockConflictException;
 import com.boardwise.backend.vault.exception.LockNotHeldException;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
+import com.boardwise.backend.vault.exception.BoardgameNotFoundException;
 import com.boardwise.backend.vault.exception.VersionMismatchException;
 import com.mongodb.DuplicateKeyException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(RulebookNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleNotFound(RulebookNotFoundException ex){
+    @ExceptionHandler({RulebookNotFoundException.class, BoardgameNotFoundException.class})
+    public ResponseEntity<Map<String, String>> handleNotFound(RuntimeException ex){
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
     }
 

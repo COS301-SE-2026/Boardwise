@@ -49,6 +49,7 @@ public class SecurityConfig {
                         "/api/auth/login",
                         "/api/boardgames/",
                         "/api/vault/rulebooks",
+                        "/api/vault/rulebooks/{id}",
                         "/api/vault/rulebooks/{id}/text"
                     )
                     .permitAll()
