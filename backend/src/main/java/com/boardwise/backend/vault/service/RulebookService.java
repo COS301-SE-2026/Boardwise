@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +41,9 @@ public class RulebookService {
     private final WriteLockRepository writeLockRepository;
     private final EditEventRepository editEventRepository;
     private final BoardGameRepository boardgameRepository;
+
+    @Value("${r2.rulebooks.public-dev-url}")
+    private String r2PublicDomain;
 
     // AC-VLT-02: List / Search Rulebooks
     public Page<RulebookSummaryResponseDto> searchRulebooks(String search, int page, int limit){
@@ -129,22 +133,41 @@ public class RulebookService {
             .orElseThrow(() -> new RulebookNotFoundException(id));
     }
 
+    private String resolveCoverUrl(String coverImageUrl, String r2CoverKey){
+        if(coverImageUrl != null && !coverImageUrl.trim().isEmpty()){
+            return coverImageUrl;
+        }
+
+        // Fallback to R2 default image
+        String cleanKey = (r2CoverKey != null && r2CoverKey.startsWith("/")) ? r2CoverKey.substring(1) : r2CoverKey; // Strips away leading slashes to prevent creating an invalid url
+
+        return r2PublicDomain + "/" + cleanKey;
+    }
+
     private RulebookSummaryResponseDto toRulebookSummaryResponse(Rulebook rulebook){
         List<String> genres = List.of();
+        String coverUrl = "";
+        Integer minPlayers = -1;
+        Integer maxPlayers = -1;
 
         if(rulebook.getGameId() != null){
-            // fetch genres from boardgame document
             Boardgame game = findBoardgameOrThrow(rulebook.getGameId());
             genres = game.getGenres();
+            coverUrl = resolveCoverUrl(rulebook.getCoverUrl(), rulebook.getR2CoverKey());
+            minPlayers = game.getMinPlayers();
+            maxPlayers = game.getMaxPlayers();
         }
 
         return RulebookSummaryResponseDto.builder()
                 .id(rulebook.getId() != null ? rulebook.getId().toHexString() : null)
+                .coverUrl(coverUrl.isEmpty() ? resolveCoverUrl("", rulebook.getR2CoverKey()) : coverUrl)
                 .title(rulebook.getTitle())
                 .language(rulebook.getLanguage())
                 .edition(rulebook.getEdition())
                 .version(rulebook.getVersion())
                 .genres(genres)
+                .minPlayers(minPlayers)
+                .maxPlayers(maxPlayers)
                 .build();
     }
 
@@ -154,15 +177,21 @@ public class RulebookService {
             .orElse(null);
 
         List<String> genres = List.of();
+        String coverUrl = "";
+        Integer minPlayers = -1;
+        Integer maxPlayers = -1;
 
         if(rulebook.getGameId() != null){
-            // fetch genres from boardgame document
             Boardgame game = findBoardgameOrThrow(rulebook.getGameId());
             genres = game.getGenres();
+            coverUrl = resolveCoverUrl(rulebook.getCoverUrl(), rulebook.getR2CoverKey());
+            minPlayers = game.getMinPlayers();
+            maxPlayers = game.getMaxPlayers();
         }
 
         return RulebookResponseDto.builder()
                 .id(rulebook.getId().toHexString())
+                .coverUrl(coverUrl.isEmpty() ? resolveCoverUrl("", rulebook.getR2CoverKey()) : coverUrl)
                 .title(rulebook.getTitle())
                 .edition(rulebook.getEdition())
                 .genres(genres)
@@ -174,6 +203,8 @@ public class RulebookService {
                 .lockHeldBy(lock != null ? lock.getHeldByUserId().toHexString() : null)
                 .uploadedAt(rulebook.getUploadedAt())
                 .updatedAt(rulebook.getUpdatedAt())
+                .minPlayers(minPlayers)
+                .maxPlayers(maxPlayers)
                 .build();
     }
 
