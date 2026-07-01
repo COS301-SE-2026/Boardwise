@@ -39,7 +39,7 @@ def create_rulebook(
 
     rulebook_collection.insert_one({
         "_id": rulebook_id,
-        "coverImageUrl": boardgame["imageURL"] if boardgame["imageURL"] else "",
+        "coverUrl": boardgame["imageURL"] if boardgame["imageURL"] else "",
         "gameId": boardgame["_id"],
         "title": title,
         "edition": edition,
