@@ -44,14 +44,10 @@ def generate_pdf_key(rulebook_id: str, filename: str)->str:
     safe_filename = name.replace(" ", "_").lower()
     return f"rulebooks/{rulebook_id}/{safe_filename}.pdf"
 
-def generate_pdf_cover_key(rulebook_id: str)->str:
-    """Returns: rulebooks/{rulebook_id}/cover.png"""
-    return f"rulebooks/{rulebook_id}/cover.png"
-
 def ping_r2_storage():
     """Pings the S3 compatible object storage"""
     try:
         s3.head_bucket(Bucket=settings.R2_BUCKET_RULEBOOKS)
     except ClientError as e:
-        logger.error(f"R2 Connection failed: {e}")
+        logger.error("R2 Connection failed: %s", e)
         raise e
