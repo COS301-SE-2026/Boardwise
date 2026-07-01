@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.geo.Point;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
+import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -75,12 +76,25 @@ public class CommunityService {
         this.bucket = bucket;
     }
 
-    public Map<String, Object> getEvents() {
+    public Map<String, Object> getEvents(String name) {
         Map<String, Object> result = new HashMap<>();
-        Pageable page = PageRequest.of(0, 25);
-        List<Event> dbEvents = eventRepo.findAll(page).getContent();
-        
+        Pageable page;
+        List<Event> dbEvents;
         List<EventDTO> events = new ArrayList<>();
+        String message;
+        
+        if(name == null){
+            page = PageRequest.of(0, 25);
+            dbEvents = eventRepo.findAll(page).getContent();
+            message = "Events successfully retrieved.";            
+        }
+        else{
+            page = PageRequest.of(0, 10);
+            TextCriteria criteria = TextCriteria.forDefaultLanguage().matchingAny(name);
+            dbEvents = eventRepo.findAllBy(criteria, page);
+            message = "Queried event(s) successfully retrieved.";
+        }
+
         for(Event event : dbEvents){
             List<Boardgame> eventGames = gameRepo.findAllById(event.getGames());
             User host = userRepo.findById(event.getCreatorId()).get();
@@ -108,10 +122,8 @@ public class CommunityService {
 
             events.add(EventDTO.fromEntity(event, attendeeCount, hostInfo, games));
         }
-
-        result.put("message", "Events successfully retrieved");
-        result.put("events", events);
-
+        result.put("message", message);
+        result.put("result", events);
         return result;
     }
 

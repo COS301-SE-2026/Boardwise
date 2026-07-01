@@ -39,10 +39,11 @@ public class CommunityController {
         this.service = service;
     }
 
-    // TODO: make it versatile. Optional query parameters. /?name=queryName, filter params
     @GetMapping("/")
-    public ResponseEntity<?> getEvents(){
-        Map<String, Object> res = service.getEvents();
+    public ResponseEntity<?> getEvents(
+        @RequestParam(required = false) String name
+    ){
+        Map<String, Object> res = service.getEvents(name);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
