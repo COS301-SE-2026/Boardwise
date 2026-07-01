@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
-
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,8 +21,8 @@ import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.boardwise.backend.shared.security.JWTService;
+import com.boardwise.backend.shared.services.NotificationService;
 import com.boardwise.backend.user_service.dtos.DeRsvpDTO;
 import com.boardwise.backend.user_service.dtos.EventDTO;
 import com.boardwise.backend.user_service.dtos.EventHostInfo;
@@ -31,6 +30,8 @@ import com.boardwise.backend.user_service.dtos.EventInfoDTO;
 import com.boardwise.backend.user_service.dtos.EventInviteDTO;
 import com.boardwise.backend.user_service.dtos.EventUpdateDTO;
 import com.boardwise.backend.user_service.dtos.GameInventoryDTO;
+import com.boardwise.backend.user_service.dtos.InviteDTO;
+import com.boardwise.backend.user_service.dtos.InviteNotification;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.models.Event;
 import com.boardwise.backend.user_service.models.EventAttendee;
@@ -57,6 +58,7 @@ public class CommunityService {
     private final GeoApiContext geoApiContext;
     private final R2StorageService bucket;
     private final EventAttendeeRepository eaRepo;
+    private final NotificationService notifService;
 
     CommunityService(
         EventsRepository eventRepo, 
@@ -65,7 +67,8 @@ public class CommunityService {
         EventAttendeeRepository eaRepo,
         JWTService jwtService, 
         GeoApiContext geoApiContext,
-        R2StorageService bucket
+        R2StorageService bucket,
+        NotificationService notifService
     ){
         this.eventRepo = eventRepo;
         this.userRepo = userRepo;
@@ -74,6 +77,7 @@ public class CommunityService {
         this.jwtService = jwtService;
         this.geoApiContext = geoApiContext;
         this.bucket = bucket;
+        this.notifService = notifService;
     }
 
     public Map<String, Object> getEvents(String name) {
@@ -320,6 +324,7 @@ public class CommunityService {
         }
         
         if(eventChanged){
+            // TODO: notify attendees about the update
             event = eventRepo.save(event);
 
             EventAttendee forExample = new EventAttendee();
@@ -367,10 +372,17 @@ public class CommunityService {
             throw new NoSuchElementException("Event with ID: " + eventId + " does not exist.");
         else if(!event.get().getCreatorId().equals(userId))
             throw new IllegalAccessException("User with ID: " + userId + " is not the host of this event.");
+        
+        Map<String, String> eventInfo = new HashMap<>();
+        User host = userRepo.findById(event.get().getCreatorId()).get();
+        eventInfo.put("eventName", event.get().getName());
+        eventInfo.put("eventHost", host.getUsername());
+
+        // TODO: might need to add notifications here
 
         // delete recorded attendees
         eaRepo.deleteByEventId(eventId);
-        
+
         // delete actual event
         eventRepo.deleteById(eventId);
 
@@ -428,11 +440,14 @@ public class CommunityService {
         if(event == null)
             throw new NoSuchElementException("Event with ID: " + dto.eventId() + " does not exist.");
 
-        Optional<EventAttendee> deleted = eaRepo.deleteByUserIdAndEventId(user.getId(), event.getId());
+        Optional<EventAttendee> changed = eaRepo.findByUserIdAndEventId(user.getId(), event.getId());
 
-        if(deleted.isEmpty()){
+        if(changed.isEmpty()){
             throw new IllegalAccessException("User has not RSVP'd for this event.");
         }
+
+        changed.get().setStatus(RSVPStatus.NOT_ATTENDING);
+        eaRepo.save(changed.get());
 
         EventAttendee forExample = new EventAttendee();
         forExample.setEventId(dto.eventId());
@@ -463,7 +478,7 @@ public class CommunityService {
     }
 
     public Map<String, Object> inviteToEvent(String token, EventInviteDTO inviteInfo) throws NoSuchElementException{
-        // User inviter = getUserFromToken(token);
+        User inviter = getUserFromToken(token);
         Optional<User> invitee = userRepo.findByUsername(inviteInfo.invitee());
         Map<String, Object> result = new HashMap<>();
         
@@ -485,8 +500,20 @@ public class CommunityService {
         );
         eaRepo.save(newAttendee);
 
-        // TODO: send invite to the invitee (will require websockets)
+        String eventTitle = eventRepo.findById(inviteInfo.eventId())
+                                            .get().getName();
 
+        InviteNotification payload = new InviteNotification(
+            "NEW_INVITE",
+            inviter.getUsername() + " invited you to '" + eventTitle + "'"
+        );
+
+        notifService.sendInviteNotification(
+            invitee.get().getId(), 
+            payload
+        );
+
+        result.put("message", "Invite successfully sent.");
         return result;
     }
 

@@ -147,7 +147,7 @@ public class CommunityController {
         }
     }
 
-    @DeleteMapping("/")
+    @PatchMapping("/")
     public ResponseEntity<?> deRsvpFromEvent(
         @RequestBody DeRsvpDTO dto,
         HttpServletRequest req
@@ -207,4 +207,5 @@ public class CommunityController {
         }
     }
     
+    // TODO: get invites
 }
