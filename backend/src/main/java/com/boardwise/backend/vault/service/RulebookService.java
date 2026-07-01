@@ -1,5 +1,6 @@
 package com.boardwise.backend.vault.service;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,6 +20,7 @@ import com.boardwise.backend.vault.dto.response.RulebookSummaryResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookTextResponseDto;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.exception.BoardgameNotFoundException;
+import com.boardwise.backend.vault.exception.R2PresignException;
 import com.boardwise.backend.vault.model.EditEvent;
 import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.model.RulebookText;
@@ -29,6 +31,10 @@ import com.boardwise.backend.vault.repository.RulebookTextRepository;
 import com.boardwise.backend.vault.repository.WriteLockRepository;
 
 import lombok.RequiredArgsConstructor;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
@@ -44,6 +50,11 @@ public class RulebookService {
 
     @Value("${r2.rulebooks.public-dev-url}")
     private String r2PublicDomain;
+
+    @Value("${r2.bucket-rulebooks}")
+    private String rulebooksBucket;
+
+    private final S3Presigner s3Presigner;
 
     // AC-VLT-02: List / Search Rulebooks
     public Page<RulebookSummaryResponseDto> searchRulebooks(String search, int page, int limit){
@@ -65,6 +76,37 @@ public class RulebookService {
         return toRulebookResponse(rulebook);
     }
 
+    // AC-VLT-04: Download Raw PDF
+    public DownloadUrlResponseDto getDownloadUrl(ObjectId id) {
+        Rulebook rulebook = findRulebookOrThrow(id);
+
+        if (rulebook.getR2PdfKey() == null) {
+            throw new RulebookNotFoundException(
+                    "PDF not yet available for rulebook: " + id);
+        }
+
+        try{
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(rulebooksBucket)
+                .key(rulebook.getR2PdfKey())
+                .build();
+
+            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(5))
+                .getObjectRequest(getObjectRequest)
+                .build();
+
+            PresignedGetObjectRequest presigned = s3Presigner.presignGetObject(presignRequest);
+
+            return DownloadUrlResponseDto.builder()
+                    .downloadUrl(presigned.url().toString())
+                    .expiresAt(java.time.Instant.now().plusSeconds(300))
+                    .build();
+        }catch(Exception e){
+            throw new R2PresignException("Failed to generate download URL: " + e.getMessage());
+        }
+    }
+
     // AC-VLT-05: Get Rulebook Text State
     public RulebookTextResponseDto getRulebookText(ObjectId id){
         findRulebookOrThrow(id);
@@ -84,23 +126,6 @@ public class RulebookService {
             .lockHeldBy(lock != null ? lock.getHeldByUserId().toHexString() : null)
             .updatedAt(text.getUpdatedAt())
             .build();
-    }
-
-    // AC-VLT-04: Download Raw PDF - pre-signed URL generation placeholder
-    // R2 pre-signing will be wired in once R2Config is active
-    public DownloadUrlResponseDto getDownloadUrl(ObjectId id) {
-        Rulebook rulebook = findRulebookOrThrow(id);
-
-        if (rulebook.getR2PdfKey() == null) {
-            throw new RulebookNotFoundException(
-                    "PDF not yet available for rulebook: " + id);
-        }
-
-        // TODO: wire R2Presigner bean here in Phase 6
-        return DownloadUrlResponseDto.builder()
-                .downloadUrl("presigned-url-placeholder")
-                .expiresAt(java.time.Instant.now().plusSeconds(300))
-                .build();
     }
 
     // AC-VLT-09: Get Rulebook Edit History
