@@ -10,10 +10,8 @@
     <div class="d-flex ga-6 mt-6 align-start">
 
       <FilterSidebar @filter="handleFilter"/>
-      <!--TODO: Uncomment for loading -->
-      <!-- <div v-if = "loading">Loading listings...</div> -->
-      <!-- <ListingGrid  v-else :listings="listings" /> -->
-       <ListingGrid :listings="listings" class="flex-1-1" />
+      <div v-if = "loading">Loading listings...</div> 
+      <ListingGrid  v-else :listings="listings" />
     </div>
     
     <div ref="sentinel" style="height:1px" />
@@ -47,7 +45,7 @@ const router = useRouter();
 const activeTab = ref('Community')
 const showCreateListing = ref(false)
 
-const {listings, loading, fetchListings, addListing, loadMore} = useMarketplace();
+const {listings, loading, fetchListings, addListing, loadMore, hasMore} = useMarketplace();
 
 onMounted(() => {
   if(!localStorage.getItem('access_token')){
@@ -63,7 +61,7 @@ const handleAdd = async (data, image) => {
 
 const sentinel = ref(null)
 useIntersectionObserver(sentinel,([entry])=>{
-  if(entry.isIntersecting) loadMore()
+  if(entry.isIntersecting&& hasMore.value && !loading.value) loadMore()
 })
 
 const searchQ = ref('');
@@ -85,8 +83,7 @@ watch(searchQ,(q)=>{
 
   const handleFilter = (filters)=>{
 
-  const conditions = filters.conditions.length ? filters.conditions.map(c => c.toLowerCase()) : null
-  console.log('conditions:', conditions)
+  const conditions = filters.conditions.length > 0 ? filters.conditions.map(c => c.toLowerCase()) : null
 
   const  lt= getListingType(filters.rent,filters.sale);
 
@@ -97,6 +94,9 @@ watch(searchQ,(q)=>{
     minPrice: filters.minPrice,
     maxPrice: filters.maxPrice,
   }
+
+  console.log('active filters',activeFilterState.value);
+
   fetchListings({ ...activeFilterState.value, search: searchQ.value || null }, true);
 }
 
