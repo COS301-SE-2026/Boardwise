@@ -35,7 +35,7 @@ def upload_to_r2(file_bytes: bytes, r2_key: str, content_type: str) -> bool:
             logger.info(f"R2 Upload Success: {response_object}")
         return True
     except Exception as e:
-        logger.error(f"Failed to upload to R2: {str(e)}", exc_info=True)
+        logger.exception("Failed to upload to R2")
         return False
 
 def generate_pdf_key(rulebook_id: str, filename: str)->str:
@@ -49,5 +49,5 @@ def ping_r2_storage():
     try:
         s3.head_bucket(Bucket=settings.R2_BUCKET_RULEBOOKS)
     except ClientError as e:
-        logger.error("R2 Connection failed: %s", e)
+        logger.exception("R2 Connection failed")
         raise e

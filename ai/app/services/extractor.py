@@ -39,5 +39,5 @@ def extract_text(file_bytes: bytes) -> tuple[bool, str]:
 
             return (True, final_joined_text)
     except Exception as e:
-        logger.error("Extraction failed: %s", str(e) , exc_info=True)
+        logger.exception("Extraction failed")
         return (False, "")

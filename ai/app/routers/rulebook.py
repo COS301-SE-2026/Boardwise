@@ -81,7 +81,7 @@ async def upload_rulebook(
         ) from e
 
     except Exception as e:
-        logger.error("Failed to initialise upload: %s", str(e), exc_info=True)
+        logger.exception("Failed to initialise upload.")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An internal server error occured while initialising the upload."
@@ -96,7 +96,7 @@ async def upload_rulebook(
         job_id=job_id
     )
 
-    logger.info("Accepted upload for '%s'. Rulebook ID: %s, Job ID: %s", title, rulebook_id, job_id)
+    logger.info("Rulebook upload accepted.")
 
     return UploadResponse(
         message="Rulebook upload accepted. Ingestion has started.",

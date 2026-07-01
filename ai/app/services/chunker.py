@@ -37,6 +37,6 @@ def generate_chunks(full_text: str) -> tuple[bool, list[dict], str]:
         logger.info(f"Successfully generated {len(chunks)} chunks.")
         return(True, chunks, "")
     except Exception as e:
-        logger.error(f"Chunking failed: {str(e)}", exc_info=True)
+        logger.exception("Chunking failed")
         return (False, [], "Internal error occured during text chunking")
     

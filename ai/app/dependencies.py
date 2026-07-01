@@ -53,7 +53,7 @@ def verify_jwt(
             detail="Token has expired."
         ) from e
     except jwt.InvalidTokenError as e:
-        logger.error("Invalid token error: %s", str(e), exc_info=True)
+        logger.exception("Invalid token error")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token."

@@ -70,8 +70,8 @@ def run_ingestion_pipeline(
         mongo_service.update_ingestion_job(job_id, "Store", "Completed")
 
         logger.info("Pipeline completed successfully for rulebook %s", rulebook_id)
-    except Exception as e:
-        logger.error("Critical pipeline crash for rulebook %s: %s", rulebook_id, str(e), exc_info=True)
+    except Exception:
+        logger.exception("Critical pipeline crash for rulebook %s", rulebook_id)
 
         mongo_service.update_rulebook_status(rulebook_id=rulebook_id, status="Failed")
         mongo_service.update_ingestion_job(

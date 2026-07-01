@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
         r2_service.ping_r2_storage()
         logger.info("Connection to R2 bucket verified")
     except Exception as e:
-        logger.error(f"FATAL BOOT ERROR: Infrastructure check failed -> {e}")
+        logger.exception("FATAL BOOT ERROR: Infrastructure check failed")
         raise e
 
     yield
