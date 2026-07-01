@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -87,10 +88,6 @@ public class CommunityController {
             res = new HashMap<>();
             res.put("message", e.getMessage());
             return new ResponseEntity<>(res, HttpStatus.FORBIDDEN);
-        } catch(IllegalArgumentException e){
-            res = new HashMap<>();
-            res.put("message", e.getMessage());
-            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }catch(NoSuchElementException e){
             res = new HashMap<>();
             res.put("message", e.getMessage());
@@ -190,9 +187,23 @@ public class CommunityController {
         }
     }
     
-    @PatchMapping("/invite")
-    public ResponseEntity<?> respondToInvite(){
-        return new ResponseEntity<>(HttpStatus.OK);
+    @PatchMapping("/invite/{eventId}")
+    public ResponseEntity<?> respondToInvite(
+        @RequestParam String status,
+        String eventId,
+        HttpServletRequest req
+    ){
+        String token = ProfileController.extractToken(req);
+        Map<String, Object> res;
+        try{
+            res = service.respondToInvite(token, eventId, status);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(NoSuchElementException e){
+            res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
     }
     
 }

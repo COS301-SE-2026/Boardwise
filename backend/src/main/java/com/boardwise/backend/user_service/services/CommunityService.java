@@ -1,6 +1,7 @@
 package com.boardwise.backend.user_service.services;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -192,10 +193,14 @@ public class CommunityService {
 
     public Map<String, Object> updateEvent(String token, String eventId, EventUpdateDTO newInfo, MultipartFile newImage) throws IllegalAccessException, IllegalArgumentException, NoSuchElementException, IOException, ApiException, InterruptedException {
         User user = getUserFromToken(token);
-        Event event = eventRepo.findById(eventId).get();
+        Optional<Event> preEvent = eventRepo.findById(eventId);
         boolean eventChanged = false;
         Map<String, Object> result = new HashMap<>();
 
+        if(preEvent.isEmpty())
+            throw new NoSuchElementException("Event with ID: " + eventId + " does not exist.");
+        
+        Event event = preEvent.get();
         if(!event.getCreatorId().equals(user.getId()))
             throw new IllegalAccessException("This user is not the host of this event.");
 
@@ -473,7 +478,47 @@ public class CommunityService {
         return result;
     }
 
-    // TODO: processing event invite responses (accepting and declining)
+    public Map<String, Object> respondToInvite(String token, String eventId, String status) throws NoSuchElementException, IllegalArgumentException{
+        Map<String, Object> result = new HashMap<>();
+        String userId = jwtService.extractUserId(token).toString();
+        String response = AuthService.sanitize(status);
+        
+
+        if(!eventRepo.existsById(eventId))
+            throw new NoSuchElementException(
+                "Failed to send invite. Event with ID: " + 
+                eventId +
+                " does not exist."
+            );
+        
+        RSVPStatus rsvp = switch (response.toLowerCase()) {
+            case "attending" -> RSVPStatus.ATTENDING;
+            case "not attending" -> RSVPStatus.NOT_ATTENDING;
+            default -> throw new IllegalArgumentException("Invalid invite response status provided.");
+        };
+
+        EventAttendee forExample = new EventAttendee();
+        forExample.setEventId(eventId);
+        forExample.setUserId(userId);
+        Example<EventAttendee> example = Example.of(forExample);
+        Optional<EventAttendee> ea = eaRepo.findOne(example);
+
+        if(ea.isEmpty())
+            throw new NoSuchElementException("The invite you are trying to respond to does not exist");
+        else if(ea.get().getStatus() != RSVPStatus.PENDING){
+            Instant resStamp = ea.get().getRespondedAt();
+            throw new IllegalArgumentException("User invite has already been responded to. Responded at: " + resStamp);
+        }
+            
+
+        EventAttendee attendee = ea.get();
+        attendee.setStatus(rsvp);
+        attendee.setRespondedAt(Instant.now());
+        eaRepo.save(attendee);
+
+        result.put("message", "Invite response successfully recorded.");
+        return result;
+    }
 
     private User getUserFromToken(String token){
         String userId = jwtService.extractUserId(token).toString();
