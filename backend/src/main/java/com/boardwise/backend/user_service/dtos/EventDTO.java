@@ -23,12 +23,14 @@ public record EventDTO(
     int attendeeCount,
     String location,
     Visibility visibility,
+    boolean attending,
     EventHostInfo host,
     List<GameInventoryDTO> games
 ) {
     public static EventDTO fromEntity(
         Event event,
         int attendeeCount,
+        boolean attending,
         EventHostInfo hostInfo,
         List<GameInventoryDTO> games
     ){
@@ -43,6 +45,7 @@ public record EventDTO(
             attendeeCount,
             event.getLocationText(),
             event.getVisibility(),
+            attending,
             hostInfo,
             games
         );

@@ -41,9 +41,11 @@ public class CommunityController {
 
     @GetMapping("/")
     public ResponseEntity<?> getEvents(
-        @RequestParam(required = false) String name
+        @RequestParam(required = false) String name,
+        HttpServletRequest req
     ){
-        Map<String, Object> res = service.getEvents(name);
+        String token = ProfileController.extractToken(req);
+        Map<String, Object> res = service.getEvents(token, name);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
@@ -207,5 +209,14 @@ public class CommunityController {
         }
     }
     
-    // TODO: get invites
+    @GetMapping("/invite")
+    public ResponseEntity<?> getInvitations(
+        HttpServletRequest req
+    ) {
+        String token = ProfileController.extractToken(req);
+        Map<String, Object> res;
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+    
 }

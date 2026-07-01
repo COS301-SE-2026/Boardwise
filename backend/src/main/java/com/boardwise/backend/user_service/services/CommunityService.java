@@ -30,7 +30,6 @@ import com.boardwise.backend.user_service.dtos.EventInfoDTO;
 import com.boardwise.backend.user_service.dtos.EventInviteDTO;
 import com.boardwise.backend.user_service.dtos.EventUpdateDTO;
 import com.boardwise.backend.user_service.dtos.GameInventoryDTO;
-import com.boardwise.backend.user_service.dtos.InviteDTO;
 import com.boardwise.backend.user_service.dtos.InviteNotification;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.models.Event;
@@ -80,7 +79,8 @@ public class CommunityService {
         this.notifService = notifService;
     }
 
-    public Map<String, Object> getEvents(String name) {
+    public Map<String, Object> getEvents(String token, String name) {
+        User user = getUserFromToken(token);
         Map<String, Object> result = new HashMap<>();
         Pageable page;
         List<Event> dbEvents;
@@ -108,6 +108,9 @@ public class CommunityService {
             Example<EventAttendee> example = Example.of(forExample);
             int attendeeCount = (int) eaRepo.count(example);
 
+            Optional<EventAttendee> ea = eaRepo.findByUserIdAndEventId(user.getId(), event.getId());
+            boolean attending = ea.isPresent() && ea.get().getStatus() == RSVPStatus.ATTENDING;
+
             EventHostInfo hostInfo = new EventHostInfo(
                 host.getUsername(),
                 host.getProfilePicture()
@@ -124,7 +127,9 @@ public class CommunityService {
                 games.add(dto);
             }
 
-            events.add(EventDTO.fromEntity(event, attendeeCount, hostInfo, games));
+            events.add(EventDTO.fromEntity(
+                event, attendeeCount, attending, hostInfo, games
+            ));
         }
         result.put("message", message);
         result.put("result", events);
@@ -200,7 +205,7 @@ public class CommunityService {
             games.add(dto);
         }
 
-        EventDTO data = EventDTO.fromEntity(newEvent, 1, hostInfo, games);
+        EventDTO data = EventDTO.fromEntity(newEvent, 1, true, hostInfo, games);
         result.put("message", "Event successfully created.");
         result.put("data", data);
 
@@ -350,7 +355,7 @@ public class CommunityService {
             }
             
             
-            EventDTO data = EventDTO.fromEntity(event, attendeeCount, hostInfo, games);
+            EventDTO data = EventDTO.fromEntity(event, attendeeCount, true, hostInfo, games);
             result.put("message", "Event successfully updated.");
             result.put("data", data);
         }
@@ -423,7 +428,7 @@ public class CommunityService {
             games.add(dto);
         }
 
-        EventDTO data = EventDTO.fromEntity(event, attendeeCount, hostInfo, games);
+        EventDTO data = EventDTO.fromEntity(event, attendeeCount, true, hostInfo, games);
 
 
         result.put("message", "User attendance successfully recorded.");
@@ -469,7 +474,7 @@ public class CommunityService {
             games.add(gDto);
         }
 
-        EventDTO data = EventDTO.fromEntity(event, attendeeCount, hostInfo, games);
+        EventDTO data = EventDTO.fromEntity(event, attendeeCount, false, hostInfo, games);
 
         result.put("message", "User attendance successfully removed.");
         result.put("data", data);
@@ -556,6 +561,13 @@ public class CommunityService {
         eaRepo.save(attendee);
 
         result.put("message", "Invite response successfully recorded.");
+        return result;
+    }
+
+    public Map<String, Object> getUserInvitations(String token){
+        Map<String, Object> result = new HashMap<>();
+        User user = getUserFromToken(token);
+
         return result;
     }
 
