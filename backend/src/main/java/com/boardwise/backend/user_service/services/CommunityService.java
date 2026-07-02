@@ -1,6 +1,7 @@
 package com.boardwise.backend.user_service.services;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -12,26 +13,30 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
-
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.geo.Point;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
+import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.boardwise.backend.shared.security.JWTService;
+import com.boardwise.backend.shared.services.NotificationService;
 import com.boardwise.backend.user_service.dtos.DeRsvpDTO;
 import com.boardwise.backend.user_service.dtos.EventDTO;
 import com.boardwise.backend.user_service.dtos.EventHostInfo;
 import com.boardwise.backend.user_service.dtos.EventInfoDTO;
 import com.boardwise.backend.user_service.dtos.EventInviteDTO;
+import com.boardwise.backend.user_service.dtos.EventInviteInfo;
 import com.boardwise.backend.user_service.dtos.EventUpdateDTO;
 import com.boardwise.backend.user_service.dtos.GameInventoryDTO;
+import com.boardwise.backend.user_service.dtos.InviteDTO;
+import com.boardwise.backend.user_service.dtos.InviteNotification;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.models.Event;
 import com.boardwise.backend.user_service.models.EventAttendee;
+import com.boardwise.backend.user_service.models.EventStatus;
 import com.boardwise.backend.user_service.models.RSVPStatus;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.models.Visibility;
@@ -55,6 +60,7 @@ public class CommunityService {
     private final GeoApiContext geoApiContext;
     private final R2StorageService bucket;
     private final EventAttendeeRepository eaRepo;
+    private final NotificationService notifService;
 
     CommunityService(
         EventsRepository eventRepo, 
@@ -63,7 +69,8 @@ public class CommunityService {
         EventAttendeeRepository eaRepo,
         JWTService jwtService, 
         GeoApiContext geoApiContext,
-        R2StorageService bucket
+        R2StorageService bucket,
+        NotificationService notifService
     ){
         this.eventRepo = eventRepo;
         this.userRepo = userRepo;
@@ -72,14 +79,29 @@ public class CommunityService {
         this.jwtService = jwtService;
         this.geoApiContext = geoApiContext;
         this.bucket = bucket;
+        this.notifService = notifService;
     }
 
-    public Map<String, Object> getEvents() {
+    public Map<String, Object> getEvents(String token, String name) {
+        User user = getUserFromToken(token);
         Map<String, Object> result = new HashMap<>();
-        Pageable page = PageRequest.of(0, 25);
-        List<Event> dbEvents = eventRepo.findAll(page).getContent();
-        
+        Pageable page;
+        List<Event> dbEvents;
         List<EventDTO> events = new ArrayList<>();
+        String message;
+        
+        if(name == null){
+            page = PageRequest.of(0, 25);
+            dbEvents = eventRepo.findAll(page).getContent();
+            message = "Events successfully retrieved.";            
+        }
+        else{
+            page = PageRequest.of(0, 10);
+            TextCriteria criteria = TextCriteria.forDefaultLanguage().matchingAny(name);
+            dbEvents = eventRepo.findAllBy(criteria, page);
+            message = "Queried event(s) successfully retrieved.";
+        }
+
         for(Event event : dbEvents){
             List<Boardgame> eventGames = gameRepo.findAllById(event.getGames());
             User host = userRepo.findById(event.getCreatorId()).get();
@@ -88,6 +110,9 @@ public class CommunityService {
             forExample.setEventId(event.getId());
             Example<EventAttendee> example = Example.of(forExample);
             int attendeeCount = (int) eaRepo.count(example);
+
+            Optional<EventAttendee> ea = eaRepo.findByUserIdAndEventId(user.getId(), event.getId());
+            boolean attending = ea.isPresent() && ea.get().getStatus() == RSVPStatus.ATTENDING;
 
             EventHostInfo hostInfo = new EventHostInfo(
                 host.getUsername(),
@@ -105,12 +130,19 @@ public class CommunityService {
                 games.add(dto);
             }
 
-            events.add(EventDTO.fromEntity(event, attendeeCount, hostInfo, games));
+            if(event.getStatus() == EventStatus.OPEN){
+                RSVPStatus status = (attending || event.getCreatorId().equals(user.getId()))? 
+                                    RSVPStatus.ATTENDING : 
+                                    RSVPStatus.NOT_ATTENDING;
+
+                events.add(EventDTO.fromEntity(
+                    event, attendeeCount, status, hostInfo, games
+                ));
+            }
+
         }
-
-        result.put("message", "Events successfully retrieved");
-        result.put("events", events);
-
+        result.put("message", message);
+        result.put("result", events);
         return result;
     }
 
@@ -183,7 +215,7 @@ public class CommunityService {
             games.add(dto);
         }
 
-        EventDTO data = EventDTO.fromEntity(newEvent, 1, hostInfo, games);
+        EventDTO data = EventDTO.fromEntity(newEvent, 1, RSVPStatus.ATTENDING, hostInfo, games);
         result.put("message", "Event successfully created.");
         result.put("data", data);
 
@@ -192,10 +224,14 @@ public class CommunityService {
 
     public Map<String, Object> updateEvent(String token, String eventId, EventUpdateDTO newInfo, MultipartFile newImage) throws IllegalAccessException, IllegalArgumentException, NoSuchElementException, IOException, ApiException, InterruptedException {
         User user = getUserFromToken(token);
-        Event event = eventRepo.findById(eventId).get();
+        Optional<Event> preEvent = eventRepo.findById(eventId);
         boolean eventChanged = false;
         Map<String, Object> result = new HashMap<>();
 
+        if(preEvent.isEmpty())
+            throw new NoSuchElementException("Event with ID: " + eventId + " does not exist.");
+        
+        Event event = preEvent.get();
         if(!event.getCreatorId().equals(user.getId()))
             throw new IllegalAccessException("This user is not the host of this event.");
 
@@ -303,6 +339,7 @@ public class CommunityService {
         }
         
         if(eventChanged){
+            // TODO: notify attendees about the update
             event = eventRepo.save(event);
 
             EventAttendee forExample = new EventAttendee();
@@ -328,7 +365,7 @@ public class CommunityService {
             }
             
             
-            EventDTO data = EventDTO.fromEntity(event, attendeeCount, hostInfo, games);
+            EventDTO data = EventDTO.fromEntity(event, attendeeCount, RSVPStatus.ATTENDING, hostInfo, games);
             result.put("message", "Event successfully updated.");
             result.put("data", data);
         }
@@ -339,7 +376,7 @@ public class CommunityService {
         return result;
     }
 
-    public Map<String, Object> deleteEvent(String token, String eventId) throws NoSuchElementException, IllegalAccessException {
+    public Map<String, Object> cancelEvent(String token, String eventId) throws NoSuchElementException, IllegalAccessException {
         Map<String, Object> result = new HashMap<>();
         String userId = jwtService.extractUserId(token).toString();
         Optional<Event> event = eventRepo.findById(eventId);
@@ -350,12 +387,20 @@ public class CommunityService {
             throw new NoSuchElementException("Event with ID: " + eventId + " does not exist.");
         else if(!event.get().getCreatorId().equals(userId))
             throw new IllegalAccessException("User with ID: " + userId + " is not the host of this event.");
+        
+        Map<String, String> eventInfo = new HashMap<>();
+        User host = userRepo.findById(event.get().getCreatorId()).get();
+        eventInfo.put("eventName", event.get().getName());
+        eventInfo.put("eventHost", host.getUsername());
+
+        // TODO: might need to add notifications here
 
         // delete recorded attendees
         eaRepo.deleteByEventId(eventId);
-        
+
         // delete actual event
-        eventRepo.deleteById(eventId);
+        event.get().setStatus(EventStatus.CANCELLED);
+        eventRepo.save(event.get());
 
         result.put("message", "Event successfully deleted.");
         return result;
@@ -394,7 +439,7 @@ public class CommunityService {
             games.add(dto);
         }
 
-        EventDTO data = EventDTO.fromEntity(event, attendeeCount, hostInfo, games);
+        EventDTO data = EventDTO.fromEntity(event, attendeeCount, RSVPStatus.ATTENDING, hostInfo, games);
 
 
         result.put("message", "User attendance successfully recorded.");
@@ -411,11 +456,14 @@ public class CommunityService {
         if(event == null)
             throw new NoSuchElementException("Event with ID: " + dto.eventId() + " does not exist.");
 
-        Optional<EventAttendee> deleted = eaRepo.deleteByUserIdAndEventId(user.getId(), event.getId());
+        Optional<EventAttendee> changed = eaRepo.findByUserIdAndEventId(user.getId(), event.getId());
 
-        if(deleted.isEmpty()){
+        if(changed.isEmpty()){
             throw new IllegalAccessException("User has not RSVP'd for this event.");
         }
+
+        changed.get().setStatus(RSVPStatus.NOT_ATTENDING);
+        eaRepo.save(changed.get());
 
         EventAttendee forExample = new EventAttendee();
         forExample.setEventId(dto.eventId());
@@ -437,7 +485,7 @@ public class CommunityService {
             games.add(gDto);
         }
 
-        EventDTO data = EventDTO.fromEntity(event, attendeeCount, hostInfo, games);
+        EventDTO data = EventDTO.fromEntity(event, attendeeCount, RSVPStatus.NOT_ATTENDING, hostInfo, games);
 
         result.put("message", "User attendance successfully removed.");
         result.put("data", data);
@@ -446,7 +494,7 @@ public class CommunityService {
     }
 
     public Map<String, Object> inviteToEvent(String token, EventInviteDTO inviteInfo) throws NoSuchElementException{
-        // User inviter = getUserFromToken(token);
+        User inviter = getUserFromToken(token);
         Optional<User> invitee = userRepo.findByUsername(inviteInfo.invitee());
         Map<String, Object> result = new HashMap<>();
         
@@ -464,16 +512,106 @@ public class CommunityService {
             );
 
         EventAttendee newAttendee = new EventAttendee(
-            invitee.get().getId(), inviteInfo.eventId(), RSVPStatus.PENDING 
+            invitee.get().getId(), inviteInfo.eventId(), RSVPStatus.INVITED 
         );
         eaRepo.save(newAttendee);
 
-        // TODO: send invite to the invitee (will require websockets)
+        String eventTitle = eventRepo.findById(inviteInfo.eventId())
+                                            .get().getName();
 
+        InviteNotification payload = new InviteNotification(
+            "NEW_INVITE",
+            inviter.getUsername() + " invited you to '" + eventTitle + "'"
+        );
+
+        notifService.sendInviteNotification(
+            invitee.get().getId(), 
+            payload
+        );
+
+        result.put("message", "Invite successfully sent.");
         return result;
     }
 
-    // TODO: processing event invite responses (accepting and declining)
+    public Map<String, Object> respondToInvite(String token, String eventId, String status) throws NoSuchElementException, IllegalArgumentException{
+        Map<String, Object> result = new HashMap<>();
+        String userId = jwtService.extractUserId(token).toString();
+        String response = AuthService.sanitize(status);
+        
+
+        if(!eventRepo.existsById(eventId))
+            throw new NoSuchElementException(
+                "Failed to send invite. Event with ID: " + 
+                eventId +
+                " does not exist."
+            );
+        
+        RSVPStatus rsvp = switch (response.toLowerCase()) {
+            case "accept" -> RSVPStatus.ATTENDING;
+            case "decline" -> RSVPStatus.NOT_ATTENDING;
+            default -> throw new IllegalArgumentException("Invalid invite response status provided.");
+        };
+
+        EventAttendee forExample = new EventAttendee();
+        forExample.setEventId(eventId);
+        forExample.setUserId(userId);
+        Example<EventAttendee> example = Example.of(forExample);
+        Optional<EventAttendee> ea = eaRepo.findOne(example);
+
+        if(ea.isEmpty())
+            throw new NoSuchElementException("The invite you are trying to respond to does not exist");
+        else if(ea.get().getStatus() != RSVPStatus.INVITED){
+            Instant resStamp = ea.get().getRespondedAt();
+            throw new IllegalArgumentException("User invite has already been responded to. Responded at: " + resStamp);
+        }
+            
+
+        EventAttendee attendee = ea.get();
+        attendee.setStatus(rsvp);
+        attendee.setRespondedAt(Instant.now());
+        eaRepo.save(attendee);
+
+        result.put("message", "Invite response successfully recorded.");
+        return result;
+    }
+
+    public Map<String, Object> getUserInvitations(String token){
+        Map<String, Object> result = new HashMap<>();
+        User user = getUserFromToken(token);
+        List<EventAttendee> invites = eaRepo.findAllByUserIdAndStatus(user.getId(), RSVPStatus.INVITED);
+
+        int count = invites.size();
+        List<InviteDTO> dtos = new ArrayList<>();
+        for(EventAttendee invite : invites){
+            Event event = eventRepo.findById(invite.getEventId()).get();
+            if(event.getStatus() == EventStatus.CANCELLED)
+                continue;
+
+            User host = userRepo.findById(event.getCreatorId()).get();
+            EventHostInfo hostInfo = new EventHostInfo(host.getUsername(), 
+                                                host.getProfilePicture());
+            EventInviteInfo eventInfo = new EventInviteInfo(
+                                            event.getId(), 
+                                            event.getName(), 
+                                            event.getEventImg(), 
+                                            event.getStartDateTime().toLocalDate()
+                                        );
+
+            InviteDTO dto = new InviteDTO(
+                invite.getStatus(),
+                hostInfo,
+                eventInfo
+            );
+            
+            dtos.add(dto);
+        }
+        
+        result.put("message", "User invites successfully retrieved.");
+        result.put("inviteCount", count);
+        result.put("invites", dtos);
+
+        return result;
+    }
 
     private User getUserFromToken(String token){
         String userId = jwtService.extractUserId(token).toString();
