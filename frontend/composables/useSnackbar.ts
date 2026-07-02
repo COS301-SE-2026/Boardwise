@@ -1,5 +1,3 @@
-import { vi } from "vuetify/locale"
-
 const message = ref('')
 const color = ref('success')
 const visible = ref(false)
