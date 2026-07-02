@@ -8,7 +8,6 @@ import java.util.NoSuchElementException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -164,12 +163,13 @@ public class SocialController {
     @PatchMapping("/groups/{groupId}")
     public ResponseEntity<?> updateGroup(
         @PathVariable String groupId,
-        @RequestBody GroupUpdateRequestDTO updateData,
+        @RequestPart(name = "groupInfo", required = false) GroupUpdateRequestDTO updateData,
+        @RequestPart(name = "groupImage", required = false) MultipartFile newImage,
         HttpServletRequest req
     ){
         try{
             String token = ProfileController.extractToken(req);
-            GroupUpdateResponseDTO res = service.updateGroup(token, groupId, updateData);
+            GroupUpdateResponseDTO res = service.updateGroup(token, groupId, updateData, newImage);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(NoSuchElementException e){

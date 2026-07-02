@@ -295,7 +295,7 @@ public class SocialService {
         );
     }
 
-    public GroupUpdateResponseDTO updateGroup(String token, String groupId, GroupUpdateRequestDTO updateData) {
+    public GroupUpdateResponseDTO updateGroup(String token, String groupId, GroupUpdateRequestDTO updateData, MultipartFile image) throws IOException {
         // TODO: return the entire resource with update applied
         
         String userId = jwtService.extractUserId(token).toString();
@@ -313,10 +313,18 @@ public class SocialService {
         if(newDesc != null){
             group.setDescription(newDesc);
         }
+        if(image != null){
+            String fileName = bucket.uploadFile(image, group.getId());
+            String imageUrl = bucket.getFileUrl(fileName);
+            group.setImageUrl(imageUrl);
+            group = groupRepo.save(group);
+        }
+
         Group updatedGroup = groupRepo.save(group);
         Map<String, Object> data = new HashMap<>();
         data.put("name", updatedGroup.getName());
         data.put("description", updatedGroup.getDescription());
+        data.put("imageUrl", updatedGroup.getImageUrl());
 
         return new GroupUpdateResponseDTO(
             "Successfully updated group information",
