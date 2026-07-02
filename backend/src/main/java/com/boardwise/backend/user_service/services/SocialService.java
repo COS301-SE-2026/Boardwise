@@ -1,5 +1,6 @@
 package com.boardwise.backend.user_service.services;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,6 +9,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.dtos.GroupCreationDTO;
 import com.boardwise.backend.user_service.dtos.GroupCreationResponseDTO;
@@ -30,15 +33,17 @@ public class SocialService {
     private final GroupRepository groupRepo;
     private final GroupMembershipRepository gmRepo;
     private final JWTService jwtService;
+    private final R2StorageService bucket;
 
-    SocialService(UserRepository userRepo, GroupRepository groupRepo, GroupMembershipRepository gmRepo, JWTService jwtService) {
+    SocialService(UserRepository userRepo, GroupRepository groupRepo, GroupMembershipRepository gmRepo, JWTService jwtService, R2StorageService bucket) {
         this.userRepo = userRepo;
         this.groupRepo = groupRepo;
         this.gmRepo = gmRepo;
         this.jwtService = jwtService;
+        this.bucket = bucket;
     }
 
-    public GroupCreationResponseDTO createGroup(String token, GroupCreationDTO group) {
+    public GroupCreationResponseDTO createGroup(String token, GroupCreationDTO group, MultipartFile image) throws IOException{
         String userId = jwtService.extractUserId(token).toString();
         User user = userRepo.findByUsername(userId).get();
 
@@ -46,15 +51,25 @@ public class SocialService {
         String groupDesc = AuthService.sanitize(group.description());
         String groupCategory = AuthService.sanitize(group.category());
         String visibility = group.visisbility() == null ? "public" : group.visisbility();
+        
 
         Group newGroup = new Group(
             groupName, 
+            null,
             groupDesc, 
             groupCategory,
             userId, 
             visibility
         );
         newGroup = groupRepo.save(newGroup);
+
+        String imageUrl = null;
+        if(image != null){
+            String fileName = bucket.uploadFile(image, newGroup.getId());
+            imageUrl = bucket.getFileUrl(fileName);
+            newGroup.setImageUrl(imageUrl);
+            newGroup = groupRepo.save(newGroup);
+        }
 
         GroupMembership membership = new GroupMembership(
             userId, 
@@ -65,6 +80,7 @@ public class SocialService {
         GroupInfo info = new GroupInfo(
             newGroup.getId(),
             newGroup.getName(),
+            newGroup.getImageUrl(),
             newGroup.getDescription(),
             user.getUsername(),
             newGroup.getVisibility(),
@@ -100,6 +116,7 @@ public class SocialService {
             GroupInfo info = new GroupInfo(
                 group.getId(),
                 group.getName(),
+                group.getImageUrl(),
                 group.getDescription(),
                 owner.getUsername(),
                 group.getVisibility(),
@@ -147,6 +164,7 @@ public class SocialService {
         return new GroupDTO(
             group.getId(),
             group.getName(),
+            group.getImageUrl(),
             group.getDescription(),
             owner.getUsername(),
             memberCount,
@@ -269,6 +287,7 @@ public class SocialService {
         return new GroupInfo(
             group.getId(),
             group.getName(),
+            group.getImageUrl(),
             group.getDescription(),
             owner.getUsername(),
             group.getVisibility(),
