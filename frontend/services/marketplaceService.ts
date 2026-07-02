@@ -72,6 +72,7 @@ export const MarketplaceService = {
     },
 
     // UPDATE LISTING BY ID
+    
     updateListing(id: string, data: any, image?: File){
         const { $api } = useNuxtApp();
         const formData = new FormData();

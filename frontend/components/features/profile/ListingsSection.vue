@@ -10,6 +10,7 @@
       :listings="listings"
       @add-listing="showAddListing = false"
       @delete-listing="openDelete"
+      @deleted="$emit('deleted')"
     />
 
     <AddListingModal v-model="showAddListing" />
@@ -35,6 +36,8 @@ const { removeListing } = useMarketplace()
 const showAddListing = ref(false)
 const showDelete = ref(false)
 const selectedId = ref(null)
+
+const emit = defineEmits(['deleted'])
 
 const openDelete = (id) => {
   selectedId.value = id

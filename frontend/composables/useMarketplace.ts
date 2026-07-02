@@ -1,9 +1,10 @@
 import { MarketplaceService, type ListingResponse } from '@/services/marketplaceService'
 import { ref } from 'vue'
 import { useSnackBar } from './useSnackbar'
+import { createSharedComposable } from '@vueuse/core'
 const { show } = useSnackBar()
 
-export const useMarketplace = () =>{
+const _useMarketplace = () =>{
 
     //page paramters
     const page = ref(1)
@@ -19,11 +20,12 @@ export const useMarketplace = () =>{
     //error checking 
     const error = ref(null);
 
+    const activeFilters = ref({})
+
     const loadMore = () => {
-        if (!loading.value && hasMore.value) fetchListings(undefined, false)
+        if (!loading.value && hasMore.value) fetchListings(activeFilters.value, false)
     }
 
-    const activeFilters = ref({})
 
     const fetchListings = async (filters?: {
         listingType?: string | null,
@@ -45,8 +47,14 @@ export const useMarketplace = () =>{
         if (!hasMore.value) return
         loading.value = true;
         try {
-            const res = await MarketplaceService.getListings();
-            listings.value = res;
+            const res = await MarketplaceService.getListings({
+                ...activeFilters.value,
+                page: page.value,
+                size: pageSize
+            });
+            listings.value = reset ? res.content : [...listings.value, ...res.content];
+            hasMore.value = !res.last;
+            page.value += 1;
             show('Successfully got all listings');
         } catch(err) {
             show('Failed to create a listing', 'error')
@@ -61,7 +69,6 @@ export const useMarketplace = () =>{
         error.value = null;
         try{
             await MarketplaceService.createListing(listingData,image);
-            await fetchListings();
             show('Listing successfully created!');
         }catch(err){
             console.error(err);
@@ -95,7 +102,6 @@ const editListing = async (id: string, listingData: any, image?: File) => {
     error.value = null;
     try {
         await MarketplaceService.updateListing(id, listingData, image);
-        await fetchListings(); // refresh the list
         show('Successfully updated your listing!')
     } catch (err: any) {
         console.error('Status:', err.status);
@@ -113,7 +119,6 @@ const removeListing = async (id: string) => {
   try {
     await MarketplaceService.deleteListing(id);
     show('Listing deleted successfully!');
-    await fetchUserListing(); // refresh list after delete
   } catch (err: any) {
      error.value = err.data?.message ?? 'Failed to delete listing';
      show('Failed to delete listing','error');
@@ -140,3 +145,5 @@ const fetchListingById = async (id: string) => {
 
 return { listings, loading, error, fetchListings, fetchListingById, addListing, fetchUserListing, editListing, removeListing,page,loadMore,hasMore}
 }
+
+export const useMarketplace = createSharedComposable(_useMarketplace)
