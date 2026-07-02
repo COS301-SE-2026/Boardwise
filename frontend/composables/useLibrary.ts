@@ -22,7 +22,6 @@ export const useLibrary = () => {
             console.log('fetched', response.content);
         } catch(err: any) {
             error.value = err.data?.message || 'No rulebooks found'
-            error.value = err.data?.message || 'No rulebooks found'
             rulebooks.value = []
         } finally {
             isLoading.value = false;
