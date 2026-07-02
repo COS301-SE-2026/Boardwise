@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,10 +39,13 @@ public class CommunityController {
         this.service = service;
     }
 
-    // TODO: make it versatile. Optional query parameters. /?name=queryName, filter params
     @GetMapping("/")
-    public ResponseEntity<?> getEvents(){
-        Map<String, Object> res = service.getEvents();
+    public ResponseEntity<?> getEvents(
+        @RequestParam(required = false) String name,
+        HttpServletRequest req
+    ){
+        String token = ProfileController.extractToken(req);
+        Map<String, Object> res = service.getEvents(token, name);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
@@ -87,10 +91,6 @@ public class CommunityController {
             res = new HashMap<>();
             res.put("message", e.getMessage());
             return new ResponseEntity<>(res, HttpStatus.FORBIDDEN);
-        } catch(IllegalArgumentException e){
-            res = new HashMap<>();
-            res.put("message", e.getMessage());
-            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }catch(NoSuchElementException e){
             res = new HashMap<>();
             res.put("message", e.getMessage());
@@ -115,7 +115,7 @@ public class CommunityController {
         String token = ProfileController.extractToken(req);
         Map<String, Object> res;
         try{
-            res = service.deleteEvent(token, eventId);
+            res = service.cancelEvent(token, eventId);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(NoSuchElementException e){
@@ -149,7 +149,7 @@ public class CommunityController {
         }
     }
 
-    @DeleteMapping("/")
+    @PatchMapping("/")
     public ResponseEntity<?> deRsvpFromEvent(
         @RequestBody DeRsvpDTO dto,
         HttpServletRequest req
@@ -190,9 +190,32 @@ public class CommunityController {
         }
     }
     
-    @PatchMapping("/invite")
-    public ResponseEntity<?> respondToInvite(){
-        return new ResponseEntity<>(HttpStatus.OK);
+    @PatchMapping("/invite/{eventId}")
+    public ResponseEntity<?> respondToInvite(
+        @RequestParam String status,
+        @PathVariable String eventId,
+        HttpServletRequest req
+    ){
+        String token = ProfileController.extractToken(req);
+        Map<String, Object> res;
+        try{
+            res = service.respondToInvite(token, eventId, status);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(NoSuchElementException e){
+            res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+    }
+    
+    @GetMapping("/invite")
+    public ResponseEntity<?> getInvitations(
+        HttpServletRequest req
+    ) {
+        String token = ProfileController.extractToken(req);
+        Map<String, Object> res = service.getUserInvitations(token);
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
     
 }
