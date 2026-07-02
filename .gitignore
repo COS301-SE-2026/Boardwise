@@ -2,6 +2,8 @@
 .vscode
 /frontend/.nuxt
 /frontend/node_modules
+ai/.pytest_cache/
+ai/__pycache__/
 /frontend/dist
 /frontend/.output
 .pytest_cache
@@ -18,4 +20,5 @@ mongodb-errors.txt
 
 
 #ignore for backend
-frontend/*
+# Temporary Igngore
+refactorNotes.md

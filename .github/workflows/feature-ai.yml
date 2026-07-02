@@ -1,0 +1,48 @@
+name: Feature - AI Gateway
+
+on:
+    push:
+        branches-ignore: ["main"]
+        paths: ["ai/**"]
+    pull_request:
+        branches: ["dev", "integration"]
+        paths: ["ai/**"]
+
+jobs:
+    test-ai:
+        runs-on: ubuntu-latest
+
+        env:
+          JWT_SECRET: "ci_dummy_secret_key_12345"
+          JWT_ALGORITHM: "HS256"
+          MONGODB_URL: "mongodb://localhost:27017"
+          MONGODB_DATABASE: "vault_test"
+          MAX_FILE_SIZE_MB: "50"
+          R2_ACCOUNT_ID: "dummy-account"
+          R2_ACCESS_KEY_ID: "dummy_key"
+          R2_SECRET_ACCESS_KEY: "dummy_secret"
+          R2_BUCKET_RULEBOOKS: "dummy_bucket"
+
+        defaults:
+            run:
+                working-directory: ./ai
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Install System Dependencies
+              run: |
+                sudo apt-get update
+                sudo apt-get install -y tesseract-ocr tesseract-ocr-eng libgl1
+
+            - uses: actions/setup-python@v5
+              with:
+                python-version: '3.12'
+                cache: 'pip'
+
+            - name: Install Python Dependencies
+              run: |
+                python -m pip install --upgrade pip
+                pip install -r requirements-dev.txt
+
+            - name: Run Unit Tests
+              run: pytest tests/unit/ -v
