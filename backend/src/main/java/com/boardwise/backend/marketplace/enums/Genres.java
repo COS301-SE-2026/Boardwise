@@ -3,6 +3,7 @@ package com.boardwise.backend.marketplace.enums;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Genres {
+    ABSTRACT("abstract"),
     ABSTRACT_STRATEGY("abstract strategy"),
     ACTION_DEXTERITY("action / dexterity"),
     ADVENTURE("adventure"),
@@ -17,6 +18,7 @@ public enum Genres {
     AVIATION_FLIGHT("aviation / flight"),
     BLUFFING("bluffing"),
     BOOK("book"),
+    CARD("card"),
     CARD_GAME("card game"),
     CHILDRENS_GAME("children's game"),
     CITY_BUILDING("city building"),
