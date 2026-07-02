@@ -5,13 +5,18 @@
       <h2 class="text-h5 font-weight-bold">Upload a Rulebook</h2>
 
       <div>
-        <p class="text-caption font-weight-bold mb-2">Game Name</p>
-        <BaseInput v-model="gameName" placeholder="Game Name" />
+        <p class="text-caption font-weight-bold mb-2">Title</p>
+        <BaseInput v-model="title" placeholder="Title" />
       </div>
 
       <div>
         <p class="text-caption font-weight-bold mb-2">Edition</p>
         <BaseInput v-model="edition" placeholder="Rulebook Edition (optional, eg. version 1)" />
+      </div>
+
+      <div>
+        <p class="text-caption font-weight-bold mb-2">Language</p>
+        <BaseInput v-model="language" placeholder="Language" />
       </div>
 
       <div>
@@ -49,28 +54,37 @@ import BaseInput from '~/components/ui/BaseInput.vue'
 const open = defineModel()
 const emit = defineEmits(['add'])
 
-const gameName = ref('')
+const title = ref('')
 const edition = ref('')
+const language = ref('')
 const fileName = ref('')
 const fileInput = ref(null)
 
 const triggerUpload = () => fileInput.value?.click()
 
+const fileToUpload = ref(null)
+
 const handleFile = (e) => {
   const file = e.target.files[0]
-  if (file) fileName.value = file.name
+  if (file) {
+    fileName.value = file.name;
+    fileToUpload.value = file;
+  }
 }
 
 const handleAdd = () => {
-  if (!gameName.value) return
+  if (!title.value || !language.value || !fileToUpload.value) return
   emit('add', {
-    gameName: gameName.value,
+    title: title.value,
     edition: edition.value,
-    file: fileName.value
+    language: language.value,
+    file: fileToUpload.value
   })
   open.value = false
-  gameName.value = ''
+  title.value = ''
   edition.value = ''
+  language.value = ''
   fileName.value = ''
+  fileToUpload.value = null
 }
 </script>

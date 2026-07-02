@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { LibraryService } from '@/services/libraryService'
+import { LibraryService } from '~/services/libraryService'
 
 export const useLibrary = () => {
     const token = ref<string|null>(

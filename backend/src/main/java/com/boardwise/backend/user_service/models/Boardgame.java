@@ -14,7 +14,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Document(collection = "BOARD_GAMES")
+@Document(collection = "BOARD_GAME")
 @Data
 @Builder
 @AllArgsConstructor
