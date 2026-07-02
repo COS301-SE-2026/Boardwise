@@ -33,6 +33,7 @@ class JobStatusResponse(BaseAPIModel):
 class RulebookResponse(BaseAPIModel):
     """Returned when viewing a specific rulebook's metadata."""
     rulebook_id: str = Field(..., alias="id")
+    cover_image_url: str
     game_id: str
     title: str
     edition: str
