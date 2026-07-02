@@ -1,37 +1,41 @@
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig();
 
-  const api = $fetch.create({
-    baseURL: config.public.apiBase as string,
-
+  const fetchOptions = {
     onRequest({options}){
       if(import.meta.client){
         const token = localStorage.getItem('access_token');
-
         if(token){
           options.headers = new Headers(options.headers || {});
-          options.headers.set('Authorization', `Bearer ${token}`); // Secure token append
+          options.headers.set('Authorization', `Bearer ${token}`);
         }
       }
     },
-
     onResponseError({response}){
       if(response.status === 401){
-        console.error('Unauthorized: Token may be invalid or expired');
-
+        console.error('Unauthorized: Invalid or expired token');
         if(import.meta.client){
-          // Remove old token
           localStorage.removeItem('access_token');
-          // Trigger router navigation to login.
           navigateTo('auth/signin');
         }
       }
     }
+  };
+
+  const api = $fetch.create({
+    baseURL: config.public.apiBase as string,
+    ...fetchOptions
   });
 
-  return{
-    provide:{ // Returning  inside a provide block makes Nuxt inject it globally
-      api
+  const fastApi = $fetch.create({
+    baseURL: config.public.fastApiBase as string,
+    ...fetchOptions
+  });
+
+  return {
+    provide: { // these will be globally injected as $api and $fastApi
+      api,
+      fastApi
     }
   };
 });

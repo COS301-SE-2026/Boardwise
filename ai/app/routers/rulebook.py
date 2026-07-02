@@ -54,11 +54,11 @@ async def upload_rulebook(
             detail="The uploaded file is empty or corrupted."
         )
 
-    contributor_id = payload.get("userId")
+    contributor_id = payload.get("sub")
     if not contributor_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="userId is missing from token."
+            detail="sub is missing from token."
         )
 
     try:

@@ -16,7 +16,7 @@
         >
           <div class="carousel-slide" @click="$emit('select', rulebook)">
             <BaseImage 
-              :src="rulebook.image" 
+              :src="rulebook.coverUrl" 
               :alt="rulebook.title" 
               height="320px" 
               fit="cover" 

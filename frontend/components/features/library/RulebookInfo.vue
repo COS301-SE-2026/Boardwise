@@ -1,7 +1,7 @@
 <template>
   <div class="d-flex flex-column ga-4">
     <h1 class="text-h4 font-weight-bold">
-        {{ rulebook.gameName }}
+        {{ rulebook.title }}
     </h1>
     
     <p class="text-primary font-weight-bold mb-0">

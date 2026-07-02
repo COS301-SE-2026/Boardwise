@@ -11,7 +11,7 @@ from unittest.mock import patch, MagicMock
 def create_test_token(payload_overrides: dict = None) -> str:
     payload = {
         "jti": "test-uuid-123",
-        "userId": "609c1234",
+        "sub": "609c1234",
         "exp": datetime.now(timezone.utc) + timedelta(minutes=15)
     }
     if payload_overrides:
@@ -27,7 +27,7 @@ def test_verify_jwt_success(mock_is_valid):
 
     result = verify_jwt(mock_credentials)
 
-    assert result["userId"] == "609c1234"
+    assert result["sub"] == "609c1234"
     assert result["jti"] == "test-uuid-123"
 
 def test_verify_jwt_missing_jti():
