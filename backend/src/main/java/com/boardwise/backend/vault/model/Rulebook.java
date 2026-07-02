@@ -19,6 +19,9 @@ public class Rulebook {
     @Id
     private ObjectId id;
 
+    @Field("coverUrl")
+    private String coverUrl;
+
     @Field("gameId")
     private ObjectId gameId;
 
@@ -48,6 +51,9 @@ public class Rulebook {
 
     @Field("r2PdfKey")
     private String r2PdfKey;
+
+    @Field("r2CoverKey")
+    private String r2CoverKey;
 
     @Field("uploadedAt")
     private Instant uploadedAt;
