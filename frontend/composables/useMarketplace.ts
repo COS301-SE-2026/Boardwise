@@ -57,11 +57,10 @@ const _useMarketplace = () =>{
             page.value += 1;
             show('Successfully got all listings');
         } catch(err) {
-            if(!activeFilters.value)
-                show('Failed to find any listings!', 'error')
-            else{
+            if(activeFilters.value)
                 show('No available listings!')
-
+            else{
+                show('Failed to find any listings!', 'error')
             }
             console.error('Failed to fetch', err); 
         } finally {
