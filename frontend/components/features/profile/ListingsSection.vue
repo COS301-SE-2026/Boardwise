@@ -11,6 +11,7 @@
       @add-listing="showAddListing = false"
       @delete-listing="openDelete"
       @deleted="$emit('deleted')"
+      @updated="$emit('updated')"
     />
 
     <AddListingModal v-model="showAddListing" />
@@ -37,7 +38,7 @@ const showAddListing = ref(false)
 const showDelete = ref(false)
 const selectedId = ref(null)
 
-const emit = defineEmits(['deleted'])
+const emit = defineEmits(['deleted', 'updated', 'add-listing'])
 
 const openDelete = (id) => {
   selectedId.value = id

@@ -36,6 +36,8 @@
           <ListingsSection 
           :listings="listings"
           @deleted="fetchUserListing" 
+          @updated="fetchUserListing"
+
           />
         </v-window-item>
 

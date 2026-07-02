@@ -88,7 +88,8 @@ const handleDelete = async () => {
   emit('deleted', props.listing.listingId)
 };
 
-const emit = defineEmits(['deleted']);
+const emit = defineEmits(['deleted','updated']);
+
 </script>
 
 <style scoped>

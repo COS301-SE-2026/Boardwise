@@ -57,6 +57,7 @@ onMounted(() => {
 const handleAdd = async (data, image) => {
   await addListing(data, image);
   showCreateListing.value = false;
+  fetchListings(activeFilterState.value, true);
 }
 
 const sentinel = ref(null)
