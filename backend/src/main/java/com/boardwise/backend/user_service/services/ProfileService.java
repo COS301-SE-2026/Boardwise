@@ -24,6 +24,7 @@ import com.boardwise.backend.user_service.models.*;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.FriendShipRepository;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
+import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
 
 @Service
@@ -33,6 +34,7 @@ public class ProfileService {
     private final JWTService jwtService;
     private final FriendShipRepository fsRepo;
     private final GroupMembershipRepository gmRepo;
+    private final GroupRepository groupRepo;
     private final BoardGameRepository gameRepo;
     private final R2StorageService bucket;
 
@@ -43,6 +45,7 @@ public class ProfileService {
         JWTService jwtService,
         FriendShipRepository friendShipRepository,
         GroupMembershipRepository groupMembershipRepository,
+        GroupRepository groupRepo,
         BoardGameRepository boardGameRepository,
         R2StorageService r2StorageService
     ){
@@ -50,6 +53,7 @@ public class ProfileService {
         this.jwtService = jwtService;
         this.fsRepo = friendShipRepository;
         this.gmRepo = groupMembershipRepository;
+        this.groupRepo = groupRepo;
         this.gameRepo = boardGameRepository;
         this.bucket = r2StorageService;
     }
@@ -87,7 +91,23 @@ public class ProfileService {
         // get group count
         GroupMembership gm = new GroupMembership();
         gm.setUserId(user.getId());
-        int groupCount = (int) gmRepo.count(Example.of(gm));
+        List<GroupMembership> gms = gmRepo.findAll(Example.of(gm));
+        int groupCount = gms.size();
+        
+        // Get community id, name and image
+        List<Map<String, String>> communities = null;
+        if(own != null){
+            communities = new ArrayList<>();
+            for(GroupMembership membership : gms){
+                Map<String, String> community = new HashMap<>();
+                Group group = groupRepo.findById(membership.getGroupId()).get();
+                community.put("id", group.getId());
+                community.put("name", group.getName());
+                // community.put("image", group.getImage());
+
+                communities.add(community);
+            }
+        }
         
         // get friend count
         int friendCount = (int) fsRepo.countByUserAIdOrUserBId(user.getId(), user.getId());
@@ -106,6 +126,7 @@ public class ProfileService {
             groupCount,
             ownedGameCount,
             games,
+            communities,
             userPref,
             formatter.format(user.getCreatedAt())
         );
