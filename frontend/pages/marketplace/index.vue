@@ -39,7 +39,7 @@ import ListingGrid from '~/components/features/marketplace/ListingGrid.vue'
 import AddListingModal from '~/components/features/profile/AddListingModal.vue'
 import { useRouter } from 'vue-router'
 import { useMarketplace } from '~/composables/useMarketplace'
-import { useIntersectionObserver } from '@vueuse/core'
+import { useIntersectionObserver, useDebounceFn  } from '@vueuse/core'
 
 const router = useRouter();
 const activeTab = ref('Community')
@@ -69,11 +69,13 @@ const searchQ = ref('');
 const activeFilterState = ref({})
 
 
-watch(searchQ,(q)=>{
-  fetchListings({
-    ...activeFilterState.value,
-    search: q || null},true)
-  })
+const delaySearch = useDebounceFn((query) => {
+  fetchListings({ ...activeFilterState.value, search: query || null }, true)
+}, 400)
+
+watch(searchQ,(query)=>{
+  delaySearch(query);
+})
 
   const getListingType = (rent, sale)=> { 
     if (rent && sale) return null;

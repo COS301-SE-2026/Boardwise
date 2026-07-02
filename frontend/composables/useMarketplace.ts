@@ -57,7 +57,12 @@ const _useMarketplace = () =>{
             page.value += 1;
             show('Successfully got all listings');
         } catch(err) {
-            show('Failed to create a listing', 'error')
+            if(!activeFilters.value)
+                show('Failed to find any listings!', 'error')
+            else{
+                show('No available listings!')
+
+            }
             console.error('Failed to fetch', err); 
         } finally {
             loading.value = false;
