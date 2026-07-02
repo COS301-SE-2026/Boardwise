@@ -115,7 +115,7 @@ public class CommunityController {
         String token = ProfileController.extractToken(req);
         Map<String, Object> res;
         try{
-            res = service.deleteEvent(token, eventId);
+            res = service.cancelEvent(token, eventId);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(NoSuchElementException e){
@@ -214,9 +214,8 @@ public class CommunityController {
         HttpServletRequest req
     ) {
         String token = ProfileController.extractToken(req);
-        Map<String, Object> res;
-
-        return new ResponseEntity<>(HttpStatus.OK);
+        Map<String, Object> res = service.getUserInvitations(token);
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
     
 }

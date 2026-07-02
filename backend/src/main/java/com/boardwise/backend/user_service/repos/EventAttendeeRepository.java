@@ -12,5 +12,7 @@ public interface EventAttendeeRepository extends MongoRepository<EventAttendee, 
     
     List<EventAttendee> findAllByEventIdAndStatus(String eventId, RSVPStatus status);
 
+    List<EventAttendee> findAllByUserIdAndStatus(String userId, RSVPStatus status);
+
     void deleteByEventId(String eventId);
 }

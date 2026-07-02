@@ -28,12 +28,15 @@ import com.boardwise.backend.user_service.dtos.EventDTO;
 import com.boardwise.backend.user_service.dtos.EventHostInfo;
 import com.boardwise.backend.user_service.dtos.EventInfoDTO;
 import com.boardwise.backend.user_service.dtos.EventInviteDTO;
+import com.boardwise.backend.user_service.dtos.EventInviteInfo;
 import com.boardwise.backend.user_service.dtos.EventUpdateDTO;
 import com.boardwise.backend.user_service.dtos.GameInventoryDTO;
+import com.boardwise.backend.user_service.dtos.InviteDTO;
 import com.boardwise.backend.user_service.dtos.InviteNotification;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.models.Event;
 import com.boardwise.backend.user_service.models.EventAttendee;
+import com.boardwise.backend.user_service.models.EventStatus;
 import com.boardwise.backend.user_service.models.RSVPStatus;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.models.Visibility;
@@ -127,9 +130,16 @@ public class CommunityService {
                 games.add(dto);
             }
 
-            events.add(EventDTO.fromEntity(
-                event, attendeeCount, attending, hostInfo, games
-            ));
+            if(event.getStatus() == EventStatus.OPEN){
+                RSVPStatus status = attending ? 
+                                    RSVPStatus.ATTENDING : 
+                                    RSVPStatus.NOT_ATTENDING;
+
+                events.add(EventDTO.fromEntity(
+                    event, attendeeCount, status, hostInfo, games
+                ));
+            }
+
         }
         result.put("message", message);
         result.put("result", events);
@@ -205,7 +215,7 @@ public class CommunityService {
             games.add(dto);
         }
 
-        EventDTO data = EventDTO.fromEntity(newEvent, 1, true, hostInfo, games);
+        EventDTO data = EventDTO.fromEntity(newEvent, 1, RSVPStatus.ATTENDING, hostInfo, games);
         result.put("message", "Event successfully created.");
         result.put("data", data);
 
@@ -355,7 +365,7 @@ public class CommunityService {
             }
             
             
-            EventDTO data = EventDTO.fromEntity(event, attendeeCount, true, hostInfo, games);
+            EventDTO data = EventDTO.fromEntity(event, attendeeCount, RSVPStatus.ATTENDING, hostInfo, games);
             result.put("message", "Event successfully updated.");
             result.put("data", data);
         }
@@ -366,7 +376,7 @@ public class CommunityService {
         return result;
     }
 
-    public Map<String, Object> deleteEvent(String token, String eventId) throws NoSuchElementException, IllegalAccessException {
+    public Map<String, Object> cancelEvent(String token, String eventId) throws NoSuchElementException, IllegalAccessException {
         Map<String, Object> result = new HashMap<>();
         String userId = jwtService.extractUserId(token).toString();
         Optional<Event> event = eventRepo.findById(eventId);
@@ -389,7 +399,8 @@ public class CommunityService {
         eaRepo.deleteByEventId(eventId);
 
         // delete actual event
-        eventRepo.deleteById(eventId);
+        event.get().setStatus(EventStatus.CANCELLED);
+        eventRepo.save(event.get());
 
         result.put("message", "Event successfully deleted.");
         return result;
@@ -428,7 +439,7 @@ public class CommunityService {
             games.add(dto);
         }
 
-        EventDTO data = EventDTO.fromEntity(event, attendeeCount, true, hostInfo, games);
+        EventDTO data = EventDTO.fromEntity(event, attendeeCount, RSVPStatus.ATTENDING, hostInfo, games);
 
 
         result.put("message", "User attendance successfully recorded.");
@@ -474,7 +485,7 @@ public class CommunityService {
             games.add(gDto);
         }
 
-        EventDTO data = EventDTO.fromEntity(event, attendeeCount, false, hostInfo, games);
+        EventDTO data = EventDTO.fromEntity(event, attendeeCount, RSVPStatus.NOT_ATTENDING, hostInfo, games);
 
         result.put("message", "User attendance successfully removed.");
         result.put("data", data);
@@ -501,7 +512,7 @@ public class CommunityService {
             );
 
         EventAttendee newAttendee = new EventAttendee(
-            invitee.get().getId(), inviteInfo.eventId(), RSVPStatus.PENDING 
+            invitee.get().getId(), inviteInfo.eventId(), RSVPStatus.INVITED 
         );
         eaRepo.save(newAttendee);
 
@@ -536,8 +547,8 @@ public class CommunityService {
             );
         
         RSVPStatus rsvp = switch (response.toLowerCase()) {
-            case "attending" -> RSVPStatus.ATTENDING;
-            case "not attending" -> RSVPStatus.NOT_ATTENDING;
+            case "accept" -> RSVPStatus.ATTENDING;
+            case "decline" -> RSVPStatus.NOT_ATTENDING;
             default -> throw new IllegalArgumentException("Invalid invite response status provided.");
         };
 
@@ -549,7 +560,7 @@ public class CommunityService {
 
         if(ea.isEmpty())
             throw new NoSuchElementException("The invite you are trying to respond to does not exist");
-        else if(ea.get().getStatus() != RSVPStatus.PENDING){
+        else if(ea.get().getStatus() != RSVPStatus.INVITED){
             Instant resStamp = ea.get().getRespondedAt();
             throw new IllegalArgumentException("User invite has already been responded to. Responded at: " + resStamp);
         }
@@ -567,6 +578,37 @@ public class CommunityService {
     public Map<String, Object> getUserInvitations(String token){
         Map<String, Object> result = new HashMap<>();
         User user = getUserFromToken(token);
+        List<EventAttendee> invites = eaRepo.findAllByUserIdAndStatus(user.getId(), RSVPStatus.INVITED);
+
+        int count = invites.size();
+        List<InviteDTO> dtos = new ArrayList<>();
+        for(EventAttendee invite : invites){
+            Event event = eventRepo.findById(invite.getEventId()).get();
+            if(event.getStatus() == EventStatus.CANCELLED)
+                continue;
+
+            User host = userRepo.findById(event.getCreatorId()).get();
+            EventHostInfo hostInfo = new EventHostInfo(host.getUsername(), 
+                                                host.getProfilePicture());
+            EventInviteInfo eventInfo = new EventInviteInfo(
+                                            event.getId(), 
+                                            event.getName(), 
+                                            event.getEventImg(), 
+                                            event.getStartDateTime().toLocalDate()
+                                        );
+
+            InviteDTO dto = new InviteDTO(
+                invite.getStatus(),
+                hostInfo,
+                eventInfo
+            );
+            
+            dtos.add(dto);
+        }
+        
+        result.put("message", "User invites successfully retrieved.");
+        result.put("inviteCount", count);
+        result.put("invites", dtos);
 
         return result;
     }
