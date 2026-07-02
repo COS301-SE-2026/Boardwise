@@ -2,7 +2,7 @@
   <div class="d-flex flex-column ga-6">
 
     <BaseImage 
-      :src="rulebook.coverImage" 
+      :src="rulebook.coverUrl" 
       :alt="rulebook.title" 
       width="200px"
       height="200px"

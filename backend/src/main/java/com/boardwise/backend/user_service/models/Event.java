@@ -27,10 +27,12 @@ public class Event {
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
     private String locationText;
-
+    
+    // Possible addition of attendee cap
     @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
     private GeoJsonPoint location;
     private Visibility visibility;
+    private EventStatus status;
     private String creatorId;
     private List<String> games; // store the games that'll be played
     private Instant createdAt;
@@ -55,6 +57,7 @@ public class Event {
         this.locationText = locationText;
         this.location = location;
         this.visibility = visibility;
+        this.status = EventStatus.OPEN;
         this.creatorId = creatorId;
         this.games = games;
         this.createdAt = Instant.now();

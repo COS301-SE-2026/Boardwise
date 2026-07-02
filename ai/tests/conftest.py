@@ -12,7 +12,7 @@ def client():
 def mock_auth():
     """Overrides the JWT dependency to simulate an authenticated user."""
     def override_verify_jwt():
-        return {"userId": "609c12345678901234567890", "username": "TestUser"}
+        return {"sub": "609c12345678901234567890", "username": "TestUser"}
 
     app.dependency_overrides[verify_jwt] = override_verify_jwt
     yield

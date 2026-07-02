@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { LibraryService } from '@/services/libraryService'
+import { LibraryService } from '~/services/libraryService'
 
 export const useLibrary = () => {
     const token = ref<string|null>(
@@ -21,7 +21,6 @@ export const useLibrary = () => {
             rulebooks.value = response.content;
             console.log('fetched', response.content);
         } catch(err: any) {
-            error.value = err.data?.message || 'No rulebooks found'
             error.value = err.data?.message || 'No rulebooks found'
             rulebooks.value = []
         } finally {
