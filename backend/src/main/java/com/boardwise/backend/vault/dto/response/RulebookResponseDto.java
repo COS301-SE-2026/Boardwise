@@ -10,6 +10,7 @@ import lombok.Data;
 @Builder
 public class RulebookResponseDto {
     private String id;
+    private String coverUrl;
     private String title;
     private String edition;
     private List<String> genres;
@@ -21,4 +22,6 @@ public class RulebookResponseDto {
     private String lockHeldBy;
     private Instant uploadedAt;
     private Instant updatedAt;
+    private Integer minPlayers;
+    private Integer maxPlayers;
 }

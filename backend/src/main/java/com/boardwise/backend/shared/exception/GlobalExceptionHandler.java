@@ -15,6 +15,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import com.boardwise.backend.vault.exception.LockConflictException;
 import com.boardwise.backend.vault.exception.LockNotHeldException;
+import com.boardwise.backend.vault.exception.R2PresignException;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.exception.BoardgameNotFoundException;
 import com.boardwise.backend.vault.exception.VersionMismatchException;
@@ -102,6 +103,12 @@ public class GlobalExceptionHandler {
         Map<String, Object> res = new HashMap<>();
         res.put("message", "Failed to delete account. Something went wrong on our side.");
         return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(R2PresignException.class)
+    public ResponseEntity<Map<String, String>> handleR2Failure(R2PresignException ex){
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+            .body(Map.of("error", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

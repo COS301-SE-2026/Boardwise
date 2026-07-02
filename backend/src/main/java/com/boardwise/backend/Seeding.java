@@ -31,7 +31,7 @@ import com.boardwise.backend.vault.model.EditEvent;
 import com.boardwise.backend.vault.model.IngestionJob;
 import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.model.RulebookText;
-import com.boardwise.backend.vault.model.WriteLock;
+// import com.boardwise.backend.vault.model.WriteLock;
 import com.boardwise.backend.vault.repository.EditEventRepository;
 import com.boardwise.backend.vault.repository.IngestionJobRepository;
 import com.boardwise.backend.vault.repository.RulebookRepository;
@@ -277,21 +277,21 @@ public class Seeding {
                         .collect(Collectors.toMap(Boardgame::getTitle, bg -> new ObjectId(bg.getId())));
 
                 List<Rulebook> rulebooks = List.of(
-                        Rulebook.builder().gameId(gameIdsByTitle.get("Monopoly")).title("Monopoly").edition("Classic").status("Ready").version(1)
+                        Rulebook.builder().coverUrl("https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png").gameId(gameIdsByTitle.get("Monopoly")).title("Monopoly").edition("Classic").status("Ready").version(1)
                                 .contributorId(con1.id()).contributorUsername(con1.username()).description("Objective: Bankrupt all opposing players by acquiring, developing, and trading real estate properties.").language("English").r2PdfKey("rulebooks/monopoly-classic.pdf")
-                                .uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
-                        Rulebook.builder().gameId(gameIdsByTitle.get("Scrabble")).title("Scrabble").edition("Standard").status("Ready").version(1)
+                                .r2CoverKey("/rulebooks/default_cover.png").uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
+                        Rulebook.builder().coverUrl("https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg").gameId(gameIdsByTitle.get("Scrabble")).title("Scrabble").edition("Standard").status("Ready").version(1)
                                 .contributorId(con1.id()).contributorUsername(con1.username()).description("Objective: Accumulate the highest score by spelling interlocking, valid dictionary words on a grid.").language("English").r2PdfKey("rulebooks/scrabble-standard.pdf")
-                                .uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
-                        Rulebook.builder().gameId(gameIdsByTitle.get("Catan")).title("Catan").edition("5th Edition").status("Ready").version(2)
+                                .r2CoverKey("/rulebooks/default_cover.png").uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
+                        Rulebook.builder().coverUrl("").gameId(gameIdsByTitle.get("Catan")).title("Catan").edition("5th Edition").status("Ready").version(2)
                                 .contributorId(con2.id()).contributorUsername(con2.username()).description("Objective: Be the first player to accumulate 10 Victory Points (VPs).").language("Spanish").r2PdfKey("rulebooks/catan-5th.pdf")
-                                .uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
-                        Rulebook.builder().gameId(gameIdsByTitle.get("Pandemic")).title("Pandemic").edition("2nd Edition").status("PendingReview")
+                                .r2CoverKey("/rulebooks/default_cover.png").uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
+                        Rulebook.builder().coverUrl("https://cf.geekdo-images.com/S3ybV1LAp-8SnHIXLLjVqA__imagepage/img/kIBu-2Ljb_ml5n-S8uIbE6ehGFc=/fit-in/900x600/filters:no_upscale():strip_icc()/pic1534148.jpg").gameId(gameIdsByTitle.get("Pandemic")).title("Pandemic").edition("2nd Edition").status("PendingReview")
                                 .version(1).contributorId(con2.id()).contributorUsername(con2.username()).description("Objective: Work cooperatively to discover cures for four distinct global diseases before a failure condition is triggered.").language("Spanish").r2PdfKey("rulebooks/pandemic-2nd.pdf")
-                                .uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
-                        Rulebook.builder().gameId(gameIdsByTitle.get("Ticket to Ride")).title("Ticket to Ride").edition("Original").status("Processing")
+                                .r2CoverKey("/rulebooks/default_cover.png").uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
+                        Rulebook.builder().coverUrl("https://cf.geekdo-images.com/kdWYkW-7AqG63HhqPL6ekA__imagepage/img/AWsdGNNSuI78BaCPAVQpjrUneKY=/fit-in/900x600/filters:no_upscale():strip_icc()/pic8937637.jpg").gameId(gameIdsByTitle.get("Ticket to Ride")).title("Ticket to Ride").edition("Original").status("Processing")
                                 .version(1).contributorId(con1.id()).contributorUsername(con1.username()).description("Objective: Score the highest number of points by claiming railway routes and completing hidden Destination Tickets.").language("French").r2PdfKey("rulebooks/ticket-to-ride.pdf")
-                                .uploadedAt(Instant.now()).updatedAt(Instant.now()).build());
+                                .r2CoverKey("/rulebooks/default_cover.png").uploadedAt(Instant.now()).updatedAt(Instant.now()).build());
                 rulebookRepository.saveAll(rulebooks);
                 System.out.println("Seeded " + rulebooks.size() + " rulebooks");
 
