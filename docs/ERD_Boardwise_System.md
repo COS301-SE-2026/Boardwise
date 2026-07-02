@@ -90,16 +90,19 @@ erDiagram
     EVENT {
         ObjectId _id
         String name
-        Date date
-        String time
-        String location
+        String description
+        String eventImg
+        Date startDateTime
+        Date endDateTime
+        String locationText
+        GeoJsonPoint location
         String visibility
         ObjectId creatorId
         Array_ObjectId gameId
         Date createdAt
     }
 
-    RSVP {
+    EVENT_PARTICIPANT {
         ObjectId _id
         ObjectId userId
         ObjectId eventId
@@ -116,11 +119,13 @@ erDiagram
 
     BOARD_GAME {
         ObjectId _id
+        int bggId
         String title
-        String edition
         String description
         String imageUrl
-        Array_String genre
+        int minPlayers
+        int maxPlayers
+        Array_String genres
     }
 
     LISTING {
