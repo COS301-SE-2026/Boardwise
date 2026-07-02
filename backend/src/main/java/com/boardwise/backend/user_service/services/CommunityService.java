@@ -131,7 +131,7 @@ public class CommunityService {
             }
 
             if(event.getStatus() == EventStatus.OPEN){
-                RSVPStatus status = attending ? 
+                RSVPStatus status = (attending || event.getCreatorId().equals(user.getId()))? 
                                     RSVPStatus.ATTENDING : 
                                     RSVPStatus.NOT_ATTENDING;
 

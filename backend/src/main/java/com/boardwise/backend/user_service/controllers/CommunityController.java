@@ -193,7 +193,7 @@ public class CommunityController {
     @PatchMapping("/invite/{eventId}")
     public ResponseEntity<?> respondToInvite(
         @RequestParam String status,
-        String eventId,
+        @PathVariable String eventId,
         HttpServletRequest req
     ){
         String token = ProfileController.extractToken(req);
