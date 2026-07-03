@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import com.boardwise.backend.vault.model.Rulebook;
 
-public interface RulebookRepository extends MongoRepository<Rulebook, ObjectId> {
+public interface RulebookRepository extends MongoRepository<Rulebook, ObjectId>, RulebookRepositoryCustom {
     Page<Rulebook> findByStatusAndTitleContainingIgnoreCase(
         String status, String title, Pageable pageable
     );

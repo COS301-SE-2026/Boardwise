@@ -54,11 +54,11 @@ public class SecurityConfig {
                         "/api/auth/register", 
                         "/api/auth/login",
                         "/api/boardgames/",
-                        "/api/vault/rulebooks",
-                        "/api/vault/rulebooks/*/",
-                        "/api/vault/rulebooks/*/text"
-                    )
-                    .permitAll()
+                        "/api/vault/rulebooks"
+                        
+                    ).permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/vault/rulebooks/*/text").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/vault/rulebooks/*/").permitAll()
                     .anyRequest()
                     .authenticated()
                 )
