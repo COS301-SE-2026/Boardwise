@@ -2,6 +2,7 @@ package com.boardwise.backend.vault.repository;
 
 import java.time.Instant;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -18,7 +19,7 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
     private final MongoTemplate mongoTemplate;
 
     @Override
-    public Rulebook atomicAcquireWriteLock(String rulebookId, String userId, Instant newExpiry){
+    public Rulebook atomicAcquireWriteLock(ObjectId rulebookId, ObjectId userId, Instant newExpiry){
         Instant now = Instant.now();
 
         // Construct query criteria
@@ -44,6 +45,26 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
         FindAndModifyOptions options = new FindAndModifyOptions().returnNew(true);
 
         // Execute atomic command
+        return mongoTemplate.findAndModify(query, update, options, Rulebook.class);
+    }
+
+    @Override
+    public Rulebook atomicValidateAndExtendLock(ObjectId rulebookId, ObjectId userId, int expectedVersion, Instant newExpiry){
+        Query query = new Query(
+            new Criteria().andOperator(
+                Criteria.where("_id").is(rulebookId),
+                Criteria.where("lockHeldBy").is(userId),
+                Criteria.where("version").is(expectedVersion)
+            )
+        );
+
+        Update update = new Update()
+            .inc("version", 1)
+            .set("lockExpiresAt", newExpiry)
+            .set("updatedAt", Instant.now());
+
+        FindAndModifyOptions options = new FindAndModifyOptions().returnNew(true);
+
         return mongoTemplate.findAndModify(query, update, options, Rulebook.class);
     }
 }

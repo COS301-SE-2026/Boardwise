@@ -18,6 +18,7 @@ import com.boardwise.backend.vault.exception.LockNotHeldException;
 import com.boardwise.backend.vault.exception.R2PresignException;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.exception.BoardgameNotFoundException;
+import com.boardwise.backend.vault.exception.ConcurrentModificationAnomalyException;
 import com.boardwise.backend.vault.exception.VersionMismatchException;
 import com.mongodb.DuplicateKeyException;
 
@@ -109,6 +110,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleR2Failure(R2PresignException ex){
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
             .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ConcurrentModificationAnomalyException.class)
+    public ResponseEntity<Map<String, String>> handleConcurrentModificationAnomaly(ConcurrentModificationAnomalyException ex){
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(Map.of("error","Internal Server Error","message",ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

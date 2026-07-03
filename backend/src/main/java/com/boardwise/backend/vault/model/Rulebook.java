@@ -55,6 +55,12 @@ public class Rulebook {
     @Field("r2CoverKey")
     private String r2CoverKey;
 
+    @Field("lockHeldBy")
+    private ObjectId lockHeldBy;
+
+    @Field("lockExpiresAt")
+    private Instant lockExpiresAt;
+
     @Field("uploadedAt")
     private Instant uploadedAt;
 
