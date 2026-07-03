@@ -20,6 +20,7 @@ public class RulebookResponseDto {
     private String description;
     private String language;
     private String lockHeldBy;
+    private Instant lockExpiresAt;
     private Instant uploadedAt;
     private Instant updatedAt;
     private Integer minPlayers;

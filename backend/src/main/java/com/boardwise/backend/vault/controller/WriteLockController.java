@@ -4,6 +4,7 @@ import org.bson.types.ObjectId;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,28 +31,48 @@ public class WriteLockController {
     // AC-VLT-06: Aquire Write Lock
     @PostMapping("/{id}/lock")
     public ResponseEntity<AcquireWriteLockDto> getWriteLock(
-        @PathVariable("id") ObjectId rulebookId,
+        @PathVariable("id") String rulebookId,
         Authentication authentication) {
             UserDetailImpl userDetails = (UserDetailImpl) authentication.getPrincipal();
             ObjectId userId = new ObjectId(userDetails.getUserId());
         return ResponseEntity.ok(
-            writeLockService.acquireWriteLock(rulebookId, userId)
+            writeLockService.acquireWriteLock(toObjectId(rulebookId), userId)
         );
     }
     
     // AC-VLT-07: Commit Edit Delta
     @PatchMapping("/{id}/text")
     public ResponseEntity<CommitEditDeltaResponseDto> commitDelta(
-        @PathVariable("id") ObjectId rulebookId,
+        @PathVariable("id") String rulebookId,
         Authentication authentication,
         @RequestBody CommitEditDeltaRequestDto request){
             UserDetailImpl userDetails = (UserDetailImpl) authentication.getPrincipal();
             ObjectId userId = new ObjectId(userDetails.getUserId());
 
             return ResponseEntity.ok(
-                writeLockService.commitEditDelta(rulebookId, userId, request)
+                writeLockService.commitEditDelta(toObjectId(rulebookId), userId, request)
             );
         }
 
     // AC-VLT-08: Release Write Lock
+    @DeleteMapping("/{id}/lock")
+    public ResponseEntity<Void> releaseLock(
+        @PathVariable("id") String rulebookId,
+        Authentication authentication){
+            UserDetailImpl userDetails = (UserDetailImpl) authentication.getPrincipal();
+            ObjectId userId = new ObjectId(userDetails.getUserId());
+
+            writeLockService.releaseWriteLock(toObjectId(rulebookId), userId);
+            
+            return ResponseEntity.ok().build();
+        }
+
+    // ----- Private Helpers -----
+    private ObjectId toObjectId(String id){
+        try{
+            return new ObjectId(id);
+        }catch(IllegalArgumentException e){
+            throw new IllegalArgumentException("Invalid rulebook ID format: " + id);
+        }
+    }
 }

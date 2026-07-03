@@ -67,4 +67,22 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
 
         return mongoTemplate.findAndModify(query, update, options, Rulebook.class);
     }
+
+    @Override
+    public Rulebook atomicReleaseWriteLock(ObjectId rulebookId, ObjectId userId){
+        Query query = new Query(
+            new Criteria().andOperator(
+                Criteria.where("_id").is(rulebookId),
+                Criteria.where("lockHeldBy").is(userId)
+            )
+        );
+
+        Update update = new Update()
+            .set("lockHeldBy", null)
+            .set("lockExpiresAt", null);
+
+        FindAndModifyOptions options = new FindAndModifyOptions().returnNew(true);
+
+        return mongoTemplate.findAndModify(query, update, options, Rulebook.class);
+    }
 }

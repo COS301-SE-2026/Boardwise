@@ -109,6 +109,22 @@ public class WriteLockService {
     }
 
     // AC-VLT-08: Release Write Lock
+    public void releaseWriteLock(ObjectId rulebookId, ObjectId userId){
+        // Validate user
+        findUserOrThrow(userId);
+
+        // Attempt lock release
+        Rulebook rulebook = rulebookRepository.atomicReleaseWriteLock(rulebookId, userId);
+        if(rulebook == null){
+            Rulebook currentRulebook = findRulebookOrThrow(rulebookId);
+
+            if(currentRulebook.getLockHeldBy() == null || !currentRulebook.getLockHeldBy().equals(userId)){
+                throw new LockNotHeldException(userId);
+            }
+
+            throw new ConcurrentModificationAnomalyException("Failed to release the lock due to concurrent state modification.");
+        }
+    }
 
     // ----- Private Helpers -----
     private Rulebook findRulebookOrThrow(ObjectId id){

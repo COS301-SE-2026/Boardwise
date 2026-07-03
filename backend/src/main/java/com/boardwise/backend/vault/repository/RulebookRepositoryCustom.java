@@ -10,4 +10,6 @@ public interface RulebookRepositoryCustom {
     Rulebook atomicAcquireWriteLock(ObjectId rulebookId, ObjectId userId, Instant newExpiry);
 
     Rulebook atomicValidateAndExtendLock(ObjectId rulebookId, ObjectId userId, int expectedVersion, Instant newExpiry);
+
+    Rulebook atomicReleaseWriteLock(ObjectId rulebookId, ObjectId userId);
 }

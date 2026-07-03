@@ -2,6 +2,7 @@ package com.boardwise.backend.vault.service;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import java.util.stream.Collectors;
 
 import org.bson.types.ObjectId;
@@ -24,12 +25,10 @@ import com.boardwise.backend.vault.exception.R2PresignException;
 import com.boardwise.backend.vault.model.EditEvent;
 import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.model.RulebookText;
-import com.boardwise.backend.vault.model.WriteLock;
+
 import com.boardwise.backend.vault.repository.EditEventRepository;
 import com.boardwise.backend.vault.repository.RulebookRepository;
 import com.boardwise.backend.vault.repository.RulebookTextRepository;
-import com.boardwise.backend.vault.repository.WriteLockRepository;
-
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -37,16 +36,18 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import com.boardwise.backend.user_service.models.Boardgame;
+import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.user_service.repos.UserRepository;
 
 @Service
 @RequiredArgsConstructor // automatically generates a constructor for specific fields(Removes need for manual boilerplate code)
 public class RulebookService {
     private final RulebookRepository rulebookRepository;
     private final RulebookTextRepository rulebookTextRepository;
-    private final WriteLockRepository writeLockRepository;
     private final EditEventRepository editEventRepository;
     private final BoardGameRepository boardgameRepository;
+    private final UserRepository userRepository;
 
     @Value("${r2.rulebooks.public-dev-url}")
     private String r2PublicDomain;
@@ -109,21 +110,23 @@ public class RulebookService {
 
     // AC-VLT-05: Get Rulebook Text State
     public RulebookTextResponseDto getRulebookText(ObjectId id){
-        findRulebookOrThrow(id);
+        Rulebook rulebook = findRulebookOrThrow(id);
 
         RulebookText text = rulebookTextRepository
             .findByRulebookId(id)
             .orElseThrow(() -> new RulebookNotFoundException("Text content not found for rulebook: " + id));
 
-        WriteLock lock = writeLockRepository
-            .findByRulebookId(id)
-            .orElse(null);
+            String username = "";
+            if(rulebook.getLockHeldBy() != null){
+                User user = findUserOrThrow(rulebook.getLockHeldBy());
+                username = user.getUsername();
+            }
 
         return RulebookTextResponseDto.builder()
             .rulebookId(id.toHexString())
             .chunks(text.getChunks())
             .version(text.getVersion())
-            .lockHeldBy(lock != null ? lock.getHeldByUserId().toHexString() : null)
+            .lockHeldBy(username)
             .updatedAt(text.getUpdatedAt())
             .build();
     }
@@ -156,6 +159,11 @@ public class RulebookService {
     private Rulebook findRulebookOrThrow(ObjectId id) {
         return rulebookRepository.findById(id)
             .orElseThrow(() -> new RulebookNotFoundException(id));
+    }
+
+    private User findUserOrThrow(ObjectId id) {
+        return userRepository.findById(id.toHexString())
+                .orElseThrow(() -> new IllegalArgumentException("User does not exist."));
     }
 
     private String resolveCoverUrl(String coverImageUrl, String r2CoverKey){
@@ -197,9 +205,6 @@ public class RulebookService {
     }
 
     private RulebookResponseDto toRulebookResponse(Rulebook rulebook) {
-        WriteLock lock = writeLockRepository
-            .findByRulebookId(rulebook.getId())
-            .orElse(null);
 
         List<String> genres = List.of();
         String coverUrl = "";
@@ -214,6 +219,12 @@ public class RulebookService {
             maxPlayers = game.getMaxPlayers();
         }
 
+        String username = "";
+        if(rulebook.getLockHeldBy() != null){
+            User user = findUserOrThrow(rulebook.getLockHeldBy());
+            username = user.getUsername();
+        }
+
         return RulebookResponseDto.builder()
                 .id(rulebook.getId().toHexString())
                 .coverUrl(coverUrl.isEmpty() ? resolveCoverUrl("", rulebook.getR2CoverKey()) : coverUrl)
@@ -225,7 +236,8 @@ public class RulebookService {
                 .contributorUsername(rulebook.getContributorUsername())
                 .description(rulebook.getDescription())
                 .language(rulebook.getLanguage())
-                .lockHeldBy(lock != null ? lock.getHeldByUserId().toHexString() : null)
+                .lockHeldBy(username)
+                .lockExpiresAt(rulebook.getLockExpiresAt())
                 .uploadedAt(rulebook.getUploadedAt())
                 .updatedAt(rulebook.getUpdatedAt())
                 .minPlayers(minPlayers)
