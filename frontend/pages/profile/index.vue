@@ -33,7 +33,12 @@
         </v-window-item>
 
         <v-window-item value="Listings">
-          <ListingsSection :listings="listings" />
+          <ListingsSection 
+          :listings="listings"
+          @deleted="fetchUserListing" 
+          @updated="fetchUserListing"
+
+          />
         </v-window-item>
 
       </v-window>
