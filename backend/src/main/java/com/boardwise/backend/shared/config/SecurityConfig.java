@@ -17,6 +17,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import com.boardwise.backend.shared.security.JwtFilter;
 import com.boardwise.backend.user_service.services.MyUserDetailsService;
+
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -52,14 +55,19 @@ public class SecurityConfig {
                         "/api/auth/login",
                         "/api/boardgames/",
                         "/api/vault/rulebooks",
-                        "/api/vault/rulebooks/{id}",
-                        "/api/vault/rulebooks/{id}/text"
+                        "/api/vault/rulebooks/*/",
+                        "/api/vault/rulebooks/*/text"
                     )
                     .permitAll()
                     .anyRequest()
                     .authenticated()
                 )
-                .httpBasic(Customizer.withDefaults())
+                .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
+                    response.setContentType("application/json");
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("{\"error\": \"Unauthorized: Missing or invalid token\"}");
+                    })
+                )
                 .sessionManagement(sess -> 
                     sess.sessionCreationPolicy(
                         SessionCreationPolicy.STATELESS

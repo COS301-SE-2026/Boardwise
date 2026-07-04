@@ -15,6 +15,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import com.boardwise.backend.vault.exception.LockConflictException;
 import com.boardwise.backend.vault.exception.LockNotHeldException;
+import com.boardwise.backend.vault.exception.R2PresignException;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.exception.BoardgameNotFoundException;
 import com.boardwise.backend.vault.exception.VersionMismatchException;
@@ -104,12 +105,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException e){
-        Map<String, String> res = new HashMap<>();
-        String message = e.getMessage();
-        res.put("message", message);        
-        return ResponseEntity.badRequest().body(res);
+    @ExceptionHandler(R2PresignException.class)
+    public ResponseEntity<Map<String, String>> handleR2Failure(R2PresignException ex){
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+            .body(Map.of("error", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

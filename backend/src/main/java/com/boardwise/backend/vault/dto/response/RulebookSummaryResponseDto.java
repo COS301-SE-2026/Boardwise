@@ -9,9 +9,12 @@ import lombok.Data;
 @Builder
 public class RulebookSummaryResponseDto {
     private String id;
+    private String coverUrl;
     private String title;
     private String language;
     private String edition;
     private int version;
     private List<String> genres;
+    private Integer minPlayers;
+    private Integer maxPlayers;
 }

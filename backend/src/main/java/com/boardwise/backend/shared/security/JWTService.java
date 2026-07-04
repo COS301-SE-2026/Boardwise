@@ -11,6 +11,7 @@ import javax.crypto.SecretKey;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.boardwise.backend.user_service.models.TokenBlackList;
@@ -74,7 +75,7 @@ public class JWTService {
 
     public boolean validateToken(String token, UserDetails userDeets) {
         String userId = extractUserId(token).toString();
-        String username = userRepo.findById(userId).get().getUsername();
+        String username = userRepo.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User not found: " + userId)).getUsername();
         
         return username.equals(userDeets.getUsername()) && 
         !isTokenExpired(token) && 

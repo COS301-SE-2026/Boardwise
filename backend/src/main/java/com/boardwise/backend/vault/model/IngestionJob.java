@@ -23,7 +23,7 @@ public class IngestionJob {
     private ObjectId rulebookId;
 
     @Field("stage")
-    private String stage; // Sanitise | Extract | Chunk | Vectorise
+    private String stage; // Sanitise | Extract | Chunk | Vectorise | Store | Unknown
 
     @Field("jobStatus")
     private String jobStatus; // Processing | Completed | Failed
