@@ -89,7 +89,7 @@ public class WriteLockService {
         }
 
         // 2. Update RULEBOOK_TEXT
-        rulebookTextRepository.atomicUpdateChunk(rulebookId, request.getChunkId(), request.getDeltaContent());
+        rulebookTextRepository.atomicUpdateChunk(rulebookId, new ObjectId(request.getChunkId()), request.getDeltaContent());
         
         // 3. Insert EDIT_EVENT
         EditEvent event = EditEvent.builder()
