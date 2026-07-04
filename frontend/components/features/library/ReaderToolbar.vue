@@ -1,7 +1,7 @@
 <template>
   <v-app-bar flat border="b" color="surface" height="64" style="position: sticky; top: 0; z-index: 20;">
 
-    <NuxtLink :to="`/library/${rulebook?.id}`" class="text-primary font-weight-bold text-decoration-none ml-4">
+    <NuxtLink :to="`/library`" class="text-primary font-weight-bold text-decoration-none ml-4">
       <v-icon start>mdi-arrow-left</v-icon>
       Back
     </NuxtLink>
