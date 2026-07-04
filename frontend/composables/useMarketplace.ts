@@ -1,4 +1,4 @@
-import { MarketplaceService, type ListingResponse } from '@/services/marketplaceService'
+import { MarketplaceService, type ListingResponse } from '~/services/marketplaceService'
 import { ref } from 'vue'
 import { useSnackBar } from './useSnackbar'
 import { createSharedComposable } from '@vueuse/core'

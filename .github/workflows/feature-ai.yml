@@ -11,6 +11,18 @@ on:
 jobs:
     test-ai:
         runs-on: ubuntu-latest
+
+        env:
+          JWT_SECRET: "ci_dummy_secret_key_12345"
+          JWT_ALGORITHM: "HS256"
+          MONGODB_URL: "mongodb://localhost:27017"
+          MONGODB_DATABASE: "vault_test"
+          MAX_FILE_SIZE_MB: "50"
+          R2_ACCOUNT_ID: "dummy-account"
+          R2_ACCESS_KEY_ID: "dummy_key"
+          R2_SECRET_ACCESS_KEY: "dummy_secret"
+          R2_BUCKET_RULEBOOKS: "dummy_bucket"
+
         defaults:
             run:
                 working-directory: ./ai
@@ -33,14 +45,4 @@ jobs:
                 pip install -r requirements-dev.txt
 
             - name: Run Unit Tests
-              env:
-                JWT_SECRET: "ci_dummy_secret_key_12345"
-                JWT_ALGORITHM: "HS256"
-                MONGODB_URL: "mongodb://localhost:27017"
-                MONGODB_DATABASE: "vault_test"
-                MAX_FILE_SIZE_MB: "50"
-                R2_ACCOUNT_ID: "dummy_account"
-                R2_ACCESS_KEY_ID: "dummy_key"
-                R2_SECRET_ACCESS_KEY: "dummy_secret"
-                R2_BUCKET_RULEBOOKS: "dummy_bucket"
               run: pytest tests/unit/ -v

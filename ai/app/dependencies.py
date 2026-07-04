@@ -1,5 +1,5 @@
-import jwt
 import logging
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.config import settings
@@ -12,6 +12,11 @@ logger = logging.getLogger(__name__)
 def verify_jwt(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)
 ) -> dict:
+    """
+    Verifies if the JWT attached to bearer is valid.
+    Returns the Payload if the JWT is valid.
+    Raises an exception if it is not.
+    """
     token = credentials.credentials
     try:
         # Get the JWT payload
@@ -41,15 +46,15 @@ def verify_jwt(
         logger.info("JWT is valid")
         return payload
 
-    except jwt.ExpiredSignatureError:
-        logger.warning(f"Rejected request: Token has expired.")
+    except jwt.ExpiredSignatureError as e:
+        logger.warning("Rejected request: Token has expired.")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has expired."
-        )
+        ) from e
     except jwt.InvalidTokenError as e:
-        logger.error(f"Invalid token error: {str(e)}",exc_info=True)
+        logger.exception("Invalid token error")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token."
-        )
+        ) from e
