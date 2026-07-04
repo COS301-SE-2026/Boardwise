@@ -5,6 +5,8 @@ import java.time.LocalTime;
 import java.util.List;
 
 import com.boardwise.backend.user_service.models.Event;
+import com.boardwise.backend.user_service.models.EventStatus;
+import com.boardwise.backend.user_service.models.RSVPStatus;
 import com.boardwise.backend.user_service.models.Visibility;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -23,12 +25,15 @@ public record EventDTO(
     int attendeeCount,
     String location,
     Visibility visibility,
+    EventStatus eventStatus,
+    RSVPStatus rsvpStatus,
     EventHostInfo host,
     List<GameInventoryDTO> games
 ) {
     public static EventDTO fromEntity(
         Event event,
         int attendeeCount,
+        RSVPStatus status,
         EventHostInfo hostInfo,
         List<GameInventoryDTO> games
     ){
@@ -43,6 +48,8 @@ public record EventDTO(
             attendeeCount,
             event.getLocationText(),
             event.getVisibility(),
+            event.getStatus(),
+            status,
             hostInfo,
             games
         );

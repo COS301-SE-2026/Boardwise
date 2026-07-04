@@ -25,7 +25,7 @@
 </template>
 
 <script setup>
-import{ref, compute} from 'vue'
+import{ref, computed } from 'vue'
 import ReaderToolbar from './ReaderToolbar.vue'
 import ReaderProgress from './ReaderProgress.vue'
 import ReaderSidebar from './ReaderSidebar.vue'

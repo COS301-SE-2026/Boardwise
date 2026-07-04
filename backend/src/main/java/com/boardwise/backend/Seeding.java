@@ -192,7 +192,9 @@ public class Seeding {
                                 List.of("Cooperative", "Strategy")),
                         new Boardgame(null,9209,"Ticket to Ride","Railway route-building game.",
                                 "https://cf.geekdo-images.com/kdWYkW-7AqG63HhqPL6ekA__imagepage/img/AWsdGNNSuI78BaCPAVQpjrUneKY=/fit-in/900x600/filters:no_upscale():strip_icc()/pic8937637.jpg",2,5,
-                                List.of("Strategy","Trains","Transportation"))
+                                List.of("Strategy","Trains","Transportation")),
+                        new Boardgame(null, 171, "Chess", "Classic two-player strategy game played on an 8x8 board.", "https://new.uschess.org/sites/default/files/styles/1080px_wide_scale/public/media/images/2024_cover_image.png.webp?itok=xUbyXJ_i", 2,2,
+                                List.of("Abstract Strategy", "Classic"))
                 );
                 boardGameRepository.saveAll(boardGames);
                 System.out.println("Seeded " + boardGames.size() + " board games");

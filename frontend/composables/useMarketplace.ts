@@ -1,4 +1,4 @@
-import { MarketplaceService, type ListingResponse } from '@/services/marketplaceService'
+import { MarketplaceService, type ListingResponse } from '~/services/marketplaceService'
 import { ref } from 'vue'
 
 
