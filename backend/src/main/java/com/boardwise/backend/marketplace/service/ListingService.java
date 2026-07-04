@@ -101,8 +101,7 @@ public class ListingService {
     }
 
     public void deleteFile(String fileName) {
-        // no file provided to delete: theoretically shouldn't ever be triggered
-        if (fileName == null || fileName.isBlank()) {
+        if (fileName == null || fileName.isBlank() || fileName.contains("/seeded-data/")) { // i just hope no one names their file "seeded-data"
             return;
         }
 
@@ -239,6 +238,15 @@ public class ListingService {
         Listing saved = listingRepository.save(toSave);
 
         if (img != null && !img.isEmpty()) {
+            String imgAsString = img.getOriginalFilename().toLowerCase();
+            
+            if (imgAsString == null) throw new IllegalArgumentException("Invalid image file");
+
+            imgAsString = imgAsString.toLowerCase(); // accounting for Capitalised extensions
+
+            if(!imgAsString.endsWith(".png") && !imgAsString.endsWith(".jpg") && !imgAsString.endsWith(".jpeg") && !imgAsString.endsWith(".webp")){
+                throw new IllegalArgumentException("Invalid image file");
+            }
             try {
                 imageUrl = uploadImageToR2(saved.getId(), img);
                 saved.setImageUrl(imageUrl);

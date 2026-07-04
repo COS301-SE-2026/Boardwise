@@ -84,91 +84,146 @@ public class Seeding {
             if (listingRepository.count() == 0) {
 
                 RentalPeriod rentalPeriod1 = new RentalPeriod();
-                rentalPeriod1.setStartDate(LocalDate.of(2026, 7, 16));
-                rentalPeriod1.setEndDate(LocalDate.of(2026, 9, 15));
+                rentalPeriod1.setStartDate(LocalDate.of(2027, 7, 16));
+                rentalPeriod1.setEndDate(LocalDate.of(2027, 9, 15));
 
                 RentalPeriod rentalPeriod2 = new RentalPeriod();
-                rentalPeriod2.setStartDate(LocalDate.of(2026, 7, 1));
-                rentalPeriod2.setEndDate(LocalDate.of(2026, 10, 1));
+                rentalPeriod2.setStartDate(LocalDate.of(2027, 7, 1));
+                rentalPeriod2.setEndDate(LocalDate.of(2027, 10, 1));
 
                 RentalPeriod rp2 = new RentalPeriod();
-                rp2.setStartDate(LocalDate.of(2026, 7, 1));
-                rp2.setEndDate(LocalDate.of(2026, 10, 1));
+                rp2.setStartDate(LocalDate.of(2027, 7, 1));
+                rp2.setEndDate(LocalDate.of(2027, 10, 1));
 
                 RentalPeriod rp3 = new RentalPeriod();
-                rp3.setStartDate(LocalDate.of(2026, 8, 1));
-                rp3.setEndDate(LocalDate.of(2026, 8, 31));
+                rp3.setStartDate(LocalDate.of(2027, 8, 1));
+                rp3.setEndDate(LocalDate.of(2027, 8, 31));
 
                 RentalPeriod rp4 = new RentalPeriod();
-                rp4.setStartDate(LocalDate.of(2026, 7, 10));
-                rp4.setEndDate(LocalDate.of(2026, 9, 10));
+                rp4.setStartDate(LocalDate.of(2027, 7, 10));
+                rp4.setEndDate(LocalDate.of(2027, 9, 10));
 
                 RentalPeriod rp5 = new RentalPeriod();
-                rp5.setStartDate(LocalDate.of(2026, 6, 15));
-                rp5.setEndDate(LocalDate.of(2026, 8, 15));
+                rp5.setStartDate(LocalDate.of(2027, 6, 15));
+                rp5.setEndDate(LocalDate.of(2027, 8, 15));
 
                 List<Listing> listings = List.of(
                         new Listing(null, "IAmR3al", getObjectIdFromUsername("IAmR3al", userRepository) , "full boardgame", "sale", 29.99,"Pretoria",true,"Monopoly board game for sale", "new" ,"Monopoly","millionaire e.d.",
-                                "Monopoly game with all details\n", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png",
+                                "Monopoly game with all details\n", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/Monopoly.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
                                 List.of(Genres.STRATEGY.getValue(), Genres.ACTION_DEXTERITY.getValue()), null),
-                        
+
+                        new Listing(null, "IAmR3al", getObjectIdFromUsername("IAmR3al", userRepository),
+                                "full boardgame", "sale", 150.00, "Pretoria", true, "Risk board game, great condition", "good", "Risk", "base",
+                                "Classic Risk board game for strategic conquest fans.", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/Risk.jpg",
+                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                                List.of(Genres.STRATEGY.getValue(), Genres.TERRITORY_BUILDING.getValue()), null),
+
+                        new Listing(null, "IAmR3al", getObjectIdFromUsername("IAmR3al", userRepository),
+                                "full boardgame", "rental", 45.00, "Pretoria", false, "Codenames for rent", "like new", "Codenames", "base",
+                                "Team-based word association party game.", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/codenames.jpg",
+                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                                List.of(Genres.PARTY_GAME.getValue(), Genres.PUZZLE.getValue()), rentalPeriod2),
+                                
                         new Listing(null, "sarah_dev",getObjectIdFromUsername("sarah_dev", userRepository), "pieces", "rental", 48.32,"Johannesburg", false,"Some pieces","new", "Scrabble","base",
-                                "game of scrabble pieces", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg",
+                                "game of scrabble pieces", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/Scrabble.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now().plusDays(5),
                                 LocalDateTime.now().plusDays(5), List.of("abstract strategy"), rentalPeriod1),
                         
+                        new Listing(null, "sarah_dev", getObjectIdFromUsername("sarah_dev", userRepository),
+                                "full boardgame", "sale", 300.00, "Johannesburg", true, "Betrayal at House on the Hill", "good", "Betrayal at House on the Hill", "base",
+                                "Explore a haunted mansion before someone turns traitor.", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/BetrayalatHouseontheHill.jpg",
+                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                                List.of(Genres.STRATEGY.getValue(), Genres.FANTASY.getValue()), null),
+
+                        new Listing(null, "sarah_dev", getObjectIdFromUsername("sarah_dev", userRepository),
+                                "full boardgame", "sale", 500.00, "Johannesburg", true, "Gloomhaven campaign box", "fair", "Gloomhaven", "base",
+                                "Massive tactical dungeon-crawling campaign game.", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/Gloomhaven%20campaign.jpg",
+                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                                List.of(Genres.STRATEGY.getValue(), Genres.FANTASY.getValue()), null),
+                                
+                        new Listing(null, "jane_doe", getObjectIdFromUsername("jane_doe", userRepository),
+                                "full boardgame", "sale", 260.00, "Durban", true, "7 Wonders card drafting game", "good", "7 Wonders", "base",
+                                "Build a civilization through three ages of card drafting.", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/7Wonders.jpg",
+                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                                List.of(Genres.STRATEGY.getValue(), Genres.ECONOMIC.getValue()), null),
+
+                        new Listing(null, "jane_doe", getObjectIdFromUsername("jane_doe", userRepository),
+                                "full boardgame", "sale", 400.00, "Durban", true, "Terraforming Mars strategy game", "like new", "Terraforming Mars", "base",
+                                "Compete to make Mars habitable in this engine-building game.", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/TerraformingMars.jpg",
+                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                                List.of(Genres.STRATEGY.getValue(), Genres.ECONOMIC.getValue()), null),
+
+
+                        new Listing(null, "jane_doe", getObjectIdFromUsername("jane_doe", userRepository),
+                                "full boardgame", "rental", 50.00, "Durban", false, "Carcassonne tile game for rent", "good", "Carcassonne", "base",
+                                "Tile-laying game of medieval landscapes and roads.", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/carcassonne.jpg",
+                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                                List.of(Genres.STRATEGY.getValue(), Genres.TERRITORY_BUILDING.getValue()), rp4),
+
                         new Listing(null, "bob", getObjectIdFromUsername("bob", userRepository),
                                 "partial boardgame", "sale", 350.00, "Cape Town",true,"2nd hand Catan game ", "new", "Catan","base",
                                 "Settlers of Catan 5th edition. Complete with all expansions. Excellent condition.",
-                                "/images/catan.jpg",
+                                "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/Catan.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
                                 List.of(Genres.STRATEGY.getValue(), Genres.NEGOTIATION.getValue(), Genres.ECONOMIC.getValue()), null),
 
+                        new Listing(null, "bob", getObjectIdFromUsername("bob", userRepository),
+                                "full boardgame", "sale", 220.00, "Cape Town", true, "Pandemic cooperative game", "good", "Pandemic", "base",
+                                "Work together to stop global outbreaks before it's too late.", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/Pandemic.jpg",
+                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                                List.of(Genres.STRATEGY.getValue(), Genres.PUZZLE.getValue()), null),
+
+                        new Listing(null, "bob", getObjectIdFromUsername("bob", userRepository),
+                                "full boardgame", "sale", 180.00, "Cape Town", true, "Splendor gem trading game", "like new", "Splendor", "base",
+                                "Build a jewel merchant empire through card combos.", "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/Splendor.jpg",
+                                ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
+                                List.of(Genres.STRATEGY.getValue(), Genres.ECONOMIC.getValue()), null),
+
                         new Listing(null, "jane_doe", getObjectIdFromUsername("jane_doe", userRepository),
-                                "full boardgame", "sale", 420.00, "Durban",true,"Ticker to Ride board game from my childhood", "good", "Ticket to Ride","base",
+                                "full boardgame", "sale", 420.00, "Durban",true,"Ticket to Ride board game from my childhood", "good", "Ticket to Ride","base",
                                 "Ticket to Ride original edition. All cards and train pieces present. Box slightly worn.",
-                                "/images/ticket.jpg",
+                                "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/TrainToRide.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
                                 List.of(Genres.STRATEGY.getValue(), Genres.TRAINS.getValue(), Genres.TRANSPORTATION.getValue()), null),
 
                         new Listing(null, "alex_games", getObjectIdFromUsername("alex_games", userRepository),
                                 "full boardgame", "rental", 55.00, "Johannesburg",false, "Idk what Azul is but its going for cheap","fair", "Azul","base",
                                 "Azul tile-drafting game. Perfect condition, all tiles accounted for. Great for 2–4 players.",
-                                "/images/azul.jpg",
+                                "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/Azul.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
                                 List.of(Genres.ABSTRACT_STRATEGY.getValue(), Genres.PUZZLE.getValue()), rp2),
 
                         new Listing(null, "mike_b", getObjectIdFromUsername("mike_b", userRepository),
                                 "full boardgame", "sale", 280.00, "Pretoria", false,"Dixit game set with all pieces, DM me", "fair", "Dixit","base",
                                 "Dixit base game with all 84 cards. Wonderful storytelling game for families.",
-                                "/images/dixit.jpg",
+                                "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/DiXit.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
                                 List.of(Genres.PARTY_GAME.getValue(), Genres.HUMOR.getValue()), null),
 
                         new Listing(null, "lena_play", getObjectIdFromUsername("lena_play", userRepository),
                                 "partial boardgame", "sale", 310.00, "Stellenbosch",true,"wingspan board game with a few missing pieces","like new",  "Wingspan","base",
                                 "Wingspan with Oceania expansion included. Lightly played, missing components intact.",
-                                "/images/wingspan.jpg",
+                                "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/Wingspan.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
                                 List.of(Genres.STRATEGY.getValue(), Genres.ANIMALS.getValue(), Genres.FARMING.getValue()), null),
 
                         new Listing(null, "thandeka_m", getObjectIdFromUsername("thandeka_m", userRepository),
                                 "asset", "rental", 60.00, "Johannesburg",true,"GOT board game assets, for rent", "like new", "Game of Thrones","base",
                                 "Game of Thrones board game 2nd edition. Supports up to 6 players. Epic political strategy.",
-                                "/images/gameofthrones.png",
+                                "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/GameOfThrones.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
                                 List.of(Genres.STRATEGY.getValue(), Genres.NEGOTIATION.getValue(), Genres.POLITICAL.getValue(), Genres.FANTASY.getValue()), rp3),
 
                         new Listing(null, "ruan_sa", getObjectIdFromUsername("ruan_sa", userRepository),
                                 "partial boardgame", "sale", 195.00, "Centurion", false,"","like new","Kingdom Builder","base",
                                 "Kingdom Builder base game. Complete, all tiles and tokens present. Minor box shelf wear.",
-                                "/images/kingdom.png",
+                                "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/KingdomBuilder.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
                                 List.of(Genres.STRATEGY.getValue(), Genres.TERRITORY_BUILDING.getValue()), null),
 
                         new Listing(null, "zoe_tiles", getObjectIdFromUsername("zoe_tiles", userRepository),"merch","sale",650,"Braam",true,"Custom Monopoly hoodie", "fair","Monopoly","unknown",
-                                "2XL Monopoly man hoodie","/images/MonopolyManHoodie",ListingStatus.AVAILABLE,LocalDateTime.now(),LocalDateTime.now(), List.of(Genres.STRATEGY.getValue(),Genres.DICE.getValue()),null));
+                                "2XL Monopoly man hoodie","https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/MonopolyManHoodie.jpg",ListingStatus.AVAILABLE,LocalDateTime.now(),LocalDateTime.now(), List.of(Genres.STRATEGY.getValue(),Genres.DICE.getValue()),null));
                                 
                 listingRepository.saveAll(listings);
                 System.out.println("Seeded " + listings.size() + " listings");
