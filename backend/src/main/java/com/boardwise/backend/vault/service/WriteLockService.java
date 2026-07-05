@@ -1,6 +1,8 @@
 package com.boardwise.backend.vault.service;
 
 import java.time.Instant;
+import java.util.List;
+
 import org.bson.types.ObjectId;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -12,6 +14,7 @@ import com.boardwise.backend.vault.dto.request.CommitEditDeltaRequestDto;
 import com.boardwise.backend.vault.dto.response.AcquireWriteLockDto;
 import com.boardwise.backend.vault.dto.response.CommitEditDeltaResponseDto;
 import com.boardwise.backend.vault.dto.response.DeltaCommitedEventDto;
+import com.boardwise.backend.vault.dto.response.LockReleasedEventDto;
 import com.boardwise.backend.vault.exception.ConcurrentModificationAnomalyException;
 import com.boardwise.backend.vault.exception.LockConflictException;
 import com.boardwise.backend.vault.exception.LockNotHeldException;
@@ -134,6 +137,29 @@ public class WriteLockService {
             }
 
             throw new ConcurrentModificationAnomalyException("Failed to release the lock due to concurrent state modification.");
+        }
+    }
+
+    public void releaseAllWriteLocksForUser(ObjectId userId){
+        // Validate user
+        findUserOrThrow(userId);
+
+        // Find all rulebooks locked by user
+        List<Rulebook> lockedRulebooks = rulebookRepository.findByLockHeldBy(userId);
+
+        if(!lockedRulebooks.isEmpty()){
+            // Attempt multi-lock release
+            rulebookRepository.atomicReleaseAllWriteLocks(userId);
+
+            // Broadcast release events per rulebook
+            for(Rulebook rulebook: lockedRulebooks){
+                eventPublisher.publishEvent(new LockReleasedEventDto(
+                    rulebook.getId(),
+                    userId,
+                    "disconnected",
+                    Instant.now()
+                ));
+            }
         }
     }
 
