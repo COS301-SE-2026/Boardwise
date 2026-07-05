@@ -26,6 +26,7 @@ import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.vault.enums.EditType;
 import com.boardwise.backend.vault.model.Chunk;
 import com.boardwise.backend.vault.model.EditEvent;
 import com.boardwise.backend.vault.model.IngestionJob;
@@ -384,15 +385,27 @@ public class Seeding {
                 System.out.println("Seeded " + jobs.size() + " ingestion jobs");
 
                 // Edit Events
+                Chunk text0Chunk0 = texts.get(0).getChunks().get(0);
+                Chunk text1Chunk0 = texts.get(1).getChunks().get(0);
+                Chunk text2Chunk0 = texts.get(2).getChunks().get(0);
                 List<EditEvent> editEvents = List.of(
                         EditEvent.builder().rulebookId(rulebooks.get(0).getId()).editorId(con1.id())
-                                .delta("Fixed typo on page 3.").versionAfter(2)
+                                .chunkId(text0Chunk0.getChunkId())
+                                .editType(EditType.UPDATE)
+                                .previousContent(text0Chunk0.getContent())
+                                .newContent("Fixed typo on page 3.").versionAfter(2)
                                 .committedAt(Instant.now().minusSeconds(120)).build(),
                         EditEvent.builder().rulebookId(rulebooks.get(1).getId()).editorId(con1.id())
-                                .delta("Updated scoring section.").versionAfter(2)
+                                .chunkId(text1Chunk0.getChunkId())
+                                .editType(EditType.UPDATE)
+                                .previousContent(text1Chunk0.getContent())
+                                .newContent("Updated scoring section.").versionAfter(2)
                                 .committedAt(Instant.now().minusSeconds(90)).build(),
                         EditEvent.builder().rulebookId(rulebooks.get(2).getId()).editorId(con2.id())
-                                .delta("Clarified trading rules.").versionAfter(3)
+                                .chunkId(text2Chunk0.getChunkId())
+                                .editType(EditType.UPDATE)
+                                .previousContent(text2Chunk0.getContent())
+                                .newContent("Clarified trading rules.").versionAfter(3)
                                 .committedAt(Instant.now().minusSeconds(60)).build());
                 editEventRepository.saveAll(editEvents);
                 System.out.println("Seeded " + editEvents.size() + " edit events");
