@@ -7,8 +7,10 @@ import lombok.Data;
 
 @Data
 @Builder
-public class CommitEditDeltaResponseDto {
-    private boolean committed;
+public class InsertNewChunkResponseDto {
+    private boolean inserted;
     private int newVersion;
-    private Instant committedAt;
+    private String chunkId;
+    private int actualIndex;
+    private Instant insertedAt;
 }

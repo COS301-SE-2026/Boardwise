@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.boardwise.backend.user_service.models.UserDetailImpl;
 import com.boardwise.backend.vault.dto.request.CommitEditDeltaRequestDto;
+import com.boardwise.backend.vault.dto.request.InsertNewChunkRequestDto;
 import com.boardwise.backend.vault.dto.response.AcquireWriteLockDto;
 import com.boardwise.backend.vault.dto.response.CommitEditDeltaResponseDto;
+import com.boardwise.backend.vault.dto.response.InsertNewChunkResponseDto;
 import com.boardwise.backend.vault.service.WriteLockService;
 
 import lombok.RequiredArgsConstructor;
@@ -65,6 +67,19 @@ public class WriteLockController {
             writeLockService.releaseWriteLock(toObjectId(rulebookId), userId);
             
             return ResponseEntity.ok().build();
+        }
+
+    @PostMapping("/{id}/insert")
+    public ResponseEntity<InsertNewChunkResponseDto> insertChunk(
+        @PathVariable("id") String rulebookId,
+        Authentication authentication,
+        @RequestBody InsertNewChunkRequestDto request){
+            UserDetailImpl userDetails = (UserDetailImpl) authentication.getPrincipal();
+            ObjectId userId = new ObjectId(userDetails.getUserId());
+
+            return ResponseEntity.ok(
+                writeLockService.insertNewChunk(toObjectId(rulebookId), userId, request)
+            );
         }
 
     // ----- Private Helpers -----

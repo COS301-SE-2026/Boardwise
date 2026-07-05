@@ -1,4 +1,4 @@
-package com.boardwise.backend.vault.dto.response;
+package com.boardwise.backend.vault.dto.websocket;
 
 import java.time.Instant;
 

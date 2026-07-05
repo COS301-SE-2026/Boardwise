@@ -10,9 +10,10 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
-import com.boardwise.backend.vault.dto.response.DeltaCommitedEventDto;
-import com.boardwise.backend.vault.dto.response.LockAcquiredEventDto;
-import com.boardwise.backend.vault.dto.response.LockReleasedEventDto;
+import com.boardwise.backend.vault.dto.websocket.ChunkInsertedEventDto;
+import com.boardwise.backend.vault.dto.websocket.DeltaCommitedEventDto;
+import com.boardwise.backend.vault.dto.websocket.LockAcquiredEventDto;
+import com.boardwise.backend.vault.dto.websocket.LockReleasedEventDto;
 import com.boardwise.backend.vault.service.WriteLockService;
 
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ public class VaultWebSocketDispatcher {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleDeltaCommitedEvent(DeltaCommitedEventDto event){
-        String destination = DEST_ROOT + event.rulebookId() + "/delta";
+        String destination = DEST_ROOT + event.getRulebookId() + "/delta";
 
         messagingTemplate.convertAndSend(destination, event);
     }
@@ -44,6 +45,13 @@ public class VaultWebSocketDispatcher {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleLockReleasedEvent(LockReleasedEventDto event) {
         String destination = DEST_ROOT + event.rulebookId() + "/lock/released";
+
+        messagingTemplate.convertAndSend(destination, event);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleChunkInsertedEvent(ChunkInsertedEventDto event){
+        String destination = DEST_ROOT + event.getRulebookId() + "/chunk/inserted";
 
         messagingTemplate.convertAndSend(destination, event);
     }
