@@ -14,6 +14,7 @@ import com.boardwise.backend.vault.dto.request.CommitEditDeltaRequestDto;
 import com.boardwise.backend.vault.dto.response.AcquireWriteLockDto;
 import com.boardwise.backend.vault.dto.response.CommitEditDeltaResponseDto;
 import com.boardwise.backend.vault.dto.response.DeltaCommitedEventDto;
+import com.boardwise.backend.vault.dto.response.LockAcquiredEventDto;
 import com.boardwise.backend.vault.dto.response.LockReleasedEventDto;
 import com.boardwise.backend.vault.exception.ConcurrentModificationAnomalyException;
 import com.boardwise.backend.vault.exception.LockConflictException;
@@ -60,6 +61,15 @@ public class WriteLockService {
                 throw new LockConflictException(rulebookId);
             }
         }
+
+        eventPublisher.publishEvent(new LockAcquiredEventDto(
+            rulebookId.toHexString(),
+            userId.toHexString(),
+            user.getUsername(),
+            newExpiry,
+            lockedRulebook.getVersion()
+        ));
+
         return AcquireWriteLockDto.builder()
             .lockGranted(true)
             .lockedBy(user.getUsername())
@@ -127,7 +137,7 @@ public class WriteLockService {
     @Transactional
     public void releaseWriteLock(ObjectId rulebookId, ObjectId userId){
         // Validate user
-        findUserOrThrow(userId);
+        User user = findUserOrThrow(userId);
 
         // Attempt lock release
         Rulebook rulebook = rulebookRepository.atomicReleaseWriteLock(rulebookId, userId);
@@ -143,6 +153,7 @@ public class WriteLockService {
         eventPublisher.publishEvent(new LockReleasedEventDto(
             rulebookId.toHexString(),
             userId.toHexString(),
+            user.getUsername(),
             "voluntary",
             Instant.now()
         ));
@@ -151,7 +162,7 @@ public class WriteLockService {
     @Transactional
     public void releaseAllWriteLocksForUser(ObjectId userId){
         // Validate user
-        findUserOrThrow(userId);
+        User user = findUserOrThrow(userId);
 
         // Find all rulebooks locked by user
         List<Rulebook> lockedRulebooks = rulebookRepository.findByLockHeldBy(userId);
@@ -165,6 +176,7 @@ public class WriteLockService {
                 eventPublisher.publishEvent(new LockReleasedEventDto(
                     rulebook.getId().toHexString(),
                     userId.toHexString(),
+                    user.getUsername(),
                     "disconnected",
                     Instant.now()
                 ));

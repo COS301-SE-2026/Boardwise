@@ -11,6 +11,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import com.boardwise.backend.vault.dto.response.DeltaCommitedEventDto;
+import com.boardwise.backend.vault.dto.response.LockAcquiredEventDto;
 import com.boardwise.backend.vault.dto.response.LockReleasedEventDto;
 import com.boardwise.backend.vault.service.WriteLockService;
 
@@ -24,16 +25,25 @@ public class VaultWebSocketDispatcher {
     private final SimpMessagingTemplate messagingTemplate;
     private final WriteLockService writeLockService;
 
+    private final String DEST_ROOT = "/topic/vault/rulebooks/";
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleLockAcquiredEvent(LockAcquiredEventDto event){
+        String destination = DEST_ROOT + event.rulebookId() + "/lock/acquired";
+
+        messagingTemplate.convertAndSend(destination,event);
+    }
+
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleDeltaCommitedEvent(DeltaCommitedEventDto event){
-        String destination = "/topic/vault/rulebooks/" + event.rulebookId() + "/delta";
+        String destination = DEST_ROOT + event.rulebookId() + "/delta";
 
         messagingTemplate.convertAndSend(destination, event);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleLockReleased(LockReleasedEventDto event) {
-        String destination = "/topic/vault/rulebooks/" + event.rulebookId() + "/lock/released";
+    public void handleLockReleasedEvent(LockReleasedEventDto event) {
+        String destination = DEST_ROOT + event.rulebookId() + "/lock/released";
 
         messagingTemplate.convertAndSend(destination, event);
     }

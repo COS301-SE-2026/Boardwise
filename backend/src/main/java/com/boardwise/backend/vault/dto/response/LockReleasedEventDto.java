@@ -4,7 +4,8 @@ import java.time.Instant;
 
 public record LockReleasedEventDto(
     String rulebookId,
-    String releasedBy,
+    String releasedByUserId,
+    String releasedByUsername,
     String reason, // voluntary | expired | disconnected
     Instant releasedAt
 ){}
