@@ -180,19 +180,19 @@ public class Seeding {
                 List<Boardgame> boardGames = List.of(
                         new Boardgame(null, 1 ,"Monopoly", "Classic property trading game.",
                                 "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png", 2, 8, 
-                                List.of("Strategy", "Trading")),
+                                8, 120, List.of("Strategy", "Trading")),
                         new Boardgame(null, 2,"Scrabble", "Word building board game.",
                                 "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg", 2, 4, 
-                                List.of("Word", "Abstract Strategy")),
+                                10, 90, List.of("Word", "Abstract Strategy")),
                         new Boardgame(null,13,"Catan","Resource trading and settlement building game."
                                 ,"https://cf.geekdo-images.com/0XODRpReiZBFUffEcqT5-Q__imagepage/img/enC7UTvCAnb6j1Uazvh0OBQjvxw=/fit-in/900x600/filters:no_upscale():strip_icc()/pic9156909.png",3,4,
-                                List.of("Strategy", "Negotiation", "Economic")),
+                                10, 90, List.of("Strategy", "Negotiation", "Economic")),
                         new Boardgame(null,20549,"Pandemic","Cooperative game to cure global disease",
                                 "https://cf.geekdo-images.com/S3ybV1LAp-8SnHIXLLjVqA__imagepage/img/kIBu-2Ljb_ml5n-S8uIbE6ehGFc=/fit-in/900x600/filters:no_upscale():strip_icc()/pic1534148.jpg",2,4,
-                                List.of("Cooperative", "Strategy")),
+                                8, 45, List.of("Cooperative", "Strategy")),
                         new Boardgame(null,9209,"Ticket to Ride","Railway route-building game.",
                                 "https://cf.geekdo-images.com/kdWYkW-7AqG63HhqPL6ekA__imagepage/img/AWsdGNNSuI78BaCPAVQpjrUneKY=/fit-in/900x600/filters:no_upscale():strip_icc()/pic8937637.jpg",2,5,
-                                List.of("Strategy","Trains","Transportation"))
+                                8, 45, List.of("Strategy","Trains","Transportation"))
                 );
                 boardGameRepository.saveAll(boardGames);
                 System.out.println("Seeded " + boardGames.size() + " board games");
@@ -274,7 +274,7 @@ public class Seeding {
                 Contributor con2 = new Contributor(new ObjectId(), "MiteBeReliable");
 
                 Map<String, ObjectId> gameIdsByTitle = boardGameRepository.findAll().stream()
-                        .collect(Collectors.toMap(Boardgame::getTitle, bg -> new ObjectId(bg.getId())));
+                        .collect(Collectors.toMap(bg -> bg.getTitle(), bg -> new ObjectId(bg.getId())));
 
                 List<Rulebook> rulebooks = List.of(
                         Rulebook.builder().coverUrl("https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png").gameId(gameIdsByTitle.get("Monopoly")).title("Monopoly").edition("Classic").status("Ready").version(1)
