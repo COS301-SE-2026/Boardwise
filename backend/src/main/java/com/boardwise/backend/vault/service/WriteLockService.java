@@ -41,6 +41,7 @@ public class WriteLockService {
     private static final int LOCK_TIMEOUT_MINUTES = 5;
     
     // AC-VLT-06: Aquire Write Lock
+    @Transactional
     public AcquireWriteLockDto acquireWriteLock(ObjectId rulebookId, ObjectId userId){
         // Check if user exists
         User user = findUserOrThrow(userId);
@@ -109,7 +110,7 @@ public class WriteLockService {
         editEventRepository.save(event);
 
         eventPublisher.publishEvent(new DeltaCommitedEventDto(
-                rulebookId,
+                rulebookId.toHexString(),
                 request.getChunkId(),
                 request.getDeltaContent(),
                 rulebook.getVersion()
@@ -123,6 +124,7 @@ public class WriteLockService {
     }
 
     // AC-VLT-08: Release Write Lock
+    @Transactional
     public void releaseWriteLock(ObjectId rulebookId, ObjectId userId){
         // Validate user
         findUserOrThrow(userId);
@@ -138,8 +140,15 @@ public class WriteLockService {
 
             throw new ConcurrentModificationAnomalyException("Failed to release the lock due to concurrent state modification.");
         }
+        eventPublisher.publishEvent(new LockReleasedEventDto(
+            rulebookId.toHexString(),
+            userId.toHexString(),
+            "voluntary",
+            Instant.now()
+        ));
     }
 
+    @Transactional
     public void releaseAllWriteLocksForUser(ObjectId userId){
         // Validate user
         findUserOrThrow(userId);
@@ -154,8 +163,8 @@ public class WriteLockService {
             // Broadcast release events per rulebook
             for(Rulebook rulebook: lockedRulebooks){
                 eventPublisher.publishEvent(new LockReleasedEventDto(
-                    rulebook.getId(),
-                    userId,
+                    rulebook.getId().toHexString(),
+                    userId.toHexString(),
                     "disconnected",
                     Instant.now()
                 ));

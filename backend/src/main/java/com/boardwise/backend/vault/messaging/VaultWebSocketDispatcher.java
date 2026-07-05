@@ -11,6 +11,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import com.boardwise.backend.vault.dto.response.DeltaCommitedEventDto;
+import com.boardwise.backend.vault.dto.response.LockReleasedEventDto;
 import com.boardwise.backend.vault.service.WriteLockService;
 
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,14 @@ public class VaultWebSocketDispatcher {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleDeltaCommitedEvent(DeltaCommitedEventDto event){
-        String destination = "/topic/vault/rulebooks/" + event.rulebookId().toHexString();
+        String destination = "/topic/vault/rulebooks/" + event.rulebookId() + "/delta";
+
+        messagingTemplate.convertAndSend(destination, event);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleLockReleased(LockReleasedEventDto event) {
+        String destination = "/topic/vault/rulebooks/" + event.rulebookId() + "/lock/released";
 
         messagingTemplate.convertAndSend(destination, event);
     }
