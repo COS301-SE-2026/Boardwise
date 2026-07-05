@@ -34,7 +34,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.event.annotation.BeforeTestMethod;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -51,7 +50,6 @@ import com.boardwise.backend.marketplace.service.ListingService;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repos.UserRepository;
-import com.github.dockerjava.zerodep.shaded.org.apache.hc.core5.reactor.IOSession.Status;
 
 import software.amazon.awssdk.services.s3.S3Client;
 

@@ -43,15 +43,12 @@ public class Listing {
     @Field("location")
     private String location;
 
-    //TODO: Add to ERD
     @Field("isNegotiable")
     private Boolean isNegotiable;
 
-    //TODO: ADD to ERD
     @Field("listingTitle")
     private String listingTitle;
 
-    //TODO: Add to ERD
     @Field("condition")
     private String condition;
 
@@ -59,7 +56,7 @@ public class Listing {
     @Field("gameTitle")
     private String gameTitle;
 
-    //TODO: Add to ERD AND COMPARE AGAINST 
+    //TODO: COMPARE AGAINST BBG
     @Field("version")
     private String version;
 
