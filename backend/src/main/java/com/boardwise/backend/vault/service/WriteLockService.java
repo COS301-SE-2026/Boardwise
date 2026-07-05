@@ -2,6 +2,7 @@ package com.boardwise.backend.vault.service;
 
 import java.time.Instant;
 import org.bson.types.ObjectId;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,6 +11,7 @@ import com.boardwise.backend.user_service.repos.UserRepository;
 import com.boardwise.backend.vault.dto.request.CommitEditDeltaRequestDto;
 import com.boardwise.backend.vault.dto.response.AcquireWriteLockDto;
 import com.boardwise.backend.vault.dto.response.CommitEditDeltaResponseDto;
+import com.boardwise.backend.vault.dto.response.DeltaCommitedEventDto;
 import com.boardwise.backend.vault.exception.ConcurrentModificationAnomalyException;
 import com.boardwise.backend.vault.exception.LockConflictException;
 import com.boardwise.backend.vault.exception.LockNotHeldException;
@@ -30,6 +32,8 @@ public class WriteLockService {
     private final UserRepository userRepository;
     private final RulebookTextRepository rulebookTextRepository;
     private final EditEventRepository editEventRepository;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final int LOCK_TIMEOUT_MINUTES = 5;
     
@@ -100,6 +104,13 @@ public class WriteLockService {
             .committedAt(now)
             .build();
         editEventRepository.save(event);
+
+        eventPublisher.publishEvent(new DeltaCommitedEventDto(
+                rulebookId,
+                request.getChunkId(),
+                request.getDeltaContent(),
+                rulebook.getVersion()
+        ));
 
         return CommitEditDeltaResponseDto.builder()
             .commited(true)
