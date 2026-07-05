@@ -125,7 +125,7 @@ public class RulebookService {
         return RulebookTextResponseDto.builder()
             .rulebookId(id.toHexString())
             .chunks(text.getChunks())
-            .version(text.getVersion())
+            .version(rulebook.getVersion())
             .lockHeldBy(username)
             .updatedAt(text.getUpdatedAt())
             .build();
@@ -246,11 +246,16 @@ public class RulebookService {
     }
 
     private EditEventResponseDto toEditEventResponse(EditEvent event) {
+        User  user = findUserOrThrow(event.getEditorId());
+
         return EditEventResponseDto.builder()
             .id(event.getId().toHexString())
             .rulebookId(event.getRulebookId().toHexString())
-            .editorId(event.getEditorId().toHexString())
-            .delta(event.getDelta())
+            .editor(user.getUsername())
+            .chunkId(event.getChunkId().toHexString())
+            .editType(event.getEditType().toString())
+            .previousContent(event.getPreviousContent())
+            .newContent(event.getNewContent())
             .versionAfter(event.getVersionAfter())
             .committedAt(event.getCommittedAt())
             .build();

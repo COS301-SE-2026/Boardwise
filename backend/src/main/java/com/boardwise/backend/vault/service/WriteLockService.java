@@ -16,13 +16,16 @@ import com.boardwise.backend.vault.dto.response.CommitEditDeltaResponseDto;
 import com.boardwise.backend.vault.dto.response.DeltaCommitedEventDto;
 import com.boardwise.backend.vault.dto.response.LockAcquiredEventDto;
 import com.boardwise.backend.vault.dto.response.LockReleasedEventDto;
+import com.boardwise.backend.vault.enums.EditType;
 import com.boardwise.backend.vault.exception.ConcurrentModificationAnomalyException;
 import com.boardwise.backend.vault.exception.LockConflictException;
 import com.boardwise.backend.vault.exception.LockNotHeldException;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.exception.VersionMismatchException;
+import com.boardwise.backend.vault.model.Chunk;
 import com.boardwise.backend.vault.model.EditEvent;
 import com.boardwise.backend.vault.model.Rulebook;
+import com.boardwise.backend.vault.model.RulebookText;
 import com.boardwise.backend.vault.repository.EditEventRepository;
 import com.boardwise.backend.vault.repository.RulebookRepository;
 import com.boardwise.backend.vault.repository.RulebookTextRepository;
@@ -106,14 +109,24 @@ public class WriteLockService {
             throw new ConcurrentModificationAnomalyException("Failed to commit delta due to concurrent state modification.");
         }
 
-        // 2. Update RULEBOOK_TEXT
+        ObjectId targetChunkId = new ObjectId(request.getChunkId());
+        
+        // 2. Fetch Previous Text State
+        RulebookText chunkBeforeUpdate = rulebookTextRepository.findBySpecificChunk(rulebookId, targetChunkId)
+            .orElseThrow(() -> new IllegalArgumentException("Target rulebook or chunk does not exist."));
+        String previousText = chunkBeforeUpdate.getChunks().get(0).getContent();
+
+        // 3. Update RULEBOOK_TEXT
         rulebookTextRepository.atomicUpdateChunk(rulebookId, new ObjectId(request.getChunkId()), request.getDeltaContent());
         
-        // 3. Insert EDIT_EVENT
+        // 4. Insert EDIT_EVENT
         EditEvent event = EditEvent.builder()
             .rulebookId(rulebookId)
             .editorId(new ObjectId(user.getId()))
-            .delta(request.getDeltaContent())
+            .chunkId(userId)
+            .editType(EditType.UPDATE)
+            .previousContent(previousText)
+            .newContent(request.getDeltaContent())
             .versionAfter(rulebook.getVersion())
             .committedAt(now)
             .build();

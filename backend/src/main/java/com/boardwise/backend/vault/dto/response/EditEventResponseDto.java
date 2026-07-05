@@ -10,8 +10,11 @@ import lombok.Data;
 public class EditEventResponseDto {
     private String id;
     private String rulebookId;
-    private String editorId;
-    private String delta;
+    private String editor;
+    private String chunkId;
+    private String editType;
+    private String previousContent;
+    private String newContent;
     private int versionAfter;
     private Instant committedAt;
 }
