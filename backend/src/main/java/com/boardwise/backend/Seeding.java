@@ -390,19 +390,19 @@ public class Seeding {
                 Chunk text2Chunk0 = texts.get(2).getChunks().get(0);
                 List<EditEvent> editEvents = List.of(
                         EditEvent.builder().rulebookId(rulebooks.get(0).getId()).editorId(con1.id())
-                                .chunkId(text0Chunk0.getChunkId())
+                                .chunkId(text0Chunk0.getChunkId()).chunkBefore(null)
                                 .editType(EditType.UPDATE)
                                 .previousContent(text0Chunk0.getContent())
                                 .newContent("Fixed typo on page 3.").versionAfter(2)
                                 .committedAt(Instant.now().minusSeconds(120)).build(),
                         EditEvent.builder().rulebookId(rulebooks.get(1).getId()).editorId(con1.id())
-                                .chunkId(text1Chunk0.getChunkId())
+                                .chunkId(text1Chunk0.getChunkId()).chunkBefore(null)
                                 .editType(EditType.UPDATE)
                                 .previousContent(text1Chunk0.getContent())
                                 .newContent("Updated scoring section.").versionAfter(2)
                                 .committedAt(Instant.now().minusSeconds(90)).build(),
                         EditEvent.builder().rulebookId(rulebooks.get(2).getId()).editorId(con2.id())
-                                .chunkId(text2Chunk0.getChunkId())
+                                .chunkId(text2Chunk0.getChunkId()).chunkBefore(null)
                                 .editType(EditType.UPDATE)
                                 .previousContent(text2Chunk0.getContent())
                                 .newContent("Clarified trading rules.").versionAfter(3)

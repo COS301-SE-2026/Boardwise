@@ -32,6 +32,9 @@ public class EditEvent {
     @Field("chunkId")
     private ObjectId chunkId;
 
+    @Field("chunkBefore")
+    private ObjectId chunkBefore; // either id of chunk that came before or null (set by a delete event)
+
     @Field("editType")
     private EditType editType;
 

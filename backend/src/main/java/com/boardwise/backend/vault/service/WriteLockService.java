@@ -11,10 +11,13 @@ import org.springframework.transaction.annotation.Transactional;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repos.UserRepository;
 import com.boardwise.backend.vault.dto.request.CommitEditDeltaRequestDto;
+import com.boardwise.backend.vault.dto.request.DeleteChunkRequestDto;
 import com.boardwise.backend.vault.dto.request.InsertNewChunkRequestDto;
 import com.boardwise.backend.vault.dto.response.AcquireWriteLockDto;
 import com.boardwise.backend.vault.dto.response.CommitEditDeltaResponseDto;
+import com.boardwise.backend.vault.dto.response.DeleteChunkResponseDto;
 import com.boardwise.backend.vault.dto.response.InsertNewChunkResponseDto;
+import com.boardwise.backend.vault.dto.websocket.ChunkDeletedEventDto;
 import com.boardwise.backend.vault.dto.websocket.ChunkInsertedEventDto;
 import com.boardwise.backend.vault.dto.websocket.DeltaCommitedEventDto;
 import com.boardwise.backend.vault.dto.websocket.LockAcquiredEventDto;
@@ -126,6 +129,7 @@ public class WriteLockService {
             .rulebookId(rulebookId)
             .editorId(new ObjectId(user.getId()))
             .chunkId(new ObjectId(request.getChunkId()))
+            .chunkBefore(null)
             .editType(EditType.UPDATE)
             .previousContent(previousText)
             .newContent(request.getDeltaContent())
@@ -240,6 +244,7 @@ public class WriteLockService {
                 .rulebookId(rulebookId)
                 .editorId(new ObjectId(user.getId()))
                 .chunkId(chunkId)
+                .chunkBefore(null)
                 .editType(EditType.INSERT)
                 .previousContent(null)
                 .newContent(request.getContent())
@@ -253,11 +258,14 @@ public class WriteLockService {
                 : request.getInsertIndex();
 
         eventPublisher.publishEvent(ChunkInsertedEventDto.builder()
+            .eventType("CHUNK_INSERTED")
             .rulebookId(rulebookId.toHexString())
+            .editorId(userId.toHexString())
+            .version(rulebook.getVersion())
+            .timestamp(now)
             .chunkId(chunkId.toHexString())
             .content(request.getContent())
             .index(calculatedIndex)
-            .version(rulebook.getVersion())
             .build());
         
         return InsertNewChunkResponseDto.builder()
@@ -267,6 +275,72 @@ public class WriteLockService {
             .actualIndex(calculatedIndex)
             .insertedAt(now)
             .build();
+    }
+
+    @Transactional
+    public DeleteChunkResponseDto removeChunk(ObjectId rulebookId, ObjectId userId, DeleteChunkRequestDto request){
+        // Validate user
+        User user = findUserOrThrow(userId);
+        Instant now = Instant.now();
+
+        // Attempt insert chunk
+        // 1. Update RULEBOOK
+        Rulebook rulebook = rulebookRepository.atomicValidateAndExtendLock(rulebookId, userId,
+                request.getExpectedVersion(), now.plusSeconds(LOCK_TIMEOUT_MINUTES * 60));
+        if (rulebook == null) {
+            // Determine failure reason and throw appropriate error.
+            // Check if rulebook exists
+            Rulebook currentRulebook = findRulebookOrThrow(rulebookId);
+
+            // Check if user owns the lock
+            if (currentRulebook.getLockHeldBy() == null || !currentRulebook.getLockHeldBy().equals(userId)) {
+                throw new LockNotHeldException(userId);
+            }
+
+            // Check for a version mismatch
+            if (currentRulebook.getVersion() != request.getExpectedVersion()) {
+                throw new VersionMismatchException(request.getExpectedVersion(), currentRulebook.getVersion());
+            }
+
+            // Fallback
+            throw new ConcurrentModificationAnomalyException(
+                    "Failed to delete chunk due to concurrent state modification.");
+        }
+
+        // 2. Update RULEBOOK_TEXT
+        boolean deleted = rulebookTextRepository.atomicDeleteChunk(rulebookId, new ObjectId(request.getChunkId()));
+
+        // 3. Insert EDIT_EVENT
+        EditEvent event = EditEvent.builder()
+                .rulebookId(rulebookId)
+                .editorId(new ObjectId(user.getId()))
+                .chunkId(new ObjectId(request.getChunkId()))
+                .chunkBefore(request.getChunkBeforeId() != null
+                    ? new ObjectId(request.getChunkBeforeId())
+                    : null)
+                .editType(EditType.DELETE)
+                .previousContent(request.getPreviousContent())
+                .newContent(null)
+                .versionAfter(rulebook.getVersion())
+                .committedAt(now)
+                .build();
+        editEventRepository.save(event);
+
+        eventPublisher.publishEvent(ChunkDeletedEventDto.builder()
+                .eventType("CHUNK_DELETED")
+                .rulebookId(rulebookId.toHexString())
+                .editorId(userId.toHexString())
+                .version(rulebook.getVersion())
+                .timestamp(now)
+                .chunkId(request.getChunkId())
+                .build());
+
+        return DeleteChunkResponseDto.builder()
+                .deleted(deleted)
+                .newVersion(rulebook.getVersion())
+                .chunkId(request.getChunkId())
+                .deletedAt(now)
+                .build();
     }
 
     // ----- Private Helpers -----

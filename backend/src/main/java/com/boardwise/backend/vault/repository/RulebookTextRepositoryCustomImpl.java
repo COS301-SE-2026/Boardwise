@@ -7,7 +7,6 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.AggregationUpdate;
-import org.springframework.data.mongodb.core.aggregation.VariableOperators;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -84,5 +83,29 @@ public class RulebookTextRepositoryCustomImpl implements RulebookTextRepositoryC
 
             return result.getModifiedCount() > 0;
         }
+    }
+
+    @Override
+    public boolean atomicDeleteChunk(ObjectId rulebookId, ObjectId chunkId){
+        Query query = new Query(Criteria.where("rulebookId").is(rulebookId));
+
+        AggregationUpdate updatePipeline = AggregationUpdate.update()
+            .set("chunks").toValue(
+                new Document("$filter", new Document("input", new Document("$ifNull", List.of("$chunks", List.of())))
+                    .append("as", "chunk")
+                    .append("cond", new Document("$ne", List.of("$$chunk.chunkId", chunkId)))
+                )
+            )
+            .set("chunks").toValue(
+                new Document("$map", new Document()
+                    .append("input", new Document("$range", List.of(0, new Document("$size", "$chunks"))))
+                    .append("as", "idx")
+                    .append("in", new Document("$mergeObjects", List.of(
+                        new Document("$arrayElemAt", List.of("$chunks", "$$idx")),
+                        new Document("index", "$$idx"))))));
+
+        UpdateResult result = mongoTemplate.updateFirst(query, updatePipeline, RulebookText.class);
+
+        return result.getModifiedCount() > 0;
     }
 }

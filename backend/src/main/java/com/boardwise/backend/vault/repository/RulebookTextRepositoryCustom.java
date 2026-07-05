@@ -6,4 +6,6 @@ public interface RulebookTextRepositoryCustom {
     void atomicUpdateChunk(ObjectId rulebookId, ObjectId chunkId, String newContent);
 
     boolean atomicInsertChunk(ObjectId rulebookId, ObjectId chunkId, String content, int insertIndex, int lastIndex);
+
+    boolean atomicDeleteChunk(ObjectId rulebookId, ObjectId chunkId);
 }
