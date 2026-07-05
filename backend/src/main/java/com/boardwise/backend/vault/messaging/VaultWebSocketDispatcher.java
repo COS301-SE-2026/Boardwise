@@ -10,6 +10,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+import com.boardwise.backend.vault.dto.websocket.ChunkDeletedEventDto;
 import com.boardwise.backend.vault.dto.websocket.ChunkInsertedEventDto;
 import com.boardwise.backend.vault.dto.websocket.DeltaCommitedEventDto;
 import com.boardwise.backend.vault.dto.websocket.LockAcquiredEventDto;
@@ -52,6 +53,13 @@ public class VaultWebSocketDispatcher {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleChunkInsertedEvent(ChunkInsertedEventDto event){
         String destination = DEST_ROOT + event.getRulebookId() + "/chunk/inserted";
+
+        messagingTemplate.convertAndSend(destination, event);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleChunkDeletedEvent(ChunkDeletedEventDto event) {
+        String destination = DEST_ROOT + event.getRulebookId() + "/chunk/deleted";
 
         messagingTemplate.convertAndSend(destination, event);
     }

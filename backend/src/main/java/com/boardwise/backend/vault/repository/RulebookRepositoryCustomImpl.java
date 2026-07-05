@@ -49,7 +49,7 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
     }
 
     @Override
-    public Rulebook atomicValidateAndExtendLock(ObjectId rulebookId, ObjectId userId, int expectedVersion, Instant newExpiry){
+    public Rulebook atomicValidateAndExtendLock(ObjectId rulebookId, ObjectId userId, int expectedVersion, Instant newExpiry, boolean isUndo){
         Query query = new Query(
             new Criteria().andOperator(
                 Criteria.where("_id").is(rulebookId),
@@ -59,7 +59,7 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
         );
 
         Update update = new Update()
-            .inc("version", 1)
+            .inc("version", (isUndo) ? -1 : 1)
             .set("lockExpiresAt", newExpiry)
             .set("updatedAt", Instant.now());
 

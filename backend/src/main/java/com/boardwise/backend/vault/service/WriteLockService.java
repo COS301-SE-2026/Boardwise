@@ -94,7 +94,7 @@ public class WriteLockService {
         Instant now = Instant.now();
         // Attempt commit edit delta
         // 1. Update RULEBOOK
-        Rulebook rulebook = rulebookRepository.atomicValidateAndExtendLock(rulebookId, userId, request.getExpectedVersion(), now.plusSeconds(LOCK_TIMEOUT_MINUTES * 60));
+        Rulebook rulebook = rulebookRepository.atomicValidateAndExtendLock(rulebookId, userId, request.getExpectedVersion(), now.plusSeconds(LOCK_TIMEOUT_MINUTES * 60), false);
         if(rulebook == null){
             // Determine reason for failure and throw relevant exception
             // Check if rulebook exists
@@ -213,7 +213,7 @@ public class WriteLockService {
         // Attempt insert chunk
         // 1. Update RULEBOOK
         Rulebook rulebook = rulebookRepository.atomicValidateAndExtendLock(rulebookId, userId,
-                request.getExpectedVersion(), now.plusSeconds(LOCK_TIMEOUT_MINUTES * 60));
+                request.getExpectedVersion(), now.plusSeconds(LOCK_TIMEOUT_MINUTES * 60),false);
         if(rulebook == null){
             // Determine failure reason and throw appropriate error.
             // Check if rulebook exists
@@ -286,7 +286,7 @@ public class WriteLockService {
         // Attempt insert chunk
         // 1. Update RULEBOOK
         Rulebook rulebook = rulebookRepository.atomicValidateAndExtendLock(rulebookId, userId,
-                request.getExpectedVersion(), now.plusSeconds(LOCK_TIMEOUT_MINUTES * 60));
+                request.getExpectedVersion(), now.plusSeconds(LOCK_TIMEOUT_MINUTES * 60),false);
         if (rulebook == null) {
             // Determine failure reason and throw appropriate error.
             // Check if rulebook exists
@@ -343,6 +343,7 @@ public class WriteLockService {
                 .build();
     }
 
+    
     // ----- Private Helpers -----
     private Rulebook findRulebookOrThrow(ObjectId id){
         return rulebookRepository.findById(id).orElseThrow(() -> new RulebookNotFoundException(id));
