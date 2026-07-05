@@ -68,6 +68,7 @@ public class BoardGameService {
 
             List<Boardgame> boardgames = new ArrayList<>();
             NodeList nodeList = document.getElementsByTagName("item");
+            boolean updateEntry = false;
             for(int i = 0; i < nodeList.getLength(); i++){
                 Node node = nodeList.item(i);
 
@@ -133,6 +134,7 @@ public class BoardGameService {
                         genres.add(genre);
                     }
                 }
+                // API game data object
                 Boardgame game = new Boardgame(
                     null,
                     bggId,
@@ -145,7 +147,29 @@ public class BoardGameService {
                     duration,
                     genres
                 );
-                boardgames.add(game);
+
+                List<Boardgame> nullGames = gameRepo.findAllByBggIdNull(); // user provided games
+                for(Boardgame nullGame : nullGames){
+                    if(game.getTitle().contains(nullGame.getTitle()) || nullGame.getTitle().contains(game.getTitle())){
+                        // update nullGame
+                        updateEntry = true;
+                        
+                        nullGame.setBggId(bggId);
+                        nullGame.setTitle(gameTitle);
+                        nullGame.setDescription(gameDesc);
+                        nullGame.setImageURL(gameImage);
+                        nullGame.setMinPlayers(minPlayers);
+                        nullGame.setMaxPlayers(maxPlayers);
+                        nullGame.setMinAge(minAge);
+                        nullGame.setDuration(duration);
+                        nullGame.setGenres(genres);
+
+                        gameRepo.save(nullGame);
+                    }
+                }
+
+                if(!updateEntry)
+                    boardgames.add(game);
             }
 
             gameRepo.saveAll(boardgames);
