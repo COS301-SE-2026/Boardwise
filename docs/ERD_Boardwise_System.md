@@ -134,8 +134,12 @@ erDiagram
         ObjectId gameId
         String location
         String gameTitle
+        String version
         String itemType
+        String listingTitle
+        bool isNegotiable
         String listingType
+        String condition
         Decimal price
         String description
         String imageUrl
