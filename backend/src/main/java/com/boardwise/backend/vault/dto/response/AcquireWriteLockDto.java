@@ -11,5 +11,5 @@ public class AcquireWriteLockDto {
     private boolean lockGranted;
     private String lockedBy; // Username instead of id
     private Instant expiresAt;
-    private int currentVersion;
+    private long currentVersion;
 }

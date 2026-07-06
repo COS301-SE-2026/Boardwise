@@ -9,7 +9,7 @@ import lombok.Data;
 @Builder
 public class DeleteChunkResponseDto {
     private boolean deleted;
-    private int newVersion;
+    private long newVersion;
     private String chunkId;
     private Instant deletedAt;
 }

@@ -13,7 +13,7 @@ import lombok.Data;
 public class RulebookTextResponseDto {
     private String rulebookId;
     private List<Chunk> chunks;
-    private int version;
+    private long version;
     private String lockHeldBy;
     private Instant updatedAt;
 }

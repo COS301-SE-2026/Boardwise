@@ -7,5 +7,5 @@ public record LockAcquiredEventDto(
     String lockedByUserId,
     String lockedByUsername,
     Instant expiresAt,
-    int currentVersion
+    long currentVersion
 ){}

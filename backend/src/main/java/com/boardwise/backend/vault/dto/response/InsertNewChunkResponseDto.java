@@ -9,7 +9,7 @@ import lombok.Data;
 @Builder
 public class InsertNewChunkResponseDto {
     private boolean inserted;
-    private int newVersion;
+    private long newVersion;
     private String chunkId;
     private int actualIndex;
     private Instant insertedAt;

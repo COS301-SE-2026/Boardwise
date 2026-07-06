@@ -14,7 +14,7 @@ public class RulebookResponseDto {
     private String title;
     private String edition;
     private List<String> genres;
-    private int version;
+    private long version;
     private String status;
     private String contributorUsername;
     private String description;
