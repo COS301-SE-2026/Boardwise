@@ -33,7 +33,7 @@
 
       <div class="actions">
 
-        <!-- <BaseButton
+        <BaseButton
           size="sm"
           @click="showEdit = true"
         >
@@ -46,7 +46,7 @@
           @click="showDelete = true"
         >
           Delete
-        </BaseButton> -->
+        </BaseButton>
 
       </div>
 

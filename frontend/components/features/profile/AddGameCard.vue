@@ -1,16 +1,16 @@
 <template>
-  <base-card
+  <BaseCard
     class="add-card d-flex flex-column justify-center align-center"
     @click="showAdd = true"
   >
     <span class="text-h3 font-weight-bold">+</span>
     <p class="mt-3">Add Game</p>
 
-  </base-card>
+  </BaseCard>
 </template>
 
 <script setup>
-import AddGameModal from '~/components/features/profile/AddGameModal.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
 
 const emit = defineEmits(['game-added'])
 const showAdd = ref(false)
