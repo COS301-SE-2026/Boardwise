@@ -23,7 +23,10 @@ import com.boardwise.backend.marketplace.enums.*;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.shared.security.JWTService;
+import com.boardwise.backend.user_service.models.Boardgame;
+import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.services.BoardGameService;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,16 +54,18 @@ public class ListingService {
     private final S3Client s3Client;
     private final MongoTemplate mongoTemplate;
     private final UserRepository userRepository;
-    // private final GameRepository gameRepository;
+    private final BoardGameRepository boardGameRepository;
+
 
     private final String defaultImage = "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/default-listing-images/default.png";//on bucket NEVER DELETE
 
-    public ListingService(ListingRepository listingRepository, JWTService jwtService, S3Client s3Client, MongoTemplate mongoTemplate, UserRepository userRepository) {
+    public ListingService(ListingRepository listingRepository, JWTService jwtService, S3Client s3Client, MongoTemplate mongoTemplate, UserRepository userRepository,BoardGameRepository boardGameRepository) {
         this.listingRepository = listingRepository;
         this.jwtService = jwtService;
         this.s3Client = s3Client;
         this.mongoTemplate = mongoTemplate;
         this.userRepository = userRepository;
+        this.boardGameRepository = boardGameRepository;
     }
 
     private static String truncateAfterWords(String text, int wordLimit) {
@@ -169,10 +174,15 @@ public class ListingService {
 
         String gameTitle = req.gameTitle();
 
-        // TODO: check if title is avaliable if not upload to db
+        //check if title is avaliable if not upload to db
 
         if (gameTitle == null || gameTitle.isBlank()) {
             throw new IllegalArgumentException("Game Title cannot be blank");
+        }
+
+        if(boardGameRepository.findByTitle(gameTitle).isEmpty()){
+            Boardgame toBeAdded = new Boardgame(null, null, gameTitle, description, null, 1, 2, genres);
+            boardGameRepository.insert(toBeAdded);
         }
 
         List<String> rentalPeriod = (req.rentalPeriod() == null || req.rentalPeriod().size() != 2) ? null
@@ -220,8 +230,6 @@ public class ListingService {
         // TODO: delete when extract location is acquired
         String location = req.location();
 
-        // TODO:Verify by checking if version is available in db else add it
-        // String toCompVer= gameRepository;
         String version = req.version();
 
         String username = userRepository.findById(jwtService.extractUserId(token).toString())
@@ -402,8 +410,12 @@ public class ListingService {
             existing.setListingTitle(req.listingTitle());
         }
 
-        // TODO: verify Title (check if title is in game list)
         if (!existing.getGameTitle().equals(req.gameTitle())) {
+
+            if(boardGameRepository.findByTitle(req.gameTitle()).isEmpty()){
+                Boardgame toBeInserted = new Boardgame(null, null, req.gameTitle(), null, null, null, null, null);
+                boardGameRepository.insert(toBeInserted);
+            }
             existing.setGameTitle(req.gameTitle());
         }
 
@@ -476,7 +488,6 @@ public class ListingService {
         }
 
         if (!existing.getVersion().equals(req.version())) {
-            // TODO:implement check to see if version is alr on db or add it to db
             existing.setVersion(req.version());
         }
         existing.setUpdatedAt(LocalDateTime.now());

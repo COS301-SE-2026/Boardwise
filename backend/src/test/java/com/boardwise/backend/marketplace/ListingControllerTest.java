@@ -5,7 +5,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.bson.types.ObjectId;
@@ -357,7 +356,7 @@ public class ListingControllerTest{
     @DisplayName("GET filtered listings 200 OK")
     public void getFilteredListingsReturns_200() throws Exception{
         //ARRANGE   
-        Page<ListingResponse> page = new PageImpl(List.of(buildDefaultResponse()));
+        Page<ListingResponse> page = new PageImpl<>(List.of(buildDefaultResponse()));
 
         when(listingService.getByFilter(any(), any(), any(), any(), any(),
             any(),any(), any(),any(), any())).thenReturn(page);
@@ -372,7 +371,7 @@ public class ListingControllerTest{
     @DisplayName("GET filtered listings 204 No Content")
     public void getFilteredListingsReturns_204() throws Exception{
         //ARRANGE   
-        Page<ListingResponse> page = new PageImpl(List.of());
+        Page<ListingResponse> page = new PageImpl<>(List.of());
 
         when(listingService.getByFilter(any(), any(), any(), any(), any(),
             any(),any(), any(),any(), any())).thenReturn(page);
@@ -387,8 +386,6 @@ public class ListingControllerTest{
     @DisplayName("GET filtered listings 500 Internal Server Error")
     public void getFilteredListingsReturns_500() throws Exception{
         //ARRANGE   
-        Page<ListingResponse> page = new PageImpl(List.of());
-
         when(listingService.getByFilter(any(), any(), any(), any(), any(),
             any(),any(), any(),any(), any())).thenThrow(new RuntimeException());
         

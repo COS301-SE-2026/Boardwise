@@ -56,7 +56,6 @@ public class Listing {
     @Field("gameTitle")
     private String gameTitle;
 
-    //TODO: COMPARE AGAINST BBG
     @Field("version")
     private String version;
 
