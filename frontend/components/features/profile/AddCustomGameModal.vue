@@ -24,8 +24,8 @@
             />
 
             <v-select
-                v-model="category"
-                label="Game Genre / Category"
+                v-model="genre"
+                label="Game Genre "
                 :items="['Strategy','Family','Abstract','Party','Cooperative','Thematic','War','Other']"
                 variant="outlined"
                 density="compact"
