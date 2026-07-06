@@ -1,7 +1,7 @@
 <template>
   <v-dialog
     :model-value="modelValue"
-    max-width="600"
+    :max-width="maxWidth"
     scrollable
     @update:model-value="$emit('update:modelValue', $event)"
   >
@@ -15,7 +15,11 @@
 
 <script setup>
 defineProps({
-  modelValue: Boolean
+  modelValue: Boolean,
+  maxWidth: {
+    type: [String, Number],
+    default: 600
+  }
 })
 
 defineEmits(['update:modelValue'])
