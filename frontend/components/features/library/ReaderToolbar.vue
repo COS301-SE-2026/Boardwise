@@ -10,6 +10,10 @@
       {{ rulebook?.title }}
     </v-app-bar-title>
 
+    <v-btn icon size="small" variant="text" @click="handleDownload">
+      <v-icon>mdi-download</v-icon>
+    </v-btn>
+
     <template #append>
       <div class="d-flex align-center ga-2 mr-4">
 
@@ -23,6 +27,8 @@
             @keydown.enter="$emit('next-match')"
             @keydown.escape="closeSearch"
           />
+
+          
 
           <span v-if="localQuery" class="text-caption text-medium-emphasis text-no-wrap">
             {{ matchCount > 0 ? `${currentMatch + 1} / ${matchCount}`: 'No matches' }}
@@ -78,5 +84,8 @@ const closeSearch = () => {
   emit('clear-search')
 }
 
-// const emit = defineEmits(['search', 'next-match', 'prev-match', 'clear-search'])
+const handleDownload = () => {
+  console.log('Download clicked')
+}
+
 </script>
