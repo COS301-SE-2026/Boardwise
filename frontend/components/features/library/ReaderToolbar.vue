@@ -17,6 +17,7 @@
           icon
           size="small"
           variant="text"
+          :loading="isDownloading"
           :disabled="!rulebook?.id"
           @click="handleDownload"
         >
@@ -38,8 +39,6 @@
             @keydown.enter="$emit('next-match')"
             @keydown.escape="closeSearch"
           />
-
-          
 
           <span v-if="localQuery" class="text-caption text-medium-emphasis text-no-wrap">
             {{ matchCount > 0 ? `${currentMatch + 1} / ${matchCount}`: 'No matches' }}
@@ -76,7 +75,7 @@
 import { ref } from 'vue'
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 
-defineProps({
+const props = defineProps({
   rulebook: Object,
   currentPage: Number,
   totalPages: Number,
@@ -95,8 +94,19 @@ const closeSearch = () => {
   emit('clear-search')
 }
 
-const handleDownload = () => {
-  console.log('Download clicked')
+const isDownloading = ref(false)
+
+const handleDownload = async () => {
+  if (!props.rulebook?.id) return
+  isDownloading.value = true
+
+  try {
+    // TODO: replace with real API call
+    await new Promise(resolve => setTimeout(resolve, 800))
+    console.log('Download requested for:', props.rulebook.id)
+  } finally {
+    isDownloading.value = false
+  }
 }
 
 </script>
