@@ -112,7 +112,7 @@ watch(open, val =>{//listen for an open & populate ref
   selected_condition.value = listing_element.condition ?? null
   selected_item_type.value = listing_element.itemType ?? null
   start_date.value = listing_element.rentalPeriod?.startDate ?? null
-  end_date.value = listing_element.rentalPeriod?.endDate ?? null
+  end_date.value = listing_element.rentalPeriod?.endDate?? null
 
 });
 
@@ -153,7 +153,7 @@ const handleSave = async () => {
 
   
   await editListing(props.listing.listingId, listingData, image_file.value ?? undefined)
-  emit('saved')
+  emit('saved', 'updated')
   open.value = false
 }
 
