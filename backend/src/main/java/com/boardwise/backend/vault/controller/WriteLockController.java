@@ -35,7 +35,7 @@ public class WriteLockController {
     private final WriteLockService writeLockService;
     
     // AC-VLT-06: Aquire Write Lock
-    @PostMapping("/{id}/lock")
+    @PostMapping("/{id}/lock/acquire")
     public ResponseEntity<AcquireWriteLockDto> getWriteLock(
         @PathVariable("id") String rulebookId,
         Authentication authentication) {
@@ -47,7 +47,7 @@ public class WriteLockController {
     }
     
     // AC-VLT-07: Commit Edit Delta
-    @PatchMapping("/{id}/text")
+    @PatchMapping("/{id}/chunk/update")
     public ResponseEntity<CommitEditDeltaResponseDto> commitDelta(
         @PathVariable("id") String rulebookId,
         Authentication authentication,
@@ -61,7 +61,7 @@ public class WriteLockController {
         }
 
     // AC-VLT-08: Release Write Lock
-    @DeleteMapping("/{id}/lock")
+    @PostMapping("/{id}/lock/release")
     public ResponseEntity<Void> releaseLock(
         @PathVariable("id") String rulebookId,
         Authentication authentication){
@@ -73,7 +73,17 @@ public class WriteLockController {
             return ResponseEntity.ok().build();
         }
 
-    @PostMapping("/{id}/insert")
+    @PostMapping("/lock/release-all")
+    public ResponseEntity<Void> releaseAllLocksForUser(Authentication authentication){
+            UserDetailImpl userDetails = (UserDetailImpl) authentication.getPrincipal();
+            ObjectId userId = new ObjectId(userDetails.getUserId());
+
+            writeLockService.releaseAllWriteLocksForUser(userId);
+            
+            return ResponseEntity.ok().build();
+        }
+
+    @PostMapping("/{id}/chunk/insert")
     public ResponseEntity<InsertNewChunkResponseDto> insertChunk(
         @PathVariable("id") String rulebookId,
         Authentication authentication,
@@ -86,7 +96,7 @@ public class WriteLockController {
             );
         }
 
-    @DeleteMapping("/{id}/delete")
+    @DeleteMapping("/{id}/chunk/remove")
     public ResponseEntity<DeleteChunkResponseDto> deleteChunk(
         @PathVariable("id") String rulebookId,
         Authentication authentication,
@@ -98,7 +108,7 @@ public class WriteLockController {
                 writeLockService.removeChunk(toObjectId(rulebookId), userId, request));
         }
 
-    @PostMapping("/{id}/undo")
+    @PostMapping("/{id}/action/undo")
     public ResponseEntity<UndoOrRedoActionResponseDto> undoEdit(
         @PathVariable("id") String rulebookId,
         Authentication authentication,
@@ -110,7 +120,7 @@ public class WriteLockController {
                 writeLockService.undoAction(toObjectId(rulebookId), userId, request));
     }
 
-    @PostMapping("/{id}/redo")
+    @PostMapping("/{id}/action/redo")
     public ResponseEntity<UndoOrRedoActionResponseDto> redoEdit(
             @PathVariable("id") String rulebookId,
             Authentication authentication,
