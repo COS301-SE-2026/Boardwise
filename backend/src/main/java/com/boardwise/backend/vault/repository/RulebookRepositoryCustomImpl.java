@@ -136,6 +136,36 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
     }
 
     @Override
+    public Long atomicPopRedoAndPushUndo(ObjectId rulebookId, ObjectId userId) {
+        Query query = new Query(
+                Criteria.where("_id").is(rulebookId)
+                        .and("lockHeldBy").is(userId)
+                        .and("redoStack.0").exists(true));
+
+        AggregationUpdate updatePipeline = AggregationUpdate.update()
+                .set("undoStack").toValue(
+                        new Document("$concatArrays", List.of(
+                                new Document("$ifNull", List.of("$undoStack", List.of())),
+                                List.of(new Document("$arrayElemAt", List.of("$redoStack", -1))))))
+                .set("redoStack").toValue(
+                        new Document("$slice", List.of(
+                                "$redoStack",
+                                0,
+                                new Document("$subtract", List.of(new Document("$size", "$redoStack"), 1)))));
+
+        FindAndModifyOptions options = FindAndModifyOptions.options().returnNew(true);
+
+        Rulebook updatedRulebook = mongoTemplate.findAndModify(query, updatePipeline, options, Rulebook.class);
+
+        if (updatedRulebook == null) {
+            return null;
+        }
+
+        List<Long> undoStack = updatedRulebook.getUndoStack();
+        return undoStack.get(undoStack.size() - 1);
+    }
+
+    @Override
     public void atomicCommitForwardEdit(ObjectId rulebookId, Long newVersion){
         Query query = new Query(Criteria.where("_id").is(rulebookId));
 

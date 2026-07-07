@@ -16,6 +16,8 @@ public interface RulebookRepositoryCustom {
     void atomicReleaseAllWriteLocks(ObjectId userId);
 
     Long atomicPopUndoAndPushRedo(ObjectId rulebookId, ObjectId userId);
+    
+    Long atomicPopRedoAndPushUndo(ObjectId rulebookId, ObjectId userId);
 
     void atomicCommitForwardEdit(ObjectId rulebookId, Long newVersion);
 }

@@ -13,13 +13,13 @@ import com.boardwise.backend.user_service.repos.UserRepository;
 import com.boardwise.backend.vault.dto.request.CommitEditDeltaRequestDto;
 import com.boardwise.backend.vault.dto.request.DeleteChunkRequestDto;
 import com.boardwise.backend.vault.dto.request.InsertNewChunkRequestDto;
-import com.boardwise.backend.vault.dto.request.UndoActionRequestDto;
+import com.boardwise.backend.vault.dto.request.UndoOrRedoActionRequestDto;
 import com.boardwise.backend.vault.dto.request.VaultBaseRequestDto;
 import com.boardwise.backend.vault.dto.response.AcquireWriteLockDto;
 import com.boardwise.backend.vault.dto.response.CommitEditDeltaResponseDto;
 import com.boardwise.backend.vault.dto.response.DeleteChunkResponseDto;
 import com.boardwise.backend.vault.dto.response.InsertNewChunkResponseDto;
-import com.boardwise.backend.vault.dto.response.UndoActionResponseDto;
+import com.boardwise.backend.vault.dto.response.UndoOrRedoActionResponseDto;
 import com.boardwise.backend.vault.dto.websocket.ChunkDeletedEventDto;
 import com.boardwise.backend.vault.dto.websocket.ChunkInsertedEventDto;
 import com.boardwise.backend.vault.dto.websocket.DeltaCommitedEventDto;
@@ -30,6 +30,7 @@ import com.boardwise.backend.vault.exception.ChunkNotFoundException;
 import com.boardwise.backend.vault.exception.ConcurrentModificationAnomalyException;
 import com.boardwise.backend.vault.exception.LockConflictException;
 import com.boardwise.backend.vault.exception.LockNotHeldException;
+import com.boardwise.backend.vault.exception.NoActionsToRedoException;
 import com.boardwise.backend.vault.exception.NoActionsToUndoException;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.exception.VersionMismatchException;
@@ -319,7 +320,7 @@ public class WriteLockService {
     }
 
     @Transactional
-    public UndoActionResponseDto undoAction(ObjectId rulebookId, ObjectId userId, UndoActionRequestDto request){
+    public UndoOrRedoActionResponseDto undoAction(ObjectId rulebookId, ObjectId userId, UndoOrRedoActionRequestDto request){
         // 1. Validation and Session
         // Validate user
         User user = findUserOrThrow(userId);
@@ -445,14 +446,150 @@ public class WriteLockService {
                 break;
         }
 
-        return UndoActionResponseDto.builder()
-            .undone(true)
+        return UndoOrRedoActionResponseDto.builder()
+            .done(true)
             .chunkId(targetEvent.getChunkId().toHexString())
             .newVersion(newVersion)
-            .undoneAt(now)
+            .doneAt(now)
             .build();
     }
 
+    @Transactional
+    public UndoOrRedoActionResponseDto redoAction(ObjectId rulebookId, ObjectId userId, UndoOrRedoActionRequestDto request){
+        // 1. Validation and Session
+        // Validate user
+        User user = findUserOrThrow(userId);
+        Instant now = Instant.now();
+        // Fetch Rulebook and validate lock
+        Rulebook rulebook = validateRulebookAndLockPossession(rulebookId, userId, now, request, "redo");
+        // Evaluate Redo stack
+        if (rulebook.getRedoStack().isEmpty()) {
+            throw new NoActionsToRedoException(rulebookId);
+        }
+        // Atomic Pointer Update
+        Long targetVersion = rulebookRepository.atomicPopRedoAndPushUndo(rulebookId, userId);
+        long newVersion = rulebook.getVersion();
+
+        // 2. Retrieval
+        EditEvent targetEvent = editEventRepository.findByRulebookIdAndVersionAfter(rulebookId, targetVersion)
+                .orElseThrow(
+                        () -> new IllegalStateException(
+                                "Database corruption. redoStack pointed to a version that does not exist in the EDIT_EVENT ledger"));
+
+        // 3. Execution
+        String broadcastEventType = "";
+        EditType inverseEditType;
+        String eventNewContent = null;
+        String eventPreviousContent = null;
+
+        Integer eventIndex = null;
+        int actualRestoredIndex = -1;
+
+        switch (targetEvent.getEditType()) {
+            case EditType.INSERT:
+                rulebookTextRepository.atomicDeleteChunk(rulebookId, targetEvent.getChunkId());
+                broadcastEventType = "CHUNK_DELETED";
+                inverseEditType = EditType.DELETE;
+                eventPreviousContent = targetEvent.getNewContent();
+
+                eventIndex = targetEvent.getIndex();
+                break;
+            case EditType.DELETE:
+                int targetIndex = targetEvent.getIndex();
+
+                RulebookText updatedDocument = rulebookTextRepository.atomicInsertChunk(rulebookId,
+                        targetEvent.getChunkId(), targetEvent.getPreviousContent(), targetIndex);
+
+                if (updatedDocument == null) {
+                    throw new ConcurrentModificationAnomalyException("Failed to insert chunk.");
+                }
+
+                actualRestoredIndex = updatedDocument.getChunks().stream()
+                        .filter(c -> c.getChunkId().equals(targetEvent.getChunkId()))
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalStateException("Chunk missing after undo insert"))
+                        .getIndex();
+
+                broadcastEventType = "CHUNK_INSERTED";
+                inverseEditType = EditType.INSERT;
+                eventNewContent = targetEvent.getPreviousContent();
+
+                eventIndex = actualRestoredIndex;
+                break;
+            case EditType.UPDATE:
+                rulebookTextRepository.atomicUpdateChunk(rulebookId, targetEvent.getChunkId(),
+                        targetEvent.getPreviousContent());
+                broadcastEventType = "DELTA_COMMITTED";
+                inverseEditType = EditType.UPDATE;
+                eventNewContent = targetEvent.getPreviousContent();
+                eventPreviousContent = targetEvent.getNewContent();
+
+                eventIndex = targetEvent.getIndex();
+                break;
+            default:
+                throw new IllegalArgumentException(targetEvent.getEditType() + " is not a valid edit type.");
+        }
+
+        // 4. Insert Edit_Event
+        EditEvent event = EditEvent.builder()
+                .rulebookId(rulebookId)
+                .editorId(new ObjectId(user.getId()))
+                .chunkId(targetEvent.getChunkId())
+                .chunkBefore(targetEvent.getChunkBefore())
+                .editType(inverseEditType)
+                .previousContent(eventPreviousContent)
+                .newContent(eventNewContent)
+                .index(eventIndex)
+                .versionAfter(newVersion)
+                .compensatesVersion(targetVersion)
+                .committedAt(now)
+                .build();
+        editEventRepository.save(event);
+
+        // 5. Broadcast and Return
+        switch (broadcastEventType) {
+            case "CHUNK_INSERTED":
+                eventPublisher.publishEvent(ChunkInsertedEventDto.builder()
+                        .eventType("CHUNK_INSERTED")
+                        .rulebookId(rulebookId.toHexString())
+                        .editorId(userId.toHexString())
+                        .version(newVersion)
+                        .timestamp(now)
+                        .chunkId(targetEvent.getChunkId().toHexString())
+                        .content(eventNewContent)
+                        .index(actualRestoredIndex)
+                        .build());
+                break;
+            case "CHUNK_DELETED":
+                eventPublisher.publishEvent(ChunkDeletedEventDto.builder()
+                        .eventType("CHUNK_DELETED")
+                        .rulebookId(rulebookId.toHexString())
+                        .editorId(userId.toHexString())
+                        .version(newVersion)
+                        .timestamp(now)
+                        .chunkId(targetEvent.getChunkId().toHexString())
+                        .build());
+                break;
+            case "DELTA_COMMITTED":
+                eventPublisher.publishEvent(DeltaCommitedEventDto.builder()
+                        .eventType("DELTA_COMMITTED")
+                        .rulebookId(rulebookId.toHexString())
+                        .editorId(userId.toHexString())
+                        .timestamp(now)
+                        .chunkId(targetEvent.getChunkId().toHexString())
+                        .deltaContent(eventNewContent)
+                        .version(newVersion)
+                        .build());
+                break;
+        }
+
+        return UndoOrRedoActionResponseDto.builder()
+                .done(true)
+                .chunkId(targetEvent.getChunkId().toHexString())
+                .newVersion(newVersion)
+                .doneAt(now)
+                .build();
+    }
     
     // ----- Private Helpers -----
     private Rulebook findRulebookOrThrow(ObjectId id){

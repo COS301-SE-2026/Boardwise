@@ -15,6 +15,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import com.boardwise.backend.vault.exception.LockConflictException;
 import com.boardwise.backend.vault.exception.LockNotHeldException;
+import com.boardwise.backend.vault.exception.NoActionsToRedoException;
 import com.boardwise.backend.vault.exception.NoActionsToUndoException;
 import com.boardwise.backend.vault.exception.R2PresignException;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
@@ -41,7 +42,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
     }
 
-    @ExceptionHandler({IllegalArgumentException.class, NoActionsToUndoException.class})
+    @ExceptionHandler({IllegalArgumentException.class, NoActionsToUndoException.class, NoActionsToRedoException.class})
     public ResponseEntity<Map<String, String>> handleBadRequest(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(Map.of("error", ex.getMessage()));

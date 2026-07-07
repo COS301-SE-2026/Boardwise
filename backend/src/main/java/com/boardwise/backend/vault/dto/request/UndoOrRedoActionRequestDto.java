@@ -9,6 +9,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class UndoActionRequestDto extends VaultBaseRequestDto {
+public class UndoOrRedoActionRequestDto extends VaultBaseRequestDto {
     private String chunkId;
 }

@@ -7,10 +7,10 @@ import lombok.Data;
 
 @Data
 @Builder
-public class UndoActionResponseDto {
-    private boolean undone;
+public class UndoOrRedoActionResponseDto {
+    private boolean done;
     private long newVersion;
     private String chunkId;
-    private Instant undoneAt;
+    private Instant doneAt;
     
 }
