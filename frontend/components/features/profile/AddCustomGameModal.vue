@@ -61,30 +61,54 @@ import { ref } from 'vue'
 import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+import { useProfile } from  '@/composables/useProfile'
+
+const { addGame, isLoading, error } = useProfile();
 
 const open = defineModel()
 const emit = defineEmits(['confirm', 'back'])
 
-const title     = ref('')
-const genre     = ref('')
-const fileName  = ref('')
-const fileInput = ref(null)
+const title = ref('');
+const genre = ref('');
+const fileName  = ref('');
+const fileInput = ref(null);
+const file = ref(null);
 
 const triggerUpload = () => fileInput.value?.click()
+
 const handleFileChange = (e) => {
-    const file = e.target.files[0]
-    if (file) fileName.value = file.name
+    const chosenFile = e.target.files[0];
+    if (chosenFile){
+        file.value = chosenFile;
+        fileName.value = chosenFile.name;
+    }
 }
 
 const closeModal = () => {
-    open.value = false
-    title.value = ''
-    genre.value = ''
-    fileName.value = ''
+    open.value = false;
+    title.value = '';
+    genre.value = '';
+    fileName.value = '';
+    file.value = null;
 }
 
-const handleConfirm = () => {
-    if(!title.value) return 
+const handleConfirm = async () => {
+    if(!title.value || !file.value) return 
+
+    const gameData = {
+        title: title.value,
+        genre: genre.value
+    }
+
+    try{
+        const res = await addGame(gameData,file.value);
+        emit('confirm', res);
+        closeModal();
+    }
+    catch(err){
+        console.error("error while adding game: ", err);
+    }
+
     emit('confirm', { title: title.value, genre: genre.value, image: fileName.value, custom: true })
     closeModal()
 }

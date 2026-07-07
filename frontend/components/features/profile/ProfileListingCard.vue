@@ -37,7 +37,7 @@
           size="sm"
           @click="showEdit = true"
         >
-          Edit
+          
         </BaseButton>
 
         <BaseButton
@@ -45,7 +45,7 @@
           variant="secondary"
           @click="showDelete = true"
         >
-          Delete
+          
         </BaseButton>
 
       </div>
