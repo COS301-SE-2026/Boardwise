@@ -87,7 +87,10 @@ const { city, suburb, lat, long, error: locationError, loading, findUserLocation
 
 const isLoading = ref(false);
 
-const open = defineModel();
+const open =  defineModel({
+  type: Boolean,
+  default: false,
+});
 const emit = defineEmits(['confirm']);
 
 const listingTitle = ref('');
