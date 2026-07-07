@@ -7,10 +7,16 @@
       :search-query="searchQuery"
       :match-count="matchResults.length"
       :current-match="currentMatch"
+      :is-editing="isEditing"
+      :is-saving="isSaving"
+      :lock-held-by="lockHeldBy"
+      :lock-expires-at="lockExpiresAt"
+      :lock-error="lockError"
       @search="searchQuery = $event"
       @prev-match="prevMatch"
       @next-match="nextMatch"
       @clear-search="clearSearch"
+      @edit="handleEdit"
     />
 
     <ReaderProgress :current-page="currentPage" :total-pages="chunks.length" />
@@ -33,8 +39,12 @@
             :is-last="currentPage === chunks.length - 1"
             :search-query="searchQuery"
             :active-occurrence="activeOccurrenceIndex"
+            :is-editing="isEditing"
+            :is-saving="isSaving"
             @prev="currentPage--"
             @next="currentPage++"
+            @save="handleSave"
+            @cancel="handleCancel"
           />
         </v-col>
       </v-row>
@@ -49,6 +59,9 @@ import ReaderProgress from './ReaderProgress.vue'
 import ReaderSidebar from './ReaderSidebar.vue'
 import ReaderPage from './ReaderPage.vue'
 
+import { useEditLock } from '~/composables/useEditLock'
+import { useSnackBar }  from '~/composables/useSnackbar'
+
 const props = defineProps({
   rulebook: Object,
   chunks: { type: Array, default: () => [] }
@@ -58,8 +71,68 @@ const currentPage = ref(0)
 const searchQuery = ref('')
 const currentMatch = ref(0)
 
+// edit logic
+
+const localChunks  = ref([...props.chunks])
+const version      = ref(0) // TODO: seed from response.data.version when fetching text
+
+const { isEditing, isSaving, lockHeldBy, lockExpiresAt, lockError, startEditing, stopEditing, commitDelta } = useEditLock()
+const { show } = useSnackBar()
+
 const activeChunk = computed(() => props.chunks[currentPage.value])
 
+const handlePageChange = (index) => {
+  if (isEditing.value) {
+    show('Save or cancel your edits before switching sections.', 'info')
+    return
+  }
+  currentPage.value = index
+}
+
+const handleEdit = async () => {
+  if (!props.rulebook?.id) return
+  await startEditing(props.rulebook.id)
+  if (lockError.value) {
+    show(lockError.value, 'error')
+  }
+}
+
+const handleSave = async (deltaContent) => {
+  if (!props.rulebook?.id) return
+  isSaving.value = true
+
+  try {
+    const chunk = localChunks.value[currentPage.value]
+
+    // Update local chunk immediately so UI reflects the change
+    localChunks.value[currentPage.value] = {
+      ...chunk,
+      content: deltaContent
+    }
+
+    const newVersion = await commitDelta(
+      props.rulebook.id,
+      chunk.chunkId,
+      deltaContent,
+      version.value
+    )
+
+    version.value = newVersion
+    show('Section saved.', 'success')
+  } catch (err) {
+    show('Failed to save. Please try again.', 'error')
+    console.error('Save error:', err)
+  } finally {
+    await stopEditing(props.rulebook.id)
+  }
+}
+
+const handleCancel = async () => {
+  if (!props.rulebook?.id) return
+  await stopEditing(props.rulebook.id)
+}
+
+// Search logic 
 const matchResults = computed(() => { 
   if(!searchQuery.value.trim()) return []
   const q = searchQuery.value.toLowerCase()

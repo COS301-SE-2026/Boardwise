@@ -26,15 +26,32 @@
       </template>
     </v-tooltip>
 
-    <v-btn
-      size="small"
-      variant="outlined"
-      color="primary"
-      prepend-icon="mdi-pencil"
-      @click="emit('edit')"
+    <!-- edit button -->
+    <v-tooltip
+      :text="lockHeldBy ? `Currently being edited by @${lockHeldBy}` : 'Edit this section'"
+      location="bottom"
     >
-      Edit
-    </v-btn>
+      <template #activator="{ props: tooltipProps }">
+        <v-btn
+          v-bind="tooltipProps"
+          size="small"
+          variant="outlined"
+          color="primary"
+          prepend-icon="mdi-pencil"
+          :disabled="!!lockHeldBy"
+          @click="emit('edit')"
+        >
+          Edit
+        </v-btn>
+      </template>
+    </v-tooltip>
+
+    <!-- Lock indicator -->
+    <span v-if="lockHeldBy" class="text-caption text-error text-no-wrap">
+      <v-icon size="14" color="error">mdi-lock</v-icon>
+      @{{ lockHeldBy }}
+      <template v-if="lockExpiresAt"> · expires {{ formattedExpiry }}</template>
+    </span>
 
     <template #append>
       <div class="d-flex align-center ga-2 mr-4">
@@ -82,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 
 import { useSnackBar } from '~/composables/useSnackbar.ts'
@@ -94,9 +111,11 @@ const props = defineProps({
   searchQuery: { type: String, default: ''},
   matchCount: { type: Number, default: 0},
   currentMatch: { type: Number, default: 0},
-  isEditing: { type: Boolean, default: false },
+  isEditing:     { type: Boolean, default: false },
+  isSaving:      { type: Boolean, default: false },
   lockHeldBy: { type: String, default: null },
-  lockExpiresAt: { type: String, default: null }
+  lockExpiresAt: { type: String, default: null },
+  lockError:     { type: String,  default: ''    }
 })
 
 const emit = defineEmits(['search', 'next-match', 'prev-match', 'clear-search', 'edit'])
@@ -128,5 +147,10 @@ const handleDownload = async () => {
     isDownloading.value = false
   }
 }
+
+const formattedExpiry = computed(() => {
+  if(!props.lockExpiresAt) return ''
+  return new Date(props.lockExpiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+})
 
 </script>
