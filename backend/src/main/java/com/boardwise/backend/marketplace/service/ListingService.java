@@ -225,9 +225,6 @@ public class ListingService {
 
         LocalDateTime now = LocalDateTime.now();
         ListingStatus status = ListingStatus.AVAILABLE;
-        // TODO: uncomment
-        // String location = jwtService.extractLocation(token);
-        // TODO: delete when extract location is acquired
         String location = req.location();
 
         String version = req.version();
@@ -394,13 +391,6 @@ public class ListingService {
             }
             existing.setPrice(priceToAdd);
         }
-
-        // TODO: Uncomment when frontend automatically stores location
-        // String userLocation = jwtService.extractLocation(token);
-        // if(!existing.getLocation().equals((userLocation.isBlank())?null:
-        // userLocation)){
-        // existing.setLocation(token);
-        // }
 
         if (!existing.getLocation().equals(req.location())) {
             existing.setLocation(req.location());

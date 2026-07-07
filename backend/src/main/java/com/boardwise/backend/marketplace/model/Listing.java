@@ -52,7 +52,6 @@ public class Listing {
     @Field("condition")
     private String condition;
 
-    //TODO: Make sure it goes through the pipeline
     @Field("gameTitle")
     private String gameTitle;
 
