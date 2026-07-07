@@ -3,13 +3,14 @@
         town?: string;
         village?: string;
         suburb?: string;
+        residential?:string;
     }
 
     interface NominatimResponse {
         address: NominatimAddress;
     }
     
-export async function useUserLocation() {
+export function useUserLocation() {
     const city = ref<string | null>(null);
     const suburb = ref<string | null>(null);
     const lat = ref<number | null>(null);
@@ -49,10 +50,12 @@ export async function useUserLocation() {
             if (!res.ok) throw new Error('Geocoding request failed');
 
             const data: NominatimResponse = await res.json();
+            console.log('Nominatim address:', data.address);
             const address = data.address;
 
-            city.value = address.city ?? address.town ?? address.village ?? null;
-            suburb.value = address.suburb ?? null;
+
+            city.value = address.town ?? address.village ?? null;
+            suburb.value = address.residential ?? null;
 
         } catch (err) {
             error.value = err instanceof Error ? err.message : String(err);
