@@ -9,9 +9,13 @@ import com.boardwise.backend.vault.model.Rulebook;
 public interface RulebookRepositoryCustom {
     Rulebook atomicAcquireWriteLock(ObjectId rulebookId, ObjectId userId, Instant newExpiry);
 
-    Rulebook atomicValidateAndExtendLock(ObjectId rulebookId, ObjectId userId, int expectedVersion, Instant newExpiry, boolean isUndo);
+    Rulebook atomicValidateAndExtendLock(ObjectId rulebookId, ObjectId userId, long expectedVersion, Instant newExpiry);
 
     Rulebook atomicReleaseWriteLock(ObjectId rulebookId, ObjectId userId);
 
     void atomicReleaseAllWriteLocks(ObjectId userId);
+
+    Long atomicPopUndoAndPushRedo(ObjectId rulebookId, ObjectId userId);
+
+    void atomicCommitForwardEdit(ObjectId rulebookId, Long newVersion);
 }

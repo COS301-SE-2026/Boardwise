@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.AggregationUpdate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -34,55 +35,57 @@ public class RulebookTextRepositoryCustomImpl implements RulebookTextRepositoryC
     }
 
     @Override
-    public boolean atomicInsertChunk(ObjectId rulebookId, ObjectId chunkId, String content, int insertIndex, int lastIndex){
+    public RulebookText atomicInsertChunk(ObjectId rulebookId, ObjectId chunkId, String content, int insertIndex){
         Query query = new Query(Criteria.where("rulebookId").is(rulebookId));
 
-        if (insertIndex >= 0 && insertIndex <= lastIndex){
-            Document newChunk = new Document()
+        Document newChunk = new Document()
                 .append("chunkId", chunkId)
-                .append("index", insertIndex)
                 .append("content", content);
 
-            AggregationUpdate updatePipeline = AggregationUpdate.update()
-                .set("chunks").toValue( // Slice, insert and append
-                    new Document("$concatArrays", List.of(
+        Document arraySize = new Document("$size", new Document("$ifNull", List.of("$chunks", List.of())));
+
+        Document safeIndex = new Document("$cond", List.of(
+            new Document("$or", List.of(
+                new Document("$lt", List.of(insertIndex, 0)),
+                new Document("$gt", List.of(insertIndex, arraySize))
+            )),
+            arraySize, // Fallback: Append to end
+            insertIndex // Default: Insert into requested index
+        ));
+
+        AggregationUpdate updatePipeline = AggregationUpdate.update()
+            .set("chunks").toValue( // Slice, insert and append
+                new Document("$let", new Document()
+                    .append("vars", new Document("safeIdx", safeIndex))
+                    .append("in", new Document("$concatArrays", List.of(
                         new Document("$slice", List.of(
                             new Document("$ifNull", List.of("$chunks", List.of())),
                             0,
-                            insertIndex
+                            "$$safeIdx"
                         )),
                         List.of(newChunk),
                         new Document("$slice", List.of(
                             new Document("$ifNull", List.of("$chunks", List.of())),
-                            insertIndex,
-                            new Document("$size", new Document("$ifNull", List.of("$chunks", List.of())))
+                            "$$safeIdx",
+                            arraySize
                         ))
-                    ))
+                    )))
                 )
-                .set("chunks").toValue(
-                    new Document("$map", new Document()
-                        .append("input", new Document("$range", List.of(0, new Document("$size", "$chunks"))))
-                        .append("as", "idx")
-                        .append("in", new Document("$mergeObjects", List.of(
-                            new Document("$arrayElemAt", List.of("$chunks", "$$idx")),
-                            new Document("index", "$$idx")
-                        )))
-                    )
-                );
-                UpdateResult result = mongoTemplate.updateFirst(query, updatePipeline, RulebookText.class);
-                return result.getModifiedCount() > 0;
-        }else{
-            Document newChunk = new Document()
-            .append("chunkId", chunkId)
-            .append("index", lastIndex + 1)
-            .append("content", content);
+            )
+            .set("chunks").toValue(
+                new Document("$map", new Document()
+                    .append("input", new Document("$range", List.of(0, new Document("$size", "$chunks"))))
+                    .append("as", "idx")
+                    .append("in", new Document("$mergeObjects", List.of(
+                        new Document("$arrayElemAt", List.of("$chunks", "$$idx")),
+                        new Document("index", "$$idx")
+                    )))
+                )
+            );
 
-            Update update = new Update().push("chunks", newChunk);
+        FindAndModifyOptions options = FindAndModifyOptions.options().returnNew(true);
 
-            UpdateResult result = mongoTemplate.updateFirst(query, update, RulebookText.class);
-
-            return result.getModifiedCount() > 0;
-        }
+        return mongoTemplate.findAndModify(query, updatePipeline, options,RulebookText.class);
     }
 
     @Override

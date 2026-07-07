@@ -1,10 +1,13 @@
 package com.boardwise.backend.vault.repository;
 
 import java.time.Instant;
+import java.util.List;
 
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.AggregationUpdate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -49,7 +52,7 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
     }
 
     @Override
-    public Rulebook atomicValidateAndExtendLock(ObjectId rulebookId, ObjectId userId, int expectedVersion, Instant newExpiry, boolean isUndo){
+    public Rulebook atomicValidateAndExtendLock(ObjectId rulebookId, ObjectId userId, long expectedVersion, Instant newExpiry){
         Query query = new Query(
             new Criteria().andOperator(
                 Criteria.where("_id").is(rulebookId),
@@ -59,7 +62,7 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
         );
 
         Update update = new Update()
-            .inc("version", (isUndo) ? -1 : 1)
+            .inc("version", 1)
             .set("lockExpiresAt", newExpiry)
             .set("updatedAt", Instant.now());
 
@@ -95,5 +98,59 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
             .set("lockExpiresAt", null);
         
         mongoTemplate.updateMulti(query, update, Rulebook.class);
+    }
+
+    @Override
+    public Long atomicPopUndoAndPushRedo(ObjectId rulebookId, ObjectId userId){
+        Query query = new Query(
+            Criteria.where("_id").is(rulebookId)
+            .and("lockHeldBy").is(userId)
+            .and("undoStack.0").exists(true)
+        );
+
+        AggregationUpdate updatePipeline = AggregationUpdate.update()
+        .set("redoStack").toValue(
+            new Document("$concatArrays", List.of(
+                new Document("$ifNull", List.of("$redoStack", List.of())),
+                List.of(new Document("$arrayElemAt", List.of("$undoStack", -1)))
+            ))
+        )
+        .set("undoStack").toValue(
+            new Document("$slice", List.of(
+                "$undoStack",
+                0,
+                new Document("$subtract", List.of(new Document("$size", "$undoStack"), 1))
+            ))
+        );
+
+        FindAndModifyOptions options = FindAndModifyOptions.options().returnNew(true);
+
+        Rulebook updatedRulebook = mongoTemplate.findAndModify(query, updatePipeline, options, Rulebook.class);
+
+        if(updatedRulebook == null){
+            return null;
+        }
+
+        List<Long> redoStack = updatedRulebook.getRedoStack();
+        return redoStack.get(redoStack.size() - 1);
+    }
+
+    @Override
+    public void atomicCommitForwardEdit(ObjectId rulebookId, Long newVersion){
+        Query query = new Query(Criteria.where("_id").is(rulebookId));
+
+        AggregationUpdate updatePipeline = AggregationUpdate.update()
+            .set("undoStack").toValue( // Push new version onto undo stack
+                new Document("$slice", List.of(
+                    new Document("$concatArrays", List.of(
+                        new Document("$ifNull", List.of("$undoStack", List.of())),
+                        List.of(newVersion)
+                    )),
+                    -50 // Dynamically keep only the last 50 elements
+                ))
+            )
+            .set("redoStack").toValue(List.of()); // clear redo stack
+
+        mongoTemplate.updateFirst(query, updatePipeline, Rulebook.class);
     }
 }
