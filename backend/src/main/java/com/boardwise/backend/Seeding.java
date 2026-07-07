@@ -26,17 +26,16 @@ import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.vault.enums.EditType;
 import com.boardwise.backend.vault.model.Chunk;
 import com.boardwise.backend.vault.model.EditEvent;
 import com.boardwise.backend.vault.model.IngestionJob;
 import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.model.RulebookText;
-// import com.boardwise.backend.vault.model.WriteLock;
 import com.boardwise.backend.vault.repository.EditEventRepository;
 import com.boardwise.backend.vault.repository.IngestionJobRepository;
 import com.boardwise.backend.vault.repository.RulebookRepository;
 import com.boardwise.backend.vault.repository.RulebookTextRepository;
-import com.boardwise.backend.vault.repository.WriteLockRepository;
 import com.boardwise.backend.marketplace.enums.Genres;
 
 @Component
@@ -51,8 +50,7 @@ public class Seeding {
     @Bean
     public CommandLineRunner seedDB(ListingRepository listingRepository, BoardGameRepository boardGameRepository, GroupMembershipRepository groupMembershipRepository,
             GroupRepository groupRepository, UserRepository userRepository, EditEventRepository editEventRepository,
-            IngestionJobRepository ingestionJobRepository, RulebookRepository rulebookRepository, RulebookTextRepository rulebookTextRepository,
-            WriteLockRepository writeLockRepository) {
+            IngestionJobRepository ingestionJobRepository, RulebookRepository rulebookRepository, RulebookTextRepository rulebookTextRepository) {
         return args -> {
             // User Repository
             if (userRepository.count() == 0) {
@@ -192,7 +190,9 @@ public class Seeding {
                                 8, 45, List.of("Cooperative", "Strategy")),
                         new Boardgame(null,9209,"Ticket to Ride","Railway route-building game.",
                                 "https://cf.geekdo-images.com/kdWYkW-7AqG63HhqPL6ekA__imagepage/img/AWsdGNNSuI78BaCPAVQpjrUneKY=/fit-in/900x600/filters:no_upscale():strip_icc()/pic8937637.jpg",2,5,
-                                8, 45, List.of("Strategy","Trains","Transportation"))
+                                8,45,List.of("Strategy","Trains","Transportation")),
+                        new Boardgame(null, 171, "Chess", "Classic two-player strategy game played on an 8x8 board.", "https://new.uschess.org/sites/default/files/styles/1080px_wide_scale/public/media/images/2024_cover_image.png.webp?itok=xUbyXJ_i", 2,2,
+                                5,90,List.of("Abstract Strategy", "Classic"))
                 );
                 boardGameRepository.saveAll(boardGames);
                 System.out.println("Seeded " + boardGames.size() + " board games");
@@ -279,19 +279,19 @@ public class Seeding {
                 List<Rulebook> rulebooks = List.of(
                         Rulebook.builder().coverUrl("https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png").gameId(gameIdsByTitle.get("Monopoly")).title("Monopoly").edition("Classic").status("Ready").version(1)
                                 .contributorId(con1.id()).contributorUsername(con1.username()).description("Objective: Bankrupt all opposing players by acquiring, developing, and trading real estate properties.").language("English").r2PdfKey("rulebooks/monopoly-classic.pdf")
-                                .r2CoverKey("/rulebooks/default_cover.png").uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
+                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
                         Rulebook.builder().coverUrl("https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg").gameId(gameIdsByTitle.get("Scrabble")).title("Scrabble").edition("Standard").status("Ready").version(1)
                                 .contributorId(con1.id()).contributorUsername(con1.username()).description("Objective: Accumulate the highest score by spelling interlocking, valid dictionary words on a grid.").language("English").r2PdfKey("rulebooks/scrabble-standard.pdf")
-                                .r2CoverKey("/rulebooks/default_cover.png").uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
+                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
                         Rulebook.builder().coverUrl("").gameId(gameIdsByTitle.get("Catan")).title("Catan").edition("5th Edition").status("Ready").version(2)
                                 .contributorId(con2.id()).contributorUsername(con2.username()).description("Objective: Be the first player to accumulate 10 Victory Points (VPs).").language("Spanish").r2PdfKey("rulebooks/catan-5th.pdf")
-                                .r2CoverKey("/rulebooks/default_cover.png").uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
+                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
                         Rulebook.builder().coverUrl("https://cf.geekdo-images.com/S3ybV1LAp-8SnHIXLLjVqA__imagepage/img/kIBu-2Ljb_ml5n-S8uIbE6ehGFc=/fit-in/900x600/filters:no_upscale():strip_icc()/pic1534148.jpg").gameId(gameIdsByTitle.get("Pandemic")).title("Pandemic").edition("2nd Edition").status("PendingReview")
                                 .version(1).contributorId(con2.id()).contributorUsername(con2.username()).description("Objective: Work cooperatively to discover cures for four distinct global diseases before a failure condition is triggered.").language("Spanish").r2PdfKey("rulebooks/pandemic-2nd.pdf")
-                                .r2CoverKey("/rulebooks/default_cover.png").uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
+                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
                         Rulebook.builder().coverUrl("https://cf.geekdo-images.com/kdWYkW-7AqG63HhqPL6ekA__imagepage/img/AWsdGNNSuI78BaCPAVQpjrUneKY=/fit-in/900x600/filters:no_upscale():strip_icc()/pic8937637.jpg").gameId(gameIdsByTitle.get("Ticket to Ride")).title("Ticket to Ride").edition("Original").status("Processing")
                                 .version(1).contributorId(con1.id()).contributorUsername(con1.username()).description("Objective: Score the highest number of points by claiming railway routes and completing hidden Destination Tickets.").language("French").r2PdfKey("rulebooks/ticket-to-ride.pdf")
-                                .r2CoverKey("/rulebooks/default_cover.png").uploadedAt(Instant.now()).updatedAt(Instant.now()).build());
+                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now()).build());
                 rulebookRepository.saveAll(rulebooks);
                 System.out.println("Seeded " + rulebooks.size() + " rulebooks");
 
@@ -385,15 +385,27 @@ public class Seeding {
                 System.out.println("Seeded " + jobs.size() + " ingestion jobs");
 
                 // Edit Events
+                Chunk text0Chunk0 = texts.get(0).getChunks().get(0);
+                Chunk text1Chunk0 = texts.get(1).getChunks().get(0);
+                Chunk text2Chunk0 = texts.get(2).getChunks().get(0);
                 List<EditEvent> editEvents = List.of(
                         EditEvent.builder().rulebookId(rulebooks.get(0).getId()).editorId(con1.id())
-                                .delta("Fixed typo on page 3.").versionAfter(2)
+                                .chunkId(text0Chunk0.getChunkId()).chunkBefore(null)
+                                .editType(EditType.UPDATE)
+                                .previousContent(text0Chunk0.getContent())
+                                .newContent("Fixed typo on page 3.").versionAfter(2)
                                 .committedAt(Instant.now().minusSeconds(120)).build(),
                         EditEvent.builder().rulebookId(rulebooks.get(1).getId()).editorId(con1.id())
-                                .delta("Updated scoring section.").versionAfter(2)
+                                .chunkId(text1Chunk0.getChunkId()).chunkBefore(null)
+                                .editType(EditType.UPDATE)
+                                .previousContent(text1Chunk0.getContent())
+                                .newContent("Updated scoring section.").versionAfter(2)
                                 .committedAt(Instant.now().minusSeconds(90)).build(),
                         EditEvent.builder().rulebookId(rulebooks.get(2).getId()).editorId(con2.id())
-                                .delta("Clarified trading rules.").versionAfter(3)
+                                .chunkId(text2Chunk0.getChunkId()).chunkBefore(null)
+                                .editType(EditType.UPDATE)
+                                .previousContent(text2Chunk0.getContent())
+                                .newContent("Clarified trading rules.").versionAfter(3)
                                 .committedAt(Instant.now().minusSeconds(60)).build());
                 editEventRepository.saveAll(editEvents);
                 System.out.println("Seeded " + editEvents.size() + " edit events");

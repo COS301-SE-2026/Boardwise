@@ -1,4 +1,4 @@
-import { userService } from "@/services/userService";
+import { userService } from "~/services/userService";
 import { useRouter } from "vue-router";
 
 export const useProfile = () => {

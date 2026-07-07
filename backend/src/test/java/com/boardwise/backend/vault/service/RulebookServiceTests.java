@@ -30,7 +30,6 @@ import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.repository.EditEventRepository;
 import com.boardwise.backend.vault.repository.RulebookRepository;
 import com.boardwise.backend.vault.repository.RulebookTextRepository;
-import com.boardwise.backend.vault.repository.WriteLockRepository;
 
 @ExtendWith(MockitoExtension.class)
 public class RulebookServiceTests {
@@ -39,9 +38,6 @@ public class RulebookServiceTests {
 
     @Mock
     private RulebookTextRepository rulebookTextRepository;
-
-    @Mock
-    private WriteLockRepository writeLockRepository;
 
     @Mock
     private EditEventRepository editEventRepository;

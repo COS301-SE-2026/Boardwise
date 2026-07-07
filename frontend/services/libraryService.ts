@@ -11,12 +11,12 @@ interface PageableResponse{
     sort: SortResponse;
     unpaged: boolean;
 }
-// TODO: Change this to rulebookSummary response instead such that less data is returned
 interface RulebookResponse{
     id: string;
+    coverUrl: string;
     title: string;
     edition: string;
-    genres: string;
+    genres: string[];
     version: number;
     status: string;
     contributorUsername: string;
@@ -25,6 +25,8 @@ interface RulebookResponse{
     lockHeldBy: string;
     uploadedAt: string; // Instant returned as a string
     updatedAt: string; // Instant returned as a string
+    minPlayers: number;
+    maxPlayers: number;
 }
 interface PaginatedRulebookResponse{
     content: Array<RulebookSummaryResponse>;
@@ -53,15 +55,17 @@ interface RulebookTextResponse{
 }
 interface RulebookSummaryResponse{
     id: string;
+    coverUrl: string;
     title: string;
     language: string;
     edition: string;
     version: number;
     genres: string[];
+    minPlayers: number;
+    maxPlayers: number;
 }
 
 export const LibraryService = {
-    // Optional parameters to control the pagination/search
     fetchAllRulebooks(search = '', page = 1, limit = 20) {
         const { $api } = useNuxtApp();
         return $api<PaginatedRulebookResponse>('vault/rulebooks', {

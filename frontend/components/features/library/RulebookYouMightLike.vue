@@ -13,7 +13,7 @@
                 @click="$emit('select', rulebook)"
             >
                 <BaseImage
-                    :src="rulebook.image"
+                    :src="rulebook.coverUrl"
                     :alt="rulebook.title"
                     width="48px"
                     height="48px"

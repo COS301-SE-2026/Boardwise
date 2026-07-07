@@ -76,7 +76,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       // Once backend is deployed, we must change the URL to match
-      apiBase: process.env.NODE_ENV === 'prod' ? 'https://api.our-production-domain.com' : 'http://127.0.0.1:8080/api/'
+      apiBase: process.env.NODE_ENV === 'prod' ? 'https://api.our-production-domain.com' : 'http://127.0.0.1:8080/api/',
+      fastApiBase: process.env.FASTAPI_BASE || 'http://127.0.0.1:8000/api/'
     }
   },
 
