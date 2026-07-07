@@ -26,6 +26,16 @@
       </template>
     </v-tooltip>
 
+    <v-btn
+      size="small"
+      variant="outlined"
+      color="primary"
+      prepend-icon="mdi-pencil"
+      @click="emit('edit')"
+    >
+      Edit
+    </v-btn>
+
     <template #append>
       <div class="d-flex align-center ga-2 mr-4">
 
@@ -75,7 +85,7 @@
 import { ref } from 'vue'
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 
-import { useSnackBar } from '~/composables/useSnackBar'
+import { useSnackBar } from '~/composables/useSnackbar.ts'
 
 const props = defineProps({
   rulebook: Object,
@@ -84,9 +94,12 @@ const props = defineProps({
   searchQuery: { type: String, default: ''},
   matchCount: { type: Number, default: 0},
   currentMatch: { type: Number, default: 0},
+  isEditing: { type: Boolean, default: false },
+  lockHeldBy: { type: String, default: null },
+  lockExpiresAt: { type: String, default: null }
 })
 
-const emit = defineEmits(['search', 'next-match', 'prev-match', 'clear-search'])
+const emit = defineEmits(['search', 'next-match', 'prev-match', 'clear-search', 'edit'])
 
 const showSearch = ref(false)
 const localQuery = ref('')
