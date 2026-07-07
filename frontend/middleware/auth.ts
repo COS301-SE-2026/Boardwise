@@ -3,6 +3,6 @@ export default defineNuxtRouteMiddleware((to, from) => {
     const token = localStorage.getItem('access_token');
 
     if(!token){
-        return navigateTo('auth/signin');
+        return navigateTo('/auth/signin');
     }
 });
