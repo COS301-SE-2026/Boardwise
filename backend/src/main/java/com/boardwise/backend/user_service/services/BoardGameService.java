@@ -1,5 +1,6 @@
 package com.boardwise.backend.user_service.services;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.multipart.MultipartFile;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -22,8 +24,8 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.boardwise.backend.user_service.dtos.GameListDTO;
+import com.boardwise.backend.user_service.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 
@@ -31,11 +33,17 @@ import com.boardwise.backend.user_service.repos.BoardGameRepository;
 public class BoardGameService {
 
     private final BoardGameRepository gameRepo;
+    private final R2StorageService bucket;
     private final RestClient client;
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
 
-    BoardGameService(BoardGameRepository gameRepo, RestClient bggRestClient){
+    BoardGameService(
+        BoardGameRepository gameRepo,
+        R2StorageService bucket, 
+        RestClient bggRestClient
+    ){
         this.gameRepo = gameRepo;
+        this.bucket = bucket;
         this.client = bggRestClient;
     }
 
@@ -60,6 +68,7 @@ public class BoardGameService {
 
             List<Boardgame> boardgames = new ArrayList<>();
             NodeList nodeList = document.getElementsByTagName("item");
+            boolean updateEntry = false;
             for(int i = 0; i < nodeList.getLength(); i++){
                 Node node = nodeList.item(i);
 
@@ -99,6 +108,20 @@ public class BoardGameService {
                                             .getNodeValue();
                 int maxPlayers = Integer.parseInt(preMax);       
 
+                String preDuration = element.getElementsByTagName("playingtime")
+                                            .item(0)
+                                            .getAttributes()
+                                            .getNamedItem("value")
+                                            .getNodeValue();
+                int duration = Integer.parseInt(preDuration);
+
+                String preMinAge = element.getElementsByTagName("minage")
+                                            .item(0)
+                                            .getAttributes()
+                                            .getNamedItem("value")
+                                            .getNodeValue();
+                int minAge = Integer.parseInt(preMinAge);
+
                 NodeList gameGenres = element.getElementsByTagName("link");
                 List<String> genres = new ArrayList<>();
                 for(int j = 0; j < gameGenres.getLength(); j++){
@@ -111,6 +134,7 @@ public class BoardGameService {
                         genres.add(genre);
                     }
                 }
+                // API game data object
                 Boardgame game = new Boardgame(
                     null,
                     bggId,
@@ -119,9 +143,33 @@ public class BoardGameService {
                     gameImage,
                     minPlayers,
                     maxPlayers,
+                    minAge,
+                    duration,
                     genres
                 );
-                boardgames.add(game);
+
+                List<Boardgame> nullGames = gameRepo.findAllByBggIdNull(); // user provided games
+                for(Boardgame nullGame : nullGames){
+                    if(game.getTitle().contains(nullGame.getTitle()) || nullGame.getTitle().contains(game.getTitle())){
+                        // update nullGame
+                        updateEntry = true;
+                        
+                        nullGame.setBggId(bggId);
+                        nullGame.setTitle(gameTitle);
+                        nullGame.setDescription(gameDesc);
+                        nullGame.setImageURL(gameImage);
+                        nullGame.setMinPlayers(minPlayers);
+                        nullGame.setMaxPlayers(maxPlayers);
+                        nullGame.setMinAge(minAge);
+                        nullGame.setDuration(duration);
+                        nullGame.setGenres(genres);
+
+                        gameRepo.save(nullGame);
+                    }
+                }
+
+                if(!updateEntry)
+                    boardgames.add(game);
             }
 
             gameRepo.saveAll(boardgames);
@@ -159,5 +207,40 @@ public class BoardGameService {
         
         
         return result; 
+    }
+
+    public Map<String, Object> addBoardgame(OtherGameDTO gameInfo, MultipartFile image) throws IOException {
+        Map<String, Object> result = new HashMap<>();
+        
+        // add the user provided game
+        String gameTitle = AuthService.sanitize(gameInfo.title());
+        String gameDesc = AuthService.sanitize(gameInfo.description());
+        List<String> gameGenres = new ArrayList<>();
+        for(String genre : gameInfo.genres()){
+            String cleanGenre = AuthService.sanitize(genre);
+            gameGenres.add(cleanGenre);
+        }
+
+        String fileName = bucket.uploadFile(image, gameTitle);
+        String imageUrl = bucket.getFileUrl(fileName);
+
+        Boardgame newGame = new Boardgame(
+            null,
+            null,
+            gameTitle,
+            gameDesc,
+            imageUrl,
+            gameInfo.minPlayers(),
+            gameInfo.maxPlayers(),
+            gameInfo.minAge(),
+            gameInfo.duration(),
+            gameGenres
+        );
+
+        newGame = gameRepo.save(newGame);
+
+        result.put("message", "New game successfully added to database.");
+
+        return result;
     }
 }
