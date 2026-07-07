@@ -32,6 +32,9 @@ public class EditEvent {
     @Field("chunkId")
     private ObjectId chunkId;
 
+    @Field("index")
+    private Integer index; // Makes positional placement easier when undo/ redo
+
     @Field("chunkBefore")
     private ObjectId chunkBefore; // either id of chunk that came before or null (set by a delete event)
 
@@ -45,7 +48,10 @@ public class EditEvent {
     private String newContent;
 
     @Field("versionAfter")
-    private int versionAfter;
+    private long versionAfter;
+
+    @Field("compensatesVersion")
+    private Long compensatesVersion; // Indicates the version the undo targeted
 
     @Field("committedAt")
     private Instant committedAt;
