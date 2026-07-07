@@ -13,8 +13,8 @@ import com.boardwise.backend.vault.enums.EditType;
 import lombok.*;
 
 @Document(collection = "EDIT_EVENT")
-@CompoundIndex(name = "rulebook_version_idx", def = "{'rulebookId': 1, 'versionAfter': -1}") // Index for finding all edits for a specific rulebook
-@CompoundIndex(name = "rulebook_chunk_idx", def = "{'rulebookId': 1, 'chunkId': 1, 'versionAfter': -1}") // Index for finding the history of a specific chunk
+@CompoundIndex(name = "rulebook_version_idx", def = "{'rulebookId': 1, 'versionPostEdit': -1}") // Index for finding all edits for a specific rulebook
+@CompoundIndex(name = "rulebook_chunk_idx", def = "{'rulebookId': 1, 'chunkId': 1, 'versionPostEdit': -1}") // Index for finding the history of a specific chunk
 @Getter // For immutability
 @Builder
 @NoArgsConstructor
@@ -47,8 +47,8 @@ public class EditEvent {
     @Field("newContent")
     private String newContent;
 
-    @Field("versionAfter")
-    private long versionAfter;
+    @Field("versionPostEdit")
+    private long versionPostEdit; // version post edit event
 
     @Field("compensatesVersion")
     private Long compensatesVersion; // Indicates the version the undo targeted

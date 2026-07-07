@@ -393,19 +393,19 @@ public class Seeding {
                                 .chunkId(text0Chunk0.getChunkId()).chunkBefore(null)
                                 .editType(EditType.UPDATE)
                                 .previousContent(text0Chunk0.getContent())
-                                .newContent("Fixed typo on page 3.").versionAfter(2)
+                                .newContent("Fixed typo on page 3.").versionPostEdit(2)
                                 .committedAt(Instant.now().minusSeconds(120)).build(),
                         EditEvent.builder().rulebookId(rulebooks.get(1).getId()).editorId(con1.id())
                                 .chunkId(text1Chunk0.getChunkId()).chunkBefore(null)
                                 .editType(EditType.UPDATE)
                                 .previousContent(text1Chunk0.getContent())
-                                .newContent("Updated scoring section.").versionAfter(2)
+                                .newContent("Updated scoring section.").versionPostEdit(2)
                                 .committedAt(Instant.now().minusSeconds(90)).build(),
                         EditEvent.builder().rulebookId(rulebooks.get(2).getId()).editorId(con2.id())
                                 .chunkId(text2Chunk0.getChunkId()).chunkBefore(null)
                                 .editType(EditType.UPDATE)
                                 .previousContent(text2Chunk0.getContent())
-                                .newContent("Clarified trading rules.").versionAfter(3)
+                                .newContent("Clarified trading rules.").versionPostEdit(3)
                                 .committedAt(Instant.now().minusSeconds(60)).build());
                 editEventRepository.saveAll(editEvents);
                 System.out.println("Seeded " + editEvents.size() + " edit events");

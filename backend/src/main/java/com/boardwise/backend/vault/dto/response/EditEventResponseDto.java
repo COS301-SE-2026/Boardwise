@@ -15,6 +15,6 @@ public class EditEventResponseDto {
     private String editType;
     private String previousContent;
     private String newContent;
-    private long versionAfter;
+    private long versionPostEdit;
     private Instant committedAt;
 }

@@ -255,7 +255,7 @@ public class RulebookService {
             .editType(event.getEditType().toString())
             .previousContent(event.getPreviousContent())
             .newContent(event.getNewContent())
-            .versionAfter(event.getVersionAfter())
+            .versionPostEdit(event.getVersionPostEdit())
             .committedAt(event.getCommittedAt())
             .build();
     }

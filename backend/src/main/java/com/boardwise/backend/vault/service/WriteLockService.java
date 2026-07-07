@@ -126,7 +126,7 @@ public class WriteLockService {
             .editType(EditType.UPDATE)
             .previousContent(previousText)
             .newContent(request.getContent())
-            .versionAfter(rulebook.getVersion())
+            .versionPostEdit(rulebook.getVersion())
             .committedAt(now)
             .build();
         editEventRepository.save(event);
@@ -237,7 +237,7 @@ public class WriteLockService {
                 .previousContent(null)
                 .newContent(request.getContent())
                 .index(actualAssignedIndex)
-                .versionAfter(rulebook.getVersion())
+                .versionPostEdit(rulebook.getVersion())
                 .committedAt(now)
                 .build();
         editEventRepository.save(event);
@@ -297,7 +297,7 @@ public class WriteLockService {
                 .previousContent(actualPreviousText)
                 .index(actualPreviousIndex)
                 .newContent(null)
-                .versionAfter(rulebook.getVersion())
+                .versionPostEdit(rulebook.getVersion())
                 .committedAt(now)
                 .build();
         editEventRepository.save(event);
@@ -336,7 +336,7 @@ public class WriteLockService {
         long newVersion = rulebook.getVersion();
 
         // 2. Retrieval
-        EditEvent targetEvent = editEventRepository.findByRulebookIdAndVersionAfter(rulebookId, targetVersion).orElseThrow(
+        EditEvent targetEvent = editEventRepository.findByRulebookIdAndVersionPostEdit(rulebookId, targetVersion).orElseThrow(
            () -> new IllegalStateException("Database corruption. undoStack pointed to a version that does not exist in the EDIT_EVENT ledger")
         );
 
@@ -403,7 +403,7 @@ public class WriteLockService {
                 .previousContent(eventPreviousContent)
                 .newContent(eventNewContent)
                 .index(eventIndex)
-                .versionAfter(newVersion)
+                .versionPostEdit(newVersion)
                 .compensatesVersion(targetVersion)
                 .committedAt(now)
                 .build();
@@ -471,7 +471,7 @@ public class WriteLockService {
         long newVersion = rulebook.getVersion();
 
         // 2. Retrieval
-        EditEvent targetEvent = editEventRepository.findByRulebookIdAndVersionAfter(rulebookId, targetVersion)
+        EditEvent targetEvent = editEventRepository.findByRulebookIdAndVersionPostEdit(rulebookId, targetVersion)
                 .orElseThrow(
                         () -> new IllegalStateException(
                                 "Database corruption. redoStack pointed to a version that does not exist in the EDIT_EVENT ledger"));
@@ -540,7 +540,7 @@ public class WriteLockService {
                 .previousContent(eventPreviousContent)
                 .newContent(eventNewContent)
                 .index(eventIndex)
-                .versionAfter(newVersion)
+                .versionPostEdit(newVersion)
                 .compensatesVersion(targetVersion)
                 .committedAt(now)
                 .build();

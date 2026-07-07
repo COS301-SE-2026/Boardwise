@@ -10,5 +10,5 @@ import com.boardwise.backend.vault.model.EditEvent;
 public interface EditEventRepository extends MongoRepository<EditEvent, ObjectId>{
     List<EditEvent> findByRulebookIdOrderByCommittedAtAsc(ObjectId rulebookId);
 
-    Optional<EditEvent> findByRulebookIdAndVersionAfter(ObjectId rulebookId, long versionAfter);
+    Optional<EditEvent> findByRulebookIdAndVersionPostEdit(ObjectId rulebookId, long versionPostEdit);
 }
