@@ -14,10 +14,12 @@ import com.boardwise.backend.user_service.models.UserDetailImpl;
 import com.boardwise.backend.vault.dto.request.CommitEditDeltaRequestDto;
 import com.boardwise.backend.vault.dto.request.DeleteChunkRequestDto;
 import com.boardwise.backend.vault.dto.request.InsertNewChunkRequestDto;
+import com.boardwise.backend.vault.dto.request.UndoActionRequestDto;
 import com.boardwise.backend.vault.dto.response.AcquireWriteLockDto;
 import com.boardwise.backend.vault.dto.response.CommitEditDeltaResponseDto;
 import com.boardwise.backend.vault.dto.response.DeleteChunkResponseDto;
 import com.boardwise.backend.vault.dto.response.InsertNewChunkResponseDto;
+import com.boardwise.backend.vault.dto.response.UndoActionResponseDto;
 import com.boardwise.backend.vault.service.WriteLockService;
 
 import lombok.RequiredArgsConstructor;
@@ -95,6 +97,19 @@ public class WriteLockController {
         return ResponseEntity.ok(
                 writeLockService.removeChunk(toObjectId(rulebookId), userId, request));
         }
+
+    @PostMapping("/{id}/undo")
+    public ResponseEntity<UndoActionResponseDto> undoEdit(
+        @PathVariable("id") String rulebookId,
+        Authentication authentication,
+        @RequestBody UndoActionRequestDto request){
+            UserDetailImpl userDetails = (UserDetailImpl) authentication.getPrincipal();
+            ObjectId userId = new ObjectId(userDetails.getUserId());
+        
+            return ResponseEntity.ok(
+                writeLockService.undoAction(toObjectId(rulebookId), userId, request));
+    }
+    
 
     // ----- Private Helpers -----
     private ObjectId toObjectId(String id){

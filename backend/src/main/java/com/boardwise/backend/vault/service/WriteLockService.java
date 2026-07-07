@@ -13,19 +13,24 @@ import com.boardwise.backend.user_service.repos.UserRepository;
 import com.boardwise.backend.vault.dto.request.CommitEditDeltaRequestDto;
 import com.boardwise.backend.vault.dto.request.DeleteChunkRequestDto;
 import com.boardwise.backend.vault.dto.request.InsertNewChunkRequestDto;
+import com.boardwise.backend.vault.dto.request.UndoActionRequestDto;
+import com.boardwise.backend.vault.dto.request.VaultBaseRequestDto;
 import com.boardwise.backend.vault.dto.response.AcquireWriteLockDto;
 import com.boardwise.backend.vault.dto.response.CommitEditDeltaResponseDto;
 import com.boardwise.backend.vault.dto.response.DeleteChunkResponseDto;
 import com.boardwise.backend.vault.dto.response.InsertNewChunkResponseDto;
+import com.boardwise.backend.vault.dto.response.UndoActionResponseDto;
 import com.boardwise.backend.vault.dto.websocket.ChunkDeletedEventDto;
 import com.boardwise.backend.vault.dto.websocket.ChunkInsertedEventDto;
 import com.boardwise.backend.vault.dto.websocket.DeltaCommitedEventDto;
 import com.boardwise.backend.vault.dto.websocket.LockAcquiredEventDto;
 import com.boardwise.backend.vault.dto.websocket.LockReleasedEventDto;
 import com.boardwise.backend.vault.enums.EditType;
+import com.boardwise.backend.vault.exception.ChunkNotFoundException;
 import com.boardwise.backend.vault.exception.ConcurrentModificationAnomalyException;
 import com.boardwise.backend.vault.exception.LockConflictException;
 import com.boardwise.backend.vault.exception.LockNotHeldException;
+import com.boardwise.backend.vault.exception.NoActionsToUndoException;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.exception.VersionMismatchException;
 import com.boardwise.backend.vault.model.EditEvent;
@@ -94,35 +99,22 @@ public class WriteLockService {
         Instant now = Instant.now();
         // Attempt commit edit delta
         // 1. Update RULEBOOK
-        Rulebook rulebook = rulebookRepository.atomicValidateAndExtendLock(rulebookId, userId, request.getExpectedVersion(), now.plusSeconds(LOCK_TIMEOUT_MINUTES * 60), false);
-        if(rulebook == null){
-            // Determine reason for failure and throw relevant exception
-            // Check if rulebook exists
-            Rulebook currentRulebook = findRulebookOrThrow(rulebookId);
+        Rulebook rulebook = validateRulebookAndLockPossession(rulebookId, userId, now, request, "edit");
 
-            // Check if user owns the lock
-            if(currentRulebook.getLockHeldBy() == null || !currentRulebook.getLockHeldBy().equals(userId)){
-                throw new LockNotHeldException(userId);
-            }
-
-            // Check for a version mismatch
-            if(currentRulebook.getVersion() != request.getExpectedVersion()){
-                throw new VersionMismatchException(request.getExpectedVersion(), currentRulebook.getVersion());
-            }
-
-            // Fallback
-            throw new ConcurrentModificationAnomalyException("Failed to commit delta due to concurrent state modification.");
-        }
+        long nextVersion = rulebook.getVersion();
 
         ObjectId targetChunkId = new ObjectId(request.getChunkId());
         
         // 2. Fetch Previous Text State
         RulebookText chunkBeforeUpdate = rulebookTextRepository.findBySpecificChunk(rulebookId, targetChunkId)
-            .orElseThrow(() -> new IllegalArgumentException("Target rulebook or chunk does not exist."));
+            .orElseThrow(() -> new ChunkNotFoundException(rulebookId, targetChunkId));
         String previousText = chunkBeforeUpdate.getChunks().get(0).getContent();
 
         // 3. Update RULEBOOK_TEXT
-        rulebookTextRepository.atomicUpdateChunk(rulebookId, new ObjectId(request.getChunkId()), request.getDeltaContent());
+        rulebookTextRepository.atomicUpdateChunk(rulebookId, new ObjectId(request.getChunkId()), request.getContent());
+
+        // Push onto undoStack and clear redoStack
+        rulebookRepository.atomicCommitForwardEdit(rulebookId, nextVersion);
         
         // 4. Insert EDIT_EVENT
         EditEvent event = EditEvent.builder()
@@ -132,7 +124,7 @@ public class WriteLockService {
             .chunkBefore(null)
             .editType(EditType.UPDATE)
             .previousContent(previousText)
-            .newContent(request.getDeltaContent())
+            .newContent(request.getContent())
             .versionAfter(rulebook.getVersion())
             .committedAt(now)
             .build();
@@ -141,7 +133,7 @@ public class WriteLockService {
         eventPublisher.publishEvent(DeltaCommitedEventDto.builder()
             .rulebookId(rulebookId.toHexString())
             .chunkId(request.getChunkId())
-            .deltaContent(request.getDeltaContent())
+            .deltaContent(request.getContent())
             .version(rulebook.getVersion())
             .build()
         );
@@ -212,32 +204,27 @@ public class WriteLockService {
 
         // Attempt insert chunk
         // 1. Update RULEBOOK
-        Rulebook rulebook = rulebookRepository.atomicValidateAndExtendLock(rulebookId, userId,
-                request.getExpectedVersion(), now.plusSeconds(LOCK_TIMEOUT_MINUTES * 60),false);
-        if(rulebook == null){
-            // Determine failure reason and throw appropriate error.
-            // Check if rulebook exists
-            Rulebook currentRulebook = findRulebookOrThrow(rulebookId);
+        Rulebook rulebook = validateRulebookAndLockPossession(rulebookId, userId, now, request, "insert");
 
-            // Check if user owns the lock
-            if (currentRulebook.getLockHeldBy() == null || !currentRulebook.getLockHeldBy().equals(userId)) {
-                throw new LockNotHeldException(userId);
-            }
-
-            // Check for a version mismatch
-            if (currentRulebook.getVersion() != request.getExpectedVersion()) {
-                throw new VersionMismatchException(request.getExpectedVersion(), currentRulebook.getVersion());
-            }
-
-            // Fallback
-            throw new ConcurrentModificationAnomalyException(
-                    "Failed to insert new chunk due to concurrent state modification.");
-        }
+        long nextVersion = rulebook.getVersion();
 
         // 2. Update RULEBOOK_TEXT
         ObjectId chunkId = new ObjectId();
-        boolean inserted = rulebookTextRepository.atomicInsertChunk(rulebookId, chunkId, request.getContent(),
-                request.getInsertIndex(), request.getLastIndex());
+        RulebookText updatedDocument = rulebookTextRepository.atomicInsertChunk(rulebookId, chunkId, request.getContent(),
+                request.getInsertIndex());
+
+        if(updatedDocument == null){
+            throw new ConcurrentModificationAnomalyException("Failed to insert chunk.");
+        }
+
+        int actualAssignedIndex = updatedDocument.getChunks().stream()
+            .filter(c -> c.getChunkId().equals(chunkId))
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("Chunk missing after atomic insert"))
+            .getIndex();
+
+        // Push onto undoStack and clear redoStack
+        rulebookRepository.atomicCommitForwardEdit(rulebookId, nextVersion);
 
         // 3. Insert EDIT_EVENT
         EditEvent event = EditEvent.builder()
@@ -248,14 +235,11 @@ public class WriteLockService {
                 .editType(EditType.INSERT)
                 .previousContent(null)
                 .newContent(request.getContent())
+                .index(actualAssignedIndex)
                 .versionAfter(rulebook.getVersion())
                 .committedAt(now)
                 .build();
         editEventRepository.save(event);
-
-        int calculatedIndex = (request.getInsertIndex() < 0 || request.getInsertIndex() > request.getLastIndex())
-                ? request.getLastIndex() + 1
-                : request.getInsertIndex();
 
         eventPublisher.publishEvent(ChunkInsertedEventDto.builder()
             .eventType("CHUNK_INSERTED")
@@ -265,14 +249,14 @@ public class WriteLockService {
             .timestamp(now)
             .chunkId(chunkId.toHexString())
             .content(request.getContent())
-            .index(calculatedIndex)
+            .index(actualAssignedIndex)
             .build());
         
         return InsertNewChunkResponseDto.builder()
-            .inserted(inserted)
+            .inserted(true)
             .newVersion(rulebook.getVersion())
             .chunkId(chunkId.toHexString())
-            .actualIndex(calculatedIndex)
+            .actualIndex(actualAssignedIndex)
             .insertedAt(now)
             .build();
     }
@@ -285,41 +269,32 @@ public class WriteLockService {
 
         // Attempt insert chunk
         // 1. Update RULEBOOK
-        Rulebook rulebook = rulebookRepository.atomicValidateAndExtendLock(rulebookId, userId,
-                request.getExpectedVersion(), now.plusSeconds(LOCK_TIMEOUT_MINUTES * 60),false);
-        if (rulebook == null) {
-            // Determine failure reason and throw appropriate error.
-            // Check if rulebook exists
-            Rulebook currentRulebook = findRulebookOrThrow(rulebookId);
+        Rulebook rulebook = validateRulebookAndLockPossession(rulebookId, userId, now, request, "delete");
 
-            // Check if user owns the lock
-            if (currentRulebook.getLockHeldBy() == null || !currentRulebook.getLockHeldBy().equals(userId)) {
-                throw new LockNotHeldException(userId);
-            }
-
-            // Check for a version mismatch
-            if (currentRulebook.getVersion() != request.getExpectedVersion()) {
-                throw new VersionMismatchException(request.getExpectedVersion(), currentRulebook.getVersion());
-            }
-
-            // Fallback
-            throw new ConcurrentModificationAnomalyException(
-                    "Failed to delete chunk due to concurrent state modification.");
-        }
-
+        long nextVersion = rulebook.getVersion();
+        
         // 2. Update RULEBOOK_TEXT
-        boolean deleted = rulebookTextRepository.atomicDeleteChunk(rulebookId, new ObjectId(request.getChunkId()));
+        ObjectId chunkToDeleteId = new ObjectId(request.getChunkId());
+        RulebookText chunkBeforeDelete = rulebookTextRepository.findBySpecificChunk(rulebookId, chunkToDeleteId)
+            .orElseThrow(() -> new ChunkNotFoundException(rulebookId, chunkToDeleteId));
+        String actualPreviousText = chunkBeforeDelete.getChunks().get(0).getContent();
+        int actualPreviousIndex = chunkBeforeDelete.getChunks().get(0).getIndex();
+        boolean deleted = rulebookTextRepository.atomicDeleteChunk(rulebookId, chunkToDeleteId);
 
+        // Push onto undoStack and clear redoStack
+        rulebookRepository.atomicCommitForwardEdit(rulebookId, nextVersion);
+        
         // 3. Insert EDIT_EVENT
         EditEvent event = EditEvent.builder()
                 .rulebookId(rulebookId)
                 .editorId(new ObjectId(user.getId()))
-                .chunkId(new ObjectId(request.getChunkId()))
+                .chunkId(chunkToDeleteId)
                 .chunkBefore(request.getChunkBeforeId() != null
                     ? new ObjectId(request.getChunkBeforeId())
                     : null)
                 .editType(EditType.DELETE)
-                .previousContent(request.getPreviousContent())
+                .previousContent(actualPreviousText)
+                .index(actualPreviousIndex)
                 .newContent(null)
                 .versionAfter(rulebook.getVersion())
                 .committedAt(now)
@@ -343,6 +318,141 @@ public class WriteLockService {
                 .build();
     }
 
+    @Transactional
+    public UndoActionResponseDto undoAction(ObjectId rulebookId, ObjectId userId, UndoActionRequestDto request){
+        // 1. Validation and Session
+        // Validate user
+        User user = findUserOrThrow(userId);
+        Instant now = Instant.now();
+        // Fetch Rulebook and validate lock
+        Rulebook rulebook = validateRulebookAndLockPossession(rulebookId, userId, now, request, "undo");
+        // Evaluate Undo stack
+        if(rulebook.getUndoStack().isEmpty()){
+            throw new NoActionsToUndoException(rulebookId);
+        }
+        // Atomic Pointer Update
+        Long targetVersion = rulebookRepository.atomicPopUndoAndPushRedo(rulebookId, userId);
+        long newVersion = rulebook.getVersion();
+
+        // 2. Retrieval
+        EditEvent targetEvent = editEventRepository.findByRulebookIdAndVersionAfter(rulebookId, targetVersion).orElseThrow(
+           () -> new IllegalStateException("Database corruption. undoStack pointed to a version that does not exist in the EDIT_EVENT ledger")
+        );
+
+        // 3. Execution
+        String broadcastEventType = "";
+        EditType inverseEditType;
+        String eventNewContent = null;
+        String eventPreviousContent = null;
+
+        Integer eventIndex = null;
+        int actualRestoredIndex = -1;
+
+        switch (targetEvent.getEditType()) {
+            case EditType.INSERT:
+                rulebookTextRepository.atomicDeleteChunk(rulebookId, targetEvent.getChunkId());
+                broadcastEventType = "CHUNK_DELETED";
+                inverseEditType = EditType.DELETE;
+                eventPreviousContent = targetEvent.getNewContent();
+                
+                eventIndex = targetEvent.getIndex();
+                break;
+            case EditType.DELETE:
+                int targetIndex = targetEvent.getIndex();
+
+                RulebookText updatedDocument = rulebookTextRepository.atomicInsertChunk(rulebookId,
+                        targetEvent.getChunkId(), targetEvent.getPreviousContent(), targetIndex);
+
+                if (updatedDocument == null) {
+                    throw new ConcurrentModificationAnomalyException("Failed to insert chunk.");
+                }
+
+                actualRestoredIndex = updatedDocument.getChunks().stream()
+                        .filter(c -> c.getChunkId().equals(targetEvent.getChunkId()))
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalStateException("Chunk missing after undo insert"))
+                        .getIndex();
+
+                broadcastEventType = "CHUNK_INSERTED";
+                inverseEditType = EditType.INSERT;
+                eventNewContent = targetEvent.getPreviousContent();
+
+                eventIndex = actualRestoredIndex;
+                break;
+            case EditType.UPDATE:
+                rulebookTextRepository.atomicUpdateChunk(rulebookId, targetEvent.getChunkId(), targetEvent.getPreviousContent());
+                broadcastEventType = "DELTA_COMMITTED";
+                inverseEditType = EditType.UPDATE;
+                eventNewContent = targetEvent.getPreviousContent();
+                eventPreviousContent = targetEvent.getNewContent();
+                
+                eventIndex = targetEvent.getIndex();
+                break;
+            default:
+                throw new IllegalArgumentException(targetEvent.getEditType() +" is not a valid edit type.");
+        }
+
+        // 4. Insert Edit_Event
+        EditEvent event = EditEvent.builder()
+                .rulebookId(rulebookId)
+                .editorId(new ObjectId(user.getId()))
+                .chunkId(targetEvent.getChunkId())
+                .chunkBefore(targetEvent.getChunkBefore())
+                .editType(inverseEditType)
+                .previousContent(eventPreviousContent)
+                .newContent(eventNewContent)
+                .index(eventIndex)
+                .versionAfter(newVersion)
+                .compensatesVersion(targetVersion)
+                .committedAt(now)
+                .build();
+        editEventRepository.save(event);
+
+        // 5. Broadcast and Return
+        switch (broadcastEventType) {
+            case "CHUNK_INSERTED":
+                eventPublisher.publishEvent(ChunkInsertedEventDto.builder()
+                        .eventType("CHUNK_INSERTED")
+                        .rulebookId(rulebookId.toHexString())
+                        .editorId(userId.toHexString())
+                        .version(newVersion)
+                        .timestamp(now)
+                        .chunkId(targetEvent.getChunkId().toHexString())
+                        .content(eventNewContent)
+                        .index(actualRestoredIndex)
+                        .build());
+                break;
+            case "CHUNK_DELETED":
+                eventPublisher.publishEvent(ChunkDeletedEventDto.builder()
+                    .eventType("CHUNK_DELETED")
+                    .rulebookId(rulebookId.toHexString())
+                    .editorId(userId.toHexString())
+                    .version(newVersion)
+                    .timestamp(now)
+                    .chunkId(targetEvent.getChunkId().toHexString())
+                    .build());
+                break;
+            case "DELTA_COMMITTED":
+                eventPublisher.publishEvent(DeltaCommitedEventDto.builder()
+                    .eventType("DELTA_COMMITTED")
+                    .rulebookId(rulebookId.toHexString())
+                    .editorId(userId.toHexString())
+                    .timestamp(now)
+                    .chunkId(targetEvent.getChunkId().toHexString())
+                    .deltaContent(eventNewContent)
+                    .version(newVersion)
+                    .build());
+                break;
+        }
+
+        return UndoActionResponseDto.builder()
+            .undone(true)
+            .chunkId(targetEvent.getChunkId().toHexString())
+            .newVersion(newVersion)
+            .undoneAt(now)
+            .build();
+    }
+
     
     // ----- Private Helpers -----
     private Rulebook findRulebookOrThrow(ObjectId id){
@@ -352,5 +462,30 @@ public class WriteLockService {
     private User findUserOrThrow(ObjectId id){
         return userRepository.findById(id.toHexString())
             .orElseThrow(() -> new IllegalArgumentException("User does not exist."));
+    }
+
+    private Rulebook validateRulebookAndLockPossession(ObjectId rulebookId, ObjectId userId , Instant now, VaultBaseRequestDto request, String action){
+        Rulebook rulebook = rulebookRepository.atomicValidateAndExtendLock(rulebookId, userId,
+                request.getExpectedVersion(), now.plusSeconds(LOCK_TIMEOUT_MINUTES * 60));
+        if (rulebook == null) {
+            // Determine failure reason and throw appropriate error.
+            // Check if rulebook exists
+            Rulebook currentRulebook = findRulebookOrThrow(rulebookId);
+
+            // Check if user owns the lock
+            if (currentRulebook.getLockHeldBy() == null || !currentRulebook.getLockHeldBy().equals(userId)) {
+                throw new LockNotHeldException(userId);
+            }
+
+            // Check for a version mismatch
+            if (currentRulebook.getVersion() != request.getExpectedVersion()) {
+                throw new VersionMismatchException(request.getExpectedVersion(), currentRulebook.getVersion());
+            }
+
+            // Fallback
+            throw new ConcurrentModificationAnomalyException(
+                    "Failed "+ action +" action due to concurrent state modification.");
+        }
+        return rulebook;
     }
 }
