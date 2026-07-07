@@ -75,6 +75,8 @@
 import { ref } from 'vue'
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 
+import { useSnackBar } from '~/composables/useSnackBar'
+
 const props = defineProps({
   rulebook: Object,
   currentPage: Number,
@@ -94,6 +96,7 @@ const closeSearch = () => {
   emit('clear-search')
 }
 
+const { show } = useSnackBar()
 const isDownloading = ref(false)
 
 const handleDownload = async () => {
@@ -103,8 +106,12 @@ const handleDownload = async () => {
   try {
     // TODO: replace with real API call
     await new Promise(resolve => setTimeout(resolve, 800))
+    show('Download ready - opening PDF...', 'success')
     console.log('Download requested for:', props.rulebook.id)
-  } finally {
+  } catch (err){
+    console.error('Download failed:', err)
+    show('Download failed. Please try again later.', 'error')
+  }finally {
     isDownloading.value = false
   }
 }
