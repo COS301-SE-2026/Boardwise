@@ -26,6 +26,11 @@
       </template>
     </v-tooltip>
 
+    <!-- History button -->
+     <v-btn icon size="small" variant="text" @click="emit('toggle-history')">
+      <v-icon>mdi-history</v-icon>
+    </v-btn>
+
     <!-- edit button -->
     <v-tooltip
       :text="lockHeldBy ? `Currently being edited by @${lockHeldBy}` : 'Edit this section'"
@@ -118,7 +123,7 @@ const props = defineProps({
   lockError:     { type: String,  default: ''    }
 })
 
-const emit = defineEmits(['search', 'next-match', 'prev-match', 'clear-search', 'edit'])
+const emit = defineEmits(['search', 'next-match', 'prev-match', 'clear-search', 'edit', 'toggle-history'])
 
 const showSearch = ref(false)
 const localQuery = ref('')
