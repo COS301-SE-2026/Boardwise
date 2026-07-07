@@ -15,7 +15,7 @@
                 </v-btn>
             </div>
 
-            <div class="d-flex flex-column ga-4">
+            <div v-if="edits.length" class="d-flex flex-column ga-4">
                 <div
                     v-for="edit in edits"
                     :key="edit.id"
@@ -45,18 +45,26 @@
                         <p v-if="edit.previousContent" class="diff-old text-caption mb-0">
                             {{ edit.previousContent }}
                         </p>
-                        
+
                         <p v-if="edit.newContent" class="diff-new text-caption mb-0">
                             {{ edit.newContent }}
                         </p>
                     </div>
                 </div>
             </div>
+
+            <BaseEmptyState
+            v-else
+            title="No edits yet"
+            message="Changes made to this rulebook will appear here" 
+            />
         </div>
     </v-navigation-drawer>
 </template>
 
 <script setup>
+import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
+
 defineProps({
   modelValue: { type: Boolean, default: false },
   edits: { type: Array, default: () => [] }
