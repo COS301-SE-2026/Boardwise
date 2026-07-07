@@ -10,9 +10,20 @@
       {{ rulebook?.title }}
     </v-app-bar-title>
 
-    <v-btn icon size="small" variant="text" @click="handleDownload">
-      <v-icon>mdi-download</v-icon>
-    </v-btn>
+    <v-tooltip text="Download PDF" location="bottom">
+      <template #activator="{ props: tooltipProps }">
+        <v-btn
+          v-bind="tooltipProps"
+          icon
+          size="small"
+          variant="text"
+          :disabled="!rulebook?.id"
+          @click="handleDownload"
+        >
+          <v-icon>mdi-download</v-icon>
+        </v-btn>
+      </template>
+    </v-tooltip>
 
     <template #append>
       <div class="d-flex align-center ga-2 mr-4">
