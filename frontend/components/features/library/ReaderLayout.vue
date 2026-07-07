@@ -51,7 +51,7 @@
       </v-row>
     </v-container>
 
-    <ReaderHistory v-model="showHistory" />
+    <ReaderHistory v-model="showHistory" :edits="editHistory"/>
 
   </div>
 </template>
@@ -76,6 +76,9 @@ const currentPage = ref(0)
 const searchQuery = ref('')
 const currentMatch = ref(0)
 
+// edit history
+const editHistory = ref([])
+
 // edit logic
 
 const localChunks  = ref([...props.chunks])
@@ -84,7 +87,13 @@ const version      = ref(0) // TODO: seed from response.data.version when fetchi
 const { isEditing, isSaving, lockHeldBy, lockExpiresAt, lockError, startEditing, stopEditing, commitDelta } = useEditLock()
 const { show } = useSnackBar()
 
-const activeChunk = computed(() => props.chunks[currentPage.value])
+// TODO: Integrate with backend to fetch the latest version and edits when the component is mounted or when the rulebook changes.
+//const activeChunk = computed(() => props.chunks[currentPage.value])
+const activeChunk = computed(() => localChunks.value[currentPage.value])
+
+watch(() => props.chunks, (val) => {
+  localChunks.value = [...val]
+}, { immediate: true })
 
 const handlePageChange = (index) => {
   if (isEditing.value) {
