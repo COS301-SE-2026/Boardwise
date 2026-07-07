@@ -17,6 +17,7 @@
       @next-match="nextMatch"
       @clear-search="clearSearch"
       @edit="handleEdit"
+      @toggle-history="handleToggleHistory"
     />
 
     <ReaderProgress :current-page="currentPage" :total-pages="chunks.length" />
@@ -49,6 +50,9 @@
         </v-col>
       </v-row>
     </v-container>
+
+    <ReaderHistory v-model="showHistory" />
+
   </div>
 </template>
 
@@ -58,6 +62,7 @@ import ReaderToolbar from './ReaderToolbar.vue'
 import ReaderProgress from './ReaderProgress.vue'
 import ReaderSidebar from './ReaderSidebar.vue'
 import ReaderPage from './ReaderPage.vue'
+import ReaderHistory from './ReaderHistory.vue'
 
 import { useEditLock } from '~/composables/useEditLock'
 import { useSnackBar }  from '~/composables/useSnackbar'
@@ -125,6 +130,13 @@ const handleSave = async (deltaContent) => {
   } finally {
     await stopEditing(props.rulebook.id)
   }
+}
+
+// History logic
+const showHistory = ref(false)
+
+const handleToggleHistory = () => {
+  showHistory.value = !showHistory.value
 }
 
 const handleCancel = async () => {
