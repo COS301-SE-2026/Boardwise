@@ -1,6 +1,6 @@
 <template>
   <v-card rounded="xl" elevation="1">
-    <v-img :src="rulebook?.image" :alt="rulebook?.title" height="280" cover />
+    <BaseImage :src="rulebook?.image" :alt="rulebook?.title" height="280px" fit="cover" />
 
     <div class="pa-10">
       <p class="text-caption text-uppercase font-weight-bold text-primary mb-2">
@@ -20,9 +20,8 @@
 
       <h2 class="text-h6 font-weight-bold mb-4">Section {{ (page?.index ?? 0) + 1 }}</h2>
 
-      <p class="text-body-1 text-medium-emphasis" style="line-height: 1.9;">
-        {{ page?.content }}
-      </p>
+      <p class="text-body-1 text-medium-emphasis" style="line-height: 1.9;" v-html="highlightedContent" />
+        <!-- {{ page?.content }} -->
 
       <v-divider class="mt-10 mb-6" />
 
@@ -42,13 +41,28 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+import BaseImage from '~/components/ui/BaseImage.vue'
 
-defineProps({
+const props = defineProps({
   rulebook: Object,
   page: Object,
   isFirst: Boolean,
-  isLast: Boolean
+  isLast: Boolean, 
+  searchQuery: {
+    type: String,
+    default: ''
+  }
+})
+
+const highlightedContent = computed(() => {
+  const text = props.page?.content ?? ''
+  if (!props.searchQuery.trim()) return text
+  
+  const escaped = props.searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const regex   = new RegExp(`(${escaped})`, 'gi')
+  return text.replace(regex, '<mark style="background: #fff176; border-radius: 2px;">$1</mark>')
 })
 
 defineEmits(['prev', 'next'])

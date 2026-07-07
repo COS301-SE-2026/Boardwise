@@ -17,15 +17,27 @@
         <template #prepend>
           <v-avatar
             size="24"
-            :color="currentPage === index ? 'primary' : 'grey-lighten-2'"
+            :color="avatarColor(index)"
           >
-            <span class="text-caption font-weight-bold" :class="currentPage === index ? 'text-white' : 'text-grey'">
+            <span class="text-caption font-weight-bold" 
+              :class="currentPage === index ? 'text-white' : 'text-grey'"
+            >
               {{ index + 1 }}
             </span>
           </v-avatar>
         </template>
+
         <v-list-item-title class="text-body-2">
           Section {{ index + 1 }}
+
+          <v-icon
+            v-if="matchingChunks.includes(index)"
+            size="12"
+            color="warning"
+            class="ml-1"
+          >
+            mdi-circle
+          </v-icon>
         </v-list-item-title>
       </v-list-item>
     </v-list>
@@ -34,13 +46,23 @@
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   pages: {
     type: Array,
     default: () => []
   },
-  currentPage: Number
+  currentPage: Number,
+  matchingChunks: { 
+    type: Array, 
+    default: () => [] 
+  }
 })
 
 defineEmits(['change'])
+
+const avatarColor = (index) => {
+  if (props.currentPage == index) return 'primary'
+  if (props.matchingChunks.includes(index)) return 'warning'
+  return 'grey lighten-2'
+}
 </script>

@@ -11,18 +11,72 @@
     </v-app-bar-title>
 
     <template #append>
-      <span class="text-caption text-medium-emphasis mr-4">
-        {{ currentPage + 1 }} / {{ totalPages }}
-      </span>
+      <div class="d-flex align-center ga-2 mr-4">
+
+        <template v-if="showSearch">
+          <BaseSearch 
+            v-model="localQuery"
+            placeholder="Search in this rulebook"
+            autofocus
+            style="width: 220px;"
+            @update:model-value="emit('search', $event)"
+            @keydown.enter="$emit('next-match')"
+            @keydown.escape="closeSearch"
+          />
+
+          <span v-if="localQuery" class="text-caption text-medium-emphasis text-no-wrap">
+            {{ matchCount > 0 ? `${currentMatch + 1} / ${matchCount}`: 'No matches' }}
+          </span>
+
+          <v-btn icon size="small" variant="text" :disabled="matchCount === 0" @click="$emit('prev-match')">
+            <v-icon size="18">mdi-chevron-up</v-icon>
+          </v-btn>
+
+          <v-btn icon size="small" variant="text" :disabled="matchCount === 0" @click="$emit('next-match')">
+            <v-icon size="18">mdi-chevron-down</v-icon>
+          </v-btn>
+
+          <v-btn icon size="small" variant="text" @click="closeSearch">
+            <v-icon size="18">mdi-close</v-icon>
+          </v-btn>
+        </template>
+
+        <v-btn icon size="small" variant="text" @click="showSearch = !showSearch">
+          <v-icon>mdi-magnify</v-icon>
+        </v-btn>
+
+        <span class="text-caption text-medium-emphasis text-no-wrap">
+          {{ currentPage + 1 }} / {{ totalPages }}
+        </span>
+
+      </div>
     </template>
 
   </v-app-bar>
 </template>
 
 <script setup>
+import { ref } from 'vue'
+import BaseSearch from '~/components/ui/BaseSearch.vue'
+
 defineProps({
   rulebook: Object,
   currentPage: Number,
-  totalPages: Number
+  totalPages: Number,
+  searchQuery: { type: String, default: ''},
+  matchCount: { type: Number, default: 0},
+  currentMatch: { type: Number, default: 0},
 })
+
+const emit = defineEmits(['search', 'next-match', 'prev-match', 'clear-search'])
+
+const showSearch = ref(false)
+const localQuery = ref('')
+
+const closeSearch = () => {
+  showSearch.value = false
+  emit('clear-search')
+}
+
+// const emit = defineEmits(['search', 'next-match', 'prev-match', 'clear-search'])
 </script>
