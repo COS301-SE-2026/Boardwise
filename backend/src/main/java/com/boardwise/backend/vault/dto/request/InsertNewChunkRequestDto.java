@@ -1,17 +1,14 @@
 package com.boardwise.backend.vault.dto.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class InsertNewChunkRequestDto {
-    private int expectedVersion;
+@SuperBuilder
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+public class InsertNewChunkRequestDto extends VaultBaseRequestDto {
     private int insertIndex;
-    private int lastIndex;
-    private String content;
 }

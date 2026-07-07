@@ -15,16 +15,18 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import com.boardwise.backend.vault.exception.LockConflictException;
 import com.boardwise.backend.vault.exception.LockNotHeldException;
+import com.boardwise.backend.vault.exception.NoActionsToUndoException;
 import com.boardwise.backend.vault.exception.R2PresignException;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.exception.BoardgameNotFoundException;
+import com.boardwise.backend.vault.exception.ChunkNotFoundException;
 import com.boardwise.backend.vault.exception.ConcurrentModificationAnomalyException;
 import com.boardwise.backend.vault.exception.VersionMismatchException;
 import com.mongodb.DuplicateKeyException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler({RulebookNotFoundException.class, BoardgameNotFoundException.class})
+    @ExceptionHandler({RulebookNotFoundException.class, BoardgameNotFoundException.class, ChunkNotFoundException.class})
     public ResponseEntity<Map<String, String>> handleNotFound(RuntimeException ex){
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
     }
@@ -39,8 +41,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException ex) {
+    @ExceptionHandler({IllegalArgumentException.class, NoActionsToUndoException.class})
+    public ResponseEntity<Map<String, String>> handleBadRequest(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(Map.of("error", ex.getMessage()));
     }
@@ -116,6 +118,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleConcurrentModificationAnomaly(ConcurrentModificationAnomalyException ex){
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(Map.of("error","Internal Server Error","message",ex.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(Map.of("error", "Internal Server Error","message",ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
