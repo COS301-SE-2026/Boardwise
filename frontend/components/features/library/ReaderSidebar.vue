@@ -10,7 +10,7 @@
         v-for="(page, index) in pages"
         :key="index"
         :active="currentPage === index"
-        active-color="primary"
+        color="primary"
         rounded="lg"
         @click="$emit('change', index)"
       >

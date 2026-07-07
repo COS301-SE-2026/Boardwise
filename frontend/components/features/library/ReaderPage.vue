@@ -20,8 +20,13 @@
 
       <h2 class="text-h6 font-weight-bold mb-4">Section {{ (page?.index ?? 0) + 1 }}</h2>
 
-      <p class="text-body-1 text-medium-emphasis" style="line-height: 1.9;" v-html="highlightedContent" />
-        <!-- {{ page?.content }} -->
+      <p class="text-body-1 text-medium-emphasis" style="line-height: 1.9;">
+        <template v-for="(segment, i) in contentSegments" :key="i">
+          <mark v-if="segment.active" class="search-highlight search-highlight--active">{{ segment.text }}</mark>
+          <mark v-else-if="segment.highlight" class="search-highlight">{{ segment.text }}</mark>
+          <span v-else>{{ segment.text }}</span>
+        </template>
+      </p>
 
       <v-divider class="mt-10 mb-6" />
 
@@ -53,17 +58,43 @@ const props = defineProps({
   searchQuery: {
     type: String,
     default: ''
+  },
+
+  activeOccurrence: {
+    type: Number,
+    default: -1
   }
 })
 
-const highlightedContent = computed(() => {
+const contentSegments = computed(() => {
   const text = props.page?.content ?? ''
-  if (!props.searchQuery.trim()) return text
-  
+  if (!props.searchQuery.trim()) return [{ text, highlight: false, active: false }]
+
   const escaped = props.searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const regex   = new RegExp(`(${escaped})`, 'gi')
-  return text.replace(regex, '<mark style="background: #fff176; border-radius: 2px;">$1</mark>')
+  const parts   = text.split(regex)
+
+  let matchCount = 0
+  return parts.map(part => {
+    const isMatch = new RegExp(`^${escaped}$`, 'i').test(part)
+    const isActive = isMatch && matchCount === props.activeOccurrence
+    if (isMatch) matchCount++
+    return { text: part, highlight: isMatch, active: isActive }
+  })
 })
 
 defineEmits(['prev', 'next'])
 </script>
+
+<style scoped>
+.search-highlight {
+  background: #fff176;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+.search-highlight--active {
+  background: #ffb300;
+  outline: 2px solid #e65100;
+}
+</style>

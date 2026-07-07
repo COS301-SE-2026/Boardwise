@@ -21,6 +21,7 @@
           <ReaderSidebar 
             :pages="chunks" 
             :current-page="currentPage" 
+            :matching-chunks="matchingChunkIndices"
             @change="currentPage = $event" />
         </v-col>
 
@@ -30,7 +31,8 @@
             :page="activeChunk"
             :is-first="currentPage === 0"
             :is-last="currentPage === chunks.length - 1"
-            @search-query="searchQuery"
+            :search-query="searchQuery"
+            :active-occurrence="activeOccurrenceIndex"
             @prev="currentPage--"
             @next="currentPage++"
           />
@@ -61,9 +63,27 @@ const activeChunk = computed(() => props.chunks[currentPage.value])
 const matchResults = computed(() => { 
   if(!searchQuery.value.trim()) return []
   const q = searchQuery.value.toLowerCase()
-  return props.chunks
-    .map((chunk, index) => ({ chunkIndex: index}))
-    .filter((_, index) => props.chunks[index]?.content?.toLowerCase().includes(q))
+  const results = []
+
+   props.chunks.forEach((chunk, chunkIndex) => {
+    const content = chunk?.content?.toLowerCase() ?? ''
+    let searchFrom = 0
+    let occurrenceIndex = 0
+    while (true) {
+      const found = content.indexOf(q, searchFrom)
+      if (found === -1) break
+      results.push({ chunkIndex, occurrenceIndex })
+      occurrenceIndex++
+      searchFrom = found + 1
+    }
+   })
+
+   return results
+  })
+
+const activeOccurrenceIndex = computed(() => {
+  if (!matchResults.value.length) return -1
+  return matchResults.value[currentMatch.value]?.occurrenceIndex ?? -1
 })
 
 const matchingChunkIndices = computed(() => 
@@ -78,7 +98,7 @@ const nextMatch = () => {
 
 const prevMatch = () => {
   if (!matchResults.value.length) return 
-  currentMatch.value = (currentmatch.value - 1 + matchResults.value.length) % matchResults.value.length
+  currentMatch.value = (currentMatch.value - 1 + matchResults.value.length) % matchResults.value.length
   currentPage.value = matchResults.value[currentMatch.value].chunkIndex
 }
 
