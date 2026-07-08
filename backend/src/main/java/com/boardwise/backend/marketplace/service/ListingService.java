@@ -23,6 +23,8 @@ import com.boardwise.backend.marketplace.enums.*;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.shared.security.JWTService;
+import com.boardwise.backend.user_service.models.Boardgame;
+import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
 
 import org.bson.types.ObjectId;
@@ -34,7 +36,6 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.*;
 
@@ -52,16 +53,18 @@ public class ListingService {
     private final S3Client s3Client;
     private final MongoTemplate mongoTemplate;
     private final UserRepository userRepository;
-    // private final GameRepository gameRepository;
+    private final BoardGameRepository boardGameRepository;
+
 
     private final String defaultImage = "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/default-listing-images/default.png";//on bucket NEVER DELETE
 
-    public ListingService(ListingRepository listingRepository, JWTService jwtService, S3Client s3Client, MongoTemplate mongoTemplate, UserRepository userRepository) {
+    public ListingService(ListingRepository listingRepository, JWTService jwtService, S3Client s3Client, MongoTemplate mongoTemplate, UserRepository userRepository,BoardGameRepository boardGameRepository) {
         this.listingRepository = listingRepository;
         this.jwtService = jwtService;
         this.s3Client = s3Client;
         this.mongoTemplate = mongoTemplate;
         this.userRepository = userRepository;
+        this.boardGameRepository = boardGameRepository;
     }
 
     private static String truncateAfterWords(String text, int wordLimit) {
@@ -101,8 +104,7 @@ public class ListingService {
     }
 
     public void deleteFile(String fileName) {
-        // no file provided to delete: theoretically shouldn't ever be triggered
-        if (fileName == null || fileName.isBlank()) {
+        if (fileName == null || fileName.isBlank() || fileName.contains("/seeded-data/")) { // i just hope no one names their file "seeded-data"
             return;
         }
 
@@ -171,10 +173,15 @@ public class ListingService {
 
         String gameTitle = req.gameTitle();
 
-        // TODO: check if title is avaliable if not upload to db
+        //check if title is avaliable if not upload to db
 
         if (gameTitle == null || gameTitle.isBlank()) {
             throw new IllegalArgumentException("Game Title cannot be blank");
+        }
+
+        if(boardGameRepository.findByTitle(gameTitle).isEmpty()){
+            Boardgame toBeInserted = new Boardgame(null, null, req.gameTitle(),null,null,1,2,3,null,null);
+            boardGameRepository.insert(toBeInserted);
         }
 
         List<String> rentalPeriod = (req.rentalPeriod() == null || req.rentalPeriod().size() != 2) ? null
@@ -217,13 +224,8 @@ public class ListingService {
 
         LocalDateTime now = LocalDateTime.now();
         ListingStatus status = ListingStatus.AVAILABLE;
-        // TODO: uncomment
-        // String location = jwtService.extractLocation(token);
-        // TODO: delete when extract location is acquired
         String location = req.location();
 
-        // TODO:Verify by checking if version is available in db else add it
-        // String toCompVer= gameRepository;
         String version = req.version();
 
         String username = userRepository.findById(jwtService.extractUserId(token).toString())
@@ -239,6 +241,15 @@ public class ListingService {
         Listing saved = listingRepository.save(toSave);
 
         if (img != null && !img.isEmpty()) {
+            String imgAsString = img.getOriginalFilename().toLowerCase();
+            
+            if (imgAsString == null) throw new IllegalArgumentException("Invalid image file");
+
+            imgAsString = imgAsString.toLowerCase(); // accounting for Capitalised extensions
+
+            if(!imgAsString.endsWith(".png") && !imgAsString.endsWith(".jpg") && !imgAsString.endsWith(".jpeg") && !imgAsString.endsWith(".webp")){
+                throw new IllegalArgumentException("Invalid image file");
+            }
             try {
                 imageUrl = uploadImageToR2(saved.getId(), img);
                 saved.setImageUrl(imageUrl);
@@ -380,13 +391,6 @@ public class ListingService {
             existing.setPrice(priceToAdd);
         }
 
-        // TODO: Uncomment when frontend automatically stores location
-        // String userLocation = jwtService.extractLocation(token);
-        // if(!existing.getLocation().equals((userLocation.isBlank())?null:
-        // userLocation)){
-        // existing.setLocation(token);
-        // }
-
         if (!existing.getLocation().equals(req.location())) {
             existing.setLocation(req.location());
         }
@@ -395,8 +399,12 @@ public class ListingService {
             existing.setListingTitle(req.listingTitle());
         }
 
-        // TODO: verify Title (check if title is in game list)
         if (!existing.getGameTitle().equals(req.gameTitle())) {
+
+            if(boardGameRepository.findByTitle(req.gameTitle()).isEmpty()){
+                Boardgame toBeInserted = new Boardgame(null, null, req.gameTitle(),null,null,1,2,3,null,null);
+                boardGameRepository.insert(toBeInserted);
+            }
             existing.setGameTitle(req.gameTitle());
         }
 
@@ -469,7 +477,6 @@ public class ListingService {
         }
 
         if (!existing.getVersion().equals(req.version())) {
-            // TODO:implement check to see if version is alr on db or add it to db
             existing.setVersion(req.version());
         }
         existing.setUpdatedAt(LocalDateTime.now());

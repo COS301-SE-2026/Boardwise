@@ -27,6 +27,7 @@ import com.boardwise.backend.user_service.repos.BoardGameRepository;
 public class BoardGameServiceUnitTests {
 
     private BoardGameRepository gameRepo;
+    private R2StorageService bucket;
     private MockRestServiceServer mockServer;
     private BoardGameService service;
     private String baseUrl = "https://boardgamegeek.com/xmlapi2";
@@ -35,6 +36,7 @@ public class BoardGameServiceUnitTests {
     @BeforeEach
     void setUp(){
         gameRepo = mock(BoardGameRepository.class);
+        bucket = mock(R2StorageService.class);
 
         RestClient.Builder builder = RestClient.builder();
         mockServer = MockRestServiceServer.bindTo(builder).build();
@@ -43,7 +45,7 @@ public class BoardGameServiceUnitTests {
                                         .defaultHeader("Authorization", "Bearer some-valid-token")
                                         .build();
 
-        service = new BoardGameService(gameRepo, testClient);
+        service = new BoardGameService(gameRepo, bucket, testClient);
     }
 
     @Test
@@ -116,6 +118,8 @@ public class BoardGameServiceUnitTests {
         assertEquals(argument.get(0).getGenres(), List.of("Economic"));
         assertTrue(argument.get(0).getMinPlayers() == 2);
         assertTrue(argument.get(0).getMaxPlayers() == 7);
+        assertEquals(argument.get(0).getDuration(), 360);
+        assertEquals(argument.get(0).getMinAge(), 14);
     }
     
     @Test
@@ -126,6 +130,8 @@ public class BoardGameServiceUnitTests {
             .thenReturn(Optional.of(new Boardgame(
                 null,
                 420,
+                null,
+                null,
                 null,
                 null,
                 null,
@@ -197,11 +203,7 @@ public class BoardGameServiceUnitTests {
         assertEquals(argument.get(0).getGenres(), List.of("Economic"));
         assertTrue(argument.get(0).getMinPlayers() == 2);
         assertTrue(argument.get(0).getMaxPlayers() == 7);
-    }
-    
-    @Test
-    @DisplayName("Return 10 Game List DTOs in a Map")
-    void shouldReturnListOfGameListDTOs(){
-
+        assertEquals(argument.get(0).getDuration(), 360);
+        assertEquals(argument.get(0).getMinAge(), 14);
     }
 }
