@@ -1,6 +1,6 @@
 import {ref} from 'vue'
 import { useRouter } from 'vue-router'
-import { AuthService } from '@/services/authService'
+import { AuthService } from '~/services/authService'
 
 export const useAuth = () => {
   const router = useRouter();

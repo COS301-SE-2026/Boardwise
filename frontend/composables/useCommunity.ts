@@ -1,5 +1,5 @@
 import {ref} from 'vue'
-import { CommunityService } from '@/services/communityService'
+import { CommunityService } from '~/services/communityService'
 
 export const useCommunity = () => {
     const token = ref<string|null>(

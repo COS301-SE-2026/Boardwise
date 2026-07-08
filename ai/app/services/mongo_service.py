@@ -6,7 +6,8 @@ from datetime import datetime, timezone
 from app.config import settings
 
 client = MongoClient(settings.MONGODB_URL)
-db = client[settings.MONGODB_DATABASE]
+db_name = settings.MONGODB_DATABASE or "ci_fallback_db"
+db = client[db_name]
 
 rulebook_collection = db["RULEBOOK"]
 rulebook_text_collection = db["RULEBOOK_TEXT"]
@@ -20,8 +21,7 @@ def create_rulebook(
     edition: str,
     contributor_id: str,
     language: str,
-    r2_pdf_key: str,
-    r2_cover_key: str
+    r2_pdf_key: str
 ) -> str:
     """Inserts a new document into the RULEBOOK collection"""
     now = datetime.now(timezone.utc)
@@ -39,6 +39,7 @@ def create_rulebook(
 
     rulebook_collection.insert_one({
         "_id": rulebook_id,
+        "coverUrl": boardgame["imageURL"] if boardgame["imageURL"] else "",
         "gameId": boardgame["_id"],
         "title": title,
         "edition": edition,
@@ -49,7 +50,7 @@ def create_rulebook(
         "description": boardgame.get("description", ""),
         "language": language,
         "r2PdfKey": r2_pdf_key,
-        "r2CoverKey": r2_cover_key,
+        "r2CoverKey": "rulebooks/default_cover.png",
         "uploadedAt":now,
         "updatedAt":now,
     })
@@ -78,16 +79,6 @@ def update_rulebook_r2_pdf_key(rulebook_id: str, r2_pdf_key: str) -> str:
     )
 
     return "Rulebook R2 PDF key update was successful."
-
-def update_rulebook_r2_cover_key(rulebook_id: str, r2_cover_key: str) -> str:
-    """Updates the R2 PDF Cover key of the specific rulebook"""
-
-    rulebook_collection.update_one(
-        {"_id": ObjectId(rulebook_id)},
-        {"$set": {"r2CoverKey": r2_cover_key}}
-    )
-
-    return "Rulebook R2 PDF Cover key update was successful."
 
 def create_ingestion_job(rulebook_id: str) -> str:
     """Inserts a new document into the INGESTION_JOB collection"""

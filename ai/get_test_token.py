@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from app.config import settings
 
 payload = {
-    "userId": "609c12345678901234567890",
+    "sub": "609c12345678901234567890",
     "jti": "fake-uuid-1234-5678",
     "exp": datetime.now(timezone.utc) + timedelta(days=1)
 }

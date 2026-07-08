@@ -26,7 +26,6 @@ async def upload_rulebook(
     edition: Optional[str] = Form(None),
     language: str = Form(...),
     file: UploadFile = File(...),
-    cover_file: UploadFile | str | None = File(None),
     payload: dict = Depends(verify_jwt)
 ):
     """
@@ -55,11 +54,11 @@ async def upload_rulebook(
             detail="The uploaded file is empty or corrupted."
         )
 
-    contributor_id = payload.get("userId")
+    contributor_id = payload.get("sub")
     if not contributor_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="userId is missing from token."
+            detail="sub is missing from token."
         )
 
     try:
@@ -69,41 +68,24 @@ async def upload_rulebook(
             edition=edition,
             contributor_id=contributor_id,
             language=language,
-            r2_pdf_key="",
-            r2_cover_key=""
+            r2_pdf_key=""
         )
 
         job_id = mongo_service.create_ingestion_job(rulebook_id)
 
     except ValueError as e:
-        logger.warning(f"Upload rejected: {str(e)}")
+        logger.warning("Upload rejected: %s", str(e))
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+            detail="Upload rejected"
+        ) from e
 
     except Exception as e:
-        logger.error(f"Failed to initialise upload: {str(e)}", exc_info=True)
+        logger.exception("Failed to initialise upload.")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An internal server error occured while initialising the upload."
-        )
-
-    custom_cover_bytes = None
-    custom_cover_mime = None
-
-    if isinstance(cover_file, UploadFile) and cover_file.filename:
-        allowed_image_types = ["image/jpeg", "image/png", "image/webp"]
-        if cover_file.content_type not in allowed_image_types:
-            raise HTTPException(
-                status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                detail=f"Cover myst be an image({', '.join(allowed_image_types)})"
-            )
-        custom_cover_bytes = await cover_file.read()
-        custom_cover_mime = cover_file.content_type
-
-        if len(custom_cover_bytes) == 0:
-            custom_cover_bytes = None
+        ) from e
 
     # Send bytes to background task
     background_tasks.add_task(
@@ -111,12 +93,10 @@ async def upload_rulebook(
         file_bytes=file_bytes,
         filename=file.filename,
         rulebook_id=rulebook_id,
-        job_id=job_id,
-        custom_cover_bytes=custom_cover_bytes,
-        custom_cover_mime=custom_cover_mime
+        job_id=job_id
     )
 
-    logger.info(f"Accepted upload for '{title}'. Rulebook ID: {rulebook_id}, Job ID: {job_id}")
+    logger.info("Rulebook upload accepted.")
 
     return UploadResponse(
         message="Rulebook upload accepted. Ingestion has started.",

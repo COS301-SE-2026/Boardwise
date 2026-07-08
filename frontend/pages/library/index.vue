@@ -60,8 +60,10 @@ import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
 import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue'
 
 import { useLibrary } from '~/composables/useLibrary'
+import { useVaultUpload } from '~/composables/useVaultUpload';
 
 const {rulebooks, isLoading, getAllRulebooks, getRulebookById, currentRulebook } = useLibrary()
+const {triggerUpload, isUploading, error} = useVaultUpload();
 
 const searchQuery = ref('')
 const activeFilters = ref({})
@@ -123,7 +125,13 @@ const handleFilter = (filters) => {
   activeFilters.value = filters
 }
 
-const handleUploadRulebook = (newRulebook) => {
-  console.log("New rulebook: ", newRulebook)
+const handleUploadRulebook = async (newRulebook) => {
+  try{
+    await triggerUpload(newRulebook);
+    console.log("Upload accepted");
+    showUpload.value = false;
+  }catch(err){
+    console.error("Upload failed", err);
+  }
 }
 </script>
