@@ -14,7 +14,7 @@ services:
       - configdb:/data/configdb
       - mongot:/data/mongot
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongosh", "-u", "${DB_USER}", "-p", "${DB_PASSWORD}", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping').ok ? quit(0) : quit(1)"]
       interval: 10s
       timeout: 5s
       retries: 5

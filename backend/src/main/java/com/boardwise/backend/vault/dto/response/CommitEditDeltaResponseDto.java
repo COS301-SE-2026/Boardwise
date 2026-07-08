@@ -7,8 +7,8 @@ import lombok.Data;
 
 @Data
 @Builder
-public class CommitDeltaResponseDto {
+public class CommitEditDeltaResponseDto {
     private boolean committed;
-    private int newVersion;
+    private long newVersion;
     private Instant committedAt;
 }
