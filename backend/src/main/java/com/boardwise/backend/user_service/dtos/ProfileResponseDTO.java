@@ -7,6 +7,7 @@ import com.boardwise.backend.user_service.models.Preferences;
 public record ProfileResponseDTO(
     String fullName,
     String username,
+    String location,
     String profilePicture,
     int friendCount,
     int groupCount,

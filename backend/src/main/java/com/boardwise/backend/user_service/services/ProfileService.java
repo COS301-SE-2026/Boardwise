@@ -121,6 +121,7 @@ public class ProfileService {
         return new ProfileResponseDTO(
             fullName,
             user.getUsername(),
+            user.getLocation(),
             user.getProfilePicture(),
             friendCount,
             groupCount,
@@ -140,7 +141,6 @@ public class ProfileService {
     }
 
     public Map<String, Object> updateProfile(String token, UpdateProfileDTO profileUpdateData) {
-        // TODO: return the entire resource with update applied
         String userId = jwtService.extractUserId(token).toString();
         User user = userRepo.findById(userId).get();
 
@@ -165,7 +165,20 @@ public class ProfileService {
             
         if(newPassword != null){
             user.setPassword(newPassword);
-            toReturn.put("password", newPassword);
+            toReturn.put("passwordMessage", "Password successfully updated.");
+        }
+
+        if(profileUpdateData.preferences() != null){
+            String visibility = profileUpdateData.preferences().getVisibility() == null ? 
+                                user.getPreferences().getVisibility() : 
+                                profileUpdateData.preferences().getVisibility();
+
+            PreferencesRequestDTO dto = new PreferencesRequestDTO(
+                visibility,
+                profileUpdateData.preferences().getGenres()
+            );
+            Map<String, Object> prefs = updateOrSetPreferences(token, dto);
+            toReturn.put("preferences", prefs.get("preferences"));
         }
 
         userRepo.save(user);
@@ -174,7 +187,6 @@ public class ProfileService {
     }
 
     public ProfilePictureResponseDTO changeProfilePicture(String token, MultipartFile pfp) throws IOException {
-         // TODO: return the entire resource with update applied
         String url = "";
         String message = "";
         String userId = jwtService.extractUserId(token).toString();
@@ -194,7 +206,6 @@ public class ProfileService {
     public Map<String, Object> updateOrSetPreferences(
         String token, PreferencesRequestDTO prefData
     ){
-        // TODO: return the entire resource with update applied
         String userId = jwtService.extractUserId(token).toString();
         User user = userRepo.findById(userId).get();
         

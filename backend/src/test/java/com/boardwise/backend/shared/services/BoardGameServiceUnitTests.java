@@ -1,4 +1,4 @@
-package com.boardwise.backend.user_service.services;
+package com.boardwise.backend.shared.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -22,6 +22,7 @@ import org.springframework.web.client.RestClient;
 import com.boardwise.backend.shared.services.BoardGameService;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.user_service.services.R2StorageService;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Board Game Service Tests")
