@@ -252,6 +252,8 @@ public class ProfileService {
             imageUrl,
             gameInfo.minPlayers(),
             gameInfo.maxPlayers(),
+            gameInfo.minAge(),
+            gameInfo.duration(),
             gameGenres
         );
 

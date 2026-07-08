@@ -24,7 +24,7 @@ public class RulebookText {
     private ObjectId rulebookId;
 
     @Field("version")
-    private int version;
+    private long version;
 
     @Field("chunks")
     private List<Chunk> chunks;

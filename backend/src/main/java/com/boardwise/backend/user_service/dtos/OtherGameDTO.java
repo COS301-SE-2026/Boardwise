@@ -17,6 +17,11 @@ public record OtherGameDTO(
     int minPlayers,
     @NotNull(message = "\"maxPlayers\" is a required field.")
     int maxPlayers,
+    @NotNull(message = "\"minAge\" is a required field.")
+    int minAge,
+    @NotNull(message = "\"duration\" is a required field.")
+    @Min(value = 1L, message = "\"duration\" field must be a value greater than or equal to 1.")
+    int duration,
     @NotNull(message = "Genres is a required field.")
     @Size(min = 1, message = "Game must belong to at least one genre.")
     List<String> genres
