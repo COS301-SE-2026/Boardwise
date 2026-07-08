@@ -110,7 +110,7 @@ class ListingServiceTest {
     250, "Ludo", "Pretoria", true, "test.png","original", "like new", "have you played ludo before?", 
         List.of("adventure", "strategy", "negotiation"), null);
 
-        Boardgame bg = new Boardgame(null,null,"Ludo",null,null,null,null,null);
+        Boardgame bg = new Boardgame(null,null,"Ludo",null,null,null,null,null,null,null);
         
         when(jwtService.extractUserId(fakeToken)).thenReturn(new ObjectId());
 
@@ -166,8 +166,6 @@ class ListingServiceTest {
         ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "something something something",
     250, "Ludo", "Pretoria", true, "test.png","original", "like new", "have you played ludo before?", 
         List.of("adventure", "strategy", "negotiation"), null);
-
-        Boardgame bg = new Boardgame(null,null,"Ludo",null,null,null,null,null);
         
         when(jwtService.extractUserId(fakeToken)).thenReturn(new ObjectId());
 
@@ -229,7 +227,7 @@ class ListingServiceTest {
         ListingRequest listingRequest = new ListingRequest("full boardgame", "rental", "something something something",50.0, "Ludo", "Pretoria", false,"lowkey doesn't exist","original", "like new", "have you played ludo before?", List.of("adventure", "strategy", "negotiation"),List.of("2030-05-31", "2030-06-01"));
                 
 
-        Boardgame bg = new Boardgame(null,null,"Ludo",null,null,null,null,null);
+        Boardgame bg = new Boardgame(null,null,"Ludo",null,null,null,null,null,null,null);
 
         when(jwtService.extractUserId(fakeToken)).thenReturn(new ObjectId());
         when(listingRepository.save(any(Listing.class))).thenReturn(fakeSavedListing);
@@ -619,7 +617,7 @@ class ListingServiceTest {
         String fakeToken = "fake-Token";
         String listingId = "fakeistingID";
         ObjectId  userId = new ObjectId();
-        Boardgame bg = new Boardgame(null,null,"Ludo",null,null,null,null,null);
+        Boardgame bg = new Boardgame(null,null,"Ludo",null,null,null,null,null,null,null);
 
         Listing existingListing = new Listing(listingId, "testBuddy", userId, "full boardgame", "sale", 100,
         "Pretoria", false, "Old title", "like new", "Ludo", "original",
@@ -659,7 +657,6 @@ class ListingServiceTest {
         String fakeToken = "fake-Token";
         String listingId = "fakeistingID";
         ObjectId  userId = new ObjectId();
-        Boardgame bg = new Boardgame(null,null,"Ludo",null,null,null,null,null);
 
         Listing existingListing = new Listing(listingId, "testBuddy", userId, "full boardgame", "sale", 100,
         "Pretoria", false, "Old title", "like new", "Ludo", "original",

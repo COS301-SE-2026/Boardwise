@@ -26,7 +26,6 @@ import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
-import com.boardwise.backend.user_service.services.BoardGameService;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
@@ -181,8 +180,8 @@ public class ListingService {
         }
 
         if(boardGameRepository.findByTitle(gameTitle).isEmpty()){
-            Boardgame toBeAdded = new Boardgame(null, null, gameTitle, description, null, 1, 2, genres);
-            boardGameRepository.insert(toBeAdded);
+            Boardgame toBeInserted = new Boardgame(null, null, req.gameTitle(),null,null,1,2,3,null,null);
+            boardGameRepository.insert(toBeInserted);
         }
 
         List<String> rentalPeriod = (req.rentalPeriod() == null || req.rentalPeriod().size() != 2) ? null
@@ -403,7 +402,7 @@ public class ListingService {
         if (!existing.getGameTitle().equals(req.gameTitle())) {
 
             if(boardGameRepository.findByTitle(req.gameTitle()).isEmpty()){
-                Boardgame toBeInserted = new Boardgame(null, null, req.gameTitle(), null, null, null, null, null);
+                Boardgame toBeInserted = new Boardgame(null, null, req.gameTitle(),null,null,1,2,3,null,null);
                 boardGameRepository.insert(toBeInserted);
             }
             existing.setGameTitle(req.gameTitle());
