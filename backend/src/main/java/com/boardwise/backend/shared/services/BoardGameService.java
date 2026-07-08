@@ -1,4 +1,4 @@
-package com.boardwise.backend.user_service.services;
+package com.boardwise.backend.shared.services;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -28,6 +28,7 @@ import com.boardwise.backend.user_service.dtos.GameListDTO;
 import com.boardwise.backend.user_service.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.user_service.services.R2StorageService;
 
 @Service
 public class BoardGameService {
