@@ -36,6 +36,14 @@ public class BoardGameController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
+    @GetMapping("/genres")
+    public ResponseEntity<?> getGenresList(
+        @RequestParam(required = false) String query
+    ){
+        Map<String, Object> res = service.getBoardgameGenres(query);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
     @PostMapping("/")
     public ResponseEntity<?> addBoardgame(
         @RequestPart("gameInfo") OtherGameDTO gameInfo,

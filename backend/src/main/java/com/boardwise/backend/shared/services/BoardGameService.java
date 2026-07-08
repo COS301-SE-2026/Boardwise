@@ -24,10 +24,13 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.user_service.dtos.GameListDTO;
 import com.boardwise.backend.user_service.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.user_service.services.AuthService;
 import com.boardwise.backend.user_service.services.R2StorageService;
 
 @Service
@@ -242,6 +245,33 @@ public class BoardGameService {
 
         result.put("message", "New game successfully added to database.");
 
+        return result;
+    }
+
+    public Map<String, Object> getBoardgameGenres(String query){
+        Map<String, Object> result = new HashMap<>();
+        List<Genres> genres = new ArrayList<>();
+        
+        if(query == null){
+            for(int i = 0; i < 10; i++){
+                genres.add(Genres.values()[i]);
+            }
+        }
+        else{
+            int count = 10;
+            for(Genres genre : Genres.values()){
+                if(genre.getValue().contains(query)){
+                    genres.add(genre);
+                    count--;
+                }
+                if(count < 1)
+                    break;
+            }
+        }
+        
+
+        result.put("message", "Genres successfully retrieved.");
+        result.put("genres", genres);
         return result;
     }
 }
