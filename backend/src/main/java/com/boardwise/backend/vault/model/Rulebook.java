@@ -1,6 +1,7 @@
 package com.boardwise.backend.vault.model;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -35,7 +36,7 @@ public class Rulebook {
     private String status; // Processing | Ready | PendingReview | Failed
 
     @Field("version")
-    private int version;
+    private long version;
 
     @Field("contributorId")
     private ObjectId contributorId;
@@ -54,6 +55,18 @@ public class Rulebook {
 
     @Field("r2CoverKey")
     private String r2CoverKey;
+
+    @Field("lockHeldBy")
+    private ObjectId lockHeldBy;
+
+    @Field("lockExpiresAt")
+    private Instant lockExpiresAt;
+
+    @Field("undoStack")
+    private List<Long> undoStack;
+
+    @Field("redoStack")
+    private List<Long> redoStack;
 
     @Field("uploadedAt")
     private Instant uploadedAt;

@@ -15,6 +15,8 @@ public interface BoardGameRepository extends MongoRepository<Boardgame, String>{
 
     Optional<Boardgame> findTopByBggIdNotNullOrderByBggIdDesc();
 
+    List<Boardgame> findAllByBggIdNull();
+
     List<Boardgame> findAllBy(TextCriteria criteria, Pageable pageable);
 
     List<Boardgame> findAllBy(Limit limit);

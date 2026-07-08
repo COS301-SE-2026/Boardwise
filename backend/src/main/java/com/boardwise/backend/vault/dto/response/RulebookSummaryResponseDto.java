@@ -13,7 +13,7 @@ public class RulebookSummaryResponseDto {
     private String title;
     private String language;
     private String edition;
-    private int version;
+    private long version;
     private List<String> genres;
     private Integer minPlayers;
     private Integer maxPlayers;

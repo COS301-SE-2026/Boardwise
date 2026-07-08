@@ -7,9 +7,9 @@ import lombok.Data;
 
 @Data
 @Builder
-public class LockAcquiredEventDto {
-    private String rulebookId;
-    private String lockedBy;
+public class AcquireWriteLockDto {
+    private boolean lockGranted;
+    private String lockedBy; // Username instead of id
     private Instant expiresAt;
-    private int currentVersion;
+    private long currentVersion;
 }
