@@ -44,8 +44,8 @@ export const userService = {
         return $api<ProfileUpdateResponse>('/users/', {
             method: 'PATCH',
             body: {
-            username
-        }
+                username
+            }
         });
     }
 }

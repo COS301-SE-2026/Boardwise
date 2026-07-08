@@ -103,7 +103,7 @@ public class ProfileService {
                 Group group = groupRepo.findById(membership.getGroupId()).get();
                 community.put("id", group.getId());
                 community.put("name", group.getName());
-                // community.put("image", group.getImage());
+                community.put("image", group.getImageUrl());
 
                 communities.add(community);
             }
