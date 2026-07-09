@@ -77,5 +77,83 @@ public class ForwardEditRepositoryIntegrationTest extends VaultIntegrationTest {
             // Assert
             assertEquals("new content", fetched.getChunks().get(1).getContent(), "The content should match exactly");
         }
+
+        @Test
+        void atomicInsertChunkShouldSucceedForValidInsertIndex(){
+            // Arrange
+            String newContent = "This is being added";
+            int insertIndex = 1;
+
+            // Act
+            rulebookTextRepository.atomicInsertChunk(rulebookId, new ObjectId(), newContent, insertIndex);
+            RulebookText fetched = rulebookTextRepository.findByRulebookId(rulebookId).orElse(null);
+
+            // Assert
+            assertEquals(4, fetched.getChunks().size(), "The number of chunks should match exactly");
+            assertEquals(insertIndex, fetched.getChunks().get(insertIndex).getIndex(), "The insert index should match exactly");
+            assertEquals(newContent, fetched.getChunks().get(insertIndex).getContent(), "The content should match exactly");
+        }
+        
+        @Test
+        void atomicInsertChunkShouldSucceedForInvalidInsertIndexAndAppendsChunkToEndOfList(){
+            // Arrange
+            String newContent = "This is being added";
+
+            // Act
+            rulebookTextRepository.atomicInsertChunk(rulebookId, new ObjectId(), newContent, -5);
+            RulebookText fetched = rulebookTextRepository.findByRulebookId(rulebookId).orElse(null);
+
+            // Assert
+            assertEquals(4, fetched.getChunks().size(), "The number of chunks should match exactly");
+            assertEquals(3, fetched.getChunks().getLast().getIndex(), "The insert index should match exactly");
+            assertEquals(newContent, fetched.getChunks().getLast().getContent(), "The content should match exactly");
+        }
+        
+        @Test
+        void atomicInsertChunkShouldSucceedForAbsentChunkId(){
+            // Arrange
+            String newContent = "This is being added";
+            int insertIndex = 2;
+
+            // Act
+            rulebookTextRepository.atomicInsertChunk(rulebookId, null, newContent, insertIndex);
+            RulebookText fetched = rulebookTextRepository.findByRulebookId(rulebookId).orElse(null);
+
+            // Assert
+            assertEquals(4, fetched.getChunks().size(), "The number of chunks should match exactly");
+            assertEquals(insertIndex, fetched.getChunks().get(insertIndex).getIndex(),
+                    "The insert index should match exactly");
+            assertEquals(newContent, fetched.getChunks().get(insertIndex).getContent(),
+                    "The content should match exactly");
+        }
+
+        @Test
+        void atomicDeleteChunkShouldSucceedForValidChunkId(){
+            // Arrange
+            ObjectId validChunkId = rulebookText.getChunks().get(1).getChunkId();
+            
+            // Act
+            boolean res = rulebookTextRepository.atomicDeleteChunk(rulebookId, validChunkId);
+            RulebookText fetched = rulebookTextRepository.findByRulebookId(rulebookId).orElse(null);
+
+            // Assert
+            assertTrue(res, "The boolean flag should be true when chunk deletion succeeds");
+            assertEquals(2, fetched.getChunks().size(), "The number of chunks should match exactly");
+            assertEquals(1, fetched.getChunks().get(1).getIndex(), "The index should match exactly");
+        }
+        
+        @Test
+        void atomicDeleteChunkShouldFailForInvalidChunkId(){
+            // Arrange
+            ObjectId invalidChunkId = new ObjectId();
+
+            // Act
+            boolean res = rulebookTextRepository.atomicDeleteChunk(rulebookId, invalidChunkId);
+            RulebookText fetched = rulebookTextRepository.findByRulebookId(rulebookId).orElse(null);
+
+            // Assert
+            assertFalse(res, "The boolean flag should be false when chunk deletion fails");
+            assertEquals(3, fetched.getChunks().size(), "The number of chunks should match exactly");
+        }
     }
 }
