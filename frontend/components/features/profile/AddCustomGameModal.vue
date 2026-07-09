@@ -24,13 +24,62 @@
             />
 
             <v-select
-                v-model="genre"
+                v-model="genres"
                 label="Game Genre "
-                :items="['Strategy','Family','Abstract','Party','Cooperative','Thematic','War','Other']"
+                :items="genreOptions"
+                variant="outlined"
+                density="compact"
+                hide-details
+                multiple
+                chips
+            />
+
+            <BaseInput
+                v-model="description"
+                label="Description"
+                placeholder="Short description of the game"
                 variant="outlined"
                 density="compact"
                 hide-details
             />
+
+            <div class="d-flex ga-3">
+                <BaseInput
+                    v-model.number="minPlayers"
+                    label="Min Players"
+                    type="number"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                />
+                <BaseInput
+                    v-model.number="maxPlayers"
+                    label="Max Players"
+                    type="number"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                />                
+            </div>
+
+            <div class="d-flex ga-3">
+                <BaseInput
+                    v-model.number="minAge"
+                    label="Minimum Age"
+                    type="number"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                />
+                <BaseInput
+                    v-model.number="duration"
+                    label="Duration (minutes)"
+                    type="number"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                />
+            </div>
 
             <div class="d-flex align-center ga-3">
                 <BaseButton variant="secondary" @click="triggerUpload">
@@ -57,22 +106,45 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref,onMounted } from 'vue'
 import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import { useProfile } from  '@/composables/useProfile'
+import { userService } from '~/services/userService'
 
 const { addGame, isLoading, error } = useProfile();
 
-const open = defineModel()
+const open = defineModel({ type: Boolean, default: false })
+
 const emit = defineEmits(['confirm', 'back'])
 
 const title = ref('');
-const genre = ref('');
+const description = ref('');
+const minPlayers = ref(null);
+const maxPlayers = ref(null);
+const genres = ref([])
+const minAge = ref(null);
+const duration = ref(null);
+
 const fileName  = ref('');
 const fileInput = ref(null);
 const file = ref(null);
+
+
+const genreOptions = ref([]);
+
+
+onMounted(async () =>{
+    try{
+        const res = await userService.getGenres();
+        genreOptions.value = res.genres;
+    }
+    catch(err){
+        console.error('failed to load genres: ', err);
+    }
+})
+
 
 const triggerUpload = () => fileInput.value?.click()
 
@@ -87,17 +159,31 @@ const handleFileChange = (e) => {
 const closeModal = () => {
     open.value = false;
     title.value = '';
-    genre.value = '';
+    description.value = '';
+    minPlayers.value = null;
+    maxPlayers.value = null;
+    minAge.value = null;
+    duration.value = null;
+    genres.value = [];
     fileName.value = '';
     file.value = null;
 }
 
 const handleConfirm = async () => {
-    if(!title.value || !file.value) return 
+    if (!title.value || !file.value || !description.value || !minPlayers.value || !maxPlayers.value   || !minAge.value || !duration.value) return
 
+    if (minPlayers.value >= maxPlayers.value) {
+        console.error('minPlayers must be less than maxPlayers')
+        return
+    }
     const gameData = {
         title: title.value,
-        genre: genre.value
+        description: description.value,
+        minPlayers: minPlayers.value,
+        maxPlayers: maxPlayers.value,
+        minAge: minAge.value,
+        duration: duration.value,
+        genres: genres.value
     }
 
     try{
@@ -108,9 +194,6 @@ const handleConfirm = async () => {
     catch(err){
         console.error("error while adding game: ", err);
     }
-
-    emit('confirm', { title: title.value, genre: genre.value, image: fileName.value, custom: true })
-    closeModal()
 }
 
 </script>

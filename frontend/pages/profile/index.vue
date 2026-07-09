@@ -28,7 +28,8 @@
         <v-window-item value="Games Owned">
           <GamesOwnedSection
             :games="games"
-            @add-game="() => { console.log('add-game fired'); showBrowser = true }"
+            @add-game="showBrowser = true"
+            @remove-game="handleRemoveGame"
           />
         </v-window-item>
 
@@ -53,14 +54,14 @@
 
     <GameBrowserModal
       v-model="showBrowser"
-      @confim="handleGamesAdded"
+      @confirm="handleGamesAdded"
       @add-custom="openCustomModal"
     />
 
     <AddCustomGameModal
       v-model="showCustom"
       @confirm="handleCustomGame"
-      @back-custom="showCustom = false; showBrowser = true"
+      @back="showCustom = false; showBrowser = true"
     />
 
   </PageContainer>
@@ -90,37 +91,18 @@ const { listings, fetchUserListing, loading, error } = useMarketplace()
 const router = useRouter()
 const activeTab = ref('Games Owned')
 const user      = ref(null)
-const games     = ref([])
 const showBrowser = ref(false)
 const showCustom  = ref(false)
 
-const defaultGames = [
-  { id: 1, title: 'Catan', category: 'Strategy', image: '/images/catan.jpg' },
-  { id: 2, title: 'Dixit', category: 'Family',   image: '/images/dixit.jpg' },
-  { id: 3, title: 'Azul',  category: 'Abstract', image: '/images/azul.jpg'  }
-]
+const games = (()=>{user.value?.games??[]});
 
-const saveGames = () => {
-  localStorage.setItem('my-games', JSON.stringify(games.value))
-}
+const refreshUser = async ()=>{
+  user.value = await fetchCurrentUser();
+};
 
-const handleGamesAdded = (selectedGames) => {
-  const newGenres = selectedGames.flatMap(g => g.genre ?? [])
-  const uniqueGenres = [...new Set(newGenres)]
-  console.log('Genres to merge into preferences:', uniqueGenres)
-
-  selectedGames.forEach(game => { 
-    if (!games.value.some(g => g.id === game.id)) {
-      games.value.push({
-        id:       game.id,
-        title:    game.title,
-        category: game.genre?.[0] ?? '',
-        image:    game.imageUrl ?? null  
-      })
-    }
-  })
-
-  saveGames()
+const handleGamesAdded = async () => {
+  showBrowser.value = false
+  await refreshUser()
 }
 
 const openCustomModal = () => {
@@ -128,23 +110,30 @@ const openCustomModal = () => {
   showCustom.value = true
 }
 
-const handleCustomGame = (game) => {
-  games.value.push({ ...game, id: Date.now() })
-  saveGames()
+const handleRemoveGame = async(gameId)=>{
+  try{
+    await removeGame(gameId);
+    await refreshUser();
+  }
+  catch(err){
+    console.error('Failed to remove game:', err);
+  }
+}
+
+
+const handleCustomGame = async () => {
+  showCustom.value = false;
+  await refreshUser();
 }
 
 onMounted(async () => {
   const token = localStorage.getItem('access_token')
   if (!token) {
-    router.push('/auth/signin')
-    return  
+    router.push('/auth/signin');
+    return;
   }
 
-  user.value = await fetchCurrentUser()
-  await fetchUserListing()
-
-  const stored = localStorage.getItem('my-games')
-  games.value = stored ? JSON.parse(stored) : defaultGames
-  if (!stored) localStorage.setItem('my-games', JSON.stringify(defaultGames))
-})
+  await refreshUser();
+  await fetchUserListing();
+});
 </script>
