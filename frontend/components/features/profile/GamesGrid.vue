@@ -9,7 +9,7 @@
       :image="game.image"
     />
 
-    <!-- <AddGameCard @add-game="$emit('add-game')" /> -->
+    <AddGameCard @add-game="$emit('add-game')" />
 
   </BaseGrid>
 </template>

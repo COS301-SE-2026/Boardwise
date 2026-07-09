@@ -33,7 +33,7 @@
 
       <div class="actions">
 
-        <!-- <BaseButton
+        <BaseButton
           size="sm"
           @click="showEdit = true"
         >
@@ -46,7 +46,7 @@
           @click="showDelete = true"
         >
           Delete
-        </BaseButton> -->
+        </BaseButton>
 
       </div>
 
@@ -56,7 +56,7 @@
       </div>
     </v-card-text>
 
-    <EditListingModal   v-model="showEdit"   :listing="listing" />
+    <EditListingModal   v-model="showEdit"   :listing="listing" @saved="$emit('updated', listing.listingId)"  />
     <DeleteListingModal v-model="showDelete" :listing="listing" @confirm="handleDelete"  />
 
   </BaseCard>
@@ -67,7 +67,10 @@ import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseBadge from '~/components/ui/BaseBadge.vue'
 import EditListingModal from './EditListingModal.vue'
 import DeleteListingModal from './DeleteListingModal.vue'
-import { MarketplaceService } from '~/services/marketplaceService.js'
+import { useMarketplace } from '~/composables/useMarketplace'
+
+const {removeListing} = useMarketplace();
+
 const props = defineProps({
   listing: { type: Object, required: true }
 })
@@ -81,11 +84,12 @@ const openListing = () => {
 }
 
 const handleDelete = async () => {
-  await MarketplaceService.deleteListing(props.listing.listingId);
+  await removeListing(props.listing.listingId)
   emit('deleted', props.listing.listingId)
 };
 
-const emit = defineEmits(['deleted']);
+const emit = defineEmits(['deleted','updated']);
+
 </script>
 
 <style scoped>

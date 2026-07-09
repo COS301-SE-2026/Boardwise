@@ -50,7 +50,6 @@ export const MarketplaceService = {
         
         const hasFilters = Object.keys(applied_filters).length > 0;
         const url = hasFilters ? 'marketplace/listings/search' : 'marketplace/listings';
-
         return $api<any>(url, { method: 'GET', query: applied_filters });
     },
 
@@ -62,7 +61,6 @@ export const MarketplaceService = {
         formData.append('image',image);
         return $api<ListingResponse>('marketplace/listings',{
             method: 'POST',
-            headers:{'Content-Type': 'multipart/form-data'},
             body: formData,
         });
     },
@@ -74,6 +72,7 @@ export const MarketplaceService = {
     },
 
     // UPDATE LISTING BY ID
+    
     updateListing(id: string, data: any, image?: File){
         const { $api } = useNuxtApp();
         const formData = new FormData();

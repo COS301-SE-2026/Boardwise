@@ -28,12 +28,17 @@
         <v-window-item value="Games Owned">
           <GamesOwnedSection
             :games="games"
-            @add-game="games.push($event)"
+            @add-game="() => { console.log('add-game fired'); showBrowser = true }"
           />
         </v-window-item>
 
         <v-window-item value="Listings">
-          <ListingsSection :listings="listings" />
+          <ListingsSection 
+          :listings="listings"
+          @deleted="fetchUserListing" 
+          @updated="fetchUserListing"
+
+          />
         </v-window-item>
 
       </v-window>
@@ -46,6 +51,18 @@
       </v-container>
     </template>
 
+    <GameBrowserModal
+      v-model="showBrowser"
+      @confim="handleGamesAdded"
+      @add-custom="openCustomModal"
+    />
+
+    <AddCustomGameModal
+      v-model="showCustom"
+      @confirm="handleCustomGame"
+      @back-custom="showCustom = false; showBrowser = true"
+    />
+
   </PageContainer>
 </template>
 
@@ -53,6 +70,8 @@
 definePageMeta({
   middleware: 'auth'
 })
+
+import { ref, onMounted } from 'vue'
 import Navbar             from '~/components/layout/Navbar.vue'
 import PageContainer      from '~/components/layout/PageContainer.vue'
 import ProfileHeader      from '~/components/features/profile/ProfileHeader.vue'
@@ -60,14 +79,20 @@ import ProfileStats       from '~/components/features/profile/ProfileStats.vue'
 import ProfileCommunities from '~/components/features/profile/ProfileCommunities.vue'
 import GamesOwnedSection  from '~/components/features/profile/GamesOwnedSection.vue'
 import ListingsSection    from '~/components/features/profile/ListingsSection.vue'
+import GameBrowserModal   from '~/components/features/profile/GameBrowserModal.vue'
+import AddCustomGameModal from '~/components/features/profile/AddCustomGameModal.vue'
 import { useProfile }     from '~/composables/useProfile'
 import { useMarketplace } from '~/composables/useMarketplace'
 import { useRouter } from 'vue-router'
 
 const { fetchCurrentUser } = useProfile()
 const { listings, fetchUserListing, loading, error } = useMarketplace()
+const router = useRouter()
 const activeTab = ref('Games Owned')
 const user      = ref(null)
+const games     = ref([])
+const showBrowser = ref(false)
+const showCustom  = ref(false)
 
 const defaultGames = [
   { id: 1, title: 'Catan', category: 'Strategy', image: '/images/catan.jpg' },
@@ -75,22 +100,50 @@ const defaultGames = [
   { id: 3, title: 'Azul',  category: 'Abstract', image: '/images/azul.jpg'  }
 ]
 
-const games = ref([])
-
-const addGame = (game) => {
-  games.value.push(game)
+const saveGames = () => {
   localStorage.setItem('my-games', JSON.stringify(games.value))
 }
 
-const router = useRouter()
+const handleGamesAdded = (selectedGames) => {
+  const newGenres = selectedGames.flatMap(g => g.genre ?? [])
+  const uniqueGenres = [...new Set(newGenres)]
+  console.log('Genres to merge into preferences:', uniqueGenres)
+
+  selectedGames.forEach(game => { 
+    if (!games.value.some(g => g.id === game.id)) {
+      games.value.push({
+        id:       game.id,
+        title:    game.title,
+        category: game.genre?.[0] ?? '',
+        image:    game.imageUrl ?? null  
+      })
+    }
+  })
+
+  saveGames()
+}
+
+const openCustomModal = () => {
+  showBrowser.value = false
+  showCustom.value = true
+}
+
+const handleCustomGame = (game) => {
+  games.value.push({ ...game, id: Date.now() })
+  saveGames()
+}
+
 onMounted(async () => {
-  if (!localStorage.getItem('access_token')) router.push('/auth/signin')
+  const token = localStorage.getItem('access_token')
+  if (!token) {
+    router.push('/auth/signin')
+    return  
+  }
 
   user.value = await fetchCurrentUser()
   await fetchUserListing()
 
   const stored = localStorage.getItem('my-games')
-  // First visit: seed localStorage with defaults, subsequent visits: load saved list
   games.value = stored ? JSON.parse(stored) : defaultGames
   if (!stored) localStorage.setItem('my-games', JSON.stringify(defaultGames))
 })
