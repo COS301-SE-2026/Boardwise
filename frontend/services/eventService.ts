@@ -110,25 +110,43 @@ export const EventService = {
     // AC-EVT-05: RSVP to event
     rsvpToEvent(eventId: string) {
         const { $api } = useNuxtApp()
+        return $api<SingleEventResponse>(`community/${eventId}`, {
+            method: 'POST'
+        })
     },
 
     // AC-EVT-06: De-RSVP from event
     deRsvpToEvent(eventId: string) {
         const { $api } = useNuxtApp()
+        return $api<SingleEventResponse>('community/', {
+            method: 'PATCH',
+            body: { eventId }
+        })
     },
 
     // AC-EVT-07: Get user event invites
     getUserInvites(){
         const { $api } = useNuxtApp()
+        return $api<GetInvitesResponse>(`community/invite`, {
+            method: 'GET'
+        })
     },
 
     // AC-EVT-08: Invite user to event
     inviteUser(invitee: string, eventId: string) {
         const { $api } = useNuxtApp()
+        return $api<MessageResponse>('community/invite', {
+            method: 'POST',
+            body: { invitee, eventId }
+        })
     },
 
     // AC-EVT-09: Respond to invite (status: "accept" | "decline")
     respondToInvite(eventId: string, status: 'accept' | 'decline') {
         const { $api } = useNuxtApp()
+        return $api<MessageResponse>(`community/invite/${eventId}`, {
+            method: 'PATCH',
+            query: { status }
+        })
     }
 }
