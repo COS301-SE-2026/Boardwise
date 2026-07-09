@@ -18,9 +18,8 @@ public class BoardGameSearch {
     private final MongoTemplate template;
 
     public List<Boardgame> search(String query, int limit){
-        Document stage = new Document("$search", new Document("index", "boardgame_search").append(
-            "text", 
-            new Document()
+        Document stage = new Document("$search", new Document("index", "boardgame_search")
+        .append("autocomplete", new Document()
                 .append("query", query)
                 .append("path", "title")
                 .append("fuzzy", new Document()

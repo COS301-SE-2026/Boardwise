@@ -34,10 +34,16 @@ public class SearchIndexInitializer implements CommandLineRunner{
         if(!exists){
             Document def = new Document("mappings",
                 new Document("dynamic", false).append(
-                    "fields", new Document("title",
-                        new Document("type", "string").append(
-                            "analyzer", 
-                            "lucene.standard"
+                    "fields", new Document(
+                        "title", 
+                        List.of(
+                            new Document("type", "string")
+                                .append("analyzer", "lucene.standard"),
+                            new Document("type", "autocomplete")
+                                .append("tokenization", "edgeGram")
+                                .append("minGrams", 2)
+                                .append("maxGrams", 15)
+                                .append("foldDiacritics", false)
                         )
                     )
                 )
