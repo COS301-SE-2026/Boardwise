@@ -23,8 +23,9 @@
                 hide-details
             />
 
-            <v-select
+            <v-autocomplete
                 v-model="genres"
+                v-model:search="genreSearch"
                 label="Game Genre "
                 :items="genreOptions"
                 variant="outlined"
@@ -32,6 +33,9 @@
                 hide-details
                 multiple
                 chips
+                closable-chips
+                :clear-on-select="false"
+                @update:search ="fetchGenres"
             />
 
             <BaseInput
@@ -112,6 +116,8 @@ import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import { useProfile } from  '@/composables/useProfile'
 import { userService } from '~/services/userService'
+import { useDebounceFn } from '@vueuse/core'
+import { returnValue } from 'happy-dom/lib/PropertySymbol'
 
 const { addGame, isLoading, error } = useProfile();
 
@@ -133,17 +139,36 @@ const file = ref(null);
 
 
 const genreOptions = ref([]);
+const genreSearch = ref('')
+const isSelecting = ref(false)
 
+watch(genreSearch, (val, oldVal)=>{
+    if(isSelecting.value){
+        isSelecting.value = false;
+        returnValue;
+    }
 
-onMounted(async () =>{
+    if (val !== null && val !== undefined) {
+        fetchGenres(val)
+    }
+})
+
+const handleGenreSelect = () => {
+    isSelecting.value = true
+}
+
+const fetchGenres = useDebounceFn(async (query) =>{
+    if (query === null || query === undefined) return; // ignore post-selection clear
+
     try{
-        const res = await userService.getGenres();
+        const res = await userService.getGenres(query);
         genreOptions.value = res.genres;
     }
     catch(err){
         console.error('failed to load genres: ', err);
     }
-})
+},300)
+onMounted(() => fetchGenres(''))
 
 
 const triggerUpload = () => fileInput.value?.click()
@@ -172,10 +197,11 @@ const closeModal = () => {
 const handleConfirm = async () => {
     if (!title.value || !file.value || !description.value || !minPlayers.value || !maxPlayers.value   || !minAge.value || !duration.value) return
 
-    if (minPlayers.value >= maxPlayers.value) {
+    if (minPlayers.value >= maxPlayers.value) { // only cause it's in the backend
         console.error('minPlayers must be less than maxPlayers')
         return
     }
+
     const gameData = {
         title: title.value,
         description: description.value,
