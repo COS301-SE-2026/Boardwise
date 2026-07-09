@@ -77,12 +77,16 @@ const mockUser = {
 
 const name = ref(props.user.fullName)
 const username = ref(props.user.username)
-const location = ref(mockUser.location)
+const location = ref(props.user.location)
 const bio = ref(props.user.preferences.genres.join('•'))
 
 const handleSave = async () => {
-  const response = await updateProfile(username.value)
-  emit('save', response.data)  
+  const response = await updateProfile({
+    name : name.value,
+    username : username.value,
+    location : location.value
+  })
+  emit('save', response)  
   open.value = false
 }
 </script>

@@ -7,6 +7,10 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record UpdateProfileDTO(
+    @Size(min = 3, message = "firstName field must be at least 3 characters long")
+    String firstName,
+    @Size(min = 3, message = "firstName field must be at least 3 characters long")
+    String lastName,
     @Size(min = 3, message = "Username field must be at least 3 characters long")
     String username,
     @Pattern(

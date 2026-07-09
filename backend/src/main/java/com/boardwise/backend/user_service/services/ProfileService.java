@@ -136,6 +136,8 @@ public class ProfileService {
         String userId = jwtService.extractUserId(token).toString();
         User user = userRepo.findById(userId).get();
 
+        String newFirstName = AuthService.sanitize(profileUpdateData.firstName());
+        String newLastName = AuthService.sanitize(profileUpdateData.lastName());
         String newUsername = AuthService.sanitize(profileUpdateData.username());
         String newEmail = AuthService.sanitize(profileUpdateData.emailAddress());
         String newPassword = (profileUpdateData.password() != null) ?
@@ -144,7 +146,13 @@ public class ProfileService {
         String newLocation = AuthService.sanitize(profileUpdateData.location());
 
         Map<String, Object> toReturn = new HashMap<>();
-      
+        
+        if(newFirstName != null && newLastName != null){
+            user.setFirstName(newFirstName);
+            user.setLastName(newLastName);
+            toReturn.put("fullName", newFirstName + " " + newLastName);
+        }
+
         if(newUsername != null){
             user.setUsername(newUsername);
             toReturn.put("username", newUsername);

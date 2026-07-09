@@ -4,15 +4,15 @@
     <template v-if="user">
       <Navbar />
 
-      <ProfileHeader :user="user" @saved="user = $event" />
+      <ProfileHeader :user="user" @saved="handleProfileUpdate" />
 
       <ProfileStats
-        :games="games.length"
-        :friends="15"
+        :games="user.games.length"
+        :friends="user.friendCount"
         :communities="user.groupCount"
       />
 
-      <ProfileCommunities />
+      <ProfileCommunities :communities="user.communities" />
 
       <v-tabs
         v-model="activeTab"
@@ -27,7 +27,7 @@
 
         <v-window-item value="Games Owned">
           <GamesOwnedSection
-            :games="games"
+            :games="user.games"
             @add-game="games.push($event)"
           />
         </v-window-item>
@@ -80,6 +80,19 @@ const games = ref([])
 const addGame = (game) => {
   games.value.push(game)
   localStorage.setItem('my-games', JSON.stringify(games.value))
+}
+
+const handleProfileUpdate = (newValues) => {
+  console.log("handle update is indeed called...")
+  if(!user.value || !newValues)
+    return
+
+  user.value = {
+    ...user.value,
+    ...newValues
+  }
+
+  console.log("handle update is indeed finished with its work...")
 }
 
 const router = useRouter()

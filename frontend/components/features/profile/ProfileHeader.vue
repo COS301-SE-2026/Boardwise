@@ -17,11 +17,11 @@
 
           <h1 class="profile-name ma-0">{{ user.fullName }}</h1>
 
-          <p class="profile-bio profile-bio--empty ma-0">no available preferences</p>
+          <!-- <p class="profile-bio profile-bio--empty ma-0">no available preferences</p> -->
           <p class="profile-username ma-0">@{{ user.username }}</p>
           
           <div
-            v-if="user.preferences?.visibility === 'public' && user.preferences.genres?.length"
+            v-if="user.preferences?.visibility === 'public' && user.preferences.genres?.length > 0"
             class="d-flex flex-wrap ga-1"
           >
             <v-chip
@@ -32,9 +32,15 @@
             >
               {{ genre }}
             </v-chip>
-            <!-- <div v-else>
-              <p class = "no-pref">no prefrences</p>
-            </div> -->
+            
+          </div>
+          
+          <div v-else-if="user.preferences?.visibility === 'private'">
+            <p class = "no-pref">user genre preferences are private</p>
+          </div>
+
+          <div v-else>
+            <p class = "no-pref">no preferences</p>
           </div>
 
         </div>
@@ -48,7 +54,7 @@
     <EditProfileModal
       v-model="showEdit"
       :user="user"
-      @saved="$emit('saved', $event)"
+      @save="$emit('saved', $event)"
     />
 
   </v-card>

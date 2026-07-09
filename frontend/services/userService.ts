@@ -5,6 +5,11 @@ interface Boardgame{
     imageURL: string;
     genres: Array<string>;
 }
+interface Community{
+    id: string;
+    name: string;
+    image: string;
+}
 interface Preferences{
     visibility: string;
     genres : Array<string>;
@@ -12,11 +17,13 @@ interface Preferences{
 interface ProfileResponse{
     fullName: string;
     username: string;
+    location: string;
     profilePicture: string;
     friendCount: number;
     groupCount: number;
     ownedGameCount: number;
     games: Array<Boardgame>;
+    communities: Array<Community>;
     preferences: Preferences;
     createdAt: string;
 }
@@ -39,12 +46,26 @@ export const userService = {
         return $api<ProfileResponse>("/users/" + username);
     },
     
-    updateProfile(username: string){
+    updateProfile(user: {
+        username?: string,
+        location?: string,
+        name?: string
+    }){
+        let firstName: string | null | undefined = user.name != null ? 
+                                user.name.split(" ")[0] :
+                                null;
+        let lastName: string | null | undefined = user.name != null ? 
+                                user.name.split(" ")[1] :
+                                null;
+
         const { $api } = useNuxtApp();
         return $api<ProfileUpdateResponse>('/users/', {
             method: 'PATCH',
             body: {
-                username
+                firstName,
+                lastName,
+                username : user.username,
+                location : user.location
             }
         });
     }

@@ -27,11 +27,23 @@ export const useProfile = () => {
         }
     }
 
-    const updateProfile = async (username: string) => {
+    const updateProfile = async (user: {
+        username?: string,
+        location?: string,
+        name?: string
+    }) => {
         isLoading.value = true;
+        error.value = ''
+        if(user.name){
+            const tName = user.name.trim();
+            if(tName.split(" ").length !== 2){
+                error.value = "Name must be separated by exactly one space (example: 'First Name')"
+                return
+            }
+        }
 
         try{
-            const res = await userService.updateProfile(username)
+            const res = await userService.updateProfile(user)
             console.log(res)
             return res
         }
@@ -45,5 +57,5 @@ export const useProfile = () => {
         }
     };
 
-    return { isLoading, fetchCurrentUser, updateProfile }
+    return { isLoading, fetchCurrentUser, updateProfile, error }
 }
