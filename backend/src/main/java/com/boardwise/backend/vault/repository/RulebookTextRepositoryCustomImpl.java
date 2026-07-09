@@ -39,7 +39,7 @@ public class RulebookTextRepositoryCustomImpl implements RulebookTextRepositoryC
         Query query = new Query(Criteria.where("rulebookId").is(rulebookId));
 
         Document newChunk = new Document()
-                .append("chunkId", chunkId)
+                .append("chunkId", (chunkId != null) ? chunkId : new ObjectId())
                 .append("content", content);
 
         Document arraySize = new Document("$size", new Document("$ifNull", List.of("$chunks", List.of())));
