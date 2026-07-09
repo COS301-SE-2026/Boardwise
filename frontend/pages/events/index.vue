@@ -28,7 +28,7 @@
       />
     </div>
 
-    <v-navigation-drawer>
+    <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
       <EventDetail
         v-if="selectedEvent"
         :event="selectedEvent"
@@ -43,7 +43,7 @@
 
     <CreateEvent v-model="showCreateEvent" @created="handleCreateEvent" />
 
-    <CreateEvent v-model="showEditEvent" :intial-data="editingEvent" @created="handleEditEvent" />
+    <CreateEvent v-model="showEditEvent" :initial-data="editingEvent" @created="handleEditEvent" />
 
   </PageContainer>
 </template>
@@ -65,6 +65,9 @@ import EventDetail from '~/components/features/events/EventDetail.vue'
 import CreateEvent from '~/components/features/events/CreateEvent.vue'
 
 import { useEvents } from '~/composables/useEvents'
+import { useSnackBar } from '~/composables/useSnackbar'
+
+const { show } = useSnackBar
 
 const {
   events, 
@@ -73,7 +76,8 @@ const {
   createEvent,
   updateEvent, 
   rsvpToEvent, 
-  deRsvpFromEvent
+  deRsvpFromEvent,
+  cancelEvent
 } = useEvents()
 
 const router = useRouter()
