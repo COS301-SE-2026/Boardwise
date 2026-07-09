@@ -72,16 +72,39 @@ export const EventService = {
     // AC-EVT-02: Create event
     createEvent(eventInfo: object,  image?: File) {
         const { $api } = useNuxtApp()
+        const formData = new FormData()
+        formData.append('Eventnfo', new Blob([JSON.stringify(eventInfo)],{
+            type: 'application/json'
+        }))
+        if (image) formData.append('EventImage', image)
+        return $api<SingleEventResponse>('community/', {
+            method: 'POST',
+            body: formData
+        })
     },
 
     // AC-EVT-03: Update event 
     updateEvent(eventId: string, eventInfo?: object, image?: File) {
         const { $api } = useNuxtApp()
+        const formData = new FormData()
+        if (eventInfo) {
+            formData.append('Eventnfo', new Blob([JSON.stringify(eventInfo)],{
+                type: 'application/json'
+            }))
+        }
+        if (image) formData.append('EventImage', image)
+        return $api<SingleEventResponse>(`community/${eventId}`, {
+            method: 'PATCH',
+            body: formData
+        })
     },
 
     // AC-EVT-04: Cancel event
     cancelEvent(eventId: string) {
         const { $api } = useNuxtApp()
+        return $api<MessageResponse>(`community/${eventId}`, {
+            method: 'DELETE'
+        })
     },
 
     // AC-EVT-05: RSVP to event
