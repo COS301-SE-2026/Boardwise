@@ -22,8 +22,8 @@ import BaseCard from '~/components/ui/BaseCard.vue'
 
 defineProps({
   title:    String,
-  category: String,
-  image:    String,
+  genres: String,
+  imageURL:    String,
 })
 
 const showDetail = ref(false)

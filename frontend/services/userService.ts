@@ -11,6 +11,8 @@ export interface OtherGameDTO {
     description: string;
     minPlayers: number;
     maxPlayers: number;
+    minAge: number;
+    duration: number;
     genres: Array<string>;
 }
 
@@ -61,6 +63,10 @@ interface ProfileUpdateResponse{
     password: string; // Remove this from being returned by the updateProfile endpoint
 }
 
+interface GenresResponse {
+    message: string;
+    genres: string[];
+}
 
 export const userService = {
     getCurrentUser(){
@@ -120,6 +126,13 @@ export const userService = {
         return $api<InventoryUpdateResponse>(`/users/gameInventory/${gameId}`, {
             method: 'DELETE'
         });
-    }
+    },
+
+    getGenres(query?: string) {
+        const { $api } = useNuxtApp();
+        return $api<GenresResponse>('/boardgames/genres', {
+            params: query ? { query } : undefined
+        });
+    },
 
 }

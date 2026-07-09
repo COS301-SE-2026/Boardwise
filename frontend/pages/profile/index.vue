@@ -7,7 +7,7 @@
       <ProfileHeader :user="user" @saved="user = $event" />
 
       <ProfileStats
-        :games="games.length"
+        :games="user.ownedGameCount"
         :friends="15"
         :communities="user.groupCount"
       />
@@ -72,32 +72,34 @@ definePageMeta({
   middleware: 'auth'
 })
 
-import { ref, onMounted } from 'vue'
-import Navbar             from '~/components/layout/Navbar.vue'
-import PageContainer      from '~/components/layout/PageContainer.vue'
-import ProfileHeader      from '~/components/features/profile/ProfileHeader.vue'
-import ProfileStats       from '~/components/features/profile/ProfileStats.vue'
+import { ref, onMounted, computed } from 'vue'
+import Navbar from '~/components/layout/Navbar.vue'
+import PageContainer from '~/components/layout/PageContainer.vue'
+import ProfileHeader from '~/components/features/profile/ProfileHeader.vue'
+import ProfileStats from '~/components/features/profile/ProfileStats.vue'
 import ProfileCommunities from '~/components/features/profile/ProfileCommunities.vue'
-import GamesOwnedSection  from '~/components/features/profile/GamesOwnedSection.vue'
-import ListingsSection    from '~/components/features/profile/ListingsSection.vue'
-import GameBrowserModal   from '~/components/features/profile/GameBrowserModal.vue'
+import GamesOwnedSection from '~/components/features/profile/GamesOwnedSection.vue'
+import ListingsSection from '~/components/features/profile/ListingsSection.vue'
+import GameBrowserModal from '~/components/features/profile/GameBrowserModal.vue'
 import AddCustomGameModal from '~/components/features/profile/AddCustomGameModal.vue'
-import { useProfile }     from '~/composables/useProfile'
+import { useProfile } from '~/composables/useProfile'
 import { useMarketplace } from '~/composables/useMarketplace'
 import { useRouter } from 'vue-router'
 
-const { fetchCurrentUser } = useProfile()
-const { listings, fetchUserListing, loading, error } = useMarketplace()
-const router = useRouter()
-const activeTab = ref('Games Owned')
-const user      = ref(null)
-const showBrowser = ref(false)
-const showCustom  = ref(false)
+const { fetchCurrentUser, removeGame } = useProfile();
+const { listings, fetchUserListing, loading, error } = useMarketplace();
+const router = useRouter();
+const activeTab = ref('Games Owned');
+const user = ref(null);
+const showBrowser = ref(false);
+const showCustom = ref(false);
+const numGames = ref(0);
 
-const games = (()=>{user.value?.games??[]});
+const games = computed(()=> user.value?.games??[] );
 
 const refreshUser = async ()=>{
   user.value = await fetchCurrentUser();
+  numGames.value = user.value.ownedGameCount;
 };
 
 const handleGamesAdded = async () => {
@@ -112,14 +114,17 @@ const openCustomModal = () => {
 
 const handleRemoveGame = async(gameId)=>{
   try{
+    loading.value = true;
     await removeGame(gameId);
     await refreshUser();
   }
   catch(err){
     console.error('Failed to remove game:', err);
   }
+  finally{
+    loading.value = false;
+  }
 }
-
 
 const handleCustomGame = async () => {
   showCustom.value = false;

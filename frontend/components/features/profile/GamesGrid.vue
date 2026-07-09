@@ -5,8 +5,8 @@
       v-for="game in games"
       :key="game.id"
       :title="game.title"
-      :category="game.category"
-      :image="game.image"
+      :category="game.genres?.[0] ?? ''"
+      :image="game.imageUrl"
     />
 
     <AddGameCard @add-game="$emit('add-game')" />
