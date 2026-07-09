@@ -11,9 +11,6 @@ import java.util.stream.IntStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.springframework.data.domain.Limit;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,26 +27,22 @@ import com.boardwise.backend.user_service.dtos.GameListDTO;
 import com.boardwise.backend.user_service.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.user_service.repos.BoardGameSearch;
 import com.boardwise.backend.user_service.services.AuthService;
 import com.boardwise.backend.user_service.services.R2StorageService;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class BoardGameService {
 
     private final BoardGameRepository gameRepo;
     private final R2StorageService bucket;
     private final RestClient client;
+    private final BoardGameSearch gameSearch;
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
 
-    public BoardGameService(
-        BoardGameRepository gameRepo,
-        R2StorageService bucket, 
-        RestClient bggRestClient
-    ){
-        this.gameRepo = gameRepo;
-        this.bucket = bucket;
-        this.client = bggRestClient;
-    }
 
     public void populateDatabase(){
         int nextBggId = gameRepo.findTopByBggIdNotNullOrderByBggIdDesc()
@@ -192,9 +185,7 @@ public class BoardGameService {
             dbGames = gameRepo.findAllBy(maxRecords);
         }
         else{
-            Pageable limit = PageRequest.of(0, 10);
-            TextCriteria criteria = TextCriteria.forDefaultLanguage().matchingAny(query);
-            dbGames = gameRepo.findAllBy(criteria, limit);
+            dbGames = gameSearch.search(query, 10);
         }
 
         List<GameListDTO> games = new ArrayList<>();
