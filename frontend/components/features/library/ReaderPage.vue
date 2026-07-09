@@ -12,7 +12,6 @@
       <div class="d-flex flex-wrap ga-4 mb-2">
         <v-chip size="small" prepend-icon="mdi-account-group">{{ rulebook?.players }} players</v-chip>
         <v-chip size="small" prepend-icon="mdi-clock-outline">{{ rulebook?.duration }}</v-chip>
-        <v-chip size="small" prepend-icon="mdi-gauge">{{ rulebook?.difficulty }}</v-chip>
         <v-chip size="small" prepend-icon="mdi-account">Age {{ rulebook?.age }}</v-chip>
       </div>
 

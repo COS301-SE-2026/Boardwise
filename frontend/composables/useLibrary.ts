@@ -9,6 +9,7 @@ export const useLibrary = () => {
     const isLoading = ref<boolean>(false);
     const rulebooks = ref<any[]>([]);
     const currentRulebook = ref<any>(null);
+    const downloadUrl = ref<any>(null);
 
     const getAllRulebooks = async () => {
         error.value = '';
@@ -47,12 +48,32 @@ export const useLibrary = () => {
     const rulebookText = ref<any>(null)
 
     const getRulebookText = async (id: string) => {
+        error.value = '';
+        isLoading.value = true;
         try {
             const response = await LibraryService.fetchRulebookText(id)
             rulebookText.value = response;
         } catch (err: any) {
             console.error(`Failed to fetch rulebook text ${id}:`, err)
             rulebookText.value = null
+            error.value = err.data?.message || "Failed to load rulebook text.";
+        }finally{
+            isLoading.value = false;
+        }
+    }
+
+    const getDownloadLink = async (id: string) =>{
+        error.value = '';
+        isLoading.value = true;
+        try{
+            const response = await LibraryService.fetchDownloadRulebook(id);
+            downloadUrl.value = response;
+        }catch(err:any){
+            console.error(`Failed to get download link for rulebook ${id}:`, err);
+            downloadUrl.value = null;
+            error.value = err.data?.message || "Failed to generate download link";
+        }finally{
+            isLoading.value = false;
         }
     }
 
@@ -64,8 +85,10 @@ export const useLibrary = () => {
         rulebooks,
         currentRulebook,
         rulebookText,
+        downloadUrl,
         getAllRulebooks,
         getRulebookById,
-        getRulebookText
+        getRulebookText,
+        getDownloadLink
     }
 }

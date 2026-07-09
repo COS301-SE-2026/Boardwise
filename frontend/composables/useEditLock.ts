@@ -1,8 +1,8 @@
 import { ref } from 'vue'
 
 export const useEditLock = () => {
-    const isEditing = ref(false)
-    const isSaving = ref(false)
+    const isEditing = ref<boolean>(false)
+    const isSaving = ref<boolean>(false)
     const lockHeldBy = ref<string|null>(null)
     const lockExpiresAt = ref<string|null>(null)
     const lockError = ref<string>('')

@@ -25,4 +25,6 @@ public class RulebookResponseDto {
     private Instant updatedAt;
     private Integer minPlayers;
     private Integer maxPlayers;
+    private Integer minAge;
+    private Integer duration;
 }

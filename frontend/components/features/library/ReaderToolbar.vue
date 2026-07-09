@@ -17,7 +17,7 @@
           icon
           size="small"
           variant="text"
-          :loading="isDownloading"
+          :loading="isLoading"
           :disabled="!rulebook?.id"
           @click="handleDownload"
         >
@@ -108,6 +108,10 @@ import { ref, computed } from 'vue'
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 
 import { useSnackBar } from '~/composables/useSnackbar.ts'
+import { useLibrary } from '~/composables/useLibrary'
+
+const route = useRoute();
+const router = useRouter();
 
 const props = defineProps({
   rulebook: Object,
@@ -134,22 +138,25 @@ const closeSearch = () => {
 }
 
 const { show } = useSnackBar()
-const isDownloading = ref(false)
+
+const { isLoading, downloadUrl, getDownloadLink} = useLibrary();
 
 const handleDownload = async () => {
   if (!props.rulebook?.id) return
-  isDownloading.value = true
 
   try {
-    // TODO: replace with real API call
-    await new Promise(resolve => setTimeout(resolve, 800))
-    show('Download ready - opening PDF...', 'success')
-    console.log('Download requested for:', props.rulebook.id)
+    await getDownloadLink(route.params.id);
+    if(!isLoading.value){
+      show('Download ready - opening PDF...', 'success')
+      console.log('Download requested for:', props.rulebook.id)
+      
+      if(downloadUrl?.value?.downloadUrl){
+        window.open(downloadUrl.value.downloadUrl, '_blank', 'noopener,noreferrer');
+      }
+    }
   } catch (err){
     console.error('Download failed:', err)
     show('Download failed. Please try again later.', 'error')
-  }finally {
-    isDownloading.value = false
   }
 }
 
