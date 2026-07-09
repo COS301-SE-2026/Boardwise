@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
+
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Example;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,8 +28,15 @@ import com.boardwise.backend.user_service.repos.FriendShipRepository;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
+import com.google.maps.GeoApiContext;
+import com.google.maps.GeocodingApi;
+import com.google.maps.errors.ApiException;
+import com.google.maps.model.GeocodingResult;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class ProfileService {
 
     private final UserRepository userRepo;
@@ -37,26 +46,9 @@ public class ProfileService {
     private final GroupRepository groupRepo;
     private final BoardGameRepository gameRepo;
     private final R2StorageService bucket;
+    private final GeoApiContext geoContext;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
-
-    ProfileService(
-        UserRepository userRepo, 
-        JWTService jwtService,
-        FriendShipRepository friendShipRepository,
-        GroupMembershipRepository groupMembershipRepository,
-        GroupRepository groupRepo,
-        BoardGameRepository boardGameRepository,
-        R2StorageService r2StorageService
-    ){
-        this.userRepo = userRepo;
-        this.jwtService = jwtService;
-        this.fsRepo = friendShipRepository;
-        this.gmRepo = groupMembershipRepository;
-        this.groupRepo = groupRepo;
-        this.gameRepo = boardGameRepository;
-        this.bucket = r2StorageService;
-    }
 
     public ProfileResponseDTO getOwnProfile(String token) {
         // get username from token
@@ -140,7 +132,7 @@ public class ProfileService {
         userRepo.deleteById(userId);
     }
 
-    public Map<String, Object> updateProfile(String token, UpdateProfileDTO profileUpdateData) {
+    public Map<String, Object> updateProfile(String token, UpdateProfileDTO profileUpdateData) throws ApiException, InterruptedException, IOException, NoSuchElementException {
         String userId = jwtService.extractUserId(token).toString();
         User user = userRepo.findById(userId).get();
 
@@ -149,7 +141,7 @@ public class ProfileService {
         String newPassword = (profileUpdateData.password() != null) ?
                                 encoder.encode(profileUpdateData.password()) :
                                 null;
-        
+        String newLocation = AuthService.sanitize(profileUpdateData.location());
 
         Map<String, Object> toReturn = new HashMap<>();
       
@@ -157,7 +149,16 @@ public class ProfileService {
             user.setUsername(newUsername);
             toReturn.put("username", newUsername);
         }
-            
+        
+        if(newLocation != null){
+            GeocodingResult[] results = GeocodingApi.geocode(geoContext, newLocation).await();
+            if(results.length == 0)
+                throw new NoSuchElementException("Could not find coordinates for location: " + newLocation);
+
+            user.setLocation(newLocation);
+            toReturn.put("location", newLocation);
+        }
+
         if(newEmail != null){
             user.setEmailAddress(newEmail);
             toReturn.put("email", newEmail);
