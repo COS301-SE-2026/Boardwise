@@ -41,7 +41,7 @@ public class BoardGameService {
     private final RestClient client;
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
 
-    BoardGameService(
+    public BoardGameService(
         BoardGameRepository gameRepo,
         R2StorageService bucket, 
         RestClient bggRestClient
