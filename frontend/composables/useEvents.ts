@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { de } from 'vuetify/locale'
 import {
     EventService, 
     type EventResponse,
@@ -91,26 +92,99 @@ export const useEvents = () => {
 
     //AC-EVT-05
     const rsvpToEvent = async (eventId: string) => {
+        error.value = ''
 
+        try {
+            const data = await EventService.rsvpToEvent(eventId)
+            const index = events.value.findIndex(e => e.id === eventId)
+            if(index !== -1)
+            {
+                events.value[index] = data.data
+            }
+            return data.data
+        }catch (err: any) {
+            error.value = err.data?.message || 'Failed to RSVP'
+            throw err
+        } 
     }
 
     //AC-EVT-06
     const deRsvpToEvent = async (eventId: string) => {
+        error.value = ''
 
+        try {
+            const data = await EventService.deRsvpToEvent(eventId)
+            const index = events.value.findIndex(e => e.id === eventId)
+            if(index !== -1)
+            {
+                events.value[index] = data.data
+            }
+            return data.data
+        }catch (err: any) {
+            error.value = err.data?.message || 'Failed to de-RSVP'
+            throw err
+        } 
     }
 
     //AC-EVT-07
     const fetchInvites = async () => {
+        isLoading.value = true
+        error.value = ''
 
+        try {
+            const data = await EventService.getUserInvites()
+            invites.value = data.data
+            inviteCount.value = data.inviteCount
+        }catch (err: any) {
+            error.value = err.data?.message || 'Failed to load invites'
+            invites.value = []
+        } finally {
+            isLoading.value = false
+        }
     }
 
     //AC-EVT-08
     const inviteUser = async (invitee: string, eventId: string) => {
+        error.value = ''
 
+        try {
+            await EventService.inviteUser(invitee, eventId)
+        }catch (err: any) {
+            error.value = err.data?.message || 'Failed to send to invite'
+            throw err
+        }
     }
 
     //AC-EVT-09
     const respondToInvite = async (eventId: string, status: 'accept' | 'decline') => {
+        error.value = ''
 
+        try {
+            await EventService.respondToInvite(eventId, status)
+            invites.value = invites.value.filter(i => i.event.eventId !== eventId)
+            inviteCount.value = invites.value.length
+        }catch (err: any) {
+            error.value = err.data?.message || 'Failed to respond to invite'
+            throw err
+        }
+
+        error.value = ''
+    }
+
+    return {
+        events, 
+        invites, 
+        inviteCount, 
+        isLoading, 
+        error, 
+        fetchEvents,
+        createEvent,
+        updateEvent,
+        cancelEvent,
+        rsvpToEvent,
+        deRsvpToEvent,
+        fetchInvites,
+        inviteUser,
+        respondToInvite
     }
 }
