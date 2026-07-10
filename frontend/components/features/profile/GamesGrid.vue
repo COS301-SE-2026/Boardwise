@@ -15,8 +15,8 @@
 </template>
 
 <script setup>
-import BaseGrid    from '~/components/ui/BaseGrid.vue'
-import GameCard    from './GameCard.vue'
+import BaseGrid from '~/components/ui/BaseGrid.vue'
+import GameCard from './GameCard.vue'
 import AddGameCard from './AddGameCard.vue'
 
 defineProps({

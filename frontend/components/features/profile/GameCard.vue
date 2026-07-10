@@ -21,9 +21,9 @@ import BaseCard from '~/components/ui/BaseCard.vue'
 // import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
 
 defineProps({
-  title:    String,
+  title: String,
   genres: String,
-  imageURL:    String,
+  imageUrl: String,
 })
 
 const showDetail = ref(false)
