@@ -1,8 +1,9 @@
 <template>
-  <section class="section">
+  <section >
 
-    <BaseCard class="about-card">
-      <v-card-text class="row">
+    <BaseCard class="d-flex flex-column ga-6 pa-6" >
+
+      <v-card-text class="d-flex flex-column ga-2" >
         <h3>Description</h3>
         <p>{{ community.description }}</p>
       </v-card-text>
@@ -23,7 +24,6 @@
 </template>
 
 <script setup>
-import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseBadge from '~/components/ui/BaseBadge.vue'
 

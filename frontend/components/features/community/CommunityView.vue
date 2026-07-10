@@ -4,7 +4,7 @@
 
         <div class="community-view__actions">
             <BaseSearch v-model="searchQuery" placeholder="Find a community..."/>
-            <BaseTag :tabs="['All', 'My groups', 'Trending ']" v-model="activeTab"/>
+            <BaseTag :tabs="['All', 'My groups', 'Popular ']" v-model="activeTab"/>
         </div>  
 
         <CommunityGrid 

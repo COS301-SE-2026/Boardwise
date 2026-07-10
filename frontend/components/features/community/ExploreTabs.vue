@@ -7,10 +7,14 @@
 </template>
 
 <script setup>
+import { type } from 'happy-dom/lib/PropertySymbol';
 import BaseTabs from '~/components/ui/BaseTabs.vue'
 
 defineProps({
-  activeTab: String
+  activeTab: {
+    type: String,
+    default: 'Chat'
+  }
 })
  
 defineEmits(['change'])

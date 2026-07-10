@@ -1,5 +1,5 @@
 <template>
-  <BaseCard ref="feedE1
+  <BaseCard ref="feedE1"
   class="chat-feed pa-4">
 
     <BaseEmptyState
