@@ -1,9 +1,24 @@
 <template>
-  <div class="community-chats">
+  <div class="d-flex flex-column ga-4">
 
     <ChatFeed :messages="messages" />
 
-    <ChatInput @send="handleSend" />
+    <BaseCard 
+      v-if="!community.isMember"
+      class="pa-4 mt-4">
+
+      <p class="mb-4">
+        Join this community to participate in the discussion
+      </p>
+
+    <BaseButton>
+      Join community
+    </BaseButton>
+
+   </BaseCard>
+      
+    <ChatInput 
+      v-else @send="handleSend"/>
 
   </div>
 </template>
@@ -12,6 +27,8 @@
 import { ref } from 'vue'
 import ChatFeed from './ChatFeed.vue'
 import ChatInput from './ChatInput.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
 
 defineProps({
   community: { type: Object, required: true }
@@ -42,16 +59,10 @@ const handleSend = (text) => {
     name: 'You',
     avatar: '/images/avatar.jpg',
     text,
-    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    time: new Date().toLocaleTimeString([], {
+      hour: '2-digit', 
+      minute: '2-digit' }),
     isOwn: true
   })
 }
 </script>
-
-<style scoped>
-.community-chats {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-</style>
