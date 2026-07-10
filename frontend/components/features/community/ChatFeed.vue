@@ -1,5 +1,6 @@
 <template>
-  <div class="chat-feed" ref="feedEl">
+  <BaseCard ref="feedE1
+  class="chat-feed pa-4">
 
     <BaseEmptyState
       v-if="messages.length === 0"
@@ -13,13 +14,14 @@
       :message="message"
     />
 
-  </div>
+  </BaseCard>
 </template>
 
 <script setup>
 import { ref, watch, nextTick } from 'vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import ChatMessage from './ChatMessage.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
 
 const props = defineProps({
   messages: {
@@ -34,21 +36,19 @@ watch(
   () => props.messages.length,
   async () => {
     await nextTick()
-    feedEl.value?.scrollTo({ top: feedEl.value.scrollHeight, behavior: 'smooth' })
+    feedEl.value?.scrollTo({ 
+      top: feedEl.value.scrollHeight,
+      behavior: 'smooth' })
   }
 )
 </script>
 
 <style scoped>
-.chat-feed {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  height: 420px;
-  overflow-y: auto;
-  padding: 16px;
-  background: #f9f9f9;
-  border-radius: 16px;
-  border: 1px solid #eee;
-}
+  .chat-feed {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space--4);
+    height: 420px;
+    overflow-y: auto
+  }
 </style>
