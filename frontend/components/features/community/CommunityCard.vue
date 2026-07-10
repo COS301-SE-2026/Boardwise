@@ -40,8 +40,6 @@ const props = defineProps({
   community: { type: Object, required: true }
 })
 
-defineEmits(['join'])
-
 const router = useRouter()
 
 const navigateToCommunity = () => {
