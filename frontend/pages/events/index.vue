@@ -68,6 +68,9 @@ import { useEvents } from '~/composables/useEvents'
 import { useSnackBar } from '~/composables/useSnackbar'
 import { useProfile } from '~/composables/useProfile'
 
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router'
+
 const { show } = useSnackBar
 
 const { fetchCurrentUser } = useProfile()
@@ -88,6 +91,7 @@ const router = useRouter()
 onMounted(async () => {
   if (!localStorage.getItem('access_token')) {
     router.push('/auth/signin')
+    return;
   }
 
   let userDetails = await fetchCurrentUser();
@@ -95,9 +99,6 @@ onMounted(async () => {
   fetchEvents()
 })
 
-import { onMounted } from 'vue';
-import { useRouter } from 'vue-router'
-import { userService } from '~/services/userService'
 
 const searchQuery = ref('')
 const activeFilters = ref({})
@@ -118,16 +119,30 @@ const filteredEvents = computed(() => {
 
     result = result.filter(e =>
       e.name.toLowerCase().includes(query) ||
-      e.game.some(g => g.title.toLowerCase().includes(q))
+      e.games.some(g => g.title.toLowerCase().includes(query))
     )
   }
 
-  if (activeFilters.value.date && activeFilters.value.date !== 'All') {
-    const today = new Date().toISOString().split('T')[0]
-    if (activeFilters.value.date === 'Today') {
-      result = result.filter(e => e.date === today)
-    }
+  if(activeFilters.value.date && activeFilters.value.date !== 'All'){
+    const now = new Date();
+    result = result.filter(e=>{
+      const eventDate = new Date(e.startTime);
+      if (activeFilters.value.date === 'Today') {
+        return eventDate.toDateString() === now.toDateString()
+      }
+      
+      if(activeFilters.value.date === 'This Week'){
+        const weekFromNow = new Date(now);
+        weekFromNow.setDate(now.getDate() + 7);
+        return eventDate >= now && eventDate <= weekFromNow
+      }
+      if (activeFilters.value.date === 'This Month') {
+        return eventDate.getMonth() === now.getMonth() && eventDate.getFullYear() === now.getFullYear()
+      }
+      return true;
+    })
   }
+
 
   if (activeFilters.value.games?.length) {
     result = result.filter(e =>
@@ -214,5 +229,6 @@ const handleEditEvent = async ({ eventInfo , image }) => {
     show('Failed to update event.', 'error')
   }
 }
+
 
 </script>

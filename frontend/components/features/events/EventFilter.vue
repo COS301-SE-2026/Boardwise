@@ -6,7 +6,7 @@
                 v-for="date in dates"
                 :key="date"
                 class="date-option"
-                :class="{ 'selected': selectedDate === date }"
+                :class="{ 'active': selectedDate === date }"
                 @click="selectedDate= date"
             >
                 {{ date }}
@@ -38,10 +38,6 @@
                 color="primary"
                 hide-details
             />
-        </BaseFilterGroup>
-
-        <BaseFilterGroup title="Online/Offline">
-        
         </BaseFilterGroup>
 
     </BaseFilterSidebar>

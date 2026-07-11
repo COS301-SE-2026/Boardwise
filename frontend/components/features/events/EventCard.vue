@@ -27,7 +27,7 @@
 
           <p class="text-caption text-medium-emphasis mb-0">
             <v-icon size="12">mdi-calendar</v-icon>
-            {{ event.date }} : {{ event.startTime  }} - {{ end.endTime }}
+            {{ event.date }} : {{ event.startTime  }} - {{ event.endTime }}
           </p>
 
           <p class="text-caption text-medium-emphasis mb-0">
