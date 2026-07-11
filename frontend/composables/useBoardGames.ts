@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { BoardGameService, type BoardGame, type OtherGameInfo } from '~/services/boardgameService'
 
-export const useGames = () => {
+export const useBoardGames = () => {
     const games = ref<BoardGame[]>([])
     const genres = ref<string[]>([])
     const isLoading = ref<boolean>(false)
@@ -13,7 +13,7 @@ export const useGames = () => {
 
         try {
             const data = await BoardGameService.getBoardgames(query)
-            games.value = data.result
+            games.value = data.boardGames
         } catch (err: any) {
             error.value = err.data?.message || 'Failed to load games'
             games.value = []

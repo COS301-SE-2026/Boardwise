@@ -1,14 +1,14 @@
 export interface BoardGame{
     id: string
     title: string
-    description: string
-    imageUrl: string 
-    genres: string[]
+    description?: string
+    imageUrl?: string 
+    genres?: string[]
 }
 
 export interface GetBoardGamesResponse{
     message:string
-    result: BoardGame[]
+    boardGames: BoardGame[]
 }
 
 export interface GetGenresResponse{

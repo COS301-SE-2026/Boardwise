@@ -73,7 +73,7 @@ export const EventService = {
     createEvent(eventInfo: object,  image?: File) {
         const { $api } = useNuxtApp()
         const formData = new FormData()
-        formData.append('Eventnfo', new Blob([JSON.stringify(eventInfo)],{
+        formData.append('EventInfo', new Blob([JSON.stringify(eventInfo)],{
             type: 'application/json'
         }))
         if (image) formData.append('EventImage', image)
@@ -88,7 +88,7 @@ export const EventService = {
         const { $api } = useNuxtApp()
         const formData = new FormData()
         if (eventInfo) {
-            formData.append('Eventnfo', new Blob([JSON.stringify(eventInfo)],{
+            formData.append('EventInfo', new Blob([JSON.stringify(eventInfo)],{
                 type: 'application/json'
             }))
         }
