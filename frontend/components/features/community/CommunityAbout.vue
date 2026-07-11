@@ -1,65 +1,38 @@
 <template>
-  <section >
+    <BaseCard class=" d-flex flex-column ga-6 pa-6"
+     >
 
-    <BaseCard class="d-flex flex-column ga-6 pa-6" >
-
-      <v-card-text class="d-flex flex-column ga-2" >
-        <h3>Description</h3>
+      <BaseInput    class="pa-0 d-flex flex-column ga-2"
+       >
+        <h3 class="text-uppercase"
+        >Description</h3>
         <p>{{ community.description }}</p>
-      </v-card-text>
+      </BaseInput>
 
-      <v-card-text class="row">
-        <h3>Members</h3>
+      <BaseInput  class="pa-0 d-flex flex-column ga-2">
+        <h3 class="text-uppercase"
+        >Members</h3>
         <p>{{ community.members }} members</p>
-      </v-card-text>
+      </BaseInput>
 
-      <v-card-text class="row">
-        <h3>Rules</h3>
+      <BaseInput  class="pa-0 d-flex flex-column ga-2"
+      >
+        <h3 class="text-uppercase"
+        >Rules</h3>
         <p>Be respectful. Stay on topic. Have fun!</p>
-      </v-card-text>
+      </BaseInput>
 
     </BaseCard>
-
-  </section>
 </template>
 
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
-import BaseBadge from '~/components/ui/BaseBadge.vue'
+import BaseInput from '~/components/ui/BaseInput.vue';
 
 defineProps({
-  community: { type: Object, required: true }
+  community: { 
+    type: Object, 
+    required: true 
+  }
 })
 </script>
-
-<style scoped>
-.section {
-  margin-top: 8px;
-}
-
-.about-card {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.row {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-h3 {
-  margin: 0;
-  font-size: 0.95rem;
-  color: #999;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-p {
-  margin: 0;
-  color: #333;
-  line-height: 1.6;
-}
-</style>
