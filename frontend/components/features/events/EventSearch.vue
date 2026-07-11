@@ -22,5 +22,5 @@
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 
-defineEmits(['create-event'])
+defineEmits(['create-event','search'])
 </script>
