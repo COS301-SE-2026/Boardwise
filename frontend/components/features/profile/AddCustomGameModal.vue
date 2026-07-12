@@ -105,6 +105,10 @@
                     @change="handleFileChange"
                 />
             </div>
+            <div class="d-flex justify-end ga-3">
+                <v-btn variant="outlined" color="primary" @click="closeModal">Cancel</v-btn>
+                <v-btn color="primary" @click="handleConfirm" :loading="isLoading">Add Game</v-btn>
+            </div>
         </div>
     </BaseModal>
 </template>
