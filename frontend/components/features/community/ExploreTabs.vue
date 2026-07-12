@@ -7,7 +7,6 @@
 </template>
 
 <script setup>
-import { type } from 'happy-dom/lib/PropertySymbol';
 import BaseTabs from '~/components/ui/BaseTabs.vue'
 
 defineProps({
@@ -19,6 +18,8 @@ defineProps({
  
 defineEmits(['change'])
  
-const tabs = ['Chat', 'Members', 'About']
+const tabs = [
+  'Chat'
+, 'About']
 
 </script>
