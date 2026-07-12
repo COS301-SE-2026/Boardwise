@@ -1,7 +1,6 @@
 <template>
-    <BaseCard class="pa-4">
-        <div class="  d-flex flex-column">
-            <div class="  text-h6">
+    <BaseCard class="d-flex align-center justify-space-between pa-4">
+        <div class="  d-flex flex-column ga-1">
                 <h3 class=" ">
                     {{ event.name }}
                 </h3>
@@ -11,10 +10,9 @@
                 </span>
 
                  <span class=" text-body-2 text-medium-emphasis">
-                    {{  evnet.locaction }}
+                    {{  event.location }}
                 </span>
-            </div>
-
+                </div>
             <BaseButton
                 :variant="event.rsvped ? 'secondary' : 'primary'"
                 @click="$emit('toggle-rsvp', event.id)"
@@ -23,7 +21,6 @@
             {{ event.rsvped ? 'Going' : 'RSVP' }}
         </BaseButton>
 
-        </div>
     </BaseCard>
 </template>
 
