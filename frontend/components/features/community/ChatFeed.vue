@@ -1,6 +1,9 @@
 <template>
-  <BaseCard ref="feedE1"
-  class="chat-feed pa-4">
+  <BaseCard 
+    ref="feedEl"
+    class="d-flex flex-column ga-4 pa-4"
+    style="height:420px; overflow-y:auto;"
+  >
 
     <BaseEmptyState
       v-if="messages.length === 0"
@@ -43,12 +46,3 @@ watch(
 )
 </script>
 
-<style scoped>
-  .chat-feed {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space--4);
-    height: 420px;
-    overflow-y: auto
-  }
-</style>

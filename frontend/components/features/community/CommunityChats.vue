@@ -5,13 +5,13 @@
 
     <BaseCard 
       v-if="!community.isMember"
-      class="pa-4 mt-4">
+      class="pa-4">
 
-      <p class="mb-4">
+      <p class="text-body-2 text-medium-emphasis mb-4">
         Join this community to participate in the discussion
       </p>
 
-    <BaseButton>
+    <BaseButton @click="$emit('join')">
       Join community
     </BaseButton>
 
@@ -33,6 +33,8 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 defineProps({
   community: { type: Object, required: true }
 })
+
+defineEmits(['join'])
 
 const messages = ref([
   {
