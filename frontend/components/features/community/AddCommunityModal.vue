@@ -93,7 +93,7 @@ const props = defineProps({
   default: false
 })
 
-const emit = defineEmits(['confirm'])
+const emit = defineEmits(['update:modelValue','confirm'])
 
 const categories = [
   'Strategy',
