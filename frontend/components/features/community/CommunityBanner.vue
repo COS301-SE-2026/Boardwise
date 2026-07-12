@@ -22,7 +22,7 @@
           </BaseTag>
           
           
-          <p class="description mb-0">
+          <p class="text-body-2 text-medium-emphasis mb-0">
             {{ community.description }}
           </p>
 
