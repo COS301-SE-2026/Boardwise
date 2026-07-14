@@ -121,7 +121,6 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 import { useProfile } from  '@/composables/useProfile'
 import { userService } from '~/services/userService'
 import { useDebounceFn } from '@vueuse/core'
-import { returnValue } from 'happy-dom/lib/PropertySymbol'
 
 const { addGame, isLoading, error } = useProfile();
 
@@ -149,7 +148,7 @@ const isSelecting = ref(false)
 watch(genreSearch, (val, oldVal)=>{
     if(isSelecting.value){
         isSelecting.value = false;
-        returnValue;
+        return;
     }
 
     if (val !== null && val !== undefined) {
