@@ -68,3 +68,8 @@ def messy_extracted_text() -> str:
 def empty_extracted_text() -> str:
     """String containing no valid semantic data."""
     return " \n\n  \n\n \n"
+
+@pytest.fixture
+def empty_pdf_bytes() -> bytes:
+    """Empty PDF"""
+    return b"%PDF-1.4\n<< >>\n%EOF"
