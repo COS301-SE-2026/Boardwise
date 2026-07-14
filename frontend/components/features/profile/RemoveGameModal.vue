@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-const open = defineModel()
+const open = defineModel({ type: Boolean, default: false })
 const emit = defineEmits(['confirm'])
 
 const confirm = () => {
