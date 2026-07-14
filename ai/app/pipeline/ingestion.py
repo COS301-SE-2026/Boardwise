@@ -25,7 +25,7 @@ def run_ingestion_pipeline(
         sanitise_success, sanitise_reason = sanitise_pdf(file_bytes)
 
         if not sanitise_success:
-            mongo_service.update_ingestion_job(job_id, "Sanitise", sanitise_reason)
+            mongo_service.update_ingestion_job(job_id, "Sanitise", "Failed", sanitise_reason)
             mongo_service.update_rulebook_status(rulebook_id, "Failed")
             return
 
@@ -35,7 +35,7 @@ def run_ingestion_pipeline(
         extract_success, extracted_text = extract_text(file_bytes)
 
         if not extract_success:
-            mongo_service.update_ingestion_job(job_id, "Extract", "Extraction failed.")
+            mongo_service.update_ingestion_job(job_id, "Extract", "Failed", "Extraction failed.")
             mongo_service.update_rulebook_status(rulebook_id, "Failed")
             return
 

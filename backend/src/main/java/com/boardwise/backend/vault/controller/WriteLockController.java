@@ -2,7 +2,6 @@ package com.boardwise.backend.vault.controller;
 
 import org.bson.types.ObjectId;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.user_service.models.UserDetailImpl;
 import com.boardwise.backend.vault.dto.request.CommitEditDeltaRequestDto;
 import com.boardwise.backend.vault.dto.request.DeleteChunkRequestDto;
 import com.boardwise.backend.vault.dto.request.InsertNewChunkRequestDto;

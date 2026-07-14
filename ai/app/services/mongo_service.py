@@ -2,6 +2,7 @@ from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 from bson import ObjectId
 from datetime import datetime, timezone
+from typing import Any
 
 from app.config import settings
 
@@ -51,19 +52,23 @@ def create_rulebook(
         "language": language,
         "r2PdfKey": r2_pdf_key,
         "r2CoverKey": "rulebooks/default_cover.png",
+        "lockHeldBy": None,
+        "lockExpiresAt": None,
+        "undoStack": [],
+        "redoStack": [],
         "uploadedAt":now,
         "updatedAt":now,
     })
 
     return str(rulebook_id)
 
-def update_rulebook_status(rulebook_id: str, status: str, version: int = None) -> str:
+def update_rulebook_status(rulebook_id: str, status: str, version: int = -1) -> str:
     """Updates the status of the specific rulebook"""
 
     filter_by_id = {"_id": ObjectId(rulebook_id)}
-    update = {"$set": {"status": status}}
+    update: dict[str, dict[str, Any]] = {"$set": {"status": status}}
 
-    if version is not None:
+    if version != -1:
         update["$set"]["version"] = version
 
     rulebook_collection.update_one(filter_by_id, update)
@@ -101,7 +106,7 @@ def update_ingestion_job(
     job_id: str,
     stage: str,
     job_status: str, # Processing | Completed | Failed
-    failure_reason: str = None
+    failure_reason: str = ""
 ) -> str:
     """Updates the specified Injestion Job document"""
     now = datetime.now(timezone.utc)
@@ -151,7 +156,6 @@ def get_ingestion_job(job_id: str) -> dict | None:
 
     if doc:
         doc["job_id"] = str(doc.pop("_id")) # Effectively replacing the _id field with the job_id field
-        doc["rulebookId"] = str(doc["rulebook_id"])
 
     return doc
 
