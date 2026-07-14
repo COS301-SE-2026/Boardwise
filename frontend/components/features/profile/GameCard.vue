@@ -1,5 +1,5 @@
 <template>
-  <BaseCard class="game-card">
+  <BaseCard class="game-card" @click="openDelete = true">
 
     <v-img :src="image" :alt="title" height="180" cover />
 
@@ -8,6 +8,8 @@
       <p class="game-card__category ma-0 mt-1">{{ category }}</p>
     </v-card-text>
 
+    <!--TEMPORARY METHOD OF DELETING-->
+    <RemoveGameModal v-model="openDelete" @confirm="handleRemove()" ></RemoveGameModal>
     <!-- <RulebookDetail
       v-model="showDetail"
       :game="{ title, category, image }"
@@ -18,15 +20,30 @@
 
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
+import RemoveGameModal from './RemoveGameModal.vue';
 // import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
 
 defineProps({
-  title:    String,
+  id: { type: String, required: true },
+  title: String,
   category: String,
-  image:    String,
+  image: String,
 })
 
 const showDetail = ref(false)
+const openDelete = ref(false);
+
+async function handleRemove(){
+  try{
+    emit('remove');
+  }
+  catch{
+    console.error('Failed to remove game', err)
+  }
+}
+
+const emit = defineEmits(['remove'])
+
 </script>
 
 <style scoped>
