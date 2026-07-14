@@ -7,6 +7,7 @@
       :title="game.title"
       :category="game.genres?.[0] ?? ''"
       :image="game.imageUrl"
+      @remove="$emit('remove-game', game.id)"
     />
 
     <AddGameCard @add-game="$emit('add-game')" />
@@ -23,5 +24,5 @@ defineProps({
   games: { type: Array, default: () => [] }
 })
 
-defineEmits(['add-game'])
+defineEmits(['add-game','remove-game'])
 </script>
