@@ -156,6 +156,7 @@ def get_ingestion_job(job_id: str) -> dict | None:
 
     if doc:
         doc["job_id"] = str(doc.pop("_id")) # Effectively replacing the _id field with the job_id field
+        doc["rulebookId"] = str(doc["rulebookId"])
 
     return doc
 
