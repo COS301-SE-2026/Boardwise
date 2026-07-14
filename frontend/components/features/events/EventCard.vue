@@ -4,32 +4,30 @@
     >
         <BaseImage
             :src="event.image ?? '/default-event.png'"
-            :alt="event.title"
+            :alt="event.name"
             height="200px"
             fit="cover"
         />
 
-        <div class="pa-3">
-          <p class="text-caption text-medium-emphasis mb-1">
-            {{ event.title }}
+        <div class=" pa-4 d-flex flex-column ga-1
+        ">
+          <p class="text-subtitle-1 font-weight-bold
+          ">
+            {{ event.name }}
           </p>
 
           <p class="text-caption text-medium-emphasis mb-1">
-            {{ event.date }} 
+            {{ event.game }}
           </p>
 
           <p class="text-caption text-medium-emphasis mb-1">
-            {{ event.time }} 
+            {{ event.time }}  | {{  event.date }}
           </p>
 
           <p class="text-caption text-medium-emphasis mb-1">
             {{ event.location }}
           </p>
 
-          <p class="text-caption text-medium-emphasis mb-1">
-            {{ event.game }}
-          </p> 
-          
           <p class="text-caption text-medium-emphasis mb-1">
             Hosted By {{ event.host }}
           </p>
