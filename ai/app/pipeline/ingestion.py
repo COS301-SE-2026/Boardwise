@@ -1,6 +1,4 @@
-import io
 import logging
-from PIL import Image
 from app.services import mongo_service, r2_service
 from app.services.extractor import extract_text
 from app.services.sanitiser import sanitise_pdf
