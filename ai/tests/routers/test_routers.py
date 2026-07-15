@@ -158,3 +158,31 @@ def test_upload_throws_error_for_unexpected_failure(mock_mongo,client, mock_auth
     # Assert
     assert response.status_code == 500
     assert response.json()["detail"] == "An internal server error occured while initialising the upload."
+
+def test_get_job_status_fails_for_invalid_job_id(client, mock_auth):
+    """Proves that the ingestion job status cannot be fetched if the job id is invalid"""
+    # Arrange
+    mock_job_id = "definitely_invalid"
+
+    # Act
+    response = client.get(f"/api/vault/rulebooks/status/{mock_job_id}")
+
+    # Assert
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Invalid job_id format."
+
+@patch("app.routers.rulebook.mongo_service")
+def test_get_job_status_fails_for_job_id_that_does_not_exist(mock_mongo, client, mock_auth):
+    """Proves that the ingestion job status cannot be fetech for a valid job id that does not exist."""
+    # Arrange
+    mock_job_id = str(ObjectId())
+    mock_mongo.get_ingestion_job.return_value = None
+
+    # Act
+    response = client.get(f"/api/vault/rulebooks/status/{mock_job_id}")
+
+    # Assert
+    assert response.status_code == 404
+    assert response.json()["detail"] == f"Ingestion job with id '{mock_job_id}' does not exist."
+
+    mock_mongo.get_ingestion_job.assert_called_once()
