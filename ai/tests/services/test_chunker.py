@@ -3,8 +3,10 @@ from bson.objectid import ObjectId
 
 def test_generate_chunks_accepts_and_processes_standard_document_correctly(standard_extracted_text):
     """Injects standard extracted text from conftest"""
+    # Act
     success, chunks, failure_reason = generate_chunks(standard_extracted_text)
 
+    # Assert
     assert success is True
     assert failure_reason == ""
 
@@ -16,8 +18,10 @@ def test_generate_chunks_accepts_and_processes_standard_document_correctly(stand
 
 def test_generate_chunks_accepts_text_with_whitespace_and_empty_chunks(messy_extracted_text):
     """Injects messy extracted text from conftest"""
+    # Act
     success, chunks, failure_reason = generate_chunks(messy_extracted_text)
-    
+
+    # Assert
     assert success is True
     assert len(chunks) == 2
     assert chunks[0]["content"].startswith("Setup: Start") is True
@@ -25,8 +29,10 @@ def test_generate_chunks_accepts_text_with_whitespace_and_empty_chunks(messy_ext
 
 def test_generate_chunks_fails_for_zero_valid_segments(empty_extracted_text):
     """Injects empty extracted text from conftest"""
+    # Act
     success, chunks, failure_reason = generate_chunks(empty_extracted_text)
 
+    # Assert
     assert success is False
     assert len(chunks) == 0
     assert failure_reason == "Chunks resulted in 0 valid segments"

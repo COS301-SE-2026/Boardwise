@@ -88,10 +88,11 @@ async def upload_rulebook(
         ) from e
 
     # Send bytes to background task
+    safe_filename = file.filename or "untitled_rulebook.pdf"
     background_tasks.add_task(
         run_ingestion_pipeline,
         file_bytes=file_bytes,
-        filename=file.filename,
+        filename=safe_filename,
         rulebook_id=rulebook_id,
         job_id=job_id
     )

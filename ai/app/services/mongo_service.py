@@ -19,7 +19,7 @@ token_blacklist_collection = db["TOKEN_BLACKLIST"]
 
 def create_rulebook(
     title: str,
-    edition: str,
+    edition: str | None,
     contributor_id: str,
     language: str,
     r2_pdf_key: str

@@ -4,6 +4,7 @@ from app.services.extractor import extract_text
 @patch("app.services.extractor.fitz.open")
 def test_extract_text_accepts_native_pdf_text(mock_fitz_open, safe_pdf_bytes):
     """Injecting the standard safe bytes fixture from conftest.py and mocking fitz open"""
+    # Arrange
     mock_page = MagicMock()
     mock_page.get_text.return_value = "This is a sufficiently long string that will easily bypass the fifty character threshold for native extraction."
 
@@ -13,8 +14,10 @@ def test_extract_text_accepts_native_pdf_text(mock_fitz_open, safe_pdf_bytes):
 
     mock_fitz_open.return_value.__enter__.return_value = mock_document
 
+    # Act
     success, text = extract_text(safe_pdf_bytes)
 
+    # Assert
     assert success is True
     assert "bypass the fifty character threshold" in text
 
@@ -28,6 +31,7 @@ def test_extract_text_accepts_native_pdf_text(mock_fitz_open, safe_pdf_bytes):
 @patch("app.services.extractor.fitz.open")
 def test_extract_text_accepts_text_embedded_in_image(mock_fitz_open, mock_image_open,mock_ocr, safe_pdf_bytes):
     """Injecting the standard safe bytes fixture from conftest.py, mocking fitz open, PIL Image, and pytesseract"""
+    # Arrange
     mock_page = MagicMock()
     mock_page.get_text.return_value = "Too short."
 
@@ -45,8 +49,10 @@ def test_extract_text_accepts_text_embedded_in_image(mock_fitz_open, mock_image_
 
     mock_ocr.return_value = "This text was successfully extracted via Tesseract OCR."
 
+    # Act
     success, text = extract_text(safe_pdf_bytes)
 
+    # Assert
     assert success is True
     assert "extracted via Tesseract" in text
 
@@ -57,6 +63,7 @@ def test_extract_text_accepts_text_embedded_in_image(mock_fitz_open, mock_image_
 @patch("app.services.extractor.fitz.open")
 def test_extract_text_rejects_empty_native_document(mock_fitz_open, empty_pdf_bytes):
     """Mocking fitz open"""
+    # Arrange
     mock_page = MagicMock()
     mock_page.get_text.return_value = ""
 
@@ -66,8 +73,10 @@ def test_extract_text_rejects_empty_native_document(mock_fitz_open, empty_pdf_by
 
     mock_fitz_open.return_value.__enter__.return_value = mock_document
 
+    # Act
     success, text = extract_text(empty_pdf_bytes)
 
+    # Assert
     assert success is False
     assert text == ""
 
@@ -80,6 +89,7 @@ def test_extract_text_rejects_empty_native_document(mock_fitz_open, empty_pdf_by
 @patch("app.services.extractor.fitz.open")
 def test_extract_text_rejects_empty_image_document(mock_fitz_open, mock_image_open, mock_ocr, empty_pdf_bytes):
     """Mocking fitz open and pytesseract image_to_string"""
+    # Arrange
     mock_page = MagicMock()
     mock_page.get_text.return_value = ""
 
@@ -97,8 +107,10 @@ def test_extract_text_rejects_empty_image_document(mock_fitz_open, mock_image_op
 
     mock_ocr.return_value = ""
 
+    # Act
     success, text = extract_text(empty_pdf_bytes)
 
+    # Assert
     assert success is False
     assert text == ""
 
@@ -109,10 +121,13 @@ def test_extract_text_rejects_empty_image_document(mock_fitz_open, mock_image_op
 @patch("app.services.extractor.fitz.open")
 def test_extract_text_rejects_corrupt_pdf(mock_fitz_open, safe_pdf_bytes):
     """Injecting the standard safe bytes fixture from conftest.py and mocking fitz open"""
+    # Arrange
     mock_fitz_open.side_effect = Exception("fitz cannot open file")
 
+    # Act
     success, text = extract_text(safe_pdf_bytes)
 
+    # Assert
     assert success is False
     assert text == ""
 
