@@ -1,9 +1,9 @@
 import os
+from datetime import datetime, timezone
+from typing import Any
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 from bson import ObjectId
-from datetime import datetime, timezone
-from typing import Any
 
 from app.config import settings
 
@@ -23,7 +23,6 @@ def create_rulebook(
 ) -> str:
     """Inserts a new document into the RULEBOOK collection"""
     db = get_db()
-    now = datetime.now(timezone.utc)
 
     boardgame = db["BOARD_GAME"].find_one({"title": title})
     if not boardgame:
@@ -33,11 +32,9 @@ def create_rulebook(
     if not user:
         raise ValueError(f"User '{contributor_id}' not found.")
 
-    rulebook_id = ObjectId()
+    now = datetime.now(timezone.utc)
 
-
-    db["RULEBOOK"].insert_one({
-        "_id": rulebook_id,
+    result = db["RULEBOOK"].insert_one({
         "coverUrl": boardgame["imageURL"] if boardgame["imageURL"] else "",
         "gameId": boardgame["_id"],
         "title": title,
@@ -58,7 +55,7 @@ def create_rulebook(
         "updatedAt":now,
     })
 
-    return str(rulebook_id)
+    return str(result.inserted_id)
 
 def update_rulebook_status(rulebook_id: str, status: str, version: int = -1) -> bool:
     """Updates the status of the specific rulebook"""
@@ -88,13 +85,16 @@ def update_rulebook_r2_pdf_key(rulebook_id: str, r2_pdf_key: str) -> bool:
 def create_ingestion_job(rulebook_id: str) -> str:
     """Inserts a new document into the INGESTION_JOB collection"""
     db = get_db()
+    rulebook_obj_id = ObjectId(rulebook_id)
+
+    rulebook = db["RULEBOOK"].find_one({"_id": rulebook_obj_id})
+    if not rulebook:
+        raise ValueError(f"Rulebook '{rulebook_id}' not found.")
 
     now = datetime.now(timezone.utc)
-    job_id = ObjectId()
 
-    db["INGESTION_JOB"].insert_one({
-        "_id": job_id,
-        "rulebookId": ObjectId(rulebook_id),
+    result = db["INGESTION_JOB"].insert_one({
+        "rulebookId": rulebook_obj_id,
         "stage": "Sanitise",
         "jobStatus": "Processing",
         "failureReason": None,
@@ -102,7 +102,7 @@ def create_ingestion_job(rulebook_id: str) -> str:
         "completedAt": None,
     })
 
-    return str(job_id)
+    return str(result.inserted_id)
 
 def update_ingestion_job(
     job_id: str,
@@ -134,19 +134,22 @@ def create_rulebook_text(
 ) -> str:
     """Creates the RULEBOOK_TEXT document containing the array of embedded CHUNK subdocuments"""
     db = get_db()
+    rulebook_obj_id = ObjectId(rulebook_id)
+
+    rulebook = db["RULEBOOK"].find_one({"_id": rulebook_obj_id})
+    if not rulebook:
+        raise ValueError(f"Rulebook '{rulebook_id}' not found.")
 
     now = datetime.now(timezone.utc)
-    rulebook_text_id = ObjectId()
 
-    db["RULEBOOK_TEXT"].insert_one({
-        "_id": rulebook_text_id,
-        "rulebookId": ObjectId(rulebook_id),
+    result = db["RULEBOOK_TEXT"].insert_one({
+        "rulebookId": rulebook_obj_id,
         "version": 0,
         "chunks": chunks_list,
         "updatedAt": now
     })
 
-    return str(rulebook_text_id)
+    return str(result.inserted_id)
 
 def is_token_valid(jti: str) -> bool:
     """Checks the MongoDB database to see if the token has been invalidated"""
