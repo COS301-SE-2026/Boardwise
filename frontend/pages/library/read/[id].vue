@@ -24,6 +24,9 @@
 
 <script setup>
 import { useLibrary } from '~/composables/useLibrary'
+import { useEditLock }     from '~/composables/useEditLock'
+import { useReaderSocket } from '~/composables/useReaderSocket'
+
 import ReaderLayout from '~/components/features/library/ReaderLayout.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 
@@ -38,8 +41,34 @@ const {
   getRulebookText
 } = useLibrary()
 
+const {
+    lockHeldBy,
+    lockExpiresAt,
+    isEditing,
+    stopEditing
+} = useEditLock()
+
+// Websocket
+// TODO: Double check
+const { connect: connectSocket } = useReaderSocket(
+    String(route.params.id),
+
+    // Another user acquired the lock 
+    ({ lockedBy, expiresAt }) => {
+        lockHeldBy.value    = lockedBy
+        lockExpiresAt.value = expiresAt
+    },
+
+    // Lock was released 
+    () => {
+        lockHeldBy.value    = null
+        lockExpiresAt.value = null
+    }
+)
+
 onMounted(async () => {
   await getRulebookById(route.params.id)
   await getRulebookText(route.params.id)
+  await connectSocket()
 })
 </script>
