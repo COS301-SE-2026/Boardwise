@@ -11,6 +11,12 @@
                 placeholder="Search chats..."
             />
 
+            <BaseFilterGroup
+                v-model="activeFilter"
+                :items="filters"
+                class="my-4"
+            />
+
             <ChatConversationList
                 v-if="filteredConversations.length"
                 :conversations="filteredConversations"
@@ -35,6 +41,7 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue';
 import BaseSearch from '~/components/ui/BaseSearch.vue';
 import SectionTitle from '~/components/ui/SectionTitle.vue';
 import ChatConversationList from './ChatConversationList.vue';
+import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue';
 
 const search = ref('')
 
@@ -51,12 +58,37 @@ const props = defineProps({
 
 const emit = defineEmits(['select'])
 
-const filteredConversations = computed(() => {
-    if(!search.value) return props.conversations
+const activeFilter = ref('All')
 
-    return props.conversations.filter(conversation =>
-        conversation.name.toLowerCase().includes(search.value.toLowerCase())
-    )
+const filters = [
+    'All',
+    'Unread',
+    'Online'
+]
+
+const filteredConversations = computed(() => {
+
+    let list = props.conversations
+
+    if(search.value) {
+        const query = search.value.toLowerCase()
+
+        list = list.filter(conversation => 
+            conversation.name.toLowerCase().includes(query)
+        )
+    }
+
+    switch (activeFilter.value) {
+        case 'Unread':
+            return list.filter(conversation => conversation.unread > 0)
+
+        case 'Online':
+            return list.filter(conversation => conversation.online)
+
+        default:
+            return list
+
+    }
 })
 
 </script>
