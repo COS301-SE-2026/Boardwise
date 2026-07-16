@@ -1,27 +1,51 @@
 <template>
-  <BaseCard class="banner">
-    <div class="banner-top">
+  <BaseCard class="pa-8">
 
-      <div class="left">
-        <div class="banner-image">
-          <img :src="community.image" :alt="community.name" />
+    <div class="d-flex justify-space-between align-center flex-wrap ga-6">
+
+      <div class="d-flex align-center ga-6 flex-wrap">
+          <BaseImage
+            :src="community.image" 
+            :alt="community.name"
+            width="100"
+            height="100"
+            class="rounded-lg"
+          />
+
+        <div class="d-flex flex-column ga-3">
+          <h1 class="mb-0">
+            {{ community.name }}
+          </h1>
+        
+          <BaseTag>
+            {{ community.type }}
+          </BaseTag>
+          
+          
+          <p class="text-body-2 text-medium-emphasis mb-0">
+            {{ community.description }}
+          </p>
+
+          <div class="d-flex flex-wrap ga-2">
+            
+            <BaseButton variant="secondary" @click="$emit('members')">
+              Members ({{ community.members }})
+            </BaseButton>
+
+            <BaseButton variant="secondary" @click="$emit('events')">
+              Events 
+            </BaseButton>
+          </div>
         </div>
-
-        <v-card-text class="info">
-          <h1>{{ community.name }}</h1>
-          <v-chip size="small">{{ community.type }}</v-chip>
-          <p class="description">{{ community.description }}</p>
-          <p class="members">{{ community.members }} members</p>
-        </v-card-text>
       </div>
 
-      <v-card-actions>
-        <BaseButton @click="showEdit = true">Edit</BaseButton>
-        <BaseButton @click="joined = !joined">
-          {{ joined ? 'Leave' : 'Join Community' }}
-        </BaseButton>
-      </v-card-actions>
 
+      <div v-if="community.canEdit" class="d-flex ga-3">
+
+        <BaseButton @click="showEdit = true">
+          Edit community
+        </BaseButton>
+      </div>
     </div>
 
     <CommunityEditModal
@@ -33,15 +57,22 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import CommunityEditModal from './CommunityEditModal.vue'
+import BaseImage from '~/components/ui/BaseImage.vue'
+
+import BaseTag from '~/components/ui/BaseTag.vue'
+
+defineEmits([
+  'members',
+  'events'
+])
 
 defineProps({
   community: { type: Object, required: true }
 })
-
-const joined = ref(false)
 
 const showEdit = ref(false)
  
@@ -50,75 +81,3 @@ const handleSave = (data) => {
 }
 </script>
 
-<style scoped>
-.banner {
-  width: 100%;
-  padding: var(--space-8);
-  border-radius: var(--radius-lg);
-  background: #F9F4E3;
-}
-
-.banner-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.left {
-  display: flex;
-  gap: var(--space-6);
-  align-items: center;
-}
-
-.banner-image {
-  width: 100px;
-  height: 100px;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.banner-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  align-items: flex-start;
-}
-
-.info h1 {
-  margin: 0;
-  font-size: var(--fs-h1);
-  line-height: var(--lh-tight);
-}
-
-.description {
-  color: var(--color-text-muted);
-  font-size: var(--fs-body);
-  margin: 0;
-}
-
-.members {
-  color: var(--color-text-muted);
-  font-size: var(--fs-small);
-  margin: 0;
-}
-
-@media (max-width: 768px) {
-  .banner-top {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-6);
-  }
-
-  .left {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-</style>
