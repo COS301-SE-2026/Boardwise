@@ -75,3 +75,24 @@ def seed_rulebook(seed_board_game, seed_user) -> ObjectId | None:
         return result.inserted_id
 
     return None
+
+@pytest.fixture
+def mock_pdf_bytes() -> bytes:
+    """Returns valid mock pdf bytes"""
+    return (
+        b"%PDF-1.4\n"
+        b"1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
+        b"2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n"
+        b"3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << >> /Contents 4 0 R >>\nendobj\n"
+        b"4 0 obj\n<< /Length 48 >>\nstream\n"
+        b"BT /F1 12 Tf 50 700 Td (Mock PDF Content) Tj ET\n"
+        b"endstream\nendobj\n"
+        b"xref\n0 5\n0000000000 65535 f \n"
+        b"0000000009 00000 n \n"
+        b"0000000058 00000 n \n"
+        b"0000000115 00000 n \n"
+        b"0000000213 00000 n \n"
+        b"trailer\n<< /Size 5 /Root 1 0 R >>\n"
+        b"startxref\n310\n"
+        b"%%EOF"
+    )

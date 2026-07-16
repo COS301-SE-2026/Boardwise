@@ -1,5 +1,4 @@
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from botocore.exceptions import ClientError
 from app.services import r2_service
 from bson import ObjectId
@@ -46,7 +45,7 @@ def test_upload_to_r2_success(mock_s3_client):
 def test_upload_to_r2_failure(mock_s3_client):
     """Verifies that the service fails gracefully if the Cloudflare network drops."""
     # Arrange
-    err_res = {"error": {"code": 500, "message": "Internal Server Error"}}
+    err_res = {"Error": {"Code": 500, "Message": "Internal Server Error"}}
     mock_s3_client.put_object.side_effect = ClientError(err_res, 'UploadPart')
 
     bytes = b"mock"
