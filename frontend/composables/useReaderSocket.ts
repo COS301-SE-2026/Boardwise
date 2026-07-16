@@ -11,7 +11,10 @@ export const useReaderSocket = (
     const connect = () => {
         try {
             const wsUrl = useRuntimeConfig().public.wsUrl ?? 'ws://localhost:8080/ws'
-            socket = new WebSocket(`${wsUrl}/vault/rulebooks/${rulebookId}/lock`)
+            const token = localStorage.getItem('access_token')
+            const url = `${wsUrl}/vault/rulebooks/${rulebookId}/lock${token ? `?token=${token}` : ''}`
+            
+            socket = new WebSocket(url)
 
             socket.onopen = () => {
                 isConnected.value = true;

@@ -69,6 +69,10 @@ const { connect: connectSocket } = useReaderSocket(
 onMounted(async () => {
   await getRulebookById(route.params.id)
   await getRulebookText(route.params.id)
-  await connectSocket()
+  // try {
+  //   connectSocket()
+  // }catch {
+  //   console.warn('Websocket connection failed - lock events unavailable')
+  // }
 })
 </script>

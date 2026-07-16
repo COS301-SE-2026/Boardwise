@@ -19,7 +19,7 @@
             class="text-caption text-no-wrap d-flex align-center ga-1"
             :class="isEditing ? 'text-success' : 'text-error'"
           >
-            <v-icon size="14" :color="isEditing ? 'success' : error'error"> mdi-lock</v-icon>
+            <v-icon size="14" :color="isEditing ? 'success' : 'error'"> mdi-lock</v-icon>
             {{ isEditing? 'You are editing' : `@${lockHeldBy}` }}
             <template v-if="countdown > 0">
               {{  formattedCountdown }}
@@ -54,6 +54,7 @@
                   </v-btn>
                 </template>
               </v-tooltip>
+            </template>
 
             <!-- Edit Button -->
              <v-tooltip
@@ -67,7 +68,7 @@
                   variant="outlined"
                   color="primary"
                   prepend-icon="mdi-pencil"
-                  :disabled="!!lockHeldBy"
+                  :disabled="!!lockHeldBy || isEditing"
                   @click="emit('edit')"
                 >
                   Edit
@@ -80,8 +81,7 @@
               <template #activator="{ props: tooltipProps }">
                 <v-btn
                   v-bind="tooltipProps"
-                  icon
-                  size="small"
+                  icon size="small"
                   variant="text"
                   :loading="isDownloading"
                   :disabled="!rulebook?.id"
@@ -134,7 +134,7 @@
               </span>
             </template>
 
-          </template>
+          
       </div>
     </template>
 
@@ -167,7 +167,7 @@ const emit = defineEmits(['search', 'next-match', 'prev-match', 'clear-search', 
 
 const showSearch = ref(false)
 const localQuery = ref('')
-const coundown = ref(0)
+const countdown = ref(0)
 let countdownInterval = null
 
 const closeSearch = () => {

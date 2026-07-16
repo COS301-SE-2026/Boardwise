@@ -19,7 +19,7 @@
       @next-match="nextMatch"
       @clear-search="clearSearch"
       @edit="handleEdit"
-      @toggle-history="handleToggleHistory"
+      @toggle-history="showHistory = !showHistory"
       @undo="handleUndo"
       @redo="handleRedo"
     />
@@ -72,7 +72,7 @@ import ReaderPage from './ReaderPage.vue'
 import ReaderHistory from './ReaderHistory.vue'
 
 import { useEditLock } from '~/composables/useEditLock'
-import { useEditHistroy } from '~/composables/useEditHistory'
+import { useEditHistory } from '~/composables/useEditHistory'
 import { useSnackBar }  from '~/composables/useSnackbar'
 import { useLibrary } from '~/composables/useLibrary'
 
@@ -92,7 +92,7 @@ const version      = ref(0) // TODO: seed from response.data.version when fetchi
 const showHistory = ref(false)
 
 const { isEditing, isSaving, lockHeldBy, lockExpiresAt, lockError, canRedo, canUndo, startEditing, stopEditing, releaseAllLocks, commitDelta, undoEdit, redoEdit } = useEditLock()
-const { editHistory, isLoadingHistory, fetchEditHistory } = useEditHistroy()
+const { editHistory, isLoadingHistory, fetchEditHistory } = useEditHistory()
 const { show } = useSnackBar()
 const { getRulebookText } = useLibrary()
 
