@@ -15,7 +15,7 @@
             <p class="mb-0">
                 {{ message.text }}
             </p>
-            <span class="time text-caption d-block mt-2">
+            <span class="text-caption d-block mt-2 text-medium-emphasis">
                 {{  message.time }}
             </span>
         </div>
@@ -46,12 +46,9 @@ defineProps({
     background: var(--color-surface);
 }
 
-.own .bubble{
+.bubble.own{
     background: var(--color-primary);
     color: var(--color-text-inverse);
 }
 
-.time{
-    opacity: 0.7;
-}
 </style>
