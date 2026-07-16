@@ -15,7 +15,7 @@
 
                 <span
                     v-if="props.conversation.online"
-                    class="online-indicator"
+                    class="online-indicator rounded-circle"
                 />
             </div>
 
@@ -71,12 +71,7 @@ defineEmits(['select'])
     bottom: 0;
     width: 12px;
     height: 12px;
-    border-radius: 50%;
-    background: #39c16c;
+    background: var(--color-success);
     border: 2px solid var(--color-surface);
-}
-
-.conversation.active{
-    border: 2px solid var(--color-pr);
 }
 </style>
