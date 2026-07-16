@@ -14,7 +14,7 @@
                         {{ props.conversation.name }}
                     </h3>
 
-                    <span class="text-caption text-medium-emphasis">
+                    <span class="text-body-2 text-medium-emphasis">
                         {{ props.conversation.online ? 'Online' : 'Offline' }}
                     </span>
                 </div>
