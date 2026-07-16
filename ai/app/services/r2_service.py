@@ -34,8 +34,8 @@ def upload_to_r2(file_bytes: bytes, r2_key: str, content_type: str) -> bool:
             }
             logger.info("R2 Upload Success: %s", response_object)
         return True
-    except Exception as e:
-        logger.exception("Failed to upload to R2: %s", e)
+    except Exception:
+        logger.exception("Failed to upload to R2")
         return False
 
 def generate_pdf_key(rulebook_id: str, filename: str)->str:
