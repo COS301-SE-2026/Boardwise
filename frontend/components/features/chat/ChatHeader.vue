@@ -10,11 +10,11 @@
                 />
 
                 <div>
-                    <h3  class="mb-1">
+                    <h3  class="text-h6 mb-1">
                         {{ props.conversation.name }}
                     </h3>
 
-                    <span class="status">
+                    <span class="text-caption text-medium-emphasis">
                         {{ props.conversation.online ? 'Online' : 'Offline' }}
                     </span>
                 </div>
@@ -40,10 +40,3 @@ const props = defineProps({
 })
 
 </script>
-
-<style scoped>
-.status {
-    color: var(--color-text-muted);
-}
-
-</style>
