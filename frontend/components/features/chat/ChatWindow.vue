@@ -22,6 +22,7 @@ import { ref, watch } from 'vue'
 import ChatHeader from './ChatHeader.vue';
 import ChatFeed from './ChatFeed.vue';
 import ChatComposer from './ChatComposer.vue';
+import { getMessages } from '~/services/chatService.js';
 
 const props = defineProps({
     conversation: {
@@ -33,26 +34,9 @@ const props = defineProps({
 const messages = ref([])
 
 watch(
-    () => props.conversation,
-    () => {
-        messages.value = [
-            {
-                id:1,
-                name: props.conversation.name,
-                avatar: props.conversation.avatar,
-                text: 'Hey! Are you still coming to board game night',
-                time: '09:30',
-                isOwn: false
-            },
-            {
-                id:2,
-                name: 'You',
-                avatar: '/images/avatar.jpg',
-                text: 'Yep! I will be there',
-                time: '09:32',
-                isOwn: true
-            }
-        ]
+    () => props.conversation.id,
+    (id) => {
+        messages.value = [...getMessages(id)]
     },
     {
         immediate: true

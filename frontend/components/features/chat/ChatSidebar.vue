@@ -11,11 +11,26 @@
                 placeholder="Search chats..."
             />
 
-            <BaseFilterGroup
-                v-model="activeFilter"
-                :items="filters"
-                class="my-4"
-            />
+            <BaseFilterGroup title="Filter chats" class="mt-4">
+                <v-chip-group
+                    v-model="activeFilter"
+                    mandatory
+                    column
+                >
+
+                <v-chip value="all">
+                    All
+                </v-chip>
+
+                 <v-chip value="online">
+                    Online
+                </v-chip>
+
+                 <v-chip value="unread">
+                    Unread
+                </v-chip>
+                </v-chip-group>
+            </BaseFilterGroup>
 
             <ChatConversationList
                 v-if="filteredConversations.length"
@@ -58,37 +73,30 @@ const props = defineProps({
 
 const emit = defineEmits(['select'])
 
-const activeFilter = ref('All')
-
-const filters = [
-    'All',
-    'Unread',
-    'Online'
-]
+const activeFilter = ref('all')
 
 const filteredConversations = computed(() => {
 
-    let list = props.conversations
+    let list = [...props.conversations]
 
     if(search.value) {
-        const query = search.value.toLowerCase()
-
         list = list.filter(conversation => 
-            conversation.name.toLowerCase().includes(query)
+            conversation.name
+            .toLowerCase()
+            .includes(search.value.toLowerCase())
         )
     }
 
     switch (activeFilter.value) {
-        case 'Unread':
-            return list.filter(conversation => conversation.unread > 0)
-
-        case 'Online':
-            return list.filter(conversation => conversation.online)
-
-        default:
+        case 'unread':
+            list= list.filter(conversation => conversation.unread > 0)
+            break
+        case 'online':
+            list = list.filter(conversation => conversation.online)
+            break
+    }
             return list
 
-    }
 })
 
 </script>
