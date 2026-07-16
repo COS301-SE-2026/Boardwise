@@ -11,7 +11,7 @@
             />
 
             <BaseButton
-                :disabled="!text"
+                :disabled="!text.trim()"
                 @click="send"
             >
                 Send
@@ -31,9 +31,11 @@ const emit = defineEmits(['send'])
 const text = ref('')
 
 const send = () => {
-    if (!text.value.trim()) return
-    emit('send', text.value)
+    const message = text.value.trim()
 
-    text.value= ''
+    if(!message) return
+
+    emit('send', message)
+    text.value = ''
 }
 </script>
