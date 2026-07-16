@@ -3,7 +3,7 @@
     <ReaderToolbar 
       :rulebook="rulebook" 
       :current-page="currentPage" 
-      :total-pages="chunks.length" 
+      :total-pages="localChunks.length" 
       :search-query="searchQuery"
       :match-count="matchResults.length"
       :current-match="currentMatch"
@@ -12,24 +12,29 @@
       :lock-held-by="lockHeldBy"
       :lock-expires-at="lockExpiresAt"
       :lock-error="lockError"
+      :can-undo="canUndo"
+      :can-redo="canRedo"
       @search="searchQuery = $event"
       @prev-match="prevMatch"
       @next-match="nextMatch"
       @clear-search="clearSearch"
       @edit="handleEdit"
-      @toggle-history="handleToggleHistory"
+      @toggle-history="showHistory = !showHistory"
+      @undo="handleUndo"
+      @redo="handleRedo"
     />
 
-    <ReaderProgress :current-page="currentPage" :total-pages="chunks.length" />
+    <ReaderProgress :current-page="currentPage" :total-pages="localChunks.length" />
 
     <v-container fluid style="max-width: 1200px;">
       <v-row>
         <v-col cols="12" md="3">
           <ReaderSidebar 
-            :pages="chunks" 
+            :pages="localChunks" 
             :current-page="currentPage" 
             :matching-chunks="matchingChunkIndices"
-            @change="currentPage = $event" />
+            @change="handlePageChange" 
+          />
         </v-col>
 
         <v-col cols="12" md="9">
@@ -37,7 +42,7 @@
             :rulebook="rulebook"
             :page="activeChunk"
             :is-first="currentPage === 0"
-            :is-last="currentPage === chunks.length - 1"
+            :is-last="currentPage === localChunks.length - 1"
             :search-query="searchQuery"
             :active-occurrence="activeOccurrenceIndex"
             :is-editing="isEditing"
@@ -51,13 +56,15 @@
       </v-row>
     </v-container>
 
-    <ReaderHistory v-model="showHistory" :edits="editHistory"/>
+    <ReaderHistory v-model="showHistory" :edits="editHistory" :is-loading="isLoadingHistory"/>
 
   </div>
 </template>
 
 <script setup>
-import{ ref, computed, watch } from 'vue'
+import{ ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { onBeforeRouteLeave } from 'vue-router'
+
 import ReaderToolbar from './ReaderToolbar.vue'
 import ReaderProgress from './ReaderProgress.vue'
 import ReaderSidebar from './ReaderSidebar.vue'
@@ -65,7 +72,9 @@ import ReaderPage from './ReaderPage.vue'
 import ReaderHistory from './ReaderHistory.vue'
 
 import { useEditLock } from '~/composables/useEditLock'
+import { useEditHistory } from '~/composables/useEditHistory'
 import { useSnackBar }  from '~/composables/useSnackbar'
+import { useLibrary } from '~/composables/useLibrary'
 
 const props = defineProps({
   rulebook: Object,
@@ -76,16 +85,16 @@ const currentPage = ref(0)
 const searchQuery = ref('')
 const currentMatch = ref(0)
 
-// edit history
-const editHistory = ref([])
-
 // edit logic
 
 const localChunks  = ref([...props.chunks])
 const version      = ref(0) // TODO: seed from response.data.version when fetching text
+const showHistory = ref(false)
 
-const { isEditing, isSaving, lockHeldBy, lockExpiresAt, lockError, startEditing, stopEditing, commitDelta } = useEditLock()
+const { isEditing, isSaving, lockHeldBy, lockExpiresAt, lockError, canRedo, canUndo, startEditing, stopEditing, releaseAllLocks, commitDelta, undoEdit, redoEdit } = useEditLock()
+const { editHistory, isLoadingHistory, fetchEditHistory } = useEditHistory()
 const { show } = useSnackBar()
+const { getRulebookText } = useLibrary()
 
 // TODO: Integrate with backend to fetch the latest version and edits when the component is mounted or when the rulebook changes.
 //const activeChunk = computed(() => props.chunks[currentPage.value])
@@ -112,42 +121,44 @@ const handleEdit = async () => {
 }
 
 const handleSave = async (deltaContent) => {
-  if (!props.rulebook?.id) return
-  isSaving.value = true
+    if (!props.rulebook?.id) return;
+    isSaving.value = true;
 
-  try {
-    const chunk = localChunks.value[currentPage.value]
+    const chunk = localChunks.value[currentPage.value];
+    const previousContent = chunk?.content;
 
-    // Update local chunk immediately so UI reflects the change
-    localChunks.value[currentPage.value] = {
-      ...chunk,
-      content: deltaContent
+    localChunks.value[currentPage.value] = { ...chunk, content: deltaContent };
+
+    try {
+        const newVersion = await commitDelta(
+            props.rulebook.id,
+            chunk?.chunkId ?? '',
+            deltaContent,
+            version.value
+        );
+        version.value = newVersion;
+        show('Section saved.', 'success');
+    } catch(err) {
+        if (err?.status === 409 && err?.data?.error === 'VersionMismatchException') {
+            await reconcileStaleState();
+        } else {
+            localChunks.value[currentPage.value] = { ...chunk, content: previousContent };
+            show('Failed to save. Please try again.', 'error');
+        }
+    } finally {
+        await stopEditing(props.rulebook.id);
+        isSaving.value = false;
     }
-
-    const newVersion = await commitDelta(
-      props.rulebook.id,
-      chunk.chunkId,
-      deltaContent,
-      version.value
-    )
-
-    version.value = newVersion
-    show('Section saved.', 'success')
-  } catch (err) {
-    show('Failed to save. Please try again.', 'error')
-    console.error('Save error:', err)
-  } finally {
-    await stopEditing(props.rulebook.id)
-  }
 }
 
 // History logic
-const showHistory = ref(false)
+watch(showHistory, async (val) => {
+    if (val && props.rulebook?.id) {
+        await fetchEditHistory(props.rulebook.id);
+    }
+})
 
-const handleToggleHistory = () => {
-  showHistory.value = !showHistory.value
-}
-
+// Cancel 
 const handleCancel = async () => {
   if (!props.rulebook?.id) return
   await stopEditing(props.rulebook.id)
@@ -207,4 +218,71 @@ watch(searchQuery, ()=> {
     currentPage.value = matchResults.value[0].chunkIndex
   }
 })
+
+
+const reconcileStaleState = async () => {
+    if (!props.rulebook?.id) return;
+    try {
+        const fresh = await getRulebookText(props.rulebook.id);
+        if (fresh?.chunks)  localChunks.value = [...fresh.chunks];
+        if (fresh?.version) version.value = fresh.version;
+        show('Your view was out of date and has been refreshed.', 'info');
+    } catch {
+        show('Failed to refresh document state.', 'error');
+    }
+}
+
+const handleUndo = async () => {
+    if (!props.rulebook?.id) return;
+    try {
+        const newVersion = await undoEdit(props.rulebook.id, version.value);
+        version.value = newVersion;
+    } catch(err) {
+        if (err?.status === 409) {
+            show('Nothing left to undo.', 'info');
+        } else {
+            show('Undo failed.', 'error');
+        }
+    }
+}
+
+const handleRedo = async () => {
+    if (!props.rulebook?.id) return;
+    try {
+        const newVersion = await redoEdit(props.rulebook.id, version.value);
+        version.value = newVersion;
+    } catch(err) {
+        if (err?.status === 409) {
+            show('Nothing left to redo.', 'info');
+        } else {
+            show('Redo failed.', 'error');
+        }
+    }
+}
+
+const handleBeforeUnload = (e) => {
+    if (isEditing.value && props.rulebook?.id) {
+        releaseAllLocks(props.rulebook.id);
+        e.preventDefault();
+        e.returnValue = '';
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('beforeunload', handleBeforeUnload);
+})
+
+onUnmounted(() => {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+    if (isEditing.value && props.rulebook?.id) {
+        releaseAllLocks(props.rulebook.id);
+    }
+})
+
+onBeforeRouteLeave(async () => {
+    if (isEditing.value && props.rulebook?.id) {
+        await stopEditing(props.rulebook.id);
+    }
+})
+
 </script>
