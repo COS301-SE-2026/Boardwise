@@ -22,7 +22,7 @@
       <!-- Read view -->
       <template v-if="!isEditing">
         <p class="text-body-1 text-medium-emphasis" style="line-height: 1.9;">
-          <template v-for="(segment, i) in contentSegments" :key="i">
+          <template v-for="(segment, i) in contentSegments" :key="`${i}-${segment.text.length}`">
             <mark v-if="segment.active" class="search-highlight search-highlight--active">{{ segment.text }}</mark>
             <mark v-else-if="segment.highlight" class="search-highlight">{{ segment.text }}</mark>
             <span v-else>{{ segment.text }}</span>
@@ -134,9 +134,14 @@ watch(() => props.isEditing, (val) => {
   if (val) editContent.value = props.page?.content ?? ''
 })
 
-watch(() => props.page, (val) => {
-  if (props.isEditing) editContent.value = val?.content ?? ''
-})
+// watch(() => props.page, (val) => {
+//   if (props.isEditing) editContent.value = val?.content ?? ''
+// })
+watch(() => props.page?.content, (newContent) => {
+  if(props.isEditing){
+    editContent.value = newContent ?? '';
+  }
+});
 
 const editContent = ref('')
 

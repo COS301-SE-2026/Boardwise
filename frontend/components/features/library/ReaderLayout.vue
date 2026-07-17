@@ -131,7 +131,8 @@ const handleSave = async (deltaContent) => {
     const chunk = localChunks.value[currentPage.value];
     const previousContent = chunk?.content;
 
-    localChunks.value[currentPage.value] = { ...chunk, content: deltaContent };
+    // localChunks.value[currentPage.value] = { ...chunk, content: deltaContent };
+    chunk.content = deltaContent;
 
     try {
         const newVersion = await commitDelta(
@@ -146,7 +147,8 @@ const handleSave = async (deltaContent) => {
         if (err?.status === 409 && err?.data?.error === 'VersionMismatchException') {
             await reconcileStaleState();
         } else {
-            localChunks.value[currentPage.value] = { ...chunk, content: previousContent };
+            // localChunks.value[currentPage.value] = { ...chunk, content: previousContent };
+            chunk.content = previousContent;
             show('Failed to save. Please try again.', 'error');
         }
     } finally {

@@ -57,15 +57,23 @@ const { connect: connectSocket } = useReaderSocket(
         lockHeldBy.value = lockedByUsername;
         lockExpiresAt.value = expiresAt;
         currentVersion.value = serverVersion;
+        console.log("Lock acquired by: ", lockedByUsername);
       },
       onLockReleased: () => {
         lockHeldBy.value = null;
         lockExpiresAt.value = null;
       },
-      onDeltaCommitted: ({chunkId, deltaContent, version}) => {
-        currentVersion.value = version;
-        const chunk = rulebookText.value?.chunks.find(c => c.chunkId === chunkId);
-        if(chunk) chunk.content = deltaContent;
+      onDeltaCommitted: (payload) => {
+        console.log("STOMP Delta Received:", payload)
+        currentVersion.value = payload.version;
+
+        const chunk = rulebookText.value?.chunks.find(c => c.chunkId === payload.chunkId);
+        
+        if(chunk){
+            chunk.content = payload.deltaContent;
+        }else{
+          console.warn("Could not find chunk locally to update:", payload.chunkId)
+        }
       },
       onChunkInserted: ({chunkId, content, index, version}) => {
         currentVersion.value = version;
