@@ -106,12 +106,12 @@ public class WriteLockService {
         ObjectId targetChunkId = new ObjectId(request.getChunkId());
         
         // 2. Fetch Previous Text State
-        RulebookText chunkBeforeUpdate = rulebookTextRepository.findBySpecificChunk(rulebookId, targetChunkId)
+        RulebookText chunkBeforeUpdate = rulebookTextRepository.findBySpecificChunk(rulebookId, request.getChunkId())
             .orElseThrow(() -> new ChunkNotFoundException(rulebookId, targetChunkId));
         String previousText = chunkBeforeUpdate.getChunks().get(0).getContent();
 
         // 3. Update RULEBOOK_TEXT
-        rulebookTextRepository.atomicUpdateChunk(rulebookId, new ObjectId(request.getChunkId()), request.getContent());
+        rulebookTextRepository.atomicUpdateChunk(rulebookId, targetChunkId, request.getContent());
 
         // Push onto undoStack and clear redoStack
         rulebookRepository.atomicCommitForwardEdit(rulebookId, nextVersion);
@@ -120,7 +120,7 @@ public class WriteLockService {
         EditEvent event = EditEvent.builder()
             .rulebookId(rulebookId)
             .editorId(new ObjectId(user.getId()))
-            .chunkId(new ObjectId(request.getChunkId()))
+            .chunkId(targetChunkId)
             .chunkBefore(null)
             .editType(EditType.UPDATE)
             .previousContent(previousText)
@@ -276,7 +276,7 @@ public class WriteLockService {
         
         // 2. Update RULEBOOK_TEXT
         ObjectId chunkToDeleteId = new ObjectId(request.getChunkId());
-        RulebookText chunkBeforeDelete = rulebookTextRepository.findBySpecificChunk(rulebookId, chunkToDeleteId)
+        RulebookText chunkBeforeDelete = rulebookTextRepository.findBySpecificChunk(rulebookId, request.getChunkId())
             .orElseThrow(() -> new ChunkNotFoundException(rulebookId, chunkToDeleteId));
         String actualPreviousText = chunkBeforeDelete.getChunks().get(0).getContent();
         int actualPreviousIndex = chunkBeforeDelete.getChunks().get(0).getIndex();

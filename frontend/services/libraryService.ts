@@ -100,17 +100,6 @@ interface CommitEditDeltaResponse{
     committedAt: string;
     lockExpiresAt: string;
 }
-class EditUndoOrRedoDeltaRequest{
-    expectedVersion: number;
-    content: string;
-    chunkId: string;
-
-    constructor(expectedVersion: number, content: string, chunkId: string){
-        this.expectedVersion = expectedVersion;
-        this.content = content;
-        this.chunkId = chunkId;
-    }
-}
 
 interface UndoOrRedoActionResponse{
     done: boolean;
@@ -162,7 +151,11 @@ export const LibraryService = {
 
         return $api<CommitEditDeltaResponse>(`vault/rulebooks/${id}/chunk/update`, {
             method:'PATCH',
-            body: new EditUndoOrRedoDeltaRequest(data?.expectedVersion, data?.content, data?.chunkId)
+            body: {
+                expectedVersion: data?.expectedVersion,
+                content: data?.content,
+                chunkId: data?.chunkId
+            }
         });
     },
 
@@ -180,7 +173,11 @@ export const LibraryService = {
         const {$api} = useNuxtApp();
         return $api<UndoOrRedoActionResponse>(`vault/rulebooks/${id}/action/undo`, {
             method: 'POST',
-            body: new EditUndoOrRedoDeltaRequest(data?.expectedVersion, data?.content, data?.chunkId)
+            body: {
+                expectedVersion: data?.expectedVersion,
+                content: data?.content,
+                chunkId: data?.chunkId
+            }
         });
     },
 
@@ -188,7 +185,11 @@ export const LibraryService = {
         const {$api} = useNuxtApp();
         return $api<UndoOrRedoActionResponse>(`vault/rulebooks/${id}/action/redo`, {
             method: 'POST',
-            body: new EditUndoOrRedoDeltaRequest(data?.expectedVersion, data?.content, data?.chunkId)
+            body: {
+                expectedVersion: data?.expectedVersion,
+                content: data?.content,
+                chunkId: data?.chunkId
+            }
         });
     }
 }

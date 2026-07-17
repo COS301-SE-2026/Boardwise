@@ -251,7 +251,13 @@ public class RulebookService {
     }
 
     private EditEventResponseDto toEditEventResponse(EditEvent event) {
-        User  user = findUserOrThrow(event.getEditorId());
+        // User user = findUserOrThrow(event.getEditorId());
+        User user = userRepository.findById(event.getEditorId().toHexString()).orElseGet(() -> {
+            User deletedUser = new User();
+            deletedUser.setId(event.getEditorId().toHexString());
+            deletedUser.setUsername("Deleted User");
+            return deletedUser;
+        });
 
         return EditEventResponseDto.builder()
             .id(event.getId().toHexString())
