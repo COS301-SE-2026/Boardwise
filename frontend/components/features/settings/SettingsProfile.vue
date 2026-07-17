@@ -1,47 +1,61 @@
 <template>
-    <BaseCard>
-        <div class="profile">
-            <h2>General</h2>
-            <BaseInput v-model="form.firstName" placeholder="Change first name" />
-            <BaseInput v-model="form.lastName"  placeholder="Change last name"  />
-            <BaseInput v-model="form.username"  placeholder="Change username"  />
-            <BaseInput v-model="form.email"     type="email"     placeholder="Change email" />
-            <BaseInput v-model="form.bio"       type="textarea"  placeholder="Change bio"   />
-            <button @click="emit('save', form)">Save changes</button>
+    <BaseCard class="pa-6">
+        <div class="d-fles flex-column ga-4">
+            <div>
+                <h2 class="text-h5">
+                    General
+                </h2>
+                <p class="text-body-2 text-medium-emphasis">
+                    Update personal Information
+                </p>
+            </div>  
+
+            <BaseInput 
+                v-model="form.firstName" 
+                label="First name" 
+                placeholder="Change first name"
+                />
+
+            <BaseInput 
+                v-model="form.lastName" 
+                label="Last Name" 
+                placeholder="Change last name"  
+                />
+            <BaseInput 
+                v-model="form.username"  
+                label="Username"
+                placeholder="Change username"  
+            />
+            <BaseInput 
+                v-model="form.email"     
+                type="email" 
+                label="Email"    
+                placeholder="Change email" 
+                />
+            <BaseInput 
+                v-model="form.bio"       
+                type="textarea"
+                label="Bio"  
+                placeholder="Change bio"   
+                />
+                <div class="d-flex justify-end">
+            <BaseButton @click="emit('save', form)">
+                Save changes
+            </BaseButton>
+            </div>  
         </div>
     </BaseCard>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import BaseCard from '@/components/ui/BaseCard.vue';
-import BaseInput from '@/components/ui/BaseInput.vue';
 
-const form = ref({
-    firstName: ' ',
-    lastName: ' ',
-    username: '',
-    email: ' ',
-    bio: ' '
-});
+import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseInput from '~/components/ui/BaseInput.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
+import { getProfile } from '~/services/settingsService'
 
-const themes = [
-    { label: 'Light', value: 'light' },
-    { label: 'Dark', value: 'dark' },
-    { label: 'System', value: 'system' },
-]
+const form = ref(getProfile())
+
+const emit = defineEmits(['save'])
 </script>
-
-<style scoped>
-    .profile {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-button {
-    align-self: flex-start;
-}
-
-
-</style>
