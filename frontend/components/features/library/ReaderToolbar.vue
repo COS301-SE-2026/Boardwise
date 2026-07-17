@@ -142,14 +142,17 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onUnmounted ,watch } from 'vue'
 import BaseSearch from '~/components/ui/BaseSearch.vue'
-
 import { useSnackBar } from '~/composables/useSnackbar.ts'
 import { useLibrary } from '~/composables/useLibrary'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute();
 const router = useRouter();
+const { show } = useSnackBar();
+
+const { getDownloadLink, downloadUrl } = useLibrary();
 
 const props = defineProps({
   rulebook: Object,
@@ -179,8 +182,6 @@ const closeSearch = () => {
   emit('clear-search')
 }
 
-const { show } = useSnackBar()
-
 const formattedCountdown = computed(() => {
   const mins = Math.floor(countdown.value/ 60)
   const secs = countdown.value % 60
@@ -208,24 +209,29 @@ watch(() => props.lockExpiresAt, (val) => {
 
 onUnmounted(() => clearInterval(countdownInterval))
 
-const isDownloading = ref(false)
+// ========== Download Logic ==========
+const isDownloading = ref<boolean>(false);
 
 const handleDownload = async () => {
   if (!props.rulebook?.id) return
 
   try {
+    isDownloading.value = true;
+
     await getDownloadLink(route.params.id);
-    if(!isLoading.value){
-      show('Download ready - opening PDF...', 'success')
-      console.log('Download requested for:', props.rulebook.id)
-      
-      if(downloadUrl?.value?.downloadUrl){
-        window.open(downloadUrl.value.downloadUrl, '_blank', 'noopener,noreferrer');
-      }
+
+    if(downloadUrl.value?.downloadUrl){
+      show('Download ready - opening PDF...', 'success');
+      console.log('Download requested for:', props.rulebook.id);
+      window.open(downloadUrl.value.downloadUrl, '_blank', 'noopener,noreferrer');
+    }else{
+      throw new Error("No URL returned from server");
     }
   } catch (err){
     console.error('Download failed:', err)
     show('Download failed. Please try again later.', 'error')
+  }finally{
+    isDownloading.value = false;
   }
 }
 

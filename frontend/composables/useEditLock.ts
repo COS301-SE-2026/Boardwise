@@ -35,11 +35,6 @@ export const useEditLock = () => {
             // }
             return false;
         }
-
-        // // Mock — always grants lock
-        // lockHeldBy.value   = null
-        // lockExpiresAt.value = new Date(Date.now() + 5 * 60 * 1000).toISOString()
-        // return true
     }
 
     const releaseLock = async (rulebookId: string) => {
