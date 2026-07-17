@@ -1,51 +1,29 @@
 import { ref } from 'vue'
+import { LibraryService } from '~/services/libraryService'
+import type { FetchError } from 'ofetch'
+
+const editHistory = ref<any[]>([]);
+const isLoadingHistory = ref<boolean>(false);
+const historyError = ref<string>('');
 
 export const useEditHistory = () => {
-    const editHistory = ref<any[]>([])
-    const isLoadingHistory = ref(false)
-
     const fetchEditHistory = async (rulebookId: string) => {
         isLoadingHistory.value = true
+        historyError.value = '';
 
         try {
-            // TODO: replace with real API call when backend endpoint is ready
-            // const { $api } = useNuxtApp();
-            // const data = await $api(`vault/rulebooks/${rulebookId}/history`);
-            // editHistory.value = data.edits;
+            const response = await LibraryService.fetchEditHistory(rulebookId);
 
-            // Mock data — remove when backend is ready
-            editHistory.value = [
-                {
-                    id: '1',
-                    editor: 'jane_dev',
-                    editType: 'UPDATE',
-                    chunkId: 'Section 1',
-                    previousContent: 'Roll the dice and move your token.',
-                    newContent: 'Roll two six-sided dice and move your token clockwise.',
-                    committedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString()
-                },
-                {
-                    id: '2',
-                    editor: 'bob_rules',
-                    editType: 'INSERT',
-                    chunkId: 'Section 2',
-                    previousContent: null,
-                    newContent: 'Rolling doubles grants an additional turn.',
-                    committedAt: new Date(Date.now() - 1000 * 60 * 10).toISOString()
-                },
-                {
-                    id: '3',
-                    editor: 'jane_dev',
-                    editType: 'DELETE',
-                    chunkId: 'Section 3',
-                    previousContent: 'This section has been removed.',
-                    newContent: null,
-                    committedAt: new Date(Date.now() - 1000 * 60 * 2).toISOString()
-                }
-            ]
+            if(response && response.edits){
+                editHistory.value = response.edits.reverse(); // for newest edits to appear at the top of the array.
+            }else{
+                editHistory.value = [];
+            }
         } catch (err) {
+            const fetchError = err as FetchError<{message: string}>;
+            historyError.value = fetchError.data?.message || 'Failed to load edit history.';
+            editHistory.value = [];
             console.error(`Failed to fetch edit history for ${rulebookId}:`, err)
-            editHistory.value = []
         } finally {
             isLoadingHistory.value = false;
         }
@@ -54,6 +32,7 @@ export const useEditHistory = () => {
     return {
         editHistory,
         isLoadingHistory,
+        historyError,
         fetchEditHistory
     }
 }

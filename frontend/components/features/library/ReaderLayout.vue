@@ -56,7 +56,7 @@
       </v-row>
     </v-container>
 
-    <ReaderHistory v-model="showHistory" :edits="editHistory" :is-loading="isLoadingHistory"/>
+    <ReaderHistory v-model="showHistory" :edits="editHistory" :is-loading="isLoadingHistory" :error="historyError"/>
 
   </div>
 </template>
@@ -91,7 +91,7 @@ const localChunks = ref([...props.chunks])
 const showHistory = ref<boolean>(false)
 
 const { isEditing, isSaving, lockHeldBy, lockExpiresAt, lockError, canRedo, canUndo, currentVersion, startEditing, stopEditing, releaseAllLocks, commitDelta, undoEdit, redoEdit } = useEditLock()
-const { editHistory, isLoadingHistory, fetchEditHistory } = useEditHistory()
+const { editHistory, isLoadingHistory, historyError, fetchEditHistory } = useEditHistory()
 const { show } = useSnackBar()
 const { getRulebookText } = useLibrary()
 
@@ -154,6 +154,9 @@ const handleSave = async (deltaContent) => {
 watch(showHistory, async (val) => {
     if (val && props.rulebook?.id) {
         await fetchEditHistory(props.rulebook.id);
+        if(historyError.value){
+          show(historyError.value, 'error');
+        }
     }
 })
 

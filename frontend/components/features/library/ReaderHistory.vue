@@ -15,6 +15,20 @@
                 </v-btn>
             </div>
 
+            <v-alert
+                v-if="error"
+                type="error"
+                variant="tonal"
+                class="mb-4 text-caption"
+                closable
+            >
+                {{ error }}
+            </v-alert>
+
+            <div v-if="isLoading" class="d-flex justify-center my-6">
+                <v-progress-circular indeterminate color="primary"></v-progress-circular>
+            </div>
+
             <div v-if="edits.length" class="d-flex flex-column ga-4">
                 <div
                     v-for="edit in edits"
@@ -54,7 +68,7 @@
             </div>
 
             <BaseEmptyState
-            v-else
+            v-else-if="!error"
             title="No edits yet"
             message="Changes made to this rulebook will appear here" 
             />
@@ -67,7 +81,9 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
 defineProps({
   modelValue: { type: Boolean, default: false },
-  edits: { type: Array, default: () => [] }
+  edits: { type: Array, default: () => [] },
+  isLoading: {type: Boolean, deflault: false},
+  error: {type: String, default: ''}
 })
 
 defineEmits(['update:modelValue'])
