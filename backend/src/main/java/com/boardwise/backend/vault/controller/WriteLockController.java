@@ -10,10 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.vault.dto.request.CommitEditDeltaRequestDto;
+import com.boardwise.backend.vault.dto.request.CommitEditDeltaOrDoActionRequestDto;
 import com.boardwise.backend.vault.dto.request.DeleteChunkRequestDto;
 import com.boardwise.backend.vault.dto.request.InsertNewChunkRequestDto;
-import com.boardwise.backend.vault.dto.request.UndoOrRedoActionRequestDto;
 import com.boardwise.backend.vault.dto.response.AcquireWriteLockDto;
 import com.boardwise.backend.vault.dto.response.CommitEditDeltaResponseDto;
 import com.boardwise.backend.vault.dto.response.DeleteChunkResponseDto;
@@ -52,7 +51,7 @@ public class WriteLockController {
     public ResponseEntity<CommitEditDeltaResponseDto> commitDelta(
         @PathVariable("id") String rulebookId,
         @RequestHeader("Authorization") String authHeader,
-        @RequestBody CommitEditDeltaRequestDto request){
+        @RequestBody CommitEditDeltaOrDoActionRequestDto request){
             ObjectId userId = extractUserIdFromHeader(authHeader);
 
             return ResponseEntity.ok(
@@ -108,7 +107,7 @@ public class WriteLockController {
     public ResponseEntity<UndoOrRedoActionResponseDto> undoEdit(
         @PathVariable("id") String rulebookId,
         @RequestHeader("Authorization") String authHeader,
-        @RequestBody UndoOrRedoActionRequestDto request){
+        @RequestBody CommitEditDeltaOrDoActionRequestDto request){
             ObjectId userId = extractUserIdFromHeader(authHeader);
         
             return ResponseEntity.ok(
@@ -119,7 +118,7 @@ public class WriteLockController {
     public ResponseEntity<UndoOrRedoActionResponseDto> redoEdit(
             @PathVariable("id") String rulebookId,
             @RequestHeader("Authorization") String authHeader,
-            @RequestBody UndoOrRedoActionRequestDto request) {
+            @RequestBody CommitEditDeltaOrDoActionRequestDto request) {
         ObjectId userId = extractUserIdFromHeader(authHeader);
 
         return ResponseEntity.ok(
