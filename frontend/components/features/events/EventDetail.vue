@@ -77,7 +77,7 @@
                         />
 
                         <div>
-                            <p class="text-body-2 font-weight-bold mb-0">{{ games.title }}</p>
+                            <p class="text-body-2 font-weight-bold mb-0">{{ game.title }}</p>
                             <p class="text-caption text-medium-emphasis mb-0">
                                 {{ game.genres.join(', ') }}
                             </p>
@@ -88,7 +88,7 @@
 
             <v-divider />
                 
-            <div class="d=flex flex-column ga-2">
+            <div class="d-flex flex-column ga-2">
                 <BaseButton
                     v-if="event.rsvpStatus !== 'ATTENDING'"
                     :disabled="event.eventStatus !== 'OPEN'"
@@ -108,9 +108,17 @@
                 </BaseButton>
 
                 <template v-if="isHost">
-                    <BaseButton 
+                    <BaseButton
                         variant="secondary"
                         @click="$emit('edit', event)"
+                    >
+                        <v-icon start>mdi-pencil</v-icon>
+                        Edit event
+                    </BaseButton>
+
+                    <BaseButton
+                        variant="secondary"
+                        @click="$emit('cancel-event', event.id)"
                     >
                         <v-icon start>mdi-cancel</v-icon>
                         Cancel event
@@ -122,6 +130,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import BaseImage from '~/components/ui/BaseImage.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
 

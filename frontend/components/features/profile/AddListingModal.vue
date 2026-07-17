@@ -9,12 +9,19 @@
 
       <v-text-field v-model="version" label="Version" placeholder="e.g. Original" variant ="outlined" density="compact" hide-details/>
 
-      <v-select v-model="selectedGenres"
+      <v-autocomplete
+        v-model="selectedGenres"
         label="Genres"
-        :items="genreList"
+        :items="genres"
+        :loading="genresLoading"
         multiple
         chips
-      ></v-select>
+        closable-chips
+        variant="outlined"
+        density="compact"
+        hide-details
+        @update:search="onGenreSearch"
+      />
 
       <v-select v-model="selectedCondition" 
       label="Condition"
@@ -83,8 +90,18 @@
 
 <script setup>
 import { useUserLocation } from '@/composables/useUserLocation';
+import { useBoardGames } from '~/composables/useBoardGames'
 
 const { city, suburb, lat, long, error: locationError, loading, findUserLocation } = useUserLocation();
+const { searchGenres, genres, isLoading: genresLoading } = useBoardGames()
+
+onMounted(() => searchGenres())
+
+let genreSearchTimeout
+const onGenreSearch = (query) => {
+  clearTimeout(genreSearchTimeout)
+  genreSearchTimeout = setTimeout(() => searchGenres(query), 300)
+}
 
 const isLoading = ref(false);
 
@@ -181,7 +198,7 @@ function getValidCondition(){
 }
 
 
-const handleConfirm = () => {
+const handleConfirm = async () => {
   if (!selectedItemType.value|| !gameTitle.value || !listingTitle.value || !location.value ||!version.value ||
       price.value < 0 || !selectedCondition.value|| !description.value || !selectedGenres.value){
         isLoading.value = false;
@@ -235,11 +252,11 @@ const handleConfirm = () => {
   }
 }
 
+
 const conditions = ['New', 'Like New', 'Good', 'Fair'];
 
 const itemTypes  = ["Merch", "Full Boardgame","Partial Boardgame","Pieces"];
 
-const genreList = ['Strategy', 'Family', 'Adventure', 'Abstract', 'Party', 'Abstract Strategy','Card Game', 'Dice', 'Economic', 'Fantasy','Fighting','Electronic', 'Environmental', 'Horror', 'Humor', 'Mafia', 'Age of Reason', 'City Building'];
 </script>
 
 <style scoped>

@@ -52,7 +52,7 @@ export const useEvents = () => {
         error.value = ''
 
         try {
-            const data = await EventService.updateEvent(eventId, eventInfo)
+            const data = await EventService.updateEvent(eventId, eventInfo,image)
             const index = events.value.findIndex(e => e.id === eventId)
             if (index !== -1)
             {
