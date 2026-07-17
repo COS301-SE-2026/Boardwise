@@ -100,13 +100,11 @@ const { editHistory, isLoadingHistory, historyError, fetchEditHistory } = useEdi
 const { show } = useSnackBar()
 const { getRulebookText } = useLibrary()
 
-// TODO: Integrate with backend to fetch the latest version and edits when the component is mounted or when the rulebook changes.
-//const activeChunk = computed(() => props.chunks[currentPage.value])
 const activeChunk = computed(() => localChunks.value[currentPage.value])
 
 watch(() => props.chunks, (val) => {
   localChunks.value = [...val]
-}, { immediate: true })
+}, { immediate: true, deep: true })
 
 const handlePageChange = (index) => {
   if (isEditing.value) {
@@ -293,5 +291,9 @@ onBeforeRouteLeave(async () => {
         await stopEditing(props.rulebook.id);
     }
 })
+
+defineExpose({
+  reconcileStaleState
+});
 
 </script>

@@ -1,5 +1,6 @@
 <template>
-  <ReaderLayout 
+  <ReaderLayout
+    ref="readerLayoutRef"
     v-if="currentRulebook" 
     :rulebook="currentRulebook"
     :chunks="rulebookText?.chunks ?? []" 
@@ -29,6 +30,10 @@ import { useReaderSocket } from '~/composables/useReaderSocket'
 
 import ReaderLayout from '~/components/features/library/ReaderLayout.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+
+import { ref } from 'vue';
+
+const readerLayoutRef = ref(null);
 
 const route = useRoute()
 const router = useRouter()
@@ -82,7 +87,21 @@ const { connect: connectSocket } = useReaderSocket(
       onChunkDeleted: ({chunkId, version}) => {
         currentVersion.value = version;
         if(rulebookText.value?.chunks){
-          rulebookText.value.chunks = rulebookText.value.chunks.filter(c=> c.chunkId !== chunkId);
+          // rulebookText.value.chunks = rulebookText.value.chunks.filter(c=> c.chunkId !== chunkId);
+          const index = rulebookText.value.chunks.findIndex(c => c.chunkId === chunkId);
+          if(index !== -1){
+            rulebookText.value.chunks.splice(index, 1);
+          }
+        }
+      },
+      onReconnect: async () => {
+        if(isEditing.value){
+          show('Connection restored, but you may have missed updates. Save carefully.', 'warning');
+          return;
+        }
+
+        if(readerLayoutRef.value){
+          await readerLayoutRef.value.reconcileStaleState();
         }
       }
     }

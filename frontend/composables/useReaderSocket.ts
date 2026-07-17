@@ -53,10 +53,13 @@ interface SocketHandlers{
     onDeltaCommitted: (payload: DeltaCommittedEvent) => void;
     onChunkInserted: (payload: ChunkInsertedEvent) => void;
     onChunkDeleted: (payload: ChunkDeletedEvent) => void;
+    onReconnect: () => void;
 }
 
 export const useReaderSocket = (rulebookId: string, handlers: SocketHandlers) => {
     const isConnected = ref<boolean>(false);
+    const hasConnectedOnce = ref<boolean>(false);
+
     let stompClient: Client | null = null;
 
     const connect = () => {
@@ -78,6 +81,13 @@ export const useReaderSocket = (rulebookId: string, handlers: SocketHandlers) =>
                 if(!stompClient) return;
 
                 isConnected.value = true;
+
+                if(hasConnectedOnce.value){
+                    console.log("STOMP reconnected. Fetching missed updates...");
+                    handlers.onReconnect();
+                }else{
+                    hasConnectedOnce.value = true;
+                }
 
                 // Subscribe to Lock Acquisition events
                 stompClient.subscribe(`/topic/vault/rulebooks/${rulebookId}/lock/acquired`, (message: IMessage) => {
