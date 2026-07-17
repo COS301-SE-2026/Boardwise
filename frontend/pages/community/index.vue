@@ -1,6 +1,5 @@
 <template>
   <PageContainer>
- 
     <Navbar />
  
     <ExploreHeader />
@@ -10,10 +9,15 @@
       @create-community="showCreateCommunity = true"
     />
  
-    <div class="community-layout">
-      <CommunityFilter @filter="handleFilter" />
-      <CommunityGrid :communities="filteredCommunities" />
-    </div>
+    <CommunityGrid 
+        class="mt-6"
+        :communities="filteredCommunities"
+      />
+
+      <CommunityFilter 
+        class="mt-6"
+        @filter="handleFilter" 
+      />
 
     <CommunityCreateForm 
       v-model="showCreateCommunity"
@@ -26,51 +30,59 @@
 definePageMeta({
   middleware: 'auth'
 })
+
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
+
 import ExploreHeader from '~/components/features/community/ExploreHeader.vue'
 import ExploreSearch from '~/components/features/community/ExploreSearch.vue'
 import CommunityGrid from '~/components/features/community/CommunityGrid.vue'
 import CommunityCreateForm from '~/components/features/community/CommunityCreateForm.vue'
-
 import CommunityFilter from '~/components/features/community/CommunityFilter.vue'
+
 import { useCommunity } from '~/composables/useCommunity'
 
-// 1. Destructure the composable
-const { communities, getAllCommunities, loading, error } = useCommunity()
+const { communities, getAllCommunities, } = useCommunity()
 
 const searchQuery = ref('')
-const activeTab = ref('All')
-const selectedTypes = ref<string[]>([])
-const selectedCategories = ref<string[]>([])
 const showCreateCommunity = ref(false)
 
-// 2. Trigger the fetch when the page loads
+const selectedTypes = ref<string[]>([])
+const selectedCategories = ref<string[]>([])
+
 onMounted(() => {
   getAllCommunities()
 })
 
-const handleFilter = ({types, categories,}: 
-  {
-    types: string[]
-    categories: string[]
-  }) => {
-    selectedTypes.value = types
-    selectedCategories.value = categories
+const handleFilter = ({
+  types,
+  categories
+}: {
+  types: string[]
+  categories: string[]
+}) => {
+     selectedTypes.value = types
+     selectedCategories.value = categories
 }
 
 const filteredCommunities = computed(() => {
-  return communities.value.filter(c => {
+  return communities.value.filter(community => {
     const matchesSearch =
-      c.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+      community.name
+        .toLowerCase()
+        .includes(searchQuery.value.toLowerCase())
 
     const matchesVisibility =
       selectedTypes.value.length === 0 ||
-      selectedTypes.value.includes(c.visibility)
+      selectedTypes.value.includes(community.category)
 
-    return matchesSearch && matchesVisibility
+    const matchesCategory =
+      selectedCategories.value.length === 0 ||
+      selectedCategories.value.includes(community.category)
+
+    return matchesSearch  && matchesVisibility && matchesCategory
   })
 })
 

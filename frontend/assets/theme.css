@@ -244,6 +244,24 @@ a:hover { text-decoration: underline; }
   clip: rect(0,0,0,0); white-space: nowrap; border: 0;
 }
 
+/* Add Game Card */
+.card--dashed {
+  border: 2px dashed var(--color-border-strong);
+  cursor: pointer;
+  height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.card--dashed:hover {
+  transform: translateY(-2px);
+  background-color: var(--color-surface-alt);
+  box-shadow: var(--shadow-md);
+}
+
 /* Model overlay */
 .modal {
   background: var(--color-surface);

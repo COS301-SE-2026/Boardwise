@@ -85,5 +85,84 @@ export const LibraryService = {
     fetchRulebookText(id: string) {
       const { $api } = useNuxtApp();
       return $api<RulebookTextResponse>(`vault/rulebooks/${id}/text`)
+    },
+
+    // TODO: Please double check added services. Most of it based documents given in regards to requests
+
+    acquireLock(id: string) {
+        const { $api } = useNuxtApp()
+        return $api<{
+            lockGranted: boolean
+            lockedBy: string | null
+            expiresAt: string | null
+        }>(`vault/rulebooks/${id}/lock`, { method: 'POST'})
+    }, 
+
+    releaseLock(id: string) {
+        const { $api } = useNuxtApp()
+        return $api<{
+            message: string 
+        }>(`vault/rulebooks/${id}/lock`, { method: 'DELETE'})
+    },
+
+    releaseAllLocks(id: string) {
+        const { $api } = useNuxtApp()
+        return $api<{
+            message: string 
+        }>(`vault/rulebooks/${id}/lock/all`, { method: 'DELETE'})
+    }, 
+
+    commitDelta(id: string, payload: {
+        chunkId: string
+        deltaContent: string
+        expectedVersion: number
+    }) {
+        const { $api } = useNuxtApp()
+        return $api<{
+            newVersion: number
+            chunkId: string
+            updatedAt: string
+        }>(`vault/rulebooks/${id}/text`, { method: 'PATCH', body: payload })
+    },
+
+    insertChunk(id: string, payload: {
+        content: string
+        insertIndex: number 
+        expectedVersion: number
+    }) {
+        const { $api } = useNuxtApp()
+        return $api<{
+            newVersion: number
+            chunkId: string
+            actualIndex: number
+        }>(`vault/rulebooks/${id}/chunk`, { method: 'POST', body: payload })
+    },
+
+    removeChunk(id: string, payload: {
+        chunkId: string
+        expectedVersion: number
+    }) {
+        const { $api } = useNuxtApp()
+        return $api<{
+            newVersion: number
+        }>(`vault/rulebooks/${id}/chunk`, { method: 'DELETE', body: payload })
+    },
+
+    undoEdit(id: string, payload: {
+        expectedVersion: number
+    }) {
+        const { $api } = useNuxtApp()
+        return $api<{
+            newVersion: number
+        }>(`vault/rulebooks/${id}/text/undo`, { method: 'POST', body: payload })
+    },
+
+    redoEdit(id: string, payload: {
+        expectedVersion: number
+    }) {
+        const { $api } = useNuxtApp()
+        return $api<{
+            newVersion: number
+        }>(`vault/rulebooks/${id}/text/redo`, { method: 'POST', body: payload })
     }
 }

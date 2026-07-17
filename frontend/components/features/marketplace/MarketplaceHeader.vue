@@ -8,7 +8,6 @@
 
     <div class="search-row">
       <v-text-field
-        v-model="searchQ"
         :model-value="modelValue"
         @update:model-value="$emit('update:modelValue', $event)"
         class="search"

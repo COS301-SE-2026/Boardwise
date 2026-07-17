@@ -10,12 +10,19 @@
 
       <v-text-field v-model="version" label="Version" placeholder="e.g. Original" variant ="outlined" density="compact" hide-details/>
 
-      <v-select v-model="selected_genres"
+      <v-autocomplete
+        v-model="selected_genres"
         label="Genres"
-        :items="genre_list"
+        :items="genres"
+        :loading="genresLoading"
         multiple
         chips
-      ></v-select>
+        closable-chips
+        variant="outlined"
+        density="compact"
+        hide-details
+        @update:search="onGenreSearch"
+      />
 
       <v-select v-model="selected_condition" 
       label="Condition"
@@ -69,8 +76,18 @@
 
 <script setup>
 import { useMarketplace } from '~/composables/useMarketplace'
+import { useBoardGames } from '~/composables/useBoardGames'
+const { editListing } = useMarketplace()
 
-const { editListing} = useMarketplace()
+const { searchGenres, genres, isLoading: genresLoading } = useBoardGames()
+
+onMounted(() => searchGenres())
+
+let genreSearchTimeout
+const onGenreSearch = (query) => {
+  clearTimeout(genreSearchTimeout)
+  genreSearchTimeout = setTimeout(() => searchGenres(query), 300)
+}
 
 const open  = defineModel()
 const props = defineProps({ listing: Object })
@@ -112,7 +129,12 @@ watch(open, val =>{//listen for an open & populate ref
   selected_condition.value = listing_element.condition ?? null
   selected_item_type.value = listing_element.itemType ?? null
   start_date.value = listing_element.rentalPeriod?.startDate ?? null
-  end_date.value = listing_element.rentalPeriod?.endDate ?? null
+  end_date.value = listing_element.rentalPeriod?.endDate?? null
+  
+  if (selected_genres.value.length) {
+      const missing = selected_genres.value.filter(g => !genres.value.includes(g))
+      if (missing.length) genres.value = [...missing, ...genres.value]
+    }
 
 });
 
@@ -153,7 +175,7 @@ const handleSave = async () => {
 
   
   await editListing(props.listing.listingId, listingData, image_file.value ?? undefined)
-  emit('saved')
+  emit('saved', 'updated')
   open.value = false
 }
 
@@ -177,8 +199,6 @@ const closeModal = () => {
 const conditions = ['New', 'Like New', 'Good', 'Fair']
 
 const item_types  = ["Merch", "Full Boardgame","Partial Boardgame","Pieces"]
-
-const genre_list = ['Strategy', 'Family', 'Adventure', 'Abstract', 'Party', 'Abstract Strategy','Card Game', 'Dice', 'Economic', 'Fantasy','Fighting','Electronic', 'Environmental', 'Horror', 'Humor', 'Mafia']
 
 </script>
 
