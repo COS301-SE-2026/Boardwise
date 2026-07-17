@@ -1,9 +1,9 @@
 package com.boardwise.backend.vault.enums;
 
 public enum EditType{
-    INSERT("Insert".toUpperCase()),
-    UPDATE("Update".toUpperCase()),
-    DELETE("Delete".toUpperCase());
+    INSERT("INSERT"),
+    UPDATE("UPDATE"),
+    DELETE("DELETE");
 
     private final String type;
     
