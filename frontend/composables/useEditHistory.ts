@@ -14,7 +14,7 @@ export const useEditHistory = () => {
         try {
             const response = await LibraryService.fetchEditHistory(rulebookId);
 
-            if(response && response.edits){
+            if(response?.edits){
                 editHistory.value = response.edits.reverse(); // for newest edits to appear at the top of the array.
             }else{
                 editHistory.value = [];

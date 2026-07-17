@@ -130,7 +130,7 @@ export const useReaderSocket = (rulebookId: string, handlers: SocketHandlers) =>
     };
 
     const disconnect = () => {
-        if (stompClient && stompClient.active) {
+        if (stompClient?.active) {
             stompClient.deactivate();
             isConnected.value = false;
         }
