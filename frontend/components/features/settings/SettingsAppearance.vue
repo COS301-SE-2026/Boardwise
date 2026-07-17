@@ -1,33 +1,55 @@
 <template>
-    <BaseCard>
-        <div class="appearance">
-            <h2>Appearance</h2>
-            <p>Customise how Boarrdwise looks for you</p>
+    <BaseCard class="pa-6">
+        <div class="d-flex flex-column ga-5">
+            <div>
+                <h2 class="text-h5">
+                    Appearance
+                </h2>
+                <p class="text-body-2 text-medium-emphasis">
+                    Customise how Boarrdwise looks for you
+                </p>
+            </div>  
 
-            <div class="appearance__group">
-                <label>Themes</label>
-                <div class="appearance__row">
-                    <button
-                        v-for="theme in themes" :key="t.value"
-                        :class="{ active: appearance === t.value }"
-                        @click="appearance = t.value"
+            <div class="d-flex flex-column ga-3">
+                <span class="text-subtitle-2">
+                    Themes
+                </span>
 
-                        {{ t.label }}
+                <v-btn-toggle 
+                    v-model="appearance"
+                    color="primary"
+                    mandatory
+                >
+                    <v-btn
+                        v-for="theme in themes" 
+                        :key="theme.value"
+                        :value="theme.value"
                     >
-                    </button>
-
-                </div>
-            </div>
-            <button @click="emit('save', appearance)">Apply</button>
+                    {{ theme.label }}
+                </v-btn>
+            </v-btn-toggle>
         </div>
-    </BaseCard>
+
+            <div class="d-flex justify-end">
+            <BaseButton @click="emit('save', appearance)">
+                Apply
+            </BaseButton>
+        </div>
+    </div>
+</BaseCard>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import BaseCard from '@/components/ui/BaseCard.vue';
+
+import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
+
+import { getAppearance } from '~/services/settingsService';
 
 const emit = defineEmits(['save']);
+
+const appearance = ref(getAppearance().theme)
 
 const themes = [
     { label: 'Light', value: 'light' },
@@ -35,37 +57,3 @@ const themes = [
     { label: 'System', value: 'system' },
 ]
 </script>
-
-<style scoped>
-    .appearance {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.appearance__group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-
-
-.appearance__row {
-    display: flex;
-    gap: 10px;
-}
-
-.appearance__row button {
-    padding: 6px 16px;
-    border: 1px solid #ccc;
-    background: none;
-    cursor: pointer;
-    border-radius: 6px;
-}
-
-.appearance__row button.active {
-    font-weight: 500;
-    border-color: #444;
-}
-</style>
