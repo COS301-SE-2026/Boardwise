@@ -81,7 +81,8 @@
 
       <div class="d-flex justify-end ga-3">
         <v-btn variant="outlined" color="primary" @click="closeModal">Cancel</v-btn>
-        <v-btn color="primary" @click="handleConfirm" :loading="isLoading">Create Listing</v-btn>      </div>
+        <v-btn color="primary" @click="handleConfirm" :loading="isLoading">Create Listing</v-btn>
+      </div>
 
     </BaseCard>
   </v-dialog>

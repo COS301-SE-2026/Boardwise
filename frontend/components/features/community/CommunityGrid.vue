@@ -1,19 +1,22 @@
 <template> 
-  <BaseGrid
-    cols="280px"
-    gap="20px"
-  >
     <BaseEmptyState
       v-if="communities.length === 0"
       title="No communities yet"
       class="justify-center"
     />
+
+  <BaseGrid
+    v-else
+    cols="280px"
+    gap="20px"
+  >
     <CommunityCard
-      v-for="item in communities"
-      :key="item.id"
-      :community="item"
-      @join="$emit('join-request', item.id)"
+      v-for="community in communities"
+      :key="community.id"
+      :community="community"
+      @join="$emit('join-request', community.id)"
     />
+    
   </BaseGrid>
 </template>
 
@@ -22,6 +25,10 @@ import BaseGrid from '~/components/ui/BaseGrid.vue';
 import CommunityCard from './CommunityCard.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
+defineEmits([
+  'join-request'
+])
+
 defineProps({
     communities: {
         type: Array,
@@ -29,24 +36,3 @@ defineProps({
     }
 })
 </script>
-<!-- 
-<style scoped>
-.community-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: var(--space-5);
-  align-items: start;
-}
-
-@media (max-width: 900px) {
-  .community-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
-  .community-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style> -->

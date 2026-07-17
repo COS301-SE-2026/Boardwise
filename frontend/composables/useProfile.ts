@@ -1,4 +1,4 @@
-import { userService } from "~/services/userService";
+import { userService, type OtherGameDTO  } from "@/services/userService";
 import { useRouter } from "vue-router";
 
 export const useProfile = () => {
@@ -45,5 +45,66 @@ export const useProfile = () => {
         }
     };
 
-    return { isLoading, fetchCurrentUser, updateProfile }
+    const searchGames = async (game: string) => {
+        isLoading.value = true;
+        try {
+            const res = await userService.searchForBoardGame(game);
+            return res.boardGames
+        } catch(err) {
+            error.value = "Search failed"
+            throw err
+        } finally {
+            isLoading.value = false
+        }
+    };
+
+    const addExistingGame = async (gameId: string) => {
+        isLoading.value = true;
+        try {
+            const res = await userService.addExistingGameToInventory(gameId);
+            return res;
+        } catch (err: any) {
+            error.value = "Failed to add game";
+            if (err.response?.status === 401) {
+                router.push('/auth/signin');
+            }
+            throw err;
+        } finally {
+            isLoading.value = false;
+        }
+    };
+
+    const addGame = async (gameInfo: OtherGameDTO, gameImage: File) => {
+        isLoading.value = true;
+        try {
+            const res = await userService.addGameToInventory(gameInfo, gameImage);
+            return res;
+        } catch (err: any) {
+            error.value = "Failed to add game";
+            if (err.response?.status === 401) {
+                router.push('/auth/signin');
+            }
+            throw err; // modal won't close on fail  
+        } finally {
+            isLoading.value = false;
+        }
+    };
+
+    const removeGame = async (gameId: string) => {
+        isLoading.value = true;
+        try {
+            const res = await userService.removeGameFromInventory(gameId);
+            return res;
+        } catch (err: any) {
+            error.value = "Failed to remove game";
+            if (err.response?.status === 401) {
+                router.push('/auth/signin');
+            }
+            throw err;
+        } finally {
+            isLoading.value = false;
+        }
+    };
+
+    return { isLoading, fetchCurrentUser, updateProfile, addGame, removeGame, searchGames ,addExistingGame, error }
 }

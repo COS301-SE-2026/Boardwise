@@ -1,87 +1,54 @@
 <template>
-  <BaseCard>
+  <BaseCard
+    class="cursor-pointer"
+    @click="openListing"
+  >
 
-    <div class="listing-card" @click="openListing">
+  <BaseImage
+    :src="listing.image"
+    :alt="listing.name"
+    height="220px"
+    fit="contain"
+  />
 
-      <div class="image-container">
-        <img 
-          :src="listing.image" 
-          :alt="listing.title" />
-      </div>
+    <div class="pa-4 d-flex flex-column ga-2">
 
-      <div class="content">
+    <h3 class="text-h6">
+      {{ listing.name }}
+    </h3>
 
-        <h3>{{ listing.title }}</h3>
+    <div class="d-flex justify-space-between">
 
-        <div class="meta">
-          <p class="price">{{ listing.price }}</p>
-          <p class="location">{{ listing.location }}</p>
-        </div>
+      <span class="text-primary font-weight-bold">
+        {{ listing.price }}
+      </span>
 
-      </div>
+      <span class="text-body-2 text-medium-emphasis">
+        {{ listing.location }}
+      </span>
 
     </div>
+  </div>
 
   </BaseCard>
 </template>
 
 <script setup>
-import BaseCard from '~/components/ui/BaseCard.vue'
+import { useRouter } from 'vue-router'
 
-defineProps({
-  listing: Object
+import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseImage from '~/components/ui/BaseImage.vue';
+
+const props = defineProps({
+  listing: {
+    type: Object,
+    required: true
+  }
 })
 
+const router = useRouter()
+
 const openListing = () => {
-  router.push(`/marketplace/${props.id}`)
+  router.push(`/marketplace/${props.listing.id}`)
 }
 </script>
-
-<style scoped>
-.listing-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  cursor: pointer;
-}
-
-.image-container {
-  height: 220px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #f4f4f4;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-h3 {
-  margin: 0;
-}
-
-.meta {
-  display: flex;
-  justify-content: space-between;
-}
-
-.price {
-  color: #7B2CBF;
-  font-weight: bold;
-}
-
-.location {
-  color: #777;
-}
-</style>

@@ -1,47 +1,56 @@
 <template> 
-    <div class="community-view">
-        <SectionTitle title="Communities" subtitle="Join a community to connect with others"/>
+    <div class="d-flex flex-column ga-6">
 
-        <div class="community-view__actions">
-            <BaseSearch v-model="searchQuery" placeholder="Find a community..."/>
-            <BaseTag :tabs="['All', 'My groups', 'Trending ']" v-model="activeTab"/>
+        <SectionTitle 
+        title="Communities" 
+        subtitle="Join a community to connect with others"
+        />
+
+        <div class="d-flex flex-wrap ga-4 align-center">
+            <BaseSearch 
+              v-model="searchQuery" 
+              placeholder="Find a community..."
+              />
+
+            <BaseTag  
+              v-model="activeTab"
+              :tabs="tabs"
+              />
         </div>  
 
         <CommunityGrid 
-        :communities="filteredCommunities"
-        @join-request="handleJoin"/>
+          :communities="filteredCommunities"
+          @join-request="$emit('join-request', $event)"
+        />
 
     </div>
 </template>
 
 <script setup>
+import { ref, computed  } from 'vue';
+
 import SectionTitle from '~/components/ui/SectionTitle.vue';
 import BaseSearch from '~/components/ui/BaseSearch.vue';
 import BaseTag from '~/components/ui/BaseTag.vue';
 import CommunityGrid from './CommunityGrid.vue';
-import { ref, computed  } from 'vue';
+
+const props = defineProps({
+    communities: {
+      type: Array,
+      defualt: () => []
+    }
+})
+
+defineEmits(['join-request'])
 
 const searchQuery = ref('')
 const activeTab = ref('All')
- 
-const communities = ref([
-    { id: 1, 
-      name: 'Board Game Lovers', 
-    category: 'General', 
-    memberCount: 120, 
-    description: 'A community for board game enthusiasts to share their love for all things board games.' },
-    { id: 2, 
-      name: 'Strategy Gamers', 
-    category: 'Strategy', 
-    memberCount: 450, 
-    description: 'A community for fans of strategy games to discuss tactics, share game recommendations, and connect with like-minded players.' },
-    { id: 3, 
-      name: 'Family Game Night', 
-    category: 'Family', 
-    memberCount: 100, 
-    description: 
-    'A community for families to play games together and build stronger relationships.' }
-])
+
+const tabs = [
+  'All',
+  'My Group',
+  'Popular'
+]
 
 const filteredCommunities = computed(() => {
   return communities.value.filter((community) => {
@@ -50,8 +59,4 @@ const filteredCommunities = computed(() => {
       .includes(searchQuery.value.toLowerCase())
   })
 })
-
-const handleJoin = (id) => {
-  console.log(`Join request for community ID: ${id}`)
-}
 </script>

@@ -8,6 +8,7 @@
     <GamesGrid
       :games="games"
       @add-game="$emit('add-game')"
+      @remove-game="$emit('remove-game', $event)"
     />
 
   </section>
@@ -21,5 +22,5 @@ defineProps({
   games: Array
 })
 
-defineEmits(['add-game'])
+defineEmits(['add-game','remove-game'])
 </script>

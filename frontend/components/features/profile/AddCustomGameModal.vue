@@ -23,14 +23,67 @@
                 hide-details
             />
 
-            <v-select
-                v-model="genre"
+            <v-autocomplete
+                v-model="genres"
+                v-model:search="genreSearch"
                 label="Game Genre "
-                :items="['Strategy','Family','Abstract','Party','Cooperative','Thematic','War','Other']"
+                :items="genreOptions"
+                variant="outlined"
+                density="compact"
+                hide-details
+                multiple
+                chips
+                closable-chips
+                :clear-on-select="false"
+                @update:search ="fetchGenres"
+            />
+
+            <BaseInput
+                v-model="description"
+                label="Description"
+                placeholder="Short description of the game"
                 variant="outlined"
                 density="compact"
                 hide-details
             />
+
+            <div class="d-flex ga-3">
+                <BaseInput
+                    v-model.number="minPlayers"
+                    label="Min Players"
+                    type="number"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                />
+                <BaseInput
+                    v-model.number="maxPlayers"
+                    label="Max Players"
+                    type="number"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                />                
+            </div>
+
+            <div class="d-flex ga-3">
+                <BaseInput
+                    v-model.number="minAge"
+                    label="Minimum Age"
+                    type="number"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                />
+                <BaseInput
+                    v-model.number="duration"
+                    label="Duration (minutes)"
+                    type="number"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                />
+            </div>
 
             <div class="d-flex align-center ga-3">
                 <BaseButton variant="secondary" @click="triggerUpload">
@@ -52,41 +105,124 @@
                     @change="handleFileChange"
                 />
             </div>
+            <div class="d-flex justify-end ga-3">
+                <v-btn variant="outlined" color="primary" @click="closeModal">Cancel</v-btn>
+                <v-btn color="primary" @click="handleConfirm" :loading="isLoading">Add Game</v-btn>
+            </div>
         </div>
     </BaseModal>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref,onMounted } from 'vue'
 import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+import { useProfile } from  '@/composables/useProfile'
+import { userService } from '~/services/userService'
+import { useDebounceFn } from '@vueuse/core'
 
-const open = defineModel()
+const { addGame, isLoading, error } = useProfile();
+
+const open = defineModel({ type: Boolean, default: false })
+
 const emit = defineEmits(['confirm', 'back'])
 
-const title     = ref('')
-const genre     = ref('')
-const fileName  = ref('')
-const fileInput = ref(null)
+const title = ref('');
+const description = ref('');
+const minPlayers = ref(null);
+const maxPlayers = ref(null);
+const genres = ref([])
+const minAge = ref(null);
+const duration = ref(null);
+
+const fileName  = ref('');
+const fileInput = ref(null);
+const file = ref(null);
+
+
+const genreOptions = ref([]);
+const genreSearch = ref('')
+const isSelecting = ref(false)
+
+watch(genreSearch, (val, oldVal)=>{
+    if(isSelecting.value){
+        isSelecting.value = false;
+        return;
+    }
+
+    if (val !== null && val !== undefined) {
+        fetchGenres(val)
+    }
+})
+
+const handleGenreSelect = () => {
+    isSelecting.value = true
+}
+
+const fetchGenres = useDebounceFn(async (query) =>{
+    if (query === null || query === undefined) return; // ignore post-selection clear
+
+    try{
+        const res = await userService.getGenres(query);
+        genreOptions.value = res.genres;
+    }
+    catch(err){
+        console.error('failed to load genres: ', err);
+    }
+},300)
+onMounted(() => fetchGenres(''))
+
 
 const triggerUpload = () => fileInput.value?.click()
+
 const handleFileChange = (e) => {
-    const file = e.target.files[0]
-    if (file) fileName.value = file.name
+    const chosenFile = e.target.files[0];
+    if (chosenFile){
+        file.value = chosenFile;
+        fileName.value = chosenFile.name;
+    }
 }
 
 const closeModal = () => {
-    open.value = false
-    title.value = ''
-    genre.value = ''
-    fileName.value = ''
+    open.value = false;
+    title.value = '';
+    description.value = '';
+    minPlayers.value = null;
+    maxPlayers.value = null;
+    minAge.value = null;
+    duration.value = null;
+    genres.value = [];
+    fileName.value = '';
+    file.value = null;
 }
 
-const handleConfirm = () => {
-    if(!title.value) return 
-    emit('confirm', { title: title.value, genre: genre.value, image: fileName.value, custom: true })
-    closeModal()
+const handleConfirm = async () => {
+    if (!title.value || !file.value || !description.value || !minPlayers.value || !maxPlayers.value   || !minAge.value || !duration.value) return
+
+    if (minPlayers.value >= maxPlayers.value) { // only cause it's in the backend
+        console.error('minPlayers must be less than maxPlayers')
+        return
+    }
+
+    const gameData = {
+        title: title.value,
+        description: description.value,
+        minPlayers: minPlayers.value,
+        maxPlayers: maxPlayers.value,
+        minAge: minAge.value,
+        duration: duration.value,
+        genres: genres.value
+    }
+
+    try{
+        const res = await addGame(gameData,file.value);
+        emit('confirm', res);
+        closeModal();
+    }
+    catch(err){
+        console.error("error while adding game: ", err);
+    }
 }
 
 </script>

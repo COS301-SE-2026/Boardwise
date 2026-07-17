@@ -1,23 +1,14 @@
 <template>
-    <div class="header">
+    <div class="d-flex flex-column ga-4">
 
-        <SectionTitle title="Community" subtitle="Find your people" />
-        <!-- <BaseInput placeholder="Explore communities " /> -->
-        <!-- <ExploreTabs /> -->
+        <SectionTitle 
+            title="Community" 
+            subtitle="Find your people" 
+            />
 
     </div>
 </template>
 
 <script setup>
 import SectionTitle from '~/components/ui/SectionTitle.vue'
-import BaseInput from '~/components/ui/BaseInput.vue'
-import CommunityTabs from './ExploreTabs.vue'
 </script>
-
-<style scoped>
-.header {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-</style>
