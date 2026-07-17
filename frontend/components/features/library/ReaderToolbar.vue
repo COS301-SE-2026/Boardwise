@@ -210,7 +210,7 @@ watch(() => props.lockExpiresAt, (val) => {
 onUnmounted(() => clearInterval(countdownInterval))
 
 // ========== Download Logic ==========
-const isDownloading = ref<boolean>(false);
+const isDownloading = ref(false);
 
 const handleDownload = async () => {
   if (!props.rulebook?.id) return

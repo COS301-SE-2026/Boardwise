@@ -56,7 +56,12 @@
       </v-row>
     </v-container>
 
-    <ReaderHistory v-model="showHistory" :edits="editHistory" :is-loading="isLoadingHistory" :error="historyError"/>
+    <ReaderHistory
+      :model-value="showHistory"
+      @update:model-value="showHistory = $event"
+      :edits="editHistory"
+      :is-loading="isLoadingHistory"
+      :error="historyError"/>
 
   </div>
 </template>
@@ -88,7 +93,7 @@ const currentMatch = ref(0)
 // edit logic
 
 const localChunks = ref([...props.chunks])
-const showHistory = ref<boolean>(false)
+const showHistory = ref(false)
 
 const { isEditing, isSaving, lockHeldBy, lockExpiresAt, lockError, canRedo, canUndo, currentVersion, startEditing, stopEditing, releaseAllLocks, commitDelta, undoEdit, redoEdit } = useEditLock()
 const { editHistory, isLoadingHistory, historyError, fetchEditHistory } = useEditHistory()

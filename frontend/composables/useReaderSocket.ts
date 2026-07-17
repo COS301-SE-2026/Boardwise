@@ -61,13 +61,14 @@ export const useReaderSocket = (rulebookId: string, handlers: SocketHandlers) =>
 
     const connect = () => {
         try {
-            const wsBaseUrl = useRuntimeConfig().public.wsBaseUrl;
-            // const token = localStorage.getItem('access_token')
-            // const url = `${wsUrl}/vault/rulebooks/${rulebookId}/lock${token ? `?token=${token}` : ''}`
-            const brokerURL = `${wsBaseUrl ?? 'ws://localhost:8080'}/ws`
+            const token = import.meta.client ? localStorage.getItem('access_token') : null;
+            const brokerURL = useRuntimeConfig().public.wsBaseUrl;
             
             stompClient = new Client({
                 brokerURL,
+                connectHeaders:{
+                    Authorization: `Bearer ${token}`
+                },
                 reconnectDelay: 5000,
                 heartbeatIncoming: 4000,
                 heartbeatOutgoing: 4000,
