@@ -91,7 +91,7 @@ interface EditHistoryResponse{
 interface AcquireWriteLockResponse{
     lockGranted: boolean;
     lockedBy: string;
-    expiredAt: string;
+    expiresAt: string;
     currentVersion: number;
 }
 interface CommitEditDeltaResponse{

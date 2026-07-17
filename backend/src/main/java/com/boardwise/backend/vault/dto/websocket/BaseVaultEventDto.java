@@ -12,9 +12,10 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BaseVaultEventDto {
-    private String eventType; // CHUNK_INSERTED | DELTA_COMMITED | CHUNK_DELETED 
+    private String eventType; // CHUNK_INSERTED | DELTA_COMMITTED | CHUNK_DELETED 
     private String rulebookId;
     private String editorId;
     private long version;
     private Instant timestamp;
+    private String chunkId;
 }

@@ -17,7 +17,7 @@ export const useEditLock = () => {
             const response = await LibraryService.acquireWriteLock(rulebookId);
             if(response.lockGranted){
                 lockHeldBy.value = response.lockedBy;
-                lockExpiresAt.value = response.expiredAt;
+                lockExpiresAt.value = response.expiresAt;
                 currentVersion.value = response.currentVersion;
             }
             return response.lockGranted;

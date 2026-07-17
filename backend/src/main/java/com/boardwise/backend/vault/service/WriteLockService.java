@@ -19,7 +19,7 @@ import com.boardwise.backend.vault.dto.response.CommitEditDeltaResponseDto;
 import com.boardwise.backend.vault.dto.response.DeleteChunkResponseDto;
 import com.boardwise.backend.vault.dto.response.InsertNewChunkResponseDto;
 import com.boardwise.backend.vault.dto.response.UndoOrRedoActionResponseDto;
-import com.boardwise.backend.vault.dto.websocket.ChunkDeletedEventDto;
+import com.boardwise.backend.vault.dto.websocket.BaseVaultEventDto;
 import com.boardwise.backend.vault.dto.websocket.ChunkInsertedEventDto;
 import com.boardwise.backend.vault.dto.websocket.DeltaCommitedEventDto;
 import com.boardwise.backend.vault.dto.websocket.LockAcquiredEventDto;
@@ -302,7 +302,7 @@ public class WriteLockService {
                 .build();
         editEventRepository.save(event);
 
-        eventPublisher.publishEvent(ChunkDeletedEventDto.builder()
+        eventPublisher.publishEvent(BaseVaultEventDto.builder()
                 .eventType("CHUNK_DELETED")
                 .rulebookId(rulebookId.toHexString())
                 .editorId(userId.toHexString())
@@ -424,7 +424,7 @@ public class WriteLockService {
                         .build());
                 break;
             case "CHUNK_DELETED":
-                eventPublisher.publishEvent(ChunkDeletedEventDto.builder()
+                eventPublisher.publishEvent(BaseVaultEventDto.builder()
                     .eventType("CHUNK_DELETED")
                     .rulebookId(rulebookId.toHexString())
                     .editorId(userId.toHexString())
@@ -562,7 +562,7 @@ public class WriteLockService {
                         .build());
                 break;
             case "CHUNK_DELETED":
-                eventPublisher.publishEvent(ChunkDeletedEventDto.builder()
+                eventPublisher.publishEvent(BaseVaultEventDto.builder()
                         .eventType("CHUNK_DELETED")
                         .rulebookId(rulebookId.toHexString())
                         .editorId(userId.toHexString())
