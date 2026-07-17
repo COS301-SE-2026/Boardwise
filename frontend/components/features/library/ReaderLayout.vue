@@ -87,11 +87,10 @@ const currentMatch = ref(0)
 
 // edit logic
 
-const localChunks  = ref([...props.chunks])
-const version      = ref(0) // TODO: seed from response.data.version when fetching text
-const showHistory = ref(false)
+const localChunks = ref([...props.chunks])
+const showHistory = ref<boolean>(false)
 
-const { isEditing, isSaving, lockHeldBy, lockExpiresAt, lockError, canRedo, canUndo, startEditing, stopEditing, releaseAllLocks, commitDelta, undoEdit, redoEdit } = useEditLock()
+const { isEditing, isSaving, lockHeldBy, lockExpiresAt, lockError, canRedo, canUndo, currentVersion, startEditing, stopEditing, releaseAllLocks, commitDelta, undoEdit, redoEdit } = useEditLock()
 const { editHistory, isLoadingHistory, fetchEditHistory } = useEditHistory()
 const { show } = useSnackBar()
 const { getRulebookText } = useLibrary()
@@ -134,9 +133,9 @@ const handleSave = async (deltaContent) => {
             props.rulebook.id,
             chunk?.chunkId ?? '',
             deltaContent,
-            version.value
+            currentVersion.value
         );
-        version.value = newVersion;
+        currentVersion.value = newVersion;
         show('Section saved.', 'success');
     } catch(err) {
         if (err?.status === 409 && err?.data?.error === 'VersionMismatchException') {
@@ -225,7 +224,7 @@ const reconcileStaleState = async () => {
     try {
         const fresh = await getRulebookText(props.rulebook.id);
         if (fresh?.chunks)  localChunks.value = [...fresh.chunks];
-        if (fresh?.version) version.value = fresh.version;
+        if (fresh?.version) currentVersion.value = fresh.version;
         show('Your view was out of date and has been refreshed.', 'info');
     } catch {
         show('Failed to refresh document state.', 'error');
@@ -235,8 +234,8 @@ const reconcileStaleState = async () => {
 const handleUndo = async () => {
     if (!props.rulebook?.id) return;
     try {
-        const newVersion = await undoEdit(props.rulebook.id, version.value);
-        version.value = newVersion;
+        const newVersion = await undoEdit(props.rulebook.id, '', currentVersion.value);
+        currentVersion.value = newVersion;
     } catch(err) {
         if (err?.status === 409) {
             show('Nothing left to undo.', 'info');
@@ -249,8 +248,8 @@ const handleUndo = async () => {
 const handleRedo = async () => {
     if (!props.rulebook?.id) return;
     try {
-        const newVersion = await redoEdit(props.rulebook.id, version.value);
-        version.value = newVersion;
+        const newVersion = await redoEdit(props.rulebook.id, '', currentVersion.value);
+        currentVersion.value = newVersion;
     } catch(err) {
         if (err?.status === 409) {
             show('Nothing left to redo.', 'info');
@@ -262,7 +261,7 @@ const handleRedo = async () => {
 
 const handleBeforeUnload = (e) => {
     if (isEditing.value && props.rulebook?.id) {
-        releaseAllLocks(props.rulebook.id);
+        releaseAllLocks();
         e.preventDefault();
         e.returnValue = '';
     }
@@ -275,7 +274,7 @@ onMounted(() => {
 onUnmounted(() => {
     window.removeEventListener('beforeunload', handleBeforeUnload);
     if (isEditing.value && props.rulebook?.id) {
-        releaseAllLocks(props.rulebook.id);
+        releaseAllLocks();
     }
 })
 

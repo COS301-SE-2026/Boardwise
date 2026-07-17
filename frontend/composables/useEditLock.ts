@@ -2,16 +2,16 @@ import { ref } from 'vue'
 import { LibraryService } from '~/services/libraryService'
 import type { FetchError } from 'ofetch'
 
-export const useEditLock = () => {
-    const isEditing = ref<boolean>(false)
-    const isSaving = ref<boolean>(false)
-    const lockHeldBy = ref<string|null>(null)
-    const lockExpiresAt = ref<string|null>(null)
-    const lockError = ref<string>('')
-    const canUndo = ref<boolean>(false)
-    const canRedo = ref<boolean>(false)
-    const currentVersion = ref<number>(0);
+const isEditing = ref<boolean>(false)
+const isSaving = ref<boolean>(false)
+const lockHeldBy = ref<string|null>(null)
+const lockExpiresAt = ref<string|null>(null)
+const lockError = ref<string>('')
+const canUndo = ref<boolean>(false)
+const canRedo = ref<boolean>(false)
+const currentVersion = ref<number>(0);
 
+export const useEditLock = () => {
     const acquireLock = async (rulebookId: string) => {
         try{
             const response = await LibraryService.acquireWriteLock(rulebookId);
@@ -164,6 +164,7 @@ export const useEditLock = () => {
         lockError,
         canUndo,
         canRedo,
+        currentVersion,
         startEditing,
         stopEditing,
         commitDelta,

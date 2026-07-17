@@ -44,35 +44,59 @@ const {
 const {
     lockHeldBy,
     lockExpiresAt,
+    currentVersion,
     isEditing,
     stopEditing
 } = useEditLock()
 
 // Websocket
-// TODO: Double check
 const { connect: connectSocket } = useReaderSocket(
     String(route.params.id),
-
-    // Another user acquired the lock 
-    ({ lockedBy, expiresAt }) => {
-        lockHeldBy.value    = lockedBy
-        lockExpiresAt.value = expiresAt
-    },
-
-    // Lock was released 
-    () => {
-        lockHeldBy.value    = null
-        lockExpiresAt.value = null
+    {
+      onLockAcquired: ({lockedByUsername, expiresAt, currentVersion: serverVersion}) => {
+        lockHeldBy.value = lockedByUsername;
+        lockExpiresAt.value = expiresAt;
+        currentVersion.value = serverVersion;
+      },
+      onLockReleased: () => {
+        lockHeldBy.value = null;
+        lockExpiresAt.value = null;
+      },
+      onDeltaCommitted: ({chunkId, deltaContent, version}) => {
+        currentVersion.value = version;
+        const chunk = rulebookText.value?.chunks.find(c => c.chunkId === chunkId);
+        if(chunk) chunk.content = deltaContent;
+      },
+      onChunkInserted: ({chunkId, content, index, version}) => {
+        currentVersion.value = version;
+        rulebookText.value?.chunks.splice(index, 0, {chunkId, content, index});
+      },
+      onChunkDeleted: ({chunkId, version}) => {
+        currentVersion.value = version;
+        if(rulebookText.value?.chunks){
+          rulebookText.value.chunks = rulebookText.value.chunks.filter(c=> c.chunkId !== chunkId);
+        }
+      }
     }
 )
 
 onMounted(async () => {
   await getRulebookById(route.params.id)
   await getRulebookText(route.params.id)
-  // try {
-  //   connectSocket()
-  // }catch {
-  //   console.warn('Websocket connection failed - lock events unavailable')
-  // }
+  
+  if(rulebookText.value){
+    currentVersion.value = rulebookText.value.version;
+    lockHeldBy.value = rulebookText.value.lockHeldBy;
+  }
+  
+  if(currentRulebook.value){
+    lockExpiresAt.value = currentRulebook.value.lockExpiresAt;
+  }
+
+  try {
+    connectSocket()
+  }catch(err) {
+    console.warn('Websocket connection failed - lock events unavailable', err);
+  }
 })
 </script>
