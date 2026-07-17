@@ -1,19 +1,19 @@
 <template>
-    <div class="tabs">
-        <BaseButton 
+    <v-tabs
+        :model-value="activeTab"
+        @update:model-value="$emit('change', $event)"
+    >
+        <v-tab
             v-for="tab in tabs"
             :key="tab"
-            :class="{ active: tab === activeTab }"
-            @click="$emit('change', tab)"
+            :value="tab"
         >
-            {{ tag }}
-        </BaseButton>
-    </div>
+            {{ tab }}
+        </v-tab>    
+    </v-tabs>
 </template>
 
 <script setup>
-import BaseButton from './BaseButton.vue'
-
 defineProps({
     tabs: Array,
     activeTab: String
@@ -22,14 +22,31 @@ defineProps({
 defineEmits(['change'])
 </script>
 
-<style scoped> 
-.tabs {
-    display: flex;
-    gap 12px;
+<style scoped>
+:deep(.v-tabs) {
+  border-bottom: 1px solid var(--color-border);
 }
 
-.active {
-    background: #6C3BFF;
-    color: white;
+:deep(.v-tab) {
+  font-family: var(--font-button);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  color: var(--color-text-muted);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+:deep(.v-tab--selected) {
+  color: var(--color-primary);
+}
+
+:deep(.v-tabs__bar .v-slide-group__content) {
+  gap: var(--space-4);
+}
+
+:deep(.v-slider-thumb),
+:deep(.v-tabs-slider) {
+  background: var(--color-primary) !important;
+  color: var(--color-primary) !important;
 }
 </style>

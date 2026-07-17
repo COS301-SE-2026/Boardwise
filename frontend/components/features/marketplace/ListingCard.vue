@@ -1,79 +1,105 @@
-<template> 
-    <BaseCard>
+<template>
+  <BaseCard class="listing-card" @click="openListing" style="cursor: pointer"">
 
-        <div class="listing-card" @click="openListing">
+    <div class="image-container">
+      <img
+        :src="listing.imageUrl ?? '/default-listing.png'"
+        :alt="listing.gameTitle"
+      />
+      <BaseBadge
+        class="badge"
+        :variant="listing.listingType === 'rental' ? 'rent' : 'sale'"
+      >
+        {{ listing.listingType === 'rental' ? 'For Rent' : 'For Sale' }}
+      </BaseBadge>
+    </div>
 
-            <div class="image-container">
-                <img :src="image" :alt="title" />
-            </div>
+    <v-card-text class="d-flex flex-column ga-2 pa-4">
+      <h3>{{ listing.gameTitle }}</h3>
 
-            <div class="content">
+      <p
+        class="price ma-0"
+        :style="{ color: listing.listingType === 'rental' ? 'var(--rent)' : 'var(--sale)' }"
+      >
+        R{{ listing.price }}
+        <span v-if="listing.listingType === 'rental'" class="period">
+          {{
+            listing.rentalPeriod
+              ? `${listing.rentalPeriod.startDate} – ${listing.rentalPeriod.endDate}`
+              : 'week'
+          }}
+        </span>
+      </p>
 
-                <h3>{{ title }}</h3>
+      <div class="meta">
+        <span>@{{ listing.username ?? 'unknown' }}</span>
+        <span v-if="listing.location">📍 {{ listing.location }}</span>
+      </div>
+    </v-card-text>
 
-                <div class="meta">
-                    <p class="price">{{ price }}</p>
-                    <p class="location">{{ location }}</p>
-                </div>
-
-            </div>
-
-        </div>
-    </BaseCard>
+  </BaseCard>
 </template>
 
-<script scoped>
-.listing-card {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+<script setup>
+import BaseCard  from '~/components/ui/BaseCard.vue'
+import BaseBadge from '~/components/ui/BaseBadge.vue'
 
-    cursor: pointer;
+const props = defineProps({
+  listing: { type: Object, required: true }
+})
+
+const router = useRouter()
+
+const openListing = () => {
+  router.push(`/marketplace/${props.listing.listingId}`)
+}
+</script>
+
+<style scoped>
+.listing-card {
+  overflow: hidden;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+.listing-card:hover {
+  transform:  translateY(-2px);
+  box-shadow: var(--shadow-md) !important;
 }
 
 .image-container {
-    height: 220px;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    background: #f4f4f4;
-
-    border-radius: 12px;
-
-    overflow: hidden;
+  position: relative;
+  height: 200px;
+  overflow: hidden;
 }
 
-img { 
-    width: 100%;
-    height: 100%;
-
-    object-fit: contain;
+img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.content {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+:deep(.badge) {
+  color: white;
 }
-
 h3 {
-    margin: 0;
-}
-
-.meta {
-    display: flex;
-    justify-content: space-between;
+  margin: 0;
+  font-size: var(--fs-body);
 }
 
 .price {
-    color: #7B2CBF;
-    font-weight: bold;
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-body);
 }
 
-.location {
-    colour: #777;
+.period {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-regular);
+  color: var(--color-text-muted);
 }
 
+.meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+}
 </style>

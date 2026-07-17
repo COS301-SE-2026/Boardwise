@@ -1,0 +1,20 @@
+@use 'vuetify/settings' with (
+
+  $button-border-radius: 10px,
+
+  $card-border-radius: 16px,
+
+  $field-border-radius: 10px,
+
+  $body-font-family: ('Inter', sans-serif),
+
+  $heading-font-family: ('Myanmar Khyay', serif),
+
+  $border-radius-root: 10px,
+
+  $button-text-transform: none,
+
+  $button-font-weight: 500,
+
+  $button-height: 44px
+);

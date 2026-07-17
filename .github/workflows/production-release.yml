@@ -1,0 +1,98 @@
+name: Production Release Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  # --------------------------------------------------
+  # Phase 1: Test the AI Gateway
+  # --------------------------------------------------
+  ai-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./ai
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Verify Environment
+        run: pip install -r requirements.txt pytest httpx
+      - name: Execute Test Suite
+        run: pytest tests/
+
+  # --------------------------------------------------
+  # Phase 2: Package Java Backend (No Testing)
+  # --------------------------------------------------
+  backend-build:
+    runs-on: ubuntu-latest
+    needs: ai-test
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      # -DskipTests compiles and creates the .jar but completely skips test execution
+      - name: Package Executable JAR (Skip Tests)
+        run: |
+          chmod +x ./mvnw
+          ./mvnw -B clean package -DskipTests
+
+  # --------------------------------------------------
+  # Phase 3: Test & Build Frontend
+  # --------------------------------------------------
+  frontend-test:
+    runs-on: ubuntu-latest
+    needs: backend-build
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './frontend/package-lock.json'
+      - name: Build Production Assets
+        run: |
+          npm ci
+          npm run build
+
+  # --------------------------------------------------
+  # Phase 4: Verify Containerization (Local Build Only)
+  # --------------------------------------------------
+  containerize:
+    runs-on: ubuntu-latest
+    needs: [frontend-test, backend-build, ai-test]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Build AI Gateway Image (Verification Only)
+      - name: Verify AI Gateway Docker Build
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ai
+          file: ./ai/Dockerfile
+          push: false
+          tags: boardwise-ai:latest
+
+      # Build Backend Image (Verification Only)
+      - name: Verify Backend Docker Build
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: false
+          tags: boardwise-backend:latest

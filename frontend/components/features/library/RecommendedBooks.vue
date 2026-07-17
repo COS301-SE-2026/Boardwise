@@ -1,27 +1,32 @@
 <template> 
-    <div class="recommended">
+    <div class="mt-10">
 
         <SectionTitle 
-            title="Recommnded Books"
-            subtitle="More rulebooks you may enjoy"
+            title="Recommended For You"
         />
 
-        <RulebookGrid />
+        <div class="d-flex ga-4 overflow-x-auto pb-3 mt-4">
+        <RulebookCard
+            v-for="rulebook in rulebooks"
+            :key="rulebook.id"
+            :rulebook="rulebook"
+            style="min-width: 180px; max-width: 180px;"
+            @click="$emit('select', $event)"
+        />
+        </div>
     </div>
 </template>
 
 <script setup>
 import SectionTitle from '~/components/ui/SectionTitle.vue'
+import RulebookCard from './RulebookCard.vue'
 
-import RulebookGrid from './RulebookGrid.vue'
+defineProps({
+    rulebooks: {
+        type: Array,
+        default: () => []
+    }
+})
+
+defineEmits(['select'])
 </script>
-
-<style scoped> 
-.recommended {
-    display: flex;
-    flex-direction: column;
-
-    gap: 24px;
-    margin-top: 40px;
-}
-</style>

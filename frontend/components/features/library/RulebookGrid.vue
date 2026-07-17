@@ -1,45 +1,27 @@
 <template> 
-    <div class="grid">
-
-        <RulebookCard 
-            v-for="rulebook in rulebooks"
-            :key="rulebook.id"
-
-            :id="rulebook.id"
-            :title="rulebook.title"
-            :image="rulebook.image"
-            :price="rulebook.category"
-        />
-    </div>
+    <v-row class="mt-8">
+    <v-col
+      v-for="rulebook in rulebooks"
+      :key="rulebook.id"
+      cols="6" sm="4" md="3" lg="2"
+    >
+      <RulebookCard
+        :rulebook="rulebook"
+        @click="$emit('select', $event)"
+      />
+    </v-col>
+  </v-row>
 </template>
 
 <script setup>
 import RulebookCard from './RulebookCard.vue'
 
-const rulebooks = [
-    {
-        id: 1,
-        title: 'Catan Rules',
-        image: '/games/catan.jpg',
-        category: 'Strategy'
-    },
+defineProps({
+  rulebooks: {
+    type: Array,
+    default: () => []
+  }
+})
 
-    {
-        id:2,
-        title: 'Wingspan Guide',
-        image: '/games/wingspan.jpg',
-        category: 'Engine Builder'
-    }
-]
+defineEmits(['select'])
 </script>
-
-<style scoped>
-.grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(auto-fit, minmax(220px, 1fr)); //auto wraps to the device (desktop and mobile)
-
-    gap: 20px;
-}
-</style>

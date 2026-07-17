@@ -1,41 +1,19 @@
 <template>
-  <div class="dropdown">
-
-    <BaseButton @click="open = !open">
-      {{ label }}
-    </BaseButton>
-
-    <div v-if="open" class="menu">
+  <v-menu>
+    <template #activator="{ props: menuProps}">
+      <v-btn v-bind="{ ...menuProps, ...$attrs }" variant="outlined">
+        {{ label }}
+        <v-icon end>mdi-chevron-down</v-icon>
+      </v-btn>
+    </template>
+    <v-list rounded="lg" elevation="2">
       <slot />
-    </div>
-
-  </div>
+    </v-list>
+  </v-menu>
 </template>
 
 <script setup>
-import BaseButton from './BaseButton.vue'
-
 defineProps({
   label: String
 })
-
-const open = ref(false)
 </script>
-
-<style scoped>
-.dropdown {
-  position: relative;
-}
-
-.menu {
-  position: absolute;
-  top: 110%;
-  left: 0;
-
-  background: white;
-
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 12px;
-}
-</style>

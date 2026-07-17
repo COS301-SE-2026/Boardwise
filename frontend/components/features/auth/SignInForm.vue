@@ -1,22 +1,57 @@
 <template> 
-    <AuthForm 
-        title="SignIn"
-        buttonText="SignIn"
-        @submit="handleSignIn"
-    />
+    <div>
+        <AuthForm 
+            title="Sign In"
+            buttonText="Sign In"
+            :fields="fields"
+            @submit="handleSignIn"
+        />
+
+        <v-alert 
+            v-if="error"
+            type="error"
+            variant="tonal"
+            class="mt-4"
+            density="compact"
+        >
+            {{ error }}
+        </v-alert>
+
+        <p class="text-center text-body-2 mt-4 text-medium-emphasis">
+            Don’t have an account?
+            <NuxtLink to="/auth/signup" class="text-primary font-weight-bold ml-1">
+                Sign Up
+            </NuxtLink>
+        </p>
+    </div>
 </template>
 
 <script setup>
 import AuthForm from './AuthForm.vue'
 
 const router = useRouter()
+const { login, error, loading} = useAuth()
 
-const handleSignIn = (data) => { 
+const fields = [
+    { key: 'username', placeholder: 'Username', type: 'text' },
+    { key: 'password', placeholder: 'Password', type: 'password' }
+]
+
+const handleSignIn = async (data) => {
     console.log('SignIn:', data)
 
-    <!-- TEMP SIGNIN -->
-    if (data.email && data.password) {
-        router.push('/profile')
+    if (!data.username || !data.password) {
+        error.value = 'Please fill in all fields.'
+        return
+    }
+
+    const success = await login({
+        username: data.username,
+        password: data.password
+    })
+
+    if (success){
+        router.push('/library')
     }
 }
 </script>

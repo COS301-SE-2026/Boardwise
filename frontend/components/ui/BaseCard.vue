@@ -1,15 +1,12 @@
-// Base Card for every other Card (Marketplace, Library and Profile Cards)
+<!-- Base Card for every other Card (Marketplace, Library and Profile Cards) -->
 <template> 
-    <div class="card">
-        <slot />
-    </div>
-</template>
+    <v-card 
+        rounded="lg"
+        :elevation="0"
+        border
+        v-bind="$attrs"
+    >
 
-<style scoped> 
-.card {
-    background: white;
-    border-radius: 16px; 
-    padding: 16px; 
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-</style>
+        <slot />
+    </v-card>
+</template>

@@ -1,76 +1,29 @@
 <template> 
-    <BaseCard> 
+    <BaseCard class="cursor-pointer overflow-hidden pa-0" 
+    @click="$emit('click', rulebook)"> 
 
-        <div class="card" @click="openBookDetails">
+        <BaseImage :src="rulebook.coverUrl" :alt="rulebook.title" height="200px" fit="cover" />
 
-            <div class="image-container">
-                <img :src="image" :alt="title" />
-            </div>
-        
-            <div class="content">
+        <div class="pa-3">
+          <p class="text-body-2 font-weight-bold mb-1">
+            {{ rulebook.title }}
+          </p>
 
-                <h3>{{ title }}</h3>
-                <p>{{ category }}</p>
-            </div>
+          <p class="text-caption text-medium-emphasis mb-0">
+            {{ rulebook.genre }}
+          </p>
         </div>
+        
     </BaseCard>
 </template>
 
 <script setup> 
 import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseImage from '~/components/ui/BaseImage.vue'
 
 const props = defineProps({
-    id: Number,
-    title: String,
-    image: String,
-    category: String
+    rulebook: Object
 })
 
-const router = useRouter()
-
-const openBook = () => {
-    router.push('/library/${props.id}')
-}
+defineEmits(['click'])
 </script>
-
-<style scoped>
-.card {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    cursor: pointer;
-}
-
-.image-container {
-    height: 240px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    background: #f5f5f5;
-    
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-img {
-    width: 100%;
-    height: 100%;
-
-    object-fit: contain;
-}
-
-.content {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-h3 {
-    margin: 0;
-}
-
-p {
-    color: #777;
-}
-</style>

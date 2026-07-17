@@ -1,3 +1,13 @@
+<script setup lang="ts">
+import GlobalSnackBar from './components/ui/GlobalSnackBar.vue';
+
+</script>
+
 <template>
-  <<NuxtPage />
+  <v-app>
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+    <GlobalSnackBar />
+  </v-app>
 </template>

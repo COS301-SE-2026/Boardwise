@@ -1,16 +1,24 @@
 <template>
-  <BaseInput
+  <v-text-field
+    v-bind="$attrs"
+    :model-value="modelValue"
     :placeholder="placeholder"
-    v-model="search"
+    variant="outlined"
+    density="compact"
+    hide-details
+    rounded="lg"
+    @update:model-value="$emit('update:modelValue', $event)"
   />
 </template>
 
 <script setup>
-import BaseInput from './BaseInput.vue'
-
 defineProps({
-  placeholder: String
+  modelValue: String, 
+  placeholder: {
+    type: String,
+    default: 'Search'
+  }
 })
 
-const search = defineModel()
+defineEmits(['update:modelValue'])
 </script>

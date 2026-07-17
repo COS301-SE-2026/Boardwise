@@ -1,54 +1,36 @@
-<template> 
-    <div class="info">
+<template>
+  <div class="d-flex flex-column ga-4">
+    <h1 class="text-h4 font-weight-bold">
+        {{ rulebook.title }}
+    </h1>
+    
+    <p class="text-primary font-weight-bold mb-0">
+        {{ rulebook.edition }}
+    </p>
+    
+    <p class="text-medium-emphasis mb-0" style="line-height: 1.6;">
+        {{ rulebook.description }}
+    </p>
 
-        <h1>{{ title }}</h1>
-
-        <p class="category">
-            {{ category }}
-        </p>
-
-        <p class="description">
-            {{ description }}
-        </p>
-
-        <BaseButton @click="readBook">
-            Read Rulebook
-        </BaseButton>
-    </div>
+    <BaseButton @click="readBook">
+        Read Rulebook
+    </BaseButton>
+  </div>
 </template>
 
 <script setup>
 import BaseButton from '~/components/ui/BaseButton.vue'
 
-const props = ({
-        id: Number,
-        title: String,
-        category: String,
-        description: String
+const props = defineProps ({
+        rulebook: {
+            type: Object,
+            required: true
+        }
 })
 
 const router = useRouter()
 
 const readBook = () => {
-    router.push('/library/${props.id}/read')
+    router.push(`/rulebook/${props.rulebook.id}/read`)
 }
 </script>
-
-<style scoped>
-.info {
-    display: flex;
-    flex-direction: column;
-
-    gap: 16px;
-}
-
-.category {
-    color: #7B2CBF;
-    font-weight: bold;
-}
-
-.description {
-    line-height: 1.6;
-    color: #555;
-}
-</style>

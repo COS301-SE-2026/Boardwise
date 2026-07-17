@@ -1,33 +1,45 @@
-<template> 
-    <div class="container">
-        <h1>Boardwise</h1>
-        <p>Your board game hub</p>
-    
-        <div class="actions">
-            <NuxtLink to="/auth/signin">
-                <BaseButton>Sign In</BaseButton>
-            </NuxtLink>
+<template>
+  <v-container fluid style="min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+    <v-row justify="center" align="center" style="width: 100%;">
+      <v-col cols="12" class="text-center">
 
-            <NuxtLink to="/auth/signup">
-                <BaseButton>Sign Up</BaseButton>
-            </NuxtLink>
+        <h1 style="font-size: 96px; font-weight: 700; line-height: 1.1;" class="mb-6">
+          Boardwise
+        </h1>
+
+        <p style="font-size: 24px;" class="text-medium-emphasis mb-12">
+          Your board game hub
+        </p>
+
+        <div class="d-flex justify-center ga-6">
+          <v-btn
+            color="primary"
+            size="x-large"
+            rounded="pill"
+            elevation="0"
+            style="padding: 0 48px; font-size: 18px; height: 56px;"
+            @click="router.push('/auth/signin')"
+          >
+            Sign In
+          </v-btn>
+
+          <v-btn
+            variant="outlined"
+            size="x-large"
+            rounded="pill"
+            elevation="0"
+            style="padding: 0 48px; font-size: 18px; height: 56px;"
+            @click="router.push('/library')"
+          >
+            Rulebooks
+          </v-btn>
         </div>
-    </div>
+
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
-<style scoped>
-.container {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 16px;
-}
-
-.actions {
-    display: flex;
-    gap: 12px;
-}
-
-</style>
+<script setup>
+const router = useRouter()
+</script>

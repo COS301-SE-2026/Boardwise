@@ -1,16 +1,34 @@
-<template> 
-    <button class="base-button">
-        <slot />
-    </button> 
+<template>
+  <v-btn
+    :color="colorMap[variant]"
+    :variant="styleMap[variant]"
+    :elevation="0"
+    rounded="lg"
+    class="text-none"
+    v-bind="$attrs"
+  >
+    <slot />
+  </v-btn>
 </template>
 
-<style scoped>
-.base-button {
-    padding: 10px 16px;
-    border: none;
-    border-radius: 8px; 
-    background: #7B2CBF;
-    color: white;
-    cursor: pointer;
+<script setup>
+defineProps({
+  variant: {
+    type: String,
+    default: 'primary'
+  }
+})
+
+// Maps for color and style based on the variant prop
+const colorMap = {
+  primary: 'primary',
+  secondary: 'secondary',
+  accent: 'error'
 }
-</style>
+
+const styleMap = {
+  primary: 'flat',
+  secondary: 'outlined',
+  accent: 'flat'
+}
+</script>

@@ -1,46 +1,17 @@
 <template>
-    <div class="tabs">
-
-        <button
-            v-for="tab in tabs"
-            :key="tab"
-            :class="{ active: selectedTab === tab}"
-            @click="selectedTab=tab"
-        >
-            {{ tab }}
-        </button>
-
-    </div>
+  <v-tabs v-model="selectedTab" color="primary">
+    <v-tab v-for="tab in tabs" :key="tab" :value="tab">
+      {{ tab }}
+    </v-tab>
+  </v-tabs>
 </template>
 
 <script setup>
+
 const tabs = [
-    'Trending',
-    'Nearby',
-    'New'
+  'Community Listings',
+  // 'Web'
 ]
 
-const selectedTab = ref('Trading')
+const selectedTab = ref('Community Listings')
 </script>
-
-<style scoped>
-.tabs {
-    display: flex;
-    gap: 20px;
-    overflow-x: auto;
-}
-
-button {
-    padding: 10px 16px;
-    border: none;
-    border-radius 20px;
-    background: #eee;
-    cursor: pointer;
-    white-space: nowrap;
-}
-
-.active {
-    background: #7B2CBF;
-    color: white;
-}
-</style>

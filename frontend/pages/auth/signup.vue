@@ -1,28 +1,13 @@
 <template>
-  <div class="container">
-    <AuthForm
-      title="Register"
-      buttonText="Register"
-      @submit="handleRegister"
-    />
-  </div>
+  <v-container class="fill-height" fluid>
+    <v-row justify="center" align="center">
+      <v-col cols="12" sm="8" md="5" lg="4">
+        <SignUpForm />
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script setup>
-    import AuthForm from '~/components/features/auth/AuthForm.vue'
-
-    const router = useRouter()
-
-    const handleRegister = (data) => {
-    console.log('REGISTER DATA:', data)
-
-    router.push('/profile')
-    }
+import SignUpForm from '~/components/features/auth/SignUpForm.vue'
 </script>
-
-<style scoped>
-.container {
-  max-width: 400px;
-  margin: 100px auto;
-}
-</style>
