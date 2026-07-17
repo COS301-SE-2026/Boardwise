@@ -95,11 +95,12 @@ interface AcquireWriteLockResponse{
     currentVersion: number;
 }
 interface CommitEditDeltaResponse{
-    commited: boolean;
+    committed: boolean;
     newVersion: number;
     committedAt: string;
+    lockExpiresAt: string;
 }
-class CommitEditDeltaRequest{
+class EditUndoOrRedoDeltaRequest{
     expectedVersion: number;
     content: string;
     chunkId: string;
@@ -109,6 +110,14 @@ class CommitEditDeltaRequest{
         this.content = content;
         this.chunkId = chunkId;
     }
+}
+
+interface UndoOrRedoActionResponse{
+    done: boolean;
+    newVersion: number;
+    chunkId: string;
+    doneAt: string;
+    lockExpiresAt: string;
 }
 
 export const LibraryService = {
@@ -153,12 +162,33 @@ export const LibraryService = {
 
         return $api<CommitEditDeltaResponse>(`vault/rulebooks/${id}/chunk/update`, {
             method:'PATCH',
-            body: new CommitEditDeltaRequest(data?.expectedVersion, data?.content, data?.chunkId)
+            body: new EditUndoOrRedoDeltaRequest(data?.expectedVersion, data?.content, data?.chunkId)
         });
     },
 
     releaseWriteLock(id: string){
         const {$api} = useNuxtApp();
         return $api<void>(`vault/rulebooks/${id}/lock/release`, { method: 'POST' });
+    },
+
+    releaseAllWriteLocks(){
+        const {$api} = useNuxtApp();
+        return $api<void>('vault/rulebooks/lock/release-all', { method: 'POST'});
+    },
+
+    undoEdit(id: string, data: any){
+        const {$api} = useNuxtApp();
+        return $api<UndoOrRedoActionResponse>(`vault/rulebooks/${id}/action/undo`, {
+            method: 'POST',
+            body: new EditUndoOrRedoDeltaRequest(data?.expectedVersion, data?.content, data?.chunkId)
+        });
+    },
+
+    redoEdit(id: string, data: any){
+        const {$api} = useNuxtApp();
+        return $api<UndoOrRedoActionResponse>(`vault/rulebooks/${id}/action/redo`, {
+            method: 'POST',
+            body: new EditUndoOrRedoDeltaRequest(data?.expectedVersion, data?.content, data?.chunkId)
+        });
     }
 }

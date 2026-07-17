@@ -142,6 +142,7 @@ public class WriteLockService {
             .committed(true)
             .newVersion(rulebook.getVersion())
             .committedAt(now)
+            .lockExpiresAt(rulebook.getLockExpiresAt())
             .build();
     }
 
@@ -450,6 +451,7 @@ public class WriteLockService {
             .chunkId(targetEvent.getChunkId().toHexString())
             .newVersion(newVersion)
             .doneAt(now)
+            .lockExpiresAt(rulebook.getLockExpiresAt())
             .build();
     }
 
@@ -587,6 +589,7 @@ public class WriteLockService {
                 .chunkId(targetEvent.getChunkId().toHexString())
                 .newVersion(newVersion)
                 .doneAt(now)
+                .lockExpiresAt(rulebook.getLockExpiresAt())
                 .build();
     }
     
