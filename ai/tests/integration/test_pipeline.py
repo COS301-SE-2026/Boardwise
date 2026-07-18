@@ -122,6 +122,6 @@ def test_run_ingestion_pipeline_failure(mock_upload_pdf, mock_image_open, mock_o
 
     # Assert
     verify_job_state(job_id, "Failed", "Unknown")
-    db = verify_rulebook_state(rulebook_id, "Failed")
+    verify_rulebook_state(rulebook_id, "Failed")
 
     mock_upload_pdf.assert_called_once()
