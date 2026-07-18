@@ -6,7 +6,7 @@
                     Appearance
                 </h2>
                 <p class="text-body-2 text-medium-emphasis">
-                    Customise how Boarrdwise looks for you
+                    Customise how Boardwise looks for you
                 </p>
             </div>  
 
@@ -30,8 +30,8 @@
             </v-btn-toggle>
         </div>
 
-            <div class="d-flex justify-end">
-            <BaseButton @click="emit('save', appearance)">
+            <div class="d-flex justify-end mt-2">
+            <BaseButton @click="emit('save', {  theme: appearance})">
                 Apply
             </BaseButton>
         </div>

@@ -1,6 +1,6 @@
 <template>
     <BaseCard class="pa-6">
-        <div class="d-fles flex-column ga-4">
+        <div class="d-flex flex-column ga-4">
             <div>
                 <h2 class="text-h5">
                     General
@@ -38,8 +38,8 @@
                 label="Bio"  
                 placeholder="Change bio"   
                 />
-                <div class="d-flex justify-end">
-            <BaseButton @click="emit('save', form)">
+                <div class="d-flex justify-end mt-2">
+            <BaseButton @click="emit('save', { ...form})">
                 Save changes
             </BaseButton>
             </div>  
