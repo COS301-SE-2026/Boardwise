@@ -1,6 +1,8 @@
 package com.boardwise.backend.user_service.services;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -49,10 +51,12 @@ public class R2StorageService {
     }
 
     public String getFileUrl(String fileName) {
+        fileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
+
         if (publicUrl != null && !publicUrl.isEmpty()) {
             return publicUrl + fileName;
         }
-        
+
         return String.format("https://%s.r2.cloudflarestorage.com/%s", 
                 bucketName, fileName);
     }
