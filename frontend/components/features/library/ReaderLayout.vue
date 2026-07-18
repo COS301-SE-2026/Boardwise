@@ -56,7 +56,12 @@
       </v-row>
     </v-container>
 
-    <ReaderHistory v-model="showHistory" :edits="editHistory" :is-loading="isLoadingHistory"/>
+    <ReaderHistory
+      :model-value="showHistory"
+      @update:model-value="showHistory = $event"
+      :edits="editHistory"
+      :is-loading="isLoadingHistory"
+      :error="historyError"/>
 
   </div>
 </template>
@@ -87,22 +92,19 @@ const currentMatch = ref(0)
 
 // edit logic
 
-const localChunks  = ref([...props.chunks])
-const version      = ref(0) // TODO: seed from response.data.version when fetching text
+const localChunks = ref([...props.chunks])
 const showHistory = ref(false)
 
-const { isEditing, isSaving, lockHeldBy, lockExpiresAt, lockError, canRedo, canUndo, startEditing, stopEditing, releaseAllLocks, commitDelta, undoEdit, redoEdit } = useEditLock()
-const { editHistory, isLoadingHistory, fetchEditHistory } = useEditHistory()
+const { isEditing, isSaving, lockHeldBy, lockExpiresAt, lockError, canRedo, canUndo, currentVersion, startEditing, stopEditing, releaseAllLocks, commitDelta, undoEdit, redoEdit } = useEditLock()
+const { editHistory, isLoadingHistory, historyError, fetchEditHistory } = useEditHistory()
 const { show } = useSnackBar()
 const { getRulebookText } = useLibrary()
 
-// TODO: Integrate with backend to fetch the latest version and edits when the component is mounted or when the rulebook changes.
-//const activeChunk = computed(() => props.chunks[currentPage.value])
 const activeChunk = computed(() => localChunks.value[currentPage.value])
 
 watch(() => props.chunks, (val) => {
   localChunks.value = [...val]
-}, { immediate: true })
+}, { immediate: true, deep: true })
 
 const handlePageChange = (index) => {
   if (isEditing.value) {
@@ -127,22 +129,24 @@ const handleSave = async (deltaContent) => {
     const chunk = localChunks.value[currentPage.value];
     const previousContent = chunk?.content;
 
-    localChunks.value[currentPage.value] = { ...chunk, content: deltaContent };
+    // localChunks.value[currentPage.value] = { ...chunk, content: deltaContent };
+    chunk.content = deltaContent;
 
     try {
         const newVersion = await commitDelta(
             props.rulebook.id,
             chunk?.chunkId ?? '',
             deltaContent,
-            version.value
+            currentVersion.value
         );
-        version.value = newVersion;
+        currentVersion.value = newVersion;
         show('Section saved.', 'success');
     } catch(err) {
         if (err?.status === 409 && err?.data?.error === 'VersionMismatchException') {
             await reconcileStaleState();
         } else {
-            localChunks.value[currentPage.value] = { ...chunk, content: previousContent };
+            // localChunks.value[currentPage.value] = { ...chunk, content: previousContent };
+            chunk.content = previousContent;
             show('Failed to save. Please try again.', 'error');
         }
     } finally {
@@ -155,6 +159,9 @@ const handleSave = async (deltaContent) => {
 watch(showHistory, async (val) => {
     if (val && props.rulebook?.id) {
         await fetchEditHistory(props.rulebook.id);
+        if(historyError.value){
+          show(historyError.value, 'error');
+        }
     }
 })
 
@@ -225,7 +232,7 @@ const reconcileStaleState = async () => {
     try {
         const fresh = await getRulebookText(props.rulebook.id);
         if (fresh?.chunks)  localChunks.value = [...fresh.chunks];
-        if (fresh?.version) version.value = fresh.version;
+        if (fresh?.version) currentVersion.value = fresh.version;
         show('Your view was out of date and has been refreshed.', 'info');
     } catch {
         show('Failed to refresh document state.', 'error');
@@ -235,8 +242,8 @@ const reconcileStaleState = async () => {
 const handleUndo = async () => {
     if (!props.rulebook?.id) return;
     try {
-        const newVersion = await undoEdit(props.rulebook.id, version.value);
-        version.value = newVersion;
+        const newVersion = await undoEdit(props.rulebook.id, '', currentVersion.value);
+        currentVersion.value = newVersion;
     } catch(err) {
         if (err?.status === 409) {
             show('Nothing left to undo.', 'info');
@@ -249,8 +256,8 @@ const handleUndo = async () => {
 const handleRedo = async () => {
     if (!props.rulebook?.id) return;
     try {
-        const newVersion = await redoEdit(props.rulebook.id, version.value);
-        version.value = newVersion;
+        const newVersion = await redoEdit(props.rulebook.id, '', currentVersion.value);
+        currentVersion.value = newVersion;
     } catch(err) {
         if (err?.status === 409) {
             show('Nothing left to redo.', 'info');
@@ -262,7 +269,7 @@ const handleRedo = async () => {
 
 const handleBeforeUnload = (e) => {
     if (isEditing.value && props.rulebook?.id) {
-        releaseAllLocks(props.rulebook.id);
+        releaseAllLocks();
         e.preventDefault();
         e.returnValue = '';
     }
@@ -275,7 +282,7 @@ onMounted(() => {
 onUnmounted(() => {
     window.removeEventListener('beforeunload', handleBeforeUnload);
     if (isEditing.value && props.rulebook?.id) {
-        releaseAllLocks(props.rulebook.id);
+        releaseAllLocks();
     }
 })
 
@@ -284,5 +291,9 @@ onBeforeRouteLeave(async () => {
         await stopEditing(props.rulebook.id);
     }
 })
+
+defineExpose({
+  reconcileStaleState
+});
 
 </script>

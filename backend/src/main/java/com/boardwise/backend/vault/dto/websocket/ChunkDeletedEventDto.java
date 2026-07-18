@@ -9,6 +9,4 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class ChunkDeletedEventDto extends BaseVaultEventDto {
-    private String chunkId;
-}
+public class ChunkDeletedEventDto extends BaseVaultEventDto {}

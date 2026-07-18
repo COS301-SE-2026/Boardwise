@@ -209,6 +209,8 @@ public class RulebookService {
         String coverUrl = "";
         Integer minPlayers = -1;
         Integer maxPlayers = -1;
+        Integer minAge = -1;
+        Integer duration = -1;
 
         if(rulebook.getGameId() != null){
             Boardgame game = findBoardgameOrThrow(rulebook.getGameId());
@@ -216,6 +218,8 @@ public class RulebookService {
             coverUrl = resolveCoverUrl(rulebook.getCoverUrl(), rulebook.getR2CoverKey());
             minPlayers = game.getMinPlayers();
             maxPlayers = game.getMaxPlayers();
+            minAge = game.getMinAge();
+            duration = game.getDuration();
         }
 
         String username = "";
@@ -241,11 +245,19 @@ public class RulebookService {
                 .updatedAt(rulebook.getUpdatedAt())
                 .minPlayers(minPlayers)
                 .maxPlayers(maxPlayers)
+                .minAge(minAge)
+                .duration(duration)
                 .build();
     }
 
     private EditEventResponseDto toEditEventResponse(EditEvent event) {
-        User  user = findUserOrThrow(event.getEditorId());
+        // User user = findUserOrThrow(event.getEditorId());
+        User user = userRepository.findById(event.getEditorId().toHexString()).orElseGet(() -> {
+            User deletedUser = new User();
+            deletedUser.setId(event.getEditorId().toHexString());
+            deletedUser.setUsername("Deleted User");
+            return deletedUser;
+        });
 
         return EditEventResponseDto.builder()
             .id(event.getId().toHexString())
