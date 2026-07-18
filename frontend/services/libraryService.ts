@@ -23,10 +23,13 @@ interface RulebookResponse{
     description: string;
     language: string;
     lockHeldBy: string;
+    lockExpiresAt: string;
     uploadedAt: string; // Instant returned as a string
     updatedAt: string; // Instant returned as a string
     minPlayers: number;
     maxPlayers: number;
+    minAge: number;
+    duration: number;
 }
 interface PaginatedRulebookResponse{
     content: Array<RulebookSummaryResponse>;
@@ -64,6 +67,47 @@ interface RulebookSummaryResponse{
     minPlayers: number;
     maxPlayers: number;
 }
+interface DownloadUrlResponse{
+    downloadUrl: string;
+    expiresAt: string;
+}
+interface EditEventResponse{
+    id: string;
+    rulebookId: string;
+    editor: string;
+    chunkId: string;
+    editType: string;
+    previousContent: string;
+    newContent: string;
+    versionPostEdit: number;
+    committedAt: string;
+}
+
+interface EditHistoryResponse{
+    rulebookId: string;
+    totalEdits: number;
+    edits: EditEventResponse[];
+}
+interface AcquireWriteLockResponse{
+    lockGranted: boolean;
+    lockedBy: string;
+    expiresAt: string;
+    currentVersion: number;
+}
+interface CommitEditDeltaResponse{
+    committed: boolean;
+    newVersion: number;
+    committedAt: string;
+    lockExpiresAt: string;
+}
+
+interface UndoOrRedoActionResponse{
+    done: boolean;
+    newVersion: number;
+    chunkId: string;
+    doneAt: string;
+    lockExpiresAt: string;
+}
 
 export const LibraryService = {
     fetchAllRulebooks(search = '', page = 1, limit = 20) {
@@ -78,12 +122,74 @@ export const LibraryService = {
     },
 
     fetchRulebookById(id: string){
-      const { $api } = useNuxtApp();
-      return $api<RulebookResponse>(`vault/rulebooks/${id}`)
+        const { $api } = useNuxtApp();
+        return $api<RulebookResponse>(`vault/rulebooks/${id}`);
     },
 
     fetchRulebookText(id: string) {
-      const { $api } = useNuxtApp();
-      return $api<RulebookTextResponse>(`vault/rulebooks/${id}/text`)
+        const { $api } = useNuxtApp();
+        return $api<RulebookTextResponse>(`vault/rulebooks/${id}/text`);
+    },
+
+    fetchDownloadRulebook(id: string){
+        const {$api} = useNuxtApp();
+        return $api<DownloadUrlResponse>(`vault/rulebooks/${id}/download`);
+    },
+
+    fetchEditHistory(id: string){
+        const {$api} = useNuxtApp();
+        return $api<EditHistoryResponse>(`vault/rulebooks/${id}/history`);
+    },
+
+    acquireWriteLock(id: string){
+        const {$api} = useNuxtApp();
+        return $api<AcquireWriteLockResponse>(`vault/rulebooks/${id}/lock/acquire`,{ method: 'POST' });
+    },
+
+    commitEditDelta(id: string, data: any){
+        const {$api} = useNuxtApp();
+
+        return $api<CommitEditDeltaResponse>(`vault/rulebooks/${id}/chunk/update`, {
+            method:'PATCH',
+            body: {
+                expectedVersion: data?.expectedVersion,
+                content: data?.content,
+                chunkId: data?.chunkId
+            }
+        });
+    },
+
+    releaseWriteLock(id: string){
+        const {$api} = useNuxtApp();
+        return $api<void>(`vault/rulebooks/${id}/lock/release`, { method: 'POST' });
+    },
+
+    releaseAllWriteLocks(){
+        const {$api} = useNuxtApp();
+        return $api<void>('vault/rulebooks/lock/release-all', { method: 'POST'});
+    },
+
+    undoEdit(id: string, data: any){
+        const {$api} = useNuxtApp();
+        return $api<UndoOrRedoActionResponse>(`vault/rulebooks/${id}/action/undo`, {
+            method: 'POST',
+            body: {
+                expectedVersion: data?.expectedVersion,
+                content: data?.content,
+                chunkId: data?.chunkId
+            }
+        });
+    },
+
+    redoEdit(id: string, data: any){
+        const {$api} = useNuxtApp();
+        return $api<UndoOrRedoActionResponse>(`vault/rulebooks/${id}/action/redo`, {
+            method: 'POST',
+            body: {
+                expectedVersion: data?.expectedVersion,
+                content: data?.content,
+                chunkId: data?.chunkId
+            }
+        });
     }
 }

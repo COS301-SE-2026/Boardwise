@@ -10,10 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repos.UserRepository;
-import com.boardwise.backend.vault.dto.request.CommitEditDeltaRequestDto;
+import com.boardwise.backend.vault.dto.request.CommitEditDeltaOrDoActionRequestDto;
 import com.boardwise.backend.vault.dto.request.DeleteChunkRequestDto;
 import com.boardwise.backend.vault.dto.request.InsertNewChunkRequestDto;
-import com.boardwise.backend.vault.dto.request.UndoOrRedoActionRequestDto;
 import com.boardwise.backend.vault.dto.request.VaultBaseRequestDto;
 import com.boardwise.backend.vault.dto.response.AcquireWriteLockDto;
 import com.boardwise.backend.vault.dto.response.CommitEditDeltaResponseDto;
@@ -94,7 +93,7 @@ public class WriteLockService {
 
     // AC-VLT-07: Commit Edit Delta
     @Transactional
-    public CommitEditDeltaResponseDto commitEditDelta(ObjectId rulebookId, ObjectId userId, CommitEditDeltaRequestDto request){
+    public CommitEditDeltaResponseDto commitEditDelta(ObjectId rulebookId, ObjectId userId, CommitEditDeltaOrDoActionRequestDto request){
         // Check if user exists
         User user = findUserOrThrow(userId);
         Instant now = Instant.now();
@@ -107,12 +106,12 @@ public class WriteLockService {
         ObjectId targetChunkId = new ObjectId(request.getChunkId());
         
         // 2. Fetch Previous Text State
-        RulebookText chunkBeforeUpdate = rulebookTextRepository.findBySpecificChunk(rulebookId, targetChunkId)
+        RulebookText chunkBeforeUpdate = rulebookTextRepository.findBySpecificChunk(rulebookId, request.getChunkId())
             .orElseThrow(() -> new ChunkNotFoundException(rulebookId, targetChunkId));
         String previousText = chunkBeforeUpdate.getChunks().get(0).getContent();
 
         // 3. Update RULEBOOK_TEXT
-        rulebookTextRepository.atomicUpdateChunk(rulebookId, new ObjectId(request.getChunkId()), request.getContent());
+        rulebookTextRepository.atomicUpdateChunk(rulebookId, targetChunkId, request.getContent());
 
         // Push onto undoStack and clear redoStack
         rulebookRepository.atomicCommitForwardEdit(rulebookId, nextVersion);
@@ -121,7 +120,7 @@ public class WriteLockService {
         EditEvent event = EditEvent.builder()
             .rulebookId(rulebookId)
             .editorId(new ObjectId(user.getId()))
-            .chunkId(new ObjectId(request.getChunkId()))
+            .chunkId(targetChunkId)
             .chunkBefore(null)
             .editType(EditType.UPDATE)
             .previousContent(previousText)
@@ -143,6 +142,7 @@ public class WriteLockService {
             .committed(true)
             .newVersion(rulebook.getVersion())
             .committedAt(now)
+            .lockExpiresAt(rulebook.getLockExpiresAt())
             .build();
     }
 
@@ -276,7 +276,7 @@ public class WriteLockService {
         
         // 2. Update RULEBOOK_TEXT
         ObjectId chunkToDeleteId = new ObjectId(request.getChunkId());
-        RulebookText chunkBeforeDelete = rulebookTextRepository.findBySpecificChunk(rulebookId, chunkToDeleteId)
+        RulebookText chunkBeforeDelete = rulebookTextRepository.findBySpecificChunk(rulebookId, request.getChunkId())
             .orElseThrow(() -> new ChunkNotFoundException(rulebookId, chunkToDeleteId));
         String actualPreviousText = chunkBeforeDelete.getChunks().get(0).getContent();
         int actualPreviousIndex = chunkBeforeDelete.getChunks().get(0).getIndex();
@@ -320,7 +320,7 @@ public class WriteLockService {
     }
 
     @Transactional
-    public UndoOrRedoActionResponseDto undoAction(ObjectId rulebookId, ObjectId userId, UndoOrRedoActionRequestDto request){
+    public UndoOrRedoActionResponseDto undoAction(ObjectId rulebookId, ObjectId userId, CommitEditDeltaOrDoActionRequestDto request){
         // 1. Validation and Session
         // Validate user
         User user = findUserOrThrow(userId);
@@ -451,11 +451,12 @@ public class WriteLockService {
             .chunkId(targetEvent.getChunkId().toHexString())
             .newVersion(newVersion)
             .doneAt(now)
+            .lockExpiresAt(rulebook.getLockExpiresAt())
             .build();
     }
 
     @Transactional
-    public UndoOrRedoActionResponseDto redoAction(ObjectId rulebookId, ObjectId userId, UndoOrRedoActionRequestDto request){
+    public UndoOrRedoActionResponseDto redoAction(ObjectId rulebookId, ObjectId userId, CommitEditDeltaOrDoActionRequestDto request){
         // 1. Validation and Session
         // Validate user
         User user = findUserOrThrow(userId);
@@ -588,6 +589,7 @@ public class WriteLockService {
                 .chunkId(targetEvent.getChunkId().toHexString())
                 .newVersion(newVersion)
                 .doneAt(now)
+                .lockExpiresAt(rulebook.getLockExpiresAt())
                 .build();
     }
     

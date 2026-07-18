@@ -11,4 +11,5 @@ public class CommitEditDeltaResponseDto {
     private boolean committed;
     private long newVersion;
     private Instant committedAt;
+    private Instant lockExpiresAt;
 }

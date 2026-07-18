@@ -35,9 +35,11 @@ services:
       - R2_BUCKET_LISTINGS=${R2_BUCKET_LISTINGS}
       - R2_DEV_URL=${R2_DEV_URL}
       - R2_PROD_URL=${R2_PROD_URL}
-      - BBG_TOKEN={BGG_TOKEN}
-      - BGG_URL={BGG_URL}
+      - BGG_TOKEN=${BGG_TOKEN}
+      - BGG_URL=${BGG_URL}
+      - R2_RULEBOOKS_PUBLIC_DEV_URL=${R2_RULEBOOKS_PUBLIC_DEV_URL}
       - GOOGLE_MAP_API_KEY=${GOOGLE_MAP_API_KEY}
+      
     ports:
       - 8080:8080
     depends_on:
@@ -49,7 +51,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s
-
   # ai-gateway:
   #   build: ./ai/
   #   restart: on-failure

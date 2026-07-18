@@ -14,7 +14,7 @@
     </BaseFilterGroup>
 
     <BaseFilterGroup title="Listing Type">
-      <v-checkbox v-model="filters.rent" label="Rent"     density="compact" color="primary" hide-details />
+      <v-checkbox v-model="filters.rent" label="Rent" density="compact" color="primary" hide-details />
       <v-checkbox v-model="filters.sale" label="For Sale" density="compact" color="primary" hide-details />
     </BaseFilterGroup>
 
@@ -48,8 +48,8 @@ import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue'
 
 const emit = defineEmits(['filter'])
 
-const genres       = ['All', 'Strategy', 'Family', 'Party', 'Card', 'Abstract']
-const conditions       = ['New', 'Like New', 'Good', 'Fair']
+const genres = ['All', 'Strategy', 'Family', 'Party', 'Card', 'Abstract']
+const conditions = ['New', 'Like New', 'Good', 'Fair']
 const selectedGenre  = ref('All')
 const selectedConditions = ref([])
 
@@ -62,7 +62,7 @@ const filters = reactive({
 
 watch([selectedGenre, selectedConditions, filters], () => {
   emit('filter', {
-    genre:   selectedGenre.value,
+    genres: selectedGenre.value === 'All' ? null : [selectedGenre.value],
     conditions: selectedConditions.value,
     rent: filters.rent,
     sale: filters.sale,
@@ -72,7 +72,7 @@ watch([selectedGenre, selectedConditions, filters], () => {
 }, { deep: true })
 
 const resetFilters = () => {
-  selectedGenre.value   = 'All'
+  selectedGenre.value = 'All'
   selectedConditions.value = []
   filters.rent= false
   filters.sale = false

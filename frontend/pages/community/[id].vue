@@ -1,51 +1,73 @@
 <template>
    <PageContainer>
- 
     <Navbar />
  
-    <div v-if="community" class="community-page">
+    <div 
+      v-if="community" 
+      class="d-flex flex-column ga-6 mt-6"
+      >
  
-      <CommunityBanner :community="community" />
+      <CommunityBanner 
+        :community="community" 
+        @members="showMembers = true"
+        @events="showEvents = true"
+        />
  
-      <ExploreTabs :active-tab="activeTab" @change="activeTab = $event" />
- 
-      <CommunityChats v-if="activeTab === 'Chat'" :community="community" />
-      <MemberList     v-if="activeTab === 'Members'" :community="community" />
-      <CommunityAbout v-if="activeTab === 'About'" :community="community" />
- 
+      <CommunityChats 
+        :community="community" />
+
+      <MemberList
+        v-model="showMembers"
+        :community="community"
+      />
+
+      <CommunityEvents
+        v-model="showEvents"
+        :community="community"
+      />
     </div>
- 
+
+    <BaseEmptyState
+      v-else
+      title="Community not found"
+    />
+
   </PageContainer>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { communities } from '~/services/mockData/communities'
- 
+import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
  
 import CommunityBanner from '~/components/features/community/CommunityBanner.vue'
-import ExploreTabs from '~/components/features/community/ExploreTabs.vue'
 import CommunityChats from '~/components/features/community/CommunityChats.vue'
 import MemberList from '~/components/features/community/MemberList.vue'
-import CommunityAbout from '~/components/features/community/CommunityAbout.vue'
+import CommunityEvents from '~/components/features/community/CommunityEvents.vue'
+
+import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
+
+import { useCommunity } from '~/composables/useCommunity'
 
 const route = useRoute()
 
-const community = communities.find(
-  item => item.id === Number(route.params.id)
+const {
+  communities,
+  getAllCommunities
+} = useCommunity()
+
+const showMembers = ref(false)
+const showEvents = ref(false)
+
+onMounted(() =>{
+  getAllCommunities()
+})
+
+const community = computed(() =>
+  communities.value.find(
+    (item) => String(item.id) === String(route.params.id)
+  )
 )
-
-const activeTab = ref('Chat')
-
 </script>
-
-<style scoped>
-.community-page {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  margin-top: 24px;
-}
-</style>
