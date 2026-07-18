@@ -244,6 +244,9 @@ public class ProfileService {
         if(!gameRepo.existsById(gameId))
             throw new IllegalArgumentException("A board game associated with ID: " + gameId + "does not exist.");
 
+        if(user.getOwnedGames().contains(gameId))
+            throw new IllegalStateException("Board game with id: " + gameId + " is already in user inventory.");
+
         user.getOwnedGames().add(gameId);
         user = userRepo.save(user);
 
