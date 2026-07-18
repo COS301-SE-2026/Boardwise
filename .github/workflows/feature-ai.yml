@@ -5,12 +5,18 @@ on:
         branches-ignore: ["main"]
         paths: ["ai/**"]
     pull_request:
-        branches: ["dev", "integration"]
+        branches: ["dev"]
         paths: ["ai/**"]
 
 jobs:
     test-ai:
         runs-on: ubuntu-latest
+
+        services:
+          mongodb:
+            image: mongo:latest
+            ports:
+              - 27017:27017
 
         env:
           JWT_SECRET: "ci_dummy_secret_key_12345"
@@ -44,5 +50,5 @@ jobs:
                 python -m pip install --upgrade pip
                 pip install -r requirements-dev.txt
 
-            - name: Run Unit Tests
-              run: pytest tests/unit/ -v
+            - name: Run Tests
+              run: pytest -v tests/
