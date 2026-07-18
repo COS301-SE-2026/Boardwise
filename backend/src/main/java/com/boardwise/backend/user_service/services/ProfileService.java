@@ -333,7 +333,8 @@ public class ProfileService {
 
         if(!user.getOwnedGames().remove(gameId))
             throw new IllegalArgumentException("Board game with id: " + gameId + " was not found in user inventory.");
-            
+        
+        user = userRepo.save(user);
         
         List<GameInventoryDTO> games = new ArrayList<>();
         int ownedGameCount = user.getOwnedGames().size();

@@ -1,19 +1,18 @@
 <template>
   <v-card rounded="xl" elevation="1">
-    <BaseImage :src="rulebook?.image" :alt="rulebook?.title" height="280px" fit="cover" />
+    <BaseImage :src="rulebook?.coverUrl" :alt="rulebook?.title" height="280px" fit="cover" />
 
     <div class="pa-10">
       <p class="text-caption text-uppercase font-weight-bold text-primary mb-2">
-        {{ rulebook?.category }}
+        {{ formattedGenres }}
       </p>
 
       <h1 class="text-h4 font-weight-bold mb-4">{{ rulebook?.title }}</h1>
 
       <div class="d-flex flex-wrap ga-4 mb-2">
-        <v-chip size="small" prepend-icon="mdi-account-group">{{ rulebook?.players }} players</v-chip>
+        <v-chip size="small" prepend-icon="mdi-account-group">{{ formattedPlayerCount }}</v-chip>
         <v-chip size="small" prepend-icon="mdi-clock-outline">{{ rulebook?.duration }}</v-chip>
-        <v-chip size="small" prepend-icon="mdi-gauge">{{ rulebook?.difficulty }}</v-chip>
-        <v-chip size="small" prepend-icon="mdi-account">Age {{ rulebook?.age }}</v-chip>
+        <v-chip size="small" prepend-icon="mdi-account">{{ rulebook?.minAge }}</v-chip>
       </div>
 
       <v-divider class="my-7" />
@@ -23,7 +22,7 @@
       <!-- Read view -->
       <template v-if="!isEditing">
         <p class="text-body-1 text-medium-emphasis" style="line-height: 1.9;">
-          <template v-for="(segment, i) in contentSegments" :key="i">
+          <template v-for="(segment, i) in contentSegments" :key="`${i}-${segment.text.length}`">
             <mark v-if="segment.active" class="search-highlight search-highlight--active">{{ segment.text }}</mark>
             <mark v-else-if="segment.highlight" class="search-highlight">{{ segment.text }}</mark>
             <span v-else>{{ segment.text }}</span>
@@ -92,6 +91,26 @@ const props = defineProps({
   }
 })
 
+const formattedPlayerCount = computed(() => {
+  if(!props.rulebook) return '0 players';
+
+  const min = props.rulebook.minPlayers;
+  const max = props.rulebook.maxPlayers;
+
+  if(min == max){
+    return `${min} players`;
+  }
+  return `${min} - ${max} players`;
+});
+
+const formattedGenres = computed(() => {
+  if(!props.rulebook) return "";
+
+  const genreArray = props.rulebook.genres;
+
+  return `${genreArray.join(', ')}`;
+});
+
 const contentSegments = computed(() => {
   const text = props.page?.content ?? ''
   if (!props.searchQuery.trim()) return [{ text, highlight: false, active: false }]
@@ -115,9 +134,14 @@ watch(() => props.isEditing, (val) => {
   if (val) editContent.value = props.page?.content ?? ''
 })
 
-watch(() => props.page, (val) => {
-  if (props.isEditing) editContent.value = val?.content ?? ''
-})
+// watch(() => props.page, (val) => {
+//   if (props.isEditing) editContent.value = val?.content ?? ''
+// })
+watch(() => props.page?.content, (newContent) => {
+  if(props.isEditing){
+    editContent.value = newContent ?? '';
+  }
+});
 
 const editContent = ref('')
 

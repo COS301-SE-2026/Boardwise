@@ -21,7 +21,12 @@ public class SearchIndexInitializer implements CommandLineRunner{
 
     @Override
     public void run(String... args){
-        MongoCollection<Document> collection = template.getCollection("BOARD_GAME");
+        String collectionName = "BOARD_GAME";
+        MongoCollection<Document> collection = template.getCollection(collectionName);
+
+        if(!template.collectionExists(collectionName)){
+            template.createCollection(collectionName);
+        }
 
         boolean exists = false;
         for(Document index : collection.listSearchIndexes()){

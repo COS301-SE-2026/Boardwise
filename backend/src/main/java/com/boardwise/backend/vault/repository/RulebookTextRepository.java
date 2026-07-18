@@ -11,6 +11,6 @@ import com.boardwise.backend.vault.model.RulebookText;
 public interface RulebookTextRepository extends MongoRepository<RulebookText, ObjectId>, RulebookTextRepositoryCustom {
     Optional<RulebookText> findByRulebookId(ObjectId rulebookId);
 
-    @Query(value = "{'_id': ?0, 'chunks.chunkId': ?1}", fields = "{'chunks.$': 1}")
-    Optional<RulebookText> findBySpecificChunk(ObjectId rulebooId, ObjectId chunkId);
+    @Query(value = "{'rulebookId': ?0, 'chunks.chunkId': {$oid: ?1}}", fields = "{'chunks.$': 1}")
+    Optional<RulebookText> findBySpecificChunk(ObjectId rulebookId, String chunkId);
 }
