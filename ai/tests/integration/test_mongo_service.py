@@ -200,8 +200,6 @@ def test_update_ingestion_job_success_for_valid_job_id(seed_rulebook):
 def test_get_ingestion_job_success(seed_rulebook):
     """Verifies that get ingestion job retrieves the specified ingestion job"""
     # Arrange
-    db = mongo_service.client[os.environ["DB_NAME"]]
-
     rulebook_id = str(seed_rulebook)
     job_id = mongo_service.create_ingestion_job(rulebook_id)
 

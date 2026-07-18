@@ -1,4 +1,5 @@
 import os
+import pytest
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timezone
 from app.pipeline import ingestion
@@ -6,37 +7,56 @@ from app.services import mongo_service
 from bson import ObjectId
 from botocore.exceptions import ClientError
 
-@patch("app.services.extractor.pytesseract.image_to_string")
-@patch("app.services.extractor.Image.open")
-@patch("app.services.r2_service.upload_to_r2")
-def test_run_ingestion_pipeline_success(mock_upload_pdf, mock_image_open, mock_ocr, seed_board_game, seed_user, mock_pdf_bytes):
-    """Verifies that the ingestion pipeline runs successfully when given the correct parameters"""
-    # Arrange
-    mock_image_open.return_value = MagicMock()
-    mock_ocr.return_value = "This text was successfully extracted via Tesseract OCR."
-    mock_upload_pdf.return_value = "The file has been sent to the r2 bucket."
-
+@pytest.fixture
+def base_ingestion_setup(seed_user):
+    """Fixture to handle repetitive database seeding for integration tests."""
     rulebook_id = mongo_service.create_rulebook("Dune", None, seed_user, "en", "")
     job_id = mongo_service.create_ingestion_job(rulebook_id)
     filename = "Dune Rulebook.pdf"
+    return rulebook_id, job_id, filename
+
+def verify_job_state(job_id, expected_status, expected_stage, check_completed_at=False):
+    """Helper to assert the state of the ingestion job"""
+    ingestion_job = mongo_service.get_ingestion_job(job_id)
+    assert ingestion_job is not None
+    assert ingestion_job["jobStatus"] == expected_status
+    assert ingestion_job["stage"] == expected_stage
+
+    if check_completed_at:
+        assert isinstance(ingestion_job["completedAt"], datetime)
+        delta = datetime.now(timezone.utc) - ingestion_job["completedAt"].replace(tzinfo=timezone.utc)
+        assert delta.total_seconds() < 10
+
+def verify_rulebook_state(rulebook_id, expected_status, expected_r2_key=None):
+    """Helper to assert the state of the rulebook and return the db instance for further checks."""
+    db = mongo_service.client[os.environ["DB_NAME"]]
+    rulebook = db.RULEBOOK.find_one({"_id": ObjectId(rulebook_id)})
+    assert rulebook is not None
+    assert rulebook["status"] == expected_status
+    
+    if expected_r2_key is not None:
+        assert rulebook["r2PdfKey"] == expected_r2_key
+    
+    return db
+
+@patch("app.services.extractor.pytesseract.image_to_string")
+@patch("app.services.extractor.Image.open")
+@patch("app.services.r2_service.upload_to_r2")
+def test_run_ingestion_pipeline_success(mock_upload_pdf, mock_image_open, mock_ocr, seed_board_game, mock_pdf_bytes, base_ingestion_setup):
+    """Verifies that the ingestion pipeline runs successfully when given the correct parameters"""
+    # Arrange
+    rulebook_id, job_id, filename = base_ingestion_setup
+
+    mock_image_open.return_value = MagicMock()
+    mock_ocr.return_value = "This text was successfully extracted via Tesseract OCR."
+    mock_upload_pdf.return_value = "The file has been sent to the r2 bucket."
 
     # Act
     ingestion.run_ingestion_pipeline(mock_pdf_bytes, filename, rulebook_id, job_id)
 
     # Assert
-    ingestion_job = mongo_service.get_ingestion_job(job_id)
-    assert ingestion_job is not None
-    assert ingestion_job["jobStatus"] == "Completed"
-    assert ingestion_job["stage"] == "Store"
-    assert isinstance(ingestion_job["completedAt"], datetime)
-    delta = datetime.now(timezone.utc) - ingestion_job["completedAt"].replace(tzinfo=timezone.utc)
-    assert delta.total_seconds() < 10
-
-    db = mongo_service.client[os.environ["DB_NAME"]]
-    rulebook = db.RULEBOOK.find_one({"_id": ObjectId(rulebook_id)})
-    assert rulebook is not None
-    assert rulebook["status"] == "Ready"
-    assert rulebook["r2PdfKey"] == f"rulebooks/{rulebook_id}/dune_rulebook.pdf"
+    verify_job_state(job_id, "Completed", "Store", check_completed_at=True)
+    db = verify_rulebook_state(rulebook_id, "Ready", f"rulebooks/{rulebook_id}/dune_rulebook.pdf")
 
     rulebook_text = db.RULEBOOK_TEXT.find_one({"rulebookId": ObjectId(rulebook_id)})
     assert rulebook_text is not None
@@ -48,9 +68,11 @@ def test_run_ingestion_pipeline_success(mock_upload_pdf, mock_image_open, mock_o
 @patch("app.services.extractor.Image.open")
 @patch("app.services.r2_service.upload_to_r2")
 @patch("app.services.extractor.fitz.open")
-def test_run_ingestion_pipeline_success_using_ocr_fallback(mock_fitz_open, mock_upload_pdf, mock_image_open, mock_ocr, seed_board_game, seed_user, mock_pdf_bytes):
+def test_run_ingestion_pipeline_success_using_ocr_fallback(mock_fitz_open, mock_upload_pdf, mock_image_open, mock_ocr, seed_board_game, mock_pdf_bytes, base_ingestion_setup):
     """Verifies that the ingestion pipeline runs successfully when given the correct parameters"""
     # Arrange
+    rulebook_id, job_id, filename = base_ingestion_setup
+
     mock_page = MagicMock()
     mock_page.get_text.return_value = "Too short."
 
@@ -67,27 +89,12 @@ def test_run_ingestion_pipeline_success_using_ocr_fallback(mock_fitz_open, mock_
     mock_ocr.return_value = "This text was successfully recovered via OCR fallback."
     mock_upload_pdf.return_value = "The file has been sent to the r2 bucket."
 
-    rulebook_id = mongo_service.create_rulebook("Dune", None, seed_user, "en", "")
-    job_id = mongo_service.create_ingestion_job(rulebook_id)
-    filename = "Dune Rulebook.pdf"
-
     # Act
     ingestion.run_ingestion_pipeline(mock_pdf_bytes, filename, rulebook_id, job_id)
 
     # Assert
-    ingestion_job = mongo_service.get_ingestion_job(job_id)
-    assert ingestion_job is not None
-    assert ingestion_job["jobStatus"] == "Completed"
-    assert ingestion_job["stage"] == "Store"
-    assert isinstance(ingestion_job["completedAt"], datetime)
-    delta = datetime.now(timezone.utc) - ingestion_job["completedAt"].replace(tzinfo=timezone.utc)
-    assert delta.total_seconds() < 10
-
-    db = mongo_service.client[os.environ["DB_NAME"]]
-    rulebook = db.RULEBOOK.find_one({"_id": ObjectId(rulebook_id)})
-    assert rulebook is not None
-    assert rulebook["status"] == "Ready"
-    assert rulebook["r2PdfKey"] == f"rulebooks/{rulebook_id}/dune_rulebook.pdf"
+    verify_job_state(job_id, "Completed", "Store", check_completed_at=True)
+    db = verify_rulebook_state(rulebook_id, "Ready", f"rulebooks/{rulebook_id}/dune_rulebook.pdf")
 
     rulebook_text = db.RULEBOOK_TEXT.find_one({"rulebookId": ObjectId(rulebook_id)})
     assert rulebook_text is not None
@@ -101,30 +108,20 @@ def test_run_ingestion_pipeline_success_using_ocr_fallback(mock_fitz_open, mock_
 @patch("app.services.extractor.pytesseract.image_to_string")
 @patch("app.services.extractor.Image.open")
 @patch("app.services.r2_service.upload_to_r2")
-def test_run_ingestion_pipeline_failure(mock_upload_pdf, mock_image_open, mock_ocr, seed_board_game, seed_user, mock_pdf_bytes):
+def test_run_ingestion_pipeline_failure(mock_upload_pdf, mock_image_open, mock_ocr, seed_board_game, mock_pdf_bytes, base_ingestion_setup):
     """Verifies that the ingestion pipeline crashes exeptions and updates the database to a Failed state."""
     # Arrange
+    rulebook_id, job_id, filename = base_ingestion_setup
     mock_image_open.return_value = MagicMock()
     mock_ocr.return_value = "This text was successfully extracted via Tesseract OCR."
     err_res = {"Error": {"Code": 500, "Message": "Internal Server Error"}}
     mock_upload_pdf.side_effect = ClientError(err_res, 'UploadPart')
 
-    rulebook_id = mongo_service.create_rulebook("Dune", None, seed_user, "en", "")
-    job_id = mongo_service.create_ingestion_job(rulebook_id)
-    filename = "Dune Rulebook.pdf"
-
     # Act
     ingestion.run_ingestion_pipeline(mock_pdf_bytes, filename, rulebook_id, job_id)
 
     # Assert
-    ingestion_job = mongo_service.get_ingestion_job(job_id)
-    assert ingestion_job is not None
-    assert ingestion_job["jobStatus"] == "Failed"
-    assert ingestion_job["stage"] == "Unknown"
-
-    db = mongo_service.client[os.environ["DB_NAME"]]
-    rulebook = db.RULEBOOK.find_one({"_id": ObjectId(rulebook_id)})
-    assert rulebook is not None
-    assert rulebook["status"] == "Failed"
+    verify_job_state(job_id, "Failed", "Unknown")
+    db = verify_rulebook_state(rulebook_id, "Failed")
 
     mock_upload_pdf.assert_called_once()

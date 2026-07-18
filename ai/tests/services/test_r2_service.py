@@ -35,7 +35,7 @@ def test_upload_to_r2_success(mock_s3_client):
 
     mock_s3_client.put_object.assert_called_once()
 
-    called_args, called_kwargs = mock_s3_client.put_object.call_args
+    _ , called_kwargs = mock_s3_client.put_object.call_args
 
     assert called_kwargs["Bucket"] == r2_service.settings.R2_BUCKET_RULEBOOKS
     assert called_kwargs["Key"] == key
@@ -48,10 +48,10 @@ def test_upload_to_r2_failure(mock_s3_client):
     err_res = {"Error": {"Code": 500, "Message": "Internal Server Error"}}
     mock_s3_client.put_object.side_effect = ClientError(err_res, 'UploadPart')
 
-    bytes = b"mock"
+    mock_bytes = b"mock"
 
     # Act
-    uploaded = r2_service.upload_to_r2(bytes, "mock_id", "application/pdf")
+    uploaded = r2_service.upload_to_r2(mock_bytes, "mock_id", "application/pdf")
 
     # Assert
     assert uploaded is False
