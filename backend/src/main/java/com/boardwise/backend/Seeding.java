@@ -231,22 +231,22 @@ public class Seeding {
 
             if (boardGameRepository.count() == 0) {
                 List<Boardgame> boardGames = List.of(
-                        new Boardgame(null, 1 ,"Monopoly", "Classic property trading game.",
+                        new Boardgame(null, null ,"Monopoly", "Classic property trading game.",
                                 "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png", 2, 8, 
                                 8, 120, List.of("Strategy", "Trading")),
-                        new Boardgame(null, 2,"Scrabble", "Word building board game.",
+                        new Boardgame(null, null ,"Scrabble", "Word building board game.",
                                 "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg", 2, 4, 
                                 10, 90, List.of("Word", "Abstract Strategy")),
-                        new Boardgame(null,13,"Catan","Resource trading and settlement building game."
+                        new Boardgame(null, null,"Catan","Resource trading and settlement building game."
                                 ,"https://cf.geekdo-images.com/0XODRpReiZBFUffEcqT5-Q__imagepage/img/enC7UTvCAnb6j1Uazvh0OBQjvxw=/fit-in/900x600/filters:no_upscale():strip_icc()/pic9156909.png",3,4,
                                 10, 90, List.of("Strategy", "Negotiation", "Economic")),
-                        new Boardgame(null,20549,"Pandemic","Cooperative game to cure global disease",
+                        new Boardgame(null,null,"Pandemic","Cooperative game to cure global disease",
                                 "https://cf.geekdo-images.com/S3ybV1LAp-8SnHIXLLjVqA__imagepage/img/kIBu-2Ljb_ml5n-S8uIbE6ehGFc=/fit-in/900x600/filters:no_upscale():strip_icc()/pic1534148.jpg",2,4,
                                 8, 45, List.of("Cooperative", "Strategy")),
-                        new Boardgame(null,9209,"Ticket to Ride","Railway route-building game.",
+                        new Boardgame(null, null,"Ticket to Ride","Railway route-building game.",
                                 "https://cf.geekdo-images.com/kdWYkW-7AqG63HhqPL6ekA__imagepage/img/AWsdGNNSuI78BaCPAVQpjrUneKY=/fit-in/900x600/filters:no_upscale():strip_icc()/pic8937637.jpg",2,5,
                                 8,45,List.of("Strategy","Trains","Transportation")),
-                        new Boardgame(null, 171, "Chess", "Classic two-player strategy game played on an 8x8 board.", "https://new.uschess.org/sites/default/files/styles/1080px_wide_scale/public/media/images/2024_cover_image.png.webp?itok=xUbyXJ_i", 2,2,
+                        new Boardgame(null, null, "Chess", "Classic two-player strategy game played on an 8x8 board.", "https://new.uschess.org/sites/default/files/styles/1080px_wide_scale/public/media/images/2024_cover_image.png.webp?itok=xUbyXJ_i", 2,2,
                                 5,90,List.of("Abstract Strategy", "Classic"))
                 );
                 boardGameRepository.saveAll(boardGames);
