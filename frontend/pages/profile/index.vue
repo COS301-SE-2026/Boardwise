@@ -115,8 +115,11 @@ const openCustomModal = () => {
 const handleRemoveGame = async(gameId)=>{
   try{
     loading.value = true;
-    await removeGame(gameId);
-    await refreshUser();
+    let response = await removeGame(gameId);
+    user.value.ownedGameCount = response.ownedGamesCount;
+    user.value.games = response.games;
+
+    // await refreshUser();
   }
   catch(err){
     console.error('Failed to remove game:', err);
@@ -126,9 +129,14 @@ const handleRemoveGame = async(gameId)=>{
   }
 }
 
-const handleCustomGame = async () => {
+const handleCustomGame = async (response) => {
   showCustom.value = false;
-  await refreshUser();
+
+  user.value.ownedGameCount = response.ownedGamesCount;
+  user.value.games = response.games;
+
+
+  // await refreshUser();
 }
 
 const handleProfileUpdate = (newValues) => {
@@ -144,7 +152,6 @@ const handleProfileUpdate = (newValues) => {
   console.log("handle update is indeed finished with its work...")
 }
 
-const router = useRouter()
 onMounted(async () => {
   const token = localStorage.getItem('access_token')
   if (!token) {

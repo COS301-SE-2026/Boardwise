@@ -68,12 +68,6 @@ const props = defineProps({
   }
 })
 
-const mockUser = {
-  name: 'Alexandra Lee',
-  username: 'alexalee',
-  location: 'Pretoria, South Africa',
-  bio: 'Board game lover • Strategy enthusiast'
-}
 
 const name = ref(props.user.fullName)
 const username = ref(props.user.username)
@@ -87,7 +81,12 @@ const handleSave = async () => {
     location : location.value
   })
   emit('save', response)  
+  // clear everything
   open.value = false
+  name.value = ""
+  username.value = ""
+  location.value = ""
+  bio.value = ""
 }
 </script>
 

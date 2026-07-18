@@ -30,16 +30,17 @@
             >
 
             <div class="gameCard_image">
-                <img :src="game.imageUrl ?? '/default-game.png'" :alt="game.title" />
+                <!-- <img :src="game.imageUrl ?? '/default-game.png'" :alt="game.title" /> -->
 
                 <div v-if="isSelected(game)" class="gameCard_overlay">
                     <v-icon color="white" size="28">mdi-check-circle</v-icon>
                 </div>
-        </div>
-
-        <p class="gameCard_title">{{ game.title }}</p>
-        <p class="gameCard_genre">{{ game.genre?.[0] ?? '' }}</p>
+            
             </div>
+
+            <p class="gameCard_title">{{ game.title }}</p>
+            <p class="gameCard_genre">{{ game.genre?.[0] ?? '' }}</p>
+        </div>
 
             <div class="d-flex justify-space-between align-center">
                 <BaseButton variant="secondary" @click="$emit('add-custom')">

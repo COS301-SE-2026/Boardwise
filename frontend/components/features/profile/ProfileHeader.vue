@@ -5,7 +5,7 @@
 
       <div class="d-flex align-center ga-6 flex-wrap">
 
-        <v-avatar size="80" class="profile-avatar">
+        <v-avatar size="80" class="profile-avatar" @click="showPfpModal = true">
           <v-img
             :src="user.profilePicture ?? '/images/avatar.jpg'"
             :alt="`${user.fullName} profile picture`"
@@ -57,19 +57,28 @@
       @save="$emit('saved', $event)"
     />
 
+    <ChangeProfilePictureModal
+      v-model="showPfpModal"
+      :user="user"
+      @save="$emit('pfpChange', $event)"
+    />
+
   </v-card>
 </template>
 
 <script setup>
 import EditProfileModal from './EditProfileModal.vue'
+import ChangeProfilePictureModal from './ChangeProfilePictureModal.vue';
 
 defineProps({
   user: { type: Object, required: true }
 })
 
-defineEmits(['saved'])
+defineEmits(['saved', 'pfpChange'])
 
 const showEdit = ref(false)
+const showPfpModal = ref(false)
+
 </script>
 
 <style scoped>
@@ -81,11 +90,9 @@ const showEdit = ref(false)
   min-height: 197px; 
 }
 
-.no-pref{
-
-}
 .profile-avatar {
   border: 3px solid var(--color-border-strong);
+  cursor: pointer;
 }
 
 .profile-bio--empty {

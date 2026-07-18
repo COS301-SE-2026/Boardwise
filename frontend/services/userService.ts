@@ -21,18 +21,18 @@ export interface OtherGameDTO {
     genres: Array<string>;
 }
 
-interface GameInventory {
-    id: string;
-    title: string;
-    description: string;
-    imageURL: string;
-    genres: Array<string>;
-}
+// interface GameInventory {
+//     id: string;
+//     title: string;
+//     description: string;
+//     imageURL: string;
+//     genres: Array<string>;
+// }
 
 interface InventoryUpdateResponse {
     message: string;
     ownedGamesCount: number;
-    games: GameInventory[];
+    games: Array<Boardgame>;
 }
 
 interface GameListItem {
@@ -68,6 +68,11 @@ interface ProfileUpdateResponse{
     username: string;
     email: string;
     password: string; // Remove this from being returned by the updateProfile endpoint
+}
+
+interface ProfilePictureResponse{
+    message: string;
+    profilePictureUrl: string;
 }
 
 interface GenresResponse {
@@ -108,6 +113,10 @@ export const userService = {
                 location : user.location
             }
         });
+    },
+
+    updateProfilePicture(newPfp: File){
+        
     },
 
     searchForBoardGame(game: string){
