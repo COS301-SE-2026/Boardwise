@@ -36,10 +36,10 @@ interface PaginatedRulebookResponse{
     empty: boolean;
     first: boolean;
     last: boolean;
-    number: 0;
-    numberOfElements: 3;
+    number: number;
+    numberOfElements: number;
     pageable: PageableResponse;
-    size: 20;
+    size: number;
     sort: SortResponse;
     totalElements: number;
     totalPages: number;
@@ -66,6 +66,8 @@ interface RulebookSummaryResponse{
     genres: string[];
     minPlayers: number;
     maxPlayers: number;
+    minAge: number;
+    duration: number;
 }
 interface DownloadUrlResponse{
     downloadUrl: string;

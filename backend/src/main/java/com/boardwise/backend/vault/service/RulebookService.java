@@ -181,6 +181,8 @@ public class RulebookService {
         String coverUrl = "";
         Integer minPlayers = -1;
         Integer maxPlayers = -1;
+        Integer minAge = -1;
+        Integer duration = -1;
 
         if(rulebook.getGameId() != null){
             Boardgame game = findBoardgameOrThrow(rulebook.getGameId());
@@ -188,6 +190,8 @@ public class RulebookService {
             coverUrl = resolveCoverUrl(rulebook.getCoverUrl(), rulebook.getR2CoverKey());
             minPlayers = game.getMinPlayers();
             maxPlayers = game.getMaxPlayers();
+            minAge = game.getMinAge();
+            duration = game.getDuration();
         }
 
         return RulebookSummaryResponseDto.builder()
@@ -200,6 +204,8 @@ public class RulebookService {
                 .genres(genres)
                 .minPlayers(minPlayers)
                 .maxPlayers(maxPlayers)
+                .duration(duration)
+                .minAge(minAge)
                 .build();
     }
 
