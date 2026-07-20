@@ -16,8 +16,7 @@
 
         <div v-if="selectedGames.length" class="selected-bar mb-3">
             <v-icon size="16" color="primary">mdi-check-circle</v-icon>
-            {{ selectedGames.length }} game
-            {{ selectedGames.length > 1 ? 's' : '' }} selected
+            {{ selectedGames.length }} game{{ selectedGames.length > 1 ? 's' : '' }} selected
         </div>
 
         <div class="gamesGrid mb-4">
@@ -30,16 +29,21 @@
             >
 
             <div class="gameCard_image">
-                <img :src="game.imageUrl ?? '/default-game.png'" :alt="game.title" />
-
-                <div v-if="isSelected(game)" class="gameCard_overlay">
-                    <v-icon color="white" size="28">mdi-check-circle</v-icon>
+                <div v-if="isSelected(game)" class="gameCard_overlay float-right">
+                    <v-icon color="primary" size="28">mdi-check-circle</v-icon>
                 </div>
-        </div>
 
-        <p class="gameCard_title">{{ game.title }}</p>
-        <p class="gameCard_genre">{{ game.genre?.[0] ?? '' }}</p>
+                <v-img
+                    :width="131"
+                    aspect-ratio="16/9"
+                    cover
+                    :src="game.imageUrl ?? '/default.png'"
+                ></v-img>
             </div>
+
+            <p class="gameCard_title">{{ game.title }}</p>
+            <p class="gameCard_genre">{{ game.genre?.[0] ?? '' }}</p>
+        </div>
 
             <div class="d-flex justify-space-between align-center">
                 <BaseButton variant="secondary" @click="$emit('add-custom')">
@@ -48,7 +52,7 @@
 
                 <BaseButton :disabled="!selectedGames.length" @click="handleConfirm">
                     Add {{ selectedGames.length > 0 ? selectedGames.length : '' }} 
-                    Game {{ selectedGames.length !== 1 ? 's' : '' }}
+                    Game{{ selectedGames.length !== 1 ? 's' : '' }}
                 </BaseButton>
             </div>
         </div>

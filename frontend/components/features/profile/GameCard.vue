@@ -4,8 +4,8 @@
     <v-img :src="image" :alt="title" height="180" cover />
 
     <v-card-text>
-      <h3 class="game-card__title ma-0">{{ title }}</h3>
-      <p class="game-card__category ma-0 mt-1">{{ category }}</p>
+      <h3 class="game-card__title ma-0">{{ decodedTitle }}</h3>
+      <p class="game-card__category ma-0 mt-1">{{ decodedCategory }}</p>
     </v-card-text>
 
     <!--TEMPORARY METHOD OF DELETING-->
@@ -21,9 +21,10 @@
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
 import RemoveGameModal from './RemoveGameModal.vue';
+import { computed } from 'vue';
 // import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
 
-defineProps({
+const props = defineProps({
   id: { type: String, required: true },
   title: String,
   category: String,
@@ -32,6 +33,8 @@ defineProps({
 
 const showDetail = ref(false)
 const openDelete = ref(false);
+const decodedTitle = computed(() => decodeEntity(props.title));
+const decodedCategory = computed(() => decodeEntity(props.category));
 
 async function handleRemove(){
   try{
@@ -40,6 +43,15 @@ async function handleRemove(){
   catch{
     console.error('Failed to remove game', err)
   }
+}
+
+function decodeEntity(entity) {
+  if(!entity) return ''
+  return entity.replaceAll(/&#39;/g, "'")
+              .replaceAll(/&quot;/g, '"')
+              .replaceAll(/&amp;/g, '&')
+              .replaceAll(/&lt;/g, '<')
+              .replaceAll(/&gt;/g, '>')
 }
 
 const emit = defineEmits(['remove'])

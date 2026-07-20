@@ -24,7 +24,15 @@
 </template>
 
 <script setup>
-import { communities } from '~/services/mockData/communities'
+// import { communities } from '~/services/mockData/communities'
+
+defineProps({
+  communities: {
+    type: Array,
+    required: true
+  }
+})
+
 </script>
 
 <style scoped>

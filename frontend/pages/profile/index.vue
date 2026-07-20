@@ -4,15 +4,15 @@
     <template v-if="user">
       <Navbar />
 
-      <ProfileHeader :user="user" @saved="user = $event" />
+      <ProfileHeader :user="user" @saved="handleProfileUpdate" @pfp-change="handlePfpChange"/>
 
       <ProfileStats
-        :games="user.ownedGameCount"
-        :friends="15"
+        :games="user.games.length"
+        :friends="user.friendCount"
         :communities="user.groupCount"
       />
 
-      <ProfileCommunities />
+      <ProfileCommunities :communities="user.communities" />
 
       <v-tabs
         v-model="activeTab"
@@ -83,11 +83,13 @@ import ListingsSection from '~/components/features/profile/ListingsSection.vue'
 import GameBrowserModal from '~/components/features/profile/GameBrowserModal.vue'
 import AddCustomGameModal from '~/components/features/profile/AddCustomGameModal.vue'
 import { useProfile } from '~/composables/useProfile'
+import { useSnackBar } from '~/composables/useSnackbar'
 import { useMarketplace } from '~/composables/useMarketplace'
 import { useRouter } from 'vue-router'
 
 const { fetchCurrentUser, removeGame } = useProfile();
 const { listings, fetchUserListing, loading, error } = useMarketplace();
+const { show } = useSnackBar();
 const router = useRouter();
 const activeTab = ref('Games Owned');
 const user = ref(null);
@@ -115,20 +117,47 @@ const openCustomModal = () => {
 const handleRemoveGame = async(gameId)=>{
   try{
     loading.value = true;
-    await removeGame(gameId);
-    await refreshUser();
+    let response = await removeGame(gameId);
+    user.value.ownedGameCount = response.ownedGamesCount;
+    user.value.games = response.games;
+
+    show("Game successfully removed");
   }
   catch(err){
     console.error('Failed to remove game:', err);
+    show("Game removal failed", "error");
   }
   finally{
     loading.value = false;
   }
 }
 
-const handleCustomGame = async () => {
+const handleCustomGame = async (response) => {
   showCustom.value = false;
-  await refreshUser();
+  user.value.ownedGameCount = response.ownedGamesCount;
+  user.value.games = response.games;
+
+
+  // await refreshUser();
+}
+
+const handleProfileUpdate = (newValues) => {
+  if(!user.value || !newValues)
+    return
+
+  user.value = {
+    ...user.value,
+    ...newValues
+  }
+  show("Profile details successfully updated");
+}
+
+const handlePfpChange = (newPfp) => {
+  if(!newPfp || !user.value)
+    return;
+
+  user.value.profilePicture = newPfp.profilePictureUrl;
+  show("Profile picture successfully updated");
 }
 
 onMounted(async () => {
