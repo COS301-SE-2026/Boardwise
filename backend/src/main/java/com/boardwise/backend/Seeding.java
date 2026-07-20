@@ -1,16 +1,20 @@
 package com.boardwise.backend;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import org.bson.types.ObjectId;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.geo.Point;
+import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -19,10 +23,15 @@ import com.boardwise.backend.marketplace.model.Listing;
 import com.boardwise.backend.marketplace.model.RentalPeriod;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.user_service.models.Boardgame;
+import com.boardwise.backend.user_service.models.Event;
+import com.boardwise.backend.user_service.models.EventStatus;
 import com.boardwise.backend.user_service.models.Group;
 import com.boardwise.backend.user_service.models.GroupMembership;
 import com.boardwise.backend.user_service.models.User;
+import com.boardwise.backend.user_service.models.Visibility;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.user_service.repos.EventAttendeeRepository;
+import com.boardwise.backend.user_service.repos.EventsRepository;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
@@ -36,6 +45,10 @@ import com.boardwise.backend.vault.repository.EditEventRepository;
 import com.boardwise.backend.vault.repository.IngestionJobRepository;
 import com.boardwise.backend.vault.repository.RulebookRepository;
 import com.boardwise.backend.vault.repository.RulebookTextRepository;
+import com.google.maps.GeoApiContext;
+import com.google.maps.GeocodingApi;
+import com.google.maps.errors.ApiException;
+import com.google.maps.model.GeocodingResult;
 import com.boardwise.backend.marketplace.enums.Genres;
 
 @Component
@@ -46,11 +59,23 @@ public class Seeding {
             return new ObjectId(userRepository.findByUsername(username).get().getId());
     }
 
+    private GeoJsonPoint getPoint(String locationText, GeoApiContext geoApiContext) throws ApiException, InterruptedException, IOException{
+        GeocodingResult[] results = GeocodingApi.geocode(geoApiContext, locationText).await();
+
+        if(results.length == 0)
+            throw new NoSuchElementException("Could not find coordinates for location: " + locationText);
+
+        double latitude = results[0].geometry.location.lat;
+        double longitude = results[0].geometry.location.lng;
+
+        return new GeoJsonPoint(new Point(longitude, latitude));
+    }
+
         
     @Bean
     public CommandLineRunner seedDB(ListingRepository listingRepository, BoardGameRepository boardGameRepository, GroupMembershipRepository groupMembershipRepository,
-            GroupRepository groupRepository, UserRepository userRepository, EditEventRepository editEventRepository,
-            IngestionJobRepository ingestionJobRepository, RulebookRepository rulebookRepository, RulebookTextRepository rulebookTextRepository) {
+            GroupRepository groupRepository, UserRepository userRepository, EditEventRepository editEventRepository, EventsRepository eventsRepository, EventAttendeeRepository eaRepository,
+            IngestionJobRepository ingestionJobRepository, RulebookRepository rulebookRepository, RulebookTextRepository rulebookTextRepository, GeoApiContext geoApiContext) {
         return args -> {
             // User Repository
             if (userRepository.count() == 0) {
@@ -229,7 +254,7 @@ public class Seeding {
                 System.out.println("Listings already seeded, skipping...");
             }
 
-            if (boardGameRepository.count() == 0) {
+            if (boardGameRepository.count() == 0 || boardGameRepository.findAllByBggIdNull().size() == 0) {
                 List<Boardgame> boardGames = List.of(
                         new Boardgame(null, null ,"Monopoly", "Classic property trading game.",
                                 "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png", 2, 8, 
@@ -237,9 +262,6 @@ public class Seeding {
                         new Boardgame(null, null ,"Scrabble", "Word building board game.",
                                 "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg", 2, 4, 
                                 10, 90, List.of("Word", "Abstract Strategy")),
-                        new Boardgame(null, null,"Catan","Resource trading and settlement building game."
-                                ,"https://cf.geekdo-images.com/0XODRpReiZBFUffEcqT5-Q__imagepage/img/enC7UTvCAnb6j1Uazvh0OBQjvxw=/fit-in/900x600/filters:no_upscale():strip_icc()/pic9156909.png",3,4,
-                                10, 90, List.of("Strategy", "Negotiation", "Economic")),
                         new Boardgame(null,null,"Pandemic","Cooperative game to cure global disease",
                                 "https://cf.geekdo-images.com/S3ybV1LAp-8SnHIXLLjVqA__imagepage/img/kIBu-2Ljb_ml5n-S8uIbE6ehGFc=/fit-in/900x600/filters:no_upscale():strip_icc()/pic1534148.jpg",2,4,
                                 8, 45, List.of("Cooperative", "Strategy")),
@@ -473,6 +495,82 @@ public class Seeding {
                 // Write Locks
             } else {
                 System.out.println("Rulebooks already seeded, skipping...");
+            }
+
+            if(eventsRepository.count() == 0){
+                List<String> locations = List.of(
+                    "Hatfield, Pretoria, South Africa",
+                    "Middelburg, Mpumalanga, South Africa",
+                    "Cape Town, Western Cape, South Africa"
+                );
+
+                List<User> hosts = List.of(
+                    userRepository.findByUsername("IAmR3al").get(),
+                    userRepository.findByUsername("alex_games").get(),
+                    userRepository.findByUsername("bob").get()
+                );
+
+                List<Event> events = List.of(
+                    Event.builder()
+                    .name("Monopoly Marathon")
+                    .description("For all those who have a deep appreciation for Monopoly. We come together to play endless Monopoly.")
+                    .eventImg("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTqaRxggdV-L056ZTh9f7LKcpIoVcP4v53iKXGheeGmiw&s=10")
+                    .startDateTime(LocalDateTime.of(2026, 8, 1, 17, 30))
+                    .endDateTime(LocalDateTime.of(2026, 8, 1, 21, 30))
+                    .locationText(locations.get(0))
+                    .location(getPoint(locations.get(0), geoApiContext))
+                    .creatorId(hosts.get(0).getId())
+                    .visibility(Visibility.PUBLIC)
+                    .status(EventStatus.OPEN)
+                    .createdAt(Instant.now())
+                    .games(List.of(
+                        boardGameRepository.findByTitle("Monopoly").get().getId()
+                    ))
+                    .build(),
+                    Event.builder()
+                    .name("Catan Catastrophe")
+                    .description("It's a CAT-astrophe (pun intended) when we play Catan and we'd like everyone to join.")
+                    .eventImg("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxK9bxTqFLwoD6FsdgHwKptKZP-C6FT1Zdbjm5ZFN9Yg&s=10")
+                    .startDateTime(LocalDateTime.of(2026, 7, 29, 14, 15))
+                    .endDateTime(LocalDateTime.of(2026, 7, 29, 19, 45))
+                    .locationText(locations.get(1))
+                    .location(getPoint(locations.get(1), geoApiContext))
+                    .creatorId(hosts.get(1).getId())
+                    .visibility(Visibility.PUBLIC)
+                    .status(EventStatus.OPEN)
+                    .createdAt(Instant.now())
+                    .games(List.of(
+                        boardGameRepository.findByTitle("Catan").get().getId()
+                    ))
+                    .build(),
+                    Event.builder()
+                    .name("Scrabble storm")
+                    .description("For all you wordy word involved beings. Let's come together and make our own dictionary.")
+                    .eventImg("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4Vli4TuzztmpIsJCpCzS85Bc-wTouRRnjGuffq488YQ&s=10")
+                    .startDateTime(LocalDateTime.of(2026, 7, 28, 10, 30))
+                    .endDateTime(LocalDateTime.of(2026, 7, 28, 12, 15))
+                    .locationText(locations.get(2))
+                    .location(getPoint(locations.get(2), geoApiContext))
+                    .creatorId(hosts.get(2).getId())
+                    .visibility(Visibility.PRIVATE)
+                    .status(EventStatus.OPEN)
+                    .createdAt(Instant.now())
+                    .games(List.of(
+                        boardGameRepository.findByTitle("Scrabble").get().getId()
+                    ))
+                    .build()
+                );
+                eventsRepository.saveAll(events);
+            }
+            else{
+                System.out.println("Events already seeded, skipping...");
+            }
+
+            if(eaRepository.count() == 0){
+
+            }
+            else{
+                System.out.println("Event Attendees already seeded, skipping...");
             }
         };
     }
