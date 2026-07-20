@@ -83,11 +83,13 @@ import ListingsSection from '~/components/features/profile/ListingsSection.vue'
 import GameBrowserModal from '~/components/features/profile/GameBrowserModal.vue'
 import AddCustomGameModal from '~/components/features/profile/AddCustomGameModal.vue'
 import { useProfile } from '~/composables/useProfile'
+import { useSnackBar } from '~/composables/useSnackbar'
 import { useMarketplace } from '~/composables/useMarketplace'
 import { useRouter } from 'vue-router'
 
 const { fetchCurrentUser, removeGame } = useProfile();
 const { listings, fetchUserListing, loading, error } = useMarketplace();
+const { show } = useSnackBar();
 const router = useRouter();
 const activeTab = ref('Games Owned');
 const user = ref(null);
@@ -147,6 +149,7 @@ const handleProfileUpdate = (newValues) => {
     ...user.value,
     ...newValues
   }
+  show("Profile details successfully updated");
 }
 
 const handlePfpChange = (newPfp) => {
@@ -154,7 +157,7 @@ const handlePfpChange = (newPfp) => {
     return;
 
   user.value.profilePicture = newPfp.profilePictureUrl;
-  
+  show("Profile picture successfully updated");
 }
 
 onMounted(async () => {

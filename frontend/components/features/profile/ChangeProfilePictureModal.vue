@@ -52,10 +52,11 @@
 import BaseImage from '~/components/ui/BaseImage.vue';
 import BaseModal from '~/components/ui/BaseModal.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
-import GlobalSnackBar from '~/components/ui/GlobalSnackBar.vue';
 import { useProfile } from '~/composables/useProfile';
+import { useSnackBar } from '~/composables/useSnackbar';
 
 const { updateProfilePicture, isLoading, error } = useProfile();
+const { show } = useSnackBar();
 
 const open = defineModel()
 const emit = defineEmits(['save'])
@@ -85,7 +86,7 @@ const handleFileChange = async (e) => {
         open.value = false;
     }
     catch(err){
-
+        show(error.value, "error");
     }
     
 }
