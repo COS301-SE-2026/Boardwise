@@ -1,0 +1,18 @@
+.landing-title {
+    font-size: clamp(3rem, 8vw, 6rem);
+    font-weight: var(--fw-bold);
+    line-height: 0.95;
+    font-family: var(--font-heading);
+}
+
+.landing-subtitle {
+    max-width: 36rem;
+    font-size: var(--fs-h5);
+    color: var(--color-text-muted);
+}
+
+.landing-heading{
+    font-size: clamp(2rem,5vw,3.5rem);
+    font-weight: var(--fw-bold);
+    line-height: 1.1;
+}
