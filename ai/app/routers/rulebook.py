@@ -1,11 +1,11 @@
 import logging
+from typing import Optional
 from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, Depends,HTTPException, status
 from app.dependencies import verify_jwt
 from app.models.schemas import UploadResponse, JobStatusResponse
 from app.services import mongo_service
 from app.config import settings
 from app.pipeline.ingestion import run_ingestion_pipeline
-from typing import Optional
 from bson import ObjectId
 
 logger = logging.getLogger(__name__)
@@ -88,10 +88,11 @@ async def upload_rulebook(
         ) from e
 
     # Send bytes to background task
+    safe_filename = file.filename or "untitled_rulebook.pdf"
     background_tasks.add_task(
         run_ingestion_pipeline,
         file_bytes=file_bytes,
-        filename=file.filename,
+        filename=safe_filename,
         rulebook_id=rulebook_id,
         job_id=job_id
     )
