@@ -121,10 +121,11 @@ const handleRemoveGame = async(gameId)=>{
     user.value.ownedGameCount = response.ownedGamesCount;
     user.value.games = response.games;
 
-    // await refreshUser();
+    show("Game successfully removed");
   }
   catch(err){
     console.error('Failed to remove game:', err);
+    show("Game removal failed", "error");
   }
   finally{
     loading.value = false;
@@ -133,7 +134,6 @@ const handleRemoveGame = async(gameId)=>{
 
 const handleCustomGame = async (response) => {
   showCustom.value = false;
-
   user.value.ownedGameCount = response.ownedGamesCount;
   user.value.games = response.games;
 

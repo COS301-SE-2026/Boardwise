@@ -55,8 +55,11 @@ import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseTextarea from '~/components/ui/BaseTextArea.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import { useProfile } from '~/composables/useProfile'
+import { useSnackBar } from '~/composables/useSnackbar';
 
-const { updateProfile, isLoading } = useProfile();
+
+const { updateProfile, isLoading, error } = useProfile();
+const { show } = useSnackBar();
 
 const open = defineModel()
 const emit = defineEmits(['save'])
@@ -75,13 +78,18 @@ const location = ref(props.user.location)
 const bio = ref(props.user.preferences.genres.join('•'))
 
 const handleSave = async () => {
-  const response = await updateProfile({
-    name : name.value,
-    username : username.value,
-    location : location.value
-  })
-  emit('save', response)  
-  resetRefs()
+  try{
+    const response = await updateProfile({
+      name : name.value,
+      username : username.value,
+      location : location.value
+    })
+    emit('save', response)  
+    resetRefs()
+  }
+  catch(err){
+      show(error.value, "error");
+  }
 }
 
 const resetRefs = () => {
