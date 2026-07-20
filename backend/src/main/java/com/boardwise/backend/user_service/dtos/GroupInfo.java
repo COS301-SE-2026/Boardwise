@@ -1,7 +1,7 @@
 package com.boardwise.backend.user_service.dtos;
 
 public record GroupInfo(
-    String groupId,
+    String id,
     String name,
     String imageUrl,
     String description,

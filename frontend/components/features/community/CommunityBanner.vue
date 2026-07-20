@@ -5,7 +5,7 @@
 
       <div class="d-flex align-center ga-6 flex-wrap">
           <BaseImage
-            :src="community.image" 
+            :src="community.imageUrl" 
             :alt="community.name"
             width="100"
             height="100"
@@ -29,7 +29,7 @@
           <div class="d-flex flex-wrap ga-2">
             
             <BaseButton variant="secondary" @click="$emit('members')">
-              Members ({{ community.members }})
+              Members ({{ community.memberCount }})
             </BaseButton>
 
             <BaseButton variant="secondary" @click="$emit('events')">

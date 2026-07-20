@@ -5,7 +5,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record GroupDTO(
-    String groupId,
+    String id,
     String name,
     String imageUrl,
     String description,

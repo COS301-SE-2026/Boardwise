@@ -1,10 +1,27 @@
 interface GroupInfo{
-    groupId: string;
+    id: string;
     name: string;
+    imageUrl: string;
     description: string;
     owner: string;
     visibility: string;
     memberCount: number;
+}
+
+interface Member{
+    username: string;
+    profilePicture: string;
+}
+
+interface GroupResponse{
+    id: string;
+    name: string;
+    imageUrl: string;
+    description: string;
+    owner: string;
+    memberCount: number;
+    members: Array<Member>
+    isMember: boolean;
 }
 
 interface Groups{
@@ -16,4 +33,9 @@ export const CommunityService = {
         const { $api } = useNuxtApp();
         return $api<Groups>('social/groups');
     },
+
+    getCommunityDetails(id: string){
+        const { $api } = useNuxtApp();
+        return $api<GroupResponse>('social/groups/' + id);
+    }
 }

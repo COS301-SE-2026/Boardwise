@@ -26,12 +26,27 @@ export const useCommunity = () => {
         }
     }
 
+    const getCommunityDetails = async (id: string) => {
+        error.value = ''
+        loading.value = true
+
+        try{
+            const response = await CommunityService.getCommunityDetails(id);
+            return response;
+        }
+        catch(err: any){
+            error.value = err.data?.message || "Could not get community."
+            throw err;
+        }
+    }
+
     return {
         token,
         error,
         loading,
         communities,
-        getAllCommunities
+        getAllCommunities,
+        getCommunityDetails
     }
 }
 

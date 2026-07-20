@@ -54,20 +54,20 @@ import { useCommunity } from '~/composables/useCommunity'
 const route = useRoute()
 
 const {
-  communities,
-  getAllCommunities
+  getCommunityDetails
 } = useCommunity()
 
 const showMembers = ref(false)
 const showEvents = ref(false)
+const community = ref(null)
 
-onMounted(() =>{
-  getAllCommunities()
+onMounted(async () => {
+  community.value = await getCommunityDetails(route.params.id)
 })
 
-const community = computed(() =>
-  communities.value.find(
-    (item) => String(item.id) === String(route.params.id)
-  )
-)
+// const community = computed(() =>
+//   communities.value.find(
+//     (item) => String(item.id) === String(route.params.id)
+//   )
+// )
 </script>

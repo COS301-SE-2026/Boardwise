@@ -2,7 +2,7 @@
   <BaseCard  >
 
     <BaseImage
-      :src="community.image"
+      :src="community.imageUrl"
       :alt="community.name"
       height="180px"
       class="rounded-t-lg"
