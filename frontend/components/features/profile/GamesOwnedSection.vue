@@ -1,9 +1,9 @@
 <template>
-  <section class="mt-8">
+  <section>
 
-    <div class="d-flex justify-space-between align-center mb-6 flex-wrap ga-4">
+    <!-- <div class="d-flex justify-space-between align-center mb-6 flex-wrap ga-4">
       <SectionTitle title="My Games" />
-    </div>
+    </div> -->
 
     <GamesGrid
       :games="games"
