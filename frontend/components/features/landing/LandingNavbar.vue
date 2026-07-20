@@ -28,7 +28,7 @@
 </template>
 
 <script setup>
-import BaseButton from '~/components/ui/BaseButton.vue';
+import BaseButton from '~/components/ui/BaseButton.vue'
 
 const router = useRouter()
 </script>
