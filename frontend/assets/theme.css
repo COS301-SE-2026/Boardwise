@@ -6,27 +6,26 @@
    Then use the variables everywhere instead of hard-coded values.
    ============================================================= */
 
+@import url('https://fonts.googleapis.com/css2?family=DynaPuff:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Comic+Neue:wght@400;700&display=swap');
+
 :root {
   /* ----------------------------------------------------------
-     1. BRAND COLOURS
-     Derived from the Boardwise logo (maroon + navy) with the
-     gold/accent supporting palette from the brand style guide.
+     1. BRAND COLOURS - newest palette
      ---------------------------------------------------------- */
 
   /* Core brand */
-  --bw-maroon:           #6D0037;  /* Primary brand — logo, headers, primary buttons */
-  --bw-maroon-deep:      #4F0028;  /* Hover / pressed state for maroon */
-  --bw-maroon-soft:      #883C64;  /* Muted maroon — borders, secondary accents */
-  --bw-navy:             #1A1430;  /* Wordmark navy — primary text, dark surfaces */
-  --bw-navy-ink:         #020018;  /* Near-black — high-emphasis text */
+  --obsidian:   #4E1E5C;  /* deep purple — like obsidian game pieces */
+  --merlot:     #8E1B4E;  /* deep red — like a merlot velvet game bag */
+  --wildfire:   #C7286E;  /* PRIMARY — like wildfire event cards */
+  --copper:     #EF5B27;  /* orange — like copper resource tokens */
+  --rosewood:   #E58BB4;  /* soft pink — like rosewood game boxes */
 
-  /* Supporting palette (from brand guide) */
-  --bw-gold:             #C9A86A;  /* Primary gold accent */
-  --bw-gold-muted:       #E6C58A;  /* Soft gold — highlights, badges */
-  --bw-accent-coral:     #E4572E;  /* Accent — calls to action, alerts */
-  --bw-accent-orange:    #F97316;  /* Accent — secondary emphasis */
-  --bw-accent-violet:    #7C3AED;  /* Accent — links, info */
-  --bw-accent-violet-2:  #A78BFA;  /* Soft violet — hover tints */
+  /* Neutrals */
+  --scrollpaper: #FBF6F0; /* page bg — like ancient scroll rulebooks */
+  --alabaster:   #FFFFFF;  /* surfaces — like alabaster game tiles */
+  --feltboard:   #F3E9E2;  /* fills — like the felt of a game table */
+  --shadowink:   #2E1430;  /* body text — like ink on a shadow board */
+  --ashquill:    #6B5563;  /* muted — like an ash-tipped quill */
 
   /* ----------------------------------------------------------
      2. SEMANTIC COLOURS — use THESE in components, not raw brand
