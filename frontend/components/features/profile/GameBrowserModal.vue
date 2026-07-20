@@ -29,12 +29,16 @@
             >
 
             <div class="gameCard_image">
-                <!-- <img :src="game.imageUrl ?? '/default-game.png'" :alt="game.title" /> -->
-
-                <div v-if="isSelected(game)" class="gameCard_overlay">
+                <div v-if="isSelected(game)" class="gameCard_overlay float-right">
                     <v-icon color="primary" size="28">mdi-check-circle</v-icon>
                 </div>
-            
+
+                <v-img
+                    :width="131"
+                    aspect-ratio="16/9"
+                    cover
+                    :src="game.imageUrl ?? '/default.png'"
+                ></v-img>
             </div>
 
             <p class="gameCard_title">{{ game.title }}</p>

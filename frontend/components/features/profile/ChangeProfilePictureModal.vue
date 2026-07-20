@@ -26,9 +26,9 @@
                     <span style="font-size: var(--fs-small); color: var(--color-text-muted)">
                         {{ fileName || 'No file chosen' }}
                     </span>
-
+                    <label for="profile-picture-upload" class="sr-only">Upload Profile Picture</label>
                     <input
-                        id="pfp-upload"
+                        id="profile-picture-upload"
                         ref="fileInput"
                         type="file"
                         accept="image/*"
@@ -58,7 +58,7 @@ import { useSnackBar } from '~/composables/useSnackbar';
 const { updateProfilePicture, isLoading, error } = useProfile();
 const { show } = useSnackBar();
 
-const open = defineModel()
+const open = defineModel(false)
 const emit = defineEmits(['save'])
 
 const fileName  = ref('');
@@ -86,6 +86,7 @@ const handleFileChange = async (e) => {
         open.value = false;
     }
     catch(err){
+        console.error("Falied to change profile picture", err)
         show(error.value, "error");
     }
     

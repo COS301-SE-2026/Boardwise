@@ -40,7 +40,7 @@ export const useProfile = () => {
             const tName = user.name.trim();
             if(tName.split(" ").length !== 2){
                 error.value = "Name must be separated by exactly one space (example: 'First Name')"
-                throw new Error()
+                throw new Error("Error during update profile.");
             }
         }
 

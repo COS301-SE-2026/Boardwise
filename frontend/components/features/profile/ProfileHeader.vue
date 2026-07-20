@@ -17,7 +17,7 @@
 
           <h1 class="profile-name ma-0">{{ user.fullName }}</h1>
 
-          <!-- <p class="profile-bio profile-bio--empty ma-0">no available preferences</p> -->
+         
           <p class="profile-username ma-0">@{{ user.username }}</p>
           
           <div

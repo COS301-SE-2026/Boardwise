@@ -88,7 +88,8 @@ const handleSave = async () => {
     resetRefs()
   }
   catch(err){
-      show(error.value, "error");
+    console.error("Failed to update profile details", err)
+    show(error.value, "error");
   }
 }
 

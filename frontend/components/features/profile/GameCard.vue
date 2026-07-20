@@ -47,11 +47,11 @@ async function handleRemove(){
 
 function decodeEntity(entity) {
   if(!entity) return ''
-  return entity.replace(/&#39;/g, "'")
-              .replace(/&quot;/g, '"')
-              .replace(/&amp;/g, '&')
-              .replace(/&lt;/g, '<')
-              .replace(/&gt;/g, '>')
+  return entity.replaceAll(/&#39;/g, "'")
+              .replaceAll(/&quot;/g, '"')
+              .replaceAll(/&amp;/g, '&')
+              .replaceAll(/&lt;/g, '<')
+              .replaceAll(/&gt;/g, '>')
 }
 
 const emit = defineEmits(['remove'])
