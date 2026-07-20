@@ -14,16 +14,19 @@
 
             <v-actions class="d-flex justify-space-between mt-10">
                 <div class="d-flex align-center ga-3">
-                    <BaseButton variant="primary" @click="triggerUpload">
+                    <BaseButton 
+                        variant="primary" 
+                        @click="triggerUpload"
+                        :disabled="isLoading"
+                    >
                         <v-icon start>mdi-upload</v-icon>
-                        Upload Image
+                        {{ isLoading ? "Uploading..." : "Upload Image" }}
                     </BaseButton>
 
                     <span style="font-size: var(--fs-small); color: var(--color-text-muted)">
                         {{ fileName || 'No file chosen' }}
                     </span>
 
-                    <label for="pfp-upload" class="sr-only">Upload Profile Picture</label>
                     <input
                         id="pfp-upload"
                         ref="fileInput"
@@ -38,7 +41,7 @@
                     variant="secondary"
                     @click="open = false"
                 >
-                    cancel
+                    Cancel
                 </BaseButton>
             </v-actions>
         </div>
@@ -49,14 +52,17 @@
 import BaseImage from '~/components/ui/BaseImage.vue';
 import BaseModal from '~/components/ui/BaseModal.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
+import GlobalSnackBar from '~/components/ui/GlobalSnackBar.vue';
+import { useProfile } from '~/composables/useProfile';
 
+const { updateProfilePicture, isLoading, error } = useProfile();
 
 const open = defineModel()
 const emit = defineEmits(['save'])
 
 const fileName  = ref('');
 const fileInput = ref(null);
-const file = ref(null);
+
 
 defineProps({
     user : {
@@ -67,14 +73,21 @@ defineProps({
 
 const triggerUpload = () => fileInput.value?.click()
 
-const handleFileChange = (e) => {
+const handleFileChange = async (e) => {
     const chosenFile = e.target.files[0];
     if (!chosenFile)
         return
 
     // make request here
+    try{
+        const profilePictureUrl = await updateProfilePicture(chosenFile);
+        emit('save', { profilePictureUrl });
+        open.value = false;
+    }
+    catch(err){
 
-    emit('save', "sumn");
+    }
+    
 }
 
 </script>

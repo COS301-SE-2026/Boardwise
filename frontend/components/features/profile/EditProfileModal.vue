@@ -81,12 +81,16 @@ const handleSave = async () => {
     location : location.value
   })
   emit('save', response)  
-  // clear everything
-  open.value = false
-  name.value = ""
-  username.value = ""
-  location.value = ""
-  bio.value = ""
+  resetRefs()
+}
+
+const resetRefs = () => {
+    // clear everything
+    open.value = false
+    name.value = ""
+    username.value = ""
+    location.value = ""
+    bio.value = ""
 }
 </script>
 

@@ -116,7 +116,14 @@ export const userService = {
     },
 
     updateProfilePicture(newPfp: File){
-        
+        const { $api } = useNuxtApp();
+        const formData = new FormData();
+        formData.append("profilePicture", newPfp);
+
+        return $api<ProfilePictureResponse>("/users/profilePicture", {
+            method: 'POST',
+            body: formData
+        });
     },
 
     searchForBoardGame(game: string){

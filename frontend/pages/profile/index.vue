@@ -4,7 +4,7 @@
     <template v-if="user">
       <Navbar />
 
-      <ProfileHeader :user="user" @saved="handleProfileUpdate" />
+      <ProfileHeader :user="user" @saved="handleProfileUpdate" @pfp-change="handlePfpChange"/>
 
       <ProfileStats
         :games="user.games.length"
@@ -140,7 +140,6 @@ const handleCustomGame = async (response) => {
 }
 
 const handleProfileUpdate = (newValues) => {
-  console.log("handle update is indeed called...")
   if(!user.value || !newValues)
     return
 
@@ -148,8 +147,14 @@ const handleProfileUpdate = (newValues) => {
     ...user.value,
     ...newValues
   }
+}
 
-  console.log("handle update is indeed finished with its work...")
+const handlePfpChange = (newPfp) => {
+  if(!newPfp || !user.value)
+    return;
+
+  user.value.profilePicture = newPfp.profilePictureUrl;
+  
 }
 
 onMounted(async () => {
