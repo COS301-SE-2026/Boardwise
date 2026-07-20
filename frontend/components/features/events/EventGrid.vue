@@ -10,7 +10,7 @@
         >
             <EventCard
                 :event="event"
-                @click="$emit('select', $event)"
+                @click="$emit('select', event)"
             />
         </v-col>
     </v-row>

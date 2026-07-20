@@ -23,20 +23,23 @@ interface RulebookResponse{
     description: string;
     language: string;
     lockHeldBy: string;
+    lockExpiresAt: string;
     uploadedAt: string; // Instant returned as a string
     updatedAt: string; // Instant returned as a string
     minPlayers: number;
     maxPlayers: number;
+    minAge: number;
+    duration: number;
 }
 interface PaginatedRulebookResponse{
     content: Array<RulebookSummaryResponse>;
     empty: boolean;
     first: boolean;
     last: boolean;
-    number: 0;
-    numberOfElements: 3;
+    number: number;
+    numberOfElements: number;
     pageable: PageableResponse;
-    size: 20;
+    size: number;
     sort: SortResponse;
     totalElements: number;
     totalPages: number;
@@ -63,6 +66,49 @@ interface RulebookSummaryResponse{
     genres: string[];
     minPlayers: number;
     maxPlayers: number;
+    minAge: number;
+    duration: number;
+}
+interface DownloadUrlResponse{
+    downloadUrl: string;
+    expiresAt: string;
+}
+interface EditEventResponse{
+    id: string;
+    rulebookId: string;
+    editor: string;
+    chunkId: string;
+    editType: string;
+    previousContent: string;
+    newContent: string;
+    versionPostEdit: number;
+    committedAt: string;
+}
+
+interface EditHistoryResponse{
+    rulebookId: string;
+    totalEdits: number;
+    edits: EditEventResponse[];
+}
+interface AcquireWriteLockResponse{
+    lockGranted: boolean;
+    lockedBy: string;
+    expiresAt: string;
+    currentVersion: number;
+}
+interface CommitEditDeltaResponse{
+    committed: boolean;
+    newVersion: number;
+    committedAt: string;
+    lockExpiresAt: string;
+}
+
+interface UndoOrRedoActionResponse{
+    done: boolean;
+    newVersion: number;
+    chunkId: string;
+    doneAt: string;
+    lockExpiresAt: string;
 }
 
 export const LibraryService = {
@@ -78,91 +124,74 @@ export const LibraryService = {
     },
 
     fetchRulebookById(id: string){
-      const { $api } = useNuxtApp();
-      return $api<RulebookResponse>(`vault/rulebooks/${id}`)
+        const { $api } = useNuxtApp();
+        return $api<RulebookResponse>(`vault/rulebooks/${id}`);
     },
 
     fetchRulebookText(id: string) {
-      const { $api } = useNuxtApp();
-      return $api<RulebookTextResponse>(`vault/rulebooks/${id}/text`)
+        const { $api } = useNuxtApp();
+        return $api<RulebookTextResponse>(`vault/rulebooks/${id}/text`);
     },
 
-    // TODO: Please double check added services. Most of it based documents given in regards to requests
-
-    acquireLock(id: string) {
-        const { $api } = useNuxtApp()
-        return $api<{
-            lockGranted: boolean
-            lockedBy: string | null
-            expiresAt: string | null
-        }>(`vault/rulebooks/${id}/lock`, { method: 'POST'})
-    }, 
-
-    releaseLock(id: string) {
-        const { $api } = useNuxtApp()
-        return $api<{
-            message: string 
-        }>(`vault/rulebooks/${id}/lock`, { method: 'DELETE'})
+    fetchDownloadRulebook(id: string){
+        const {$api} = useNuxtApp();
+        return $api<DownloadUrlResponse>(`vault/rulebooks/${id}/download`);
     },
 
-    releaseAllLocks(id: string) {
-        const { $api } = useNuxtApp()
-        return $api<{
-            message: string 
-        }>(`vault/rulebooks/${id}/lock/all`, { method: 'DELETE'})
-    }, 
-
-    commitDelta(id: string, payload: {
-        chunkId: string
-        deltaContent: string
-        expectedVersion: number
-    }) {
-        const { $api } = useNuxtApp()
-        return $api<{
-            newVersion: number
-            chunkId: string
-            updatedAt: string
-        }>(`vault/rulebooks/${id}/text`, { method: 'PATCH', body: payload })
+    fetchEditHistory(id: string){
+        const {$api} = useNuxtApp();
+        return $api<EditHistoryResponse>(`vault/rulebooks/${id}/history`);
     },
 
-    insertChunk(id: string, payload: {
-        content: string
-        insertIndex: number 
-        expectedVersion: number
-    }) {
-        const { $api } = useNuxtApp()
-        return $api<{
-            newVersion: number
-            chunkId: string
-            actualIndex: number
-        }>(`vault/rulebooks/${id}/chunk`, { method: 'POST', body: payload })
+    acquireWriteLock(id: string){
+        const {$api} = useNuxtApp();
+        return $api<AcquireWriteLockResponse>(`vault/rulebooks/${id}/lock/acquire`,{ method: 'POST' });
     },
 
-    removeChunk(id: string, payload: {
-        chunkId: string
-        expectedVersion: number
-    }) {
-        const { $api } = useNuxtApp()
-        return $api<{
-            newVersion: number
-        }>(`vault/rulebooks/${id}/chunk`, { method: 'DELETE', body: payload })
+    commitEditDelta(id: string, data: any){
+        const {$api} = useNuxtApp();
+
+        return $api<CommitEditDeltaResponse>(`vault/rulebooks/${id}/chunk/update`, {
+            method:'PATCH',
+            body: {
+                expectedVersion: data?.expectedVersion,
+                content: data?.content,
+                chunkId: data?.chunkId
+            }
+        });
     },
 
-    undoEdit(id: string, payload: {
-        expectedVersion: number
-    }) {
-        const { $api } = useNuxtApp()
-        return $api<{
-            newVersion: number
-        }>(`vault/rulebooks/${id}/text/undo`, { method: 'POST', body: payload })
+    releaseWriteLock(id: string){
+        const {$api} = useNuxtApp();
+        return $api<void>(`vault/rulebooks/${id}/lock/release`, { method: 'POST' });
     },
 
-    redoEdit(id: string, payload: {
-        expectedVersion: number
-    }) {
-        const { $api } = useNuxtApp()
-        return $api<{
-            newVersion: number
-        }>(`vault/rulebooks/${id}/text/redo`, { method: 'POST', body: payload })
+    releaseAllWriteLocks(){
+        const {$api} = useNuxtApp();
+        return $api<void>('vault/rulebooks/lock/release-all', { method: 'POST'});
+    },
+
+    undoEdit(id: string, data: any){
+        const {$api} = useNuxtApp();
+        return $api<UndoOrRedoActionResponse>(`vault/rulebooks/${id}/action/undo`, {
+            method: 'POST',
+            body: {
+                expectedVersion: data?.expectedVersion,
+                content: data?.content,
+                chunkId: data?.chunkId
+            }
+        });
+    },
+
+    redoEdit(id: string, data: any){
+        const {$api} = useNuxtApp();
+        return $api<UndoOrRedoActionResponse>(`vault/rulebooks/${id}/action/redo`, {
+            method: 'POST',
+            body: {
+                expectedVersion: data?.expectedVersion,
+                content: data?.content,
+                chunkId: data?.chunkId
+            }
+        });
     }
 }

@@ -12,5 +12,6 @@ public class UndoOrRedoActionResponseDto {
     private long newVersion;
     private String chunkId;
     private Instant doneAt;
+    private Instant lockExpiresAt;
     
 }

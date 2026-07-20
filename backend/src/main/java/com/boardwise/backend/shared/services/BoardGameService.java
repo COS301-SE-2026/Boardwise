@@ -1,4 +1,4 @@
-package com.boardwise.backend.user_service.services;
+package com.boardwise.backend.shared.services;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -11,9 +11,6 @@ import java.util.stream.IntStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.springframework.data.domain.Limit;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,28 +21,28 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.user_service.dtos.GameListDTO;
 import com.boardwise.backend.user_service.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.user_service.repos.BoardGameSearch;
+import com.boardwise.backend.user_service.services.AuthService;
+import com.boardwise.backend.user_service.services.R2StorageService;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class BoardGameService {
 
     private final BoardGameRepository gameRepo;
     private final R2StorageService bucket;
     private final RestClient client;
+    private final BoardGameSearch gameSearch;
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
 
-    BoardGameService(
-        BoardGameRepository gameRepo,
-        R2StorageService bucket, 
-        RestClient bggRestClient
-    ){
-        this.gameRepo = gameRepo;
-        this.bucket = bucket;
-        this.client = bggRestClient;
-    }
 
     public void populateDatabase(){
         int nextBggId = gameRepo.findTopByBggIdNotNullOrderByBggIdDesc()
@@ -188,9 +185,7 @@ public class BoardGameService {
             dbGames = gameRepo.findAllBy(maxRecords);
         }
         else{
-            Pageable limit = PageRequest.of(0, 10);
-            TextCriteria criteria = TextCriteria.forDefaultLanguage().matchingAny(query);
-            dbGames = gameRepo.findAllBy(criteria, limit);
+            dbGames = gameSearch.search(query, 10);
         }
 
         List<GameListDTO> games = new ArrayList<>();
@@ -241,6 +236,33 @@ public class BoardGameService {
 
         result.put("message", "New game successfully added to database.");
 
+        return result;
+    }
+
+    public Map<String, Object> getBoardgameGenres(String query){
+        Map<String, Object> result = new HashMap<>();
+        List<Genres> genres = new ArrayList<>();
+        
+        if(query == null){
+            for(int i = 0; i < 10; i++){
+                genres.add(Genres.values()[i]);
+            }
+        }
+        else{
+            int count = 10;
+            for(Genres genre : Genres.values()){
+                if(genre.getValue().contains(query)){
+                    genres.add(genre);
+                    count--;
+                }
+                if(count < 1)
+                    break;
+            }
+        }
+        
+
+        result.put("message", "Genres successfully retrieved.");
+        result.put("genres", genres);
         return result;
     }
 }

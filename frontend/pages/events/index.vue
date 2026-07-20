@@ -28,6 +28,23 @@
       />
     </div>
 
+    <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
+      <EventDetail
+        v-if="selectedEvent"
+        :event="selectedEvent"
+        :current-user="currentUsername"
+        @close="showDetail = false"
+        @rsvp="handleRsvp"
+        @de-rsvp="handleDeRsvp"
+        @edit="openEdit"
+        @cancel-event="handleCancelEvent"
+      />
+    </v-navigation-drawer>
+
+    <CreateEvent v-model="showCreateEvent" @created="handleCreateEvent" />
+
+    <CreateEvent v-model="showEditEvent" :initial-data="editingEvent" @created="handleEditEvent" />
+
   </PageContainer>
 </template>
 
@@ -44,56 +61,55 @@ import EventSearch from '~/components/features/events/EventSearch.vue'
 import EventFilter from '~/components/features/events/EventFilter.vue'
 import EventGrid from '~/components/features/events/EventGrid.vue'
 
+import EventDetail from '~/components/features/events/EventDetail.vue'
+import CreateEvent from '~/components/features/events/CreateEvent.vue'
+
+import { useEvents } from '~/composables/useEvents'
+import { useSnackBar } from '~/composables/useSnackbar'
+import { useProfile } from '~/composables/useProfile'
+
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router'
 
-const searchQuery = ref('')
-const activeFilters = ref({})
-const showCreateEvent = ref(false)
+const { show } = useSnackBar
+
+const { fetchCurrentUser } = useProfile()
+
+const {
+  events, 
+  isLoading, 
+  fetchEvents,
+  createEvent,
+  updateEvent, 
+  rsvpToEvent, 
+  deRsvpFromEvent,
+  cancelEvent
+} = useEvents()
 
 const router = useRouter()
-onMounted(() => {
+
+onMounted(async () => {
   if (!localStorage.getItem('access_token')) {
     router.push('/auth/signin')
+    return;
   }
+
+  let userDetails = await fetchCurrentUser();
+  currentUsername.value = userDetails.username;
+  fetchEvents()
 })
 
-// Mock data until backend exists
-const events = ref([
-  {
-    id: 1,
-    title: 'Catan Night',
-    date: '12 July 2026',
-    time: '18:00',
-    location: 'Pretoria',
-    game: 'Catan',
-    host: 'Boardwise',
-    attendanceType: 'In Person',
-    image: '/default-event.png'
-  },
-  {
-    id: 2,
-    title: 'Chess Tournament',
-    date: '18 July 2026',
-    time: '10:00',
-    location: 'Cape Town',
-    game: 'Chess',
-    host: 'Chess Club',
-    attendanceType: 'In Person',
-    image: '/default-event.png'
-  },
-  {
-    id: 3,
-    title: 'Online D&D Session',
-    date: '20 July 2026',
-    time: '19:00',
-    location: 'Discord',
-    game: 'D&D',
-    host: 'Dungeon Masters',
-    attendanceType: 'Online',
-    image: '/default-event.png'
-  }
-])
+
+const searchQuery = ref('')
+const activeFilters = ref({})
+
+const showCreateEvent = ref(false)
+const showDetail = ref(false)
+const showEditEvent = ref(false)
+const selectedEvent = ref(null)
+const editingEvent = ref(null)
+
+const currentUsername = ref(null);
 
 const filteredEvents = computed(() => {
   let result = events.value
@@ -101,14 +117,60 @@ const filteredEvents = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
 
-    result = result.filter(event =>
-      event.title.toLowerCase().includes(query) ||
-      event.game.toLowerCase().includes(query)
+    result = result.filter(e =>
+      e.name.toLowerCase().includes(query) ||
+      e.games.some(g => g.title.toLowerCase().includes(query))
     )
+  }
+
+  if(activeFilters.value.date && activeFilters.value.date !== 'All'){
+    const now = new Date();
+    result = result.filter(e=>{
+      const eventDate = new Date(e.startTime);
+      if (activeFilters.value.date === 'Today') {
+        return eventDate.toDateString() === now.toDateString()
+      }
+      
+      if(activeFilters.value.date === 'This Week'){
+        const weekFromNow = new Date(now);
+        weekFromNow.setDate(now.getDate() + 7);
+        return eventDate >= now && eventDate <= weekFromNow
+      }
+      if (activeFilters.value.date === 'This Month') {
+        return eventDate.getMonth() === now.getMonth() && eventDate.getFullYear() === now.getFullYear()
+      }
+      return true;
+    })
+  }
+
+
+  if (activeFilters.value.games?.length) {
+    result = result.filter(e =>
+      e.games.some(g => activeFilters.value.games.includes(g.title))
+    )
+  }
+
+  if (activeFilters.value.online && !activeFilters.value.inPerson) {
+    result = result.filter(e => e.location.toLowerCase() === 'online')
+  }
+
+  if (activeFilters.value.inPerson && !activeFilters.value.online) {
+    result = result.filter(e => e.location.toLowerCase() !== 'online')
   }
 
   return result
 })
+
+const openEvent = (event) => {
+  selectedEvent.value = event
+  showDetail.value = true
+}
+
+const openEdit = (event) => {
+  editingEvent.value = event
+  showEditEvent.value = true
+  showDetail.value = false
+}
 
 const handleSearch = (query) => {
   searchQuery.value = query
@@ -118,7 +180,55 @@ const handleFilter = (filters) => {
   activeFilters.value = filters
 }
 
-const openEvent = (event) => {
-  console.log('Selected event:', event)
+const handleRsvp = async (eventId) => {
+  try {
+    const updated = await rsvpToEvent(eventId)
+    selectedEvent.value = updated
+    show('RSVP successful!', 'success')
+  } catch {
+    show('Failed to RSVP. Please try again.', 'error')
+  }
 }
+
+const handleDeRsvp = async (eventId) => {
+  try {
+    const updated = await deRsvpFromEvent(eventId)
+    selectedEvent.value = updated
+    show('RSVP cancelled', 'info')
+  } catch {
+    show('Failed to cancel RSVP.', 'error')
+  }
+}
+
+const handleCancelEvent = async (eventId) => {
+  try {
+    await cancelEvent(eventId)
+    showDetail.value = false
+    show('Event cancelled', 'success')
+  } catch {
+    show('Failed to cancel event.', 'error')
+  }
+}
+
+const handleCreateEvent = async ({ eventInfo , image }) => {
+  try {
+    await createEvent(eventInfo, image)
+    show('Event created!', 'success')
+  } catch {
+    show('Failed to create event.', 'error')
+  }
+}
+
+const handleEditEvent = async ({ eventInfo , image }) => {
+  if(!editingEvent.value) return
+  
+  try {
+    await updateEvent(editingEvent.value.id, eventInfo, image)
+    show('Event updated!', 'success')
+  } catch {
+    show('Failed to update event.', 'error')
+  }
+}
+
+
 </script>

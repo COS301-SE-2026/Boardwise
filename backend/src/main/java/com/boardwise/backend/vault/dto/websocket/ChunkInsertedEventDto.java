@@ -10,7 +10,6 @@ import lombok.experimental.SuperBuilder;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class ChunkInsertedEventDto extends BaseVaultEventDto {
-    private String chunkId;
     private String content;
     private int index;
 }

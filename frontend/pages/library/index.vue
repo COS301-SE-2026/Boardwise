@@ -98,12 +98,24 @@ const filteredRulebooks = computed(() =>{
     result = result.filter(r => activeFilters.value.languages.includes(r.language))
   }
 
-  if (activeFilters.value.minPlayers) {
-    result = result.filter(r => r.minPlayers === Number(activeFilters.value.minPlayers))
+  // if (activeFilters.value.minPlayers) {
+  //   result = result.filter(r => r.minPlayers === Number(activeFilters.value.minPlayers))
+  // }
+
+  // if (activeFilters.value.maxPlayers) {
+  //   result = result.filter(r => r.maxPlayers === Number(activeFilters.value.maxPlayers))
+  // }
+  if(activeFilters.value.playerCount){
+    const target = Number(activeFilters.value.playerCount);
+    result = result.filter(r => r.minPlayers <= target && r.maxPlayers >= target);
   }
 
-  if (activeFilters.value.maxPlayers) {
-    result = result.filter(r => r.maxPlayers === Number(activeFilters.value.maxPlayers))
+  if(activeFilters.value.duration){
+    result = result.filter(r => r.duration <= Number(activeFilters.value.duration));
+  }
+  
+  if(activeFilters.value.minAge){
+    result = result.filter(r => r.minAge <= Number(activeFilters.value.minAge));
   }
 
   return result

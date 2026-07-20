@@ -17,4 +17,6 @@ public class RulebookSummaryResponseDto {
     private List<String> genres;
     private Integer minPlayers;
     private Integer maxPlayers;
+    private Integer duration;
+    private Integer minAge;
 }

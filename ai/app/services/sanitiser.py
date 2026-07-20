@@ -49,7 +49,7 @@ def sanitise_pdf(file_bytes: bytes) -> tuple[bool, str]:
                     break
 
             if not is_safe:
-                logger.warning(f"Unsafe PDF: Contains {pattern.decode('utf-8')}")
+                logger.warning("Unsafe PDF: Contains %s", pattern.decode('utf-8'))
                 return (False, f"Unsafe PDF: Contains {pattern.decode('utf-8')}")
 
             start_search = pattern_index + len(pattern)

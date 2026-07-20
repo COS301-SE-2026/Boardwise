@@ -19,14 +19,17 @@ import org.springframework.test.web.client.match.MockRestRequestMatchers;
 import org.springframework.test.web.client.response.MockRestResponseCreators;
 import org.springframework.web.client.RestClient;
 
+import com.boardwise.backend.shared.services.BoardGameService;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.user_service.repos.BoardGameSearch;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Board Game Service Tests")
 public class BoardGameServiceUnitTests {
 
     private BoardGameRepository gameRepo;
+    private BoardGameSearch gameSearch;
     private R2StorageService bucket;
     private MockRestServiceServer mockServer;
     private BoardGameService service;
@@ -37,6 +40,7 @@ public class BoardGameServiceUnitTests {
     void setUp(){
         gameRepo = mock(BoardGameRepository.class);
         bucket = mock(R2StorageService.class);
+        gameSearch = mock(BoardGameSearch.class);
 
         RestClient.Builder builder = RestClient.builder();
         mockServer = MockRestServiceServer.bindTo(builder).build();
@@ -45,7 +49,7 @@ public class BoardGameServiceUnitTests {
                                         .defaultHeader("Authorization", "Bearer some-valid-token")
                                         .build();
 
-        service = new BoardGameService(gameRepo, bucket, testClient);
+        service = new BoardGameService(gameRepo, bucket, testClient, gameSearch);
     }
 
     @Test

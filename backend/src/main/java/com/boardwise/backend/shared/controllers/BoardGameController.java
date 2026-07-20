@@ -1,4 +1,4 @@
-package com.boardwise.backend.user_service.controllers;
+package com.boardwise.backend.shared.controllers;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.boardwise.backend.shared.services.BoardGameService;
 import com.boardwise.backend.user_service.dtos.OtherGameDTO;
-import com.boardwise.backend.user_service.services.BoardGameService;
+
 import org.springframework.web.bind.annotation.PostMapping;
 
 
@@ -31,6 +33,14 @@ public class BoardGameController {
         @RequestParam(required = false) String query
     ){
         Map<String, Object> res = service.getBoardgames(query);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
+    @GetMapping("/genres")
+    public ResponseEntity<?> getGenresList(
+        @RequestParam(required = false) String query
+    ){
+        Map<String, Object> res = service.getBoardgameGenres(query);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 

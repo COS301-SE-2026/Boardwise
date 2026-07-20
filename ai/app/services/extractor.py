@@ -20,7 +20,11 @@ def extract_text(file_bytes: bytes) -> tuple[bool, str]:
             #2. Text Extraction and Processing
             extracted_text = []
             for page in pdf_document:
-                text = page.get_text().strip()
+                raw_content = page.get_text()
+                if isinstance(raw_content, str):
+                    text = raw_content.strip()
+                else:
+                    text = ""
 
                 # OCR Fallback
                 if len(text) < 50:
@@ -38,6 +42,6 @@ def extract_text(file_bytes: bytes) -> tuple[bool, str]:
                 return (False, "")
 
             return (True, final_joined_text)
-    except Exception as e:
+    except Exception:
         logger.exception("Extraction failed")
         return (False, "")
