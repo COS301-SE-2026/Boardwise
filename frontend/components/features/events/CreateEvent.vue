@@ -1,7 +1,7 @@
 <template>
     <BaseModal v-model="open" :max-width="600">
         <div class="d-flex align-center justify-space-between mb-5">
-            <h2>{{ isEditMode ? 'Edit event' : 'Create event' }}</h2>
+            <h2> Create Event</h2>
             <v-btn icon variant="text" @click="open = false">
                 <v-icon>mdi-close</v-icon>
             </v-btn>
@@ -130,6 +130,9 @@ import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 import { useBoardGames } from '~/composables/useBoardGames'
+import { useSnackBar } from '~/composables/useSnackbar'
+
+const { show } = useSnackBar()
 
 const { games, isLoading: gamesLoading, searchGames } = useBoardGames()
 onMounted(() => searchGames())
@@ -140,6 +143,10 @@ const props = defineProps({
     initialData:{
         type: Object,
         default: null
+    },
+    onSubmit:{
+        type:Function, 
+        required:true
     }
 });
 
@@ -242,9 +249,17 @@ const handleSubmit = async () => {
             games: form.value.games                
         }
 
-        emit('created', { eventInfo: payload, image: imageFile.value })
+        await props.onSubmit({
+            eventInfo:payload,
+            image:imageFile.value
+        });
+
         open.value = false
-    } finally {
+    }
+    catch(err){
+        
+    }
+    finally {
         isSubmitting.value = false
     }
 }

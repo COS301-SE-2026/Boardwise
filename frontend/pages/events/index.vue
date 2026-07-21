@@ -41,9 +41,14 @@
       />
     </v-navigation-drawer>
 
-    <CreateEvent v-model="showCreateEvent" @created="handleCreateEvent" />
+    <CreateEvent v-model="showCreateEvent" :on-submit="handleCreateEvent" />
 
-    <CreateEvent v-model="showEditEvent" :initial-data="editingEvent" @created="handleEditEvent" />
+
+    <EditEventModal
+      v-model="showEditEvent"
+      :event="editingEvent"
+      @saved="handleEventUpdated"
+    />
 
   </PageContainer>
 </template>
@@ -68,10 +73,11 @@ import { useEvents } from '~/composables/useEvents'
 import { useSnackBar } from '~/composables/useSnackbar'
 import { useProfile } from '~/composables/useProfile'
 
-import { onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import EditEventModal from '~/components/features/events/EditEventModal.vue'
 
-const { show } = useSnackBar
+const { show } = useSnackBar()
 
 const { fetchCurrentUser } = useProfile()
 
@@ -80,7 +86,6 @@ const {
   isLoading, 
   fetchEvents,
   createEvent,
-  updateEvent, 
   rsvpToEvent, 
   deRsvpFromEvent,
   cancelEvent
@@ -91,11 +96,11 @@ const router = useRouter()
 onMounted(async () => {
   if (!localStorage.getItem('access_token')) {
     router.push('/auth/signin')
-    return;
+    return
   }
 
-  let userDetails = await fetchCurrentUser();
-  currentUsername.value = userDetails.username;
+  const userDetails = await fetchCurrentUser()
+  currentUsername.value = userDetails.username
   fetchEvents()
 })
 
@@ -109,7 +114,7 @@ const showEditEvent = ref(false)
 const selectedEvent = ref(null)
 const editingEvent = ref(null)
 
-const currentUsername = ref(null);
+const currentUsername = ref(null)
 
 const filteredEvents = computed(() => {
   let result = events.value
@@ -123,23 +128,23 @@ const filteredEvents = computed(() => {
     )
   }
 
-  if(activeFilters.value.date && activeFilters.value.date !== 'All'){
-    const now = new Date();
-    result = result.filter(e=>{
-      const eventDate = new Date(e.startTime);
+  if (activeFilters.value.date && activeFilters.value.date !== 'All') {
+    const now = new Date()
+    result = result.filter(e => {
+      const eventDate = new Date(e.startTime)
       if (activeFilters.value.date === 'Today') {
         return eventDate.toDateString() === now.toDateString()
       }
-      
-      if(activeFilters.value.date === 'This Week'){
-        const weekFromNow = new Date(now);
-        weekFromNow.setDate(now.getDate() + 7);
+
+      if (activeFilters.value.date === 'This Week') {
+        const weekFromNow = new Date(now)
+        weekFromNow.setDate(now.getDate() + 7)
         return eventDate >= now && eventDate <= weekFromNow
       }
       if (activeFilters.value.date === 'This Month') {
         return eventDate.getMonth() === now.getMonth() && eventDate.getFullYear() === now.getFullYear()
       }
-      return true;
+      return true
     })
   }
 
@@ -210,25 +215,36 @@ const handleCancelEvent = async (eventId) => {
   }
 }
 
-const handleCreateEvent = async ({ eventInfo , image }) => {
-  try {
-    await createEvent(eventInfo, image)
-    show('Event created!', 'success')
-  } catch {
-    show('Failed to create event.', 'error')
-  }
+const handleCreateEvent = async ({ eventInfo, image }) => {
+  await createEvent(eventInfo, image)
+  show('Event created!', 'success')
 }
 
-const handleEditEvent = async ({ eventInfo , image }) => {
-  if(!editingEvent.value) return
-  
-  try {
-    await updateEvent(editingEvent.value.id, eventInfo, image)
-    show('Event updated!', 'success')
-  } catch {
-    show('Failed to update event.', 'error')
+const handleEventUpdated = async () => {
+
+  await fetchEvents();
+
+  if (editingEvent.value) {
+    selectedEvent.value = events.value.find(
+      e => e.id === editingEvent.value.id
+    )
   }
+
+
+
+  show('Event updated!', 'success')
+
+  showEditEvent.value = false
+  showDetail.value = true
+  editingEvent.value = null
+
+
+
 }
+
+
+
+
 
 
 </script>
