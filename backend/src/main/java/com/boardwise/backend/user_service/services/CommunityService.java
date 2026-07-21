@@ -109,7 +109,7 @@ public class CommunityService {
             EventAttendee forExample = new EventAttendee();
             forExample.setEventId(event.getId());
             Example<EventAttendee> example = Example.of(forExample);
-            int attendeeCount = (int) eaRepo.count(example);
+            int attendeeCount = (int) eaRepo.count(example) + 1;
 
             Optional<EventAttendee> ea = eaRepo.findByUserIdAndEventId(user.getId(), event.getId());
             boolean attending = ea.isPresent() && ea.get().getStatus() == RSVPStatus.ATTENDING;
