@@ -14,7 +14,8 @@
         />
  
       <CommunityChats 
-        :community="community" />
+        :community="community" 
+      />
 
       <MemberList
         v-model="showMembers"
@@ -63,6 +64,7 @@ const community = ref(null)
 
 onMounted(async () => {
   community.value = await getCommunityDetails(route.params.id)
+  console.log(community.value)
 })
 
 // const community = computed(() =>

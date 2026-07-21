@@ -45,7 +45,7 @@ import CreateEventModal from './CreateEventModal.vue';
 import createEvent from '../events/CreateEvent.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
 
-    defineProps({
+    const props = defineProps({
         community: {
             type: Object,
             required: true

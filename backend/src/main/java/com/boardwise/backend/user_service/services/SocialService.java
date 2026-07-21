@@ -120,6 +120,7 @@ public class SocialService {
                 group.getDescription(),
                 owner.getUsername(),
                 group.getVisibility(),
+                group.getCategory(),
                 memberCount
             );
 

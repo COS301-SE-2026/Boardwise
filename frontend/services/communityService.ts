@@ -5,6 +5,7 @@ interface GroupInfo{
     description: string;
     owner: string;
     visibility: string;
+    category: string;
     memberCount: number;
 }
 

@@ -76,11 +76,11 @@ const filteredCommunities = computed(() => {
 
     const matchesVisibility =
       selectedTypes.value.length === 0 ||
-      selectedTypes.value.includes(community.category)
+      selectedTypes.value.includes(community.visibility.toLowerCase())
 
     const matchesCategory =
       selectedCategories.value.length === 0 ||
-      selectedCategories.value.includes(community.category)
+      selectedCategories.value.includes(community.category.toLowerCase())
 
     return matchesSearch  && matchesVisibility && matchesCategory
   })

@@ -3,8 +3,7 @@
 
     <BaseGrid cols="180px" >
       <MemberCard
-        v-for="member in community.members_list"
-        :key="member.id"
+        v-for="member in community.members"
         :member="member"
       />
     </BaseGrid>

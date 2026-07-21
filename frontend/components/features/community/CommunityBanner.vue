@@ -18,7 +18,7 @@
           </h1>
         
           <BaseTag>
-            {{ community.type }}
+            {{ community.visibility }}
           </BaseTag>
           
           

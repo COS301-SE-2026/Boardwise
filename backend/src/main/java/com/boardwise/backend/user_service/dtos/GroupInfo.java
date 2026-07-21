@@ -7,5 +7,6 @@ public record GroupInfo(
     String description,
     String owner,
     String visibility,
+    String category,
     int memberCount
 ) {}
