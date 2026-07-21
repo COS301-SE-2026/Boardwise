@@ -424,7 +424,8 @@ public class CommunityService {
         Example<EventAttendee> example = Example.of(forExample);
         int attendeeCount = ((int) eaRepo.count(example)) + 1;
         
-        EventHostInfo hostInfo = new EventHostInfo(user.getUsername(), user.getProfilePicture());
+        User host = userRepo.findById(event.getCreatorId()).get();
+        EventHostInfo hostInfo = new EventHostInfo(host.getUsername(), host.getProfilePicture());
 
         List<Boardgame> dbGames = gameRepo.findAllById(event.getGames());
         List<GameInventoryDTO> games = new ArrayList<>();
@@ -470,7 +471,8 @@ public class CommunityService {
         Example<EventAttendee> example = Example.of(forExample);
         int attendeeCount = ((int) eaRepo.count(example)) + 1;
         
-        EventHostInfo hostInfo = new EventHostInfo(user.getUsername(), user.getProfilePicture());
+        User host = userRepo.findById(event.getCreatorId()).get();
+        EventHostInfo hostInfo = new EventHostInfo(host.getUsername(), host.getProfilePicture());
 
         List<Boardgame> dbGames = gameRepo.findAllById(event.getGames());
         List<GameInventoryDTO> games = new ArrayList<>();
