@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import org.springframework.data.domain.Example;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,7 +29,10 @@ import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class SocialService {
 
     private final UserRepository userRepo;
@@ -34,14 +40,8 @@ public class SocialService {
     private final GroupMembershipRepository gmRepo;
     private final JWTService jwtService;
     private final R2StorageService bucket;
+    private final MongoTemplate template;
 
-    SocialService(UserRepository userRepo, GroupRepository groupRepo, GroupMembershipRepository gmRepo, JWTService jwtService, R2StorageService bucket) {
-        this.userRepo = userRepo;
-        this.groupRepo = groupRepo;
-        this.gmRepo = gmRepo;
-        this.jwtService = jwtService;
-        this.bucket = bucket;
-    }
 
     public GroupCreationResponseDTO createGroup(String token, GroupCreationDTO group, MultipartFile image) throws IOException{
         String userId = jwtService.extractUserId(token).toString();
@@ -84,6 +84,7 @@ public class SocialService {
             newGroup.getDescription(),
             user.getUsername(),
             newGroup.getVisibility(),
+            newGroup.getCategory(),
             1
         );
 
@@ -270,30 +271,34 @@ public class SocialService {
 
     }
 
-    public GroupInfo getGroup(String groupName) {
+    public List<GroupInfo> getGroup(String groupName) {
         String cleanName = AuthService.sanitize(groupName);
-        List<Group> groups = groupRepo.findByName(cleanName);
-        if(groups.size() < 1)
-            throw new NoSuchElementException("Group with that name does not exist");
+        Criteria searchCriteria = Criteria.where("name").regex(cleanName, "i");
+        Query query = new Query(searchCriteria);
+        List<Group> groups = template.find(query, Group.class);
 
-        Group group = groups.getFirst();
-        // get owner
-        User owner = userRepo.findById(group.getOwnerId()).get();
+        List<GroupInfo> matches = new ArrayList<>();
+        for(Group group : groups){
+            User owner = userRepo.findById(group.getOwnerId()).get();
 
-        // get memberCount
-        GroupMembership gm = new GroupMembership();
-        gm.setGroupId(group.getId());
-        int memberCount = (int) gmRepo.count(Example.of(gm));
+            // get memberCount
+            GroupMembership gm = new GroupMembership();
+            gm.setGroupId(group.getId());
+            int memberCount = (int) gmRepo.count(Example.of(gm));
 
-        return new GroupInfo(
-            group.getId(),
-            group.getName(),
-            group.getImageUrl(),
-            group.getDescription(),
-            owner.getUsername(),
-            group.getVisibility(),
-            memberCount
-        );
+            matches.add(new GroupInfo(
+                    group.getId(),
+                    group.getName(),
+                    group.getImageUrl(),
+                    group.getDescription(),
+                    owner.getUsername(),
+                    group.getVisibility(),
+                    group.getCategory(),
+                    memberCount
+                )
+            );
+        }
+        return matches;
     }
 
     public GroupUpdateResponseDTO updateGroup(String token, String groupId, GroupUpdateRequestDTO updateData, MultipartFile image) throws IOException {

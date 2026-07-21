@@ -191,7 +191,7 @@ public class SocialController {
         @PathVariable String groupName
     ){
         try{
-            GroupInfo res = service.getGroup(groupName);
+            List<GroupInfo> res = service.getGroup(groupName);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(Exception e){

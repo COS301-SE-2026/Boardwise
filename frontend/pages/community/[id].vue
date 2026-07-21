@@ -64,12 +64,6 @@ const community = ref(null)
 
 onMounted(async () => {
   community.value = await getCommunityDetails(route.params.id)
-  console.log(community.value)
 })
 
-// const community = computed(() =>
-//   communities.value.find(
-//     (item) => String(item.id) === String(route.params.id)
-//   )
-// )
 </script>
