@@ -96,6 +96,11 @@ public class ProfileController {
             Map<String, Object> res = service.updateProfile(token, profileUpdateData);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
+        catch(NoSuchElementException e){
+            Map<String, Object> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
         catch(Exception e){
             Map<String, Object> res = new HashMap<>();
             res.put("message", "Something went wrong during profile update.");
