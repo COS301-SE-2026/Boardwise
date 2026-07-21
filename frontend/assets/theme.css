@@ -4,6 +4,10 @@
    Import ONCE in the root (app.vue or nuxt.config css array):
      css: ['~/assets/theme.css']
    Then use the variables everywhere instead of hard-coded values.
+
+   v2 changes: matches the brand style guide better. Semantic tokens 
+   have defined colours. Added a dark mode via [data-theme="dark"]
+   on <html>.
    ============================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=DynaPuff:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Comic+Neue:wght@400;700&display=swap');
@@ -137,6 +141,39 @@
   --skeleton-base: var(--feltboard);
   --skeleton-highlight: #FDFBF9;
 }
+
+/*=========================================================================
+  LEGACY ALIASES 
+      Colour names were changed and below is code to correct those changes to
+      match the new colour names. 
+
+      Known from the old (broken) theme.css semantic section:
+        --bw-maroon, --bw-maroon-deep, --bw-navy, --bw-navy-ink,
+        --bw-accent-coral, --bw-accent-violet, --bw-accent-violet-2,
+        --bw-gold-muted
+  
+      Known from the v1 colour system (per changelog):
+        --grape, --raspberry, --tangelo, --blossom
+
+  ===========================================================================*/
+
+  :root { 
+    /* old --bw-* names -> new tokens */
+    --bw-maroon: var(--wildfire);
+    --bw-maroon-deep: var(--merlot);
+    --bw-navy: var(--obsidian);
+    --bw-navy-ink: var(--shadowink);
+    --bw-accent-coral: var(--copper);
+    --bw-accent-violet: var(--obsidian);
+    --bw-accent-violet-2: var(--rosewood);
+    --bw-gold-muted: var(--copper);
+
+    /* old v1 colour names */
+    --grape: var(--obsidian);
+    --raspberry: var(--wildfire);
+    --tangelo: var(--copper);
+    --blossom: var(--rosewood);    
+  }
 
 /* =============================================================
    DARK MODE - will be a toggle with data-theme="dark"
