@@ -41,13 +41,21 @@
       />
     </v-navigation-drawer>
 
-    <CreateEvent v-model="showCreateEvent" :on-submit="handleCreateEvent" />
-
+    <CreateEvent
+      v-model="showCreateEvent"
+      :on-submit="handleCreateEvent"
+      @created="handleEventCreated"
+    />
 
     <EditEventModal
       v-model="showEditEvent"
       :event="editingEvent"
       @saved="handleEventUpdated"
+    />
+
+    <InviteModal
+      v-model="showInviteModal"
+      :event="createdEvent"
     />
 
   </PageContainer>
@@ -76,8 +84,8 @@ import { useProfile } from '~/composables/useProfile'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import EditEventModal from '~/components/features/events/EditEventModal.vue'
-
-const { show } = useSnackBar()
+import InviteModal from '~/components/features/community/InviteModal.vue'
+const { show } = useSnackBar(3)
 
 const { fetchCurrentUser } = useProfile()
 
@@ -166,6 +174,9 @@ const filteredEvents = computed(() => {
   return result
 })
 
+const showInviteModal = ref(false);
+const createdEvent = ref(null);
+
 const openEvent = (event) => {
   selectedEvent.value = event
   showDetail.value = true
@@ -216,8 +227,17 @@ const handleCancelEvent = async (eventId) => {
 }
 
 const handleCreateEvent = async ({ eventInfo, image }) => {
-  await createEvent(eventInfo, image)
+  const event = await createEvent(eventInfo, image)
   show('Event created!', 'success')
+  createdEvent.value = event      
+  showCreateEvent.value = false   
+  showInviteModal.value = true   
+  return event;
+}
+
+const handleEventCreated = (event) => {
+  createdEvent.value = event
+  showInviteModal.value = true
 }
 
 const handleEventUpdated = async () => {

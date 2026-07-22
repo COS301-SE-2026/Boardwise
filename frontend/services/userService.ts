@@ -182,9 +182,9 @@ export const userService = {
     //Search for Users
     searchForUser(query: string){
         const { $api } = useNuxtApp();
-        return $api<ProfileSearchResponse[]>('/users/search',{
+        return $api<ProfileSearchResponse[]>('/users/',{
             params:{
-                query
+                search: query
             }
         });
     }

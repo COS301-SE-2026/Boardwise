@@ -117,7 +117,7 @@
 
             <BaseButton :disabled="!isValid" :loading="isSubmitting" @click="handleSubmit">
                 <v-icon start>{{ isEditMode ? 'mdi-content-save' : 'mdi-calendar-plus' }}</v-icon>
-                {{ isEditMode ? 'Save changes' : 'Create Event' }}
+                    Create Event
             </BaseButton>
         </div>
     </BaseModal>
@@ -132,7 +132,7 @@ import BaseInput from '~/components/ui/BaseInput.vue'
 import { useBoardGames } from '~/composables/useBoardGames'
 import { useSnackBar } from '~/composables/useSnackbar'
 
-const { show } = useSnackBar()
+const { show } = useSnackBar
 
 const { games, isLoading: gamesLoading, searchGames } = useBoardGames()
 onMounted(() => searchGames())
@@ -249,15 +249,17 @@ const handleSubmit = async () => {
             games: form.value.games                
         }
 
-        await props.onSubmit({
+        const createdEvent = await props.onSubmit({
             eventInfo:payload,
             image:imageFile.value
         });
 
+        emit('created', createdEvent);
         open.value = false
     }
     catch(err){
-        
+        show(err?.data?.message || 'Failed to create event. Please try again.', 'error');
+
     }
     finally {
         isSubmitting.value = false

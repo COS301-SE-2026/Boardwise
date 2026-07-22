@@ -82,7 +82,7 @@ import { userService } from '~/services/userService'
 import { useEvents } from '~/composables/useEvents'
 import { useSnackBar } from '~/composables/useSnackbar'
 
-const { show } = useSnackBar
+const { show } = useSnackBar()
 const { inviteUser } = useEvents()
 
 
@@ -101,9 +101,8 @@ const props = defineProps({
 const searchQuery = ref('');
 const results = ref([]);
 
-const emit = defineEmits(['confirm'])
 const isSearching = ref(false);
-const invitingUsernames = ref(null);
+const invitingUsername = ref(null);
 const invitedUsernames = ref(new Set());
 
 let searchTimeout;
@@ -132,6 +131,7 @@ watch(open, (isOpen) => {
     searchQuery.value = ''
     results.value = []
     invitedUsernames.value = new Set()
+    invitingUsername.value = null
   }
 })
 
