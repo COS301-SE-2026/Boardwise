@@ -1,8 +1,8 @@
 <template> 
     <BaseCard class="d-flex flex-column ga-4 pa-4 h-100 overflow-y-auto">
-        <div v-if="invites.length">
+        <div v-if="props.invites.length">
             <InviteCard
-                v-for="invite in invites"
+                v-for="invite in props.invites"
                 :key="invite.event.eventId"
                 :invite="invite"
                 @accept="$emit('accept', $event)"
@@ -25,9 +25,14 @@ import InviteCard from './InviteCard.vue';
 
 import type { InviteItem } from '~/services/eventService';
 
-defineProps<{
-    invites: InviteItem[]
-}>()
+const props = withDefaults(
+    defineProps<{
+        invites?: InviteItem[]
+    }>(),
+    {
+        invites: () => []
+    }
+)
 
 defineEmits(['accept', 'decline'])
 </script>

@@ -13,7 +13,7 @@
 </template>
 
 <script setup>
-import { ref , computed, onMouted } from 'vue'
+import { ref , computed, onMounted } from 'vue'
 
 import ChatSidebar from './ChatSidebar.vue';
 import ChatWindow from './ChatWindow.vue';
@@ -23,7 +23,7 @@ import { useEvents } from '~/composables/useEvents'
 
 const { inviteCount, fetchInvites } = useEvents()
 
-onMouted(() => {
+onMounted(() => {
     fetchInvites()
 })
 
@@ -41,7 +41,9 @@ const conversations = computed(() => {
             unread: inviteCount.value,
             online: false,
             isInvite: true
-        }
+        },
+
+        ...getChats()
     ]
 })
 
