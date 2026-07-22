@@ -317,3 +317,84 @@ a:hover { text-decoration: underline; }
   margin-top: var(--space-1);
 }
 
+/* =============================================================
+   LANDING GAME STRIP
+   ============================================================= */
+
+.game-strip {
+  display: flex;
+  gap: var(--space-3);
+  width: max-content;
+}
+
+.game-card {
+  flex-shrink: 0;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.game-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.marquee-left {
+  animation: marquee-left 45s linear infinite;
+}
+
+.marquee-right {
+  animation: marquee-right 45s linear infinite;
+}
+
+.marquee-left:hover,
+.marquee-right:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-left {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-right {
+  from {
+    transform: translateX(-50%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.marquee{
+    width:max-content;
+    animation:scroll 45s linear infinite;
+}
+
+.marquee:hover{
+    animation-play-state:paused;
+}
+
+.scale-card{
+    transform:scale(1.05);
+    transition:transform var(--transition-base);
+}
+
+@keyframes scroll{
+    from{
+        transform:translateX(0);
+    }
+
+    to{
+        transform:translateX(-33.333%);
+    }
+}
+
