@@ -1,3 +1,4 @@
+import { query } from 'happy-dom/lib/PropertySymbol';
 import {ref} from 'vue'
 import { CommunityService } from '~/services/communityService'
 
@@ -8,19 +9,16 @@ export const useCommunity = () => {
     const error = ref<string>('');
     const loading = ref<boolean>(false);
 
-    //1. Create a reactive state to hold the data.
-    const communities = ref<any[]>([]);
-
     const getAllCommunities = async () => {
         error.value = '';
         loading.value = true;
 
         try{
             const response = await CommunityService.getAllGroups();
-            communities.value = response.groups;
+            return response;
         }catch(err: any){
             error.value = err.data?.message || 'No communities found'
-            communities.value = []
+            throw err;
         }finally{
             loading.value = false;
         }
@@ -40,13 +38,27 @@ export const useCommunity = () => {
         }
     }
 
+    const searchForCommunity = async (query: string) => {
+      error.value = ''
+      loading.value = true
+
+      try{
+          const response = await CommunityService.searchForCommunity(query)
+          return response;
+      }
+      catch(err: any){
+          error.value = err.data?.message || "Could not make search query"
+          throw err;
+      }
+    }
+
     return {
         token,
         error,
         loading,
-        communities,
         getAllCommunities,
-        getCommunityDetails
+        getCommunityDetails,
+        searchForCommunity
     }
 }
 

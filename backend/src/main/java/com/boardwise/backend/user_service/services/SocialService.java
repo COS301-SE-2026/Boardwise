@@ -275,10 +275,10 @@ public class SocialService {
         String cleanName = AuthService.sanitize(groupName);
         Criteria searchCriteria = Criteria.where("name").regex(cleanName, "i");
         Query query = new Query(searchCriteria);
-        List<Group> groups = template.find(query, Group.class);
+        List<Group> matches = template.find(query, Group.class);
 
-        List<GroupInfo> matches = new ArrayList<>();
-        for(Group group : groups){
+        List<GroupInfo> groups = new ArrayList<>();
+        for(Group group : matches){
             User owner = userRepo.findById(group.getOwnerId()).get();
 
             // get memberCount
@@ -286,7 +286,7 @@ public class SocialService {
             gm.setGroupId(group.getId());
             int memberCount = (int) gmRepo.count(Example.of(gm));
 
-            matches.add(new GroupInfo(
+            groups.add(new GroupInfo(
                     group.getId(),
                     group.getName(),
                     group.getImageUrl(),
@@ -298,7 +298,7 @@ public class SocialService {
                 )
             );
         }
-        return matches;
+        return groups;
     }
 
     public GroupUpdateResponseDTO updateGroup(String token, String groupId, GroupUpdateRequestDTO updateData, MultipartFile image) throws IOException {

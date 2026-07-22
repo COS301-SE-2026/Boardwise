@@ -1,4 +1,4 @@
-interface GroupInfo{
+export interface GroupInfo{
     id: string;
     name: string;
     imageUrl: string;
@@ -26,17 +26,26 @@ interface GroupResponse{
 }
 
 interface Groups{
-    groups: Array<GroupInfo>;
+    groups: Array<GroupInfo>
 }
 
+
 export const CommunityService = {
-    getAllGroups(){
+    async getAllGroups(){
         const { $api } = useNuxtApp();
-        return $api<Groups>('social/groups');
+        const response = await $api<Groups>('social/groups');
+        return response.groups;
     },
 
     getCommunityDetails(id: string){
         const { $api } = useNuxtApp();
         return $api<GroupResponse>('social/groups/' + id);
+    },
+
+    async searchForCommunity(query: string){
+        const { $api } = useNuxtApp();
+        const endpoint = query === null || query === '' ? 'social/groups' : 'social/groups/search/' + query
+        const response = await $api<Groups>(endpoint);
+        return response.groups;
     }
 }
