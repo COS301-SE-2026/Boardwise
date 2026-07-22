@@ -1,28 +1,52 @@
 <template>
     <div class="d-flex flex-column ga-4 h-100">
 
-        <ChatHeader
-            :conversation="props.conversation"
-        />
+        <template v-if="props.conversation.isInvite">
 
-        <ChatFeed
-            :messages="messages"
-            class="flex-grow-1"
-        />
+            <InviteFeed 
+                :invites="invites"
+                @accept="acceptInvite"
+                @decline="declineInvite"
+            />
+        </template>
 
-        <ChatComposer
-            @send="handleSend"
-        />
+        <template v-else>
+            <ChatHeader
+                :conversation="props.conversation"
+            />
+
+            <ChatFeed
+                :messages="messages"
+                class="flex-grow-1"
+            />
+
+            <ChatComposer
+                @send="handleSend"
+            />
+        </template>
     </div>
 </template>
 
-<script setup>
-import { ref, watch } from 'vue'
+<script setup lang="ts">
+import { ref, watch, onMounted } from 'vue'
 
 import ChatHeader from './ChatHeader.vue';
 import ChatFeed from './ChatFeed.vue';
 import ChatComposer from './ChatComposer.vue';
+import InviteFeed from '../invites/InviteFeed.vue';
+
 import { getMessages } from '~/services/chatService.js';
+import { useEvents } from '~/composables/useEvents';
+
+const {
+    invites,
+    fetchInvites,
+    respondToInvite
+} = useEvents()
+
+onMounted(() => {
+    fetchInvites()
+})
 
 const props = defineProps({
     conversation: {
@@ -31,19 +55,21 @@ const props = defineProps({
     }
 })
 
-const messages = ref([])
+const messages = ref<any[]>([])
 
 watch(
     () => props.conversation.id,
-    (id) => {
-        messages.value = [...getMessages(id)]
+    (id: any) => {
+        if (!props.conversation.isInvite) {
+            messages.value = [...getMessages(id)]
+        }
     },
     {
         immediate: true
     }
 )
 
-const handleSend = (text) => {
+const handleSend = (text: any) => {
     messages.value.push({
         id: Date.now(),
         name: 'You',
@@ -55,5 +81,13 @@ const handleSend = (text) => {
         }),
         isOwn: true
     })
+}
+
+const acceptInvite = async (eventId: string) => {
+    await respondToInvite(eventId, 'accept')
+}
+
+const declineInvite = async (eventId: string) => {
+    await respondToInvite(eventId, 'decline')
 }
 </script>
