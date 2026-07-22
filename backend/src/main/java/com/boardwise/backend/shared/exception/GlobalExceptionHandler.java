@@ -22,6 +22,7 @@ import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.exception.BoardgameNotFoundException;
 import com.boardwise.backend.vault.exception.ChunkNotFoundException;
 import com.boardwise.backend.vault.exception.ConcurrentModificationAnomalyException;
+import com.boardwise.backend.vault.exception.InvalidPaginationException;
 import com.boardwise.backend.vault.exception.VersionMismatchException;
 import com.mongodb.DuplicateKeyException;
 
@@ -42,7 +43,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", ex.getMessage()));
     }
 
-    @ExceptionHandler({IllegalArgumentException.class, NoActionsToUndoException.class, NoActionsToRedoException.class})
+    @ExceptionHandler({IllegalArgumentException.class, NoActionsToUndoException.class, NoActionsToRedoException.class, InvalidPaginationException.class})
     public ResponseEntity<Map<String, String>> handleBadRequest(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(Map.of("message", ex.getMessage()));

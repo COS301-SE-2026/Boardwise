@@ -20,6 +20,7 @@ import com.boardwise.backend.vault.dto.response.RulebookSummaryResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookTextResponseDto;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.exception.BoardgameNotFoundException;
+import com.boardwise.backend.vault.exception.InvalidPaginationException;
 import com.boardwise.backend.vault.exception.R2PresignException;
 import com.boardwise.backend.vault.model.EditEvent;
 import com.boardwise.backend.vault.model.Rulebook;
@@ -58,6 +59,12 @@ public class RulebookService {
 
     // AC-VLT-02: List / Search Rulebooks
     public Page<RulebookSummaryResponseDto> searchRulebooks(String search, int page, int limit){
+        if(limit <= 0){
+            throw new InvalidPaginationException("limit must be a positive integer, got: " + limit);
+        }
+        if(page <= 0){
+            throw new InvalidPaginationException("page must be a positive integer, got:" + page);
+        }
         Pageable pageable = PageRequest.of(
             page-1,
             Math.min(limit, 100),

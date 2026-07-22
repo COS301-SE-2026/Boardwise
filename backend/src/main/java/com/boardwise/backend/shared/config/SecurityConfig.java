@@ -58,7 +58,7 @@ public class SecurityConfig {
                         
                     ).permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/vault/rulebooks/*/text").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/vault/rulebooks/*/").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/vault/rulebooks/*").permitAll()
                     .requestMatchers("/api/stomp","/api/stomp/**").permitAll()
                     .anyRequest()
                     .authenticated()
