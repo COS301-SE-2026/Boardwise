@@ -3,9 +3,7 @@
     <main>
     <LandingHero/>
     <LandingGameStrip/>
-    
     <LandingFeatures/>
-    <LandingFeaturedGames/>
     <LandingCallToAction/>
     </main>
     <LandingFooter/>
@@ -13,7 +11,6 @@
 
 <script setup>
 import LandingCallToAction from './LandingCallToAction.vue'
-import LandingFeaturedGames from './LandingFeaturedGames.vue'
 import LandingFeatures from './LandingFeatures.vue'
 import LandingFooter from './LandingFooter.vue'
 import LandingGameStrip from './LandingGameStrip.vue'
