@@ -13,7 +13,7 @@
             <v-list>
             <v-list-item 
                 v-for="theme in themes" 
-                :key="theme.key"
+                :key="theme.value"
                 >
 
                 <div class="d-flex justify-space-between align-center w-100">
@@ -27,7 +27,7 @@
                     </div>
 
                     <v-switch
-                        :model-value="appearance === theme.value" 
+                        v-model="theme.enabled" 
                         color="primary"
                         hide-details
                         @update:model-value="toggleTheme(theme.value)"   
@@ -55,29 +55,40 @@ import { getAppearance } from '~/services/settingsService';
 
 const emit = defineEmits(['save'])
 
-const appearance = ref(getAppearance().theme)
+const currentTheme = getAppearance().theme
 
-const themes = [
+const themes = ref([
     {          
         label: 'Light Mode',          
         value: 'light',
         description: 'Use the light Boardwise theme.',
+        enabled: currentTheme === 'light'
     },
     {      
         label: 'Dark Mode',
         value: 'dark',      
         description: 'Use the dark Boardwise theme.',
+        enabled: currentTheme === 'dark'
     },
     {            
         label: 'System Default', 
         value: 'system',         
         description: 'Follow your device theme settings.',    
+        enabled: currentTheme === 'system'
     }
-]
+])
 
+const toggleTheme = (selectedTheme) => {
+    themes.value.forEach(theme => {
+        theme.enabled = theme.value === selectedTheme
+    })
+}
 const saveAppearance = () => {
+    const selectedTheme = themes.value.find(
+        theme => theme.enabled
+    )
     emit( 'save', {
-        theme: appearance.value
+        theme: selectedTheme.value
     })
 }
 </script>
