@@ -35,57 +35,36 @@ export const onboardingSteps = [
         icon: "mdi-swap-horizontal-bold",
         route: "/marketplace"
         },
-    {
-        id: 'vi',
-        title: 'Track your collection',
-        description: "Keep your collection organised in your vault.",
-        icon: "mdi-safe-square-outline",
-        route: "/vault"
-    }
 ]
 
 export const platformFeatures = [
     {
         id: 1,
         title: 'Library',
-        description: "Browse thousands of board games, digital rulebooks and build your collection.",
+        description: "Browse board games, digital rulebooks and build your collection.",
         icon: "mdi-bookshelf",
         route: "/library"
     },
     {
         id: 2,
-        title: 'Community',
-        description: "Buy, sell and trade board games safely with other players.",
+        title: 'Marketplace',
+        description: "Search the maket and trade board games with other players.",
         icon: "mdi-storefront-outline",
         route: "/marketplace"
         
     },
     {
         id: 3,
-        title: 'Marketplace',
-        description: "Join discussions, discover events and connect with board gamers.",
+        title: 'Community',
+        description: "Join discussions and connect with fellow board gamers.",
         icon: "mdi-account-group-outline",
         route: "/community"
     },
     {
         id: 4,
-        title: 'Vault',
-        description: "Organise your collection and keep your favourite games in one place.",
-        icon: "mdi-safe-square-outline",
-        route: "/profile"
-    },
-    {
-        id: 5,
         title: 'Events',
-        description: "Find tournaments, meetups and local board game events.",
+        description: "Share invites and local board game events.",
         icon: "mdi-calendar-star",
         route: "/events"
-  },
-  {
-        id: 6,
-        title: 'Discover',
-        description: "Receive personalised recommendations based on your interests.",
-        icon: "mdi-compass-outline",
-        route: "/library"
-    }
+  }
 ]
