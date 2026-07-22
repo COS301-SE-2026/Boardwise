@@ -25,10 +25,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.boardwise.backend.user_service.models.Boardgame;
+import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.vault.dto.response.RulebookResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookSummaryResponseDto;
 import com.boardwise.backend.vault.exception.BoardgameNotFoundException;
 import com.boardwise.backend.vault.exception.InvalidPaginationException;
+import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.repository.EditEventRepository;
 import com.boardwise.backend.vault.repository.RulebookRepository;
@@ -47,6 +51,9 @@ public class RulebookServiceTests {
 
     @Mock
     private BoardGameRepository boardgameRepository;
+
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
     private RulebookService rulebookService;
@@ -443,43 +450,184 @@ public class RulebookServiceTests {
          */
     }
     // ---------- AC-VLT-03: Get Rulebook Detail ----------
-    // @Nested
-    // class GetRulebookDetail{
+    @Nested
+    class GetRulebookDetail{
+        final long totalRulebooks = 2;
+        List<Rulebook> mockRulebooks = new ArrayList<>();
+        List<Boardgame> mockBoardgames = new ArrayList<>();
+        Pageable pageable = null;
+        final int page = 1;
+        final int limit = 20;
 
-    //     @Test
-    //     public void testForValidId(){
-    //         Instant now1 = Instant.now();
-    //         Rulebook mockRulebook1 = Rulebook.builder()
-    //                 .id(new ObjectId())
-    //                 .gameId(new ObjectId())
-    //                 .title("mockGame1")
-    //                 .edition("1st Edition")
-    //                 .status("Ready")
-    //                 .version(1)
-    //                 .contributorId(new ObjectId())
-    //                 .r2PdfKey("key-1")
-    //                 .uploadedAt(now1)
-    //                 .updatedAt(now1)
-    //                 .build();
-    //         // Arrange
-    //         // Act
-    //         // Assert
-    //     }
-        
-    //     @Test
-    //     public void testForLockHeldByPopulatedForExistingWriteLock(){
-    //         // Arrange
-    //         // Act
-    //         // Assert
-    //     }
+        @BeforeEach
+        void setup(){
+            for (int i = 0; i < totalRulebooks; i++) {
+                Instant now = Instant.now();
+                ObjectId gameId = new ObjectId();
+                mockBoardgames.add(Boardgame.builder()
+                        .id(gameId.toHexString())
+                        .title("mockGame" + i)
+                        .description("mock description " + i)
+                        .imageURL("mock-image-url-" + i)
+                        .genres(List.of("This", "is", "Mocked"))
+                        .build());
+                mockRulebooks.add(Rulebook.builder()
+                        .id(new ObjectId())
+                        .gameId(gameId)
+                        .title("mockGame" + i)
+                        .edition("Edition " + i)
+                        .status("Ready")
+                        .version(i)
+                        .contributorId(new ObjectId())
+                        .contributorUsername("mockContributor"+i)
+                        .r2PdfKey("key-" + i)
+                        .uploadedAt(now)
+                        .updatedAt(now)
+                        .build());
+            }
+            pageable = PageRequest.of(page - 1, Math.min(limit, 100), Sort.by(Sort.Direction.DESC, "updatedAt"));
+        }
 
-    //     @Test
-    //     public void testForLockHeldByIsNullWhenNoWriteLockExists(){
-    //         // Arrange
-    //         // Act
-    //         // Assert
-    //     }
-    // }
+        @Test
+        public void testForValidRulebookId(){
+            // Arrange
+            Rulebook toBeEvaluated  = mockRulebooks.get(0);
+            Boardgame bg = mockBoardgames.stream().filter(b -> b.getId().equals(toBeEvaluated.getGameId().toHexString()))
+                .findFirst().orElseThrow();
+            Mockito.when(boardgameRepository.findById(bg.getId())).thenReturn(Optional.of(bg));
+
+            Mockito.when(rulebookRepository.findById(toBeEvaluated.getId()))
+                    .thenReturn(Optional.of(toBeEvaluated));
+            
+            // Act
+            RulebookResponseDto result = rulebookService.getRulebookById(toBeEvaluated.getId());
+            
+            // Assert
+            Assertions.assertThat(result.getId()).isEqualTo(toBeEvaluated.getId().toHexString());
+            Assertions.assertThat(result.getTitle()).isEqualTo(toBeEvaluated.getTitle());
+            Assertions.assertThat(result.getEdition()).isEqualTo(toBeEvaluated.getEdition());
+            Assertions.assertThat(result.getVersion()).isEqualTo(toBeEvaluated.getVersion());
+            Assertions.assertThat(result.getGenres()).isEqualTo(bg.getGenres());
+            Assertions.assertThat(result.getMinPlayers()).isEqualTo(bg.getMinPlayers());
+            Assertions.assertThat(result.getMaxPlayers()).isEqualTo(bg.getMaxPlayers());
+
+            Assertions.assertThat(result.getLockHeldBy()).isEmpty();
+            Assertions.assertThat(result.getContributorUsername()).isEqualTo(toBeEvaluated.getContributorUsername());
+            Mockito.verifyNoInteractions(userRepository);
+        }
+
+        @Test
+        public void testForLockHeldByIsNullSkipsUserLookup(){
+            // Arrange
+            Rulebook toBeEvaluated = Rulebook.builder()
+                .id(new ObjectId())
+                .gameId(new ObjectId(mockBoardgames.get(0).getId()))
+                .title(mockBoardgames.get(0).getTitle())
+                .edition("Edition 0")
+                .status("Ready")
+                .version(1L)
+                .r2PdfKey("key-0")
+                .uploadedAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
+            Boardgame bg = mockBoardgames.stream()
+                    .filter(b -> b.getId().equals(toBeEvaluated.getGameId().toHexString()))
+                    .findFirst().orElseThrow();
+            Mockito.when(boardgameRepository.findById(bg.getId())).thenReturn(Optional.of(bg));
+
+            Mockito.when(rulebookRepository.findById(toBeEvaluated.getId()))
+                    .thenReturn(Optional.of(toBeEvaluated));
+            
+            // Act
+            RulebookResponseDto result = rulebookService.getRulebookById(toBeEvaluated.getId());
+            
+            // Assert
+            Assertions.assertThat(result.getLockHeldBy()).isEmpty();
+            Mockito.verifyNoInteractions(userRepository);
+        }
+
+        @Test
+        public void testForRulebookNotFoundThrowsException(){
+            // Arrange
+            ObjectId missingId = new ObjectId();
+            Mockito.when(rulebookRepository.findById(missingId)).thenReturn(Optional.empty());
+            
+            // Act and Assert
+            Assertions.assertThatThrownBy(() -> rulebookService.getRulebookById(missingId)).isInstanceOf(RulebookNotFoundException.class);
+            Mockito.verifyNoInteractions(boardgameRepository);
+        }
+
+        @Test
+        public void testForUserNotFound(){
+            // Arrange
+            Rulebook toBeEvaluated = Rulebook.builder()
+                .id(new ObjectId())
+                .gameId(new ObjectId(mockBoardgames.get(0).getId()))
+                .title(mockBoardgames.get(0).getTitle())
+                .edition("Edition 0")
+                .status("Ready")
+                .version(1L)
+                .lockHeldBy(new ObjectId())
+                .r2PdfKey("key-0")
+                .uploadedAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
+            Boardgame bg = mockBoardgames.stream()
+                    .filter(b -> b.getId().equals(toBeEvaluated.getGameId().toHexString()))
+                    .findFirst().orElseThrow();
+            Mockito.when(boardgameRepository.findById(bg.getId())).thenReturn(Optional.of(bg));
+            Mockito.when(userRepository.findById(toBeEvaluated.getLockHeldBy().toHexString())).thenReturn(Optional.empty());
+
+            Mockito.when(rulebookRepository.findById(toBeEvaluated.getId()))
+                    .thenReturn(Optional.of(toBeEvaluated));
+            
+            // Act and Assert
+            Assertions.assertThatThrownBy(() -> rulebookService.getRulebookById(toBeEvaluated.getId())).isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        public void testForNullRulebookIdThrowsRulebookNotFoundException(){
+            // Arrange
+            Mockito.when(rulebookRepository.findById(null)).thenReturn(Optional.empty());
+            // Act and Assert
+            Assertions.assertThatThrownBy(() -> rulebookService.getRulebookById(null)).isInstanceOf(RulebookNotFoundException.class);
+        }
+
+        @Test
+        public void testForLockHeldByPopulatedWhenUserExists(){
+            // Arrange
+            ObjectId lockHolderId = new ObjectId();
+            Rulebook toBeEvaluated = Rulebook.builder()
+                .id(new ObjectId())
+                .gameId(new ObjectId(mockBoardgames.get(0).getId()))
+                .title(mockBoardgames.get(0).getTitle())
+                .status("Ready")
+                .version(1L)
+                .lockHeldBy(lockHolderId)
+                .r2PdfKey("key-0")
+                .uploadedAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
+            Boardgame bg = mockBoardgames.stream()
+                    .filter(b -> b.getId().equals(toBeEvaluated.getGameId().toHexString()))
+                    .findFirst().orElseThrow();
+            Mockito.when(boardgameRepository.findById(bg.getId())).thenReturn(Optional.of(bg));
+            
+            User lockHolder = new User();
+            lockHolder.setId(lockHolderId.toHexString());
+            lockHolder.setUsername("alice");
+            
+            Mockito.when(userRepository.findById(lockHolderId.toHexString())).thenReturn(Optional.of(lockHolder));
+            Mockito.when(rulebookRepository.findById(toBeEvaluated.getId())).thenReturn(Optional.of(toBeEvaluated));
+            
+            // Act
+            RulebookResponseDto result = rulebookService.getRulebookById(toBeEvaluated.getId());
+            
+            // Assert
+            Assertions.assertThat(result.getLockHeldBy()).isEqualTo("alice");
+        }
+    }
+    
     // ---------- AC-VLT-04: Download Raw PDF ----------
     // ---------- AC-VLT-05: Get Rulebook Text State ----------
     // ---------- AC-VLT-09: Get Rulebook Edit History ----------
