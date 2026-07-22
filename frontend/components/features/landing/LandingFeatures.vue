@@ -10,7 +10,7 @@
                     Explore Boardwise
                 </h2>
                 <p class="mt-4">
-                    everything you need to discover, collect and enjoy board games.
+                    Everything you need to discover, collect and enjoy board games.
                 </p>
             </v-col>
             </v-row>
@@ -22,7 +22,7 @@
                 sm="6" 
                 md="4"
             >
-            <landing-feature-card :feature="feature"/>
+            <LandingFeatureCard :feature="feature"/>
             </v-col>
         </v-row>
     </v-container>
