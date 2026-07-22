@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,10 +39,10 @@ public class ProfileController {
         this.service = service;
     }
 
-    @GetMapping("/{username}")
-    public ResponseEntity<?> getProfile(@PathVariable String username){
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> getOtherUserProfile(@PathVariable String userId){
         try{
-            ProfileResponseDTO res = service.getProfile(username, null);
+            ProfileResponseDTO res = service.getProfile(userId, null);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(NoSuchElementException e){
@@ -57,11 +58,13 @@ public class ProfileController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<?> getOwnProfile(HttpServletRequest req){
+    public ResponseEntity<?> getOwnProfile(
+        HttpServletRequest req,
+        @RequestParam(name = "search", required = false) String query
+    ){
         String token = extractToken(req);
         try{
-            ProfileResponseDTO res = service.getOwnProfile(token);
-            
+            var res = (query == null || query.isBlank()) ? service.getOwnProfile(token) : service.searchForUsers(query);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(NoSuchElementException e){
