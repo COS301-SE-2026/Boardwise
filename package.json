@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "@vueuse/core": "^14.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.8"
   }
 }
