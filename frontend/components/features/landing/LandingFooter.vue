@@ -1,22 +1,18 @@
 <template>
-    <v-footer class="py-8 px-6">
-        <v-container>
+    <v-footer class="bg-grey-lighten-5 py-10">
+        <v-container class="container">
             <v-row>
                 <v-col cols="12" md="4">
-                    <h3 class="text-h6 font-weight-bold">
+                    <h3>
                         Boardwise
                     </h3>
-                    <p class="text-body-2 text-medium-emphasis mt-2">
-                        Connect · Share · Play
-                    </p>
-
-                    <p class="text-body-2 mt-4">
-                        Discover games, learn the rules faster, and connect with players through one intelligent platform.
+                    <p class="mt-4">
+                          Discover, collect and share board games with the Boardwise community.
                     </p>
                 </v-col>
 
                 <v-col cols="6" md="2">
-                    <h4 class="text-subtitle-1 font-weight-bold mb-3">
+                    <h4 >
                         Explore
                     </h4>
                     
@@ -28,18 +24,18 @@
                 </v-col>
 
                 <v-col>
-                    <h4 class="text-subtitle-1 font-weight-bold mb-3">
+                    <h4 >
                         Account
                     </h4>
 
                     <div class="d-flex flex-column ga-2">
-                        <NuxtLink to="/auth/signup">Sign in</NuxtLink>
-                        <NuxtLink to="/auth/signup">Register</NuxtLink>
+                        <NuxtLink to="/auth/signup">Sign In</NuxtLink>
+                        <NuxtLink to="/auth/signup">Sign Up</NuxtLink>
                     </div>
                 </v-col>
 
                 <v-col cols="12" md="4">
-                    <h4 class="text-subtitle-1 font-weight-bold mb-3">
+                    <h4>
                         Powered by 
                     </h4>
 
@@ -47,27 +43,22 @@
                         href="https://boardgamegeek.com"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="text-decoration-none"
+                        class="d-inline-block mt-4"
                     >
                         <v-img
                             src="/images/landing/powered-by-bgg-rgb.svg"
-                            max-width="220"
+                            max-width="200"
                             contain
-                            alt="Powered by BoardGameGeek"
                         />
                     </a>
 
-                    <p class="text-body-2 text-medium-emphasis mt-3">
-                        Board game information and metadata provided by
-                        BoardGameGeek.
-                    </p>
                 </v-col>
             </v-row>
 
-            <v-divider class="my-6"/>
+            <v-divider class="my-8"/>
 
-            <div class="text-center text-body-2 text-medium-emphasis">
-                Boardwise. All rights reserved to Epi-Use and WorksOnMyMachine.
+            <div class="text-center">
+                Boardwise. EPI-USE and WorksOnMyMachine.
             </div>
         </v-container>
     </v-footer>
