@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
+
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Example;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -24,35 +26,29 @@ import com.boardwise.backend.user_service.models.*;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.FriendShipRepository;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
+import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
+import com.google.maps.GeoApiContext;
+import com.google.maps.GeocodingApi;
+import com.google.maps.errors.ApiException;
+import com.google.maps.model.GeocodingResult;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class ProfileService {
 
     private final UserRepository userRepo;
     private final JWTService jwtService;
     private final FriendShipRepository fsRepo;
     private final GroupMembershipRepository gmRepo;
+    private final GroupRepository groupRepo;
     private final BoardGameRepository gameRepo;
     private final R2StorageService bucket;
+    private final GeoApiContext geoContext;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
-
-    ProfileService(
-        UserRepository userRepo, 
-        JWTService jwtService,
-        FriendShipRepository friendShipRepository,
-        GroupMembershipRepository groupMembershipRepository,
-        BoardGameRepository boardGameRepository,
-        R2StorageService r2StorageService
-    ){
-        this.userRepo = userRepo;
-        this.jwtService = jwtService;
-        this.fsRepo = friendShipRepository;
-        this.gmRepo = groupMembershipRepository;
-        this.gameRepo = boardGameRepository;
-        this.bucket = r2StorageService;
-    }
 
     public ProfileResponseDTO getOwnProfile(String token) {
         // get username from token
@@ -87,7 +83,23 @@ public class ProfileService {
         // get group count
         GroupMembership gm = new GroupMembership();
         gm.setUserId(user.getId());
-        int groupCount = (int) gmRepo.count(Example.of(gm));
+        List<GroupMembership> gms = gmRepo.findAll(Example.of(gm));
+        int groupCount = gms.size();
+        
+        // Get community id, name and image
+        List<Map<String, String>> communities = null;
+        if(own != null){
+            communities = new ArrayList<>();
+            for(GroupMembership membership : gms){
+                Map<String, String> community = new HashMap<>();
+                Group group = groupRepo.findById(membership.getGroupId()).get();
+                community.put("id", group.getId());
+                community.put("name", group.getName());
+                community.put("image", group.getImageUrl());
+
+                communities.add(community);
+            }
+        }
         
         // get friend count
         int friendCount = (int) fsRepo.countByUserAIdOrUserBId(user.getId(), user.getId());
@@ -101,11 +113,13 @@ public class ProfileService {
         return new ProfileResponseDTO(
             fullName,
             user.getUsername(),
+            user.getLocation(),
             user.getProfilePicture(),
             friendCount,
             groupCount,
             ownedGameCount,
             games,
+            communities,
             userPref,
             formatter.format(user.getCreatedAt())
         );
@@ -118,25 +132,41 @@ public class ProfileService {
         userRepo.deleteById(userId);
     }
 
-    public Map<String, Object> updateProfile(String token, UpdateProfileDTO profileUpdateData) {
-        // TODO: return the entire resource with update applied
+    public Map<String, Object> updateProfile(String token, UpdateProfileDTO profileUpdateData) throws ApiException, InterruptedException, IOException, NoSuchElementException {
         String userId = jwtService.extractUserId(token).toString();
         User user = userRepo.findById(userId).get();
 
+        String newFirstName = AuthService.sanitize(profileUpdateData.firstName());
+        String newLastName = AuthService.sanitize(profileUpdateData.lastName());
         String newUsername = AuthService.sanitize(profileUpdateData.username());
         String newEmail = AuthService.sanitize(profileUpdateData.emailAddress());
         String newPassword = (profileUpdateData.password() != null) ?
                                 encoder.encode(profileUpdateData.password()) :
                                 null;
-        
+        String newLocation = AuthService.sanitize(profileUpdateData.location());
 
         Map<String, Object> toReturn = new HashMap<>();
-      
+        
+        if(newFirstName != null && newLastName != null){
+            user.setFirstName(newFirstName);
+            user.setLastName(newLastName);
+            toReturn.put("fullName", newFirstName + " " + newLastName);
+        }
+
         if(newUsername != null){
             user.setUsername(newUsername);
             toReturn.put("username", newUsername);
         }
-            
+        
+        if(newLocation != null){
+            GeocodingResult[] results = GeocodingApi.geocode(geoContext, newLocation).await();
+            if(results.length == 0)
+                throw new NoSuchElementException("Could not find coordinates for location: " + newLocation);
+
+            user.setLocation(newLocation);
+            toReturn.put("location", newLocation);
+        }
+
         if(newEmail != null){
             user.setEmailAddress(newEmail);
             toReturn.put("email", newEmail);
@@ -144,7 +174,20 @@ public class ProfileService {
             
         if(newPassword != null){
             user.setPassword(newPassword);
-            toReturn.put("password", newPassword);
+            toReturn.put("passwordMessage", "Password successfully updated.");
+        }
+
+        if(profileUpdateData.preferences() != null){
+            String visibility = profileUpdateData.preferences().getVisibility() == null ? 
+                                user.getPreferences().getVisibility() : 
+                                profileUpdateData.preferences().getVisibility();
+
+            PreferencesRequestDTO dto = new PreferencesRequestDTO(
+                visibility,
+                profileUpdateData.preferences().getGenres()
+            );
+            Map<String, Object> prefs = updateOrSetPreferences(token, dto);
+            toReturn.put("preferences", prefs.get("preferences"));
         }
 
         userRepo.save(user);
@@ -153,7 +196,6 @@ public class ProfileService {
     }
 
     public ProfilePictureResponseDTO changeProfilePicture(String token, MultipartFile pfp) throws IOException {
-         // TODO: return the entire resource with update applied
         String url = "";
         String message = "";
         String userId = jwtService.extractUserId(token).toString();
@@ -173,7 +215,6 @@ public class ProfileService {
     public Map<String, Object> updateOrSetPreferences(
         String token, PreferencesRequestDTO prefData
     ){
-        // TODO: return the entire resource with update applied
         String userId = jwtService.extractUserId(token).toString();
         User user = userRepo.findById(userId).get();
         
@@ -202,6 +243,9 @@ public class ProfileService {
 
         if(!gameRepo.existsById(gameId))
             throw new IllegalArgumentException("A board game associated with ID: " + gameId + "does not exist.");
+
+        if(user.getOwnedGames().contains(gameId))
+            throw new IllegalStateException("Board game with id: " + gameId + " is already in user inventory.");
 
         user.getOwnedGames().add(gameId);
         user = userRepo.save(user);
@@ -289,7 +333,8 @@ public class ProfileService {
 
         if(!user.getOwnedGames().remove(gameId))
             throw new IllegalArgumentException("Board game with id: " + gameId + " was not found in user inventory.");
-            
+        
+        user = userRepo.save(user);
         
         List<GameInventoryDTO> games = new ArrayList<>();
         int ownedGameCount = user.getOwnedGames().size();

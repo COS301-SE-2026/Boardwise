@@ -29,20 +29,3 @@ class JobStatusResponse(BaseAPIModel):
     failure_reason: Optional[str] = None
     started_at: datetime
     completed_at: Optional[datetime] = None
-
-class RulebookResponse(BaseAPIModel):
-    """Returned when viewing a specific rulebook's metadata."""
-    rulebook_id: str = Field(..., alias="id")
-    cover_image_url: str
-    game_id: str
-    title: str
-    edition: str
-    status : str
-    version: int
-    contributor_username: str
-    description: str
-    language: str
-    r2_pdf_key: Optional[str] = None
-    r2_cover_key: Optional[str] = None
-    uploaded_at: datetime
-    updated_at: datetime

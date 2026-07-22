@@ -1,4 +1,4 @@
-package com.boardwise.backend.user_service.services;
+package com.boardwise.backend.shared.services;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -11,9 +11,7 @@ import java.util.stream.IntStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.springframework.data.domain.Limit;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.mongodb.core.query.TextCriteria;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,30 +22,32 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.user_service.dtos.GameListDTO;
 import com.boardwise.backend.user_service.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.user_service.repos.BoardGameSearch;
+import com.boardwise.backend.user_service.services.AuthService;
+import com.boardwise.backend.user_service.services.R2StorageService;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class BoardGameService {
 
     private final BoardGameRepository gameRepo;
     private final R2StorageService bucket;
     private final RestClient client;
+    private final BoardGameSearch gameSearch;
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
 
-    BoardGameService(
-        BoardGameRepository gameRepo,
-        R2StorageService bucket, 
-        RestClient bggRestClient
-    ){
-        this.gameRepo = gameRepo;
-        this.bucket = bucket;
-        this.client = bggRestClient;
-    }
 
+    @Scheduled(fixedDelay = 6 * 1000)
     public void populateDatabase(){
+        System.out.println("Pulling from BGG and populating games.");
         int nextBggId = gameRepo.findTopByBggIdNotNullOrderByBggIdDesc()
                         .map(game -> game.getBggId() + 1)
                         .orElse(1);
@@ -72,6 +72,8 @@ public class BoardGameService {
             for(int i = 0; i < nodeList.getLength(); i++){
                 Node node = nodeList.item(i);
 
+                if(node == null) continue;
+
                 String preBggId = node.getAttributes()
                                     .getNamedItem("id")
                                     .getNodeValue();
@@ -89,38 +91,43 @@ public class BoardGameService {
                                                     .item(0)
                                                     .getTextContent();
 
-                String gameImage = element.getElementsByTagName("image")
-                                                    .item(0)
-                                                    .getTextContent();
+                // get game Image
+                Node preGameImage = element.getElementsByTagName("image")
+                                                    .item(0);
+                                                    
+                String gameImage = preGameImage != null ? preGameImage.getTextContent() : null;
 
-                String preMin = element.getElementsByTagName("minplayers")
-                                            .item(0)
-                                            .getAttributes()
-                                            .getNamedItem("value")
-                                            .getNodeValue();
+                // get game minimum players
+                Node preMinNode = element.getElementsByTagName("minplayers")
+                                            .item(0);
 
-                int minPlayers = Integer.parseInt(preMin);
+                String preMin = preMinNode != null ? preMinNode.getAttributes().getNamedItem("value").getNodeValue() : null;
+                                    
+                int minPlayers = preMin != null ? Integer.parseInt(preMin) : 2; // assume minPlayers is 2, if API does not have this value
                 
-                String preMax = element.getElementsByTagName("maxplayers")
-                                            .item(0)
-                                            .getAttributes()
-                                            .getNamedItem("value")
-                                            .getNodeValue();
-                int maxPlayers = Integer.parseInt(preMax);       
+                // get game maximum players
+                Node preMaxNode = element.getElementsByTagName("maxplayers")
+                                            .item(0);
+                                            
+                String preMax = preMaxNode != null ? preMaxNode.getAttributes().getNamedItem("value").getNodeValue() : null;
+                                        
+                int maxPlayers = preMax != null ? Integer.parseInt(preMax) : minPlayers;   // assumes maxPlayers = minPlayers, if API does not provide this value
 
-                String preDuration = element.getElementsByTagName("playingtime")
-                                            .item(0)
-                                            .getAttributes()
-                                            .getNamedItem("value")
-                                            .getNodeValue();
-                int duration = Integer.parseInt(preDuration);
+                // get game duration
+                Node preDurationNode = element.getElementsByTagName("playingtime")
+                                            .item(0);
 
-                String preMinAge = element.getElementsByTagName("minage")
-                                            .item(0)
-                                            .getAttributes()
-                                            .getNamedItem("value")
-                                            .getNodeValue();
-                int minAge = Integer.parseInt(preMinAge);
+                String preDuration = preDurationNode != null ? preDurationNode.getAttributes().getNamedItem("value").getNodeValue() : null;
+                                        
+                int duration = preDuration != null ? Integer.parseInt(preDuration) : 60; // assumes 1 hour (60 min.) if value not given by api
+
+                // get game minimum age recommendation
+                Node preMinAgeNode = element.getElementsByTagName("minage")
+                                            .item(0);
+
+                String preMinAge = preMinAgeNode != null ? preMinAgeNode.getAttributes().getNamedItem("value").getNodeValue() : null;
+       
+                int minAge = preMinAge != null ? Integer.parseInt(preMinAge) : 8; // assume 8 year old is the minimum age
 
                 NodeList gameGenres = element.getElementsByTagName("link");
                 List<String> genres = new ArrayList<>();
@@ -172,7 +179,8 @@ public class BoardGameService {
                     boardgames.add(game);
             }
 
-            gameRepo.saveAll(boardgames);
+            if(boardgames.size() > 0)
+                gameRepo.saveAll(boardgames);
         }
         catch(Exception e){
             log.error("Failed to populate database: {}", e.getMessage(), e);
@@ -188,16 +196,15 @@ public class BoardGameService {
             dbGames = gameRepo.findAllBy(maxRecords);
         }
         else{
-            Pageable limit = PageRequest.of(0, 10);
-            TextCriteria criteria = TextCriteria.forDefaultLanguage().matchingAny(query);
-            dbGames = gameRepo.findAllBy(criteria, limit);
+            dbGames = gameSearch.search(query, 10);
         }
 
         List<GameListDTO> games = new ArrayList<>();
         for(Boardgame game : dbGames){
             GameListDTO dto = new GameListDTO(
                 game.getId(),
-                game.getTitle()
+                game.getTitle(),
+                game.getImageURL()
             );
             games.add(dto);
         }
@@ -241,6 +248,33 @@ public class BoardGameService {
 
         result.put("message", "New game successfully added to database.");
 
+        return result;
+    }
+
+    public Map<String, Object> getBoardgameGenres(String query){
+        Map<String, Object> result = new HashMap<>();
+        List<Genres> genres = new ArrayList<>();
+        
+        if(query == null){
+            for(int i = 0; i < 10; i++){
+                genres.add(Genres.values()[i]);
+            }
+        }
+        else{
+            int count = 10;
+            for(Genres genre : Genres.values()){
+                if(genre.getValue().contains(query)){
+                    genres.add(genre);
+                    count--;
+                }
+                if(count < 1)
+                    break;
+            }
+        }
+        
+
+        result.put("message", "Genres successfully retrieved.");
+        result.put("genres", genres);
         return result;
     }
 }

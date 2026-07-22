@@ -13,13 +13,39 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref , computed, onMounted } from 'vue'
 
 import ChatSidebar from './ChatSidebar.vue';
 import ChatWindow from './ChatWindow.vue';
 import { getChats } from '~/services/chatService.js'
 
-const conversations = ref (getChats())
+import { useEvents } from '~/composables/useEvents'
+
+const { inviteCount, fetchInvites } = useEvents()
+
+onMounted(() => {
+    fetchInvites()
+})
+
+const conversations = computed(() => {
+    const lastMessage = inviteCount.value > 0
+     ? `${inviteCount.value} pending invites`
+     : 'No pending invites'
+
+    return [
+        {
+            id: 'invites',
+            name: 'Invites',
+            avatar: '/images/default-listing.png',
+            lastMessage,
+            unread: inviteCount.value,
+            online: false,
+            isInvite: true
+        },
+
+        ...getChats()
+    ]
+})
 
 const selectedConversation = ref(conversations.value[0])
 
@@ -31,6 +57,7 @@ const selectConversation = (id) => {
     }
 }
 </script>
+
 <style scoped>
 .chat-layout {
     display: grid;

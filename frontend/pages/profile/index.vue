@@ -4,15 +4,15 @@
     <template v-if="user">
       <Navbar />
 
-      <ProfileHeader :user="user" @saved="user = $event" />
+      <ProfileHeader :user="user" @saved="handleProfileUpdate" @pfp-change="handlePfpChange"/>
 
       <ProfileStats
-        :games="games.length"
-        :friends="15"
+        :games="user.games.length"
+        :friends="user.friendCount"
         :communities="user.groupCount"
       />
 
-      <ProfileCommunities />
+      <ProfileCommunities :communities="user.communities" />
 
       <v-tabs
         v-model="activeTab"
@@ -28,7 +28,8 @@
         <v-window-item value="Games Owned">
           <GamesOwnedSection
             :games="games"
-            @add-game="() => { console.log('add-game fired'); showBrowser = true }"
+            @add-game="showBrowser = true"
+            @remove-game="handleRemoveGame"
           />
         </v-window-item>
 
@@ -53,14 +54,14 @@
 
     <GameBrowserModal
       v-model="showBrowser"
-      @confim="handleGamesAdded"
+      @confirm="handleGamesAdded"
       @add-custom="openCustomModal"
     />
 
     <AddCustomGameModal
       v-model="showCustom"
       @confirm="handleCustomGame"
-      @back-custom="showCustom = false; showBrowser = true"
+      @back="showCustom = false; showBrowser = true"
     />
 
   </PageContainer>
@@ -71,56 +72,41 @@ definePageMeta({
   middleware: 'auth'
 })
 
-import { ref, onMounted } from 'vue'
-import Navbar             from '~/components/layout/Navbar.vue'
-import PageContainer      from '~/components/layout/PageContainer.vue'
-import ProfileHeader      from '~/components/features/profile/ProfileHeader.vue'
-import ProfileStats       from '~/components/features/profile/ProfileStats.vue'
+import { ref, onMounted, computed } from 'vue'
+import Navbar from '~/components/layout/Navbar.vue'
+import PageContainer from '~/components/layout/PageContainer.vue'
+import ProfileHeader from '~/components/features/profile/ProfileHeader.vue'
+import ProfileStats from '~/components/features/profile/ProfileStats.vue'
 import ProfileCommunities from '~/components/features/profile/ProfileCommunities.vue'
-import GamesOwnedSection  from '~/components/features/profile/GamesOwnedSection.vue'
-import ListingsSection    from '~/components/features/profile/ListingsSection.vue'
-import GameBrowserModal   from '~/components/features/profile/GameBrowserModal.vue'
+import GamesOwnedSection from '~/components/features/profile/GamesOwnedSection.vue'
+import ListingsSection from '~/components/features/profile/ListingsSection.vue'
+import GameBrowserModal from '~/components/features/profile/GameBrowserModal.vue'
 import AddCustomGameModal from '~/components/features/profile/AddCustomGameModal.vue'
-import { useProfile }     from '~/composables/useProfile'
+import { useProfile } from '~/composables/useProfile'
+import { useSnackBar } from '~/composables/useSnackbar'
 import { useMarketplace } from '~/composables/useMarketplace'
 import { useRouter } from 'vue-router'
 
-const { fetchCurrentUser } = useProfile()
-const { listings, fetchUserListing, loading, error } = useMarketplace()
-const router = useRouter()
-const activeTab = ref('Games Owned')
-const user      = ref(null)
-const games     = ref([])
-const showBrowser = ref(false)
-const showCustom  = ref(false)
+const { fetchCurrentUser, removeGame } = useProfile();
+const { listings, fetchUserListing, loading, error } = useMarketplace();
+const { show } = useSnackBar();
+const router = useRouter();
+const activeTab = ref('Games Owned');
+const user = ref(null);
+const showBrowser = ref(false);
+const showCustom = ref(false);
+const numGames = ref(0);
 
-const defaultGames = [
-  { id: 1, title: 'Catan', category: 'Strategy', image: '/images/catan.jpg' },
-  { id: 2, title: 'Dixit', category: 'Family',   image: '/images/dixit.jpg' },
-  { id: 3, title: 'Azul',  category: 'Abstract', image: '/images/azul.jpg'  }
-]
+const games = computed(()=> user.value?.games??[] );
 
-const saveGames = () => {
-  localStorage.setItem('my-games', JSON.stringify(games.value))
-}
+const refreshUser = async ()=>{
+  user.value = await fetchCurrentUser();
+  numGames.value = user.value.ownedGameCount;
+};
 
-const handleGamesAdded = (selectedGames) => {
-  const newGenres = selectedGames.flatMap(g => g.genre ?? [])
-  const uniqueGenres = [...new Set(newGenres)]
-  console.log('Genres to merge into preferences:', uniqueGenres)
-
-  selectedGames.forEach(game => { 
-    if (!games.value.some(g => g.id === game.id)) {
-      games.value.push({
-        id:       game.id,
-        title:    game.title,
-        category: game.genre?.[0] ?? '',
-        image:    game.imageUrl ?? null  
-      })
-    }
-  })
-
-  saveGames()
+const handleGamesAdded = async () => {
+  showBrowser.value = false
+  await refreshUser()
 }
 
 const openCustomModal = () => {
@@ -128,23 +114,60 @@ const openCustomModal = () => {
   showCustom.value = true
 }
 
-const handleCustomGame = (game) => {
-  games.value.push({ ...game, id: Date.now() })
-  saveGames()
+const handleRemoveGame = async(gameId)=>{
+  try{
+    loading.value = true;
+    let response = await removeGame(gameId);
+    user.value.ownedGameCount = response.ownedGamesCount;
+    user.value.games = response.games;
+
+    show("Game successfully removed");
+  }
+  catch(err){
+    console.error('Failed to remove game:', err);
+    show("Game removal failed", "error");
+  }
+  finally{
+    loading.value = false;
+  }
+}
+
+const handleCustomGame = async (response) => {
+  showCustom.value = false;
+  user.value.ownedGameCount = response.ownedGamesCount;
+  user.value.games = response.games;
+
+
+  // await refreshUser();
+}
+
+const handleProfileUpdate = (newValues) => {
+  if(!user.value || !newValues)
+    return
+
+  user.value = {
+    ...user.value,
+    ...newValues
+  }
+  show("Profile details successfully updated");
+}
+
+const handlePfpChange = (newPfp) => {
+  if(!newPfp || !user.value)
+    return;
+
+  user.value.profilePicture = newPfp.profilePictureUrl;
+  show("Profile picture successfully updated");
 }
 
 onMounted(async () => {
   const token = localStorage.getItem('access_token')
   if (!token) {
-    router.push('/auth/signin')
-    return  
+    router.push('/auth/signin');
+    return;
   }
 
-  user.value = await fetchCurrentUser()
-  await fetchUserListing()
-
-  const stored = localStorage.getItem('my-games')
-  games.value = stored ? JSON.parse(stored) : defaultGames
-  if (!stored) localStorage.setItem('my-games', JSON.stringify(defaultGames))
-})
+  await refreshUser();
+  await fetchUserListing();
+});
 </script>

@@ -27,10 +27,40 @@
     </BaseFilterGroup>
 
     <BaseFilterGroup title="Player Count">
-        <div class="d-flex ga-2">
+        <!-- <div class="d-flex ga-2">
             <v-text-field v-model="filters.minPlayers" placeholder="Min" type="number" density="compact" hide-details rounded="lg" />
             <v-text-field v-model="filters.maxPlayers" placeholder="Max" type="number " density="compact" hide-details rounded="lg" />
-        </div>
+        </div> -->
+        <v-text-field
+          v-model="filters.playerCount"
+          placeholder="How many players?"
+          type="number"
+          density="compact"
+          hide-details
+          rounded="lg"
+        />
+    </BaseFilterGroup>
+
+    <BaseFilterGroup title="Max Duration (mins)">
+      <v-text-field
+        v-model="filters.duration"
+        placeholder="e.g. 60"
+        type="number"
+        density="compact"
+        hide-details
+        rounded="lg"
+      />
+    </BaseFilterGroup>
+
+    <BaseFilterGroup title="Minimum Age">
+      <v-text-field
+        v-model="filters.minAge"
+        placeholder="e.g. 10"
+        type="number"
+        density="compact"
+        hide-details
+        rounded="lg"
+      />
     </BaseFilterGroup>
   </BaseFilterSidebar>
 </template>
@@ -50,23 +80,26 @@ const props = defineProps({
 const emit = defineEmits(['filter'])
 
 const genres = computed(() => {
-  const unique = [...new Set(props.rulebooks.map(r => r.genre))]
-  return ['All', ...unique]
+  const unique = [...new Set(props.rulebooks.flatMap(r => r.genres || []))]
+  return ['All', ...unique].sort()
 })
 
-const languages       = ['English', 'Afrikaans', 'Zulu', 'Spanish']
+const languages = ['English', 'French', 'Spanish']
 const selectedGenre  = ref('All')
 const selectedLanguages = ref([])
 
 const filters = reactive({
-  minPlayers: '',
-  maxPlayers: '',
+  // minPlayers: '',
+  // maxPlayers: '',
+  playerCount: '',
+  duration: '',
+  minAge: ''
 })
 
 watch([selectedGenre, selectedLanguages, filters], () => {
   emit('filter', {
     genre:   selectedGenre.value,
-    conditions: selectedLanguages.value,
+    languages: selectedLanguages.value,
     ...filters
   })
 }, { deep: true })
@@ -74,8 +107,11 @@ watch([selectedGenre, selectedLanguages, filters], () => {
 const resetFilters = () => {
   selectedGenre.value   = 'All'
   selectedLanguages.value = []
-  filters.minPlayers     = ''
-  filters.maxPlayers     = ''
+  // filters.minPlayers     = ''
+  // filters.maxPlayers     = ''
+  filters.playerCount = ''
+  filters.duration = ''
+  filters.minAge = ''
 }
 </script>
 

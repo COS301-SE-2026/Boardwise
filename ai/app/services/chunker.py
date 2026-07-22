@@ -1,5 +1,5 @@
-from bson import ObjectId
 import logging
+from bson import ObjectId
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +34,8 @@ def generate_chunks(full_text: str) -> tuple[bool, list[dict], str]:
         if not chunks:
             return (False, [], "Chunks resulted in 0 valid segments")
 
-        logger.info(f"Successfully generated {len(chunks)} chunks.")
+        logger.info("Successfully generated %s chunks.", len(chunks))
         return(True, chunks, "")
-    except Exception as e:
+    except Exception:
         logger.exception("Chunking failed")
         return (False, [], "Internal error occured during text chunking")
-    

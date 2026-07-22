@@ -1,11 +1,11 @@
+from datetime import datetime, timedelta, timezone
+from unittest.mock import patch, MagicMock
 import pytest
 import jwt
-from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
 
 from app.dependencies import verify_jwt
 from app.config import settings
-from unittest.mock import patch, MagicMock
 
 # Helper to forge test tokens
 def create_test_token(payload_overrides: dict = None) -> str:

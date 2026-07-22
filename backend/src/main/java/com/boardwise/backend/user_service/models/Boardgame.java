@@ -3,7 +3,6 @@ package com.boardwise.backend.user_service.models;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -22,7 +21,6 @@ import lombok.NoArgsConstructor;
 public class Boardgame {
     @Id
     private String id;
-    @Indexed(unique = true)
     @Nullable
     private Integer bggId;
     @TextIndexed

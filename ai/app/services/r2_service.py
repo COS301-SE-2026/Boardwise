@@ -32,16 +32,16 @@ def upload_to_r2(file_bytes: bytes, r2_key: str, content_type: str) -> bool:
                 "etag":response['ETag'],
                 "versionId": response.get('VersionId'),
             }
-            logger.info(f"R2 Upload Success: {response_object}")
+            logger.info("R2 Upload Success: %s", response_object)
         return True
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to upload to R2")
         return False
 
 def generate_pdf_key(rulebook_id: str, filename: str)->str:
     """Returns: rulebooks/{rulebook_id}/{safe_filename}.pdf"""
     name, _ = os.path.splitext(filename)
-    safe_filename = name.replace(" ", "_").lower()
+    safe_filename = name.strip().replace(" ", "_").lower()
     return f"rulebooks/{rulebook_id}/{safe_filename}.pdf"
 
 def ping_r2_storage():

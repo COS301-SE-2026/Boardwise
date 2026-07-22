@@ -16,7 +16,7 @@ export default defineNuxtConfig({
     vuetifyOptions: {
       defaults: {
         VBtn: {
-          rounded: 'lg',
+          rounded: 'pill',
           elevation: 0,
           class: 'text-none'
         },
@@ -56,17 +56,17 @@ export default defineNuxtConfig({
             dark: false,
 
             colors: {
-              primary: '#6D0037',
-              secondary: '#1A1430',
-              accent: '#C9A86A',
-              error: '#E4572E',
+              primary: '#C7286E',      
+              secondary: '#4E1E5C',    
+              accent: '#EF5B27',       
+              error: '#C62828',        
 
-              background: '#F9FAFB',
-              surface: '#FFFFFF',
+              background: '#FBF6F0',   
+              surface: '#FFFFFF',      
 
-              success: '#2E7D5B',
-              warning: '#B7791F',
-              info: '#7C3AED'
+              success: '#2E7D5B',      
+              warning: '#B7791F',      
+              info: '#4E1E5C'          
             }
           }
         }
@@ -76,14 +76,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       // Once backend is deployed, we must change the URL to match
-      apiBase: process.env.NODE_ENV === 'prod' ? 'https://api.our-production-domain.com' : 'http://localhost:8080/api/'
-    }
-  },
-
-  // Proxy for requests to Spring Boot
-  routeRules: {
-    '/api/**': {
-      proxy: 'http://127.0.0.1:8080/api/**'
+      apiBase: process.env.NODE_ENV === 'prod' ? 'https://api.our-production-domain.com' : 'http://127.0.0.1:8080/api/',
+      wsBaseUrl: process.env.NODE_ENV === 'prod' ? 'wss://api.our-production-domain.com/api/stomp' : 'ws://127.0.0.1:8080/api/stomp'
     }
   }
 })
