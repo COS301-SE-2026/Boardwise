@@ -54,7 +54,7 @@ const emit = defineEmits(['save'])
 
 const notificationSettings = getNotification()
 
-const items = [
+const items = ref([
     { 
         key: 'event_rsvp',           
         label: 'Event RSVPs',          
@@ -85,7 +85,7 @@ const items = [
         description: 'New events in your community.',  
         enabled: notificationSettings.community_event  
     },
-]
+])
 
 const savePreferences = () => {
     emit(
