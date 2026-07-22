@@ -25,6 +25,7 @@ import com.boardwise.backend.user_service.dtos.GroupUpdateResponseDTO;
 import com.boardwise.backend.user_service.models.Group;
 import com.boardwise.backend.user_service.models.GroupMembership;
 import com.boardwise.backend.user_service.models.User;
+import com.boardwise.backend.user_service.models.Visibility;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
@@ -45,12 +46,12 @@ public class SocialService {
 
     public GroupCreationResponseDTO createGroup(String token, GroupCreationDTO group, MultipartFile image) throws IOException{
         String userId = jwtService.extractUserId(token).toString();
-        User user = userRepo.findByUsername(userId).get();
+        User user = userRepo.findById(userId).get();
 
         String groupName = AuthService.sanitize(group.name());
         String groupDesc = AuthService.sanitize(group.description());
         String groupCategory = AuthService.sanitize(group.category());
-        String visibility = group.visisbility() == null ? "public" : group.visisbility();
+        Visibility visibility = group.visibility();
         
 
         Group newGroup = new Group(
@@ -99,7 +100,7 @@ public class SocialService {
         List<GroupInfo> groups = new ArrayList<>();
 
         for(Group group : groupRepo.findAll()){
-            if(group.getVisibility().equalsIgnoreCase("private")){
+            if(group.getVisibility().equals(Visibility.PRIVATE)){
                 GroupMembership toCheck = new GroupMembership();
                 toCheck.setGroupId(group.getId());
                 toCheck.setUserId(userId);
@@ -169,6 +170,7 @@ public class SocialService {
             group.getImageUrl(),
             group.getDescription(),
             owner.getUsername(),
+            group.getVisibility(),
             memberCount,
             members,
             isMember

@@ -9,8 +9,8 @@
  
       <CommunityBanner 
         :community="community" 
-        @members="showMembers = true"
-        @events="showEvents = true"
+        @members="showMembers = !showMembers"
+        @events="showEvents = !showEvents"
         />
  
       <CommunityChats 

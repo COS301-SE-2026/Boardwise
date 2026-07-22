@@ -9,6 +9,29 @@ export const useCommunity = () => {
     const error = ref<string>('');
     const loading = ref<boolean>(false);
 
+    const createCommunity = async (community: {
+      name: string,
+      description: string,
+      category: string,
+      visibility: string,
+      communityPfp: File
+    }) => {
+      error.value = ''
+      loading.value = true
+
+      try{
+          const response = await CommunityService.createCommunity(community);
+          return response;
+      }
+      catch(err: any){
+          error.value = err.data?.message || "Could not create community"
+          throw err;
+      }
+      finally{
+          loading.value = false;
+      }
+    }
+
     const getAllCommunities = async () => {
         error.value = '';
         loading.value = true;
@@ -50,6 +73,9 @@ export const useCommunity = () => {
           error.value = err.data?.message || "Could not make search query"
           throw err;
       }
+      finally{
+          loading.value = false;
+      }
     }
 
     return {
@@ -58,7 +84,8 @@ export const useCommunity = () => {
         loading,
         getAllCommunities,
         getCommunityDetails,
-        searchForCommunity
+        searchForCommunity,
+        createCommunity
     }
 }
 

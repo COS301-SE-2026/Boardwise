@@ -1,5 +1,5 @@
 <template>
-    <div class="d-flex flex-column ga-4">
+    <div class="d-flex flex-column ga-4" v-if="modelValue">
 
         <div
             v-if="communityEvents.length"
@@ -18,7 +18,7 @@
             v-if="communityEvents.length === 0"
             title="No upcoming events"
             description="This community hasn't scheduled any events yet."
-    />
+        />
         
         <BaseButton
             v-if="community.isMember"
@@ -45,26 +45,32 @@ import CreateEventModal from './CreateEventModal.vue';
 import createEvent from '../events/CreateEvent.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
 
-    const props = defineProps({
-        community: {
-            type: Object,
-            required: true
-        }
-    })
-
-    const communityEvents = computed(() =>
-        events.filter(
-            event => event.communityId === props.community.id
-        )
-    )
-
-    const showCreateModal = ref(false)
-
-    const toggleRsvp = (eventId) => {
-        const event = events.find(e.id === eventId)
-        if (event){
-            event.rsvped = !event.rsvped
-        }
+const props = defineProps({
+    community: {
+        type: Object,
+        required: true
+    },
+    modelValue: {
+        type: Boolean,
+        default: false
     }
+})
+
+defineEmits(["update:modelValue"])
+
+const communityEvents = computed(() =>
+    events.filter(
+        event => event.communityId === props.community.id
+    )
+)
+
+const showCreateModal = ref(false)
+
+const toggleRsvp = (eventId) => {
+    const event = events.find(e => e.id === eventId)
+    if (event){
+        event.rsvped = !event.rsvped
+    }
+}
 
 </script>

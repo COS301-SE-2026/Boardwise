@@ -10,17 +10,18 @@
     />
  
     <CommunityGrid 
-        class="mt-6"
-        :communities="filteredCommunities"
-      />
+      class="mt-6"
+      :communities="filteredCommunities"
+    />
 
-      <CommunityFilter 
-        class="mt-6"
-        @filter="handleFilter" 
-      />
+    <CommunityFilter 
+      class="mt-6"
+      @filter="handleFilter" 
+    />
 
     <CommunityCreateForm 
       v-model="showCreateCommunity"
+      @confirm="handleCreate"
     />
 
   </PageContainer>
@@ -45,8 +46,11 @@ import CommunityFilter from '~/components/features/community/CommunityFilter.vue
 import type { GroupInfo } from '~/services/communityService'
 
 import { useCommunity } from '~/composables/useCommunity'
+import { useSnackBar } from '~/composables/useSnackbar'
+
 
 const { getAllCommunities, searchForCommunity } = useCommunity()
+const { show } = useSnackBar()
 
 const searchQuery = ref('')
 const showCreateCommunity = ref(false)
@@ -61,14 +65,17 @@ onMounted(async () => {
 
 const delaySearch = useDebounceFn( async (query) => {
   const res = await searchForCommunity(query)
-  console.log(res)
   communities.value = Array.isArray(res) ? res : []
 }, 400)
 
 watch(searchQuery, (query) => {
-  console.log(query);
   delaySearch(query) 
 })
+
+const handleCreate = (newCommunity: GroupInfo) => {
+  communities.value.push(newCommunity)
+  show("Community successfully created")
+}
 
 const handleFilter = ({
   types,

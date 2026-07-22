@@ -1,5 +1,5 @@
 <template>
-  <section>
+  <section v-if="modelValue">
 
     <BaseGrid cols="180px" >
       <MemberCard
@@ -21,8 +21,11 @@ import BaseGrid from '~/components/ui/BaseGrid.vue'
 
 import InviteMemberModal from './InviteMemberModal.vue'
 defineProps({
-  community: { type: Object, required: true }
+  community: { type: Object, required: true },
+  modelValue: { type: Boolean, default: false }
 })
+
+defineEmits(['update:modelValue'])
 
 const showInvite = ref(false)
 

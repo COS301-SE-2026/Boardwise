@@ -17,9 +17,12 @@
             {{ community.name }}
           </h1>
         
-          <BaseTag>
+          <BaseBadge
+            class="badge"
+            :variant="community.visibility"
+          >
             {{ community.visibility }}
-          </BaseTag>
+          </BaseBadge>
           
           
           <p class="text-body-2 text-medium-emphasis mb-0">
@@ -57,24 +60,25 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import CommunityEditModal from './CommunityEditModal.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
 
-import BaseTag from '~/components/ui/BaseTag.vue'
+import BaseBadge from '~/components/ui/BaseBadge.vue'
 
 defineEmits([
   'members',
   'events'
 ])
 
-defineProps({
+const props = defineProps({
   community: { type: Object, required: true }
 })
 
 const showEdit = ref(false)
+console.log(props.community.visibility)
  
 const handleSave = (data) => {
   console.log('Save community:', data)
