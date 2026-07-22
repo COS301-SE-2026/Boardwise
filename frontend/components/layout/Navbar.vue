@@ -42,6 +42,10 @@
         <NuxtLink to="/profile">
             Profile
         </NuxtLink>
+
+        <NuxtLink to="/chats">
+            Chat
+        </NuxtLink>
         <LogOutButton />
     </div>
   </v-app-bar>

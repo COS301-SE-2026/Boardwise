@@ -28,24 +28,7 @@
       />
     </div>
 
-    <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
-      <EventDetail
-        v-if="selectedEvent"
-        :event="selectedEvent"
-        :current-user="currentUsername"
-        @close="showDetail = false"
-        @rsvp="handleRsvp"
-        @de-rsvp="handleDeRsvp"
-        @edit="openEdit"
-        @cancel-event="handleCancelEvent"
-      />
-    </v-navigation-drawer>
-
-    <CreateEvent
-      v-model="showCreateEvent"
-      :on-submit="handleCreateEvent"
-      @created="handleEventCreated"
-    />
+    <CreateEvent v-model="showCreateEvent" @created="handleCreateEvent" />
 
     <EditEventModal
       v-model="showEditEvent"
@@ -74,7 +57,7 @@ import EventSearch from '~/components/features/events/EventSearch.vue'
 import EventFilter from '~/components/features/events/EventFilter.vue'
 import EventGrid from '~/components/features/events/EventGrid.vue'
 
-import EventDetail from '~/components/features/events/EventDetail.vue'
+
 import CreateEvent from '~/components/features/events/CreateEvent.vue'
 
 import { useEvents } from '~/composables/useEvents'
@@ -178,8 +161,7 @@ const showInviteModal = ref(false);
 const createdEvent = ref(null);
 
 const openEvent = (event) => {
-  selectedEvent.value = event
-  showDetail.value = true
+  router.push(`/events/detail/${event.id}`)
 }
 
 const openEdit = (event) => {
