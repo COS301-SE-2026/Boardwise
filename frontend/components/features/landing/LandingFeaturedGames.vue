@@ -1,44 +1,40 @@
 <template>
-    <v-container class="py-16">
-        <v-row class="mb-10">
+    <v-container class="container py-16">
+        <v-row class="mb-10" align="center">
             <v-col cols="12" lg="6">
-                <v-chip color="primary" class="mb-4">
-                    Supported games
-                </v-chip>
-
-                <h2 class="landing-heading">
-                    Hundrends of games.
+                <h2>
+                    How<br>Boardwise<br>works
                 </h2>
 
-                <h2 class="landing-heading text-primary">
-                    One intelligent guide.
-                </h2>
             </v-col>
 
-            <v-col cols="12" lg="6" class="d-flex align-center">
-                <p class="landing-subtitle">
-                    Whether you're learning Catan for the first time or setting up
-                    an expansion, Boardwise helps you get playing faster.
+            <v-col cols="12" md="6" class="d-flex align-center">
+                <p>
+                    Get started in minutes. Create your account, build your collection,
+                    connect with players and discover everything Boardwise has to offer.
                 </p>
             </v-col>
         </v-row>
 
-        <v-row>
-            <v-col 
-                v-for="game in games"
-                :key="game.id"
-                cols="12" sm="6" lg="4"
-            >
-                <LandingGameCard :game="game"/>
-            </v-col>
-        </v-row>
+            <v-row>
+            <v-col v-for="step in steps"
+                    :key="step.id"
+                    cols="12"
+                    sm="6"
+                    md="4"
+                    lg="2"
+                    >
+                <LandingGameCard :game="step"
+                />
+                </v-col>
+                </v-row>
     </v-container>
 </template>
 
 <script setup>
 
-import { getFeaturedGames } from '~/services/landingService'
+import { onboardingSteps } from '~/services/mockData/landing.js'
 import LandingGameCard from './LandingGameCard.vue';
 
-const games = getFeaturedGames()
+const steps = onboardingSteps
 </script>
