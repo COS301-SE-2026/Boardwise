@@ -6,56 +6,46 @@
                     General
                 </h2>
                 <p class="text-body-2 text-medium-emphasis">
-                    Update personal Information
+                    Your account information
                 </p>
             </div>  
 
             <BaseInput 
-                v-model="form.firstName" 
+                :model-value="profile.firstName" 
                 label="First name" 
-                placeholder="Change first name"
+                disabled
                 />
 
             <BaseInput 
-                v-model="form.lastName" 
+                :model-value="profile.lastName" 
                 label="Last Name" 
-                placeholder="Change last name"  
+                disabled
                 />
             <BaseInput 
-                v-model="form.username"  
+                :model-value="profile.username"  
                 label="Username"
-                placeholder="Change username"  
+                disabled
             />
             <BaseInput 
-                v-model="form.email"     
+                :model-value="profile.email"     
                 type="email" 
                 label="Email"    
-                placeholder="Change email" 
+                disabled
                 />
             <BaseInput 
-                v-model="form.bio"       
+                :model-value="profile.bio"       
                 type="textarea"
                 label="Bio"  
-                placeholder="Change bio"   
+                disabled   
                 />
-                <div class="d-flex justify-end mt-2">
-            <BaseButton @click="emit('save', { ...form})">
-                Save changes
-            </BaseButton>
-            </div>  
         </div>
     </BaseCard>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
 import { getProfile } from '~/services/settingsService'
 
-const form = ref(getProfile())
-
-const emit = defineEmits(['save'])
+const profile = getProfile()
 </script>
