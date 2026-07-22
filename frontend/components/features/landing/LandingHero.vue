@@ -1,55 +1,42 @@
 <template>
-    <v-container
-        fluid
-        class="fill-height py-16"
+    <v-container class="container py-16"
     >
         <v-row align="center" justify="space-between">
 
-            <v-col 
-                cols="12"
-                lg="6"
-                order="2"
-                order-lg="1"
-                >
-                <v-chip color="primary" class="mb-6">
-                    Boarice AI powered setup wizard
-                </v-chip>
-                    <h1 class="landing-title">
-                        OPEN THE BOX
+            <v-col cols="12" md="6">
+                    <h1>
+                            Play.<br>Connect.<br>Share.<br> All things board games.
                     </h1>
-
-                    <h1 class="landing-title text-primary mb-6">
-                        WE'LL HANDLE
-                        <br>
-                        THE RULEBOOK
-                    </h1>
-                    <p class="landing-subtitle mt-8">
-                        From opening the box to your first turn,
-                        Boardwise uses AI to simplify rulebooks,
-                        guide setup and answer your questions in real time.    
-                    </p>
+                    <p class="mt-6 mb-8">
+                        Access a library of your favourite board games, discover new games,
+                        connect with other players, trade or sell games, all in one place.</p>
 
                     <div class="d-flex flex-wrap ga-4">
-                        <BaseButton @click="router.push('/auth/signup')">
-                            Get started 
-                        </BaseButton>
-
                         <BaseButton
                             variant="secondary"
                             @click="router.push('/library')"
                         >
-                            Browse library
+                            Rulebooks
                         </BaseButton>
+
+                        
+                        <BaseButton @click="router.push('/auth/signup')">
+                            Get started 
+                        </BaseButton>
+
                     </div>
             </v-col>
             <v-col 
                 cols="12"
-                lg="5"
-                order="1"
-                order-lg="2"
-                class="text-center"
+                md="6"
+                class="d-flex flex-column align-center"
                 >
-                <v-img src="/images/landing/hero.svg" max-width="550"/>
+                <v-img 
+                    src="/images/landing/hero.svg" 
+                    max-width="520" 
+                    class="mx-auto"
+                    />
+              
             </v-col>
         </v-row>
     </v-container>
@@ -60,20 +47,3 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 const router = useRouter()
 
 </script>
-
-<style scoped>
-.fill-height{
-    min-height: 85vh;
-}
-
-.landing-title{
-    font-size: 5rem;
-    font-weight: 700;
-}
-
-.landing-subtitle{
-    font-size: 1.3rem;
-    max-width: 600px;
-    margin: auto;
-}
-</style>
