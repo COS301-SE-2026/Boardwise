@@ -22,7 +22,7 @@
         class="ml-3"
         @click="router.push('/auth/signup')"
     >
-        Get started
+        Sign Up
     </BaseButton>
     </v-app-bar>
 </template>
