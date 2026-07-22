@@ -21,8 +21,7 @@
         </BaseCard>
 
         <div class="flex-grow-1">
-            <SettingsProfile v-if="active === 'profile'"/>
-            <SettingsAppearance v-else-if="active === 'appearance'"/>
+            <SettingsAppearance v-if="active === 'appearance'"/>
             <SettingsPrivacy v-else-if="active === 'privacy'"/>
             <SettingsNotifications v-else-if="active === 'notifications'"/>
         </div>
@@ -33,7 +32,6 @@
 import { ref } from 'vue';
 
 import BaseCard from '~/components/ui/BaseCard.vue'
-import SettingsProfile from './SettingsProfile.vue'
 import SettingsAppearance from './SettingsAppearance.vue'
 import SettingsPrivacy from './SettingsPrivacy.vue'
 import SettingsNotifications from './SettingsNotifications.vue'
@@ -41,7 +39,6 @@ import SettingsNotifications from './SettingsNotifications.vue'
 const active = ref('profile')
 
 const sections = [
-    { id: 'profile', label: 'Profile' },
     { id: 'appearance', label: 'Appearance' },
     { id: 'privacy', label: 'Privacy' },
     { id: 'notifications', label: 'Notifications' }
