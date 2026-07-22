@@ -5,6 +5,7 @@ import java.util.Map;
 import com.boardwise.backend.user_service.models.Preferences;
 
 public record ProfileResponseDTO(
+    String id,
     String fullName,
     String username,
     String location,

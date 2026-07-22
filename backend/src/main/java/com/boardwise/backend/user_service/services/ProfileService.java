@@ -12,6 +12,9 @@ import java.util.NoSuchElementException;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Example;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +24,7 @@ import com.boardwise.backend.user_service.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
 import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileResponseDTO;
+import com.boardwise.backend.user_service.dtos.ProfileSearchResponse;
 import com.boardwise.backend.user_service.dtos.UpdateProfileDTO;
 import com.boardwise.backend.user_service.models.*;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
@@ -47,6 +51,7 @@ public class ProfileService {
     private final BoardGameRepository gameRepo;
     private final R2StorageService bucket;
     private final GeoApiContext geoContext;
+    private final MongoTemplate template;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
@@ -111,6 +116,7 @@ public class ProfileService {
         Preferences userPref = user.getPreferences();
         String fullName = user.getFirstName() + " " + user.getLastName();                 
         return new ProfileResponseDTO(
+            user.getId(),
             fullName,
             user.getUsername(),
             user.getLocation(),
@@ -123,6 +129,27 @@ public class ProfileService {
             userPref,
             formatter.format(user.getCreatedAt())
         );
+    }
+
+    public List<ProfileSearchResponse> searchForUsers(String query){
+        List<ProfileSearchResponse> results = new ArrayList<>();
+
+        String cleanQuery = AuthService.sanitize(query);
+        Criteria searchCriteria = Criteria.where("username").regex(cleanQuery, "i");
+        Query dbQuery = new Query(searchCriteria);
+        List<User> matches = template.find(dbQuery, User.class);
+
+        for(User user : matches){
+            results.add(new ProfileSearchResponse(
+                    user.getId(),
+                    user.getUsername(),
+                    user.getFirstName() + " " + user.getLastName(),
+                    user.getProfilePicture()
+                )
+            );
+        }
+
+        return results;
     }
 
     public void deleteUser(String token) {
