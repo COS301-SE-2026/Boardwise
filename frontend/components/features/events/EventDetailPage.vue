@@ -3,7 +3,7 @@
         <BaseButton variant="secondary"
             prepend-icon="mdi-arrow-left" 
             class="md-4"
-            @click="router.push('/events')"
+            @click="router.push(`/events`)"
         >
             Back to events
         </BaseButton>
@@ -138,7 +138,7 @@ import { useRouter } from '#vue-router'
 import BaseImage from '~/components/ui/BaseImage.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
 
-const router = userRouter()
+const router = useRouter()
 
 const props = defineProps({
     event: {

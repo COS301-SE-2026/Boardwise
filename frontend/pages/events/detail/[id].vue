@@ -6,7 +6,7 @@
             <v-progress-circular indeterminate color="primary" />
         </div>
 
-        <EventDetail 
+        <EventDetailPage
             v-else-if="event"
             :event="event"
             :current-user="currentUsername"
@@ -25,7 +25,7 @@
     </PageContainer>
 </template>
 
-<script>
+<script setup>
 definePageMeta({ middleware: 'auth' })
 
 import { ref, onMounted } from 'vue'
