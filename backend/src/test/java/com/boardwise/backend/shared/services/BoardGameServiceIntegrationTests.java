@@ -1,4 +1,4 @@
-package com.boardwise.backend.user_service.services;
+package com.boardwise.backend.shared.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
