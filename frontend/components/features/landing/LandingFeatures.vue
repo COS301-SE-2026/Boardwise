@@ -1,48 +1,28 @@
 <template>
-    <v-container class="py-16">
+    <v-container class="container py-16">
 
-        <v-row 
-            v-for="(feature, index) in features"
-            :key="feature.title"
-            align="center" class="mb-16"
-        
+        <v-row class="mb-10"
         >
             <v-col
-                cols="12" md="6" :order="index % 2 === 0 ? 1 : 2"
+                cols="12" class="text-center"
             >
-                <v-img
-                    :src="feature.image"
-                    max-width="420" class="mx-auto"
-                />
+                <h2>
+                    Explore Boardwise
+                </h2>
+                <p class="mt-4">
+                    everything you need to discover, collect and enjoy board games.
+                </p>
             </v-col>
-
+            </v-row>
+            <v-row>
             <v-col
-                cols="12" md="6" :order="index % 2 === 0 ? 2 : 1"
+                v-for="feature in features"
+                :key="feature.id"
+                cols="12" 
+                sm="6" 
+                md="4"
             >
-
-            <v-chip color="primary" class="mb-4">
-                {{ feature.tag }}
-            </v-chip>
-
-            <h2 class="landing-heading mb-4">
-                {{ feature.title }}
-            </h2>
-
-            <p class="landing-subtitle mb-6">
-                {{  feature.description }}
-            </p>
-
-            <v-list bg-color="transparent">
-                <v-list-item
-                    v-for="item in feature.highlights"
-                    :key="item"
-                    prepend-icon="mdi-check-circle"
-                >
-                    <v-list-item-title>
-                        {{ item }}
-                    </v-list-item-title>
-                </v-list-item>
-            </v-list>
+            <landing-feature-card :feature="feature"/>
             </v-col>
         </v-row>
     </v-container>
@@ -50,6 +30,7 @@
 
 <script setup>
 import { getPlatformFeatures } from '~/services/landingService'
+import LandingFeatureCard from './LandingFeatureCard.vue';
 
 const features = getPlatformFeatures()
 </script>
