@@ -385,7 +385,7 @@ public class Seeding {
 
                 // Rulebook Texts
                 List<Chunk> monopolyChunks = List.of(
-                        Chunk.builder().chunkId(new ObjectId()).index(0).content("Objective: Bankrupt all opposing players by acquiring, developing, and trading real estate properties.").build(),
+                        Chunk.builder().chunkId(new ObjectId()).index(0).content("Objective: Bankrupt all oppoding players by acquiring, developing, and trading real estate properties.").build(),
                         Chunk.builder().chunkId(new ObjectId()).index(1).content("Turn Structure:\n" + //
                                                                 "\n" + //
                                                                 "Roll two six-sided dice and move your token clockwise.\n" + //
