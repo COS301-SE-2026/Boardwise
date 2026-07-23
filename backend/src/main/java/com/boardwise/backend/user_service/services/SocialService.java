@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import org.springframework.data.domain.Example;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,11 +25,15 @@ import com.boardwise.backend.user_service.dtos.GroupUpdateResponseDTO;
 import com.boardwise.backend.user_service.models.Group;
 import com.boardwise.backend.user_service.models.GroupMembership;
 import com.boardwise.backend.user_service.models.User;
+import com.boardwise.backend.user_service.models.Visibility;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class SocialService {
 
     private final UserRepository userRepo;
@@ -34,23 +41,17 @@ public class SocialService {
     private final GroupMembershipRepository gmRepo;
     private final JWTService jwtService;
     private final R2StorageService bucket;
+    private final MongoTemplate template;
 
-    SocialService(UserRepository userRepo, GroupRepository groupRepo, GroupMembershipRepository gmRepo, JWTService jwtService, R2StorageService bucket) {
-        this.userRepo = userRepo;
-        this.groupRepo = groupRepo;
-        this.gmRepo = gmRepo;
-        this.jwtService = jwtService;
-        this.bucket = bucket;
-    }
 
     public GroupCreationResponseDTO createGroup(String token, GroupCreationDTO group, MultipartFile image) throws IOException{
         String userId = jwtService.extractUserId(token).toString();
-        User user = userRepo.findByUsername(userId).get();
+        User user = userRepo.findById(userId).get();
 
         String groupName = AuthService.sanitize(group.name());
         String groupDesc = AuthService.sanitize(group.description());
         String groupCategory = AuthService.sanitize(group.category());
-        String visibility = group.visisbility() == null ? "public" : group.visisbility();
+        Visibility visibility = group.visibility();
         
 
         Group newGroup = new Group(
@@ -84,6 +85,7 @@ public class SocialService {
             newGroup.getDescription(),
             user.getUsername(),
             newGroup.getVisibility(),
+            newGroup.getCategory(),
             1
         );
 
@@ -98,7 +100,7 @@ public class SocialService {
         List<GroupInfo> groups = new ArrayList<>();
 
         for(Group group : groupRepo.findAll()){
-            if(group.getVisibility().equalsIgnoreCase("private")){
+            if(group.getVisibility().equals(Visibility.PRIVATE)){
                 GroupMembership toCheck = new GroupMembership();
                 toCheck.setGroupId(group.getId());
                 toCheck.setUserId(userId);
@@ -120,6 +122,7 @@ public class SocialService {
                 group.getDescription(),
                 owner.getUsername(),
                 group.getVisibility(),
+                group.getCategory(),
                 memberCount
             );
 
@@ -138,6 +141,7 @@ public class SocialService {
         );
         // get owner
         User owner = userRepo.findById(group.getOwnerId()).get();
+        boolean isOwner = owner.getId().equals(userId);
 
         // get memberCount
         GroupMembership gm = new GroupMembership();
@@ -167,9 +171,11 @@ public class SocialService {
             group.getImageUrl(),
             group.getDescription(),
             owner.getUsername(),
+            group.getVisibility(),
             memberCount,
             members,
-            isMember
+            isMember,
+            isOwner
         );
 
     }
@@ -269,34 +275,37 @@ public class SocialService {
 
     }
 
-    public GroupInfo getGroup(String groupName) {
+    public List<GroupInfo> getGroup(String groupName) {
         String cleanName = AuthService.sanitize(groupName);
-        List<Group> groups = groupRepo.findByName(cleanName);
-        if(groups.size() < 1)
-            throw new NoSuchElementException("Group with that name does not exist");
+        Criteria searchCriteria = Criteria.where("name").regex(cleanName, "i");
+        Query query = new Query(searchCriteria);
+        List<Group> matches = template.find(query, Group.class);
 
-        Group group = groups.getFirst();
-        // get owner
-        User owner = userRepo.findById(group.getOwnerId()).get();
+        List<GroupInfo> groups = new ArrayList<>();
+        for(Group group : matches){
+            User owner = userRepo.findById(group.getOwnerId()).get();
 
-        // get memberCount
-        GroupMembership gm = new GroupMembership();
-        gm.setGroupId(group.getId());
-        int memberCount = (int) gmRepo.count(Example.of(gm));
+            // get memberCount
+            GroupMembership gm = new GroupMembership();
+            gm.setGroupId(group.getId());
+            int memberCount = (int) gmRepo.count(Example.of(gm));
 
-        return new GroupInfo(
-            group.getId(),
-            group.getName(),
-            group.getImageUrl(),
-            group.getDescription(),
-            owner.getUsername(),
-            group.getVisibility(),
-            memberCount
-        );
+            groups.add(new GroupInfo(
+                    group.getId(),
+                    group.getName(),
+                    group.getImageUrl(),
+                    group.getDescription(),
+                    owner.getUsername(),
+                    group.getVisibility(),
+                    group.getCategory(),
+                    memberCount
+                )
+            );
+        }
+        return groups;
     }
 
     public GroupUpdateResponseDTO updateGroup(String token, String groupId, GroupUpdateRequestDTO updateData, MultipartFile image) throws IOException {
-        // TODO: return the entire resource with update applied
         
         String userId = jwtService.extractUserId(token).toString();
         Group group = groupRepo.findById(groupId).orElseThrow();
@@ -307,11 +316,14 @@ public class SocialService {
         String newName = AuthService.sanitize(updateData.name());
         String newDesc = AuthService.sanitize(updateData.description());
 
-        if(newName != null){
+        if(newName != null && !group.getName().equals(newName)){
             group.setName(newName);
         }
-        if(newDesc != null){
+        if(newDesc != null && !group.getDescription().equals(newDesc)){
             group.setDescription(newDesc);
+        }
+        if(updateData.visibility() != null && !group.getVisibility().equals(updateData.visibility())){
+            group.setVisibility(updateData.visibility());
         }
         if(image != null){
             String fileName = bucket.uploadFile(image, group.getId());
@@ -324,6 +336,7 @@ public class SocialService {
         Map<String, Object> data = new HashMap<>();
         data.put("name", updatedGroup.getName());
         data.put("description", updatedGroup.getDescription());
+        data.put("visibility", updatedGroup.getVisibility());
         data.put("imageUrl", updatedGroup.getImageUrl());
 
         return new GroupUpdateResponseDTO(
