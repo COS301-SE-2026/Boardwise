@@ -21,6 +21,7 @@ export const useEvents = () => {
         try {
             const data = await EventService.getAllEvents(name)
             events.value = data.result
+            return events.value;
         }catch (err: any) {
             error.value = err.data?.message || 'Failed to load events'
             events.value = []
@@ -133,7 +134,8 @@ export const useEvents = () => {
 
         try {
             const data = await EventService.getUserInvites()
-            invites.value = data.data
+            console.log('Raw invites response:', data) 
+            invites.value = data.invites;
             inviteCount.value = data.inviteCount
         }catch (err: any) {
             error.value = err.data?.message || 'Failed to load invites'
