@@ -3,7 +3,7 @@
         <div v-if="props.invites.length">
             <InviteCard
                 v-for="invite in props.invites"
-                :key="invite.event.eventId"
+                :key="invite.event.id"
                 :invite="invite"
                 @accept="$emit('accept', $event)"
                 @decline="$emit('decline', $event)"

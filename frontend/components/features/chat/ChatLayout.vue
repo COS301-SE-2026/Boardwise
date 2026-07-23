@@ -23,8 +23,8 @@ import { useEvents } from '~/composables/useEvents'
 
 const { inviteCount, fetchInvites } = useEvents()
 
-onMounted(() => {
-    fetchInvites()
+onMounted(async() => {
+    await fetchInvites()
 })
 
 const conversations = computed(() => {
