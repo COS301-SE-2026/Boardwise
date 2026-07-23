@@ -3,14 +3,17 @@
     >
         <v-row align="center" justify="space-between">
 
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="7">
                     <h1>
-                        Connect.<br>Share.<br>Play.<br> All things board games.
+                        Play more.<br>Learn faster.<br> For people who love the table
                     </h1>
-                    <div>
+                    <div md="7">
                         <span class="hero-badge hero-badge--connect">Connect</span>
                         <span class="hero-badge hero-badge--share">Share</span>
                         <span class="hero-badge hero-badge--play">Play</span>
+                        <span class="hero-badge hero-badge--connect">Connect</span>
+                        <span class="hero-badge hero-badge--share">Share</span>
+                        
                     </div>
                     <p class="mt-6 mb-8">
                         Access a library of your favourite board games, discover new games,
