@@ -1,6 +1,0 @@
-.landing-title {
-    font-size: clamp(3rem, 8vw, 6rem);
-    font-weight: var(--fw-bold);
-    line-height: 0.95;
-    font-family: var(--font-heading);
-}

@@ -511,3 +511,70 @@ a:hover { text-decoration: underline; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ==========================================================
+   HERO BADGES (Play • Connect • Share)
+   ========================================================== */
+
+.hero-badges {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+   gap: clamp(0.75rem, 2vw, 1.5rem);
+  flex-wrap: wrap;
+  margin-bottom: clamp(1.5rem, 3vw, 3rem);
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: clamp(0.5rem, 1vw, 0.85rem) clamp(1rem, 2vw, 1.8rem);
+
+  border-radius: 999px;
+  border: 3px solid #fff;
+
+  font-family: var(--font-display);
+  font-size: clamp(0.8rem, 1.2vw, 1.15rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.hero-badge--connect {
+  background: var(--color-accent);
+  transform: rotate(-7deg);
+}
+
+.hero-badge--share {
+  background: var(--color-primary);
+  transform: rotate(5deg);
+}
+
+.hero-badge--play {
+  background: var(--color-secondary);
+  transform: rotate(-4deg);
+}
+
+/* Tablet */
+@media (max-width: 960px) {
+  .hero-badge {
+    font-size: 0.95rem;
+    padding: 0.65rem 1.4rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .hero-badges {
+    gap: 0.5rem;
+  }
+
+  .hero-badge {
+    font-size: 0.75rem;
+    padding: 0.45rem 1rem;
+  }
+}

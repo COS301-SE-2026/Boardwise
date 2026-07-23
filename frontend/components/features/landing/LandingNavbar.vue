@@ -1,13 +1,12 @@
 <template>
     <v-app-bar
         flat
-        color="transparent"
         class="px-8"
     >
 
-    <v-toolbar-title class="font-weight-bold">
+    <h1>
         Boardwise
-    </v-toolbar-title>
+    </h1>
 
     <v-spacer/>
 

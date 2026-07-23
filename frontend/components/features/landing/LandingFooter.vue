@@ -11,6 +11,13 @@
                     </p>
                 </v-col>
 
+                
+                    <div>
+                        <span class="hero-badge hero-badge--connect">Connect</span>
+                        <span class="hero-badge hero-badge--share">Share</span>
+                        <span class="hero-badge hero-badge--play">Play</span>
+                    </div>
+
                 <v-col cols="6" md="2">
                     <h4 >
                         Explore
@@ -20,6 +27,8 @@
                         <NuxtLink to="/library">Library</NuxtLink>
                         <NuxtLink to="/marketplace">Marketplace</NuxtLink>
                         <NuxtLink to="/community">Communities</NuxtLink>
+                        <NuxtLink to="/events">Events</NuxtLink>
+                        <NuxtLink to="/help">Help</NuxtLink>
                     </div>
                 </v-col>
 
@@ -46,9 +55,9 @@
                         class="d-inline-block mt-4"
                     >
                         <v-img
-                            src="/images/landing/powered-by-bgg-rgb.svg"
-                            max-width="200"
-                            contain
+                            src="/images/powered-by-bgg-rgb.svg"
+                            alt="Powered by BoardGameGeek"
+                            style="width:180px; display:block;"
                         />
                     </a>
 

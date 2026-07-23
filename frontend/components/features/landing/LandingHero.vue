@@ -5,8 +5,13 @@
 
             <v-col cols="12" md="6">
                     <h1>
-                            Play.<br>Connect.<br>Share.<br> All things board games.
+                        Connect.<br>Share.<br>Play.<br> All things board games.
                     </h1>
+                    <div>
+                        <span class="hero-badge hero-badge--connect">Connect</span>
+                        <span class="hero-badge hero-badge--share">Share</span>
+                        <span class="hero-badge hero-badge--play">Play</span>
+                    </div>
                     <p class="mt-6 mb-8">
                         Access a library of your favourite board games, discover new games,
                         connect with other players, trade or sell games, all in one place.</p>
@@ -26,18 +31,7 @@
 
                     </div>
             </v-col>
-            <v-col 
-                cols="12"
-                md="6"
-                class="d-flex flex-column align-center"
-                >
-                <v-img 
-                    src="/images/landing/hero.svg" 
-                    max-width="520" 
-                    class="mx-auto"
-                    />
-              
-            </v-col>
+           
         </v-row>
     </v-container>
 </template>
