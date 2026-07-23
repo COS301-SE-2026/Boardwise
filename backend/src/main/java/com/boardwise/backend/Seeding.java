@@ -454,51 +454,6 @@ public class Seeding {
                         RulebookText.builder().rulebookId(rulebooks.get(4).getId()).version(4).chunks(ticketToRideChunks).updatedAt(Instant.now().plusSeconds(500)).build());
                 rulebookTextRepository.saveAll(texts);
                 System.out.println("Seeded " + texts.size() + " rulebook texts");
-
-                // Ingestion Jobs
-                List<IngestionJob> jobs = List.of(
-                        IngestionJob.builder().rulebookId(rulebooks.get(0).getId()).stage("Extract").jobStatus("Ready")
-                                .startedAt(Instant.now().minusSeconds(300)).completedAt(Instant.now()).build(),
-                        IngestionJob.builder().rulebookId(rulebooks.get(1).getId()).stage("Extract").jobStatus("Ready")
-                                .startedAt(Instant.now().minusSeconds(200)).completedAt(Instant.now()).build(),
-                        IngestionJob.builder().rulebookId(rulebooks.get(2).getId()).stage("Sanitise").jobStatus("Ready")
-                                .startedAt(Instant.now().minusSeconds(500)).completedAt(Instant.now()).build(),
-                        IngestionJob.builder().rulebookId(rulebooks.get(3).getId()).stage("Extract")
-                                .jobStatus("PendingReview").startedAt(Instant.now().minusSeconds(100)).completedAt(null)
-                                .build(),
-                        IngestionJob.builder().rulebookId(rulebooks.get(4).getId()).stage("Sanitise")
-                                .jobStatus("Processing").startedAt(Instant.now().minusSeconds(60)).completedAt(null)
-                                .build());
-                ingestionJobRepository.saveAll(jobs);
-                System.out.println("Seeded " + jobs.size() + " ingestion jobs");
-
-                // Edit Events
-                Chunk text0Chunk0 = texts.get(0).getChunks().get(0);
-                Chunk text1Chunk0 = texts.get(1).getChunks().get(0);
-                Chunk text2Chunk0 = texts.get(2).getChunks().get(0);
-                List<EditEvent> editEvents = List.of(
-                        EditEvent.builder().rulebookId(rulebooks.get(0).getId()).editorId(con1.id())
-                                .chunkId(text0Chunk0.getChunkId()).chunkBefore(null)
-                                .editType(EditType.UPDATE)
-                                .previousContent(text0Chunk0.getContent())
-                                .newContent("Fixed typo on page 3.").versionPostEdit(2)
-                                .committedAt(Instant.now().minusSeconds(120)).build(),
-                        EditEvent.builder().rulebookId(rulebooks.get(1).getId()).editorId(con1.id())
-                                .chunkId(text1Chunk0.getChunkId()).chunkBefore(null)
-                                .editType(EditType.UPDATE)
-                                .previousContent(text1Chunk0.getContent())
-                                .newContent("Updated scoring section.").versionPostEdit(2)
-                                .committedAt(Instant.now().minusSeconds(90)).build(),
-                        EditEvent.builder().rulebookId(rulebooks.get(2).getId()).editorId(con2.id())
-                                .chunkId(text2Chunk0.getChunkId()).chunkBefore(null)
-                                .editType(EditType.UPDATE)
-                                .previousContent(text2Chunk0.getContent())
-                                .newContent("Clarified trading rules.").versionPostEdit(3)
-                                .committedAt(Instant.now().minusSeconds(60)).build());
-                editEventRepository.saveAll(editEvents);
-                System.out.println("Seeded " + editEvents.size() + " edit events");
-
-                // Write Locks
             } else {
                 System.out.println("Rulebooks already seeded, skipping...");
             }
