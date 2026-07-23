@@ -269,7 +269,13 @@ public class Seeding {
                                 "https://cf.geekdo-images.com/kdWYkW-7AqG63HhqPL6ekA__imagepage/img/AWsdGNNSuI78BaCPAVQpjrUneKY=/fit-in/900x600/filters:no_upscale():strip_icc()/pic8937637.jpg",2,5,
                                 8,45,List.of("Strategy","Trains","Transportation")),
                         new Boardgame(null, null, "Chess", "Classic two-player strategy game played on an 8x8 board.", "https://new.uschess.org/sites/default/files/styles/1080px_wide_scale/public/media/images/2024_cover_image.png.webp?itok=xUbyXJ_i", 2,2,
-                                5,90,List.of("Abstract Strategy", "Classic"))
+                                5,90,List.of("Abstract Strategy", "Classic")),
+                        new Boardgame(null, null, "Dune", "Imagine you can control the forces of a noble family, guild, or religious order on a barren planet which is the only source for the most valuable substance in the known universe.\r\n\r\n" + //
+                                "Imagine you can rewrite the script for one of the most famous science fiction books of all time. Welcome to the acclaimed 40-year-old board game which allows you to recreate the incredible world of Frank Herbert’s DUNE.\r\n\r\n" + //
+                                "In DUNE you will become the leader of one of six great factions. Each wishes to control the most valuable resource in the universe - melange, the mysterious spice only found at great cost on the planet DUNE. As Duke Leto Atreides says “All fades before melange. A handful of spice will buy a home on Tupile. It cannot be manufactured, it must be mined on Arrakis. It is unique and it has true geriatric properties.” And without melange space travel would be impossible. Only by ingesting the addictive drug can the Guild Steersman continue to experience visions of the future, enabling them to plot a safe path through hyperspace.\r\n\r\n" + //
+                                "Who will control DUNE? Become one of the characters and their forces from the book and . . . You decide!",
+                                "https://cf.geekdo-images.com/2fgPg6Be--w97zoycObUgg__itemrep@2x/img/ZsDXzpzkk7nPzYHGfvUesFV20Mc=/fit-in/492x600/filters:strip_icc()/pic4815198.jpg",
+                                2, 6, 14,150,List.of("Bluffing","Fighting","Negotiation","Novel-based","Political","Science Fiction","Wargame"))
                 );
                 boardGameRepository.saveAll(boardGames);
                 System.out.println("Seeded " + boardGames.size() + " board games");
