@@ -1,5 +1,5 @@
 <template>
-  <BaseCard class="listing-card" @click="openListing" style="cursor: pointer"">
+  <BaseCard class="listing-card" @click="openListing" style="cursor: pointer">
 
     <div class="image-container">
       <img

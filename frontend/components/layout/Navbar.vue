@@ -31,9 +31,9 @@
             Marketplace
         </NuxtLink>
 
-        <NuxtLink to="/community">
+        <!-- <NuxtLink to="/community">
             Community
-        </NuxtLink>
+        </NuxtLink> -->
 
         <NuxtLink to="/events">
             Events
