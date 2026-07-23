@@ -141,11 +141,10 @@ const handleCreate = async () => {
   if(!form.name.trim()) return
 
   try{
-    // const data = await createCommunity({
-    //   ...form,
-    //   communityPfp: file.value
-    // })
-    console.log(form)
+    const data = await createCommunity({
+      ...form,
+      communityPfp: file.value
+    })
     emit('confirm', data.group)
   } 
   catch(err){

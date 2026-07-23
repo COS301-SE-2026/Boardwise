@@ -141,6 +141,7 @@ public class SocialService {
         );
         // get owner
         User owner = userRepo.findById(group.getOwnerId()).get();
+        boolean isOwner = owner.getId().equals(userId);
 
         // get memberCount
         GroupMembership gm = new GroupMembership();
@@ -173,7 +174,8 @@ public class SocialService {
             group.getVisibility(),
             memberCount,
             members,
-            isMember
+            isMember,
+            isOwner
         );
 
     }
@@ -304,7 +306,6 @@ public class SocialService {
     }
 
     public GroupUpdateResponseDTO updateGroup(String token, String groupId, GroupUpdateRequestDTO updateData, MultipartFile image) throws IOException {
-        // TODO: return the entire resource with update applied
         
         String userId = jwtService.extractUserId(token).toString();
         Group group = groupRepo.findById(groupId).orElseThrow();
@@ -315,11 +316,14 @@ public class SocialService {
         String newName = AuthService.sanitize(updateData.name());
         String newDesc = AuthService.sanitize(updateData.description());
 
-        if(newName != null){
+        if(newName != null && !group.getName().equals(newName)){
             group.setName(newName);
         }
-        if(newDesc != null){
+        if(newDesc != null && !group.getDescription().equals(newDesc)){
             group.setDescription(newDesc);
+        }
+        if(updateData.visibility() != null && !group.getVisibility().equals(updateData.visibility())){
+            group.setVisibility(updateData.visibility());
         }
         if(image != null){
             String fileName = bucket.uploadFile(image, group.getId());
@@ -332,6 +336,7 @@ public class SocialService {
         Map<String, Object> data = new HashMap<>();
         data.put("name", updatedGroup.getName());
         data.put("description", updatedGroup.getDescription());
+        data.put("visibility", updatedGroup.getVisibility());
         data.put("imageUrl", updatedGroup.getImageUrl());
 
         return new GroupUpdateResponseDTO(

@@ -43,7 +43,7 @@
       </div>
 
 
-      <div v-if="community.canEdit" class="d-flex ga-3">
+      <div v-if="community.isOwner" class="d-flex ga-3">
 
         <BaseButton @click="showEdit = true">
           Edit community
@@ -54,7 +54,7 @@
     <CommunityEditModal
       v-model="showEdit"
       :community="community"
-      @save="handleSave"
+      @save="emit('updated', $event)"
     />
   </BaseCard>
 </template>
@@ -68,9 +68,10 @@ import BaseImage from '~/components/ui/BaseImage.vue'
 
 import BaseBadge from '~/components/ui/BaseBadge.vue'
 
-defineEmits([
+const emit = defineEmits([
   'members',
-  'events'
+  'events',
+  'updated'
 ])
 
 const props = defineProps({
@@ -79,9 +80,6 @@ const props = defineProps({
 
 const showEdit = ref(false)
 console.log(props.community.visibility)
- 
-const handleSave = (data) => {
-  console.log('Save community:', data)
-}
+
 </script>
 

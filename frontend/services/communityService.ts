@@ -24,11 +24,31 @@ interface GroupResponse{
     memberCount: number;
     members: Array<Member>
     isMember: boolean;
+    isOwner: boolean;
 }
 
 interface GroupCreationResponse{
-    message: string,
-    group: GroupInfo
+    message: string;
+    group: GroupInfo;
+}
+
+interface GroupUpdateResponse{
+    message: string;
+    data: { 
+        name: string,
+        description: string,
+        visibility: string,
+        imageUrl: string
+    }
+}
+
+interface GroupMembershipResponse{
+    message: string;
+    data: {
+        memberCount: number,
+        isMember: boolean,
+        members: Array<Member>
+    }
 }
 
 interface Groups{
@@ -80,4 +100,38 @@ export const CommunityService = {
         const response = await $api<Groups>(endpoint);
         return response.groups;
     },
+
+    joinCommunity(id: string){
+        const { $api } = useNuxtApp();
+        return $api<GroupMembershipResponse>('social/groups/' + id, {
+            method: 'POST'
+        })
+    },
+
+    leaveCommunity(id: string){
+        const { $api } = useNuxtApp();
+        return $api<GroupMembershipResponse>('social/groups/' + id, {
+            method: 'DELETE'
+        })
+    },
+
+    editCommunity(id: string, newPic: File , updateData: {
+        name?: string,
+        description?: string,
+        visibility?: string
+    }){
+        const formData = new FormData();
+
+        formData.append("groupInfo", new Blob([JSON.stringify(updateData)],{
+            type: 'application/json'
+        }));
+
+        formData.append("groupImage", newPic);
+
+        const { $api } = useNuxtApp();
+        return $api<GroupUpdateResponse>('social/groups/' + id, {
+            method: 'PATCH',
+            body: formData
+        })
+    }
 }

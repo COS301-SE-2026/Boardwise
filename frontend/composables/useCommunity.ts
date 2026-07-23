@@ -10,26 +10,26 @@ export const useCommunity = () => {
     const loading = ref<boolean>(false);
 
     const createCommunity = async (community: {
-      name: string,
-      description: string,
-      category: string,
-      visibility: string,
-      communityPfp: File
+        name: string,
+        description: string,
+        category: string,
+        visibility: string,
+        communityPfp: File
     }) => {
-      error.value = ''
-      loading.value = true
+        error.value = ''
+        loading.value = true
 
-      try{
-          const response = await CommunityService.createCommunity(community);
-          return response;
-      }
-      catch(err: any){
-          error.value = err.data?.message || "Could not create community"
-          throw err;
-      }
-      finally{
-          loading.value = false;
-      }
+        try{
+            const response = await CommunityService.createCommunity(community);
+            return response;
+        }
+        catch(err: any){
+            error.value = err.data?.message || "Could not create community."
+            throw err;
+        }
+        finally{
+            loading.value = false;
+        }
     }
 
     const getAllCommunities = async () => {
@@ -62,20 +62,75 @@ export const useCommunity = () => {
     }
 
     const searchForCommunity = async (query: string) => {
-      error.value = ''
-      loading.value = true
+        error.value = ''
+        loading.value = true
 
-      try{
-          const response = await CommunityService.searchForCommunity(query)
-          return response;
-      }
-      catch(err: any){
-          error.value = err.data?.message || "Could not make search query"
-          throw err;
-      }
-      finally{
-          loading.value = false;
-      }
+        try{
+            const response = await CommunityService.searchForCommunity(query)
+            return response;
+        }
+        catch(err: any){
+            error.value = err.data?.message || "Could not make search query."
+            throw err;
+        }
+        finally{
+            loading.value = false;
+        }
+    }
+
+    const joinCommunity = async (id: string) => {
+        error.value = ''
+        loading.value = true
+
+        try{
+            const response = await CommunityService.joinCommunity(id);
+            return response;
+        }
+        catch(err: any){
+            error.value = err.data?.message || "Could not add user to community."
+            throw err;
+        }
+        finally{
+            loading.value = false;
+        }
+    }
+
+    const leaveCommunity = async (id: string) => {
+        error.value = ''
+        loading.value = true
+
+        try{
+            const response = await CommunityService.leaveCommunity(id);
+            return response;
+        }
+        catch(err: any){
+            error.value = err.data?.message || "Could not remove user from community."
+            throw err;
+        }
+        finally{
+            loading.value = false;
+        }
+    }
+
+    const editCommunity = async (id: string, newPic: File,  updateData: {
+        name?: string,
+        description?: string,
+        visibility?: string
+    }) => {
+        error.value = ''
+        loading.value = true
+
+        try{
+            const response = await CommunityService.editCommunity(id, newPic, updateData);
+            return response;
+        }
+        catch(err: any){
+            error.value = err.data?.message || "Could not edit community details."
+            throw err;
+        }
+        finally{
+            loading.value = false;
+        }
     }
 
     return {
@@ -85,7 +140,10 @@ export const useCommunity = () => {
         getAllCommunities,
         getCommunityDetails,
         searchForCommunity,
-        createCommunity
+        createCommunity,
+        joinCommunity,
+        leaveCommunity,
+        editCommunity
     }
 }
 

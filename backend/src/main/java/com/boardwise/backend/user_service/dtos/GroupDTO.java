@@ -15,5 +15,7 @@ public record GroupDTO(
     int memberCount,
     List<?> members,
     @JsonProperty("isMember")
-    boolean isMember
+    boolean isMember,
+    @JsonProperty("isOwner")
+    boolean isOwner
 ) {}
