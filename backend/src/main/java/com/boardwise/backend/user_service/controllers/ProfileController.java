@@ -64,7 +64,7 @@ public class ProfileController {
     ){
         String token = extractToken(req);
         try{
-            var res = (query == null || query.isBlank()) ? service.getOwnProfile(token) : service.searchForUsers(query);
+            var res = (query == null || query.isBlank()) ? service.getOwnProfile(token) : service.searchForUsers(query, token);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(NoSuchElementException e){

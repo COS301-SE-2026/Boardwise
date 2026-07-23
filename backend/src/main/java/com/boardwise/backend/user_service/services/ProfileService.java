@@ -131,8 +131,10 @@ public class ProfileService {
         );
     }
 
-    public List<ProfileSearchResponse> searchForUsers(String query){
+    public List<ProfileSearchResponse> searchForUsers(String query, String token){
         List<ProfileSearchResponse> results = new ArrayList<>();
+        String userId = jwtService.extractUserId(token).toString();
+        User subject = userRepo.findById(userId).get();
 
         String cleanQuery = AuthService.sanitize(query);
         Criteria searchCriteria = Criteria.where("username").regex(cleanQuery, "i");
@@ -140,13 +142,14 @@ public class ProfileService {
         List<User> matches = template.find(dbQuery, User.class);
 
         for(User user : matches){
-            results.add(new ProfileSearchResponse(
-                    user.getId(),
-                    user.getUsername(),
-                    user.getFirstName() + " " + user.getLastName(),
-                    user.getProfilePicture()
-                )
-            );
+            if(!user.getId().equals(subject.getId()))
+                results.add(new ProfileSearchResponse(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getFirstName() + " " + user.getLastName(),
+                        user.getProfilePicture()
+                    )
+                );
         }
 
         return results;

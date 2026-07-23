@@ -23,7 +23,7 @@ def generate_chunks(full_text: str) -> tuple[bool, list[dict], str]:
                 continue
 
             new_chunk = {
-                "chunkId": str(ObjectId()),
+                "chunkId": ObjectId(),
                 "index": current_index,
                 "content": clean_chunk
             }

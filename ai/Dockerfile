@@ -10,7 +10,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     tesseract-ocr-eng \
-    libgl1 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements file and install Python dependencies
