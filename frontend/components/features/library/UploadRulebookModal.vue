@@ -6,7 +6,19 @@
 
       <div>
         <p class="text-caption font-weight-bold mb-2">Title</p>
-        <BaseInput v-model="title" placeholder="Title" />
+        <!-- <BaseInput v-model="title" placeholder="Title" /> -->
+         <v-autocomplete
+            v-model="title"
+            :items="games"
+            :loading="gamesLoading"
+            item-title="title"
+            item-value="title"
+            placeholder="Board game title"
+            variant="outlined"
+            density="compact"
+            hide-details
+            @update:search="onTitleSearch"
+          />
       </div>
 
       <div>
@@ -26,7 +38,7 @@
             <v-icon start>mdi-upload</v-icon>
             Upload Rulebook PDF
           </BaseButton>
-          <span class="text-caption text-medium-emphasis">{{ fileName || '···' }}</span>
+          <span class="text-caption text-medium-emphasis">{{ fileName || 'No file selected' }}</span>
           <input
             ref="fileInput"
             type="file"
@@ -39,7 +51,7 @@
 
       <div class="d-flex justify-space-between mt-2">
         <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
-        <BaseButton @click="handleAdd">Add</BaseButton>
+        <BaseButton :disabled="!isFormValid" @click="handleAdd">Add</BaseButton>
       </div>
 
     </div>
@@ -47,9 +59,14 @@
 </template>
 
 <script setup>
+import { ref, computed, watch, onMounted } from 'vue'
 import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
+import { useBoardGames } from '~/composables/useBoardGames';
+
+const { games, isLoading: gamesLoading, searchGames } = useBoardGames();
+onMounted(() => searchGames());
 
 const open = defineModel()
 const emit = defineEmits(['add'])
@@ -59,10 +76,13 @@ const edition = ref('')
 const language = ref('')
 const fileName = ref('')
 const fileInput = ref(null)
+const fileToUpload = ref(null)
 
 const triggerUpload = () => fileInput.value?.click()
 
-const fileToUpload = ref(null)
+const isFormValid = computed(() => {
+  return title.value && language.value && fileToUpload.value;
+});
 
 const handleFile = (e) => {
   const file = e.target.files[0]
@@ -72,8 +92,25 @@ const handleFile = (e) => {
   }
 }
 
+const resetForm = () => {
+  title.value = '';
+  edition.value = '';
+  language.value = '';
+  fileName.value = '';
+  fileToUpload.value = null;
+  if(fileInput.value){
+    fileInput.value.value = '';
+  }
+}
+
+watch(open, (isOpen) => {
+  if(!isOpen){
+    resetForm();
+  }
+});
+
 const handleAdd = () => {
-  if (!title.value || !language.value || !fileToUpload.value) return
+  if (!isFormValid.value) return
   emit('add', {
     title: title.value,
     edition: edition.value,
@@ -81,10 +118,11 @@ const handleAdd = () => {
     file: fileToUpload.value
   })
   open.value = false
-  title.value = ''
-  edition.value = ''
-  language.value = ''
-  fileName.value = ''
-  fileToUpload.value = null
+}
+
+let searchTimeout;
+const onTitleSearch = (query) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => searchGames(query), 400);
 }
 </script>
