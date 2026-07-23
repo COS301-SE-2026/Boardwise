@@ -1,11 +1,17 @@
 <template> 
-  <v-app-bar flat border="b" color="var(--color-surface)" height="70">
-    <v-app-bar-icon 
+  <v-app-bar 
+    flat border="b" 
+    color="surface" 
+    height="72" 
+    class="px-2 px-md-4"
+  >
+      
+    <v-app-bar-nav-icon 
       class="d-lg-none ml-1 text-primary"
       @click="drawer = !drawer"
     />
 
-    <NuxtLink to="/" class="logo ml-2 ml-lg-4">
+    <NuxtLink to="/" class="logo ml-2 ml-lg-4 mr-lg-6">
         Boardwise
     </NuxtLink>
 
@@ -20,8 +26,13 @@
         class="search-input"
       />
 
-      <v-btn color="var(--color-primary)" rounded="pill" class="text-none font-weight-bold" @click="$emit('ask-ai')">
-        <v-icon start>mdi-robot</v-icon>
+      <v-btn 
+       color="primary" 
+       rounded="pill" 
+       class="text-none font-weight-bold"
+       @click="$emit('ask-ai')"
+      >
+        <v-icon start size="18">mdi-robot</v-icon>
         <span class="d-none d-md-inline">Ask AI</span>
       </v-btn>
     </div>
@@ -30,10 +41,10 @@
 
     <v-menu :close-on-content-click="false" location="bottom end" class="d-sm-none">
       <template #activator="{ props }">
-        <v-btn icon="mdi-magnify" v-bind="props" class="d-sm-none" color="var(--color-text)" />
+        <v-btn icon="mdi-magnify" v-bind="props" class="d-sm-none" color="on-surface" />
       </template>
 
-      <v-card min-width="280" class="pa-2" color="var(--color-surface)">
+      <v-card min-width="280" class="pa-2" color="surface">
         <v-text-field
           placeholder="Search..."
           prepend-innner-icon="mdi-magnify"
@@ -47,26 +58,26 @@
 
     </v-menu>
 
-    <v-btn icon color="var(--color-primary)" class="d-sm-none mr-1" @click="$emit('ask-ai')">
+    <v-btn icon color="primary" class="d-sm-none mr-1" aria-label="Ask AI" @click="$emit('ask-ai')">
       <v-icon>mdi-robot</v-icon>
     </v-btn>
 
     <div class="links mr-4 d-none d-lg-flex">
-        <NuxtLink to="/library">Library</NuxtLink> 
-        <NuxtLink to="/marketplace">Marketplace</NuxtLink>
-        <NuxtLink to="/community">Community</NuxtLink>
-        <NuxtLink to="/events">Events</NuxtLink>
-        <NuxtLink to="/profile">Profile</NuxtLink>
-        <NuxtLink to="/chats">Chat</NuxtLink>
+        <NuxtLink to="/library" class="nav-link">Library</NuxtLink> 
+        <NuxtLink to="/marketplace" class="nav-link">Marketplace</NuxtLink>
+        <NuxtLink to="/community" class="nav-link">Community</NuxtLink>
+        <NuxtLink to="/events" class="nav-link">Events</NuxtLink>
+        <NuxtLink to="/profile" class="nav-link">Profile</NuxtLink>
+        <NuxtLink to="/chats" class="nav-link">Chat</NuxtLink>
         <LogOutButton />
     </div>
   </v-app-bar>
 
-  <v-navigation-drawer v-model="drawer" temporary location="left" color="var(--color-surface)">
+  <v-navigation-drawer v-model="drawer" temporary location="left" color="surface">
     <v-list nav density="compact" class="mt-4">
       <v-list-item prepend-icon="mdi-bookshelf" title="Library" to="/library" class="drawer-link" />
       <v-list-item prepend-icon="mdi-store" title="Marketplace" to="/marketplace" class="drawer-link" />
-      <v-list-item prepend-icon="mdi-avatar" title="Community" to="/community" class="drawer-link" />
+      <v-list-item prepend-icon="mdi-account-group" title="Community" to="/community" class="drawer-link" />
       <v-list-item prepend-icon="mdi-calendar" title="Events" to="/events" class="drawer-link" />
       <v-list-item prepend-icon="mdi-account" title="Profile" to="/profile" class="drawer-link" />
       <v-list-item prepend-icon="mdi-message" title="Chat" to="/chats" class="drawer-link" />
