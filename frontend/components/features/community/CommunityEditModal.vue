@@ -121,7 +121,7 @@ watch(
 const handleFileChange = (event) => {
   const chosenfile = event.target.files?.[0]
 
-  if(file) {
+  if(chosenfile) {
     fileName.value = chosenfile.name
     file.value = chosenfile
   }

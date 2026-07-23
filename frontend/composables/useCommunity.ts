@@ -1,4 +1,3 @@
-import { query } from 'happy-dom/lib/PropertySymbol';
 import {ref} from 'vue'
 import { CommunityService } from '~/services/communityService'
 

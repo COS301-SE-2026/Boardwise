@@ -4,6 +4,7 @@
     <BaseGrid cols="180px" >
       <MemberCard
         v-for="member in community.members"
+        :key="member.username"
         :member="member"
       />
     </BaseGrid>

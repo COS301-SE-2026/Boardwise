@@ -11,9 +11,6 @@
     <div class="d-flex flex-column ga-1" >
       <h3 class="ma-0"
       >{{ member.username }}</h3>
-
-      <!-- <p class="text-medium-emphasis ma-0"
-      >{{ member.role }}</p> -->
     </div>
   </div>
   </BaseCard>
