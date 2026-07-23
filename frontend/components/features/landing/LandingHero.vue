@@ -10,10 +10,7 @@
                     <div md="7">
                         <span class="hero-badge hero-badge--connect">Connect</span>
                         <span class="hero-badge hero-badge--share">Share</span>
-                        <span class="hero-badge hero-badge--play">Play</span>
-                        <span class="hero-badge hero-badge--connect">Connect</span>
-                        <span class="hero-badge hero-badge--share">Share</span>
-                        
+                        <span class="hero-badge hero-badge--play">Play</span> 
                     </div>
                     <p class="mt-6 mb-8">
                         Access a library of your favourite board games, discover new games,
