@@ -143,7 +143,9 @@ const handleSave = async () => {
     await updateEvent(props.event.id, eventData, image_file.value ?? undefined)
     emit('saved', 'updated')
     open.value = false
-  } catch { return;  }
+  } catch(err) { 
+      console.error('Failed to update event:', err)
+   }
 }
 
 const closeModal = () => {

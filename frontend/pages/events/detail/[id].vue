@@ -12,6 +12,7 @@
             :current-user="currentUsername"
             @rsvp="handleRsvp"
             @de-rsvp="handleDeRsvp"
+            @edit="showEditModal = true"
             @cancel-event="handleCancelEvent"
         />        
 
@@ -19,6 +20,12 @@
             <p class="mb-4">Event not found.</p>
             <BaseButton @click="router.push('/events')">Back to events</BaseButton>
         </div>
+
+        <EditEventModal
+            v-model="showEditModal"
+            :event="event"
+            @saved="handleEventUpdated"
+        />
 
     </PageContainer>
 </template>
@@ -33,7 +40,7 @@ import EventDetailPage from '~/components/features/events/EventDetailPage.vue'
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
-import CreateEvent from '~/components/features/events/CreateEvent.vue'
+import EditEventModal from '~/components/features/events/EditEventModal.vue'
 
 import { useEvents } from '~/composables/useEvents'
 import { useSnackBar } from '~/composables/useSnackbar'
@@ -56,7 +63,7 @@ const {
 const loading = ref(true)
 const event = ref(null)
 const currentUsername = ref(null)
-const availableEvents = ref([]);
+const showEditModal = ref(false)
 
 onMounted(async () => {
     if(!localStorage.getItem('access_token')) {
@@ -103,4 +110,15 @@ const handleCancelEvent = async () => {
     }
 }
 
+const handleEventUpdated = async (updatedEvent) => {
+    try {
+        await fetchEvents();
+        event.value = events.value.find(e => e.id === route.params.id) ?? null;
+        show('Event updated!', 'success');
+    } catch {
+        show('Failed to refresh event details.', 'error');
+    } finally {
+        showEditModal.value = false;
+    }
+}
 </script>
