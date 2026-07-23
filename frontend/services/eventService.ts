@@ -40,17 +40,17 @@ export interface InviteItem {
         imageUrl: string | null;
     };
     event: {
-        eventId: string;
-        eventName: string;
-        eventImg: string | null;
-        eventDate: string;
+        id: string;
+        name: string;
+        image: string | null;
+        date: string;
     };
 }
 
 export interface GetInvitesResponse {
     message: string;
     inviteCount: number;
-    data: InviteItem[];
+    invites: InviteItem[];
 }
 
 export interface MessageResponse {
