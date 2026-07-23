@@ -93,8 +93,8 @@ const handleRsvp = async () => {
 
 const handleDeRsvp = async () => {
     try {
-        event.value = await deRsvpFromEvent(event.value.id)
-        show('RSVP cancelled', 'info')
+        event.value = await deRsvpToEvent(event.value.id)
+        show('RSVP cancelled', 'success')
     } catch {
         show('Failed to cancel RSVP', 'error')
     }
