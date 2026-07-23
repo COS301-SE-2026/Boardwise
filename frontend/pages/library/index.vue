@@ -5,7 +5,7 @@
     <div class="d-flex flex-column ga-5 mb-6">
       <SectionTitle title="Library" subtitle="Browse community rulebooks" />
       <RulebookSearch
-        @upload="showUpload = true"
+        @upload="handleUploadRequest"
         @search="handleSearch"
       />
     </div>
@@ -38,6 +38,7 @@
 
     <UploadRulebookModal
       v-model="showUpload"
+      :loading="isUploading"
       @add="handleUploadRulebook"
     />
 
@@ -46,6 +47,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
@@ -61,9 +63,18 @@ import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue
 
 import { useLibrary } from '~/composables/useLibrary'
 import { useVaultUpload } from '~/composables/useVaultUpload';
+import { useAuth } from '~/composables/useAuth';
+
+import { useSnackBar } from '~/composables/useSnackbar';
+
+const { show } = useSnackBar();
+
+const route = useRoute();
+const router = useRouter();
 
 const {rulebooks, isLoading, getAllRulebooks, getRulebookById, currentRulebook } = useLibrary()
 const {triggerUpload, isUploading, error} = useVaultUpload();
+const { isAuthenticated } = useAuth();
 
 const searchQuery = ref('')
 const activeFilters = ref({})
@@ -74,6 +85,17 @@ const selectedRulebook = ref(null)
 onMounted(() => { // Does stuff when component loads
   getAllRulebooks()
 })
+
+const handleUploadRequest = () => {
+  if(!isAuthenticated.value){
+    router.push({
+      path: '/auth/signin',
+      query: { redirect: route.fullPath }
+    });
+    return;
+  }
+  showUpload.value = true;
+}
 
 const recommended = computed(() => {
   return rulebooks.value.slice(0, 5);
@@ -98,13 +120,6 @@ const filteredRulebooks = computed(() =>{
     result = result.filter(r => activeFilters.value.languages.includes(r.language))
   }
 
-  // if (activeFilters.value.minPlayers) {
-  //   result = result.filter(r => r.minPlayers === Number(activeFilters.value.minPlayers))
-  // }
-
-  // if (activeFilters.value.maxPlayers) {
-  //   result = result.filter(r => r.maxPlayers === Number(activeFilters.value.maxPlayers))
-  // }
   if(activeFilters.value.playerCount){
     const target = Number(activeFilters.value.playerCount);
     result = result.filter(r => r.minPlayers <= target && r.maxPlayers >= target);
@@ -140,10 +155,10 @@ const handleFilter = (filters) => {
 const handleUploadRulebook = async (newRulebook) => {
   try{
     await triggerUpload(newRulebook);
-    console.log("Upload accepted");
+    show("Rulebook uploaded successfully!", "success");
     showUpload.value = false;
   }catch(err){
-    console.error("Upload failed", err);
+    show(err.message || 'Failed to upload rulebook', 'error');
   }
 }
 </script>

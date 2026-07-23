@@ -6,7 +6,6 @@
 
       <div>
         <p class="text-caption font-weight-bold mb-2">Title</p>
-        <!-- <BaseInput v-model="title" placeholder="Title" /> -->
          <v-autocomplete
             v-model="title"
             :items="games"
@@ -51,7 +50,7 @@
 
       <div class="d-flex justify-space-between mt-2">
         <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
-        <BaseButton :disabled="!isFormValid" @click="handleAdd">Add</BaseButton>
+        <BaseButton :disabled="!isFormValid" :loading="loading" @click="handleAdd">Add</BaseButton>
       </div>
 
     </div>
@@ -67,6 +66,13 @@ import { useBoardGames } from '~/composables/useBoardGames';
 
 const { games, isLoading: gamesLoading, searchGames } = useBoardGames();
 onMounted(() => searchGames());
+
+const props = defineProps({
+  loading: {
+    type: Boolean,
+    default: false
+  }
+});
 
 const open = defineModel()
 const emit = defineEmits(['add'])
@@ -117,7 +123,6 @@ const handleAdd = () => {
     language: language.value,
     file: fileToUpload.value
   })
-  open.value = false
 }
 
 let searchTimeout;
