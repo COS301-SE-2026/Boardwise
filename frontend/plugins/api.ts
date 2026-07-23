@@ -16,7 +16,7 @@ export default defineNuxtPlugin(() => {
         console.error('Unauthorized: Invalid or expired token');
         if(import.meta.client){
           localStorage.removeItem('access_token');
-          navigateTo('auth/signin');
+          navigateTo('/auth/signin');
         }
       }
     }
