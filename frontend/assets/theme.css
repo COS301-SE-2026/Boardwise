@@ -427,6 +427,154 @@ a:hover { text-decoration: underline; }
   to { background-position: -200% 0; }
 }
 
+/* =============================================================
+   LANDING GAME STRIP
+   ============================================================= */
+
+.game-strip {
+  display: flex;
+  gap: var(--space-3);
+  width: max-content;
+}
+
+.game-card {
+  flex-shrink: 0;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.game-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.marquee-left {
+  animation: marquee-left 45s linear infinite;
+}
+
+.marquee-right {
+  animation: marquee-right 45s linear infinite;
+}
+
+.marquee-left:hover,
+.marquee-right:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-left {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-right {
+  from {
+    transform: translateX(-50%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.marquee{
+    width:max-content;
+    animation:scroll 45s linear infinite;
+}
+
+.marquee:hover{
+    animation-play-state:paused;
+}
+
+.scale-card{
+    transform:scale(1.05);
+    transition:transform var(--transition-base);
+}
+
+@keyframes scroll{
+    from{
+        transform:translateX(0);
+    }
+
+    to{
+        transform:translateX(-33.333%);
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ==========================================================
+   HERO BADGES (Play • Connect • Share)
+   ========================================================== */
+
+.hero-badges {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+   gap: clamp(0.75rem, 2vw, 1.5rem);
+  flex-wrap: wrap;
+  margin-bottom: clamp(1.5rem, 3vw, 3rem);
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: clamp(0.5rem, 1vw, 0.85rem) clamp(1rem, 2vw, 1.8rem);
+
+  border-radius: 999px;
+  border: 3px solid #fff;
+
+  font-family: var(--font-display);
+  font-size: clamp(0.8rem, 1.2vw, 1.15rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.hero-badge--connect {
+  background: var(--color-accent);
+  transform: rotate(-7deg);
+}
+
+.hero-badge--share {
+  background: var(--color-primary);
+  transform: rotate(5deg);
+}
+
+.hero-badge--play {
+  background: var(--color-secondary);
+  transform: rotate(-4deg);
+}
+
+/* Tablet */
+@media (max-width: 960px) {
+  .hero-badge {
+    font-size: 0.95rem;
+    padding: 0.65rem 1.4rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .hero-badges {
+    gap: 0.5rem;
+  }
+
+  .hero-badge {
+    font-size: 0.75rem;
+    padding: 0.45rem 1rem;
+  }
 }
