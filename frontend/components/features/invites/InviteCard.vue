@@ -6,6 +6,8 @@
             <BaseImage
                 :src="invite.event.image || '/images/default-listing.png'"
                 :alt="invite.event.name"
+                height="140px"
+                width="180px"
                 class="event-image"
 
             />
