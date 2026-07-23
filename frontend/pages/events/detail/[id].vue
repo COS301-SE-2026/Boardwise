@@ -12,7 +12,7 @@
             :current-user="currentUsername"
             @rsvp="handleRsvp"
             @de-rsvp="handleDeRsvp"
-            @edit="showEditEvent = true"
+            @edit="showEditModal = true"
             @cancel-event="handleCancelEvent"
         />        
 
@@ -21,7 +21,12 @@
             <BaseButton @click="router.push('/events')">Back to events</BaseButton>
         </div>
 
-        <CreateEvent v-model="showEditEvent" :initial-data="event" @created="handleEditEvent" />
+        <EditEventModal
+            v-model="showEditModal"
+            :event="event"
+            @saved="handleEventUpdated"
+        />
+
     </PageContainer>
 </template>
 
@@ -35,30 +40,30 @@ import EventDetailPage from '~/components/features/events/EventDetailPage.vue'
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
-import CreateEvent from '~/components/features/events/CreateEvent.vue'
+import EditEventModal from '~/components/features/events/EditEventModal.vue'
 
 import { useEvents } from '~/composables/useEvents'
 import { useSnackBar } from '~/composables/useSnackbar'
 import { useProfile } from '~/composables/useProfile'
 
-const { show } = useSnackBar
+const { show } = useSnackBar(3)
 const route = useRoute()
 const router = useRouter()
 const { fetchCurrentUser } = useProfile()
 
 const { 
-    events, 
-    fetchEventbyId,
+    events,
     rsvpToEvent,
-    deRsvpFromEvent,
+    deRsvpToEvent,
     updateEvent,
-    cancelEvent
+    cancelEvent,
+    fetchEvents,
 } = useEvents()
 
 const loading = ref(true)
 const event = ref(null)
-const showEditEvent = ref(false)
 const currentUsername = ref(null)
+const showEditModal = ref(false)
 
 onMounted(async () => {
     if(!localStorage.getItem('access_token')) {
@@ -69,8 +74,11 @@ onMounted(async () => {
     const userDetails = await fetchCurrentUser()
     currentUsername.value = userDetails.username
 
-    const existing = events.value.find(e => e.id === route.params.id)
-    event.value = existing ?? await fetchEventbyId(route.params.id)
+      if (events.value.length === 0) {
+        await fetchEvents()
+    }
+
+    event.value = events.value.find(e => e.id === route.params.id) ?? null
     loading.value = false
 })
 
@@ -102,4 +110,15 @@ const handleCancelEvent = async () => {
     }
 }
 
+const handleEventUpdated = async (updatedEvent) => {
+    try {
+        await fetchEvents();
+        event.value = events.value.find(e => e.id === route.params.id) ?? null;
+        show('Event updated!', 'success');
+    } catch {
+        show('Failed to refresh event details.', 'error');
+    } finally {
+        showEditModal.value = false;
+    }
+}
 </script>

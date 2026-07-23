@@ -35,10 +35,7 @@ import com.boardwise.backend.user_service.repos.EventsRepository;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
-import com.boardwise.backend.vault.enums.EditType;
 import com.boardwise.backend.vault.model.Chunk;
-import com.boardwise.backend.vault.model.EditEvent;
-import com.boardwise.backend.vault.model.IngestionJob;
 import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.model.RulebookText;
 import com.boardwise.backend.vault.repository.EditEventRepository;
@@ -269,7 +266,13 @@ public class Seeding {
                                 "https://cf.geekdo-images.com/kdWYkW-7AqG63HhqPL6ekA__imagepage/img/AWsdGNNSuI78BaCPAVQpjrUneKY=/fit-in/900x600/filters:no_upscale():strip_icc()/pic8937637.jpg",2,5,
                                 8,45,List.of("Strategy","Trains","Transportation")),
                         new Boardgame(null, null, "Chess", "Classic two-player strategy game played on an 8x8 board.", "https://new.uschess.org/sites/default/files/styles/1080px_wide_scale/public/media/images/2024_cover_image.png.webp?itok=xUbyXJ_i", 2,2,
-                                5,90,List.of("Abstract Strategy", "Classic"))
+                                5,90,List.of("Abstract Strategy", "Classic")),
+                        new Boardgame(null, null, "Dune", "Imagine you can control the forces of a noble family, guild, or religious order on a barren planet which is the only source for the most valuable substance in the known universe.\r\n\r\n" + //
+                                "Imagine you can rewrite the script for one of the most famous science fiction books of all time. Welcome to the acclaimed 40-year-old board game which allows you to recreate the incredible world of Frank Herbert’s DUNE.\r\n\r\n" + //
+                                "In DUNE you will become the leader of one of six great factions. Each wishes to control the most valuable resource in the universe - melange, the mysterious spice only found at great cost on the planet DUNE. As Duke Leto Atreides says “All fades before melange. A handful of spice will buy a home on Tupile. It cannot be manufactured, it must be mined on Arrakis. It is unique and it has true geriatric properties.” And without melange space travel would be impossible. Only by ingesting the addictive drug can the Guild Steersman continue to experience visions of the future, enabling them to plot a safe path through hyperspace.\r\n\r\n" + //
+                                "Who will control DUNE? Become one of the characters and their forces from the book and . . . You decide!",
+                                "https://cf.geekdo-images.com/2fgPg6Be--w97zoycObUgg__itemrep@2x/img/ZsDXzpzkk7nPzYHGfvUesFV20Mc=/fit-in/492x600/filters:strip_icc()/pic4815198.jpg",
+                                2, 6, 14,150,List.of("Bluffing","Fighting","Negotiation","Novel-based","Political","Science Fiction","Wargame"))
                 );
                 boardGameRepository.saveAll(boardGames);
                 System.out.println("Seeded " + boardGames.size() + " board games");
@@ -282,35 +285,35 @@ public class Seeding {
                 List<String> usernames = List.of("IAmR3al", "sarah_dev", "bob", "alex_games", "jane_doe");
                 List<Group> groups = List.of(
                     new Group("Board Game Enthusiasts",
-                    null, 
+                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTuTGmQLvdUQJza9uPWGgejSmzOv_qZvIMD9YF1dM8asw&s=10", 
                     "A group for all board game lovers.", 
                     "General",
-                    null , 
-                    "public"),
-                    new Group("Strategy Masters",
                     null, 
+                    Visibility.PUBLIC),
+                    new Group("Strategy Masters",
+                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHMyXUmo9W9KK9THkcnx0OUHB0h0xouUjp7KMOxwiojg&s", 
                     "Deep strategy games discussion.", 
                     "Strategy",
                     null, 
-                    "public"),
+                    Visibility.PUBLIC),
                     new Group("Casual Gamers",
-                    null, 
+                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzFM4rYNFrkDB0FuXK2ddqZj7WwWZEro-bRxp8_5wb1Q&s=10", 
                     "Laid back gaming sessions and trades.", 
                     "General",
                     null, 
-                    "public"),
+                    Visibility.PUBLIC),
                     new Group("RPG Adventurers",
-                    null, 
+                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRq2xwNAxTIz3P4UtvCQQuEgTD_Yb3IwAW6nyD7Ee9K2A&s=10", 
                     "Tabletop RPG and dungeon crawler fans.",
                     "Role-Playing", 
                     null , 
-                    "private"),
+                    Visibility.PRIVATE),
                     new Group("Card & Tile Collectors",
-                    null, 
+                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDUFabION-3dH5DxHunMGDFvzjGD0E2zm3qGhvd1ZZ5g&s=10", 
                     "For fans of card and tile-based games.", 
                     "General",
                     null, 
-                    "private")
+                    Visibility.PRIVATE)
                 );
                 
                 for(int i = 0; i < 5; i++){
@@ -379,7 +382,7 @@ public class Seeding {
 
                 // Rulebook Texts
                 List<Chunk> monopolyChunks = List.of(
-                        Chunk.builder().chunkId(new ObjectId()).index(0).content("Objective: Bankrupt all opposing players by acquiring, developing, and trading real estate properties.").build(),
+                        Chunk.builder().chunkId(new ObjectId()).index(0).content("Objective: Bankrupt all oppoding players by acquiring, developing, and trading real estate properties.").build(),
                         Chunk.builder().chunkId(new ObjectId()).index(1).content("Turn Structure:\n" + //
                                                                 "\n" + //
                                                                 "Roll two six-sided dice and move your token clockwise.\n" + //
@@ -448,51 +451,6 @@ public class Seeding {
                         RulebookText.builder().rulebookId(rulebooks.get(4).getId()).version(4).chunks(ticketToRideChunks).updatedAt(Instant.now().plusSeconds(500)).build());
                 rulebookTextRepository.saveAll(texts);
                 System.out.println("Seeded " + texts.size() + " rulebook texts");
-
-                // Ingestion Jobs
-                List<IngestionJob> jobs = List.of(
-                        IngestionJob.builder().rulebookId(rulebooks.get(0).getId()).stage("Extract").jobStatus("Ready")
-                                .startedAt(Instant.now().minusSeconds(300)).completedAt(Instant.now()).build(),
-                        IngestionJob.builder().rulebookId(rulebooks.get(1).getId()).stage("Extract").jobStatus("Ready")
-                                .startedAt(Instant.now().minusSeconds(200)).completedAt(Instant.now()).build(),
-                        IngestionJob.builder().rulebookId(rulebooks.get(2).getId()).stage("Sanitise").jobStatus("Ready")
-                                .startedAt(Instant.now().minusSeconds(500)).completedAt(Instant.now()).build(),
-                        IngestionJob.builder().rulebookId(rulebooks.get(3).getId()).stage("Extract")
-                                .jobStatus("PendingReview").startedAt(Instant.now().minusSeconds(100)).completedAt(null)
-                                .build(),
-                        IngestionJob.builder().rulebookId(rulebooks.get(4).getId()).stage("Sanitise")
-                                .jobStatus("Processing").startedAt(Instant.now().minusSeconds(60)).completedAt(null)
-                                .build());
-                ingestionJobRepository.saveAll(jobs);
-                System.out.println("Seeded " + jobs.size() + " ingestion jobs");
-
-                // Edit Events
-                Chunk text0Chunk0 = texts.get(0).getChunks().get(0);
-                Chunk text1Chunk0 = texts.get(1).getChunks().get(0);
-                Chunk text2Chunk0 = texts.get(2).getChunks().get(0);
-                List<EditEvent> editEvents = List.of(
-                        EditEvent.builder().rulebookId(rulebooks.get(0).getId()).editorId(con1.id())
-                                .chunkId(text0Chunk0.getChunkId()).chunkBefore(null)
-                                .editType(EditType.UPDATE)
-                                .previousContent(text0Chunk0.getContent())
-                                .newContent("Fixed typo on page 3.").versionPostEdit(2)
-                                .committedAt(Instant.now().minusSeconds(120)).build(),
-                        EditEvent.builder().rulebookId(rulebooks.get(1).getId()).editorId(con1.id())
-                                .chunkId(text1Chunk0.getChunkId()).chunkBefore(null)
-                                .editType(EditType.UPDATE)
-                                .previousContent(text1Chunk0.getContent())
-                                .newContent("Updated scoring section.").versionPostEdit(2)
-                                .committedAt(Instant.now().minusSeconds(90)).build(),
-                        EditEvent.builder().rulebookId(rulebooks.get(2).getId()).editorId(con2.id())
-                                .chunkId(text2Chunk0.getChunkId()).chunkBefore(null)
-                                .editType(EditType.UPDATE)
-                                .previousContent(text2Chunk0.getContent())
-                                .newContent("Clarified trading rules.").versionPostEdit(3)
-                                .committedAt(Instant.now().minusSeconds(60)).build());
-                editEventRepository.saveAll(editEvents);
-                System.out.println("Seeded " + editEvents.size() + " edit events");
-
-                // Write Locks
             } else {
                 System.out.println("Rulebooks already seeded, skipping...");
             }

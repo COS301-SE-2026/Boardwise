@@ -9,7 +9,7 @@
         v-for="type in types"
         :key="type"
         :label="type"
-        :value="type"
+        :value="type.toLowerCase()"
         v-model="selectedTypes"
         hide-details
         density="compact"
@@ -26,7 +26,7 @@
         :key="cat"
         v-model="selectedCategories"
         :label="cat"
-        :value="cat"
+        :value="cat.toLowerCase()"
         hide-details
         density="compact"
       />
