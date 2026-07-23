@@ -21,7 +21,8 @@
         class="price ma-0"
         :style="{ color: listing.listingType === 'rental' ? 'var(--rent)' : 'var(--sale)' }"
       >
-        R{{ listing.price }}
+        R{{ listing.price }}<br>
+
         <span v-if="listing.listingType === 'rental'" class="period">
           {{
             listing.rentalPeriod
@@ -33,7 +34,9 @@
 
       <div class="meta">
         <span>@{{ listing.username ?? 'unknown' }}</span>
-        <span v-if="listing.location">📍 {{ listing.location }}</span>
+        <span v-if="listing.location"><v-icon>
+          mdi-map-marker
+        </v-icon> {{ listing.location }}</span>
       </div>
     </v-card-text>
 
