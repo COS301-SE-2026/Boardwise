@@ -28,7 +28,8 @@
       />
     </div>
 
-    <CreateEvent v-model="showCreateEvent" @created="handleCreateEvent" />
+    <CreateEvent v-model="showCreateEvent"   :on-submit="handleCreateEvent"  @created="handleCreateEvent"
+ />
 
     <EditEventModal
       v-model="showEditEvent"

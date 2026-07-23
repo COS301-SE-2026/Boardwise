@@ -116,7 +116,7 @@
             </BaseButton>
 
             <BaseButton :disabled="!isValid" :loading="isSubmitting" @click="handleSubmit">
-                <v-icon start>{{ isEditMode ? 'mdi-content-save' : 'mdi-calendar-plus' }}</v-icon>
+                <v-icon start>mdi-calendar-plus</v-icon>
                     Create Event
             </BaseButton>
         </div>
@@ -132,25 +132,20 @@ import BaseInput from '~/components/ui/BaseInput.vue'
 import { useBoardGames } from '~/composables/useBoardGames'
 import { useSnackBar } from '~/composables/useSnackbar'
 
-const { show } = useSnackBar
+const { show } = useSnackBar(3)
 
 const { games, isLoading: gamesLoading, searchGames } = useBoardGames()
 onMounted(() => searchGames())
 
 
 const open = defineModel()
+
 const props = defineProps({
-    initialData:{
-        type: Object,
-        default: null
-    },
-    onSubmit:{
-        type:Function, 
-        required:true
+    onSubmit: {
+        type: Function,
+        required: true
     }
 });
-
-const isEditMode = computed(() => !!props.initialData)
 
 const emptyForm = ()=>(
     {
@@ -186,28 +181,7 @@ watch(open, (isOpen)=>{
         return;
     }
 
-    if (props.initialData) {
-        const d = props.initialData
-        form.value = {
-            name: d.name,
-            description: d.description,
-            date: toDateInput(d.startTime),
-            startTime: toTimeInput(d.startTime),
-            endTime: toTimeInput(d.endTime),
-            location: d.location,
-            visibility: d.visibility,
-            games: d.games?.map(g => g.id) ?? []
-        }
-
-        if (d.games?.length) {// fallback for games created through "user listings" or other means
-            const knownIds = new Set(games.value.map(g => g.id))
-            const missing = d.games.filter(g => !knownIds.has(g.id))
-            games.value = [...missing, ...games.value]
-        }
-    } 
-    else {
-        form.value = emptyForm();
-    }
+    form.value = emptyForm();
     fileName.value = '';
     imageFile.value = null;
 })

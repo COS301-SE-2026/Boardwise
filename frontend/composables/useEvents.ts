@@ -21,6 +21,7 @@ export const useEvents = () => {
         try {
             const data = await EventService.getAllEvents(name)
             events.value = data.result
+            return events.value;
         }catch (err: any) {
             error.value = err.data?.message || 'Failed to load events'
             events.value = []
