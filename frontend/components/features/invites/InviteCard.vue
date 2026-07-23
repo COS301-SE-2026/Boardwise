@@ -4,15 +4,16 @@
         <div class="d-flex ga-4">
 
             <BaseImage
-                :src="invite.event.eventImg || '/images/default-listing.png'"
-                :alt="invite.event.eventName"
+                :src="invite.event.image || '/images/default-listing.png'"
+                :alt="invite.event.name"
                 class="event-image"
+
             />
 
             <div class="flex-grow-1">
 
                 <h3 class="text-h6 mb-2">
-                    {{ invite.event.eventName }}
+                    {{ invite.event.name }}
                 </h3>
 
                 <p class="text-body-2 mb-1">
@@ -28,14 +29,14 @@
                         Date:
                     </strong>
                     
-                    {{ invite.event.eventDate }}
+                    {{ invite.event.date }}
                 </p>
 
                 <div class="d-flex ga-2">
 
                     <v-btn
                         color="primary"
-                        @click="$emit('accept', invite.event.eventId)"
+                        @click="$emit('accept', invite.event.id)"
                     >
                         Accept
                     </v-btn>
@@ -43,7 +44,7 @@
                     <v-btn
                         variant="outlined"
                         color="error"
-                        @click="$emit('decline', invite.event.eventId)"
+                        @click="$emit('decline', invite.event.id)"
                     >
                         Decline
                     </v-btn>
