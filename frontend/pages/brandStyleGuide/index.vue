@@ -6,6 +6,7 @@
             <v-container class="max-width-container">
                 <StyleHero />
                 <StyleColours />
+                <StyleTypography />
             </v-container>
 
             <footer class="py-8 section-border text-center">
@@ -21,8 +22,9 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import StyleColours from '~/components/brandStyleGuide/StyleColours.vue';
 
+import StyleTypography from '~/components/brandStyleGuide/StyleTypography.vue';
+import StyleColours from '~/components/brandStyleGuide/StyleColours.vue';
 import StyleHero from '~/components/brandStyleGuide/StyleHero.vue';
 import StyleNav from '~/components/brandStyleGuide/StyleNav.vue';
 
