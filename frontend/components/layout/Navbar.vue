@@ -46,7 +46,7 @@
         <NuxtLink to="/chats">
             Chat
         </NuxtLink>
-        <NuxtLink to="/help">
+        <NuxtLink to="/help" class="nav-link">
             <v-icon icon="mdi-help-circle-outline" />
         </NuxtLink>
         <LogOutButton />
