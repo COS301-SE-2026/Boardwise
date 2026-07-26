@@ -438,6 +438,7 @@ a:hover { text-decoration: underline; }
 }
 
 .game-card {
+  width: 110px;
   flex-shrink: 0;
   cursor: pointer;
   overflow: hidden;

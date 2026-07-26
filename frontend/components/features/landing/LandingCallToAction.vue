@@ -1,13 +1,13 @@
 <template>
-    <v-container class=" py-18">
+    <v-container class=" py-16 ">
 
         <v-sheet 
             rounded="xl"
             color="primary"
-            class="pa-8 pa-md-16 overflow-hidden position-relative"
+            class="pa-10 pa-md-16 overflow-hidden position-relative"
         >
-            <v-row align="center" justify="space-between">
-                <v-col cols="12" md="6">
+            <v-row align="center">
+                <v-col cols="12" md="6" class="text-center">
                     <BaseButton color="white" class="mb-4">
                         Ready to play?
                     </BaseButton>
@@ -16,11 +16,10 @@
             </h2>
 
             <p class="text-body-1 text-medium-emphasis text-white mb-8">
-                Access rulebooks of your favourite board games, discover new games, 
-                connect with others players, rent or sell games - all in one place. 
-            </p>
+                Discover new board games, access rulebooks,
+                connect with players and share games all in one place. </p>
 
-            <div class="d-flex ga-4 flex-wrap">
+            <div class="d-flex justify-center ga-4 flex-wrap">
                 <BaseButton 
                     variant="outlined" 
                     color="white"
@@ -29,20 +28,16 @@
 
                     Rulebooks
                 </BaseButton>
+
+                <BaseButton
+                    variant="outlined"
+                    color="white"
+                    @click="router.push('/auth/signup')"
+                >
+                    Get Started
+                </BaseButton>
             </div>
         </v-col>
-
-                <v-col
-                    cols="12"
-                    md="5"
-                    class="text-center"
-                >
-                    <v-icon
-                        icon="mdi-"
-                        size="100"
-                        color="white"
-                    />
-                </v-col>
             </v-row>
             </v-sheet>
 
