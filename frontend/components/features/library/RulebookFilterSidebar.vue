@@ -2,10 +2,28 @@
   <BaseFilterSidebar @reset="resetFilters">
 
     <BaseFilterGroup title="Genres">
+      <v-text-field
+        v-model="genreSearch"
+        placeholder="Search genres..."
+        density="compact"
+        hide-details
+        rounded="lg"
+        class="mb-3"
+        clearable
+      />
+      
       <div
-        v-for="genre in genres"
+        class="genre-option text-capitalize"
+        :class="{active: selectedGenre === 'all' }"
+        @click="selectedGenre='all'"
+      >
+      All
+      </div>
+
+      <div
+        v-for="genre in loadedGenres"
         :key="genre"
-        class="genre-option"
+        class="genre-option text-capitalize"
         :class="{ active: selectedGenre === genre }"
         @click="selectedGenre= genre"
       >
@@ -27,10 +45,6 @@
     </BaseFilterGroup>
 
     <BaseFilterGroup title="Player Count">
-        <!-- <div class="d-flex ga-2">
-            <v-text-field v-model="filters.minPlayers" placeholder="Min" type="number" density="compact" hide-details rounded="lg" />
-            <v-text-field v-model="filters.maxPlayers" placeholder="Max" type="number " density="compact" hide-details rounded="lg" />
-        </div> -->
         <v-text-field
           v-model="filters.playerCount"
           placeholder="How many players?"
@@ -66,9 +80,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch , computed} from 'vue'
+import { ref, reactive, watch , onMounted} from 'vue'
+import { useDebounceFn } from '@vueuse/core'
+import { BoardGameService } from '~/services/boardgameService'
+
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue'
 import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue'
+
+import { useSnackBar } from '~/composables/useSnackbar';
+
+const { show } = useSnackBar();
 
 const props = defineProps({
   rulebooks: {
@@ -79,21 +100,39 @@ const props = defineProps({
 
 const emit = defineEmits(['filter'])
 
-const genres = computed(() => {
-  const unique = [...new Set(props.rulebooks.flatMap(r => r.genres || []))]
-  return ['All', ...unique].sort()
-})
+const genreSearch = ref('');
+const loadedGenres = ref([]);
+const selectedGenre  = ref('all');
+const selectedLanguages = ref([]);
 
-const languages = ['English', 'French', 'Spanish']
-const selectedGenre  = ref('All')
-const selectedLanguages = ref([])
+const languages = ['English', 'French', 'Spanish'] // TODO: make an enum for this just like for genres
 
 const filters = reactive({
-  // minPlayers: '',
-  // maxPlayers: '',
   playerCount: '',
   duration: '',
   minAge: ''
+})
+
+const fetchGenres = async (query = '') => {
+  try{
+    const res = await BoardGameService.getGenres(query);
+    loadedGenres.value = res.genres.filter(g => g.toLowerCase() !== 'all');
+  }catch(err){
+    show('Failed to load genres', 'error');
+    console.log('Failed to load genres', err);
+  }
+}
+
+const debouncedGenreSearch = useDebounceFn((query) => {
+  fetchGenres(query);
+}, 300)
+
+watch(genreSearch, (newQuery) => {
+  debouncedGenreSearch(newQuery);
+})
+
+onMounted(() => {
+  fetchGenres();
 })
 
 watch([selectedGenre, selectedLanguages, filters], () => {
@@ -105,13 +144,12 @@ watch([selectedGenre, selectedLanguages, filters], () => {
 }, { deep: true })
 
 const resetFilters = () => {
-  selectedGenre.value   = 'All'
+  selectedGenre.value   = 'all'
   selectedLanguages.value = []
-  // filters.minPlayers     = ''
-  // filters.maxPlayers     = ''
   filters.playerCount = ''
   filters.duration = ''
   filters.minAge = ''
+  genreSearch.value = ''
 }
 </script>
 
