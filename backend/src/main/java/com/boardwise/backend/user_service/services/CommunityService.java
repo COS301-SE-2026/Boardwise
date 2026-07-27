@@ -632,6 +632,13 @@ public class CommunityService {
         Example<EventAttendee> example = Example.of(forExample);
         int attendeeCount = (int) eaRepo.count(example);
 
+        Optional<EventAttendee> ea = eaRepo.findByUserIdAndEventId(currentUser.getId(), eventId);
+        RSVPStatus userStatus;
+        if(ea.isEmpty())
+            userStatus = RSVPStatus.NOT_ATTENDING;
+        else 
+            userStatus = ea.get().getStatus();
+
         User host = userRepo.findById(event.getCreatorId()).get();
         boolean isHost = event.getCreatorId().equals(currentUser.getId());
         EventHostInfo hostInfo = new EventHostInfo(
@@ -652,7 +659,7 @@ public class CommunityService {
         }
         
         
-        EventDTO data = EventDTO.fromEntity(event, attendeeCount, RSVPStatus.ATTENDING, hostInfo, isHost, games);
+        EventDTO data = EventDTO.fromEntity(event, attendeeCount, userStatus, hostInfo, isHost, games);
         result.put("message", "Event successfully retrieved.");
         result.put("data", data);
 
