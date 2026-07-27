@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import org.springframework.data.domain.Example;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -277,8 +279,11 @@ public class SocialService {
 
     public List<GroupInfo> getGroup(String groupName) {
         String cleanName = AuthService.sanitize(groupName);
+        
         Criteria searchCriteria = Criteria.where("name").regex(cleanName, "i");
+        Pageable page = PageRequest.of(0, 10);
         Query query = new Query(searchCriteria);
+        query.with(page);
         List<Group> matches = template.find(query, Group.class);
 
         List<GroupInfo> groups = new ArrayList<>();

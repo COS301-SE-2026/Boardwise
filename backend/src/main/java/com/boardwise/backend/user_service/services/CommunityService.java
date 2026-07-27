@@ -17,8 +17,10 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.geo.Point;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
-import org.springframework.data.mongodb.core.query.TextCriteria;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.boardwise.backend.shared.security.JWTService;
@@ -49,8 +51,11 @@ import com.google.maps.GeocodingApi;
 import com.google.maps.errors.ApiException;
 import com.google.maps.model.GeocodingResult;
 
+import lombok.RequiredArgsConstructor;
+
 
 @Service
+@RequiredArgsConstructor
 public class CommunityService {
 
     private final EventsRepository eventRepo;
@@ -61,28 +66,9 @@ public class CommunityService {
     private final R2StorageService bucket;
     private final EventAttendeeRepository eaRepo;
     private final NotificationService notifService;
+    private final MongoTemplate template;
 
-    CommunityService(
-        EventsRepository eventRepo, 
-        UserRepository userRepo, 
-        BoardGameRepository gameRepo,
-        EventAttendeeRepository eaRepo,
-        JWTService jwtService, 
-        GeoApiContext geoApiContext,
-        R2StorageService bucket,
-        NotificationService notifService
-    ){
-        this.eventRepo = eventRepo;
-        this.userRepo = userRepo;
-        this.gameRepo = gameRepo;
-        this.eaRepo = eaRepo;
-        this.jwtService = jwtService;
-        this.geoApiContext = geoApiContext;
-        this.bucket = bucket;
-        this.notifService = notifService;
-    }
-
-    public Map<String, Object> getEvents(String token, String name) {
+    public Map<String, Object> getEvents(String token, String name, Integer pageNumber) {
         User user = getUserFromToken(token);
         Map<String, Object> result = new HashMap<>();
         Pageable page;
@@ -91,14 +77,18 @@ public class CommunityService {
         String message;
         
         if(name == null){
-            page = PageRequest.of(0, 25);
+            int pageIdx = pageNumber == null ? 0 : (pageNumber - 1);
+            page = PageRequest.of(pageIdx, 10);
             dbEvents = eventRepo.findAll(page).getContent();
             message = "Events successfully retrieved.";            
         }
         else{
-            page = PageRequest.of(0, 10);
-            TextCriteria criteria = TextCriteria.forDefaultLanguage().matchingAny(name);
-            dbEvents = eventRepo.findAllBy(criteria, page);
+            String cleanName = AuthService.sanitize(name);
+            Criteria searchCriteria = Criteria.where("name").regex(cleanName, "i");
+            page = PageRequest.of(0,10);
+            Query query = new Query(searchCriteria);
+            query.with(page);
+            dbEvents = template.find(query, Event.class);
             message = "Queried event(s) successfully retrieved.";
         }
 
@@ -115,6 +105,7 @@ public class CommunityService {
             Optional<EventAttendee> ea = eaRepo.findByUserIdAndEventId(user.getId(), event.getId());
             boolean attending = ea.isPresent() && ea.get().getStatus() == RSVPStatus.ATTENDING;
 
+            boolean isHost = event.getCreatorId().equals(user.getId());
             EventHostInfo hostInfo = new EventHostInfo(
                 host.getUsername(),
                 host.getProfilePicture()
@@ -137,7 +128,7 @@ public class CommunityService {
                                     RSVPStatus.NOT_ATTENDING;
 
                 events.add(EventDTO.fromEntity(
-                    event, attendeeCount, status, hostInfo, games
+                    event, attendeeCount, status, hostInfo, isHost, games
                 ));
             }
 
@@ -216,7 +207,7 @@ public class CommunityService {
             games.add(dto);
         }
 
-        EventDTO data = EventDTO.fromEntity(newEvent, 1, RSVPStatus.ATTENDING, hostInfo, games);
+        EventDTO data = EventDTO.fromEntity(newEvent, 1, RSVPStatus.ATTENDING, hostInfo, true, games);
         result.put("message", "Event successfully created.");
         result.put("data", data);
 
@@ -367,7 +358,7 @@ public class CommunityService {
             }
             
             
-            EventDTO data = EventDTO.fromEntity(event, attendeeCount, RSVPStatus.ATTENDING, hostInfo, games);
+            EventDTO data = EventDTO.fromEntity(event, attendeeCount, RSVPStatus.ATTENDING, hostInfo, true, games);
             result.put("message", "Event successfully updated.");
             result.put("data", data);
         }
@@ -428,6 +419,7 @@ public class CommunityService {
         int attendeeCount = ((int) eaRepo.count(example)) + 1;
         
         User host = userRepo.findById(event.getCreatorId()).get();
+        boolean isHost = event.getCreatorId().equals(user.getId());
         EventHostInfo hostInfo = new EventHostInfo(host.getUsername(), host.getProfilePicture());
 
         List<Boardgame> dbGames = gameRepo.findAllById(event.getGames());
@@ -443,7 +435,7 @@ public class CommunityService {
             games.add(dto);
         }
 
-        EventDTO data = EventDTO.fromEntity(event, attendeeCount, RSVPStatus.ATTENDING, hostInfo, games);
+        EventDTO data = EventDTO.fromEntity(event, attendeeCount, RSVPStatus.ATTENDING, hostInfo, isHost, games);
 
 
         result.put("message", "User attendance successfully recorded.");
@@ -476,6 +468,7 @@ public class CommunityService {
         int attendeeCount = ((int) eaRepo.count(example)) + 1;
         
         User host = userRepo.findById(event.getCreatorId()).get();
+        boolean isHost = event.getCreatorId().equals(user.getId());
         EventHostInfo hostInfo = new EventHostInfo(host.getUsername(), host.getProfilePicture());
 
         List<Boardgame> dbGames = gameRepo.findAllById(event.getGames());
@@ -491,7 +484,7 @@ public class CommunityService {
             games.add(gDto);
         }
 
-        EventDTO data = EventDTO.fromEntity(event, attendeeCount, RSVPStatus.NOT_ATTENDING, hostInfo, games);
+        EventDTO data = EventDTO.fromEntity(event, attendeeCount, RSVPStatus.NOT_ATTENDING, hostInfo, isHost, games);
 
         result.put("message", "User attendance successfully removed.");
         result.put("data", data);
@@ -615,6 +608,48 @@ public class CommunityService {
         result.put("message", "User invites successfully retrieved.");
         result.put("inviteCount", count);
         result.put("invites", dtos);
+
+        return result;
+    }
+
+    public Map<String, Object> getEvent(String token, String eventId) {
+        User currentUser = getUserFromToken(token);
+        Optional<Event> opEvent = eventRepo.findById(eventId);
+        Map<String, Object> result = new HashMap<>();
+
+        if(opEvent.isEmpty())
+            throw new NoSuchElementException("No event associated with ID: " + eventId + " exists");
+
+        Event event = opEvent.get();
+        EventAttendee forExample = new EventAttendee();
+        forExample.setEventId(event.getId());
+        forExample.setStatus(RSVPStatus.ATTENDING);
+        Example<EventAttendee> example = Example.of(forExample);
+        int attendeeCount = (int) eaRepo.count(example);
+
+        User host = userRepo.findById(event.getCreatorId()).get();
+        boolean isHost = event.getCreatorId().equals(currentUser.getId());
+        EventHostInfo hostInfo = new EventHostInfo(
+            host.getUsername(), host.getProfilePicture()
+        );
+
+        List<Boardgame> dbGames = gameRepo.findAllById(event.getGames());
+        List<GameInventoryDTO> games = new ArrayList<>();
+        for(Boardgame game : dbGames){
+            GameInventoryDTO dto = new GameInventoryDTO(
+                game.getId(), 
+                game.getTitle(), 
+                game.getDescription(), 
+                game.getImageURL(), 
+                game.getGenres()
+            );
+            games.add(dto);
+        }
+        
+        
+        EventDTO data = EventDTO.fromEntity(event, attendeeCount, RSVPStatus.ATTENDING, hostInfo, isHost, games);
+        result.put("message", "Event successfully retrieved.");
+        result.put("data", data);
 
         return result;
     }
