@@ -138,7 +138,7 @@ public class BoardGameService {
                     
                     if(type != null && type.getNodeValue().equals("boardgamecategory")){
                         String genre = genreNode.getAttributes().getNamedItem("value").getNodeValue();
-                        genres.add(genre);
+                        genres.add(genre.toLowerCase());
                     }
                 }
                 // API game data object
