@@ -46,7 +46,7 @@
 
     <BaseFilterGroup title="Player Count">
         <v-text-field
-          v-model="filters.playerCount"
+          v-model.number="filters.playerCount"
           placeholder="How many players?"
           type="number"
           density="compact"
@@ -57,7 +57,7 @@
 
     <BaseFilterGroup title="Max Duration (mins)">
       <v-text-field
-        v-model="filters.duration"
+        v-model.number="filters.duration"
         placeholder="e.g. 60"
         type="number"
         density="compact"
@@ -68,7 +68,7 @@
 
     <BaseFilterGroup title="Minimum Age">
       <v-text-field
-        v-model="filters.minAge"
+        v-model.number="filters.minAge"
         placeholder="e.g. 10"
         type="number"
         density="compact"
@@ -90,13 +90,6 @@ import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue'
 import { useSnackBar } from '~/composables/useSnackbar';
 
 const { show } = useSnackBar();
-
-const props = defineProps({
-  rulebooks: {
-    type: Array,
-    default: () => []
-  }
-})
 
 const emit = defineEmits(['filter'])
 
