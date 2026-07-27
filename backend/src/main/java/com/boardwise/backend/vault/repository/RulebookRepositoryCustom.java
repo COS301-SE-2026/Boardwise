@@ -1,8 +1,11 @@
 package com.boardwise.backend.vault.repository;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.bson.types.ObjectId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.boardwise.backend.vault.model.Rulebook;
 
@@ -20,4 +23,9 @@ public interface RulebookRepositoryCustom {
     Long atomicPopRedoAndPushUndo(ObjectId rulebookId, ObjectId userId);
 
     void atomicCommitForwardEdit(ObjectId rulebookId, Long newVersion);
+    
+    Page<Rulebook> searchWithFilters(
+        String search, String genre, List<String> languages,
+        Integer playerCount, Integer duration, Integer minAge,
+        Pageable pageable);
 }
