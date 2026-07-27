@@ -56,8 +56,16 @@ public class CommunityController {
         HttpServletRequest req
     ){
         String token = ProfileController.extractToken(req);
-        Map<String, Object> res = service.getEvent(token, eventId);
-        return new ResponseEntity<>(res, HttpStatus.OK);
+        Map<String, Object> res;
+        try{
+            res = service.getEvent(token, eventId);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(NoSuchElementException e){
+            res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
     }   
 
     @PostMapping("/")

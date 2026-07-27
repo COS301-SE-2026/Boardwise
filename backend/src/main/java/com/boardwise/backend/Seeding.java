@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -24,9 +25,11 @@ import com.boardwise.backend.marketplace.model.RentalPeriod;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.models.Event;
+import com.boardwise.backend.user_service.models.EventAttendee;
 import com.boardwise.backend.user_service.models.EventStatus;
 import com.boardwise.backend.user_service.models.Group;
 import com.boardwise.backend.user_service.models.GroupMembership;
+import com.boardwise.backend.user_service.models.RSVPStatus;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.models.Visibility;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
@@ -519,13 +522,34 @@ public class Seeding {
                     .build()
                 );
                 eventsRepository.saveAll(events);
+                System.out.println("Seeded " + events.size() + " group memberships");
             }
             else{
                 System.out.println("Events already seeded, skipping...");
             }
 
             if(eaRepository.count() == 0){
+                List<Event> events = List.of(
+                    eventsRepository.findByName("Monopoly Marathon").get(),
+                    eventsRepository.findByName("Catan Catastrophe").get(),
+                    eventsRepository.findByName("Scrabble storm").get()
+                );
 
+                List<User> hosts = List.of(
+                    userRepository.findByUsername("IAmR3al").get(),
+                    userRepository.findByUsername("alex_games").get(),
+                    userRepository.findByUsername("bob").get()
+                );
+
+                List<EventAttendee> EAs = new ArrayList<>();
+                for(int i = 0; i < events.size(); i++){
+                    EventAttendee ea = new EventAttendee(
+                        hosts.get(i).getId(), events.get(i).getId(), RSVPStatus.ATTENDING
+                    );
+                    EAs.add(ea);
+                }
+                eaRepository.saveAll(EAs);
+                System.out.println("Seeded " + EAs.size() + " group memberships");
             }
             else{
                 System.out.println("Event Attendees already seeded, skipping...");

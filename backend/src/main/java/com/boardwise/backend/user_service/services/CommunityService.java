@@ -100,7 +100,7 @@ public class CommunityService {
             forExample.setEventId(event.getId());
             forExample.setStatus(RSVPStatus.ATTENDING);
             Example<EventAttendee> example = Example.of(forExample);
-            int attendeeCount = (int) eaRepo.count(example) + 1;
+            int attendeeCount = (int) eaRepo.count(example);
 
             Optional<EventAttendee> ea = eaRepo.findByUserIdAndEventId(user.getId(), event.getId());
             boolean attending = ea.isPresent() && ea.get().getStatus() == RSVPStatus.ATTENDING;
@@ -185,8 +185,13 @@ public class CommunityService {
             user.getId(),
             eventGames
         );
-        
         newEvent = eventRepo.save(newEvent);
+
+        EventAttendee newAttendee = new EventAttendee(
+            user.getId(), newEvent.getId(), RSVPStatus.ATTENDING
+        );
+        eaRepo.save(newAttendee); // save creator to attendee collection
+
         String fileName = bucket.uploadFile(eventImg, newEvent.getId());
         String imageUrl = bucket.getFileUrl(fileName);
         newEvent.setEventImg(imageUrl);
@@ -416,7 +421,7 @@ public class CommunityService {
         forExample.setEventId(eventId);
         forExample.setStatus(RSVPStatus.ATTENDING);
         Example<EventAttendee> example = Example.of(forExample);
-        int attendeeCount = ((int) eaRepo.count(example)) + 1;
+        int attendeeCount = ((int) eaRepo.count(example));
         
         User host = userRepo.findById(event.getCreatorId()).get();
         boolean isHost = event.getCreatorId().equals(user.getId());
@@ -465,7 +470,7 @@ public class CommunityService {
         forExample.setEventId(dto.eventId());
         forExample.setStatus(RSVPStatus.ATTENDING);
         Example<EventAttendee> example = Example.of(forExample);
-        int attendeeCount = ((int) eaRepo.count(example)) + 1;
+        int attendeeCount = ((int) eaRepo.count(example));
         
         User host = userRepo.findById(event.getCreatorId()).get();
         boolean isHost = event.getCreatorId().equals(user.getId());
