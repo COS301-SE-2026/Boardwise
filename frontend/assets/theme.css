@@ -240,7 +240,7 @@ a:hover { text-decoration: underline; }
 
 /* Buttons - pill shape*/
 .btn {
-  font-family: var(--font-button);
+  font-family: var(--font-body);
   font-weight: var(--fw-bold);
   font-size: var(--fs-body);
   padding: 11px 22px;
@@ -266,7 +266,7 @@ a:hover { text-decoration: underline; }
 .btn--secondary { 
   background: transparent; 
   color: var(--color-secondary); 
-  border-color: 2px solid var(--color-secondary); 
+  border: 2px solid var(--color-secondary); 
 }
 .btn--secondary:hover { background: var(--color-surface-alt); }
 
@@ -296,7 +296,7 @@ a:hover { text-decoration: underline; }
   padding: var(--space-6);
   transition: box-shadow var(--transition-base), box-shadow var(--transition-base);
 }
-.card:hover { transform: translate(-4px); box-shadow: var(--shadow-md); }
+.card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
 
 /* Inputs */
 .input {
@@ -341,7 +341,7 @@ a:hover { text-decoration: underline; }
 .chip--primary { background: rgba(199, 40, 110, 0.12); color: var(--wildfire); }
 .chip--obsidian {background: rgba(78, 30, 92, 0.12); color: var(--obsidian); }
 .chip--copper {background: rgba(239, 91, 39, 0.12); color: var(--copper); }
-.chip--sucess {background: rgba(46, 40, 91, 0.12); color: var(--color-success); }
+.chip--sucess {background: rgba(46, 125, 91, 0.12); color: var(--color-success); }
 .chip--error {background: rgba(198, 40, 40, 0.12); color: var(--color-error); }
 
 .badge {
@@ -351,7 +351,7 @@ a:hover { text-decoration: underline; }
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-pill);
   border: 2px solid var(--color-surface);
-  box-shadow: var(--shadown-sm);
+  box-shadow: var(--shadow-sm);
   color: #fff;
 }
 .badge--copper { background: var(--copper); transform: rotate(-3deg); }

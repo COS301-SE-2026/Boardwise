@@ -20,11 +20,11 @@ public class Group {
     private String imageUrl;
     private String description;
     private String ownerId;
-    private String visibility;
+    private Visibility visibility;
     private String category;
     private Instant createdAt;
 
-    public Group(String name, String imageUrl, String description, String category, String ownerId, String visibility){
+    public Group(String name, String imageUrl, String description, String category, String ownerId, Visibility visibility){
         this.name = name;
         this.imageUrl = imageUrl;
         this.description = description;

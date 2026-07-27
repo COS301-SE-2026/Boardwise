@@ -68,6 +68,24 @@ export default defineNuxtConfig({
               warning: '#B7791F',      
               info: '#4E1E5C'          
             }
+          },
+
+          boardwiseDark: {
+            dark: true,
+
+            colors: {
+              primary: '#E64C86',      
+              secondary: '#F0D9EC',    
+              accent: '#EF5B27',       
+              error: '#C62828',        
+
+              background: '#17101C',   
+              surface: '#241629',      
+
+              success: '#2E7D5B',      
+              warning: '#B7791F',      
+              info: '#F0D9EC'          
+            }
           }
         }
       }
@@ -77,7 +95,8 @@ export default defineNuxtConfig({
     public: {
       // Once backend is deployed, we must change the URL to match
       apiBase: process.env.NODE_ENV === 'prod' ? 'https://api.our-production-domain.com' : 'http://127.0.0.1:8080/api/',
-      wsBaseUrl: process.env.NODE_ENV === 'prod' ? 'wss://api.our-production-domain.com/api/stomp' : 'ws://127.0.0.1:8080/api/stomp'
+      wsBaseUrl: process.env.NODE_ENV === 'prod' ? 'wss://api.our-production-domain.com/api/stomp' : 'ws://127.0.0.1:8080/api/stomp',
+      fastApiBase: process.env.NODE_ENV === 'prod' ? 'https://fastapi.our-production-domain.com' : 'http://127.0.0.1:8000/api/'
     }
   }
 })

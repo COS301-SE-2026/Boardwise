@@ -1,7 +1,7 @@
 <template>
     <div class="section-title">
         <h2>{{ title }}</h2>
-        <p>{{ subtitle }}</p>
+        <p v-if="subtitle">{{ subtitle }}</p>
     </div>
 </template>
 
@@ -22,6 +22,7 @@ defineProps({
   color: var(--color-primary);
   margin-bottom: var(--space-1);
   font-family: var(--font-display);
+  font-size: var(--fs-h2);
 }
 
 .section-title p {

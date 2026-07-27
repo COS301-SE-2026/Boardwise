@@ -9,12 +9,15 @@
  
       <CommunityBanner 
         :community="community" 
-        @members="showMembers = true"
-        @events="showEvents = true"
-        />
+        @members="showMembers = !showMembers"
+        @events="showEvents = !showEvents"
+        @updated="handleUpdate"
+      />
  
       <CommunityChats 
-        :community="community" />
+        :community="community" 
+        @join="handleJoin"
+      />
 
       <MemberList
         v-model="showMembers"
@@ -36,7 +39,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 
 import Navbar from '~/components/layout/Navbar.vue'
@@ -50,24 +53,60 @@ import CommunityEvents from '~/components/features/community/CommunityEvents.vue
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
 import { useCommunity } from '~/composables/useCommunity'
+import { useSnackBar } from '~/composables/useSnackbar'
 
 const route = useRoute()
 
 const {
-  communities,
-  getAllCommunities
+  getCommunityDetails,
+  joinCommunity, 
+  error
 } = useCommunity()
+
+const {
+  show
+} = useSnackBar()
 
 const showMembers = ref(false)
 const showEvents = ref(false)
+const community = ref(null)
 
-onMounted(() =>{
-  getAllCommunities()
+onMounted(async () => {
+  community.value = await getCommunityDetails(route.params.id)
 })
 
-const community = computed(() =>
-  communities.value.find(
-    (item) => String(item.id) === String(route.params.id)
-  )
-)
+const handleJoin = async () => {
+  try{
+    const response = await joinCommunity(route.params.id)
+    community.value.members = response.data.members
+    community.value.memberCount = response.data.memberCount
+    community.value.isMember = response.data.isMember
+
+    show("Successfully joined community")
+  }
+  catch(err){
+    console.error("Failed to join community.", err)
+    show(error.value, 'error')
+  }
+}
+
+const handleUpdate = (newData) => {
+  if(!newData) return
+
+  if(community.value.name != newData.name)
+    community.value.name = newData.name
+
+  if(community.value.description !== newData.description)
+    community.value.description = newData.description
+
+  if(community.value.visibility !== newData.visibility)
+    community.value.visibility = newData.visibility
+
+  if(community.value.imageUrl !== newData.imageUrl)
+    community.value.imageUrl = newData.imageUrl
+
+  show("Community details successfully updated")
+}
+
+
 </script>

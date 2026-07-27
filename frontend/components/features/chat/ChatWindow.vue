@@ -34,18 +34,19 @@ import ChatHeader from './ChatHeader.vue';
 import ChatFeed from './ChatFeed.vue';
 import ChatComposer from './ChatComposer.vue';
 import InviteFeed from '../invites/InviteFeed.vue';
-
+import { useSnackBar } from '#imports';
 import { getMessages } from '~/services/chatService.js';
 import { useEvents } from '~/composables/useEvents';
 
+const {show} = useSnackBar();
 const {
     invites,
     fetchInvites,
     respondToInvite
 } = useEvents()
 
-onMounted(() => {
-    fetchInvites()
+onMounted(async() => {
+    await fetchInvites()
 })
 
 const props = defineProps({
@@ -84,10 +85,21 @@ const handleSend = (text: any) => {
 }
 
 const acceptInvite = async (eventId: string) => {
-    await respondToInvite(eventId, 'accept')
+try {
+        await respondToInvite(eventId, 'accept')
+        show('Invite accepted!', 'success')
+    } catch {
+        show('Failed to accept invite.', 'error')
+    }
 }
 
+
 const declineInvite = async (eventId: string) => {
-    await respondToInvite(eventId, 'decline')
+try {
+        await respondToInvite(eventId, 'decline')
+        show('Invite declined', 'info')
+    } catch {
+        show('Failed to decline invite.', 'error')
+    }
 }
 </script>
