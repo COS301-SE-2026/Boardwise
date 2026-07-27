@@ -3,17 +3,14 @@
 
     <div class="d-flex flex-column align-center ga-4 text-center">
       <BaseAvatar
-       :src="member.avatar"
-       :name="member.name"
+       :src="member.profilePicture ?? '/images/avatar.jpg'"
+       :name="member.username"
        size="xl"
       />
       
     <div class="d-flex flex-column ga-1" >
       <h3 class="ma-0"
-      >{{ member.name }}</h3>
-
-      <p class="text-medium-emphasis ma-0"
-      >{{ member.role }}</p>
+      >{{ member.username }}</h3>
     </div>
   </div>
   </BaseCard>

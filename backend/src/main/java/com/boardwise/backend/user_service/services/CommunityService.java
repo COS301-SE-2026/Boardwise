@@ -108,6 +108,7 @@ public class CommunityService {
 
             EventAttendee forExample = new EventAttendee();
             forExample.setEventId(event.getId());
+            forExample.setStatus(RSVPStatus.ATTENDING);
             Example<EventAttendee> example = Example.of(forExample);
             int attendeeCount = (int) eaRepo.count(example) + 1;
 
@@ -344,6 +345,7 @@ public class CommunityService {
 
             EventAttendee forExample = new EventAttendee();
             forExample.setEventId(event.getId());
+            forExample.setStatus(RSVPStatus.ATTENDING);
             Example<EventAttendee> example = Example.of(forExample);
             int attendeeCount = (int) eaRepo.count(example);
 
@@ -421,6 +423,7 @@ public class CommunityService {
         newAttendee = eaRepo.save(newAttendee);
         EventAttendee forExample = new EventAttendee();
         forExample.setEventId(eventId);
+        forExample.setStatus(RSVPStatus.ATTENDING);
         Example<EventAttendee> example = Example.of(forExample);
         int attendeeCount = ((int) eaRepo.count(example)) + 1;
         
@@ -468,6 +471,7 @@ public class CommunityService {
 
         EventAttendee forExample = new EventAttendee();
         forExample.setEventId(dto.eventId());
+        forExample.setStatus(RSVPStatus.ATTENDING);
         Example<EventAttendee> example = Example.of(forExample);
         int attendeeCount = ((int) eaRepo.count(example)) + 1;
         

@@ -75,6 +75,13 @@ interface ProfilePictureResponse{
     profilePictureUrl: string;
 }
 
+interface ProfileSearchResponse {
+    id: string;
+    username: string;
+    fullName: string;
+    profilePicture: string;
+}
+
 interface GenresResponse {
     message: string;
     genres: string[];
@@ -171,5 +178,15 @@ export const userService = {
             params: query ? { query } : undefined
         });
     },
+
+    //Search for Users
+    searchForUser(query: string){
+        const { $api } = useNuxtApp();
+        return $api<ProfileSearchResponse[]>('/users/',{
+            params:{
+                search: query
+            }
+        });
+    }
 
 }
