@@ -5,7 +5,7 @@
 
       <div class="d-flex align-center ga-6 flex-wrap">
 
-        <v-avatar size="80" class="profile-avatar">
+        <v-avatar size="80" class="profile-avatar" @click="showPfpModal = true">
           <v-img
             :src="user.profilePicture ?? '/images/avatar.jpg'"
             :alt="`${user.fullName} profile picture`"
@@ -17,11 +17,11 @@
 
           <h1 class="profile-name ma-0">{{ user.fullName }}</h1>
 
-          <p class="profile-bio profile-bio--empty ma-0">no available preferences</p>
+         
           <p class="profile-username ma-0">@{{ user.username }}</p>
           
           <div
-            v-if="user.preferences?.visibility === 'public' && user.preferences.genres?.length"
+            v-if="user.preferences?.visibility === 'public' && user.preferences.genres?.length > 0"
             class="d-flex flex-wrap ga-1"
           >
             <v-chip
@@ -32,9 +32,15 @@
             >
               {{ genre }}
             </v-chip>
-            <!-- <div v-else>
-              <p class = "no-pref">no prefrences</p>
-            </div> -->
+            
+          </div>
+          
+          <div v-else-if="user.preferences?.visibility === 'private'">
+            <p class = "no-pref">user genre preferences are private</p>
+          </div>
+
+          <div v-else>
+            <p class = "no-pref">no preferences</p>
           </div>
 
         </div>
@@ -48,7 +54,13 @@
     <EditProfileModal
       v-model="showEdit"
       :user="user"
-      @saved="$emit('saved', $event)"
+      @save="$emit('saved', $event)"
+    />
+
+    <ChangeProfilePictureModal
+      v-model="showPfpModal"
+      :user="user"
+      @save="$emit('pfpChange', $event)"
     />
 
   </v-card>
@@ -56,14 +68,17 @@
 
 <script setup>
 import EditProfileModal from './EditProfileModal.vue'
+import ChangeProfilePictureModal from './ChangeProfilePictureModal.vue';
 
 defineProps({
   user: { type: Object, required: true }
 })
 
-defineEmits(['saved'])
+defineEmits(['saved', 'pfpChange'])
 
 const showEdit = ref(false)
+const showPfpModal = ref(false)
+
 </script>
 
 <style scoped>
@@ -75,11 +90,9 @@ const showEdit = ref(false)
   min-height: 197px; 
 }
 
-.no-pref{
-
-}
 .profile-avatar {
   border: 3px solid var(--color-border-strong);
+  cursor: pointer;
 }
 
 .profile-bio--empty {

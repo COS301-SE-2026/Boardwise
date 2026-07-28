@@ -4,65 +4,69 @@
    Import ONCE in the root (app.vue or nuxt.config css array):
      css: ['~/assets/theme.css']
    Then use the variables everywhere instead of hard-coded values.
+
+   v2 changes: matches the brand style guide better. Semantic tokens 
+   have defined colours. Added a dark mode via [data-theme="dark"]
+   on <html>.
    ============================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=DynaPuff:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Comic+Neue:wght@400;700&display=swap');
 
 :root {
   /* ----------------------------------------------------------
-     1. BRAND COLOURS
-     Derived from the Boardwise logo (maroon + navy) with the
-     gold/accent supporting palette from the brand style guide.
+     1. BRAND COLOURS - newest palette
      ---------------------------------------------------------- */
 
   /* Core brand */
-  --bw-maroon:           #6D0037;  /* Primary brand — logo, headers, primary buttons */
-  --bw-maroon-deep:      #4F0028;  /* Hover / pressed state for maroon */
-  --bw-maroon-soft:      #883C64;  /* Muted maroon — borders, secondary accents */
-  --bw-navy:             #1A1430;  /* Wordmark navy — primary text, dark surfaces */
-  --bw-navy-ink:         #020018;  /* Near-black — high-emphasis text */
+  --obsidian:   #4E1E5C;  /* deep purple — like obsidian game pieces */
+  --merlot:     #8E1B4E;  /* deep red — like a merlot velvet game bag */
+  --wildfire:   #C7286E;  /* PRIMARY — like wildfire event cards */
+  --copper:     #EF5B27;  /* orange — like copper resource tokens */
+  --rosewood:   #E58BB4;  /* soft pink — like rosewood game boxes */
 
-  /* Supporting palette (from brand guide) */
-  --bw-gold:             #C9A86A;  /* Primary gold accent */
-  --bw-gold-muted:       #E6C58A;  /* Soft gold — highlights, badges */
-  --bw-accent-coral:     #E4572E;  /* Accent — calls to action, alerts */
-  --bw-accent-orange:    #F97316;  /* Accent — secondary emphasis */
-  --bw-accent-violet:    #7C3AED;  /* Accent — links, info */
-  --bw-accent-violet-2:  #A78BFA;  /* Soft violet — hover tints */
+  /* Neutrals */
+  --scrollpaper: #FBF6F0; /* page bg — like ancient scroll rulebooks */
+  --alabaster:   #FFFFFF;  /* surfaces — like alabaster game tiles */
+  --feltboard:   #F3E9E2;  /* fills — like the felt of a game table */
+  --shadowink:   #2E1430;  /* body text — like ink on a shadow board */
+  --ashquill:    #6B5563;  /* muted — like an ash-tipped quill */
 
   /* ----------------------------------------------------------
      2. SEMANTIC COLOURS — use THESE in components, not raw brand
      ---------------------------------------------------------- */
-  --color-primary:        var(--bw-maroon);
-  --color-primary-hover:  var(--bw-maroon-deep);
-  --color-secondary:      var(--bw-navy);
-  --color-accent:         var(--bw-accent-coral);
-  --color-link:           var(--bw-accent-violet);
+  --color-primary:        var(--wildfire);
+  --color-primary-hover:  var(--merlot);
+  --color-secondary:      var(--obsidian);
+  --color-accent:         var(--copper);
+  --color-link:           var(--wildfire);
 
-  --color-text:           var(--bw-navy-ink);
-  --color-text-muted:     #5B5566;
+  --color-text:           var(--shadowink);
+  --color-text-muted:     var(--ashquill);
   --color-text-inverse:   #FFFFFF;
 
-  --color-bg:             #F9FAFB;   /* App background (Surface) */
-  --color-surface:        #FFFFFF;   /* Cards, modals */
-  --color-surface-alt:    #F3F4F6;   /* Secondary background */
-  --color-border:         #E5E1E8;
-  --color-border-strong:  #C9C3D0;
+  --color-bg:             var(--scrollpaper);   /* App background (Surface) */
+  --color-surface:        var(--alabaster);   /* Cards, modals */
+  --color-surface-alt:    var(--feltboard);   /* Secondary background */
+  --color-border:         var(--feltboard);
+  --color-border-strong:  #D8C9CF;
 
   /* Feedback */
   --color-success:        #2E7D5B;
   --color-warning:        #B7791F;
   --color-error:          #C62828;
-  --color-info:           var(--bw-accent-violet);
+  --color-info:           var(--obsidian);
 
   /* ----------------------------------------------------------
      3. TYPOGRAPHY
-     Display: Myanmar Khyay (headings) — per brand guide
-     Body:    Inter (paragraphs)
-     Button:  Hammersmith One
+     Display: DynaPuff (headings, section titles) — per brand guide
+     Body:    Plus Jakarta Sans (everything you read)
+     Fun:     Comic Neue - playful callouts only, use sparingly
+
      Load these via Google Fonts / @font-face in the host page.
      ---------------------------------------------------------- */
-  --font-display: 'Myanmar Khyay', 'Georgia', serif;
-  --font-body:    'Inter', system-ui, -apple-system, sans-serif;
-  --font-button:  'Hammersmith One', var(--font-body);
+  --font-display: 'DynaPuff', system-ui, sans-serif;
+  --font-body:    'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-fun:     'Comic Neue', sans-serif;
 
   /* Type scale (matches brand guide H1–H5 + paragraph sizes) */
   --fs-h1:   40px;
@@ -99,14 +103,14 @@
   /* ----------------------------------------------------------
      5. RADII, SHADOWS, MOTION
      ---------------------------------------------------------- */
-  --radius-sm:  6px;
-  --radius-md:  10px;
-  --radius-lg:  16px;
+  --radius-sm:  10px;
+  --radius-md:  16px;
+  --radius-lg:  24px;
   --radius-pill: 999px;
 
-  --shadow-sm: 0 1px 2px rgba(2, 0, 24, 0.06);
-  --shadow-md: 0 4px 12px rgba(2, 0, 24, 0.10);
-  --shadow-lg: 0 12px 32px rgba(2, 0, 24, 0.16);
+  --shadow-sm: 0 1px 2px rgba(78, 30, 92, 0.08);
+  --shadow-md: 0 4px 12px rgba(78, 30, 92, 0.12);
+  --shadow-lg: 0 12px 32px rgba(78, 30, 92, 0.18);
 
   --transition-fast: 120ms ease;
   --transition-base: 200ms ease;
@@ -130,13 +134,72 @@
   --nav-text: var(--color-text);
 
   /* Modals */
-  --modal-overlay: rgba(2, 0, 24, 0.55);
+  --modal-overlay: rgba(46, 20, 48, 0.55);
   --modal-max-width: 640px;
 
   /* Loading skeletons */
-  --skeleton-base: #E5E7EB;
-  --skeleton-highlight: #F3F4F6;
+  --skeleton-base: var(--feltboard);
+  --skeleton-highlight: #FDFBF9;
 }
+
+/*=========================================================================
+  LEGACY ALIASES 
+      Colour names were changed and below is code to correct those changes to
+      match the new colour names. 
+
+      Known from the old (broken) theme.css semantic section:
+        --bw-maroon, --bw-maroon-deep, --bw-navy, --bw-navy-ink,
+        --bw-accent-coral, --bw-accent-violet, --bw-accent-violet-2,
+        --bw-gold-muted
+  
+      Known from the v1 colour system (per changelog):
+        --grape, --raspberry, --tangelo, --blossom
+
+  ===========================================================================*/
+
+  :root { 
+    /* old --bw-* names -> new tokens */
+    --bw-maroon: var(--wildfire);
+    --bw-maroon-deep: var(--merlot);
+    --bw-navy: var(--obsidian);
+    --bw-navy-ink: var(--shadowink);
+    --bw-accent-coral: var(--copper);
+    --bw-accent-violet: var(--obsidian);
+    --bw-accent-violet-2: var(--rosewood);
+    --bw-gold-muted: var(--copper);
+
+    /* old v1 colour names */
+    --grape: var(--obsidian);
+    --raspberry: var(--wildfire);
+    --tangelo: var(--copper);
+    --blossom: var(--rosewood);    
+  }
+
+/* =============================================================
+   DARK MODE - will be a toggle with data-theme="dark"
+   ============================================================= */
+   html[data-theme="dark"] {
+    --scrollpaper: #17101C; 
+    --alabaster:   #241629;  
+    --feltboard:   #33223A;  
+    --shadowink:   #F4E9F1;  
+    --ashquill:    #B49CB6; 
+    --obsidian:   #F0D9EC;
+    --wildfire:   #E64C86;
+
+    --color-primary:        var(--feltboard);
+    --color-text:           var(--shadowink);
+    --color-text-muted:     var(--ashquill);
+    --color-bg:             var(--scrollpaper);   
+    --color-surface:        var(--alabaster);   
+    --color-surface-alt:    var(--feltboard);   
+    --color-border:         var(--feltboard);
+    --color-border-strong:  #4A3550;
+
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
+   }
 
 /* =============================================================
    BASE RESETS
@@ -151,15 +214,17 @@ body {
   color: var(--color-text);
   background: var(--color-bg);
   -webkit-font-smoothing: antialiased;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 h1, h2, h3, h4, h5 {
   font-family: var(--font-display);
-  font-weight: var(--fw-regular);
+  font-weight: var(--fw-bold);
   line-height: var(--lh-tight);
   color: var(--color-secondary);
   margin: 0 0 var(--space-4);
 }
+
 h1 { font-size: var(--fs-h1); }
 h2 { font-size: var(--fs-h2); }
 h3 { font-size: var(--fs-h3); }
@@ -173,42 +238,65 @@ a:hover { text-decoration: underline; }
    COMPONENT PRIMITIVES — reuse via class instead of re-styling
    ============================================================= */
 
-/* Buttons */
+/* Buttons - pill shape*/
 .btn {
-  font-family: var(--font-button);
+  font-family: var(--font-body);
+  font-weight: var(--fw-bold);
   font-size: var(--fs-body);
-  padding: var(--space-3) var(--space-5);
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
+  padding: 11px 22px;
+  border-radius: var(--radius-pill);
+  border: none;
   cursor: pointer;
-  transition: background var(--transition-base), transform var(--transition-fast);
+  transition: background var(--transition-fast), box-shadow var(--transition-base), background var(--transition-fast);
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
 }
+.btn:hover { transform: translateY(-2px); }
 .btn:active { transform: translateY(1px); }
-.btn:focus-visible { outline: 3px solid var(--bw-accent-violet-2); outline-offset: 2px; }
+.btn:focus-visible { outline: 3px solid var(--rosewood); outline-offset: 2px; }
 
-.btn--primary   { background: var(--color-primary); color: var(--color-text-inverse); }
-.btn--primary:hover { background: var(--color-primary-hover); }
+.btn--primary { 
+  background: var(--color-primary); 
+  color: var(--color-text-inverse); 
+  box-shadow: var(--shadow-sm);
+}
+.btn--primary:hover { background: var(--color-primary-hover); box-shadow: var(--shadow-md); }
 
-.btn--secondary { background: transparent; color: var(--color-primary); border-color: var(--color-border-strong); }
+.btn--secondary { 
+  background: transparent; 
+  color: var(--color-secondary); 
+  border: 2px solid var(--color-secondary); 
+}
 .btn--secondary:hover { background: var(--color-surface-alt); }
 
-.btn--accent    { background: var(--color-accent); color: var(--color-text-inverse); }
+.btn--accent    { 
+  background: var(--color-accent); 
+  color: var(--color-text-inverse); 
+  box-shadow: var(--shadow-sm);
+}
+.btn--accent:hover { opacity: 0.9; box-shadow: var(--shadow-md); }
 
-.btn:disabled   { opacity: 0.5; cursor: not-allowed; }
+.btn--ghost {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+}
+.btn--ghost:hover { background: var(--rosewood); color: var(--color-secondary); }
 
-/* Cards */
+.btn--sm { padding: 7px 14px; font-size: var(--fs-small); }
+
+.btn:disabled   { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+/* Cards - lift on hover per (v2) */
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   padding: var(--space-6);
-  transition: box-shadow var(--transition-base);
+  transition: box-shadow var(--transition-base), box-shadow var(--transition-base);
 }
-.card:hover { box-shadow: var(--shadow-md); }
+.card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
 
 /* Inputs */
 .input {
@@ -216,26 +304,59 @@ a:hover { text-decoration: underline; }
   font-size: var(--fs-body);
   width: 100%;
   padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border-strong);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
   color: var(--color-text);
+  transition: border-color var(--transition-fast);
 }
 .input:focus-visible {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(109, 0, 55, 0.15);
 }
 
-/* Badges / tags */
+/* Input with error state */
+.input--error {
+  border-color: var(--color-error);
+}
+
+.input-error-text {
+  color: var(--color-error);
+  font-size: var(--fs-small);
+  margin-top: var(--space-1);
+}
+
+/* Badges / chips */
+.chip {
+  font-family: var(--font-body);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-small);
+  padding: 5px 14px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chip--primary { background: rgba(199, 40, 110, 0.12); color: var(--wildfire); }
+.chip--obsidian {background: rgba(78, 30, 92, 0.12); color: var(--obsidian); }
+.chip--copper {background: rgba(239, 91, 39, 0.12); color: var(--copper); }
+.chip--sucess {background: rgba(46, 125, 91, 0.12); color: var(--color-success); }
+.chip--error {background: rgba(198, 40, 40, 0.12); color: var(--color-error); }
+
 .badge {
+  font-family: var(--font-display);
   font-size: var(--fs-small);
   font-weight: var(--fw-medium);
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-pill);
-  background: var(--bw-gold-muted);
-  color: var(--bw-navy-ink);
+  border: 2px solid var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  color: #fff;
 }
+.badge--copper { background: var(--copper); transform: rotate(-3deg); }
+.badge--fire { background: var(--wildfire); transform: rotate(2deg); }
+.badge--obsidian { background: var(--obsidian); transform: rotate(-1deg); }
 
 /* Accessibility helper — visually hidden but screen-reader available */
 .sr-only {
@@ -278,7 +399,7 @@ a:hover { text-decoration: underline; }
 
 /* Utility Styling */
 .focus-ring:focus-visible {
-  outline: 3px solid var(--bw-accent-violet-2);
+  outline: 3px solid var(--rosewood);
   outline-offset: 2px;
 }
 
@@ -306,13 +427,154 @@ a:hover { text-decoration: underline; }
   to { background-position: -200% 0; }
 }
 
-/* Input with error state */
-.input--error {
-  border-color: var(--color-error);
+/* =============================================================
+   LANDING GAME STRIP
+   ============================================================= */
+
+.game-strip {
+  display: flex;
+  gap: var(--space-3);
+  width: max-content;
 }
 
-.input-error-text {
-  color: var(--color-error);
-  font-size: var(--fs-small);
-  margin-top: var(--space-1);
+.game-card {
+  flex-shrink: 0;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.game-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.marquee-left {
+  animation: marquee-left 45s linear infinite;
+}
+
+.marquee-right {
+  animation: marquee-right 45s linear infinite;
+}
+
+.marquee-left:hover,
+.marquee-right:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-left {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-right {
+  from {
+    transform: translateX(-50%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.marquee{
+    width:max-content;
+    animation:scroll 45s linear infinite;
+}
+
+.marquee:hover{
+    animation-play-state:paused;
+}
+
+.scale-card{
+    transform:scale(1.05);
+    transition:transform var(--transition-base);
+}
+
+@keyframes scroll{
+    from{
+        transform:translateX(0);
+    }
+
+    to{
+        transform:translateX(-33.333%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ==========================================================
+   HERO BADGES (Play • Connect • Share)
+   ========================================================== */
+
+.hero-badges {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+   gap: clamp(0.75rem, 2vw, 1.5rem);
+  flex-wrap: wrap;
+  margin-bottom: clamp(1.5rem, 3vw, 3rem);
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: clamp(0.5rem, 1vw, 0.85rem) clamp(1rem, 2vw, 1.8rem);
+
+  border-radius: 999px;
+  border: 3px solid #fff;
+
+  font-family: var(--font-display);
+  font-size: clamp(0.8rem, 1.2vw, 1.15rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.hero-badge--connect {
+  background: var(--color-accent);
+  transform: rotate(-7deg);
+}
+
+.hero-badge--share {
+  background: var(--color-primary);
+  transform: rotate(5deg);
+}
+
+.hero-badge--play {
+  background: var(--color-secondary);
+  transform: rotate(-4deg);
+}
+
+/* Tablet */
+@media (max-width: 960px) {
+  .hero-badge {
+    font-size: 0.95rem;
+    padding: 0.65rem 1.4rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .hero-badges {
+    gap: 0.5rem;
+  }
+
+  .hero-badge {
+    font-size: 0.75rem;
+    padding: 0.45rem 1rem;
+  }
 }

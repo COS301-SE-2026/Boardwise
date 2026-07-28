@@ -24,7 +24,8 @@
       />
 
       <v-btn-toggle
-        v-model="form.type"
+        v-model="form.visibility"
+        color="primary"
         mandatory
         divided
       >
@@ -40,14 +41,17 @@
 
         <div class=" d-flex align-center ga-4">
           <BaseButton @click="fileInput?.click()" >
-          Upload image
-        </BaseButton>
+            <v-icon start>mdi-upload</v-icon>
+            Upload image
+          </BaseButton>
 
         <span class=" text-body-2 text-medium-emphasis">
           {{ fileName || 'No file selected' }}
         </span>
 
-        <BaseInput
+        <label for="community-image-upload" class="sr-only">Upload Image</label>
+        <input
+          id="community-image-upload"
           ref="fileInput"
           type="file"
           accept="image/*"
@@ -78,7 +82,13 @@ import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseTextArea from '~/components/ui/BaseTextArea.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+import { useCommunity } from '~/composables/useCommunity'
+import { useSnackBar } from '~/composables/useSnackbar'
 import { reactive, ref } from 'vue'
+
+const { createCommunity, error } = useCommunity()
+const { show } = useSnackBar()
+
 
 const open = defineModel({
   type: Boolean,
@@ -99,17 +109,19 @@ const form = reactive({
   name: '',
   description: '',
   category: '',
-  type: 'Public'
+  visibility: 'Public'
 })
 
 const fileInput = ref(null)
 const fileName = ref('')
+const file = ref(null)
 
 const handleFileChange = (event) => {
-  const file = event.target.files?.[0]
+  const chosenfile = event.target.files?.[0]
 
   if(file) {
-    fileName.value = file.name
+    fileName.value = chosenfile.name
+    file.value = chosenfile
   }
 
 }
@@ -120,22 +132,29 @@ const closeModal  = () => {
   form.name = ''
   form.description = ''
   form.category = ''
-  form.type = 'Public'
+  form.visibility = 'Public'
   fileName.value = ''
+  file.value = null
 }
 
-const handleCreate = () => {
+const handleCreate = async () => {
   if(!form.name.trim()) return
 
-  emit('confirm', {
-    id: Date.now(),
-    ...form,
-    image: fileName.value || '/images/castle.png',
-    members: 1,
-    memebers_list: []
-  } )
+  try{
+    const data = await createCommunity({
+      ...form,
+      communityPfp: file.value
+    })
+    emit('confirm', data.group)
+  } 
+  catch(err){
+    console.error("Failed to create community.", err)
+    show(error.value, 'error')
 
- 
-  closeModal()
+  }
+  finally{
+    closeModal()
+  }
+  
 }
 </script>

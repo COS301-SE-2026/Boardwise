@@ -1,19 +1,25 @@
 <template>
   <BaseCard  >
 
-    <BaseImage
-      :src="community.image"
-      :alt="community.name"
-      height="180px"
-      class="rounded-t-lg"
-    />
+    <div>
+      <BaseImage
+        :src="community.imageUrl"
+        :alt="community.name"
+        height="180px"
+        class="rounded-t-lg"
+      />
+
+      <BaseBadge
+        class="badge text-white"
+        :variant="community.visibility"
+      >
+        {{ community.visibility }}
+      </BaseBadge>
+    </div>
+
 
     <div class="d-flex flex-column ga-3 pa-4 flex-grow-1">
       <h3 class="mb-0">{{ community.name }}</h3>
-
-      <BaseTag>
-        {{ community.type }}
-      </BaseTag>
 
       <p class="text-body-2 text-medium-emphasis mb-0">
         {{ community.description }}
@@ -36,7 +42,7 @@ import { useRouter } from 'vue-router'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
-import BaseTag from '~/components/ui/BaseTag.vue'
+import BaseBadge from '~/components/ui/BaseBadge.vue'
 
 const props = defineProps({
   community: { type: Object, required: true }

@@ -10,11 +10,13 @@ import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Document(collection = "EVENTS")
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class Event {

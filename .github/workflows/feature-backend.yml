@@ -2,10 +2,10 @@ name: Feature - Java Backend
 
 on:
   push:
-    branches-ignore: [ "main" ]
+    branches: [ "dev" ]
     paths: [ "backend/**" ]
   pull_request:
-    branches: [ "dev", "integration" ]
+    branches: [ "dev"]
     paths: [ "backend/**" ]
 
 jobs:
@@ -23,7 +23,7 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # Verifies the code compiles properly without wasting time running tests
+      # Verifies the code compiles properly without running tests
       - name: Build and Verify Code Compilation
         run: |
           chmod +x ./mvnw

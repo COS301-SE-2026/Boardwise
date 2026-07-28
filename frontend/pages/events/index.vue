@@ -9,7 +9,7 @@
       />
 
       <EventSearch
-        @search="handleSearch"
+        v-model="searchQuery"
         @create-event="showCreateEvent = true"
       />
     </div>
@@ -28,22 +28,19 @@
       />
     </div>
 
-    <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
-      <EventDetail
-        v-if="selectedEvent"
-        :event="selectedEvent"
-        :current-user="currentUsername"
-        @close="showDetail = false"
-        @rsvp="handleRsvp"
-        @de-rsvp="handleDeRsvp"
-        @edit="openEdit"
-        @cancel-event="handleCancelEvent"
-      />
-    </v-navigation-drawer>
+    <CreateEvent v-model="showCreateEvent"   :on-submit="handleCreateEvent"  @created="handleCreateEvent"
+ />
 
-    <CreateEvent v-model="showCreateEvent" @created="handleCreateEvent" />
+    <EditEventModal
+      v-model="showEditEvent"
+      :event="editingEvent"
+      @saved="handleEventUpdated"
+    />
 
-    <CreateEvent v-model="showEditEvent" :initial-data="editingEvent" @created="handleEditEvent" />
+    <InviteModal
+      v-model="showInviteModal"
+      :event="createdEvent"
+    />
 
   </PageContainer>
 </template>
@@ -56,31 +53,25 @@ definePageMeta({
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
-
 import EventSearch from '~/components/features/events/EventSearch.vue'
 import EventFilter from '~/components/features/events/EventFilter.vue'
 import EventGrid from '~/components/features/events/EventGrid.vue'
-
-import EventDetail from '~/components/features/events/EventDetail.vue'
 import CreateEvent from '~/components/features/events/CreateEvent.vue'
-
 import { useEvents } from '~/composables/useEvents'
 import { useSnackBar } from '~/composables/useSnackbar'
-import { useProfile } from '~/composables/useProfile'
-
-import { onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue'
+import { useDebounceFn } from '@vueuse/core'
 import { useRouter } from 'vue-router'
+import EditEventModal from '~/components/features/events/EditEventModal.vue'
+import InviteModal from '~/components/features/community/InviteModal.vue'
+import { query } from 'happy-dom/lib/PropertySymbol'
 
-const { show } = useSnackBar
-
-const { fetchCurrentUser } = useProfile()
-
+const { show } = useSnackBar(3)
 const {
   events, 
-  isLoading, 
+  page, 
   fetchEvents,
   createEvent,
-  updateEvent, 
   rsvpToEvent, 
   deRsvpFromEvent,
   cancelEvent
@@ -91,11 +82,9 @@ const router = useRouter()
 onMounted(async () => {
   if (!localStorage.getItem('access_token')) {
     router.push('/auth/signin')
-    return;
+    return
   }
 
-  let userDetails = await fetchCurrentUser();
-  currentUsername.value = userDetails.username;
   fetchEvents()
 })
 
@@ -109,40 +98,30 @@ const showEditEvent = ref(false)
 const selectedEvent = ref(null)
 const editingEvent = ref(null)
 
-const currentUsername = ref(null);
+const currentUsername = ref(null)
 
 const filteredEvents = computed(() => {
   let result = events.value
 
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-
-    result = result.filter(e =>
-      e.name.toLowerCase().includes(query) ||
-      e.games.some(g => g.title.toLowerCase().includes(query))
-    )
-  }
-
-  if(activeFilters.value.date && activeFilters.value.date !== 'All'){
-    const now = new Date();
-    result = result.filter(e=>{
-      const eventDate = new Date(e.startTime);
+  if (activeFilters.value.date && activeFilters.value.date !== 'All') {
+    const now = new Date()
+    result = result.filter(e => {
+      const eventDate = new Date(e.startTime)
       if (activeFilters.value.date === 'Today') {
         return eventDate.toDateString() === now.toDateString()
       }
-      
-      if(activeFilters.value.date === 'This Week'){
-        const weekFromNow = new Date(now);
-        weekFromNow.setDate(now.getDate() + 7);
+
+      if (activeFilters.value.date === 'This Week') {
+        const weekFromNow = new Date(now)
+        weekFromNow.setDate(now.getDate() + 7)
         return eventDate >= now && eventDate <= weekFromNow
       }
       if (activeFilters.value.date === 'This Month') {
         return eventDate.getMonth() === now.getMonth() && eventDate.getFullYear() === now.getFullYear()
       }
-      return true;
+      return true
     })
   }
-
 
   if (activeFilters.value.games?.length) {
     result = result.filter(e =>
@@ -161,19 +140,17 @@ const filteredEvents = computed(() => {
   return result
 })
 
+const showInviteModal = ref(false);
+const createdEvent = ref(null);
+
 const openEvent = (event) => {
-  selectedEvent.value = event
-  showDetail.value = true
+  router.push(`/events/detail/${event.id}`)
 }
 
 const openEdit = (event) => {
   editingEvent.value = event
   showEditEvent.value = true
   showDetail.value = false
-}
-
-const handleSearch = (query) => {
-  searchQuery.value = query
 }
 
 const handleFilter = (filters) => {
@@ -210,25 +187,49 @@ const handleCancelEvent = async (eventId) => {
   }
 }
 
-const handleCreateEvent = async ({ eventInfo , image }) => {
-  try {
-    await createEvent(eventInfo, image)
-    show('Event created!', 'success')
-  } catch {
-    show('Failed to create event.', 'error')
-  }
+const handleCreateEvent = async ({ eventInfo, image }) => {
+  const event = await createEvent(eventInfo, image)
+  show('Event created!', 'success')
+  createdEvent.value = event      
+  showCreateEvent.value = false   
+  showInviteModal.value = true   
+  return event;
 }
 
-const handleEditEvent = async ({ eventInfo , image }) => {
-  if(!editingEvent.value) return
-  
-  try {
-    await updateEvent(editingEvent.value.id, eventInfo, image)
-    show('Event updated!', 'success')
-  } catch {
-    show('Failed to update event.', 'error')
-  }
+const handleEventCreated = (event) => {
+  createdEvent.value = event
+  showInviteModal.value = true
 }
+
+const handleEventUpdated = async () => {
+
+  await fetchEvents();
+
+  if (editingEvent.value) {
+    selectedEvent.value = events.value.find(
+      e => e.id === editingEvent.value.id
+    )
+  }
+
+
+
+  show('Event updated!', 'success')
+
+  showEditEvent.value = false
+  showDetail.value = true
+  editingEvent.value = null
+
+
+
+}
+
+const delaySearch = useDebounceFn(async (query) => {
+  await fetchEvents(query)
+}, 400)
+
+watch(searchQuery, (query) => {
+  delaySearch(query)
+})
 
 
 </script>

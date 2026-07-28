@@ -5,6 +5,9 @@ import java.util.List;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.AggregationUpdate;
@@ -182,5 +185,46 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
             .set("redoStack").toValue(List.of()); // clear redo stack
 
         mongoTemplate.updateFirst(query, updatePipeline, Rulebook.class);
+    }
+
+    @Override
+    public Page<Rulebook> searchWithFilters(
+        String search, String genre, List<String> languages,
+        Integer playerCount, Integer duration, Integer minAge,
+        Pageable pageable){
+            Query query = new Query(Criteria.where("status").is("Ready"));
+
+            if(search != null && !search.trim().isEmpty()){
+                query.addCriteria(Criteria.where("title").regex(search, "i"));
+            }
+
+            if (genre != null && !genre.equalsIgnoreCase("All") && !genre.trim().isEmpty()) {
+                query.addCriteria(Criteria.where("genres").is(genre)); // account for case
+            }
+            
+            if(languages != null && !languages.isEmpty()){
+                query.addCriteria(Criteria.where("language").in(languages));
+            }
+            
+            if(playerCount != null){
+                query.addCriteria(Criteria.where("minPlayers").lte(playerCount));
+                query.addCriteria(Criteria.where("maxPlayers").gte(playerCount));
+            }
+            
+            if(duration != null){
+                query.addCriteria(Criteria.where("duration").lte(duration));
+            }
+
+            if(minAge != null){
+                query.addCriteria(Criteria.where("minAge").lte(minAge));
+            }
+
+            long count = mongoTemplate.count(query, Rulebook.class);
+
+            query.with(pageable);
+
+            List<Rulebook> rulebooks = mongoTemplate.find(query, Rulebook.class);
+
+            return new PageImpl<>(rulebooks, pageable, count);
     }
 }

@@ -1,11 +1,13 @@
 <template>
     <div class="pa-6">
-        <div class="d-flex justify-end mb-4">
-            <BaseButton variant="secondary" prepend-icon="mdi-close" @click="$emit('close')">
-                Close
-            </BaseButton>
-        </div>
-
+        <BaseButton variant="secondary"
+            prepend-icon="mdi-arrow-left" 
+            class="md-4"
+            @click="router.push(`/events`)"
+        >
+            Back to events
+        </BaseButton>
+        
         <BaseImage
             :src="event.imageUrl ?? '/default-event.png'"
             :alt="event.name"
@@ -107,7 +109,7 @@
                     Cancel RSVP
                 </BaseButton>
 
-                <template v-if="isHost">
+                <template v-if="event.isHost">
                     <BaseButton
                         variant="secondary"
                         @click="$emit('edit', event)"
@@ -131,24 +133,23 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useRouter } from '#vue-router'
+
 import BaseImage from '~/components/ui/BaseImage.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
+
+const router = useRouter()
 
 const props = defineProps({
     event: {
         type: Object, 
         required: true
-    }, 
-
-    currentUser: {
-        type: String, 
-        default: ''
     }
 })
 
 defineEmits(['close', 'rsvp', 'de-rsvp', 'edit', 'cancel-event'])
 
-const isHost = computed(() => props.event.host.username === props.currentUser)
+// const isHost = computed(() => props.event.host.username === props.currentUser)
 
 const statusColor = (status) => {
   if (status === 'OPEN')         return 'success'

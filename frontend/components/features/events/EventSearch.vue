@@ -4,7 +4,6 @@
       <BaseSearch
         v-model="search"
         placeholder="Search for events..."
-        @update:model-value="$emit('search', $event)"
       />
     </div>
 
@@ -21,6 +20,11 @@
 <script setup>
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+
+const search = defineModel({
+  type: String,
+  default: ''
+})
 
 defineEmits(['create-event','search'])
 </script>

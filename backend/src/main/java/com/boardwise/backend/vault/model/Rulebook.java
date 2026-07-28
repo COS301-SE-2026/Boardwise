@@ -73,4 +73,19 @@ public class Rulebook {
 
     @Field("updatedAt")
     private Instant updatedAt;
+    
+    @Field("genres")
+    private List<String> genres;
+
+    @Field("minPlayers")
+    private Integer minPlayers;
+
+    @Field("maxPlayers")
+    private Integer maxPlayers;
+
+    @Field("duration")
+    private Integer duration;
+
+    @Field("minAge")
+    private Integer minAge;
 }

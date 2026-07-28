@@ -1,10 +1,5 @@
 <template>
-  <section class="mt-8">
-
-    <div class="d-flex justify-space-between align-center mb-6 flex-wrap ga-4">
-      <SectionTitle title="My Games" />
-    </div>
-
+  <section>
     <GamesGrid
       :games="games"
       @add-game="$emit('add-game')"

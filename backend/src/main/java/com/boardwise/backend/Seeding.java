@@ -1,16 +1,21 @@
 package com.boardwise.backend;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import org.bson.types.ObjectId;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.geo.Point;
+import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -19,23 +24,31 @@ import com.boardwise.backend.marketplace.model.Listing;
 import com.boardwise.backend.marketplace.model.RentalPeriod;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.user_service.models.Boardgame;
+import com.boardwise.backend.user_service.models.Event;
+import com.boardwise.backend.user_service.models.EventAttendee;
+import com.boardwise.backend.user_service.models.EventStatus;
 import com.boardwise.backend.user_service.models.Group;
 import com.boardwise.backend.user_service.models.GroupMembership;
+import com.boardwise.backend.user_service.models.RSVPStatus;
 import com.boardwise.backend.user_service.models.User;
+import com.boardwise.backend.user_service.models.Visibility;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.user_service.repos.EventAttendeeRepository;
+import com.boardwise.backend.user_service.repos.EventsRepository;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
-import com.boardwise.backend.vault.enums.EditType;
 import com.boardwise.backend.vault.model.Chunk;
-import com.boardwise.backend.vault.model.EditEvent;
-import com.boardwise.backend.vault.model.IngestionJob;
 import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.model.RulebookText;
 import com.boardwise.backend.vault.repository.EditEventRepository;
 import com.boardwise.backend.vault.repository.IngestionJobRepository;
 import com.boardwise.backend.vault.repository.RulebookRepository;
 import com.boardwise.backend.vault.repository.RulebookTextRepository;
+import com.google.maps.GeoApiContext;
+import com.google.maps.GeocodingApi;
+import com.google.maps.errors.ApiException;
+import com.google.maps.model.GeocodingResult;
 import com.boardwise.backend.marketplace.enums.Genres;
 
 @Component
@@ -46,11 +59,23 @@ public class Seeding {
             return new ObjectId(userRepository.findByUsername(username).get().getId());
     }
 
+    private GeoJsonPoint getPoint(String locationText, GeoApiContext geoApiContext) throws ApiException, InterruptedException, IOException{
+        GeocodingResult[] results = GeocodingApi.geocode(geoApiContext, locationText).await();
+
+        if(results.length == 0)
+            throw new NoSuchElementException("Could not find coordinates for location: " + locationText);
+
+        double latitude = results[0].geometry.location.lat;
+        double longitude = results[0].geometry.location.lng;
+
+        return new GeoJsonPoint(new Point(longitude, latitude));
+    }
+
         
     @Bean
     public CommandLineRunner seedDB(ListingRepository listingRepository, BoardGameRepository boardGameRepository, GroupMembershipRepository groupMembershipRepository,
-            GroupRepository groupRepository, UserRepository userRepository, EditEventRepository editEventRepository,
-            IngestionJobRepository ingestionJobRepository, RulebookRepository rulebookRepository, RulebookTextRepository rulebookTextRepository) {
+            GroupRepository groupRepository, UserRepository userRepository, EditEventRepository editEventRepository, EventsRepository eventsRepository, EventAttendeeRepository eaRepository,
+            IngestionJobRepository ingestionJobRepository, RulebookRepository rulebookRepository, RulebookTextRepository rulebookTextRepository, GeoApiContext geoApiContext) {
         return args -> {
             // User Repository
             if (userRepository.count() == 0) {
@@ -229,25 +254,28 @@ public class Seeding {
                 System.out.println("Listings already seeded, skipping...");
             }
 
-            if (boardGameRepository.count() == 0) {
+            if (boardGameRepository.count() == 0 || boardGameRepository.findAllByBggIdNull().size() == 0) {
                 List<Boardgame> boardGames = List.of(
-                        new Boardgame(null, 1 ,"Monopoly", "Classic property trading game.",
+                        new Boardgame(null, null ,"Monopoly", "Classic property trading game.",
                                 "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png", 2, 8, 
                                 8, 120, List.of("Strategy", "Trading")),
-                        new Boardgame(null, 2,"Scrabble", "Word building board game.",
+                        new Boardgame(null, null ,"Scrabble", "Word building board game.",
                                 "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg", 2, 4, 
                                 10, 90, List.of("Word", "Abstract Strategy")),
-                        new Boardgame(null,13,"Catan","Resource trading and settlement building game."
-                                ,"https://cf.geekdo-images.com/0XODRpReiZBFUffEcqT5-Q__imagepage/img/enC7UTvCAnb6j1Uazvh0OBQjvxw=/fit-in/900x600/filters:no_upscale():strip_icc()/pic9156909.png",3,4,
-                                10, 90, List.of("Strategy", "Negotiation", "Economic")),
-                        new Boardgame(null,20549,"Pandemic","Cooperative game to cure global disease",
+                        new Boardgame(null,null,"Pandemic","Cooperative game to cure global disease",
                                 "https://cf.geekdo-images.com/S3ybV1LAp-8SnHIXLLjVqA__imagepage/img/kIBu-2Ljb_ml5n-S8uIbE6ehGFc=/fit-in/900x600/filters:no_upscale():strip_icc()/pic1534148.jpg",2,4,
                                 8, 45, List.of("Cooperative", "Strategy")),
-                        new Boardgame(null,9209,"Ticket to Ride","Railway route-building game.",
+                        new Boardgame(null, null,"Ticket to Ride","Railway route-building game.",
                                 "https://cf.geekdo-images.com/kdWYkW-7AqG63HhqPL6ekA__imagepage/img/AWsdGNNSuI78BaCPAVQpjrUneKY=/fit-in/900x600/filters:no_upscale():strip_icc()/pic8937637.jpg",2,5,
                                 8,45,List.of("Strategy","Trains","Transportation")),
-                        new Boardgame(null, 171, "Chess", "Classic two-player strategy game played on an 8x8 board.", "https://new.uschess.org/sites/default/files/styles/1080px_wide_scale/public/media/images/2024_cover_image.png.webp?itok=xUbyXJ_i", 2,2,
-                                5,90,List.of("Abstract Strategy", "Classic"))
+                        new Boardgame(null, null, "Chess", "Classic two-player strategy game played on an 8x8 board.", "https://new.uschess.org/sites/default/files/styles/1080px_wide_scale/public/media/images/2024_cover_image.png.webp?itok=xUbyXJ_i", 2,2,
+                                5,90,List.of("Abstract Strategy", "Classic")),
+                        new Boardgame(null, null, "Dune", "Imagine you can control the forces of a noble family, guild, or religious order on a barren planet which is the only source for the most valuable substance in the known universe.\r\n\r\n" + //
+                                "Imagine you can rewrite the script for one of the most famous science fiction books of all time. Welcome to the acclaimed 40-year-old board game which allows you to recreate the incredible world of Frank Herbert’s DUNE.\r\n\r\n" + //
+                                "In DUNE you will become the leader of one of six great factions. Each wishes to control the most valuable resource in the universe - melange, the mysterious spice only found at great cost on the planet DUNE. As Duke Leto Atreides says “All fades before melange. A handful of spice will buy a home on Tupile. It cannot be manufactured, it must be mined on Arrakis. It is unique and it has true geriatric properties.” And without melange space travel would be impossible. Only by ingesting the addictive drug can the Guild Steersman continue to experience visions of the future, enabling them to plot a safe path through hyperspace.\r\n\r\n" + //
+                                "Who will control DUNE? Become one of the characters and their forces from the book and . . . You decide!",
+                                "https://cf.geekdo-images.com/2fgPg6Be--w97zoycObUgg__itemrep@2x/img/ZsDXzpzkk7nPzYHGfvUesFV20Mc=/fit-in/492x600/filters:strip_icc()/pic4815198.jpg",
+                                2, 6, 14,150,List.of("Bluffing","Fighting","Negotiation","Novel-based","Political","Science Fiction","Wargame"))
                 );
                 boardGameRepository.saveAll(boardGames);
                 System.out.println("Seeded " + boardGames.size() + " board games");
@@ -259,31 +287,36 @@ public class Seeding {
             if (groupRepository.count() == 0) {
                 List<String> usernames = List.of("IAmR3al", "sarah_dev", "bob", "alex_games", "jane_doe");
                 List<Group> groups = List.of(
-                    new Group("Board Game Enthusiasts", 
+                    new Group("Board Game Enthusiasts",
+                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTuTGmQLvdUQJza9uPWGgejSmzOv_qZvIMD9YF1dM8asw&s=10", 
                     "A group for all board game lovers.", 
                     "General",
-                    null , 
-                    "public"),
-                    new Group("Strategy Masters", 
+                    null, 
+                    Visibility.PUBLIC),
+                    new Group("Strategy Masters",
+                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHMyXUmo9W9KK9THkcnx0OUHB0h0xouUjp7KMOxwiojg&s", 
                     "Deep strategy games discussion.", 
                     "Strategy",
                     null, 
-                    "public"),
-                    new Group("Casual Gamers", 
+                    Visibility.PUBLIC),
+                    new Group("Casual Gamers",
+                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzFM4rYNFrkDB0FuXK2ddqZj7WwWZEro-bRxp8_5wb1Q&s=10", 
                     "Laid back gaming sessions and trades.", 
                     "General",
                     null, 
-                    "public"),
-                    new Group("RPG Adventurers", 
+                    Visibility.PUBLIC),
+                    new Group("RPG Adventurers",
+                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRq2xwNAxTIz3P4UtvCQQuEgTD_Yb3IwAW6nyD7Ee9K2A&s=10", 
                     "Tabletop RPG and dungeon crawler fans.",
                     "Role-Playing", 
                     null , 
-                    "private"),
-                    new Group("Card & Tile Collectors", 
+                    Visibility.PRIVATE),
+                    new Group("Card & Tile Collectors",
+                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDUFabION-3dH5DxHunMGDFvzjGD0E2zm3qGhvd1ZZ5g&s=10", 
                     "For fans of card and tile-based games.", 
                     "General",
                     null, 
-                    "private")
+                    Visibility.PRIVATE)
                 );
                 
                 for(int i = 0; i < 5; i++){
@@ -328,31 +361,98 @@ public class Seeding {
                 Contributor con1 = new Contributor(new ObjectId(), "JustUploadsStuff");
                 Contributor con2 = new Contributor(new ObjectId(), "MiteBeReliable");
 
-                Map<String, ObjectId> gameIdsByTitle = boardGameRepository.findAll().stream()
-                        .collect(Collectors.toMap(bg -> bg.getTitle(), bg -> new ObjectId(bg.getId())));
+                Map<String, Boardgame> boardgamesByTitle = boardGameRepository.findAll().stream()
+                        .collect(Collectors.toMap(Boardgame::getTitle, bg -> bg));
 
                 List<Rulebook> rulebooks = List.of(
-                        Rulebook.builder().coverUrl("https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png").gameId(gameIdsByTitle.get("Monopoly")).title("Monopoly").edition("Classic").status("Ready").version(1)
-                                .contributorId(con1.id()).contributorUsername(con1.username()).description("Objective: Bankrupt all opposing players by acquiring, developing, and trading real estate properties.").language("English").r2PdfKey("rulebooks/monopoly-classic.pdf")
-                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
-                        Rulebook.builder().coverUrl("https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg").gameId(gameIdsByTitle.get("Scrabble")).title("Scrabble").edition("Standard").status("Ready").version(1)
-                                .contributorId(con1.id()).contributorUsername(con1.username()).description("Objective: Accumulate the highest score by spelling interlocking, valid dictionary words on a grid.").language("English").r2PdfKey("rulebooks/scrabble-standard.pdf")
-                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
-                        Rulebook.builder().coverUrl("").gameId(gameIdsByTitle.get("Catan")).title("Catan").edition("5th Edition").status("Ready").version(2)
-                                .contributorId(con2.id()).contributorUsername(con2.username()).description("Objective: Be the first player to accumulate 10 Victory Points (VPs).").language("Spanish").r2PdfKey("rulebooks/catan-5th.pdf")
-                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
-                        Rulebook.builder().coverUrl("https://cf.geekdo-images.com/S3ybV1LAp-8SnHIXLLjVqA__imagepage/img/kIBu-2Ljb_ml5n-S8uIbE6ehGFc=/fit-in/900x600/filters:no_upscale():strip_icc()/pic1534148.jpg").gameId(gameIdsByTitle.get("Pandemic")).title("Pandemic").edition("2nd Edition").status("PendingReview")
-                                .version(1).contributorId(con2.id()).contributorUsername(con2.username()).description("Objective: Work cooperatively to discover cures for four distinct global diseases before a failure condition is triggered.").language("Spanish").r2PdfKey("rulebooks/pandemic-2nd.pdf")
-                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
-                        Rulebook.builder().coverUrl("https://cf.geekdo-images.com/kdWYkW-7AqG63HhqPL6ekA__imagepage/img/AWsdGNNSuI78BaCPAVQpjrUneKY=/fit-in/900x600/filters:no_upscale():strip_icc()/pic8937637.jpg").gameId(gameIdsByTitle.get("Ticket to Ride")).title("Ticket to Ride").edition("Original").status("Processing")
+                        Rulebook.builder().coverUrl("https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png")
+                                .gameId(new ObjectId(boardgamesByTitle.get("Monopoly").getId()))
+                                .title("Monopoly")
+                                .edition("Classic")
+                                .status("Ready")
+                                .version(1)
+                                .contributorId(con1.id()).contributorUsername(con1.username())
+                                .description("Objective: Bankrupt all opposing players by acquiring, developing, and trading real estate properties.")
+                                .language("English")
+                                .r2PdfKey("rulebooks/monopoly-classic.pdf")
+                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now())
+                                .genres(boardgamesByTitle.get("Monopoly").getGenres())
+                                .minPlayers(boardgamesByTitle.get("Monopoly").getMinPlayers())
+                                .maxPlayers(boardgamesByTitle.get("Monopoly").getMaxPlayers())
+                                .duration(boardgamesByTitle.get("Monopoly").getDuration())
+                                .minAge(boardgamesByTitle.get("Monopoly").getMinAge())
+                                .build(),
+                        Rulebook.builder().coverUrl("https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg")
+                                .gameId(new ObjectId(boardgamesByTitle.get("Scrabble").getId()))
+                                .title("Scrabble")
+                                .edition("Standard")
+                                .status("Ready")
+                                .version(1)
+                                .contributorId(con1.id()).contributorUsername(con1.username())
+                                .description("Objective: Accumulate the highest score by spelling interlocking, valid dictionary words on a grid.")
+                                .language("English")
+                                .r2PdfKey("rulebooks/scrabble-standard.pdf")
+                                .r2CoverKey("/rulebooks/default_cover.png")
+                                .lockHeldBy(null)
+                                .lockExpiresAt(null)
+                                .uploadedAt(Instant.now()).updatedAt(Instant.now())
+                                .genres(boardgamesByTitle.get("Scrabble").getGenres())
+                                .minPlayers(boardgamesByTitle.get("Scrabble").getMinPlayers())
+                                .maxPlayers(boardgamesByTitle.get("Scrabble").getMaxPlayers())
+                                .duration(boardgamesByTitle.get("Scrabble").getDuration())
+                                .minAge(boardgamesByTitle.get("Scrabble").getMinAge())
+                                .build(),
+                        Rulebook.builder().coverUrl("")
+                                .gameId(new ObjectId(boardgamesByTitle.get("Catan").getId()))
+                                .title("Catan")
+                                .edition("5th Edition")
+                                .status("Ready")
+                                .version(2)
+                                .contributorId(con2.id())
+                                .contributorUsername(con2.username())
+                                .description("Objective: Be the first player to accumulate 10 Victory Points (VPs).")
+                                .language("Spanish")
+                                .r2PdfKey("rulebooks/catan-5th.pdf")
+                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now())
+                                .genres(boardgamesByTitle.get("Catan").getGenres())
+                                .minPlayers(boardgamesByTitle.get("Catan").getMinPlayers())
+                                .maxPlayers(boardgamesByTitle.get("Catan").getMaxPlayers())
+                                .duration(boardgamesByTitle.get("Catan").getDuration())
+                                .minAge(boardgamesByTitle.get("Catan").getMinAge())
+                                .build(),
+                        Rulebook.builder().coverUrl("https://cf.geekdo-images.com/S3ybV1LAp-8SnHIXLLjVqA__imagepage/img/kIBu-2Ljb_ml5n-S8uIbE6ehGFc=/fit-in/900x600/filters:no_upscale():strip_icc()/pic1534148.jpg")
+                                .gameId(new ObjectId(boardgamesByTitle.get("Pandemic").getId()))
+                                .title("Pandemic")
+                                .edition("2nd Edition")
+                                .status("PendingReview")
+                                .version(1)
+                                .contributorId(con2.id()).contributorUsername(con2.username())
+                                .description("Objective: Work cooperatively to discover cures for four distinct global diseases before a failure condition is triggered.")
+                                .language("Spanish")
+                                .r2PdfKey("rulebooks/pandemic-2nd.pdf")
+                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now())
+                                .genres(boardgamesByTitle.get("Pandemic").getGenres())
+                                .minPlayers(boardgamesByTitle.get("Pandemic").getMinPlayers())
+                                .maxPlayers(boardgamesByTitle.get("Pandemic").getMaxPlayers())
+                                .duration(boardgamesByTitle.get("Pandemic").getDuration())
+                                .minAge(boardgamesByTitle.get("Pandemic").getMinAge())
+                                .build(),
+                        Rulebook.builder().coverUrl("https://cf.geekdo-images.com/kdWYkW-7AqG63HhqPL6ekA__imagepage/img/AWsdGNNSuI78BaCPAVQpjrUneKY=/fit-in/900x600/filters:no_upscale():strip_icc()/pic8937637.jpg")
+                                .gameId(new ObjectId(boardgamesByTitle.get("Ticket to Ride").getId())).title("Ticket to Ride").edition("Original").status("Processing")
                                 .version(1).contributorId(con1.id()).contributorUsername(con1.username()).description("Objective: Score the highest number of points by claiming railway routes and completing hidden Destination Tickets.").language("French").r2PdfKey("rulebooks/ticket-to-ride.pdf")
-                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now()).build());
+                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now())
+                                .genres(boardgamesByTitle.get("Ticket to Ride").getGenres())
+                                .minPlayers(boardgamesByTitle.get("Ticket to Ride").getMinPlayers())
+                                .maxPlayers(boardgamesByTitle.get("Ticket to Ride").getMaxPlayers())
+                                .duration(boardgamesByTitle.get("Ticket to Ride").getDuration())
+                                .minAge(boardgamesByTitle.get("Ticket to Ride").getMinAge())
+                                .build());
                 rulebookRepository.saveAll(rulebooks);
                 System.out.println("Seeded " + rulebooks.size() + " rulebooks");
 
                 // Rulebook Texts
                 List<Chunk> monopolyChunks = List.of(
-                        Chunk.builder().chunkId(new ObjectId()).index(0).content("Objective: Bankrupt all opposing players by acquiring, developing, and trading real estate properties.").build(),
+                        Chunk.builder().chunkId(new ObjectId()).index(0).content("Objective: Bankrupt all oppoding players by acquiring, developing, and trading real estate properties.").build(),
                         Chunk.builder().chunkId(new ObjectId()).index(1).content("Turn Structure:\n" + //
                                                                 "\n" + //
                                                                 "Roll two six-sided dice and move your token clockwise.\n" + //
@@ -421,53 +521,105 @@ public class Seeding {
                         RulebookText.builder().rulebookId(rulebooks.get(4).getId()).version(4).chunks(ticketToRideChunks).updatedAt(Instant.now().plusSeconds(500)).build());
                 rulebookTextRepository.saveAll(texts);
                 System.out.println("Seeded " + texts.size() + " rulebook texts");
-
-                // Ingestion Jobs
-                List<IngestionJob> jobs = List.of(
-                        IngestionJob.builder().rulebookId(rulebooks.get(0).getId()).stage("Extract").jobStatus("Ready")
-                                .startedAt(Instant.now().minusSeconds(300)).completedAt(Instant.now()).build(),
-                        IngestionJob.builder().rulebookId(rulebooks.get(1).getId()).stage("Extract").jobStatus("Ready")
-                                .startedAt(Instant.now().minusSeconds(200)).completedAt(Instant.now()).build(),
-                        IngestionJob.builder().rulebookId(rulebooks.get(2).getId()).stage("Sanitise").jobStatus("Ready")
-                                .startedAt(Instant.now().minusSeconds(500)).completedAt(Instant.now()).build(),
-                        IngestionJob.builder().rulebookId(rulebooks.get(3).getId()).stage("Extract")
-                                .jobStatus("PendingReview").startedAt(Instant.now().minusSeconds(100)).completedAt(null)
-                                .build(),
-                        IngestionJob.builder().rulebookId(rulebooks.get(4).getId()).stage("Sanitise")
-                                .jobStatus("Processing").startedAt(Instant.now().minusSeconds(60)).completedAt(null)
-                                .build());
-                ingestionJobRepository.saveAll(jobs);
-                System.out.println("Seeded " + jobs.size() + " ingestion jobs");
-
-                // Edit Events
-                Chunk text0Chunk0 = texts.get(0).getChunks().get(0);
-                Chunk text1Chunk0 = texts.get(1).getChunks().get(0);
-                Chunk text2Chunk0 = texts.get(2).getChunks().get(0);
-                List<EditEvent> editEvents = List.of(
-                        EditEvent.builder().rulebookId(rulebooks.get(0).getId()).editorId(con1.id())
-                                .chunkId(text0Chunk0.getChunkId()).chunkBefore(null)
-                                .editType(EditType.UPDATE)
-                                .previousContent(text0Chunk0.getContent())
-                                .newContent("Fixed typo on page 3.").versionPostEdit(2)
-                                .committedAt(Instant.now().minusSeconds(120)).build(),
-                        EditEvent.builder().rulebookId(rulebooks.get(1).getId()).editorId(con1.id())
-                                .chunkId(text1Chunk0.getChunkId()).chunkBefore(null)
-                                .editType(EditType.UPDATE)
-                                .previousContent(text1Chunk0.getContent())
-                                .newContent("Updated scoring section.").versionPostEdit(2)
-                                .committedAt(Instant.now().minusSeconds(90)).build(),
-                        EditEvent.builder().rulebookId(rulebooks.get(2).getId()).editorId(con2.id())
-                                .chunkId(text2Chunk0.getChunkId()).chunkBefore(null)
-                                .editType(EditType.UPDATE)
-                                .previousContent(text2Chunk0.getContent())
-                                .newContent("Clarified trading rules.").versionPostEdit(3)
-                                .committedAt(Instant.now().minusSeconds(60)).build());
-                editEventRepository.saveAll(editEvents);
-                System.out.println("Seeded " + editEvents.size() + " edit events");
-
-                // Write Locks
             } else {
                 System.out.println("Rulebooks already seeded, skipping...");
+            }
+
+            if(eventsRepository.count() == 0){
+                List<String> locations = List.of(
+                    "Hatfield, Pretoria, South Africa",
+                    "Middelburg, Mpumalanga, South Africa",
+                    "Cape Town, Western Cape, South Africa"
+                );
+
+                List<User> hosts = List.of(
+                    userRepository.findByUsername("IAmR3al").get(),
+                    userRepository.findByUsername("alex_games").get(),
+                    userRepository.findByUsername("bob").get()
+                );
+
+                List<Event> events = List.of(
+                    Event.builder()
+                    .name("Monopoly Marathon")
+                    .description("For all those who have a deep appreciation for Monopoly. We come together to play endless Monopoly.")
+                    .eventImg("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTqaRxggdV-L056ZTh9f7LKcpIoVcP4v53iKXGheeGmiw&s=10")
+                    .startDateTime(LocalDateTime.of(2026, 8, 1, 17, 30))
+                    .endDateTime(LocalDateTime.of(2026, 8, 1, 21, 30))
+                    .locationText(locations.get(0))
+                    .location(getPoint(locations.get(0), geoApiContext))
+                    .creatorId(hosts.get(0).getId())
+                    .visibility(Visibility.PUBLIC)
+                    .status(EventStatus.OPEN)
+                    .createdAt(Instant.now())
+                    .games(List.of(
+                        boardGameRepository.findByTitle("Monopoly").get().getId()
+                    ))
+                    .build(),
+                    Event.builder()
+                    .name("Catan Catastrophe")
+                    .description("It's a CAT-astrophe (pun intended) when we play Catan and we'd like everyone to join.")
+                    .eventImg("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxK9bxTqFLwoD6FsdgHwKptKZP-C6FT1Zdbjm5ZFN9Yg&s=10")
+                    .startDateTime(LocalDateTime.of(2026, 7, 29, 14, 15))
+                    .endDateTime(LocalDateTime.of(2026, 7, 29, 19, 45))
+                    .locationText(locations.get(1))
+                    .location(getPoint(locations.get(1), geoApiContext))
+                    .creatorId(hosts.get(1).getId())
+                    .visibility(Visibility.PUBLIC)
+                    .status(EventStatus.OPEN)
+                    .createdAt(Instant.now())
+                    .games(List.of(
+                        boardGameRepository.findByTitle("Catan").get().getId()
+                    ))
+                    .build(),
+                    Event.builder()
+                    .name("Scrabble storm")
+                    .description("For all you wordy word involved beings. Let's come together and make our own dictionary.")
+                    .eventImg("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4Vli4TuzztmpIsJCpCzS85Bc-wTouRRnjGuffq488YQ&s=10")
+                    .startDateTime(LocalDateTime.of(2026, 7, 28, 10, 30))
+                    .endDateTime(LocalDateTime.of(2026, 7, 28, 12, 15))
+                    .locationText(locations.get(2))
+                    .location(getPoint(locations.get(2), geoApiContext))
+                    .creatorId(hosts.get(2).getId())
+                    .visibility(Visibility.PRIVATE)
+                    .status(EventStatus.OPEN)
+                    .createdAt(Instant.now())
+                    .games(List.of(
+                        boardGameRepository.findByTitle("Scrabble").get().getId()
+                    ))
+                    .build()
+                );
+                eventsRepository.saveAll(events);
+                System.out.println("Seeded " + events.size() + " group memberships");
+            }
+            else{
+                System.out.println("Events already seeded, skipping...");
+            }
+
+            if(eaRepository.count() == 0){
+                List<Event> events = List.of(
+                    eventsRepository.findByName("Monopoly Marathon").get(),
+                    eventsRepository.findByName("Catan Catastrophe").get(),
+                    eventsRepository.findByName("Scrabble storm").get()
+                );
+
+                List<User> hosts = List.of(
+                    userRepository.findByUsername("IAmR3al").get(),
+                    userRepository.findByUsername("alex_games").get(),
+                    userRepository.findByUsername("bob").get()
+                );
+
+                List<EventAttendee> EAs = new ArrayList<>();
+                for(int i = 0; i < events.size(); i++){
+                    EventAttendee ea = new EventAttendee(
+                        hosts.get(i).getId(), events.get(i).getId(), RSVPStatus.ATTENDING
+                    );
+                    EAs.add(ea);
+                }
+                eaRepository.saveAll(EAs);
+                System.out.println("Seeded " + EAs.size() + " group memberships");
+            }
+            else{
+                System.out.println("Event Attendees already seeded, skipping...");
             }
         };
     }
