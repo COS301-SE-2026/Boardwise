@@ -66,8 +66,7 @@ export const EventService = {
         const { $api } = useNuxtApp()
         return $api<GetEventsResponse>('community/', {
             method: 'GET',
-            query: name && page ? { name, page } : 
-                    (name && !page ? { name } : { page })
+            query: { name, page }
         })
     },
 
