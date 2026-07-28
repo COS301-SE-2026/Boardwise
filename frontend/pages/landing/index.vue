@@ -1,5 +1,5 @@
 <template>
-  <landing-view/>
+    <LandingView/>
 </template>
 
 <script setup>
