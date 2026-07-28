@@ -12,6 +12,7 @@ export const useEvents = () => {
     const inviteCount = ref<number>(0)
     const isLoading = ref<boolean>(false)
     const error = ref<string>('')
+    const page = ref<number>(1)
 
     //AC-EVT-01
     const fetchEvents = async (name?: string) => {
@@ -19,7 +20,7 @@ export const useEvents = () => {
         error.value = ''
 
         try {
-            const data = await EventService.getAllEvents(name)
+            const data = await EventService.getAllEvents(name, page.value)
             events.value = data.result
             return events.value;
         }catch (err: any) {
@@ -193,6 +194,7 @@ export const useEvents = () => {
         invites, 
         inviteCount, 
         isLoading, 
+        page,
         error, 
         fetchEvents,
         fetchEventbyId,
