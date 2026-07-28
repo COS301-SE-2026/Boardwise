@@ -30,6 +30,21 @@ export const useEvents = () => {
         }
     }
 
+    const fetchEventbyId = async (id: string) => {
+        isLoading.value = true
+        error.value = ''
+
+        try {
+            const data = await EventService.getEvent(id);
+            return data.data;
+        }catch (err: any) {
+            error.value = err.data?.message || 'Failed to load events'
+            throw err
+        } finally {
+            isLoading.value = false
+        }
+    }
+
     //AC-EVT-02
     const createEvent = async (eventInfo: object, image?: File) => {
         isLoading.value = true
@@ -180,6 +195,7 @@ export const useEvents = () => {
         isLoading, 
         error, 
         fetchEvents,
+        fetchEventbyId,
         createEvent,
         updateEvent,
         cancelEvent,

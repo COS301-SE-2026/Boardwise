@@ -28,6 +28,7 @@ public record EventDTO(
     EventStatus eventStatus,
     RSVPStatus rsvpStatus,
     EventHostInfo host,
+    boolean isHost,
     List<GameInventoryDTO> games
 ) {
     public static EventDTO fromEntity(
@@ -35,6 +36,7 @@ public record EventDTO(
         int attendeeCount,
         RSVPStatus status,
         EventHostInfo hostInfo,
+        boolean isHost,
         List<GameInventoryDTO> games
     ){
         return new EventDTO(
@@ -51,6 +53,7 @@ public record EventDTO(
             event.getStatus(),
             status,
             hostInfo,
+            isHost,
             games
         );
     }
