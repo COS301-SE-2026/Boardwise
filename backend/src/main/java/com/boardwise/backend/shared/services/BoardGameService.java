@@ -47,7 +47,6 @@ public class BoardGameService {
 
     @Scheduled(fixedDelay = 6 * 1000)
     public void populateDatabase(){
-        System.out.println("Pulling from BGG and populating games.");
         int nextBggId = gameRepo.findTopByBggIdNotNullOrderByBggIdDesc()
                         .map(game -> game.getBggId() + 1)
                         .orElse(1);
@@ -68,8 +67,8 @@ public class BoardGameService {
 
             List<Boardgame> boardgames = new ArrayList<>();
             NodeList nodeList = document.getElementsByTagName("item");
-            boolean updateEntry = false;
             for(int i = 0; i < nodeList.getLength(); i++){
+                boolean updateEntry = false;
                 Node node = nodeList.item(i);
 
                 if(node == null) continue;
