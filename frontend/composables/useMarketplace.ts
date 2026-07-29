@@ -9,7 +9,7 @@ const _useMarketplace = () =>{
     //page paramters
     const page = ref(1)
     const hasMore = ref(true)
-    const pageSize = 10
+    const pageSize = 15
 
     //storing listings
     const listings = ref<Array<ListingResponse>>([]); //listings in db
