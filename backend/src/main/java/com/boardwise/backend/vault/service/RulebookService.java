@@ -48,7 +48,7 @@ public class RulebookService {
     private final BoardGameRepository boardgameRepository;
     private final UserRepository userRepository;
 
-    @Value("${r2.rulebooks.public-dev-url}")
+    @Value("${r2.rulebooks.public-prod-url}")
     private String r2PublicDomain;
 
     @Value("${r2.bucket-rulebooks}")
