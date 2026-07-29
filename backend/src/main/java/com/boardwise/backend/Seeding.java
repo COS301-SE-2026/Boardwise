@@ -361,8 +361,12 @@ public class Seeding {
                 Contributor con1 = new Contributor(new ObjectId(), "JustUploadsStuff");
                 Contributor con2 = new Contributor(new ObjectId(), "MiteBeReliable");
 
+                List<String> seedTitles = List.of("Monopoly", "Scrabble", "Catan", "Pandemic", "Ticket to Ride");
                 Map<String, Boardgame> boardgamesByTitle = boardGameRepository.findAll().stream()
-                        .collect(Collectors.toMap(Boardgame::getTitle, bg -> bg));
+                        .filter(bg -> seedTitles.contains(bg.getTitle()))
+                        .collect(Collectors.toMap(Boardgame::getTitle, bg -> bg, (a, b) -> a));
+
+                
 
                 List<Rulebook> rulebooks = List.of(
                         Rulebook.builder().coverUrl("https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png")
