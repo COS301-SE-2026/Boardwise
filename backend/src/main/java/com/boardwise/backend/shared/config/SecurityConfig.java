@@ -96,7 +96,12 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Specify frontend origin
-        configuration.setAllowedOrigins(List.of("http://localhost:3000","http://127.0.0.1:3000"));
+        configuration.setAllowedOrigins(List.of(
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "https://www.boardwise.games",
+            "https://boardwise.games"
+        ));
 
         // Allow OPTIONS for preflight requests
         configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
