@@ -2,6 +2,11 @@ package com.boardwise.backend.vault.service;
 
 import static org.mockito.Mockito.*;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -25,15 +30,21 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.vault.dto.response.DownloadUrlResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookSummaryResponseDto;
+import com.boardwise.backend.vault.exception.R2PresignException;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.repository.EditEventRepository;
 import com.boardwise.backend.vault.repository.RulebookRepository;
 import com.boardwise.backend.vault.repository.RulebookTextRepository;
 
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 @ExtendWith(MockitoExtension.class)
 public class RulebookServiceTests {
@@ -63,15 +74,9 @@ public class RulebookServiceTests {
         ReflectionTestUtils.setField(rulebookService, "r2PublicDomain", "https://cdn.mock.com");
         ReflectionTestUtils.setField(rulebookService, "rulebooksBucket", "rulebooks-bucket");
     }
-    
-    // ---------- AC-VLT-02: List/ Search Rulebooks ----------
-    @Nested
-    class SearchRulebooksTests{
-        private Rulebook rb = null;
 
-        @BeforeEach
-        void setUp(){
-            rb = Rulebook.builder()
+    private Rulebook validRulebook(){
+        return Rulebook.builder()
                 .id(new ObjectId())
                 .coverUrl("https://covers.mock.com/catan.jpg")
                 .title("Catan")
@@ -96,6 +101,16 @@ public class RulebookServiceTests {
                 .duration(90)
                 .minAge(10)
                 .build();
+    }
+    
+    // ---------- AC-VLT-02: List/ Search Rulebooks ----------
+    @Nested
+    class SearchRulebooksTests{
+        private Rulebook rb = null;
+
+        @BeforeEach
+        void setUp(){
+            rb = validRulebook();
         }
 
         @Test
@@ -174,33 +189,9 @@ public class RulebookServiceTests {
         private Rulebook rb = null;
 
         @BeforeEach
-        void setUp(){
-            rulebookId = new ObjectId();
-            rb = Rulebook.builder()
-                .id(rulebookId)
-                .coverUrl("https://covers.mock.com/catan.jpg")
-                .title("Catan")
-                .edition("5th")
-                .genres(List.of("Strategy"))
-                .version(1L)
-                .status("Ready")
-                .contributorId(new ObjectId())
-                .contributorUsername("MockUser")
-                .description("Mocked Description")
-                .language("English")
-                .r2PdfKey("mock-pdf-key")
-                .r2CoverKey("mock-cover-key")
-                .lockHeldBy(null)
-                .lockExpiresAt(null)
-                .undoStack(List.of())
-                .redoStack(List.of())
-                .uploadedAt(Instant.now())
-                .updatedAt(Instant.now())
-                .minPlayers(3)
-                .maxPlayers(4)
-                .duration(90)
-                .minAge(10)
-                .build();
+        void setUp() {
+            rb = validRulebook();
+            rulebookId = rb.getId();
         }
 
         @Test
@@ -352,7 +343,99 @@ public class RulebookServiceTests {
 
     // ---------- AC-VLT-04: Download Raw PDF ----------
     @Nested
-    class GetDownloadUrlTests{}
+    class GetDownloadUrlTests{
+        private ObjectId rulebookId = null;
+        private Rulebook rb = null;
+
+        @BeforeEach
+        void setUp() {
+            rb = validRulebook();
+            rulebookId = rb.getId();
+            rb.setR2PdfKey("pdfs/catan-rules.pdf");
+        }
+
+        @Test
+        public void testGetDownloadUrlThrowsWhenRulebookNotFound(){
+            // Arrange
+            when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.empty());
+
+            // Act and Assert
+            Assertions.assertThatThrownBy(() -> rulebookService.getDownloadUrl(rulebookId))
+                .isInstanceOf(RulebookNotFoundException.class);
+            Mockito.verifyNoInteractions(s3Presigner);
+        }
+        
+        @Test
+        public void testGetDownloadUrlThrowsWhenPdfKeyIsNull(){
+            // Arrange
+            rb.setR2PdfKey(null);
+            when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
+
+            // Act and Assert
+            Assertions.assertThatThrownBy(() -> rulebookService.getDownloadUrl(rulebookId))
+                .isInstanceOf(RulebookNotFoundException.class)
+                .hasMessageContaining("PDF not yet available");
+            Mockito.verifyNoInteractions(s3Presigner);
+        }
+
+        @Test
+        public void testGetDownloadUrlReturnsPresignedUrlOnHappyPath() throws MalformedURLException, URISyntaxException{
+            // Arrange
+            when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
+
+            PresignedGetObjectRequest presigned = mock(PresignedGetObjectRequest.class);
+            when(presigned.url()).thenReturn(new URI("https://r2.mock.com/signed?sig=abc").toURL());
+            when(s3Presigner.presignGetObject(Mockito.any(GetObjectPresignRequest.class)))
+                .thenReturn(presigned);
+            // Act
+            Instant before = Instant.now();
+            DownloadUrlResponseDto dto = rulebookService.getDownloadUrl(rulebookId);
+            Instant after = Instant.now();
+
+            // Assert
+            Assertions.assertThat(dto.getDownloadUrl()).isEqualTo("https://r2.mock.com/signed?sig=abc");
+            Assertions.assertThat(dto.getExpiresAt()).isBetween(before.plusSeconds(295), after.plusSeconds(305));
+        }
+
+        @Test
+        public void testGetDownloadUrlBuildsPresignRequestWithCorrectBucketKeyAndDuration() throws MalformedURLException, URISyntaxException{
+            // Arrange
+            when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
+
+            PresignedGetObjectRequest presigned = mock(PresignedGetObjectRequest.class);
+            when(presigned.url()).thenReturn(new URI("https://r2.mock.com/signed").toURL());
+            when(s3Presigner.presignGetObject(Mockito.any(GetObjectPresignRequest.class)))
+                .thenReturn(presigned);
+
+            // Act
+            rulebookService.getDownloadUrl(rulebookId);
+
+            // Assert
+            ArgumentCaptor<GetObjectPresignRequest> captor = ArgumentCaptor.forClass(GetObjectPresignRequest.class);
+            Mockito.verify(s3Presigner).presignGetObject(captor.capture());
+
+            GetObjectPresignRequest captured = captor.getValue();
+            Assertions.assertThat(captured.signatureDuration()).isEqualTo(Duration.ofMinutes(5));
+            Assertions.assertThat(captured.getObjectRequest().bucket()).isEqualTo("rulebooks-bucket");
+            Assertions.assertThat(captured.getObjectRequest().key()).isEqualTo(rb.getR2PdfKey());
+        }
+
+        @Test
+        public void testGetDownloadUrlWrapsPresignerExceptionInR2PresignException(){
+            // Arrange
+            when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
+
+            when(s3Presigner.presignGetObject(Mockito.any(GetObjectPresignRequest.class)))
+                .thenThrow(S3Exception.builder().message("Simulated S3 failure").statusCode(403)
+                .awsErrorDetails(AwsErrorDetails.builder().errorCode("AccessDenied").errorMessage("User is not authorized to perform this action").build())
+                .build());
+            
+            // Act and Assert
+            Assertions.assertThatThrownBy(() -> rulebookService.getDownloadUrl(rulebookId))
+                .isInstanceOf(R2PresignException.class)
+                .hasMessageContaining("Simulated S3 failure");
+        }
+    }
 
     // ---------- AC-VLT-05: Get Rulebook Text State ----------
     @Nested
