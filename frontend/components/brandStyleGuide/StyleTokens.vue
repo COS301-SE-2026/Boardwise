@@ -47,17 +47,6 @@
                 </v-row>
             </div>
 
-            <div>
-                <span class="spec-label mb-2">Layout</span>
-                <div class="layout-diagram mt-2"> 
-                    <div class="layout-header">--header-height (64px)</div>
-                    <div class="layout-body">
-                        <div class="layout-sidebar">--sidebar-width (248px)</div>
-                        <div claas="layout-body">--container-max (1200px)</div>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </section>
 
@@ -154,44 +143,5 @@ const shadowTokens = [
   color: var(--color-text-muted);
 }
 
-.layout-diagram {
-  border: 2px dashed var(--color-border-strong);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
- 
-.layout-header {
-  background: var(--color-secondary);
-  color: var(--color-text-inverse);
-  font-size: var(--fs-small);
-  padding: var(--space-3);
-  text-align: center;
-}
- 
-.layout-body {
-  display: flex;
-  min-height: 120px;
-}
- 
-.layout-sidebar {
-  flex: 0 0 200px;
-  background: var(--color-surface-alt);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--fs-small);
-  color: var(--color-text-muted);
-  border-right: 2px dashed var(--color-border-strong);
-  padding: var(--space-2);
-  text-align: center;
-}
- 
-.layout-content {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--fs-small);
-  color: var(--color-text-muted);
-}
+
 </style>

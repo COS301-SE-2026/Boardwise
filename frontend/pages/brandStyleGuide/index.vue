@@ -8,6 +8,7 @@
                 <StyleColours />
                 <StyleTypography />
                 <StyleTokens />
+                <StyleComponents />
 
             </v-container>
 
@@ -30,6 +31,7 @@ import StyleColours from '~/components/brandStyleGuide/StyleColours.vue';
 import StyleHero from '~/components/brandStyleGuide/StyleHero.vue';
 import StyleNav from '~/components/brandStyleGuide/StyleNav.vue';
 import StyleTokens from '~/components/brandStyleGuide/StyleTokens.vue';
+import StyleComponents from '~/components/brandStyleGuide/StyleComponents.vue';
 
 const isDark = ref(false)
 
