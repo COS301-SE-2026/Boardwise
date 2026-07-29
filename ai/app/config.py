@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings:
-    MONGODB_URL: str | None = os.getenv("DB_URL")
+    MONGODB_URL: str | None = os.getenv("PROD_DB_URL")
     MONGODB_DATABASE: str | None = os.getenv("DB_NAME")
     JWT_SECRET: str | None = os.getenv("JWT_SECRET")
     JWT_ALGORITHM: str | None = os.getenv("JWT_ALGORITHM")
