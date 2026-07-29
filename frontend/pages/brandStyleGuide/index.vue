@@ -7,6 +7,8 @@
                 <StyleHero />
                 <StyleColours />
                 <StyleTypography />
+                <StyleTokens />
+
             </v-container>
 
             <footer class="py-8 section-border text-center">
@@ -27,6 +29,7 @@ import StyleTypography from '~/components/brandStyleGuide/StyleTypography.vue';
 import StyleColours from '~/components/brandStyleGuide/StyleColours.vue';
 import StyleHero from '~/components/brandStyleGuide/StyleHero.vue';
 import StyleNav from '~/components/brandStyleGuide/StyleNav.vue';
+import StyleTokens from '~/components/brandStyleGuide/StyleTokens.vue';
 
 const isDark = ref(false)
 
