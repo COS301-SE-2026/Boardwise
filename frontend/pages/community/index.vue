@@ -9,20 +9,23 @@
       @create-community="showCreateCommunity = true"
     />
 
-    <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
-      <v-progress-circular indeterminate color="primary" size="48" />
-    </v-container>
- 
-    <CommunityGrid 
-      v-else
-      class="mt-6"
-      :communities="filteredCommunities"
-    />
+    <div class="d-flex ga-6 mt-6 align-start">
+      <CommunityFilter 
+        class="mt-6"
+        @filter="handleFilter" 
+      />
 
-    <CommunityFilter 
-      class="mt-6"
-      @filter="handleFilter" 
-    />
+      
+      <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
+        <v-progress-circular indeterminate color="primary" size="48" />
+      </v-container>
+  
+      <CommunityGrid 
+        v-else
+        class="mt-6"
+        :communities="filteredCommunities"
+      />
+    </div>
 
     <CommunityCreateForm 
       v-model="showCreateCommunity"
