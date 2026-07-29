@@ -2,14 +2,13 @@
     <PageContainer>
         <Navbar />
 
-        <div v-if="loading" class="d-flex justify-center pa-16">
+        <div v-if="isLoading" class="d-flex justify-center pa-16">
             <v-progress-circular indeterminate color="primary" />
         </div>
 
         <EventDetailPage
             v-else-if="event"
             :event="event"
-            :current-user="currentUsername"
             @rsvp="handleRsvp"
             @de-rsvp="handleDeRsvp"
             @edit="showEditModal = true"
@@ -44,25 +43,21 @@ import EditEventModal from '~/components/features/events/EditEventModal.vue'
 
 import { useEvents } from '~/composables/useEvents'
 import { useSnackBar } from '~/composables/useSnackbar'
-import { useProfile } from '~/composables/useProfile'
+// import { useProfile } from '~/composables/useProfile'
 
 const { show } = useSnackBar(3)
 const route = useRoute()
 const router = useRouter()
-const { fetchCurrentUser } = useProfile()
 
 const { 
-    events,
     rsvpToEvent,
+    fetchEventbyId,
     deRsvpToEvent,
-    updateEvent,
     cancelEvent,
-    fetchEvents,
+    isLoading
 } = useEvents()
 
-const loading = ref(true)
 const event = ref(null)
-const currentUsername = ref(null)
 const showEditModal = ref(false)
 
 onMounted(async () => {
@@ -70,16 +65,11 @@ onMounted(async () => {
         router.push('/auth/signin')
         return
     }
+    console.log(route.params.id)
+    const fetched = await fetchEventbyId(route.params.id);
+    console.log(fetched)
 
-    const userDetails = await fetchCurrentUser()
-    currentUsername.value = userDetails.username
-
-      if (events.value.length === 0) {
-        await fetchEvents()
-    }
-
-    event.value = events.value.find(e => e.id === route.params.id) ?? null
-    loading.value = false
+    event.value = fetched
 })
 
 const handleRsvp = async () => {
@@ -112,8 +102,8 @@ const handleCancelEvent = async () => {
 
 const handleEventUpdated = async (updatedEvent) => {
     try {
-        await fetchEvents();
-        event.value = events.value.find(e => e.id === route.params.id) ?? null;
+        // await fetchEvents();
+        event.value = updatedEvent
         show('Event updated!', 'success');
     } catch {
         show('Failed to refresh event details.', 'error');

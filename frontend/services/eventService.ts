@@ -14,6 +14,7 @@ export interface EventResponse {
         username: string;
         imageUrl: string | null;
     }
+    isHost: boolean
     games: {
         id: string;
         title: string;
@@ -61,12 +62,17 @@ export const EventService = {
 
     // Note:  All functions below is based on events service contract
     // AC-EVT-01: Get all events
-    getAllEvents(name?: string) {
+    getAllEvents(name?: string, page?: number) {
         const { $api } = useNuxtApp()
         return $api<GetEventsResponse>('community/', {
             method: 'GET',
-            query: name? { name } : {}
+            query: { name, page }
         })
+    },
+
+    getEvent(id: string){
+        const { $api } = useNuxtApp();
+        return $api<SingleEventResponse>('community/' + id);
     },
 
     // AC-EVT-02: Create event

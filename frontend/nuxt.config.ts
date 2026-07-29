@@ -68,6 +68,24 @@ export default defineNuxtConfig({
               warning: '#B7791F',      
               info: '#4E1E5C'          
             }
+          },
+
+          boardwiseDark: {
+            dark: true,
+
+            colors: {
+              primary: '#E64C86',      
+              secondary: '#F0D9EC',    
+              accent: '#EF5B27',       
+              error: '#C62828',        
+
+              background: '#17101C',   
+              surface: '#241629',      
+
+              success: '#2E7D5B',      
+              warning: '#B7791F',      
+              info: '#F0D9EC'          
+            }
           }
         }
       }

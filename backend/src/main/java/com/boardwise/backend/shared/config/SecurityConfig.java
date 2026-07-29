@@ -60,6 +60,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/vault/rulebooks/*/text").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/vault/rulebooks/*", "/api/vault/rulebooks/*").permitAll()
                     .requestMatchers("/api/stomp","/api/stomp/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/boardgames/genres").permitAll()
                     .anyRequest()
                     .authenticated()
                 )

@@ -2,10 +2,10 @@ name: Feature - Nuxt Frontend
 
 on:
   push:
-    branches-ignore: [ "main" ]
+    branches: [ "dev" ]
     paths: [ "frontend/**" ]
   pull_request:
-    branches: [ "dev", "integration" ]
+    branches: [ "dev" ]
     paths: [ "frontend/**" ]
 
 jobs:
