@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "nuxt dev --dotenv ../.env",
-    "build": "nuxt generate ../.env",
-    "preview:static": "nuxt generate ../.env && npx serve -s .output/public",
+    "build": "nuxt generate --dotenv ../.env",
+    "preview:static": "nuxt generate --dotenv ../.env && npx serve -s .output/public",
     "test": "vitest"
   },
   "dependencies": {
