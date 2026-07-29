@@ -263,7 +263,7 @@ public class BoardGameService {
         else{
             int count = 10;
             for(Genres genre : Genres.values()){
-                if(genre.getValue().contains(query)){
+                if(genre.getValue().contains(query.toLowerCase())){
                     genres.add(genre);
                     count--;
                 }
