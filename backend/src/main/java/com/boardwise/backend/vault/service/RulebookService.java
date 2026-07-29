@@ -19,8 +19,6 @@ import com.boardwise.backend.vault.dto.response.RulebookResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookSummaryResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookTextResponseDto;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
-import com.boardwise.backend.vault.exception.BoardgameNotFoundException;
-import com.boardwise.backend.vault.exception.InvalidPaginationException;
 import com.boardwise.backend.vault.exception.R2PresignException;
 import com.boardwise.backend.vault.model.EditEvent;
 import com.boardwise.backend.vault.model.Rulebook;
@@ -35,9 +33,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
-import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
 
 @Service
@@ -46,7 +42,6 @@ public class RulebookService {
     private final RulebookRepository rulebookRepository;
     private final RulebookTextRepository rulebookTextRepository;
     private final EditEventRepository editEventRepository;
-    private final BoardGameRepository boardgameRepository;
     private final UserRepository userRepository;
 
     @Value("${r2.rulebooks.public-dev-url}")
@@ -152,13 +147,6 @@ public class RulebookService {
     }
 
     // --- private helpers ---
-    private Boardgame findBoardgameOrThrow(ObjectId id){
-        if(id == null){
-            throw new IllegalArgumentException("Boardgame ID cannot be null");
-        }
-        return boardgameRepository.findById(id.toHexString()).orElseThrow(() -> new BoardgameNotFoundException(id));
-    }
-
     private Rulebook findRulebookOrThrow(ObjectId id) {
         return rulebookRepository.findById(id)
             .orElseThrow(() -> new RulebookNotFoundException(id));
