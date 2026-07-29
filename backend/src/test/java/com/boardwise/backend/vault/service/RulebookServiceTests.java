@@ -31,12 +31,16 @@ import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
 import com.boardwise.backend.vault.dto.response.DownloadUrlResponseDto;
+import com.boardwise.backend.vault.dto.response.EditEventResponseDto;
+import com.boardwise.backend.vault.dto.response.EditHistoryResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookSummaryResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookTextResponseDto;
+import com.boardwise.backend.vault.enums.EditType;
 import com.boardwise.backend.vault.exception.R2PresignException;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.model.Chunk;
+import com.boardwise.backend.vault.model.EditEvent;
 import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.model.RulebookText;
 import com.boardwise.backend.vault.repository.EditEventRepository;
@@ -104,6 +108,13 @@ public class RulebookServiceTests {
                 .duration(90)
                 .minAge(10)
                 .build();
+    }
+
+    private User userWithUsername(String id, String name){
+        User user = new User();
+        user.setId(id);
+        user.setUsername(name);
+        return user;
     }
     
     // ---------- AC-VLT-02: List/ Search Rulebooks ----------
@@ -245,9 +256,7 @@ public class RulebookServiceTests {
             rb.setLockHeldBy(lockHolderId);
             when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
 
-            User user = new User();
-            user.setId(lockHolderId.toHexString());
-            user.setUsername("mockUser");
+            User user = userWithUsername(lockHolderId.toHexString(), "mockUser");
             when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
             // Act
             RulebookResponseDto dto = rulebookService.getRulebookById(rulebookId);
@@ -519,9 +528,7 @@ public class RulebookServiceTests {
             text.setChunks(List.of());
             when(rulebookTextRepository.findByRulebookId(rulebookId)).thenReturn(Optional.of(text));
             
-            User user = new User();
-            user.setId(lockHolderId.toHexString());
-            user.setUsername("bob");
+            User user = userWithUsername(lockHolderId.toHexString(),"bob");
             when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
 
             // Act
@@ -607,5 +614,187 @@ public class RulebookServiceTests {
 
     // ---------- AC-VLT-09: Get Rulebook Edit History ----------
     @Nested
-    class GetEditHistoryTests{}
+    class GetEditHistoryTests{
+        private ObjectId rulebookId = null;
+        private Rulebook rb = null;
+
+        @BeforeEach
+        void setUp() {
+            rb = validRulebook();
+            rulebookId = rb.getId();
+        }
+
+        private EditEvent editEvent(ObjectId editorId, EditType type, String prevContent, String newContent){
+            return EditEvent.builder()
+                .id(new ObjectId())
+                .rulebookId(rulebookId)
+                .editorId(editorId)
+                .chunkId(new ObjectId())
+                .index(0)
+                .chunkBefore(null)
+                .editType(type)
+                .previousContent(prevContent)
+                .newContent(newContent)
+                .versionPostEdit(5L)
+                .compensatesVersion(null)
+                .committedAt(Instant.now())
+                .build();
+        }
+
+        @Test
+        public void testGetEditHistoryThrowsWhenRulebookNotFound(){
+            // Arrange
+            when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.empty());
+
+            // Act and Assert
+            Assertions.assertThatThrownBy(() -> rulebookService.getEditHistory(rulebookId))
+                .isInstanceOf(RulebookNotFoundException.class);
+
+            Mockito.verifyNoInteractions(editEventRepository);
+        }
+        
+        @Test
+        public void testGetEditHistoryReturnsEmptyHistoryWhenNoEditsRecorded(){
+            // Arrange
+            when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
+            when(editEventRepository.findByRulebookIdOrderByCommittedAtAsc(rulebookId)).thenReturn(List.of());
+
+            // Act
+            EditHistoryResponseDto dto = rulebookService.getEditHistory(rulebookId);
+
+            // Assert
+            Assertions.assertThat(dto.getRulebookId()).isEqualTo(rulebookId.toHexString());
+            Assertions.assertThat(dto.getTotalEdits()).isEqualTo(0);
+            Assertions.assertThat(dto.getEdits()).isEmpty();
+        }
+        
+        @Test
+        public void testGetEditHistoryMapsMultipleEditsPreservingRepositoryOrder(){
+            // Arrange
+            when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
+
+            ObjectId editorId = new ObjectId();
+            User editor = userWithUsername(editorId.toHexString(), "dave");
+            when(userRepository.findById(editorId.toHexString()))
+                    .thenReturn(Optional.of(editor));
+
+            EditEvent e1 = editEvent(editorId, EditType.INSERT, null, "Older content");
+            EditEvent e2 = editEvent(editorId, EditType.INSERT, "Older content", "Newer content");
+            when(editEventRepository.findByRulebookIdOrderByCommittedAtAsc(rulebookId)).thenReturn(List.of(e1, e2));
+
+            // Act
+            EditHistoryResponseDto dto = rulebookService.getEditHistory(rulebookId);
+
+            // Assert
+            Assertions.assertThat(dto.getTotalEdits()).isEqualTo(2);
+            Assertions.assertThat(dto.getEdits()).extracting(EditEventResponseDto::getNewContent)
+                .containsExactly("Older content", "Newer content");
+        }
+        
+        @Test
+        public void testGetEditHistoryFallsBackToDeletedUserWhenEditorMissing(){
+            // Arrange
+            when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
+
+            ObjectId editorId = new ObjectId();
+            when(userRepository.findById(editorId.toHexString()))
+                    .thenReturn(Optional.empty());
+
+            EditEvent event = editEvent(editorId, EditType.INSERT, "old", "new");
+            when(editEventRepository.findByRulebookIdOrderByCommittedAtAsc(rulebookId)).thenReturn(List.of(event));
+
+            // Act
+            EditHistoryResponseDto dto = rulebookService.getEditHistory(rulebookId);
+
+            // Assert
+            Assertions.assertThat(dto.getEdits().get(0).getEditor()).isEqualTo("Deleted User");
+        }
+        
+        @Test
+        public void testGetEditHistoryMapsAllFieldsOnEditEventResponse(){
+            // Arrange
+            when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
+
+            ObjectId editorId = new ObjectId();
+            User editor = userWithUsername(editorId.toHexString(), "dave");
+            when(userRepository.findById(editorId.toHexString()))
+                    .thenReturn(Optional.of(editor));
+
+            EditEvent event = editEvent(editorId, EditType.INSERT, "old content", "new content");
+            when(editEventRepository.findByRulebookIdOrderByCommittedAtAsc(rulebookId)).thenReturn(List.of(event));
+
+            // Act
+            EditHistoryResponseDto dto = rulebookService.getEditHistory(rulebookId);
+            EditEventResponseDto eventDto = dto.getEdits().get(0);
+
+            // Assert
+            Assertions.assertThat(eventDto.getId()).isEqualTo(event.getId().toHexString());
+            Assertions.assertThat(eventDto.getRulebookId()).isEqualTo(event.getRulebookId().toHexString());
+            Assertions.assertThat(eventDto.getEditor()).isEqualTo(editor.getUsername());
+            Assertions.assertThat(eventDto.getChunkId()).isEqualTo(event.getChunkId().toHexString());
+            Assertions.assertThat(eventDto.getEditType()).isEqualTo(event.getEditType().toString());
+            Assertions.assertThat(eventDto.getPreviousContent()).isEqualTo(event.getPreviousContent());
+            Assertions.assertThat(eventDto.getNewContent()).isEqualTo(event.getNewContent());
+            Assertions.assertThat(eventDto.getVersionPostEdit()).isEqualTo(event.getVersionPostEdit());
+            Assertions.assertThat(eventDto.getCommittedAt()).isEqualTo(event.getCommittedAt());
+        }
+        
+        @Test
+        public void testGetEditHistoryMapsEditTypeUsingToStringNotEnumName(){
+            // Arrange
+            when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
+
+            ObjectId editorId = new ObjectId();
+            User editor = userWithUsername(editorId.toHexString(), "dave");
+            when(userRepository.findById(editorId.toHexString()))
+                    .thenReturn(Optional.of(editor));
+
+            EditEvent event = editEvent(editorId, EditType.DELETE, "old", null);
+            when(editEventRepository.findByRulebookIdOrderByCommittedAtAsc(rulebookId)).thenReturn(List.of(event));
+
+            // Act
+            EditHistoryResponseDto dto = rulebookService.getEditHistory(rulebookId);
+
+            // Assert
+            Assertions.assertThat(dto.getEdits().get(0).getEditType()).isEqualTo("DELETE");
+        }
+        
+        @Test
+        public void testGetEditHistoryInsertEventHasNullPreviousContent(){
+            // Arrange
+            when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
+
+            ObjectId editorId = new ObjectId();
+            when(userRepository.findById(editorId.toHexString())).thenReturn(Optional.of(userWithUsername(editorId.toHexString(), "dave")));
+
+            EditEvent event = editEvent(editorId, EditType.INSERT, null, "new content");
+            when(editEventRepository.findByRulebookIdOrderByCommittedAtAsc(rulebookId)).thenReturn(List.of(event));
+
+            // Act
+            EditHistoryResponseDto dto = rulebookService.getEditHistory(rulebookId);
+
+            // Assert
+            Assertions.assertThat(dto.getEdits().get(0).getPreviousContent()).isNull();
+            Assertions.assertThat(dto.getEdits().get(0).getNewContent()).isEqualTo("new content");
+        }
+        
+        @Test
+        public void testGetEditHistoryDeleteEventHasNullNewContent(){
+            // Arrange
+            when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
+
+            ObjectId editorId = new ObjectId();
+            when(userRepository.findById(editorId.toHexString())).thenReturn(Optional.of(userWithUsername(editorId.toHexString(), "dave")));
+
+            EditEvent event = editEvent(editorId, EditType.DELETE, "old content", null);
+            when(editEventRepository.findByRulebookIdOrderByCommittedAtAsc(rulebookId)).thenReturn(List.of(event));
+
+            // Act
+            EditHistoryResponseDto dto = rulebookService.getEditHistory(rulebookId);
+
+            // Assert
+            Assertions.assertThat(dto.getEdits().get(0).getNewContent()).isNull();
+            Assertions.assertThat(dto.getEdits().get(0).getPreviousContent()).isEqualTo("old content");
+        }
+    }
 }

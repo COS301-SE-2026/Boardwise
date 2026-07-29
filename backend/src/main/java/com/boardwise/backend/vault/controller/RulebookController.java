@@ -21,7 +21,6 @@ import com.boardwise.backend.vault.service.RulebookService;
 
 import lombok.RequiredArgsConstructor;
 
-@CrossOrigin(origins="http://localhost:3000")
 @RestController
 @RequestMapping("/api/vault/rulebooks")
 @RequiredArgsConstructor
