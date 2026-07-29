@@ -28,7 +28,7 @@ describe('MarketplaceService', () => {
                 method: 'GET',
                 query: {}
             });
-            expect(result).resolves.toEqual(mockResponse);
+            await expect(result).resolves.toEqual(mockResponse);
         });
 
         it('calls the search endpoint and includes gameTitle when search is provided', () => {
@@ -186,7 +186,7 @@ describe('MarketplaceService', () => {
 
             // Assert
             expect(apiMock).toHaveBeenCalledWith(`marketplace/listing/${id}`);
-            expect(result).resolves.toEqual(mockListing);
+            await expect(result).resolves.toEqual(mockListing);
         });
     });
 });
