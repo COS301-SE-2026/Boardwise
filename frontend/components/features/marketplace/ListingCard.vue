@@ -15,6 +15,7 @@
     </div>
 
     <v-card-text class="d-flex flex-column ga-2 pa-4">
+      <h2>{{ listing.listingTitle }}</h2>
       <h3>{{ listing.gameTitle }}</h3>
 
       <p

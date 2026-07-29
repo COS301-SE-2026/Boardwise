@@ -42,12 +42,31 @@ public class CommunityController {
     @GetMapping("/")
     public ResponseEntity<?> getEvents(
         @RequestParam(required = false) String name,
+        @RequestParam(required = false) Integer page,
         HttpServletRequest req
     ){
         String token = ProfileController.extractToken(req);
-        Map<String, Object> res = service.getEvents(token, name);
+        Map<String, Object> res = service.getEvents(token, name, page);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
+
+    @GetMapping("/{eventId}")
+    public ResponseEntity<?> getSpecificEvent(
+        @PathVariable String eventId,
+        HttpServletRequest req
+    ){
+        String token = ProfileController.extractToken(req);
+        Map<String, Object> res;
+        try{
+            res = service.getEvent(token, eventId);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(NoSuchElementException e){
+            res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+    }   
 
     @PostMapping("/")
     public ResponseEntity<?> createEvent(

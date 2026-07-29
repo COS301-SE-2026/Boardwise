@@ -136,9 +136,7 @@ const handleCustomGame = async (response) => {
   showCustom.value = false;
   user.value.ownedGameCount = response.ownedGamesCount;
   user.value.games = response.games;
-
-
-  // await refreshUser();
+  show('Game successfully added')
 }
 
 const handleProfileUpdate = (newValues) => {

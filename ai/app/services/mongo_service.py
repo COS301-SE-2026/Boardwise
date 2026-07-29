@@ -53,6 +53,11 @@ def create_rulebook(
         "redoStack": [],
         "uploadedAt":now,
         "updatedAt":now,
+        "minPlayers":boardgame.get("minPlayers", -1),
+        "maxPlayers":boardgame.get("maxPlayers", -1),
+        "minAge":boardgame.get("minAge", -1),
+        "duration":boardgame.get("duration", -1),
+        "genres":boardgame.get("genres", []),
     })
 
     return str(result.inserted_id)

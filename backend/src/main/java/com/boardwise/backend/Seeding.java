@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -24,9 +25,11 @@ import com.boardwise.backend.marketplace.model.RentalPeriod;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.models.Event;
+import com.boardwise.backend.user_service.models.EventAttendee;
 import com.boardwise.backend.user_service.models.EventStatus;
 import com.boardwise.backend.user_service.models.Group;
 import com.boardwise.backend.user_service.models.GroupMembership;
+import com.boardwise.backend.user_service.models.RSVPStatus;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.models.Visibility;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
@@ -35,10 +38,7 @@ import com.boardwise.backend.user_service.repos.EventsRepository;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
-import com.boardwise.backend.vault.enums.EditType;
 import com.boardwise.backend.vault.model.Chunk;
-import com.boardwise.backend.vault.model.EditEvent;
-import com.boardwise.backend.vault.model.IngestionJob;
 import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.model.RulebookText;
 import com.boardwise.backend.vault.repository.EditEventRepository;
@@ -361,25 +361,92 @@ public class Seeding {
                 Contributor con1 = new Contributor(new ObjectId(), "JustUploadsStuff");
                 Contributor con2 = new Contributor(new ObjectId(), "MiteBeReliable");
 
-                Map<String, ObjectId> gameIdsByTitle = boardGameRepository.findAll().stream()
-                        .collect(Collectors.toMap(bg -> bg.getTitle(), bg -> new ObjectId(bg.getId())));
+                Map<String, Boardgame> boardgamesByTitle = boardGameRepository.findAll().stream()
+                        .collect(Collectors.toMap(Boardgame::getTitle, bg -> bg));
 
                 List<Rulebook> rulebooks = List.of(
-                        Rulebook.builder().coverUrl("https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png").gameId(gameIdsByTitle.get("Monopoly")).title("Monopoly").edition("Classic").status("Ready").version(1)
-                                .contributorId(con1.id()).contributorUsername(con1.username()).description("Objective: Bankrupt all opposing players by acquiring, developing, and trading real estate properties.").language("English").r2PdfKey("rulebooks/monopoly-classic.pdf")
-                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
-                        Rulebook.builder().coverUrl("https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg").gameId(gameIdsByTitle.get("Scrabble")).title("Scrabble").edition("Standard").status("Ready").version(1)
-                                .contributorId(con1.id()).contributorUsername(con1.username()).description("Objective: Accumulate the highest score by spelling interlocking, valid dictionary words on a grid.").language("English").r2PdfKey("rulebooks/scrabble-standard.pdf")
-                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
-                        Rulebook.builder().coverUrl("").gameId(gameIdsByTitle.get("Catan")).title("Catan").edition("5th Edition").status("Ready").version(2)
-                                .contributorId(con2.id()).contributorUsername(con2.username()).description("Objective: Be the first player to accumulate 10 Victory Points (VPs).").language("Spanish").r2PdfKey("rulebooks/catan-5th.pdf")
-                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
-                        Rulebook.builder().coverUrl("https://cf.geekdo-images.com/S3ybV1LAp-8SnHIXLLjVqA__imagepage/img/kIBu-2Ljb_ml5n-S8uIbE6ehGFc=/fit-in/900x600/filters:no_upscale():strip_icc()/pic1534148.jpg").gameId(gameIdsByTitle.get("Pandemic")).title("Pandemic").edition("2nd Edition").status("PendingReview")
-                                .version(1).contributorId(con2.id()).contributorUsername(con2.username()).description("Objective: Work cooperatively to discover cures for four distinct global diseases before a failure condition is triggered.").language("Spanish").r2PdfKey("rulebooks/pandemic-2nd.pdf")
-                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now()).build(),
-                        Rulebook.builder().coverUrl("https://cf.geekdo-images.com/kdWYkW-7AqG63HhqPL6ekA__imagepage/img/AWsdGNNSuI78BaCPAVQpjrUneKY=/fit-in/900x600/filters:no_upscale():strip_icc()/pic8937637.jpg").gameId(gameIdsByTitle.get("Ticket to Ride")).title("Ticket to Ride").edition("Original").status("Processing")
+                        Rulebook.builder().coverUrl("https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png")
+                                .gameId(new ObjectId(boardgamesByTitle.get("Monopoly").getId()))
+                                .title("Monopoly")
+                                .edition("Classic")
+                                .status("Ready")
+                                .version(1)
+                                .contributorId(con1.id()).contributorUsername(con1.username())
+                                .description("Objective: Bankrupt all opposing players by acquiring, developing, and trading real estate properties.")
+                                .language("English")
+                                .r2PdfKey("rulebooks/monopoly-classic.pdf")
+                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now())
+                                .genres(boardgamesByTitle.get("Monopoly").getGenres())
+                                .minPlayers(boardgamesByTitle.get("Monopoly").getMinPlayers())
+                                .maxPlayers(boardgamesByTitle.get("Monopoly").getMaxPlayers())
+                                .duration(boardgamesByTitle.get("Monopoly").getDuration())
+                                .minAge(boardgamesByTitle.get("Monopoly").getMinAge())
+                                .build(),
+                        Rulebook.builder().coverUrl("https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg")
+                                .gameId(new ObjectId(boardgamesByTitle.get("Scrabble").getId()))
+                                .title("Scrabble")
+                                .edition("Standard")
+                                .status("Ready")
+                                .version(1)
+                                .contributorId(con1.id()).contributorUsername(con1.username())
+                                .description("Objective: Accumulate the highest score by spelling interlocking, valid dictionary words on a grid.")
+                                .language("English")
+                                .r2PdfKey("rulebooks/scrabble-standard.pdf")
+                                .r2CoverKey("/rulebooks/default_cover.png")
+                                .lockHeldBy(null)
+                                .lockExpiresAt(null)
+                                .uploadedAt(Instant.now()).updatedAt(Instant.now())
+                                .genres(boardgamesByTitle.get("Scrabble").getGenres())
+                                .minPlayers(boardgamesByTitle.get("Scrabble").getMinPlayers())
+                                .maxPlayers(boardgamesByTitle.get("Scrabble").getMaxPlayers())
+                                .duration(boardgamesByTitle.get("Scrabble").getDuration())
+                                .minAge(boardgamesByTitle.get("Scrabble").getMinAge())
+                                .build(),
+                        Rulebook.builder().coverUrl("")
+                                .gameId(new ObjectId(boardgamesByTitle.get("Catan").getId()))
+                                .title("Catan")
+                                .edition("5th Edition")
+                                .status("Ready")
+                                .version(2)
+                                .contributorId(con2.id())
+                                .contributorUsername(con2.username())
+                                .description("Objective: Be the first player to accumulate 10 Victory Points (VPs).")
+                                .language("Spanish")
+                                .r2PdfKey("rulebooks/catan-5th.pdf")
+                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now())
+                                .genres(boardgamesByTitle.get("Catan").getGenres())
+                                .minPlayers(boardgamesByTitle.get("Catan").getMinPlayers())
+                                .maxPlayers(boardgamesByTitle.get("Catan").getMaxPlayers())
+                                .duration(boardgamesByTitle.get("Catan").getDuration())
+                                .minAge(boardgamesByTitle.get("Catan").getMinAge())
+                                .build(),
+                        Rulebook.builder().coverUrl("https://cf.geekdo-images.com/S3ybV1LAp-8SnHIXLLjVqA__imagepage/img/kIBu-2Ljb_ml5n-S8uIbE6ehGFc=/fit-in/900x600/filters:no_upscale():strip_icc()/pic1534148.jpg")
+                                .gameId(new ObjectId(boardgamesByTitle.get("Pandemic").getId()))
+                                .title("Pandemic")
+                                .edition("2nd Edition")
+                                .status("PendingReview")
+                                .version(1)
+                                .contributorId(con2.id()).contributorUsername(con2.username())
+                                .description("Objective: Work cooperatively to discover cures for four distinct global diseases before a failure condition is triggered.")
+                                .language("Spanish")
+                                .r2PdfKey("rulebooks/pandemic-2nd.pdf")
+                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now())
+                                .genres(boardgamesByTitle.get("Pandemic").getGenres())
+                                .minPlayers(boardgamesByTitle.get("Pandemic").getMinPlayers())
+                                .maxPlayers(boardgamesByTitle.get("Pandemic").getMaxPlayers())
+                                .duration(boardgamesByTitle.get("Pandemic").getDuration())
+                                .minAge(boardgamesByTitle.get("Pandemic").getMinAge())
+                                .build(),
+                        Rulebook.builder().coverUrl("https://cf.geekdo-images.com/kdWYkW-7AqG63HhqPL6ekA__imagepage/img/AWsdGNNSuI78BaCPAVQpjrUneKY=/fit-in/900x600/filters:no_upscale():strip_icc()/pic8937637.jpg")
+                                .gameId(new ObjectId(boardgamesByTitle.get("Ticket to Ride").getId())).title("Ticket to Ride").edition("Original").status("Processing")
                                 .version(1).contributorId(con1.id()).contributorUsername(con1.username()).description("Objective: Score the highest number of points by claiming railway routes and completing hidden Destination Tickets.").language("French").r2PdfKey("rulebooks/ticket-to-ride.pdf")
-                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now()).build());
+                                .r2CoverKey("/rulebooks/default_cover.png").lockHeldBy(null).lockExpiresAt(null).uploadedAt(Instant.now()).updatedAt(Instant.now())
+                                .genres(boardgamesByTitle.get("Ticket to Ride").getGenres())
+                                .minPlayers(boardgamesByTitle.get("Ticket to Ride").getMinPlayers())
+                                .maxPlayers(boardgamesByTitle.get("Ticket to Ride").getMaxPlayers())
+                                .duration(boardgamesByTitle.get("Ticket to Ride").getDuration())
+                                .minAge(boardgamesByTitle.get("Ticket to Ride").getMinAge())
+                                .build());
                 rulebookRepository.saveAll(rulebooks);
                 System.out.println("Seeded " + rulebooks.size() + " rulebooks");
 
@@ -522,13 +589,34 @@ public class Seeding {
                     .build()
                 );
                 eventsRepository.saveAll(events);
+                System.out.println("Seeded " + events.size() + " group memberships");
             }
             else{
                 System.out.println("Events already seeded, skipping...");
             }
 
             if(eaRepository.count() == 0){
+                List<Event> events = List.of(
+                    eventsRepository.findByName("Monopoly Marathon").get(),
+                    eventsRepository.findByName("Catan Catastrophe").get(),
+                    eventsRepository.findByName("Scrabble storm").get()
+                );
 
+                List<User> hosts = List.of(
+                    userRepository.findByUsername("IAmR3al").get(),
+                    userRepository.findByUsername("alex_games").get(),
+                    userRepository.findByUsername("bob").get()
+                );
+
+                List<EventAttendee> EAs = new ArrayList<>();
+                for(int i = 0; i < events.size(); i++){
+                    EventAttendee ea = new EventAttendee(
+                        hosts.get(i).getId(), events.get(i).getId(), RSVPStatus.ATTENDING
+                    );
+                    EAs.add(ea);
+                }
+                eaRepository.saveAll(EAs);
+                System.out.println("Seeded " + EAs.size() + " group memberships");
             }
             else{
                 System.out.println("Event Attendees already seeded, skipping...");

@@ -109,7 +109,7 @@
                     Cancel RSVP
                 </BaseButton>
 
-                <template v-if="isHost">
+                <template v-if="event.isHost">
                     <BaseButton
                         variant="secondary"
                         @click="$emit('edit', event)"
@@ -144,17 +144,12 @@ const props = defineProps({
     event: {
         type: Object, 
         required: true
-    }, 
-
-    currentUser: {
-        type: String, 
-        default: ''
     }
 })
 
 defineEmits(['close', 'rsvp', 'de-rsvp', 'edit', 'cancel-event'])
 
-const isHost = computed(() => props.event.host.username === props.currentUser)
+// const isHost = computed(() => props.event.host.username === props.currentUser)
 
 const statusColor = (status) => {
   if (status === 'OPEN')         return 'success'

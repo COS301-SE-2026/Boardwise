@@ -9,7 +9,7 @@
       />
 
       <EventSearch
-        @search="handleSearch"
+        v-model="searchQuery"
         @create-event="showCreateEvent = true"
       />
     </div>
@@ -53,29 +53,23 @@ definePageMeta({
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
-
 import EventSearch from '~/components/features/events/EventSearch.vue'
 import EventFilter from '~/components/features/events/EventFilter.vue'
 import EventGrid from '~/components/features/events/EventGrid.vue'
-
-
 import CreateEvent from '~/components/features/events/CreateEvent.vue'
-
 import { useEvents } from '~/composables/useEvents'
 import { useSnackBar } from '~/composables/useSnackbar'
-import { useProfile } from '~/composables/useProfile'
-
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useDebounceFn } from '@vueuse/core'
 import { useRouter } from 'vue-router'
 import EditEventModal from '~/components/features/events/EditEventModal.vue'
 import InviteModal from '~/components/features/community/InviteModal.vue'
+import { query } from 'happy-dom/lib/PropertySymbol'
+
 const { show } = useSnackBar(3)
-
-const { fetchCurrentUser } = useProfile()
-
 const {
   events, 
-  isLoading, 
+  page, 
   fetchEvents,
   createEvent,
   rsvpToEvent, 
@@ -91,8 +85,6 @@ onMounted(async () => {
     return
   }
 
-  const userDetails = await fetchCurrentUser()
-  currentUsername.value = userDetails.username
   fetchEvents()
 })
 
@@ -110,15 +102,6 @@ const currentUsername = ref(null)
 
 const filteredEvents = computed(() => {
   let result = events.value
-
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-
-    result = result.filter(e =>
-      e.name.toLowerCase().includes(query) ||
-      e.games.some(g => g.title.toLowerCase().includes(query))
-    )
-  }
 
   if (activeFilters.value.date && activeFilters.value.date !== 'All') {
     const now = new Date()
@@ -139,7 +122,6 @@ const filteredEvents = computed(() => {
       return true
     })
   }
-
 
   if (activeFilters.value.games?.length) {
     result = result.filter(e =>
@@ -169,10 +151,6 @@ const openEdit = (event) => {
   editingEvent.value = event
   showEditEvent.value = true
   showDetail.value = false
-}
-
-const handleSearch = (query) => {
-  searchQuery.value = query
 }
 
 const handleFilter = (filters) => {
@@ -245,9 +223,13 @@ const handleEventUpdated = async () => {
 
 }
 
+const delaySearch = useDebounceFn(async (query) => {
+  await fetchEvents(query)
+}, 400)
 
-
-
+watch(searchQuery, (query) => {
+  delaySearch(query)
+})
 
 
 </script>

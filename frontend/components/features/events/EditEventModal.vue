@@ -55,7 +55,7 @@
 <script setup>
 import { useEvents } from '~/composables/useEvents'
 import { useBoardGames } from '~/composables/useBoardGames'
-import BaseModal from '~/components/ui/BaseModal.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 
@@ -140,8 +140,8 @@ const handleSave = async () => {
   }
 
   try {
-    await updateEvent(props.event.id, eventData, image_file.value ?? undefined)
-    emit('saved', 'updated')
+    const res = await updateEvent(props.event.id, eventData, image_file.value ?? undefined)
+    emit('saved', res)
     open.value = false
   } catch(err) { 
       console.error('Failed to update event:', err)
