@@ -21,7 +21,12 @@
         @filter="handleFilter" 
       />
 
+      <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
+        <v-progress-circular indeterminate color="primary" size="48" />
+      </v-container>
+
       <EventGrid 
+        v-else
         :events="filteredEvents" 
         @select="openEvent" 
         class="flex-1-1" 
@@ -69,7 +74,7 @@ import { query } from 'happy-dom/lib/PropertySymbol'
 const { show } = useSnackBar(3)
 const {
   events, 
-  page, 
+  isLoading, 
   fetchEvents,
   createEvent,
   rsvpToEvent, 

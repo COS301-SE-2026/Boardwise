@@ -10,7 +10,9 @@
     <div class="d-flex ga-6 mt-6 align-start">
 
       <FilterSidebar @filter="handleFilter"/>
-      <div v-if = "loading">Loading listings...</div> 
+      <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
+        <v-progress-circular indeterminate color="primary" size="48" />
+      </v-container>
       <ListingGrid  v-else :listings="listings" />
     </div>
     

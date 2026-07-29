@@ -12,13 +12,19 @@
 
   <RulebookCarousel :rulebooks="featuredRulebooks" @select="openRulebook" />
 
-  <RecommendedBooks :rulebooks="recommended" @select ="openRulebook"/>
+  <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
+    <v-progress-circular indeterminate color="primary" size="48" />
+  </v-container>
+  <RecommendedBooks v-else :rulebooks="recommended" @select ="openRulebook"/>
 
   <SectionTitle title="All Rulebooks" class="mt-8" />
 
-    <div class="d-flex ga-6 align-start">
+  <div class="d-flex ga-6 align-start">
     <RulebookFilterSidebar @filter="handleFilter" />
-    <RulebookGrid :rulebooks="rulebooks" @select="openRulebook" class="flex-1-1" />
+    <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
+      <v-progress-circular indeterminate color="primary" size="48" />
+    </v-container>
+    <RulebookGrid v-else :rulebooks="rulebooks" @select="openRulebook" class="flex-1-1" />
   </div>
 
   <div ref="sentinel" style="height:1px" />

@@ -8,8 +8,13 @@
       v-model="searchQuery"
       @create-community="showCreateCommunity = true"
     />
+
+    <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
+      <v-progress-circular indeterminate color="primary" size="48" />
+    </v-container>
  
     <CommunityGrid 
+      v-else
       class="mt-6"
       :communities="filteredCommunities"
     />
@@ -49,7 +54,7 @@ import { useCommunity } from '~/composables/useCommunity'
 import { useSnackBar } from '~/composables/useSnackbar'
 
 
-const { getAllCommunities, searchForCommunity } = useCommunity()
+const { getAllCommunities, searchForCommunity, loading } = useCommunity()
 const { show } = useSnackBar()
 
 const searchQuery = ref('')
