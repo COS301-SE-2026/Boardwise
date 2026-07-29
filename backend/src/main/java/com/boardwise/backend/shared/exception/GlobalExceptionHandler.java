@@ -3,6 +3,7 @@ package com.boardwise.backend.shared.exception;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,6 @@ import com.boardwise.backend.vault.exception.ChunkNotFoundException;
 import com.boardwise.backend.vault.exception.ConcurrentModificationAnomalyException;
 import com.boardwise.backend.vault.exception.InvalidPaginationException;
 import com.boardwise.backend.vault.exception.VersionMismatchException;
-import com.mongodb.DuplicateKeyException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -119,13 +119,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConcurrentModificationAnomalyException.class)
     public ResponseEntity<Map<String, String>> handleConcurrentModificationAnomaly(ConcurrentModificationAnomalyException ex){
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(Map.of("message","Internal Server Error","message",ex.getMessage()));
+            .body(Map.of("error","Internal Server Error","message",ex.getMessage()));
     }
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(Map.of("message", "Internal Server Error","message",ex.getMessage()));
+            .body(Map.of("error", "Internal Server Error","message",ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
