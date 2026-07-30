@@ -25,9 +25,9 @@
                 <span class="spec-label mb-2">Radius</span>
                 <v-row class="mt-2"> 
                     <v-col v-for="token in radiusTokens" :key="token.name" cols="6" sm="3">
-                        <div class="raidus-swatch" :style="{ borderRadius: token.value }" />
+                        <div class="radius-swatch" :style="{ borderRadius: token.value }" />
                         <div class="mt-2">
-                            <code clas="token-code">--{{  token.name  }}</code>
+                            <code class="token-code">--{{  token.name  }}</code>
                             <div class="token-value"> {{  token.value  }}</div>
                         </div>
                     </v-col>
@@ -42,7 +42,7 @@
                             {{  token.label  }}
                         </div>  
                         
-                        <code clas="token-code d-block mt-2">--{{  token.name  }}</code>
+                        <code class="token-code d-block mt-2">--{{  token.name  }}</code>
                     </v-col>
                 </v-row>
             </div>

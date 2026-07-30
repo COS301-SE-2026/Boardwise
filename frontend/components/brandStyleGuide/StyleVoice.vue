@@ -27,7 +27,7 @@
                     Not like this
                 </div>
 
-                <div v-for="line in dontExamples" :key="line" class="voice-example">
+                <div v-for="line in doExamples" :key="line" class="voice-example">
                     {{ line }}
                 </div>
             </v-card>
@@ -68,7 +68,7 @@
                 
                     <div>
                         <div class="component-card-title">Meet Boarley</div>
-                        <div class="mascot-subtitle">Our macot - a  warm witty boar who shows up in empty states, tooltips and celebratory moments</div>
+                        <div class="mascot-subtitle">Our mascot - a  warm witty boar who shows up in empty states, tooltips and celebratory moments</div>
                     </div>
 
                 </div>

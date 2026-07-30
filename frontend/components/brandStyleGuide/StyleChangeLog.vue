@@ -112,7 +112,7 @@
             </v-card>
 
             <v-card flat border class="pa-4">
-                <div class="chnage-title mb-2">Carried forward unchanged</div>
+                <div class="change-title mb-2">Carried forward unchanged</div>
                 <p class="rule-copy">
                     The five Design Principles from Demo 1 - Consistency, Simplicity, Responsiveness, Accessibility, and Clarity
                     Feedback - still hold and re not restated here in full; see Section 06 (Accessibility) and Section 07 (Voice & Tone) 
