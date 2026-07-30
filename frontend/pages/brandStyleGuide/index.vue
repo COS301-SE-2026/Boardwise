@@ -13,6 +13,7 @@
                 <StyleAccessibility />
                 <StyleVoice />
                 <StyleDosDonts />
+                <StyleChangeLog />
 
             </v-container>
 
@@ -40,6 +41,7 @@ import StyleIcons from '~/components/brandStyleGuide/StyleIcons.vue';
 import StyleDosDonts from '~/components/brandStyleGuide/StyleDosDonts.vue';
 import StyleAccessibility from '~/components/brandStyleGuide/StyleAccessibility.vue';
 import StyleVoice from '~/components/brandStyleGuide/StyleVoice.vue';
+import StyleChangeLog from '~/components/brandStyleGuide/StyleChangeLog.vue';
 
 const isDark = ref(false)
 
