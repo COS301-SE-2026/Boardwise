@@ -13,8 +13,23 @@
       <v-date-input v-model="date" label="Date" variant="outlined" hide-details />
 
       <div class="d-flex ga-3">
-        <v-text-field v-model="start_time" label="Start Time" type="time" variant="outlined" density="compact" hide-details />
-        <v-text-field v-model="end_time" label="End Time" type="time" variant="outlined" density="compact" hide-details />
+        <BaseInput 
+          v-model="start_time"
+          label="Start Time"
+          type="time"
+          variant="outlined"
+          density="compact"
+          hide-details
+        />
+
+        <BaseInput
+          v-model="end_time" 
+          label="End Time" 
+          type="time" 
+          variant="outlined" 
+          density="compact" 
+          hide-details 
+        />
       </div>
 
       <v-select v-model="selected_visibility" label="Visibility" :items="visibilities" variant="outlined" density="compact" hide-details />

@@ -27,14 +27,16 @@ const colorMap = {
   accent:    'var(--color-accent)',
   ghost:     'var(--color-surface-alt)',
   error:     'var(--color-error)',
-  success:   'var(--color-success)'
+  success:   'var(--color-success)',
+  text:      'var(--color-text)'
 }
 
 const styleMap = {
   primary:   'flat',
   secondary: 'outlined',
   accent:    'flat',
-  ghost:     'flat'
+  ghost:     'flat',
+  text:       'text'
 }
 </script>
 
