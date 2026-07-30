@@ -12,6 +12,7 @@
             <a href="#typography">Typography</a>
             <a href="#spacing">Spacing & Radius</a>
             <a href="#components">Components</a>
+            <a href="#icons">Icons</a>
         </div>
 
         <v-btn

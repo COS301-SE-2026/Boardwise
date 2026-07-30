@@ -9,6 +9,7 @@
                 <StyleTypography />
                 <StyleTokens />
                 <StyleComponents />
+                <StyleIcons />
 
             </v-container>
 
@@ -32,6 +33,7 @@ import StyleHero from '~/components/brandStyleGuide/StyleHero.vue';
 import StyleNav from '~/components/brandStyleGuide/StyleNav.vue';
 import StyleTokens from '~/components/brandStyleGuide/StyleTokens.vue';
 import StyleComponents from '~/components/brandStyleGuide/StyleComponents.vue';
+import StyleIcons from '~/components/brandStyleGuide/StyleIcons.vue';
 
 const isDark = ref(false)
 

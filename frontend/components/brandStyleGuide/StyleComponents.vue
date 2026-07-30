@@ -5,7 +5,7 @@
             subtitle="Reusable primitives built on the tokens above."
         />
 
-        <div class="d-flex flex-colum ga-6 mt-4">
+        <div class="d-flex flex-column ga-6 mt-4">
             <div class="spec-block pb-4">
                 <span class="spec-label mb-2">Buttons</span>
                 <div class="d-flex flex-wrap ga-3 mt-2">
