@@ -16,6 +16,7 @@
         :loading="genresLoading"
         multiple
         chips
+        no-filter
         closable-chips
         variant="outlined"
         density="compact"
@@ -91,6 +92,7 @@
 <script setup>
 import { useUserLocation } from '@/composables/useUserLocation';
 import { useBoardGames } from '~/composables/useBoardGames'
+import BaseCard from '~/components/ui/BaseCard.vue'
 
 const { city, suburb, lat, long, error: locationError, loading, findUserLocation } = useUserLocation();
 const { searchGenres, genres, isLoading: genresLoading } = useBoardGames()
