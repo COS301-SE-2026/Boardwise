@@ -51,7 +51,14 @@
       />
 
       <div class="d-flex align-center ga-3">
-        <v-btn variant="outlined" color="primary" @click="triggerUpload">Upload Image</v-btn>
+        <BaseButton 
+          variant="outlined" 
+          color="primary" 
+          @click="triggerUpload"
+        >
+          Upload Image
+        </BaseButton>
+
         <label for="edit-event-image-upload" class="text-grey text-body-2">{{ file_name || '···' }}</label>
         <input id="edit-event-image-upload" ref="file_input" type="file" accept="image/*" class="hidden-input" @change="handleFileChange" />
       </div>
@@ -59,8 +66,20 @@
       <p v-if="error" class="text-error text-body-2 ma-0">{{ error }}</p>
 
       <div class="d-flex justify-end ga-3">
-        <v-btn variant="outlined" color="primary" @click="closeModal">Cancel</v-btn>
-        <v-btn color="primary" :loading="isLoading" @click="handleSave">Save Changes</v-btn>
+        <BaseButton 
+          variant="outlined" 
+          color="primary" 
+          @click="closeModal"
+        >
+          Cancel
+        </BaseButton>
+        <BaseButton 
+          color="primary" 
+          :loading="isLoading" 
+          @click="handleSave"
+        >
+          Save Changes
+        </BaseButton>
       </div>
 
     </BaseCard>
