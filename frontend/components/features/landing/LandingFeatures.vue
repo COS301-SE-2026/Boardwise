@@ -1,10 +1,11 @@
 <template>
     <v-container class=" py-16">
 
-        <v-row class="mb-10"
+        <v-row class="mb-14"
         >
             <v-col
                 cols="12" 
+                md="12"
                 class="text-center"
             >
                 <h2>
