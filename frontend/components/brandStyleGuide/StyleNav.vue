@@ -68,7 +68,8 @@ const links = [
   { href: '#components', label: 'Components' },
   { href: '#icons', label: 'Icons' },
   { href: '#dos-donts', label: 'Dos & Donts'},
-  { href: '#accessibility', label: 'Accessibility'}
+  { href: '#accessibility', label: 'Accessibility'},
+  { href: '#voice', label:'Voice & Tone'}
 ]
 </script>
 
