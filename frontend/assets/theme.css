@@ -23,14 +23,14 @@
   --wildfire:   #C7286E;  /* PRIMARY — like wildfire event cards */
   --copper:     #EF5B27;  /* orange — like copper resource tokens */
   --rosewood:   #E58BB4;  /* soft pink — like rosewood game boxes */
-
+  
   /* Neutrals */
   --scrollpaper: #FBF6F0; /* page bg — like ancient scroll rulebooks */
   --alabaster:   #FFFFFF;  /* surfaces — like alabaster game tiles */
   --feltboard:   #F3E9E2;  /* fills — like the felt of a game table */
   --shadowink:   #2E1430;  /* body text — like ink on a shadow board */
   --ashquill:    #6B5563;  /* muted — like an ash-tipped quill */
-
+  --lavender-board: #8B5FA8;
   /* ----------------------------------------------------------
      2. SEMANTIC COLOURS — use THESE in components, not raw brand
      ---------------------------------------------------------- */
@@ -49,6 +49,7 @@
   --color-surface-alt:    var(--feltboard);   /* Secondary background */
   --color-border:         var(--feltboard);
   --color-border-strong:  #D8C9CF;
+  --color-hero-bg: var(--lavender-board);
 
   /* Feedback */
   --color-success:        #2E7D5B;
@@ -438,6 +439,7 @@ a:hover { text-decoration: underline; }
 }
 
 .game-card {
+  width: 110px;
   flex-shrink: 0;
   cursor: pointer;
   overflow: hidden;
@@ -516,13 +518,46 @@ a:hover { text-decoration: underline; }
    HERO BADGES (Play • Connect • Share)
    ========================================================== */
 
+   .hero-heading {
+      display: flex ;
+      align-items: center;
+      gap: 1rem;
+   }
+
+  .hero-heading-mascot {
+    width: auto;
+    max-height: 120px;
+    height: 100%;
+    flex-shrink: 0;
+  } 
+
+  .hero-heading h1 {
+    margin: 0;
+  }
+
+  @media (max-width: 600px) {
+  .hero-heading {
+    flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+  }
+
+  .hero-heading-mascot {
+    height: 2.4em;
+    width: auto;
+  }
+
+   .hero-heading h1 {
+      text-align: center;
+  }
+}
 .hero-badges {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
    gap: clamp(0.75rem, 2vw, 1.5rem);
   flex-wrap: wrap;
-  margin-bottom: clamp(1.5rem, 3vw, 3rem);
+  margin: clamp(1.5rem, 3vw, 3rem);
 }
 
 .hero-badge {
@@ -545,7 +580,7 @@ a:hover { text-decoration: underline; }
 }
 
 .hero-badge--connect {
-  background: var(--color-accent);
+  background: var(--color-secondary);
   transform: rotate(-7deg);
 }
 
@@ -561,6 +596,10 @@ a:hover { text-decoration: underline; }
 
 /* Tablet */
 @media (max-width: 960px) {
+  .hero-badges {
+    justify-content: center;
+  }
+
   .hero-badge {
     font-size: 0.95rem;
     padding: 0.65rem 1.4rem;
@@ -570,6 +609,7 @@ a:hover { text-decoration: underline; }
 /* Mobile */
 @media (max-width: 600px) {
   .hero-badges {
+    justify-content: center;
     gap: 0.5rem;
   }
 
@@ -577,4 +617,42 @@ a:hover { text-decoration: underline; }
     font-size: 0.75rem;
     padding: 0.45rem 1rem;
   }
+}
+
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+}
+
+.logo-text {
+  margin: 0;
+  font-family: var(--font-display);
+  color: var(--color-primary);
+  font-size: clamp(1.5rem, 2vw, 2rem);
+}
+
+.logo-mascot {
+  width: clamp(32px, 4vw, 48px);
+  height: auto;
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .logo-wrapper {
+    gap: 0.5rem;
+  }
+
+  .logo-mascot {
+    width: 36px;
+  }
+
+  .logo-text {
+    font-size: 1.4rem;
+  }
+}
+
+.cta-title {
+    color: white ;
 }
