@@ -56,7 +56,7 @@ services:
     build: ./ai/
     restart: on-failure
     environment:
-      - DB_URL=${DB_URL}
+      - DB_URL=${PROD_DB_URL}
       - DB_NAME=${DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_ALGORITHM=${JWT_ALGORITHM}
