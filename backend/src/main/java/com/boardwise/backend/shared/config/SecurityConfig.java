@@ -29,7 +29,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@Profile("!test")
+// @Profile("!test")
 public class SecurityConfig {
 
     private final MyUserDetailsService userDetailsService; 
