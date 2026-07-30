@@ -1,18 +1,19 @@
 import { test, expect } from '@playwright/test';
 import { assert } from 'node:console';
-import { beforeEach } from 'node:test';
+import { before, beforeEach } from 'node:test';
 import { fi } from 'vuetify/locale';
 
 let homepage = 'http://localhost:3000/'
 
 //LAND ON LANDING PAGE AND GO TO LIBRARY
-test('Landing page with unauthorized access to library',async ({page})=>{
+test.describe('Library End-to-End Testing',()=>{
+// Navigate through rulebooks
+test('Navigate From Landing page to Rulebooks and view a rulebook',async ({page})=>{
   const targetPage = homepage ;
   const sideBar = page.locator('nav.v-navigation-drawer--right');
 
   // land on page 
   await page.goto(targetPage);
-  await page.waitForLoadState('networkidle'); 
 
   // click first rulebook button
   const rulebooksBtn = page.getByRole('button', { name: 'Rulebooks' }).first(); //top rulebook button 
@@ -64,5 +65,28 @@ test('Landing page with unauthorized access to library',async ({page})=>{
   const readingPageTitle = await page.locator('h1').textContent();
   expect(readingPageTitle.trim()).toMatch(CardTitle.trim());
 
-}); //check if it took you to Library
+}); 
+
+test('Navigate from Landing page to Rulebooks And get redirected to signin', async ({page})=>{
+  const targetPage = homepage ;
+  const navBarRedirect = page.getByRole('link',{name: 'Marketplace'}).first();
+
+  // land on page 
+  await page.goto(targetPage);
+
+  // click first rulebook button
+  const rulebooksBtn = page.getByRole('button', { name: 'Rulebooks' }).first(); //top rulebook button 
+  await rulebooksBtn.click();
+  await expect(page).toHaveURL(/.*\/library/);
+  await expect(page.getByRole('heading', { name: /library/i })).toBeVisible();
+
+  //click
+  await navBarRedirect.click();
+  
+  await expect(page).toHaveURL(/\/auth\/signin\/?$/);
+
+});
+
+});
+
 
