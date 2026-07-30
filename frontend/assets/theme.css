@@ -140,9 +140,8 @@
   /* Loading skeletons */
   --skeleton-base: var(--feltboard);
   --skeleton-highlight: #FDFBF9;
-}
 
-/*=========================================================================
+  /*=========================================================================
   LEGACY ALIASES 
       Colour names were changed and below is code to correct those changes to
       match the new colour names. 
@@ -157,8 +156,7 @@
 
   ===========================================================================*/
 
-  :root { 
-    /* old --bw-* names -> new tokens */
+  /* old --bw-* names -> new tokens */
     --bw-maroon: var(--wildfire);
     --bw-maroon-deep: var(--merlot);
     --bw-navy: var(--obsidian);
@@ -172,9 +170,8 @@
     --grape: var(--obsidian);
     --raspberry: var(--wildfire);
     --tangelo: var(--copper);
-    --blossom: var(--rosewood);    
-  }
-
+    --blossom: var(--rosewood); 
+}
 /* =============================================================
    DARK MODE - will be a toggle with data-theme="dark"
    ============================================================= */
@@ -577,4 +574,67 @@ a:hover { text-decoration: underline; }
     font-size: 0.75rem;
     padding: 0.45rem 1rem;
   }
+}
+
+.section-border {
+    border-top:1px solid var(--color-border);
+}
+
+
+.heading,
+.section-title {
+
+    font-family:var(--font-display);
+    color:var(--color-secondary);
+
+}
+
+
+.logo-card {
+
+    border-radius:var(--radius-lg);
+
+}
+
+
+.description {
+
+    color:var(--color-text-muted);
+    font-size:var(--fs-small);
+
+}
+
+
+.do {
+
+    color:var(--color-success);
+
+}
+
+
+.dont {
+
+    color:var(--color-error);
+
+}
+
+
+ul {
+
+    padding-left:20px;
+}
+
+
+li {
+
+    margin-bottom:8px;
+
+}
+
+.mascot-icon {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
