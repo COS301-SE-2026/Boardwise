@@ -42,10 +42,10 @@
     <div v-if="lgAndUp" class="right">
         <NuxtLink to="/library" class="nav-link">Library</NuxtLink> 
         <NuxtLink to="/marketplace" class="nav-link">Marketplace</NuxtLink>
-        <NuxtLink to="/community" class="nav-link">Community</NuxtLink>
+        <!-- <NuxtLink to="/community" class="nav-link">Community</NuxtLink> -->
         <NuxtLink to="/events" class="nav-link">Events</NuxtLink>
         <NuxtLink to="/profile" class="nav-link">Profile</NuxtLink>
-        <NuxtLink to="/chats" class="nav-link">Chat</NuxtLink>
+        <!-- <NuxtLink to="/chats" class="nav-link">Chat</NuxtLink> -->
         <LogOutButton />
     </div>
 
@@ -99,10 +99,10 @@
   <v-list nav density="compact">
     <v-list-item prepend-icon="mdi-bookshelf" title="Library" to="/library" @click="drawer = false" />
     <v-list-item prepend-icon="mdi-store" title="Marketplace" to="/marketplace" @click="drawer = false" />
-    <v-list-item prepend-icon="mdi-account-group" title="Community" to="/community" @click="drawer = false" />
+    <!-- <v-list-item prepend-icon="mdi-account-group" title="Community" to="/community" @click="drawer = false" /> -->
     <v-list-item prepend-icon="mdi-calendar" title="Events" to="/events" @click="drawer = false" />
     <v-list-item prepend-icon="mdi-account" title="Profile" to="/profile" @click="drawer = false" />
-    <v-list-item prepend-icon="mdi-message" title="Chat" to="/chats" @click="drawer = false" />
+    <!-- <v-list-item prepend-icon="mdi-message" title="Chat" to="/chats" @click="drawer = false" /> -->
   </v-list>
 
     <template #append>
