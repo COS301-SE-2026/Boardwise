@@ -69,7 +69,9 @@
         <NuxtLink to="/events" class="nav-link">Events</NuxtLink>
         <NuxtLink to="/profile" class="nav-link">Profile</NuxtLink>
         <NuxtLink to="/chats" class="nav-link">Chat</NuxtLink>
-        <LogOutButton />
+      
+        <LogOutButton v-if="isLoggedIn" />
+        <SignInUpButtons v-else />
     </div>
   </v-app-bar>
 
@@ -93,11 +95,16 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import LogOutButton from '~/components/features/auth/LogOutButton.vue'
+import SignInUpButtons from '~/components/features/auth/SignInUpButtons.vue'
+import { useAuth } from '~/composables/useAuth';
+const { isAuthenticated } = useAuth()
+
 defineEmits(['ask-ai'])
 
 const drawer = ref(false)
+const isLoggedIn = computed(() => isAuthenticated.value)
 </script>
 
 <style scoped>
