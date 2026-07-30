@@ -4,18 +4,21 @@
         <v-sheet 
             rounded="xl"
             color="primary"
-            class="pa-10 pa-md-16 overflow-hidden position-relative"
+            class="pa-10 pa-md-16 overflow-hidden position-relative hero-cta"
         >
             <v-row align="center">
-                <v-col cols="12" md="6" class="text-center">
-                    <BaseButton color="white" class="mb-4">
+                <v-col cols="12" md="12" class="text-center">
+                    <BaseButton variant="outlined" color="white" class="mb-4">
                         Ready to play?
                     </BaseButton>
-            <h2 class="text-h3 font-weight-bold text-white mb-4">
-                Spend less time reading.<br>More time playing.
+                    
+                    
+            <h2 class="cta-title text-h3 font-weight-bold text-white mb-4">
+                Spend less time reading.
+                <br>More time playing.
             </h2>
 
-            <p class="text-body-1 text-medium-emphasis text-white mb-8">
+            <p class="text-body-1 text-white mb-8">
                 Discover new board games, access rulebooks,
                 connect with players and share games all in one place. </p>
 
@@ -38,6 +41,7 @@
                 </BaseButton>
             </div>
         </v-col>
+        
             </v-row>
             </v-sheet>
 
