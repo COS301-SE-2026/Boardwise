@@ -10,7 +10,7 @@
       />
 
       <BaseBadge
-        class="badge text-white"
+        class="badge--absolute text-white"
         :variant="community.visibility"
       >
         {{ community.visibility }}
