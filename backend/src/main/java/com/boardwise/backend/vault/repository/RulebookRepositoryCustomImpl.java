@@ -2,6 +2,7 @@ package com.boardwise.backend.vault.repository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -199,7 +200,7 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
             }
 
             if (genre != null && !genre.equalsIgnoreCase("All") && !genre.trim().isEmpty()) {
-                query.addCriteria(Criteria.where("genres").is(genre)); // account for case sensitivity
+                query.addCriteria(Criteria.where("genres").regex(Pattern.quote(genre), "i")); // account for case sensitivity
             }
             
             if(languages != null && !languages.isEmpty()){
