@@ -5,7 +5,6 @@ import static org.mockito.Mockito.*;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
