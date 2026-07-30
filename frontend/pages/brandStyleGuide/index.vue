@@ -10,6 +10,7 @@
                 <StyleTokens />
                 <StyleComponents />
                 <StyleIcons />
+                <StyleAccessibility />
                 <StyleDosDonts />
 
             </v-container>
@@ -36,6 +37,7 @@ import StyleTokens from '~/components/brandStyleGuide/StyleTokens.vue';
 import StyleComponents from '~/components/brandStyleGuide/StyleComponents.vue';
 import StyleIcons from '~/components/brandStyleGuide/StyleIcons.vue';
 import StyleDosDonts from '~/components/brandStyleGuide/StyleDosDonts.vue';
+import StyleAccessibility from '~/components/brandStyleGuide/StyleAccessibility.vue';
 
 const isDark = ref(false)
 
