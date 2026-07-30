@@ -199,7 +199,7 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
             }
 
             if (genre != null && !genre.equalsIgnoreCase("All") && !genre.trim().isEmpty()) {
-                query.addCriteria(Criteria.where("genres").is(genre)); // account for case
+                query.addCriteria(Criteria.where("genres").is(genre)); // account for case sensitivity
             }
             
             if(languages != null && !languages.isEmpty()){
