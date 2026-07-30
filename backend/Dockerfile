@@ -40,3 +40,31 @@ EXPOSE 8080
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# ==========================================
+#TESTING
+# ==========================================
+
+#JMETER
+FROM eclipse-temurin:17-jre-alpine
+ARG JMETER_VERSION="5.6.3"
+ENV JMETER_HOME=/opt/apache-jmeter-${JMETER_VERSION}
+ENV PATH=${JMETER_HOME}/bin:${PATH}
+
+# install dependencies & download JMeter
+RUN apk add --no-cache curl tar bash \
+    && curl -sL https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz | tar -xz -C /opt \
+    && rm -rf ${JMETER_HOME}/docs ${JMETER_HOME}/printable_docs
+
+# currently 512m  available 
+ENV JVM_ARGS=" -XX:MaxRAMPercentage=80.0 -XX:MaxMetaspaceSize=512m"
+
+WORKDIR /jmeter
+
+# COpy test plan script into image
+COPY src/test/nonfunctional/ /jmeter/scripts/
+COPY entrypoint.sh /jmeter/entrypoint.sh
+RUN chmod +x /jmeter/entrypoint.sh
+
+
+ENTRYPOINT ["/jmeter/entrypoint.sh"]

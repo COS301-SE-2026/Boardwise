@@ -21,12 +21,12 @@
     "vuetify-nuxt-module": "^0.19.5"
   },
   "devDependencies": {
-    "@nuxt/test-utils": "^4.1.0",
+    "@nuxt/test-utils": "^3.8.1",
     "@playwright/test": "^1.62.0",
     "@types/node": "^26.1.2",
     "@vitejs/plugin-vue": "^6.0.8",
     "@vitest/coverage-v8": "^4.1.10",
-    "@vue/test-utils": "^2.4.0",
+    "@vue/test-utils": "^2.2.7",
     "happy-dom": "^20.9.0",
     "vitest": "^4.1.10"
   },
