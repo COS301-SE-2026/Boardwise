@@ -7,6 +7,14 @@
                 <StyleHero />
                 <StyleColours />
                 <StyleTypography />
+                <StyleTokens />
+                <StyleComponents />
+                <StyleIcons />
+                <StyleAccessibility />
+                <StyleVoice />
+                <StyleDosDonts />
+                <StyleChangeLog />
+
             </v-container>
 
             <footer class="py-8 section-border text-center">
@@ -27,6 +35,13 @@ import StyleTypography from '~/components/brandStyleGuide/StyleTypography.vue';
 import StyleColours from '~/components/brandStyleGuide/StyleColours.vue';
 import StyleHero from '~/components/brandStyleGuide/StyleHero.vue';
 import StyleNav from '~/components/brandStyleGuide/StyleNav.vue';
+import StyleTokens from '~/components/brandStyleGuide/StyleTokens.vue';
+import StyleComponents from '~/components/brandStyleGuide/StyleComponents.vue';
+import StyleIcons from '~/components/brandStyleGuide/StyleIcons.vue';
+import StyleDosDonts from '~/components/brandStyleGuide/StyleDosDonts.vue';
+import StyleAccessibility from '~/components/brandStyleGuide/StyleAccessibility.vue';
+import StyleVoice from '~/components/brandStyleGuide/StyleVoice.vue';
+import StyleChangeLog from '~/components/brandStyleGuide/StyleChangeLog.vue';
 
 const isDark = ref(false)
 
