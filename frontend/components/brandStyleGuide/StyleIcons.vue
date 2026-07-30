@@ -1,5 +1,5 @@
 <template> 
-    <section class="py-8 section-border" id="components">
+    <section class="py-8 section-border" id="icons">
         <SectionTitle
             title="05 - Icons"
             subtitle="Material Design Icons (mdi) bundled with Vuetify. Use a semantic colour token rather than a raw hex value."
@@ -11,7 +11,7 @@
                 <div class="d-flex flex-wrap ga-6 mt-2">
                     <div v-for="size in sizeTokens" :key="size.label" class="text-center">
                         <v-icon icon="mdi-dice-multiple" :size="size.px" color="primary" />
-                        <div class="token-value mt-2">{{  size.label  }} {{ size.px }}px</div>
+                        <div class="token-value mt-2">{{  size.label  }} · {{ size.px }}px</div>
                     </div>
                 </div>
             </div>
@@ -31,7 +31,7 @@
                 <v-row class="mt-2">
                     <v-col v-for="item in commonIcons" :key="item.icon" cols="6" sm="3" class="text-center">
                         <div class="icon-title">
-                            <v-icon icon="item.icon" size="24" color="secondary" />
+                            <v-icon :icon="item.icon" size="24" color="secondary" />
                         </div>
 
                         <div class="token-value mt-2">{{  item.label  }}</div>
