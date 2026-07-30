@@ -197,7 +197,7 @@ public class RulebookControllerTest {
 
     @Test
     @WithMockUser
-    void rulebookNotFoundExceptionIsHandledByAdviceAndReturns() throws Exception{
+    void rulebookNotFoundExceptionIsHandledByAdviceAndReturns404() throws Exception{
         // Arrange
         when(rulebookService.getRulebookById(validId))
             .thenThrow(new RulebookNotFoundException(validId));
@@ -208,7 +208,7 @@ public class RulebookControllerTest {
     
     @Test
     @WithMockUser
-    void r2PresignedExceptionIsHandledByAdviceAndReturns() throws Exception{
+    void r2PresignedExceptionIsHandledByAdviceAndReturns502() throws Exception{
         // Arrange
         when(rulebookService.getDownloadUrl(validId))
             .thenThrow(new R2PresignException("upstream failure"));
