@@ -22,6 +22,8 @@
   },
   "devDependencies": {
     "@nuxt/test-utils": "^4.1.0",
+    "@playwright/test": "^1.62.0",
+    "@types/node": "^26.1.2",
     "@vitejs/plugin-vue": "^6.0.8",
     "@vitest/coverage-v8": "^4.1.10",
     "@vue/test-utils": "^2.4.0",
