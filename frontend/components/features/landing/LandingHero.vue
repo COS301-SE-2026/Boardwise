@@ -1,13 +1,20 @@
 <template>
     <v-container class="py-16"
     >
-        <v-row align="center" justify="center">
+        <v-row align="center" >
 
-            <v-col cols="12" md="7" class="text-center mx-auto">
+            <v-col cols="12" md="12" class="text-start">
+                    <div class="hero-heading">
+                        <img
+                            src="/images/BoarleySide.svg"
+                            alt="Boarley"
+                            class="hero-heading-mascot"
+                        />
                     <h1>
                         Play more. Learn faster.<br> 
                         For people who love the table.
                     </h1>
+                    </div>
                     <div class="hero-badges">
                         <span class="hero-badge hero-badge--connect">Connect</span>
                         <span class="hero-badge hero-badge--share">Share</span>
@@ -18,10 +25,9 @@
                         discover new games, connect with other players,
                         trade or sell games, all in one place.</p>
 
-                    <div class="d-flex justify-center flex-wrap ga-4">
+                    <div class="d-flex flex-wrap">
                         <BaseButton
-                            variant="outlined"
-                            color="secondary"
+                            variant="secondary"
                             @click="router.push('/library')"
                         >
                             Rulebooks
@@ -29,7 +35,7 @@
 
                         
                         <BaseButton 
-                            color="white"
+                            class="ml-3"
                             @click="router.push('/auth/signup')">
                             Get started 
                         </BaseButton>
