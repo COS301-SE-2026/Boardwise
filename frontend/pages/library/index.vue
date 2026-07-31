@@ -77,6 +77,7 @@ import { useAuth } from '~/composables/useAuth';
 import { useSnackBar } from '~/composables/useSnackbar';
 
 const { show } = useSnackBar();
+const showFilters = ref(false)
 
 const route = useRoute();
 const router = useRouter();

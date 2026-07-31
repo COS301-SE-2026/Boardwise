@@ -1,33 +1,10 @@
 <template>
 <header class="hero text-center py-12">
     <div class="hero-eyebrow mb-2">Brand Style Guide</div>
-    <h1 class="hero-title mb-3">Board<span class="accent">wise</span></h1>
+    <h1 class="hero-title mb-3">Boardwise</h1>
     <p class="hero-sub mx-auto mb-8">
       Single source of truth for design tokens, component primitives, and visual language across Boardwise.
     </p>
-
-    <v-row justify="center" class="hero-meta mb-6">
-
-      <v-col cols="6" sm="3" md="2" class="meta-item">
-        <span class="value">v2.0</span>
-        <span class="label">Version</span>
-      </v-col>
-
-      <v-col cols="6" sm="3" md="2" class="meta-item">
-        <span class="value">10</span>
-        <span class="label">Brand Colours</span>
-      </v-col>
-
-      <v-col cols="6" sm="3" md="2" class="meta-item">
-        <span class="value">3</span>
-        <span class="label">Typefaces</span>
-      </v-col>
-
-      <!-- <v-col cols="6" sm="3" md="2" class="meta-item">
-        <span class="value">AA+</span>
-        <span class="label">WCAG Target</span>
-      </v-col> -->
-    </v-row>
 
     <div class="d-flex justify-center ga-3 flex-wrap">
       <BaseBadge variant="copper">Play More</BaseBadge>

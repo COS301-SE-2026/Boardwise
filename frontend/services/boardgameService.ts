@@ -12,6 +12,7 @@ export interface GetBoardGamesResponse{
 }
 
 export interface GetGenresResponse{
+    genres: never[]
     message: string
     result: string[]
 }

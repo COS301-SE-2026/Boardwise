@@ -1,10 +1,8 @@
 <div align="center">
 
-<img src="./docs/assets/boardwise-logo.png" alt="Boardwise" width="420"/>
+<img src="./docs/assets/boardwise-logo.svg" alt="Boardwise" width="420"/>
 
-# BOARDWISE
-
-### CONNECT • SHARE • PLAY
+<img src="./docs/assets/slogan.svg" alt="Boardwise" width="420"/>
 
 
 ## Team

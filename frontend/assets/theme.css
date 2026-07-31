@@ -6,8 +6,7 @@
    Then use the variables everywhere instead of hard-coded values.
 
    v2 changes: matches the brand style guide better. Semantic tokens 
-   have defined colours. Added a dark mode via [data-theme="dark"]
-   on <html>.
+   have defined colours.
    ============================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=DynaPuff:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Comic+Neue:wght@400;700&display=swap');
@@ -23,14 +22,14 @@
   --wildfire:   #C7286E;  /* PRIMARY — like wildfire event cards */
   --copper:     #EF5B27;  /* orange — like copper resource tokens */
   --rosewood:   #E58BB4;  /* soft pink — like rosewood game boxes */
-
+  
   /* Neutrals */
   --scrollpaper: #FBF6F0; /* page bg — like ancient scroll rulebooks */
   --alabaster:   #FFFFFF;  /* surfaces — like alabaster game tiles */
   --feltboard:   #F3E9E2;  /* fills — like the felt of a game table */
   --shadowink:   #2E1430;  /* body text — like ink on a shadow board */
   --ashquill:    #6B5563;  /* muted — like an ash-tipped quill */
-
+  --lavender-board: #8B5FA8;
   /* ----------------------------------------------------------
      2. SEMANTIC COLOURS — use THESE in components, not raw brand
      ---------------------------------------------------------- */
@@ -49,6 +48,7 @@
   --color-surface-alt:    var(--feltboard);   /* Secondary background */
   --color-border:         var(--feltboard);
   --color-border-strong:  #D8C9CF;
+  --color-hero-bg: var(--lavender-board);
 
   /* Feedback */
   --color-success:        #2E7D5B;
@@ -140,9 +140,8 @@
   /* Loading skeletons */
   --skeleton-base: var(--feltboard);
   --skeleton-highlight: #FDFBF9;
-}
 
-/*=========================================================================
+  /*=========================================================================
   LEGACY ALIASES 
       Colour names were changed and below is code to correct those changes to
       match the new colour names. 
@@ -157,8 +156,7 @@
 
   ===========================================================================*/
 
-  :root { 
-    /* old --bw-* names -> new tokens */
+  /* old --bw-* names -> new tokens */
     --bw-maroon: var(--wildfire);
     --bw-maroon-deep: var(--merlot);
     --bw-navy: var(--obsidian);
@@ -172,13 +170,12 @@
     --grape: var(--obsidian);
     --raspberry: var(--wildfire);
     --tangelo: var(--copper);
-    --blossom: var(--rosewood);    
-  }
-
+    --blossom: var(--rosewood); 
+}
 /* =============================================================
    DARK MODE - will be a toggle with data-theme="dark"
    ============================================================= */
-   html[data-theme="dark"] {
+   /* html[data-theme="dark"] {
     --scrollpaper: #17101C; 
     --alabaster:   #241629;  
     --feltboard:   #33223A;  
@@ -187,7 +184,7 @@
     --obsidian:   #F0D9EC;
     --wildfire:   #E64C86;
 
-    --color-primary:        var(--feltboard);
+    --color-primary:        var(--wildfire);
     --color-text:           var(--shadowink);
     --color-text-muted:     var(--ashquill);
     --color-bg:             var(--scrollpaper);   
@@ -199,7 +196,7 @@
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.5);
     --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
-   }
+   } */
 
 /* =============================================================
    BASE RESETS
@@ -237,6 +234,27 @@ a:hover { text-decoration: underline; }
 /* =============================================================
    COMPONENT PRIMITIVES — reuse via class instead of re-styling
    ============================================================= */
+
+/* Cards */
+.card-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-h4);
+  font-weight: var(--fw-regular);
+  color: var(--color-secondary);
+  line-height: 1.2;
+}
+
+.card-subtitle {
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+}
+
+.card-meta {
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+}
 
 /* Buttons - pill shape*/
 .btn {
@@ -438,6 +456,7 @@ a:hover { text-decoration: underline; }
 }
 
 .game-card {
+  width: 110px;
   flex-shrink: 0;
   cursor: pointer;
   overflow: hidden;
@@ -516,13 +535,46 @@ a:hover { text-decoration: underline; }
    HERO BADGES (Play • Connect • Share)
    ========================================================== */
 
+   .hero-heading {
+      display: flex ;
+      align-items: center;
+      gap: 1rem;
+   }
+
+  .hero-heading-mascot {
+    width: auto;
+    max-height: 120px;
+    height: 100%;
+    flex-shrink: 0;
+  } 
+
+  .hero-heading h1 {
+    margin: 0;
+  }
+
+  @media (max-width: 600px) {
+  .hero-heading {
+    flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+  }
+
+  .hero-heading-mascot {
+    height: 2.4em;
+    width: auto;
+  }
+
+   .hero-heading h1 {
+      text-align: center;
+  }
+}
 .hero-badges {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
    gap: clamp(0.75rem, 2vw, 1.5rem);
   flex-wrap: wrap;
-  margin-bottom: clamp(1.5rem, 3vw, 3rem);
+  margin: clamp(1.5rem, 3vw, 3rem);
 }
 
 .hero-badge {
@@ -545,7 +597,7 @@ a:hover { text-decoration: underline; }
 }
 
 .hero-badge--connect {
-  background: var(--color-accent);
+  background: var(--copper);
   transform: rotate(-7deg);
 }
 
@@ -561,6 +613,10 @@ a:hover { text-decoration: underline; }
 
 /* Tablet */
 @media (max-width: 960px) {
+  .hero-badges {
+    justify-content: center;
+  }
+
   .hero-badge {
     font-size: 0.95rem;
     padding: 0.65rem 1.4rem;
@@ -570,11 +626,112 @@ a:hover { text-decoration: underline; }
 /* Mobile */
 @media (max-width: 600px) {
   .hero-badges {
+    justify-content: center;
     gap: 0.5rem;
   }
 
   .hero-badge {
     font-size: 0.75rem;
     padding: 0.45rem 1rem;
+  }
+}
+
+.section-border {
+    border-top:1px solid var(--color-border);
+}
+
+
+.heading,
+.section-title {
+
+    font-family:var(--font-display);
+    color:var(--color-secondary);
+
+}
+
+
+.logo-card {
+
+    border-radius:var(--radius-lg);
+
+}
+
+
+.description {
+
+    color:var(--color-text-muted);
+    font-size:var(--fs-small);
+
+}
+
+
+.do {
+
+    color:var(--color-success);
+
+}
+
+
+.dont {
+
+    color:var(--color-error);
+
+}
+
+
+ul {
+
+    padding-left:20px;
+}
+
+
+li {
+
+    margin-bottom:8px;
+
+}
+
+.mascot-icon {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  flex-shrink: 0;
+  margin-top: 2px;
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+}
+
+.logo-text {
+  margin: 0;
+  font-family: var(--font-display);
+  color: var(--color-primary);
+  font-size: clamp(1.5rem, 2vw, 2rem);
+}
+
+.logo-mascot {
+  width: clamp(32px, 4vw, 48px);
+  height: auto;
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .logo-wrapper {
+    gap: 0.5rem;
+  }
+
+  .logo-mascot {
+    width: 36px;
+  }
+
+  .logo-text {
+    font-size: 1.4rem;
+  }
+}
+
+  .cta-title {
+      color: white ;
   }
 }
