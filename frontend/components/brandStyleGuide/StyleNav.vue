@@ -38,7 +38,7 @@
           </v-list>
         </v-menu>
 
-        <v-btn
+        <!-- <v-btn
             icon
             variant="text"
             class="ml-4"
@@ -46,7 +46,7 @@
             title="Toggle dark mode"
         >
             <v-icon>{{ isDark ? 'mdi-weather-sunny' : 'mdi-weather-night' }}</v-icon>
-        </v-btn>
+        </v-btn> -->
   </v-app-bar>
 </template>
 

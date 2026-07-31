@@ -6,8 +6,7 @@
    Then use the variables everywhere instead of hard-coded values.
 
    v2 changes: matches the brand style guide better. Semantic tokens 
-   have defined colours. Added a dark mode via [data-theme="dark"]
-   on <html>.
+   have defined colours.
    ============================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=DynaPuff:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Comic+Neue:wght@400;700&display=swap');
@@ -176,7 +175,7 @@
 /* =============================================================
    DARK MODE - will be a toggle with data-theme="dark"
    ============================================================= */
-   html[data-theme="dark"] {
+   /* html[data-theme="dark"] {
     --scrollpaper: #17101C; 
     --alabaster:   #241629;  
     --feltboard:   #33223A;  
@@ -197,7 +196,7 @@
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.5);
     --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
-   }
+   } */
 
 /* =============================================================
    BASE RESETS
