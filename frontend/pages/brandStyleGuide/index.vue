@@ -6,6 +6,7 @@
             <v-container class="max-width-container">
                 <StyleHero />
                 <StyleColours />
+                <StyleLogo/>
                 <StyleTypography />
                 <StyleTokens />
                 <StyleComponents />
@@ -42,6 +43,7 @@ import StyleDosDonts from '~/components/brandStyleGuide/StyleDosDonts.vue';
 import StyleAccessibility from '~/components/brandStyleGuide/StyleAccessibility.vue';
 import StyleVoice from '~/components/brandStyleGuide/StyleVoice.vue';
 import StyleChangeLog from '~/components/brandStyleGuide/StyleChangeLog.vue';
+import StyleLogo from '~/components/brandStyleGuide/StyleLogo.vue';
 
 const isDark = ref(false)
 
