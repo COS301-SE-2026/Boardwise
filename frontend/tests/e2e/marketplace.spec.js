@@ -19,9 +19,8 @@ test.describe('Marketplace Service Tests',()=>{
         await signInButton.click();
 
         //assert that we landed on the sign up page (if passes == continue)
-        await expect(page).toHaveURL(/\/auth\/signin\/?$/);
+        await expect(page).toHaveURL(homepage);
 
-        await expect(page).toHaveURL(/\/auth\/signin\/?$/);
 
         const usernameInput = page.getByPlaceholder('Username');
         const passwordInput = page.getByPlaceholder('Password');

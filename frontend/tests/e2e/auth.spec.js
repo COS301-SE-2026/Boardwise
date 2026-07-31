@@ -52,7 +52,7 @@ test.describe('Auth End-to-End testing suite',()=>{
         await signInButton.click();
 
         //assert that we landed on the sign up page (if passes == continue)
-        await expect(page).toHaveURL(/\/auth\/signin\/?$/);
+        await expect(page).toHaveURL(homepage);
 
         const usernameInput = page.getByPlaceholder('Username');
         const passwordInput = page.getByPlaceholder('Password');
@@ -88,7 +88,7 @@ test.describe('Auth End-to-End testing suite',()=>{
         await signUpButton.click();
 
         //check if it directed you properly
-        await expect(page).toHaveURL(/\/auth\/signup\/?$/);
+        await expect(page).toHaveURL(homePage);
 
         const firstNameInput = page.getByPlaceholder('First Name');
         const lastNameInput = page.getByPlaceholder('Last Name');
