@@ -14,7 +14,7 @@
                     Write like this
                 </div>
 
-                <div v-for="line in dontExamples" :key="line" class="voice-example">
+                <div v-for="line in doExamples" :key="line" class="voice-example">
                     {{ line }}
                 </div>
             </v-card>
@@ -63,9 +63,14 @@
     <v-row class="mt-2">
         <v-col cols="12">
             <v-card flat border class="mascot-card pa-4 h-100">
-                <div class="mascot-header mb-3">
-                    <v-icon icon="mdi-pig" size="28" color="primary" class="mascot-icon" />
                 
+                <div class="mascot-header mb-3">
+                    <img
+                        src="/images/cute.svg"
+                        alt="Boarley mascot"
+                        class="mascot-icon"
+                    />
+                            
                     <div>
                         <div class="component-card-title">Meet Boarley</div>
                         <div class="mascot-subtitle">Our mascot - a  warm witty boar who shows up in empty states, tooltips and celebratory moments</div>
