@@ -2,7 +2,7 @@
   <div class="search-row">
 
     <div class="search">
-      <BaseSearch placeholder="Search for games..." />
+      <BaseSearch placeholder="Search for listings..." />
     </div>
 
     <!-- <BaseButton variant="secondary">

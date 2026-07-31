@@ -5,8 +5,19 @@
 
       <v-text-field v-model="listingTitle" label="Listing Title" placeholder="Listing title" variant="outlined" density="compact" hide-details />
 
-      <v-text-field v-model="gameTitle" label="Game Title" placeholder="Game title" variant ="outlined" density="compact" hide-details/>
-
+      <v-autocomplete
+        v-model="gameTitle"
+        label="Game Title"
+        :items="games"
+        :loading="gamesLoading"
+        item-title="title"
+        item-value="title"
+        no-filter
+        variant="outlined"
+        density="compact"
+        hide-details
+        @update:search="onGameSearch"
+      />
       <v-text-field v-model="version" label="Version" placeholder="e.g. Original" variant ="outlined" density="compact" hide-details/>
 
       <v-autocomplete
@@ -20,6 +31,7 @@
         closable-chips
         variant="outlined"
         density="compact"
+        clear-on-select="true"
         hide-details
         @update:search="onGenreSearch"
       />
@@ -95,14 +107,23 @@ import { useBoardGames } from '~/composables/useBoardGames'
 import BaseCard from '~/components/ui/BaseCard.vue'
 
 const { city, suburb, lat, long, error: locationError, loading, findUserLocation } = useUserLocation();
-const { searchGenres, genres, isLoading: genresLoading } = useBoardGames()
+const { searchGenres, genres, searchGames, games, isLoading: genresLoading } = useBoardGames();
 
-onMounted(() => searchGenres())
+onMounted(() =>{ 
+  searchGenres()
+  searchGames()
+})
 
 let genreSearchTimeout
 const onGenreSearch = (query) => {
   clearTimeout(genreSearchTimeout)
   genreSearchTimeout = setTimeout(() => searchGenres(query), 300)
+}
+
+let gameSearchTimeout
+const onGameSearch = (query) => {
+  clearTimeout(gameSearchTimeout)
+  gameSearchTimeout = setTimeout(() => searchGames(query), 300)
 }
 
 const isLoading = ref(false);

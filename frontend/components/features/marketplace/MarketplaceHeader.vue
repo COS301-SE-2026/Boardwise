@@ -11,7 +11,7 @@
         :model-value="modelValue"
         @update:model-value="$emit('update:modelValue', $event)"
         class="search"
-        placeholder="Search for games..."
+        placeholder="Search for Listings..."
         variant="outlined"
         density="compact"
         hide-details
