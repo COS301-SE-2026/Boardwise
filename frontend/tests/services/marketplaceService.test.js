@@ -15,7 +15,7 @@ describe('MarketplaceService', () => {
     })
 
     describe('getListings', () => {
-        it('calls the base listings endpoint when no filters are applied', () => {
+        it('calls the base listings endpoint when no filters are applied', async () => {
             // Arrange
             const mockResponse = { listings: [], total: 0 };
             apiMock.mockResolvedValue(mockResponse);
@@ -175,7 +175,7 @@ describe('MarketplaceService', () => {
     });
 
     describe('getListingById', () => {
-        it('fetches a single listing by id', () => {
+        it('fetches a single listing by id', async () => {
             // Arrange
             const id = 'listing-1'
             const mockListing = { listingId: id, listingTitle: 'Ticket to Ride' };
