@@ -1,26 +1,53 @@
 <template>
   <PageContainer>
     <Navbar />
-    
-    <div class="d-flex flex-column ga-5 mb-6">
-      <SectionTitle 
-        title="Events" 
-        subtitle="Discover and join gaming events near you" 
-      />
 
-      <EventSearch
-        v-model="searchQuery"
-        @create-event="showCreateEvent = true"
-      />
+    <EventHeader 
+      @search="searchQuery = $event"
+      @create-event="showCreateEvent = true"  
+    />
+    
+    <!-- Mobile -->
+    <div class="d-flex d-md-none mt-6 mb-4">
+      <v-chip 
+        color="secondary"
+        prepend-icon="mdi-filter-variant"
+        size="large"
+        @click="showFilters = true"
+      >
+        Filters
+      </v-chip>
+
+      <v-navigation-drawer
+        v-model="showFilters"
+        temporary
+        location="left"
+        width="300"
+      >
+        <EventFilter 
+          :events="events" 
+          @filter="handleFilter" 
+        />
+      </v-navigation-drawer>
     </div>
-    
-    <div class="d-flex ga-6 align-start">
 
+    <!-- Desktop -->
+    <div class="d-none d-md-flex ga-6 mt-6 align-start">
       <EventFilter 
         :events="events" 
         @filter="handleFilter" 
       />
 
+      <div class="flex-grow-1">
+        <EventGrid 
+          :events="filteredEvents" 
+          @select="openEvent" 
+          class="flex-1-1" 
+        />
+      </div>
+    </div>
+
+    <div class="d-md-none">
       <EventGrid 
         :events="filteredEvents" 
         @select="openEvent" 
@@ -52,8 +79,6 @@ definePageMeta({
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
-import SectionTitle from '~/components/ui/SectionTitle.vue'
-import EventSearch from '~/components/features/events/EventSearch.vue'
 import EventFilter from '~/components/features/events/EventFilter.vue'
 import EventGrid from '~/components/features/events/EventGrid.vue'
 import CreateEvent from '~/components/features/events/CreateEvent.vue'
@@ -65,7 +90,9 @@ import { useRouter } from 'vue-router'
 import EditEventModal from '~/components/features/events/EditEventModal.vue'
 import InviteModal from '~/components/features/community/InviteModal.vue'
 import { query } from 'happy-dom/lib/PropertySymbol'
+import EventHeader from '~/components/features/events/EventHeader.vue'
 
+const showFilters = ref(false)
 const { show } = useSnackBar(3)
 const {
   events, 

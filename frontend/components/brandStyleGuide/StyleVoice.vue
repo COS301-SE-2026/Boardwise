@@ -1,7 +1,7 @@
 <template>
   <section class="py-8 section-border" id="voice">
     <SectionTitle 
-      title="07 - Voice & Tone" 
+      title="08 - Voice & Tone" 
       subtitle="Boardwise talks like a knowledgeable friend who loves games - enthusiastic, clear, never condescending. We're playful
       when the moment calls for it and direct when it doesn't."
     />
@@ -27,7 +27,7 @@
                     Not like this
                 </div>
 
-                <div v-for="line in dontExamples" :key="line" class="voice-example">
+                <div v-for="line in doExamples" :key="line" class="voice-example">
                     {{ line }}
                 </div>
             </v-card>
@@ -73,7 +73,7 @@
                             
                     <div>
                         <div class="component-card-title">Meet Boarley</div>
-                        <div class="mascot-subtitle">Our macot - a  warm witty boar who shows up in empty states, tooltips and celebratory moments</div>
+                        <div class="mascot-subtitle">Our mascot - a  warm witty boar who shows up in empty states, tooltips and celebratory moments</div>
                     </div>
 
                 </div>

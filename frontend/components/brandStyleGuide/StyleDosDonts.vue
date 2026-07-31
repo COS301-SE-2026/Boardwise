@@ -1,7 +1,7 @@
 <template>
   <section class="py-8 section-border" id="dos-donts">
     <SectionTitle 
-      title="08 - Do's & Don'ts" 
+      title="09 - Do's & Don'ts" 
       subtitle="Colour, type, focus states and motion rules for boardwise."
     />
 

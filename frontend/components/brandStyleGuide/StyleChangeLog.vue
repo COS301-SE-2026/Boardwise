@@ -1,7 +1,7 @@
 <template>
   <section class="py-8 section-border" id="changelog">
     <SectionTitle 
-      title="09 - Changelog from Demo 1" 
+      title="10 - Changelog from Demo 1" 
       subtitle="What changed since Demo 1 guide, and why. Full rebrand of colour and type; 
       component values evolved from Figma spec to implemented CSS tokens."
     />
@@ -112,7 +112,7 @@
             </v-card>
 
             <v-card flat border class="pa-4">
-                <div class="chnage-title mb-2">Carried forward unchanged</div>
+                <div class="change-title mb-2">Carried forward unchanged</div>
                 <p class="rule-copy">
                     The five Design Principles from Demo 1 - Consistency, Simplicity, Responsiveness, Accessibility, and Clarity
                     Feedback - still hold and re not restated here in full; see Section 06 (Accessibility) and Section 07 (Voice & Tone) 

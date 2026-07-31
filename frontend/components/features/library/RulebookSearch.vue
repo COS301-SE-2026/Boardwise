@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex ga-3 align-center">
+  <div class="d-flex ga-3 align-center search-container">
     <div class="flex-1-1">
       <BaseSearch
         v-model="search"

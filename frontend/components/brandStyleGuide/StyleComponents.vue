@@ -1,7 +1,7 @@
 <template> 
     <section class="py-8 section-border" id="components">
         <SectionTitle
-            title="04 - Components"
+            title="05 - Components"
             subtitle="Reusable primitives built on the tokens above."
         />
 
