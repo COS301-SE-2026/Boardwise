@@ -46,7 +46,7 @@ test('Navigate From Landing page to Rulebooks and view a rulebook',async ({page}
   const rulebookTitle = await sideBar.locator('h2').textContent();  
 
   //check if loaded data matches for integrity purposes
-  expect(CardTitle.trim()).toMatch(rulebookTitle.trim());
+  await expect(CardTitle.trim()).toMatch(rulebookTitle.trim());
 
   //GO TO RULEBOOK PAGE
   const readRulebookButton = page
@@ -60,7 +60,7 @@ test('Navigate From Landing page to Rulebooks and view a rulebook',async ({page}
 
   //ensure the right rulebook is seen 
   const readingPageTitle = await page.locator('h1').textContent();
-  expect(readingPageTitle.trim()).toMatch(CardTitle.trim());
+  await expect(readingPageTitle.trim()).toMatch(CardTitle.trim());
 
 }); 
 
@@ -88,7 +88,7 @@ test('Navigate from Landing page to Rulebooks And get redirected to signin', asy
 test('Login to Boardwise, upload a rulebook and edit rulebook and view changes',async ({page})=>{
   //go to landing page 
   await page.goto(homepage+"auth/signin");
-  expect(page).toHaveURL(/.*\/auth\/signin/);
+  await expect(page).toHaveURL(/.*\/auth\/signin/);
 
   //sign in
   const existingUser = {
