@@ -1,20 +1,22 @@
 <template>
   <BaseCard class="game-card" @click="openDelete = true">
 
-    <BaseImage 
+    <v-img 
       :src="image" 
-      :alt="title" 
+      :alt="title"
+       height="240" 
+       cover 
     />
 
-    <v-card-text class="pa-4">
-      <h3 class="card-title">
-        {{ decodedTitle }}
-      </h3>
+    <div class="game-card__content">
+    <h3 class="game-card__title">
+      {{ decodedTitle }}
+    </h3>
 
-      <p class="card-meta">
-        {{ decodedCategory }}
-      </p>
-    </v-card-text>
+    <p class="game-card__category">
+      {{ decodedCategory }}
+    </p>
+  </div>
 
     <!--TEMPORARY METHOD OF DELETING-->
     <RemoveGameModal v-model="openDelete" @confirm="handleRemove()" ></RemoveGameModal>
@@ -28,10 +30,8 @@
 
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
-import BaseImage from '~/components/ui/BaseImage.vue';
 import RemoveGameModal from './RemoveGameModal.vue';
-
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 // import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
 
 const props = defineProps({
@@ -71,6 +71,53 @@ const emit = defineEmits(['remove'])
 <style scoped>
 
 .game-card {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  height: 320px;
+  
+  border-radius: 16px;
+  overflow: hidden;
   cursor: pointer;
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease;
+}
+
+.game-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md) !important;
+}
+
+.game-card__title {
+    font-family: var(--font-body);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--color-secondary);
+    line-height: 1.3;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+
+    overflow: hidden;
+}
+
+.game-card__content {
+  padding: 16px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  flex: 1;
+}
+
+.game-card__category {
+    margin-top: .5rem;
+    color: #777;
+    font-size: .9rem;
 }
 </style>
