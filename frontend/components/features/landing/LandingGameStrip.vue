@@ -1,6 +1,6 @@
 <template>
     <div class="overflow-hidden py-6">
-        <div class="game-strip ga-3 marquee-left">
+        <div class="game-strip ga-3 marquee-right">
             <NuxtLink
                 v-for="(game, index) in topRow"
                 :key="`top-${game.id}-${index}`"
@@ -65,17 +65,31 @@ import { getLandingGames } from '~/services/landingService'
 
 const games = getLandingGames()
 
-const repeatedGames = computed(() =>{
-    return new Array(5).fill(games).flat()
-})
+const duplicate = (arr) => [...arr, ...arr]
 
-const topRow = computed(() =>
-    repeatedGames.value.filter((_, index) => index % 3 === 0)
-)
-const middleRow = computed(() =>
-    repeatedGames.value.filter((_, index) => index % 3 === 1)
-)
+const topRow = computed(() => duplicate(games))
+
+const middleRow = computed (() => duplicate([...games]).reverse())
+
 const bottomRow = computed(() =>
-    repeatedGames.value.filter((_, index) => index % 3 === 2)
+    duplicate([
+        ...games.slice(6),
+        ...games.slice(0,6)
+    ])
 )
+
+const repeatedGames = computed(() => [
+    ...games,
+    ...games,
+])
+
+// const topRow = computed(() =>
+//     repeatedGames.value.filter((_, index) => index % 3 === 0)
+// )
+// const middleRow = computed(() =>
+//     repeatedGames.value.filter((_, index) => index % 3 === 1)
+// )
+// const bottomRow = computed(() =>
+//     repeatedGames.value.filter((_, index) => index % 3 === 2)
+// )
 </script>

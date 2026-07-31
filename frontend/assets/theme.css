@@ -601,7 +601,7 @@ a:hover { text-decoration: underline; }
 }
 
 .hero-badge--connect {
-  background: var(--color-secondary);
+  background: var(--copper);
   transform: rotate(-7deg);
 }
 
