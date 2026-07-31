@@ -1,11 +1,19 @@
 <template>
   <BaseCard class="game-card" @click="openDelete = true">
 
-    <v-img :src="image" :alt="title" height="180" cover />
+    <BaseImage 
+      :src="image" 
+      :alt="title" 
+    />
 
-    <v-card-text>
-      <h3 class="game-card__title ma-0">{{ decodedTitle }}</h3>
-      <p class="game-card__category ma-0 mt-1">{{ decodedCategory }}</p>
+    <v-card-text class="pa-4">
+      <h3 class="card-title">
+        {{ decodedTitle }}
+      </h3>
+
+      <p class="card-meta">
+        {{ decodedCategory }}
+      </p>
     </v-card-text>
 
     <!--TEMPORARY METHOD OF DELETING-->
@@ -20,8 +28,10 @@
 
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseImage from '~/components/ui/BaseImage.vue';
 import RemoveGameModal from './RemoveGameModal.vue';
-import { computed } from 'vue';
+
+import { computed, ref } from 'vue';
 // import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
 
 const props = defineProps({
@@ -61,25 +71,6 @@ const emit = defineEmits(['remove'])
 <style scoped>
 
 .game-card {
-  /* cursor:     pointer; */
-  overflow: hidden;
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
-}
-.game-card:hover {
-  transform:  translateY(-2px);
-  box-shadow: var(--shadow-md) !important;
-}
-
-.game-card__title {
-  font-family: var(--font-display);
-  font-size: var(--fs-h4);
-  font-weight: var(--fw-regular);
-  color: var(--color-secondary);
-}
-
-.game-card__category {
-  font-family: var(--font-body);
-  font-size:   var(--fs-small);
-  color: var(--color-text-muted);
+  cursor: pointer;
 }
 </style>
