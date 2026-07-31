@@ -47,7 +47,7 @@ The system is built around three core domains, each owned by a dedicated backend
 
 | Resource | Link |
 |---|---|
-| Software Requirements Specification (SRS) | [View SRS](./docs/srs.md) |
+| Software Requirements Specification (SRS) | [View SRS](./docs/Demo2/srs.md) |
 | GitHub Project Board | [Open Board](#https://github.com/orgs/COS301-SE-2026/projects/46) |
 | UI Wireframes & Designs | [Open Designs](./docs/design) |
 | Brand Style Guide | [View Guide](./docs/design/brandStyleGuide.pdf) |
@@ -118,7 +118,7 @@ The AI ingestion pipeline in The Vault processes uploads asynchronously through 
 - **Event Sourcing** records every rulebook edit as an immutable event for full auditability.
 - **WebSocket push** powers real-time collaborative editing with MRSW (Multi-Reader Single-Writer) locking.
 
-See the full [SRS](./docs/srs.md) for component diagrams, API service contracts and the traceability matrix.
+See the full [SRS](./docs/Demo2/srs.md) for component diagrams, API service contracts and the traceability matrix.
 
 ---
 
@@ -226,8 +226,8 @@ cd ai && pip install -r requirements.txt && uvicorn main:app --reload
 
 | Document | Description |
 |---|---|
-| [SRS](./docs/srs.md) | Functional & non-functional requirements, use cases, domain model, API contracts, architecture |
-| [Brand Style Guide](./docs/design/brandStyleGuide.pdf) | Colour palette, typography, components, accessibility |
+| [SRS](./docs/Demo2/srs.md)  | Functional & non-functional requirements, use cases, domain model, API contracts, architecture |
+| [Brand Style Guide](./docs/design/brandStyleGuide%20(version%202).pdf) | Colour palette, typography, components, accessibility |
 | [Wireframes](./docs/design) | UI/UX designs and navigation flows |
 | [Design Tokens](./frontend/assets/theme.css) | Global styling variables for frontend consistency |
 
