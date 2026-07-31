@@ -2,9 +2,7 @@
 
 <img src="./docs/assets/boardwise-logo.svg" alt="Boardwise" width="420"/>
 
-# BOARDWISE
-
-### CONNECT • SHARE • PLAY
+<img src="./docs/assets/slogan.svg" alt="Boardwise" width="420"/>
 
 
 ## Team
