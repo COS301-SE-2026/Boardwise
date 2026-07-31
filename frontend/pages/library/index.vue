@@ -16,10 +16,37 @@
 
   <SectionTitle title="All Rulebooks" class="mt-8" />
 
-    <div class="d-flex ga-6 align-start">
-    <RulebookFilterSidebar @filter="handleFilter" />
-    <RulebookGrid :rulebooks="rulebooks" @select="openRulebook" class="flex-1-1" />
-  </div>
+  <!-- Mobile -->
+    <div class="d-md-none mb-4">
+      <v-chip
+        color="secondary"
+        class="cursor-pointer"
+        size="large"
+        prepend-icon="mdi-filter-variant"
+        @click="showFilters = true"
+      >
+        Filters 
+      </v-chip>
+
+      <v-navigation-drawer
+        v-model="showFilters"
+        temporary
+        location="left"
+        width="300"
+      >
+          <RulebookFilterSidebar @filter="handleFilter" />
+      </v-navigation-drawer>
+    </div>
+
+    <div class="d-none d-md-flex ga-6 align-start">
+      <RulebookFilterSidebar @filter="handleFilter" />
+      <RulebookGrid :rulebooks="rulebooks" @select="openRulebook" class="flex-1-1" />
+    </div>
+
+    <!-- Mobile Grid -->
+    <div class="d-md-none">
+      <RulebookGrid :rulebooks="rulebooks" @select="openRulebook" />
+    </div>
 
   <div ref="sentinel" style="height:1px" />
 
@@ -71,6 +98,7 @@ import { useAuth } from '~/composables/useAuth';
 import { useSnackBar } from '~/composables/useSnackbar';
 
 const { show } = useSnackBar();
+const showFilters = ref(false)
 
 const route = useRoute();
 const router = useRouter();

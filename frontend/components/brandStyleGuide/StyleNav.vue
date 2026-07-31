@@ -8,13 +8,37 @@
         <v-spacer></v-spacer>
 
         <div class="d-none d-md-flex align-center ga-6 nav-links">
-            <a href="#colours">Colours</a>
-            <a href="#typography">Typography</a>
-            <a href="#spacing">Spacing & Radius</a>
-            <a href="#components">Components</a>
+            <a v-for="link in links" :key="link.href" :href="link.href">
+              {{ link.label }}
+            </a>
         </div>
 
-        <v-btn
+        <v-menu v-model="mobileMenuOpen" class="d-md-none">
+          <template #activator="{ props }">
+            <v-btn
+              icon 
+              variant="text"
+              class="d-flex d-md-none"
+              v-bind="props"
+              title="Open menu"
+            >
+              <v-icon>mdi-menu</v-icon>
+            </v-btn>
+          </template>
+
+          <v-list>
+            <v-list-item 
+              v-for="link in links"
+              :key="link.href"
+              :href="link.href"
+              @click="mobileMenuOpen = false"
+            >
+              <v-list-item-title>{{  link.label }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+
+        <!-- <v-btn
             icon
             variant="text"
             class="ml-4"
@@ -22,16 +46,32 @@
             title="Toggle dark mode"
         >
             <v-icon>{{ isDark ? 'mdi-weather-sunny' : 'mdi-weather-night' }}</v-icon>
-        </v-btn>
+        </v-btn> -->
   </v-app-bar>
 </template>
 
 <script setup>
+import { ref } from 'vue'
+
 defineProps({
   isDark: { type: Boolean, default: false }
 })
 
 defineEmits(['toggle-theme'])
+
+const mobileMenuOpen = ref(false)
+
+const links = [
+  { href: '#colours', label: 'Colours' },
+  { href: '#typography', label: 'Typography' },
+  { href: '#spacing', label: 'Spacing & Radius' },
+  { href: '#components', label: 'Components' },
+  { href: '#icons', label: 'Icons' },
+  { href: '#dos-donts', label: 'Dos & Donts'},
+  { href: '#accessibility', label: 'Accessibility'},
+  { href: '#voice', label:'Voice & Tone'},
+  { href: '#changelog', label:'Changelog'}
+]
 </script>
 
 <style scoped>

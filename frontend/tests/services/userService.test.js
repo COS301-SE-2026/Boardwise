@@ -7,7 +7,7 @@ mockNuxtImport('useNuxtApp',()=>{
     return ()=>({$api:apiMock});
 });
 
-const { userService } = await import('~/services/userService')
+const { userService } = await import('../../services/userService')
 
 describe('userServce',()=>{
     beforeEach(()=>{

@@ -62,7 +62,7 @@ const filters = reactive({
 
 watch([selectedGenre, selectedConditions, filters], () => {
   emit('filter', {
-    genres: selectedGenre.value === 'All' ? null : [selectedGenre.value],
+    genres: selectedGenre.value === 'All' ? null : [selectedGenre.value.toLowerCase()],
     conditions: selectedConditions.value,
     rent: filters.rent,
     sale: filters.sale,

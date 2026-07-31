@@ -1,20 +1,22 @@
 <template>
-    <v-container class="container py-16">
+    <v-container class=" py-16">
 
-        <v-row class="mb-10"
+        <v-row class="mb-14"
         >
             <v-col
-                cols="12" class="text-center"
+                cols="12" 
+                md="12"
+                class="text-center"
             >
                 <h2>
-                    Explore Boardwise
+                    Everything Boardwise Offers
                 </h2>
                 <p class="mt-4">
                     Everything you need to discover, collect and enjoy board games.
                 </p>
             </v-col>
-            </v-row>
-            <v-row>
+        </v-row>
+        <v-row>
             <v-col
                 v-for="feature in features"
                 :key="feature.id"
@@ -22,7 +24,7 @@
                 sm="6" 
                 md="4"
             >
-            <LandingFeatureCard :feature="feature"/>
+                <LandingFeatureCard :feature="feature"/>
             </v-col>
         </v-row>
     </v-container>
