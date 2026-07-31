@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./docs/assets/boardwise-logo.png" alt="Boardwise" width="420"/>
+<img src="./docs/assets/boardwise-logo.svg" alt="Boardwise" width="420"/>
 
 # BOARDWISE
 
