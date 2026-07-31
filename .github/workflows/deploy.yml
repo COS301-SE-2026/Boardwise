@@ -18,30 +18,8 @@ env:
     CLOUDFRONT_DISTRIBUTION_ID: E2W87L0QGRA613
 
 jobs:
-    changes: # checks for which folder changed
-        runs-on: ubuntu-latest
-        outputs:
-          backend: ${{ steps.filter.outputs.backend }}
-          ai: ${{ steps.filter.outputs.ai }}
-          frontend: ${{ steps.filter.outputs.frontend }}
-        steps:
-          - uses: actions/checkout@v4
-            with:
-              fetch-depth: 0
-          - uses: dorny/paths-filter@v3
-            id: filter
-            with:
-              filters: |
-                backend:
-                  - 'backend/**'
-                ai:
-                  - 'ai/**'
-                frontend:
-                  - 'frontend/**'
         
     backend-deployment: # handles deployment of Java backend
-        needs: changes
-        if: needs.changes.outputs.backend == 'true'
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4 # checks code out onto VM
@@ -70,8 +48,6 @@ jobs:
                     --force-new-deployment
         
     ai-deployment: # handles deployment of Python/AI backend
-        needs: changes
-        if: needs.changes.outputs.ai == 'true'
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -100,8 +76,6 @@ jobs:
                     --force-new-deployment
 
     frontend-deployment:
-        needs: changes
-        if: needs.changes.outputs.frontend == 'true'
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
