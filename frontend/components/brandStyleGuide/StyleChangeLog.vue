@@ -1,7 +1,7 @@
 <template>
   <section class="py-8 section-border" id="changelog">
     <SectionTitle 
-      title="09 - Changelog from Demo 1" 
+      title="10 - Changelog from Demo 1" 
       subtitle="What changed since Demo 1 guide, and why. Full rebrand of colour and type; 
       component values evolved from Figma spec to implemented CSS tokens."
     />

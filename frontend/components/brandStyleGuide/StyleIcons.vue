@@ -1,7 +1,7 @@
 <template> 
     <section class="py-8 section-border" id="icons">
         <SectionTitle
-            title="05 - Icons"
+            title="06 - Icons"
             subtitle="Material Design Icons (mdi) bundled with Vuetify. Use a semantic colour token rather than a raw hex value."
         />
 

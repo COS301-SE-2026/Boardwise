@@ -1,7 +1,7 @@
 <template>
   <section class="py-8 section-border" id="accessibility">
     <SectionTitle 
-      title="06- Accessibility" 
+      title="07- Accessibility" 
       subtitle="Boardwise targets WCAG 2.2 level AA as a minimum. All interactive elements have visible focus states, all images have alt text, and all colour combinations meet contrast requirements"
     />
 

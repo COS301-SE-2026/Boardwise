@@ -1,7 +1,7 @@
 <template>
   <section class="py-8 section-border" id="voice">
     <SectionTitle 
-      title="07 - Voice & Tone" 
+      title="08 - Voice & Tone" 
       subtitle="Boardwise talks like a knowledgeable friend who loves games - enthusiastic, clear, never condescending. We're playful
       when the moment calls for it and direct when it doesn't."
     />

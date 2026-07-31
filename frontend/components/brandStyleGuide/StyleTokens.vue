@@ -1,7 +1,7 @@
 <template> 
     <section class="py-8 section-border" id="spacing">
         <SectionTitle
-            title="03 - Spacing & Radius"
+            title="04 - Spacing & Radius"
             subtitle="An 8px spacing scale and a small set of corner radii keep rhythm and shape consistent across the app."
         />
 
