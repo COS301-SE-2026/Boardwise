@@ -163,7 +163,7 @@ const { lgAndUp } = useDisplay()
 
 .logo {
   font-family: var(--font-display);
-  font-size: var(--fs-h3);
+  font-size: var(--fs-h1);
   font-weight: var(--fw-bold);
   text-decoration: none;
   color: var(--obsidian);
@@ -205,7 +205,7 @@ const { lgAndUp } = useDisplay()
   }
 
   .logo {
-    font-size: 1.35rem;
+    font-size: 2rem;
   }
 
   .mobile .v-btn {
