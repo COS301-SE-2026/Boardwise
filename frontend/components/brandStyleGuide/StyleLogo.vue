@@ -50,10 +50,11 @@
                 class="logo-card pa-6"
             >
 
-                <img
+                <v-img
                     :src="logo.src"
-                    :alt="logo.name"
-                    class="logo-image mb-5"
+                    height="120"
+                    contain
+                    class="mb-5"
                 />
 
                 <h4>
@@ -104,10 +105,11 @@
         border
         class="usage-card mb-4 pa-4"
       >
-        <img
-          :src="item.src"
-          :alt="item.name"
-          class="usuage-image mb-4"
+        <v-img
+          :src="item.image"
+          height="140"
+          contain
+          class="mb-4"
         />
 
         <h5 class="usage-title">
@@ -133,9 +135,10 @@
         class="usage-card mb-4 pa-4"
       >
         <v-img
-          :src="item.src"
-          :alt="item.name"
-          class="usuage-image mb-4"
+          :src="item.image"
+          height="140"
+          contain
+          class="mb-4"
         />
 
         <h5 class="usage-title">
@@ -241,21 +244,3 @@ description:
 
 ]
 </script>
-
-<style scoped>
-.logo-image {
-  display: block;
-  width: 100%;
-  max-width: 280px;
-  height: 120px;
-  object-fit: contain;
-  margin: 0 auto;
-}
-
-.usage-image {
-  display: block;
-  width: 100%;
-  height: 140px;
-  object-fit: contain;
-}
-</style>
