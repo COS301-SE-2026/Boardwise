@@ -216,7 +216,7 @@ test('Login to Boardwise, upload a rulebook and edit rulebook and view changes',
   await page.waitForTimeout(200);
   
   //check if section has been overwritten
-  expect(writingSection).toHaveValue(details);  
+  await expect(writingSection).toHaveValue(details);  
 
   //check history 
   await page.locator('.mdi-history').click();

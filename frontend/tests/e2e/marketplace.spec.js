@@ -61,8 +61,9 @@ test.describe('Marketplace Service Tests',()=>{
         const compGameTitle = 'Monopoly';
         await gameTitle.click();
         await gameTitle.fill(compGameTitle);
-        await page.waitForTimeout(400);
-        await page.getByRole('option', { name: compGameTitle }).first().click();
+        const gameOption = page.getByRole('option', { name: compGameTitle }).first();
+        await gameOption.waitFor({ state: 'visible' });
+        await gameOption.click();
 
         const compVersion = 'Original';
         await gameVersion.fill(compVersion);
@@ -71,20 +72,17 @@ test.describe('Marketplace Service Tests',()=>{
         const genresInput = page.getByLabel('Genres').first();
         await genresInput.click();
         await genresInput.fill('eco');
-        await page.waitForTimeout(400);
-        await page.getByRole('option', { name: 'economic' }).first().click();
-
+        const genreOption = page.getByRole('option', { name: 'economic' }).first();
+        await genreOption.waitFor({ state: 'visible' });
+        await genreOption.click();
         await page.getByRole('heading', { name: 'Create Listing' }).click();
-        await page.waitForTimeout(200);
 
         // condition
-        await page.getByLabel('Condition').click({ force: true });
+        await page.getByLabel('Condition').locator('..').getByRole('combobox').click();
         await page.getByRole('option', { name: 'Like New' }).first().click();
-
         // item type
-        await page.getByLabel('Item Type').click({ force: true });
+        await page.getByLabel('Item Type').locator('..').getByRole('combobox').click();
         await page.getByRole('option', { name: 'Full Boardgame' }).first().click();
-
         // price
         const amount = page.getByLabel('Amount');
         await amount.fill('250');
