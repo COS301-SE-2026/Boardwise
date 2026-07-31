@@ -1,7 +1,6 @@
 <template>
     <v-hover v-slot="{ isHovering }">
-    <BaseCard class="pa-6 h-100" @click="router.push(feature.route)"
-    >
+    <BaseCard class="pa-6 h-100" >
         <v-icon
             :icon="feature.icon"
             :size="isHovering ? 74 : 64"
@@ -28,14 +27,19 @@
             </v-list-item>
         </v-list>
         <v-spacer/>
-        <div class="d-flex align-center font-weight-medium">
+        
+        <div class="d-flex align-center font-weight-medium cursor-pointer"
+            @click="router.push(feature.route)"
+            >
+            
             Explore
-            <v-icon class="ms-2">
+            <v-icon 
+                class="ms-2"
+             >
                 mdi-arrow-right
             </v-icon>
         </div>
     </BaseCard>
-    
 </v-hover>
 </template>
 
