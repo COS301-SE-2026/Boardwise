@@ -1,4 +1,5 @@
 <template>
+  <section class="py-8" id="colours">
     <SectionTitle 
       title="01 - Brand Palette" 
       subtitle="Material-inspired game tokens. Each core brand color maps directly to functional semantic tokens."
@@ -34,6 +35,7 @@
             </v-card>
         </v-col>
     </v-row>
+  </section>
 </template>
 
 <script setup>
