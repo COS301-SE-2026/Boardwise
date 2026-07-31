@@ -5,84 +5,84 @@ let homepage = 'http://localhost:3000/'
 //LAND ON LANDING PAGE AND GO TO LIBRARY
 test.describe('Library End-to-End Testing',()=>{
 // Navigate through rulebooks
-// test('Navigate From Landing page to Rulebooks and view a rulebook',async ({page})=>{
-//   const targetPage = homepage ;
-//   const sideBar = page.locator('nav.v-navigation-drawer--right');
+test('Navigate From Landing page to Rulebooks and view a rulebook',async ({page})=>{
+  const targetPage = homepage ;
+  const sideBar = page.locator('nav.v-navigation-drawer--right');
 
-//   // land on page 
-//   await page.goto(targetPage);
+  // land on page 
+  await page.goto(targetPage);
 
-//   // click first rulebook button
-//   const rulebooksBtn = page.getByRole('button', { name: 'Rulebooks' }).first(); //top rulebook button 
-//   await rulebooksBtn.click();
-//   await expect(page).toHaveURL(/.*\/library/);
-//   await expect(page.getByRole('heading', { name: /library/i })).toBeVisible();
+  // click first rulebook button
+  const rulebooksBtn = page.getByRole('button', { name: 'Rulebooks' }).first(); //top rulebook button 
+  await rulebooksBtn.click();
+  await expect(page).toHaveURL(/.*\/library/);
+  await expect(page.getByRole('heading', { name: /library/i })).toBeVisible();
 
-//   //check to see if rulebook exists
-//   const rulebookCards =  page.locator('.d-flex.overflow-x-auto');
+  //check to see if rulebook exists
+  const rulebookCards =  page.locator('.d-flex.overflow-x-auto');
 
-//   //wait for cards to actually show up 
-//   await rulebookCards.waitFor({state: 'visible'});
+  //wait for cards to actually show up 
+  await rulebookCards.waitFor({state: 'visible'});
 
-//   // find all the listing cards
-//   const cards = rulebookCards.locator('.v-card');
+  // find all the listing cards
+  const cards = rulebookCards.locator('.v-card');
 
-//   //VERY FRAGILE BANDILEEEEE!!! 
-//   //wait to load
-//   await expect(cards.first()).toBeVisible({ timeout: 10000 }); // loading 
+  //VERY FRAGILE BANDILEEEEE!!! 
+  //wait to load
+  await expect(cards.first()).toBeVisible({ timeout: 10000 }); // loading 
 
-//   //cards 
-//   const firstRulebookCard = cards.first();
+  //cards 
+  const firstRulebookCard = cards.first();
 
-//   const CardTitle = await firstRulebookCard.locator('.text-body-2').first().textContent();
+  const CardTitle = await firstRulebookCard.locator('.text-body-2').first().textContent();
 
-//   await firstRulebookCard.click();
+  await firstRulebookCard.click();
 
 
-//   //check if sidebar opened
-//   await expect(sideBar).toBeVisible({timeout: 5000});
-//   await expect(sideBar).toHaveClass(/v-navigation-drawer--active/);
+  //check if sidebar opened
+  await expect(sideBar).toBeVisible({timeout: 5000});
+  await expect(sideBar).toHaveClass(/v-navigation-drawer--active/);
 
-//   const rulebookTitle = await sideBar.locator('h2').textContent();  
+  const rulebookTitle = await sideBar.locator('h2').textContent();  
 
-//   //check if loaded data matches for integrity purposes
-//   expect(CardTitle.trim()).toMatch(rulebookTitle.trim());
+  //check if loaded data matches for integrity purposes
+  expect(CardTitle.trim()).toMatch(rulebookTitle.trim());
 
-//   //GO TO RULEBOOK PAGE
-//   const readRulebookButton = page
-//     .locator('nav.v-navigation-drawer--right')
-//     .getByRole('button', { name: 'Read Rulebook' });
+  //GO TO RULEBOOK PAGE
+  const readRulebookButton = page
+    .locator('nav.v-navigation-drawer--right')
+    .getByRole('button', { name: 'Read Rulebook' });
 
-//   await readRulebookButton.click();
+  await readRulebookButton.click();
 
-//   await expect(page).toHaveURL(/\/library\/read\/.+/);
+  await expect(page).toHaveURL(/\/library\/read\/.+/);
   
 
-//   //ensure the right rulebook is seen 
-//   const readingPageTitle = await page.locator('h1').textContent();
-//   expect(readingPageTitle.trim()).toMatch(CardTitle.trim());
+  //ensure the right rulebook is seen 
+  const readingPageTitle = await page.locator('h1').textContent();
+  expect(readingPageTitle.trim()).toMatch(CardTitle.trim());
 
-// }); 
+}); 
 
-// test('Navigate from Landing page to Rulebooks And get redirected to signin', async ({page})=>{
-//   const targetPage = homepage ;
-//   const navBarRedirect = page.getByRole('link',{name: 'Marketplace'}).first();
+test('Navigate from Landing page to Rulebooks And get redirected to signin', async ({page})=>{
+  const targetPage = homepage ;
+  const navBarRedirect = page.getByRole('link',{name: 'Marketplace'}).first();
 
-//   // land on page 
-//   await page.goto(targetPage);
+  // land on page 
+  await page.goto(targetPage);
 
-//   // click first rulebook button
-//   const rulebooksBtn = page.getByRole('button', { name: 'Rulebooks' }).first(); //top rulebook button 
-//   await rulebooksBtn.click();
-//   await expect(page).toHaveURL(/.*\/library/);
-//   await expect(page.getByRole('heading', { name: /library/i })).toBeVisible();
+  // click first rulebook button
+  const rulebooksBtn = page.getByRole('button', { name: 'Rulebooks' }).first(); //top rulebook button 
+  await rulebooksBtn.click();
+  await expect(page).toHaveURL(/.*\/library/);
+  await expect(page.getByRole('heading', { name: /library/i })).toBeVisible();
 
-//   //click
-//   await navBarRedirect.click();
+  //click
+  await navBarRedirect.click();
   
-//   await expect(page).toHaveURL(/\/auth\/signin\/?$/);
+  await expect(page).toHaveURL(/\/auth\/signin\/?$/);
 
-// });
+});
 
 //LOG IN And upload a rulebook, search for that rulebook, edit rulebook, view changes
 test('Login to Boardwise, upload a rulebook and edit rulebook and view changes',async ({page})=>{
@@ -135,7 +135,6 @@ test('Login to Boardwise, upload a rulebook and edit rulebook and view changes',
   
   //check if name pops up (cached)
   await expect(page.getByText('Ludo_rb_test.pdf')).toBeVisible();
-  const uploaded = page.locator('.v-list-item-title');
   await expect(page.getByText('Life-Boat Ludo').last()).toBeVisible();
 
   //find add button
