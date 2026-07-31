@@ -1,0 +1,160 @@
+<template>
+  <BaseModal v-model="open" >
+    <div class="d-flex flex-column ga-6">
+
+      <h2>Create Community</h2>
+
+        <BaseInput
+          v-model="form.name"
+          label="Community Name"
+        />
+
+        <BaseTextArea
+          v-model="form.description"
+          placeholder="What is this comunity about ?"
+          :rows="3"
+        />
+
+      <v-select
+        v-model="form.category"
+        :items="categories"
+        label="Category"
+        variant="outlined"
+        rounded="lg"
+      />
+
+      <v-btn-toggle
+        v-model="form.visibility"
+        color="primary"
+        mandatory
+        divided
+      >
+        <v-btn value="Public">
+          Public
+        </v-btn>
+
+         <v-btn value="Private">
+          Private
+        </v-btn>
+      </v-btn-toggle>
+
+
+        <div class=" d-flex align-center ga-4">
+          <BaseButton @click="fileInput?.click()" >
+            <v-icon start>mdi-upload</v-icon>
+            Upload image
+          </BaseButton>
+
+        <span class=" text-body-2 text-medium-emphasis">
+          {{ fileName || 'No file selected' }}
+        </span>
+
+        <label for="community-image-upload" class="sr-only">Upload Image</label>
+        <input
+          id="community-image-upload"
+          ref="fileInput"
+          type="file"
+          accept="image/*"
+          class="d-none"
+          @change="handleFileChange"
+        />
+      </div>
+
+      <div class="d-flex justify-end ga-3">
+        <BaseButton
+          variant="secondary"
+          @click="closeModal"
+         >
+         Cancel
+        </BaseButton>
+
+        <BaseButton  @click="handleCreate"   >
+          Create
+      </BaseButton>
+      </div>
+
+    </div>
+  </BaseModal>
+</template>
+
+<script setup>
+import BaseModal from '~/components/ui/BaseModal.vue'
+import BaseInput from '~/components/ui/BaseInput.vue'
+import BaseTextArea from '~/components/ui/BaseTextArea.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
+import { useCommunity } from '~/composables/useCommunity'
+import { useSnackBar } from '~/composables/useSnackbar'
+import { reactive, ref } from 'vue'
+
+const { createCommunity, error } = useCommunity()
+const { show } = useSnackBar()
+
+
+const open = defineModel({
+  type: Boolean,
+  default: false
+})
+ 
+const emit = defineEmits(['confirm'])
+
+const categories = [
+  'Strategy',
+  'Family',
+  'Party',
+  'Cooperative',
+  'General'
+]
+
+const form = reactive({
+  name: '',
+  description: '',
+  category: '',
+  visibility: 'Public'
+})
+
+const fileInput = ref(null)
+const fileName = ref('')
+const file = ref(null)
+
+const handleFileChange = (event) => {
+  const chosenfile = event.target.files?.[0]
+
+  if(file) {
+    fileName.value = chosenfile.name
+    file.value = chosenfile
+  }
+
+}
+
+const closeModal  = () => {
+  open.value = false
+
+  form.name = ''
+  form.description = ''
+  form.category = ''
+  form.visibility = 'Public'
+  fileName.value = ''
+  file.value = null
+}
+
+const handleCreate = async () => {
+  if(!form.name.trim()) return
+
+  try{
+    const data = await createCommunity({
+      ...form,
+      communityPfp: file.value
+    })
+    emit('confirm', data.group)
+  } 
+  catch(err){
+    console.error("Failed to create community.", err)
+    show(error.value, 'error')
+
+  }
+  finally{
+    closeModal()
+  }
+  
+}
+</script>

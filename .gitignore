@@ -1,14 +1,24 @@
 #folders
 .vscode
-/frontend/node_modules
 /frontend/.nuxt
-/frontend/.output
+/frontend/node_modules
+ai/.pytest_cache/
+ai/__pycache__/
 /frontend/dist
-frontend/
-backend/
-ai/
+/frontend/.output
+.pytest_cache
+__pycache__
 
 #files
 /backend/src/main/resources/application.properties
-/backend/src/test/resources/application-test.properties
 *env*
+error.txt
+err.txt
+mongodb-errors.txt
+/backend/src/test/resources/application-test.properties
+*.cpython*
+
+
+#ignore for backend
+# Temporary Igngore
+refactorNotes.md

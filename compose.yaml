@@ -1,0 +1,82 @@
+services:
+  mongodb:
+    image: mongodb/mongodb-atlas-local
+    hostname: mongodb
+    environment:
+      - MONGODB_INITDB_ROOT_USERNAME=${DB_USER}
+      - MONGODB_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
+      - GLIBC_TUNABLES=glibc.pthread.rseq=0
+    ports:
+      - 27017:27017
+    volumes:
+      # - ./init:/docker-entrypoint-initdb.d
+      - db:/data/db
+      - configdb:/data/configdb
+      - mongot:/data/mongot
+    healthcheck:
+      test: ["CMD", "mongosh", "-u", "${DB_USER}", "-p", "${DB_PASSWORD}", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping').ok ? quit(0) : quit(1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  backend:
+    build: ./backend/
+    restart: on-failure
+    environment:
+      - DB_URL=${DB_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+      - R2_ACCESS_KEY=${R2_ACCESS_KEY}
+      - R2_SECRET_KEY=${R2_SECRET_KEY}
+      - R2_LISTINGS_ENDPOINT=${R2_LISTINGS_ENDPOINT}
+      - R2_BUCKET_RULEBOOKS=${R2_BUCKET_RULEBOOKS}
+      - R2_BUCKET_PROFILES=${R2_BUCKET_PROFILES}
+      - R2_BUCKET_LISTINGS=${R2_BUCKET_LISTINGS}
+      - R2_DEV_URL=${R2_DEV_URL}
+      - R2_PROD_URL=${R2_PROD_URL}
+      - BGG_TOKEN=${BGG_TOKEN}
+      - BGG_URL=${BGG_URL}
+      - R2_RULEBOOKS_PUBLIC_DEV_URL=${R2_RULEBOOKS_PUBLIC_DEV_URL}
+      - GOOGLE_MAP_API_KEY=${GOOGLE_MAP_API_KEY}
+      
+    ports:
+      - 8080:8080
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/auth/hello"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+  ai-gateway:
+    build: ./ai/
+    restart: on-failure
+    environment:
+      - DB_URL=${DB_URL}
+      - DB_NAME=${DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+      - R2_BUCKET_RULEBOOKS=${R2_BUCKET_RULEBOOKS}
+      - R2_ACCESS_KEY=${R2_ACCESS_KEY}
+      - R2_SECRET_KEY=${R2_SECRET_KEY}
+    ports:
+      - 8000:8000
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+
+volumes:
+  db:
+  configdb:
+  mongot:
