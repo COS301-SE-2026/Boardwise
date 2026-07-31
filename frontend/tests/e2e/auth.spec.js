@@ -1,7 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { describe } from 'node:test';
-import { randomInt } from 'crypto';
-
 let homepage = 'http://localhost:3000/';
 
 test.describe('Auth End-to-End testing suite',()=>{
