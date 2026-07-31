@@ -238,6 +238,27 @@ a:hover { text-decoration: underline; }
    COMPONENT PRIMITIVES — reuse via class instead of re-styling
    ============================================================= */
 
+/* Cards */
+.card-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-h4);
+  font-weight: var(--fw-regular);
+  color: var(--color-secondary);
+  line-height: 1.2;
+}
+
+.card-subtitle {
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+}
+
+.card-meta {
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+}
+
 /* Buttons - pill shape*/
 .btn {
   font-family: var(--font-body);
