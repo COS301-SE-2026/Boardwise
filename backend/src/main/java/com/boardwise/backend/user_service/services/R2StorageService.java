@@ -21,7 +21,7 @@ public class R2StorageService {
     @Value("${r2.bucket-profiles}")
     private String bucketName;
     
-    @Value("${r2.dev-url}") // <-- for when we have domain [CHANGE ME DURING PROD.]
+    @Value("${r2.prod-url}") // <-- for when we have domain [CHANGE ME DURING PROD.]
     private String publicUrl;
 
     public R2StorageService(S3Client s3Client) {

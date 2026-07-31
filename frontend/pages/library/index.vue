@@ -12,41 +12,20 @@
 
   <RulebookCarousel :rulebooks="featuredRulebooks" @select="openRulebook" />
 
-  <RecommendedBooks :rulebooks="recommended" @select ="openRulebook"/>
+  <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
+    <v-progress-circular indeterminate color="primary" size="48" />
+  </v-container>
+  <RecommendedBooks v-else :rulebooks="recommended" @select ="openRulebook"/>
 
   <SectionTitle title="All Rulebooks" class="mt-8" />
 
-  <!-- Mobile -->
-    <div class="d-md-none mb-4">
-      <v-chip
-        color="secondary"
-        class="cursor-pointer"
-        size="large"
-        prepend-icon="mdi-filter-variant"
-        @click="showFilters = true"
-      >
-        Filters 
-      </v-chip>
-
-      <v-navigation-drawer
-        v-model="showFilters"
-        temporary
-        location="left"
-        width="300"
-      >
-          <RulebookFilterSidebar @filter="handleFilter" />
-      </v-navigation-drawer>
-    </div>
-
-    <div class="d-none d-md-flex ga-6 align-start">
-      <RulebookFilterSidebar @filter="handleFilter" />
-      <RulebookGrid :rulebooks="rulebooks" @select="openRulebook" class="flex-1-1" />
-    </div>
-
-    <!-- Mobile Grid -->
-    <div class="d-md-none">
-      <RulebookGrid :rulebooks="rulebooks" @select="openRulebook" />
-    </div>
+  <div class="d-flex ga-6 align-start">
+    <RulebookFilterSidebar @filter="handleFilter" />
+    <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
+      <v-progress-circular indeterminate color="primary" size="48" />
+    </v-container>
+    <RulebookGrid v-else :rulebooks="rulebooks" @select="openRulebook" class="flex-1-1" />
+  </div>
 
   <div ref="sentinel" style="height:1px" />
 

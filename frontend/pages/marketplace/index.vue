@@ -31,29 +31,10 @@
     <!-- Desktop -->
     <div class="d-none d-md-flex ga-6 mt-6 align-start">
       <FilterSidebar @filter="handleFilter"/>
-      
-      <div class="flex-grow-1">
-        <div v-if = "loading">
-          Loading listings...
-        </div> 
-
-        <ListingGrid  
-          v-else 
-          :listings="listings" 
-        />
-
-      </div>
-    </div>
-
-    <div class="d-md-none">
-      <div v-if="loading">
-        Loading listings...
-      </div>
-
-      <ListingGrid 
-        v-else 
-        :listings="listings"
-      />
+      <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
+        <v-progress-circular indeterminate color="primary" size="48" />
+      </v-container>
+      <ListingGrid  v-else :listings="listings" />
     </div>
     
     <div ref="sentinel" style="height:1px" />

@@ -38,17 +38,12 @@
         @filter="handleFilter" 
       />
 
-      <div class="flex-grow-1">
-        <EventGrid 
-          :events="filteredEvents" 
-          @select="openEvent" 
-          class="flex-1-1" 
-        />
-      </div>
-    </div>
+      <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
+        <v-progress-circular indeterminate color="primary" size="48" />
+      </v-container>
 
-    <div class="d-md-none">
       <EventGrid 
+        v-else
         :events="filteredEvents" 
         @select="openEvent" 
         class="flex-1-1" 
@@ -96,7 +91,7 @@ const showFilters = ref(false)
 const { show } = useSnackBar(3)
 const {
   events, 
-  page, 
+  isLoading, 
   fetchEvents,
   createEvent,
   rsvpToEvent, 
