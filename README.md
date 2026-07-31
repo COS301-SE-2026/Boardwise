@@ -229,7 +229,7 @@ cd ai && pip install -r requirements.txt && uvicorn main:app --reload
 | Document | Description |
 |---|---|
 | [SRS](./docs/srs.md) | Functional & non-functional requirements, use cases, domain model, API contracts, architecture |
-| [Brand Style Guide](./docs/design/brandStyleGuide.pdf) | Colour palette, typography, components, accessibility |
+| [Brand Style Guide](./docs/design/brandStyleGuide(version 2) | Colour palette, typography, components, accessibility |
 | [Wireframes](./docs/design) | UI/UX designs and navigation flows |
 | [Design Tokens](./frontend/assets/theme.css) | Global styling variables for frontend consistency |
 
