@@ -1,5 +1,7 @@
 package com.boardwise.backend.marketplace.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum ListingStatus {
     AVAILABLE("available"),
     RENTED("rented"),
@@ -11,9 +13,11 @@ public enum ListingStatus {
         this.value = value;
     }
 
+    @JsonValue
     public String getValue() {
         return value;
     }
+    
 
     public static ListingStatus fromValue(String value) {
         for (ListingStatus status : values()) {

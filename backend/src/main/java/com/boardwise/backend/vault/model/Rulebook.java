@@ -1,6 +1,7 @@
 package com.boardwise.backend.vault.model;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -19,27 +20,72 @@ public class Rulebook {
     @Id
     private ObjectId id;
 
-    @Field("game_name")
-    private String gameName;
+    @Field("coverUrl")
+    private String coverUrl;
+
+    @Field("gameId")
+    private ObjectId gameId;
+
+    @Field("title")
+    private String title;
 
     @Field("edition")
     private String edition;
 
     @Field("status")
-    private String status; // Processing | Ready | PendingReview
+    private String status; // Processing | Ready | PendingReview | Failed
 
     @Field("version")
-    private int version;
+    private long version;
 
-    @Field("contributor_id")
+    @Field("contributorId")
     private ObjectId contributorId;
 
-    @Field("r2_pdf_key")
+    @Field("contributorUsername")
+    private String contributorUsername;
+
+    @Field("description")
+    private String description;
+
+    @Field("language")
+    private String language;
+
+    @Field("r2PdfKey")
     private String r2PdfKey;
 
-    @Field("uploaded_at")
+    @Field("r2CoverKey")
+    private String r2CoverKey;
+
+    @Field("lockHeldBy")
+    private ObjectId lockHeldBy;
+
+    @Field("lockExpiresAt")
+    private Instant lockExpiresAt;
+
+    @Field("undoStack")
+    private List<Long> undoStack;
+
+    @Field("redoStack")
+    private List<Long> redoStack;
+
+    @Field("uploadedAt")
     private Instant uploadedAt;
 
-    @Field("updated_at")
+    @Field("updatedAt")
     private Instant updatedAt;
+    
+    @Field("genres")
+    private List<String> genres;
+
+    @Field("minPlayers")
+    private Integer minPlayers;
+
+    @Field("maxPlayers")
+    private Integer maxPlayers;
+
+    @Field("duration")
+    private Integer duration;
+
+    @Field("minAge")
+    private Integer minAge;
 }

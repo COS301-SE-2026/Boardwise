@@ -1,62 +1,37 @@
 <template>
-  <section class="section">
+  <section v-if="modelValue">
 
-    <div class="members-grid">
+    <BaseGrid cols="180px" >
       <MemberCard
-        v-for="member in community.members_list"
-        :key="member.id"
+        v-for="member in community.members"
+        :key="member.username"
         :member="member"
       />
-    </div>
+    </BaseGrid>
 
-     <!-- <InviteMemberModal
+     <InviteMemberModal
       v-model="showInvite"
       @confirm="handleInvite"
-    /> -->
+    /> 
   </section>
 </template>
 
 <script setup>
-import SectionTitle from '~/components/ui/SectionTitle.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
 import MemberCard from './MemberCard.vue'
-import InviteMemberModal from './InviteMemberModal.vue'
+import BaseGrid from '~/components/ui/BaseGrid.vue'
 
+import InviteMemberModal from './InviteMemberModal.vue'
 defineProps({
-  community: { type: Object, required: true }
+  community: { type: Object, required: true },
+  modelValue: { type: Boolean, default: false }
 })
 
-// const showInvite = ref(false)
+defineEmits(['update:modelValue'])
+
+const showInvite = ref(false)
 
 const handleInvite = (invite) => {
   console.log('Invite:', invite)
 }
 
 </script>
-
-<style scoped>
-.section {
-  margin-top: 8px;
-}
-
-.top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.members-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 20px;
-}
-
-@media (max-width: 768px) {
-  .top {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-}
-</style>s

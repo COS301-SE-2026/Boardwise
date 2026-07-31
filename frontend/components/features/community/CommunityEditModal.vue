@@ -1,47 +1,66 @@
 <template>
   <BaseModal v-model="open">
-    <div class="content">
+    <div class="d-flex flex-column ga-6">
 
       <h2>Edit Community</h2>
 
-      <div class="input-group">
-        <label>Community Name</label>
-        <BaseInput v-model="name" placeholder="Community name" />
-      </div>
+        <BaseInput 
+          v-model="form.name" 
+          placeholder="Community name" 
+          />
+      
+        <BaseTextArea 
+            v-model="form.description" 
+            placeholder="What is this community about?" 
+            :rows="3" 
+            />
 
-      <div class="input-group">
-        <label>Description</label>
-        <BaseTextArea v-model="description" placeholder="What is this community about?" :rows="3" />
-      </div>
+      <v-btn-toggle
+        v-model="form.visibility"
+        mandatory
+        divided  
+      >
+        <v-btn value="Public">
+          Public
+        </v-btn>
 
-      <div class="input-group">
-        <label>Type</label>
-        <div class="toggle-row">
-          <button :class="['toggle-btn', { active: type === 'Public' }]" @click="type = 'Public'">Public</button>
-          <button :class="['toggle-btn', { active: type === 'Private' }]" @click="type = 'Private'">Private</button>
-        </div>
-      </div>
+        <v-btn value="Private">
+          Private
+        </v-btn>
+    </v-btn-toggle>
 
-      <div class="input-group">
-        <label>Community Image</label>
-        <div class="upload-row">
-          <BaseButton variant="secondary" @click="triggerUpload">
+      <div class="d-flex align-center ga-4">
+          <BaseButton @click="fileInput?.click()">
+            <v-icon start>mdi-upload</v-icon>
             Upload Image
           </BaseButton>
+
           <span class="filename">{{ fileName || '···' }}</span>
+
+          <label for="community-image-upload" class="sr-only">Upload Image</label>
           <input
+            id="community-image-upload"
             ref="fileInput"
             type="file"
             accept="image/*"
-            class="hidden-input"
+            class="d-none"
             @change="handleFileChange"
           />
-        </div>
       </div>
 
-      <div class="actions">
-        <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
-        <BaseButton @click="handleSave">Save Changes</BaseButton>
+      <div class="d-flex justify-end ga-3">
+
+        <BaseButton 
+          variant="secondary" 
+          @click="closeModal"
+          >
+          Cancel
+        </BaseButton>
+
+        <BaseButton 
+          @click="handleSave">
+          Save Changes
+        </BaseButton>
       </div>
 
     </div>
@@ -49,106 +68,90 @@
 </template>
 
 <script setup>
+import { reactive, ref, watch } from 'vue'
+
 import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseTextArea from '~/components/ui/BaseTextArea.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+import { useSnackBar } from '~/composables/useSnackbar'
+import { useCommunity } from '~/composables/useCommunity'
 
-const open = defineModel()
-const props = defineProps({ community: Object })
+const { show } = useSnackBar()
+const { editCommunity, error } = useCommunity()
+
+const open = defineModel({
+  type: Boolean,
+  default: false
+})
+
+const props = defineProps({ 
+  community: {
+    type: Object,
+    required: true
+  } 
+})
+
 const emit = defineEmits(['save'])
 
-const name = ref(props.community?.name ?? '')
-const description = ref(props.community?.description ?? '')
-const type = ref(props.community?.type ?? 'Public')
-const fileName = ref(props.community?.image ?? '')
+const form = reactive({
+  name: '',
+  description: '',
+  type: 'Public'
+})
+
+const fileName = ref('')
 const fileInput = ref(null)
+const file = ref(null)
 
-const triggerUpload = () => fileInput.value?.click()
+watch(
+  () => props.community,
+  (community) => {
+    if (!community) return
+    
+    form.name = community.name
+    form.description = community.description
+    form.visibility = community.visibility
 
-const handleFileChange = (e) => {
-  const file = e.target.files[0]
-  if (file) fileName.value = file.name
+    fileName.value = community.image
+  },
+  { immediate: true }
+)
+
+const handleFileChange = (event) => {
+  const chosenfile = event.target.files?.[0]
+
+  if(chosenfile) {
+    fileName.value = chosenfile.name
+    file.value = chosenfile
+  }
+
 }
 
-const handleSave = () => {
-  emit('save', {
-    name: name.value,
-    description: description.value,
-    type: type.value,
-    image: fileName.value
-  })
+const closeModal = () => {
   open.value = false
 }
+
+const handleSave = async () => {
+  try{
+    const response = await editCommunity(
+      props.community.id,
+      file.value,
+      {
+        name: form.name,
+        description: form.description,
+        visibility: form.visibility
+      }
+    )
+    console.log(response.data)
+    emit('save', response.data)
+  }
+  catch(err){
+    console.error("Failed to edit community details", err)
+    show(error.value, 'error')
+  }
+  finally{
+    closeModal()
+  }
+}
 </script>
-
-<style scoped>
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-h2 {
-  margin: 0;
-  font-size: 22px;
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-}
-
-.toggle-row {
-  display: flex;
-  gap: 12px;
-}
-
-.toggle-btn {
-  flex: 1;
-  padding: 10px;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  background: white;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  color: #555;
-  transition: all 0.2s;
-}
-
-.toggle-btn.active {
-  border-color: #6C3BFF;
-  background: #f3eeff;
-  color: #6C3BFF;
-}
-
-.upload-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.filename {
-  font-size: 14px;
-  color: #888;
-}
-
-.hidden-input {
-  display: none;
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 8px;
-}
-</style>

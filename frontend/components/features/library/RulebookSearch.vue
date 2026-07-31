@@ -1,56 +1,25 @@
 <template>
-  <div class="search-row">
-    <div class="search">
+  <div class="d-flex ga-3 align-center search-container">
+    <div class="flex-1-1">
       <BaseSearch
         v-model="search"
-        placeholder="Search rulebooks..."
+        placeholder="Search for rulebooks..."
         @update:model-value="$emit('search', $event)"
-        hide-details
       />      
     </div>
-    <BaseButton variant="primary" @click="$emit('upload')"
-      class="row-btn"  
-    >
-      <v-icon start>mdi-upload</v-icon>
-      Upload Rulebook
+
+    <BaseButton variant="primary" prepend-icon="mdi-upload" @click="$emit('upload')"> 
+        Upload Rulebook
     </BaseButton>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
+
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 
 const search = ref('')
 defineEmits(['search', 'upload'])
 </script>
-
-<style scoped>
-.search-row {
-  display: flex;
-  gap: var(--space-4);
-  align-items: stretch;
-  margin-top: var(--space-6);
-}
-
-.search {
-  flex: 1;
-}
-
-.row-btn {
-  white-space: nowrap;
-  align-self: stretch;
-  height: auto;
-}
-
-@media (max-width: 700px) {
-  .search-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .row-btn{
-    height: 50px;
-  }
-}
-</style>

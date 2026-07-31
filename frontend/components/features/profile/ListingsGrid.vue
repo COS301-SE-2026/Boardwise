@@ -5,6 +5,8 @@
       v-for="listing in listings"
       :key="listing.listingId"
       :listing="listing"
+      @deleted="$emit('deleted')"
+      @updated="$emit('updated')"
     />
 
     <AddListingCard @click="$emit('add-listing')" />
@@ -17,10 +19,11 @@ import BaseGrid           from '~/components/ui/BaseGrid.vue'
 import ProfileListingCard from './ProfileListingCard.vue'
 import AddListingCard     from './AddListingCard.vue'
 
+const emit = defineEmits(['add-listing', 'deleted', 'updated'])
 
 defineProps({
   listings: { type: Array, default: () => [] }
 })
 
-defineEmits(['add-listing'])
+
 </script>

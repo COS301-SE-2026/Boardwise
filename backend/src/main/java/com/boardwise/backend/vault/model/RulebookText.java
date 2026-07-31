@@ -1,6 +1,7 @@
 package com.boardwise.backend.vault.model;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -19,18 +20,15 @@ public class RulebookText {
     @Id
     private ObjectId id;
 
-    @Field("rulebook_id")
+    @Field("rulebookId")
     private ObjectId rulebookId;
 
-    @Field("game_id")
-    private ObjectId gameId;
-
-    @Field("content")
-    private String content;
-
     @Field("version")
-    private int version;
+    private long version;
 
-    @Field("updated_at")
+    @Field("chunks")
+    private List<Chunk> chunks;
+
+    @Field("updatedAt")
     private Instant updatedAt;
 }

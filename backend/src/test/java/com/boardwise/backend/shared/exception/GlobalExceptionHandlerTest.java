@@ -1,251 +1,240 @@
 package com.boardwise.backend.shared.exception;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-import org.bson.BsonDocument;
-import com.mongodb.ServerAddress;
+import java.util.List;
+import java.util.Map;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.MediaType;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
+import com.boardwise.backend.vault.exception.ConcurrentModificationAnomalyException;
 import com.boardwise.backend.vault.exception.LockConflictException;
 import com.boardwise.backend.vault.exception.LockNotHeldException;
+import com.boardwise.backend.vault.exception.R2PresignException;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.exception.VersionMismatchException;
-import com.mongodb.DuplicateKeyException;
 
-// We remove all the complex Spring Boot annotations and test this handler purely as a unit!
-class GlobalExceptionHandlerTest {
-
-    private MockMvc mockMvc;
+public class GlobalExceptionHandlerTest {
+    private GlobalExceptionHandler handler;
 
     @BeforeEach
-    void setUp() {
-        // Manually build MockMvc with our test controller and the exception handler
-        // This guarantees the routes exist and bypasses all Spring Security filters
-        // entirely!
-        this.mockMvc = MockMvcBuilders.standaloneSetup(new TestController())
-                .setControllerAdvice(new GlobalExceptionHandler())
-                .build();
+    void setup(){
+        handler = new GlobalExceptionHandler();
     }
 
-    // --- 1. VALIDATION TESTS ----------------------------------------------------
+    private void assertStatusCodeAndMessage(ResponseEntity<Map<String, String>> response, HttpStatusCode statusCode, String message){
+        assertThat(response.getStatusCode()).isEqualTo(statusCode);
+        assertThat(response.getBody()).containsEntry("message", message);
+    }
 
-    @Test
-    void shouldHandleValidationErrors() throws Exception {
-        String invalidJson = """
-                {
-                    "username": "ab",
-                    "password": "pwd"
-                }
-                """;
-
-        mockMvc.perform(post("/api/auth/test/validation")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(invalidJson))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Missing or invalid required fields"))
-                .andExpect(jsonPath("$.fields.username").exists())
-                .andExpect(jsonPath("$.fields.password").exists());
+    private void assertStatusCodeAndMessage2(ResponseEntity<Map<String, Object>> response, HttpStatusCode statusCode, String message){
+        assertThat(response.getStatusCode()).isEqualTo(statusCode);
+        assertThat(response.getBody()).containsEntry("message", message);
     }
 
     @Test
-    void shouldHandleMissingFields() throws Exception {
-        String emptyJson = "{}";
+    void handleNotFoundReturns404WithMessage(){
+        // Arrange
+        ObjectId id = new ObjectId();
+        
+        // Act
+        var response = handler.handleNotFound(new RulebookNotFoundException(id));
 
-        mockMvc.perform(post("/api/auth/test/validation")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(emptyJson))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Missing or invalid required fields"));
-    }
-
-    // --- 2. VAULT & BUSINESS EXCEPTIONS COVERAGE ---------------------------------
-
-    @Test
-    void shouldHandleRulebookNotFoundException() throws Exception {
-        mockMvc.perform(get("/api/auth/test/not-found"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").exists());
+        // Assert
+        assertStatusCodeAndMessage(response, HttpStatus.NOT_FOUND, "Rulebook not found: " + id);
     }
 
     @Test
-    void shouldHandleLockConflictException() throws Exception {
-        mockMvc.perform(get("/api/auth/test/lock-conflict"))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error").exists());
+    void handleForbiddenReturns403WithMessage(){
+        // Act
+        var response = handler.handleForbidden(new AccessDeniedException("no access"));
+        
+        // Assert
+        assertStatusCodeAndMessage(response, HttpStatus.FORBIDDEN, "no access");
+    }
+    
+    @Test
+    void handleLockConflictReturns409WithMessage(){
+        // Act
+        var response = handler.handleLockConflict(new LockConflictException("lock conflict"));
+
+        // Assert
+        assertStatusCodeAndMessage(response, HttpStatus.CONFLICT, "lock conflict");
+    }
+    
+    @Test
+    void handleLockNotHeldReturns403WithMessage(){
+        // Act
+        var response = handler.handleLockNotHeld(new LockNotHeldException("lock not held"));
+        
+        // Assert
+        assertStatusCodeAndMessage(response, HttpStatus.FORBIDDEN, "lock not held");
+    }
+    
+    @Test
+    void handleVersionMismatchReturns409WithMessage(){
+        // Arrange
+        long expected = 5L;
+        long actual = 4L;
+        
+        // Act
+        var response = handler.handleVersionMismatch(new VersionMismatchException(expected, actual));
+
+        // Assert
+        assertStatusCodeAndMessage(response, HttpStatus.CONFLICT, "Version mismatch - expected: " + expected + ", actual: " + actual);
+    }
+    
+    @Test
+    void handleR2FailureReturns502WithMessage(){
+        // Act
+        var response = handler.handleR2Failure(new R2PresignException("presign error"));
+        
+        // Assert
+        assertStatusCodeAndMessage(response, HttpStatus.BAD_GATEWAY, "presign error");
+    }
+    
+    @Test
+    void handleGenericReturns500WithMessage(){
+        // Act
+        var response = handler.handleGeneric(new Exception());
+        
+        // Assert
+        assertStatusCodeAndMessage(response, HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
     }
 
     @Test
-    void shouldHandleAccessDeniedException() throws Exception {
-        mockMvc.perform(get("/api/auth/test/access-denied"))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error").exists());
+    void handleBadRequestReturns400WithMessage(){
+        // Act
+        var response = handler.handleBadRequest(new IllegalArgumentException("bad input"));
+
+        // Assert
+        assertStatusCodeAndMessage(response, HttpStatus.BAD_REQUEST, "bad input");
     }
 
     @Test
-    void shouldHandleIllegalArgumentException() throws Exception {
-        mockMvc.perform(get("/api/auth/test/illegal-argument"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").exists());
+    void handleNoHandlerFoundIncludesRequestUrl(){
+        // Arrange
+        NoHandlerFoundException ex = new NoHandlerFoundException("GET", "/api/mock", new HttpHeaders());
+        
+        // Act
+        var response = handler.handleNoHandlerFound(ex);
+        
+        // Assert
+        assertThat(response.getBody()).containsEntry("message", "Endpoint not found: " + ex.getRequestURL());
     }
 
     @Test
-    void shouldHandleLockNotHeldException() throws Exception {
-        mockMvc.perform(get("/api/auth/test/lock-not-held"))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error").exists());
+    void handleValidationErrorsMapsSingleFieldError(){
+        // Arrange
+        MethodArgumentNotValidException ex = mock(MethodArgumentNotValidException.class);
+        BindingResult bindingResult = mock(BindingResult.class);
+        when(ex.getBindingResult()).thenReturn(bindingResult);
+        when(bindingResult.getAllErrors()).thenReturn(List.of(new FieldError("obj", "title", "must not be blank")));
+        
+        // Act
+        var response = handler.handleValidationErrors(ex);
+
+        // Assert
+        assertStatusCodeAndMessage2(response, HttpStatus.BAD_REQUEST, "Missing or invalid required fields");
+        @SuppressWarnings("unchecked")
+        Map<String, String> fields = (Map<String, String>) response.getBody().get("fields");
+        assertThat(fields).containsEntry("title", "must not be blank");
+
+    }
+    
+    @Test
+    void handleValidationErrorsMapsMultipleFieldError(){
+        // Arrange
+        MethodArgumentNotValidException ex = mock(MethodArgumentNotValidException.class);
+        BindingResult bindingResult = mock(BindingResult.class);
+        when(ex.getBindingResult()).thenReturn(bindingResult);
+        when(bindingResult.getAllErrors()).thenReturn(List.of(
+            new FieldError("obj", "title", "must not be blank"),
+            new FieldError("obj", "duration", "must be a positive number")
+        ));
+
+        // Act
+        var response = handler.handleValidationErrors(ex);
+
+        // Assert
+        assertStatusCodeAndMessage2(response, HttpStatus.BAD_REQUEST, "Missing or invalid required fields");
+        @SuppressWarnings("unchecked")
+        Map<String, String> fields = (Map<String, String>) response.getBody().get("fields");
+        assertThat(fields).hasSize(2);
+        assertThat(fields).containsEntry("title", "must not be blank");
+        assertThat(fields).containsEntry("duration", "must be a positive number");
     }
 
     @Test
-    void shouldHandleVersionMismatchException() throws Exception {
-        mockMvc.perform(get("/api/auth/test/version-mismatch"))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error").exists());
+    void handleDuplicateKeyExceptionForUsernameReturnsUsernameMessage(){
+        // Act
+        var response = handler.handleDuplicateKeyException(new DuplicateKeyException("... username_1 ..."));
+        // Assert
+        assertStatusCodeAndMessage(response, HttpStatus.CONFLICT, "Username is already taken");
     }
-
-    // --- 3. MONGODB DUPLICATE KEY PARSING COVERAGE ------------------------------
+    
+    @Test
+    void handleDuplicateKeyExceptionForEmailReturnsEmailMessage(){
+        // Act
+        var response = handler.handleDuplicateKeyException(new DuplicateKeyException("... emailAddress_1 ..."));
+        // Assert
+        assertThat(response.getBody()).containsEntry("message", "Email address is already in use");
+    }
+    
+    @Test
+    void handleDuplicateKeyExceptionForOtherReturnsGenericMessage(){
+        // Act
+        var response = handler.handleDuplicateKeyException(new DuplicateKeyException("... some field ..."));
+        // Assert
+        assertThat(response.getBody()).containsEntry("message", "A duplicate entry already exists");
+    }
+    
+    @Test
+    void handleDuplicateKeyExceptionWithNullMessageReturnsGenericMessage(){
+        // Act
+        var response = handler.handleDuplicateKeyException(new DuplicateKeyException(null));
+        // Assert
+        assertThat(response.getBody()).containsEntry("message", "A duplicate entry already exists");
+    }
 
     @Test
-    void shouldHandleDuplicateKeyException_Username() throws Exception {
-        mockMvc.perform(get("/api/auth/test/duplicate-username"))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error").value("Username is already taken"));
+    void handleFailedUserDeletionReturns500WithMessage(){
+        // Act
+        var response = handler.handleFailedUserDeletion(new OptimisticLockingFailureException("failed"));
+
+        // Assert
+        assertStatusCodeAndMessage2(response, HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete account. Something went wrong on our side.");
     }
 
     @Test
-    void shouldHandleDuplicateKeyException_Email() throws Exception {
-        mockMvc.perform(get("/api/auth/test/duplicate-email"))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error").value("Email address is already in use"));
-    }
+    void handleConcurrentModificationAnomalyReturns500WithMessage(){
+        // Act
+        var response = handler.handleConcurrentModificationAnomaly(new ConcurrentModificationAnomalyException("error occured"));
 
+        // Assert
+        assertStatusCodeAndMessage(response, HttpStatus.INTERNAL_SERVER_ERROR, "error occured");
+    }
+    
     @Test
-    void shouldHandleDuplicateKeyException_Generic() throws Exception {
-        mockMvc.perform(get("/api/auth/test/duplicate-generic"))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error").value("A duplicate entry already exists"));
-    }
+    void handleIllegalStateReturns500WithMessage(){
+        // Act
+        var response = handler.handleIllegalState(new IllegalStateException("illegal state"));
 
-    // --- 4. CATCH-ALL GENERIC EXCEPTIONS ----------------------------------------
-
-    @Test
-    void shouldHandleGenericException() throws Exception {
-        mockMvc.perform(get("/api/auth/test/generic-error"))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").exists());
-    }
-
-    // --- INNER TEST CONTROLLER FOR ISOLATED TESTING -----------------------------
-
-    @RestController
-    public static class TestController {
-
-        @PostMapping("/api/auth/test/validation")
-        public void testValidation(@Valid @RequestBody DummyDTO dto) {
-        }
-
-        @GetMapping("/api/auth/test/not-found")
-        public void throwNotFound() {
-            throw new RulebookNotFoundException("Rulebook not found");
-        }
-
-        @GetMapping("/api/auth/test/lock-conflict")
-        public void throwLockConflict() {
-            throw new LockConflictException("Lock conflict detected");
-        }
-
-        @GetMapping("/api/auth/test/access-denied")
-        public void throwAccessDenied() {
-            throw new AccessDeniedException("Access Denied");
-        }
-
-        @GetMapping("/api/auth/test/illegal-argument")
-        public void throwIllegalArgument() {
-            throw new IllegalArgumentException("Invalid argument passed");
-        }
-
-        @GetMapping("/api/auth/test/lock-not-held")
-        public void throwLockNotHeld() {
-            throw new LockNotHeldException("Lock is not held");
-        }
-
-        @GetMapping("/api/auth/test/version-mismatch")
-        public void throwVersionMismatch() {
-            throw new VersionMismatchException(1, 2);
-        }
-
-        @GetMapping("/api/auth/test/duplicate-username")
-        public void throwDupUsername() {
-            throw new DuplicateKeyException(new BsonDocument(), new ServerAddress(), null) {
-                @Override
-                public String getMessage() {
-                    return "username";
-                }
-            };
-        }
-
-        @GetMapping("/api/auth/test/duplicate-email")
-        public void throwDupEmail() {
-            throw new DuplicateKeyException(new BsonDocument(), new ServerAddress(), null) {
-                @Override
-                public String getMessage() {
-                    return "emailAddress";
-                }
-            };
-        }
-
-        @GetMapping("/api/auth/test/duplicate-generic")
-        public void throwDupGeneric() {
-            throw new DuplicateKeyException(new BsonDocument(), new ServerAddress(), null) {
-                @Override
-                public String getMessage() {
-                    return "generic crash";
-                }
-            };
-        }
-
-        @GetMapping("/api/auth/test/generic-error")
-        public void throwGeneric() throws Exception {
-            throw new Exception("NullPointerException or similar runtime crash");
-        }
-    }
-
-    // Temporary DTO to isolate field validation annotation tracking
-    static class DummyDTO {
-        @NotBlank
-        @Size(min = 3)
-        private String username;
-        @NotBlank
-        @Size(min = 6)
-        private String password;
-
-        public DummyDTO(String username, String password) {
-            this.username = username;
-            this.password = password;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public String getPassword() {
-            return password;
-        }
+        // Assert
+        assertStatusCodeAndMessage(response, HttpStatus.INTERNAL_SERVER_ERROR, "illegal state");
     }
 }

@@ -1,5 +1,7 @@
 package com.boardwise.backend.vault.controller;
 
+import java.util.List;
+
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.boardwise.backend.vault.dto.response.DownloadUrlResponseDto;
 import com.boardwise.backend.vault.dto.response.EditHistoryResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookResponseDto;
+import com.boardwise.backend.vault.dto.response.RulebookSummaryResponseDto;
 import com.boardwise.backend.vault.dto.response.RulebookTextResponseDto;
 import com.boardwise.backend.vault.service.RulebookService;
 
@@ -25,13 +28,23 @@ public class RulebookController {
 
     // AC-VLT-02: List / Search Rulebooks
     @GetMapping
-    public ResponseEntity<Page<RulebookResponseDto>> listRulebooks(
-        @RequestParam(defaultValue = "") String search,
+    public ResponseEntity<Page<RulebookSummaryResponseDto>> listRulebooks(
+        @RequestParam(required = false) String search,
+        @RequestParam(required = false) String genre,
+        @RequestParam(required = false) List<String> languages,
+        @RequestParam(required = false) Integer playerCount,
+        @RequestParam(required = false) Integer duration,
+        @RequestParam(required = false) Integer minAge,
         @RequestParam(defaultValue = "1") int page,
         @RequestParam(defaultValue = "20") int limit){
-            return ResponseEntity.ok(
-                rulebookService.searchRulebooks(search, page, limit)
+            Page<RulebookSummaryResponseDto> rulebooks = rulebookService.searchRulebooks(
+                search, genre, languages, playerCount, duration, minAge, page, limit
             );
+            
+            if(rulebooks.isEmpty()){
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(rulebooks);
     }
 
     // AC-VLT-03: Get Rulebook Detail
@@ -43,28 +56,31 @@ public class RulebookController {
             );
     }
 
-    // AC-VLT-05: Get Rulebook Text State
-    @GetMapping("/{id}/text")
-    public ResponseEntity<RulebookTextResponseDto> getRulebookText(
-            @PathVariable String id) {
-        return ResponseEntity.ok(
-                rulebookService.getRulebookText(toObjectId(id)));
-    }
-
     // AC-VLT-04: Download Raw PDF
     @GetMapping("/{id}/download")
     public ResponseEntity<DownloadUrlResponseDto> downloadRulebook(
-            @PathVariable String id) {
-        return ResponseEntity.ok(
-                rulebookService.getDownloadUrl(toObjectId(id)));
+        @PathVariable String id) {
+            return ResponseEntity.ok(
+                rulebookService.getDownloadUrl(toObjectId(id))
+            );
+    }
+
+    // AC-VLT-05: Get Rulebook Text State
+    @GetMapping("/{id}/text")
+    public ResponseEntity<RulebookTextResponseDto> getRulebookText(
+        @PathVariable String id) {
+            return ResponseEntity.ok(
+                rulebookService.getRulebookText(toObjectId(id))
+            );
     }
 
     // AC-VLT-09: Get Rulebook Edit History
     @GetMapping("/{id}/history")
     public ResponseEntity<EditHistoryResponseDto> getEditHistory(
-            @PathVariable String id) {
-        return ResponseEntity.ok(
-                rulebookService.getEditHistory(toObjectId(id)));
+        @PathVariable String id) {
+            return ResponseEntity.ok(
+                rulebookService.getEditHistory(toObjectId(id))
+            );
     }
 
     // --- private helpers ---

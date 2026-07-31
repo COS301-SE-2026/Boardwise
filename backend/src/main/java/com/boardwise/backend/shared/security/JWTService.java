@@ -9,13 +9,14 @@ import java.util.function.Function;
 import javax.crypto.SecretKey;
 
 import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.boardwise.backend.user_service.models.TokenBlackList;
 import com.boardwise.backend.user_service.repos.TokenBlackListRepository;
+import com.boardwise.backend.user_service.repos.UserRepository;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -26,19 +27,21 @@ public class JWTService {
 
     @Value("${jwt.secret}")
     private String key;
+    private final TokenBlackListRepository tokenRepo;
+    private final UserRepository userRepo;
 
+    JWTService(TokenBlackListRepository tokenRepo, UserRepository userRepo) {
+        this.tokenRepo = tokenRepo;
+        this.userRepo = userRepo;
+    }
 
-    @Autowired
-    private TokenBlackListRepository tokenRepo;
-
-    public String generateToken(String username, String userId) {
+    public String generateToken(String userId) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId);
         int ttl = 90 * 60 * 1000;
         return Jwts.builder()
                 .claims()
                 .add(claims)
-                .subject(username)
+                .subject(userId)
                 .id(UUID.randomUUID().toString())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + ttl))
@@ -49,17 +52,12 @@ public class JWTService {
     }
 
     public ObjectId extractUserId(String token) {
-        String userId = extractClaim(token,
-                claims -> claims.get("userId", String.class));
+        String userId = extractClaim(token, claims -> claims.getSubject());
         return new ObjectId(userId);
     }
 
     private SecretKey getKey() {
         return Keys.hmacShaKeyFor(key.getBytes(StandardCharsets.UTF_8));
-    }
-
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> resolver){
@@ -76,18 +74,21 @@ public class JWTService {
     }
 
     public boolean validateToken(String token, UserDetails userDeets) {
-        String username = extractUsername(token);
-        return username.equals(userDeets.getUsername()) && !isTokenExpired(token) 
-        && !isTokenBlackListed(token);
+        String userId = extractUserId(token).toString();
+        String username = userRepo.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User not found: " + userId)).getUsername();
+        
+        return username.equals(userDeets.getUsername()) && 
+        !isTokenExpired(token) && 
+        !isTokenBlackListed(token);
     }
 
     private boolean isTokenExpired(String token) {
-        Date expiry = extractClaim(token, Claims::getExpiration);
+        Date expiry = extractClaim(token, claims -> claims.getExpiration());
         return expiry.before(new Date());
     }
     
     private boolean isTokenBlackListed(String token){
-        String jti = extractClaim(token, Claims::getId);
+        String jti = extractClaim(token, claims -> claims.getId());
         return tokenRepo.existsByJti(jti);
     }
 

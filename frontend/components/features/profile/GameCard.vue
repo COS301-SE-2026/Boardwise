@@ -1,13 +1,25 @@
 <template>
-  <BaseCard class="game-card">
+  <BaseCard class="game-card" @click="openDelete = true">
 
-    <v-img :src="image" :alt="title" height="180" cover />
+    <v-img 
+      :src="image" 
+      :alt="title"
+       height="240" 
+       cover 
+    />
 
-    <v-card-text>
-      <h3 class="game-card__title ma-0">{{ title }}</h3>
-      <p class="game-card__category ma-0 mt-1">{{ category }}</p>
-    </v-card-text>
+    <div class="game-card__content">
+    <h3 class="game-card__title">
+      {{ decodedTitle }}
+    </h3>
 
+    <p class="game-card__category">
+      {{ decodedCategory }}
+    </p>
+  </div>
+
+    <!--TEMPORARY METHOD OF DELETING-->
+    <RemoveGameModal v-model="openDelete" @confirm="handleRemove()" ></RemoveGameModal>
     <!-- <RulebookDetail
       v-model="showDetail"
       :game="{ title, category, image }"
@@ -18,39 +30,94 @@
 
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
+import RemoveGameModal from './RemoveGameModal.vue';
+import { computed } from 'vue';
 // import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
 
-defineProps({
-  title:    String,
+const props = defineProps({
+  id: { type: String, required: true },
+  title: String,
   category: String,
-  image:    String,
+  image: String,
 })
 
 const showDetail = ref(false)
+const openDelete = ref(false);
+const decodedTitle = computed(() => decodeEntity(props.title));
+const decodedCategory = computed(() => decodeEntity(props.category));
+
+async function handleRemove(){
+  try{
+    emit('remove');
+  }
+  catch{
+    console.error('Failed to remove game', err)
+  }
+}
+
+function decodeEntity(entity) {
+  if(!entity) return ''
+  return entity.replaceAll(/&#39;/g, "'")
+              .replaceAll(/&quot;/g, '"')
+              .replaceAll(/&amp;/g, '&')
+              .replaceAll(/&lt;/g, '<')
+              .replaceAll(/&gt;/g, '>')
+}
+
+const emit = defineEmits(['remove'])
+
 </script>
 
 <style scoped>
 
 .game-card {
-  /* cursor:     pointer; */
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  height: 320px;
+  
+  border-radius: 16px;
   overflow: hidden;
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
+  cursor: pointer;
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease;
 }
+
 .game-card:hover {
-  transform:  translateY(-2px);
+  transform: translateY(-4px);
   box-shadow: var(--shadow-md) !important;
 }
 
 .game-card__title {
-  font-family: var(--font-display);
-  font-size: var(--fs-h4);
-  font-weight: var(--fw-regular);
-  color: var(--color-secondary);
+    font-family: var(--font-body);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--color-secondary);
+    line-height: 1.3;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+
+    overflow: hidden;
+}
+
+.game-card__content {
+  padding: 16px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  flex: 1;
 }
 
 .game-card__category {
-  font-family: var(--font-body);
-  font-size:   var(--fs-small);
-  color: var(--color-text-muted);
+    margin-top: .5rem;
+    color: #777;
+    font-size: .9rem;
 }
 </style>

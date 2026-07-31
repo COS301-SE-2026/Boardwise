@@ -31,4 +31,7 @@ public class UserDetailImpl implements UserDetails {
         return user.getUsername();
     }
 
+    public String getUserId(){
+        return user.getId();
+    }
 }

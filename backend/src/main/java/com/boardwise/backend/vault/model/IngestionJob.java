@@ -19,21 +19,21 @@ public class IngestionJob {
     @Id
     private ObjectId id;
 
-    @Field("rulebook_id")
+    @Field("rulebookId")
     private ObjectId rulebookId;
 
     @Field("stage")
-    private String stage;           // Sanitise | Extract
+    private String stage; // Sanitise | Extract | Chunk | Vectorise | Store | Unknown
 
-    @Field("job_status")
-    private String jobStatus;       // Processing | Ready | PendingReview
+    @Field("jobStatus")
+    private String jobStatus; // Processing | Completed | Failed
 
-    @Field("failure_reason")
+    @Field("failureReason")
     private String failureReason;
 
-    @Field("started_at")
+    @Field("startedAt")
     private Instant startedAt;
 
-    @Field("completed_at")
-    private Instant completedAt;
+    @Field("completedAt")
+    private Instant completedAt; // null while job is still in progress
 }

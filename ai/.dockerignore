@@ -1,11 +1,21 @@
+# Git
+.git
+.gitignore
+
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-.env
+*.py[cod]
+*$py.class
 .pytest_cache/
-tests/
+.coverage
+htmlcov/
+.venv/
+venv/
+ENV/
+env/
+
+# Environment variables
+.env
+
+# MacOS
+.DS_Store

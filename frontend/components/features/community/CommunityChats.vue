@@ -1,9 +1,27 @@
 <template>
-  <div class="community-chats">
+  <div class="d-flex flex-column ga-4">
 
     <ChatFeed :messages="messages" />
 
-    <ChatInput @send="handleSend" />
+    <BaseCard 
+      v-if="!community.isMember"
+      class="pa-4">
+
+      <p class="text-body-2 text-medium-emphasis mb-4">
+        Join this community to participate in the discussion
+      </p>
+
+    <BaseButton 
+      :disabled="loading"
+      @click="$emit('join')"
+    >
+      {{ loading ? 'Joining...' : 'Join community' }}
+    </BaseButton>
+
+   </BaseCard>
+      
+    <ChatInput 
+      v-else @send="handleSend"/>
 
   </div>
 </template>
@@ -12,10 +30,18 @@
 import { ref } from 'vue'
 import ChatFeed from './ChatFeed.vue'
 import ChatInput from './ChatInput.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
+import { useCommunity } from '~/composables/useCommunity'
+const {
+  loading
+} = useCommunity()
 
 defineProps({
   community: { type: Object, required: true }
 })
+
+defineEmits(['join'])
 
 const messages = ref([
   {
@@ -42,16 +68,10 @@ const handleSend = (text) => {
     name: 'You',
     avatar: '/images/avatar.jpg',
     text,
-    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    time: new Date().toLocaleTimeString([], {
+      hour: '2-digit', 
+      minute: '2-digit' }),
     isOwn: true
   })
 }
 </script>
-
-<style scoped>
-.community-chats {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-</style>

@@ -1,15 +1,12 @@
 <template>
-  <section class="mt-8">
-
-    <div class="d-flex justify-space-between align-center mb-6 flex-wrap ga-4">
-      <SectionTitle title="My Listings" />
-      <!-- <v-btn color="primary" @click="showAddListing = false">+ Add Listing</v-btn> -->
-    </div>
+  <section>
 
     <ListingGrid
       :listings="listings"
       @add-listing="showAddListing = false"
       @delete-listing="openDelete"
+      @deleted="$emit('deleted')"
+      @updated="$emit('updated')"
     />
 
     <AddListingModal v-model="showAddListing" />
@@ -35,6 +32,8 @@ const { removeListing } = useMarketplace()
 const showAddListing = ref(false)
 const showDelete = ref(false)
 const selectedId = ref(null)
+
+const emit = defineEmits(['deleted', 'updated', 'add-listing'])
 
 const openDelete = (id) => {
   selectedId.value = id

@@ -1,21 +1,19 @@
 <template>
-  <div class="chat-input">
+  <div class="d-flex ga-3 align-end" >
 
     <BaseTextArea
       v-model="text"
       placeholder="Write a message..."
       :rows="2"
+      hide-details
       @keydown.enter.prevent="handleSend"
       class="flex-1"
-      hide-details
     />
 
     <BaseButton @click="handleSend"
-      class="align-stretch h-auto"
     >
       Send
     </BaseButton>
-
   </div>
 </template>
 
@@ -28,22 +26,12 @@ const emit = defineEmits(['send'])
 const text = ref('')
 
 const handleSend = () => {
-  if (!text.value.trim()) return
-  emit('send', text.value.trim())
+
+  const message = text.value.trim()
+
+  if (!message) return
+
+  emit('send', message)
   text.value = ''
 }
 </script>
-
-<style scoped>
-.chat-input {
-  display: flex;
-  gap: var(--space-3);
-  align-items: stretch;
-}
-
-.chat-input :deep(.base-textarea) {
-  flex: 1;
-  min-height: unset;
-  resize: none;
-}
-</style>

@@ -1,53 +1,60 @@
-# app/dependencies.py
+import logging
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-import jwt
-
 from app.config import settings
-from app.services.mongo_service import is_token_blacklisted
+from app.services.mongo_service import is_token_valid
 
 bearer_scheme = HTTPBearer()
 
-# Notice this is 'def', not 'async def'
+logger = logging.getLogger(__name__)
+
 def verify_jwt(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)
 ) -> dict:
+    """
+    Verifies if the JWT attached to bearer is valid.
+    Returns the Payload if the JWT is valid.
+    Raises an exception if it is not.
+    """
     token = credentials.credentials
     try:
-        # 1. Cryptographic and Expiration Check
+        # Get the JWT payload
         payload = jwt.decode(
             token,
             settings.JWT_SECRET,
             algorithms=[settings.JWT_ALGORITHM]
         )
-        
-        # 2. Extract the JWT ID (jti)
+
+        # Extract jti (Token ID)
         jti = payload.get("jti")
         if not jti:
+            logger.warning("Token structure is invalid as the JTI is missing.")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token structure: Missing JTI"
+                detail="Invalid token structure: missing JTI."
             )
 
-        # 3. Architecture Gap Check: Synchronous database call
-        if is_token_blacklisted(jti):
+        # Check if token is blacklisted
+        if not is_token_valid(jti):
+            logger.warning("Token is invalid because it has been blacklisted.")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token has been revoked"
+                detail="Token has been revoked."
             )
 
+        logger.info("JWT is valid")
         return payload
-        
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired"
-        )
-    except jwt.InvalidTokenError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token"
-        )
 
-# def verify_jwt(credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False))) -> dict:
-#     return {"userId": "507f1f77bcf86cd799439011"}
+    except jwt.ExpiredSignatureError as e:
+        logger.warning("Rejected request: Token has expired.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired."
+        ) from e
+    except jwt.InvalidTokenError as e:
+        logger.exception("Invalid token error")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token."
+        ) from e

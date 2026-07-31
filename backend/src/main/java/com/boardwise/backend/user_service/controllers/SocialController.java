@@ -5,13 +5,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.boardwise.backend.user_service.dtos.GroupCreationDTO;
 import com.boardwise.backend.user_service.dtos.GroupCreationResponseDTO;
@@ -31,20 +31,24 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 
 @RestController
-@RequestMapping("/api/social/")
+@RequestMapping("/api/social")
 public class SocialController {
 
-    @Autowired
-    private SocialService service;
+    private final SocialService service;
+
+    SocialController(SocialService service) {
+        this.service = service;
+    }
 
     @PostMapping("/groups")
     public ResponseEntity<?> createGroup(
         HttpServletRequest req,
-        @RequestBody GroupCreationDTO group
+        @RequestPart("groupInfo") GroupCreationDTO group,
+        @RequestPart("groupImage") MultipartFile image
     ){
         try{
             String token = ProfileController.extractToken(req);
-            GroupCreationResponseDTO res = service.createGroup(token, group);
+            GroupCreationResponseDTO res = service.createGroup(token, group, image);
             return new ResponseEntity<>(res, HttpStatus.CREATED);
         }
         catch(Exception e){
@@ -159,12 +163,13 @@ public class SocialController {
     @PatchMapping("/groups/{groupId}")
     public ResponseEntity<?> updateGroup(
         @PathVariable String groupId,
-        @RequestBody GroupUpdateRequestDTO updateData,
+        @RequestPart(name = "groupInfo", required = false) GroupUpdateRequestDTO updateData,
+        @RequestPart(name = "groupImage", required = false) MultipartFile newImage,
         HttpServletRequest req
     ){
         try{
             String token = ProfileController.extractToken(req);
-            GroupUpdateResponseDTO res = service.updateGroup(token, groupId, updateData);
+            GroupUpdateResponseDTO res = service.updateGroup(token, groupId, updateData, newImage);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(NoSuchElementException e){
@@ -186,7 +191,9 @@ public class SocialController {
         @PathVariable String groupName
     ){
         try{
-            GroupInfo res = service.getGroup(groupName);
+            List<GroupInfo> groups = service.getGroup(groupName);
+            Map<String, Object> res = new HashMap<>();
+            res.put("groups", groups);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(Exception e){

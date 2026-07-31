@@ -4,13 +4,18 @@ import java.time.Instant;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+
+import com.boardwise.backend.vault.enums.EditType;
 
 import lombok.*;
 
 @Document(collection = "EDIT_EVENT")
-@Data
+@CompoundIndex(name = "rulebook_version_idx", def = "{'rulebookId': 1, 'versionPostEdit': -1}") // Index for finding all edits for a specific rulebook
+@CompoundIndex(name = "rulebook_chunk_idx", def = "{'rulebookId': 1, 'chunkId': 1, 'versionPostEdit': -1}") // Index for finding the history of a specific chunk
+@Getter // For immutability
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,18 +23,36 @@ public class EditEvent {
     @Id
     private ObjectId id;
 
-    @Field("rulebook_id")
+    @Field("rulebookId")
     private ObjectId rulebookId;
 
-    @Field("editor_id")
+    @Field("editorId")
     private ObjectId editorId;
 
-    @Field("delta")
-    private String delta;
+    @Field("chunkId")
+    private ObjectId chunkId;
 
-    @Field("version_after")
-    private int versionAfter;
+    @Field("index")
+    private Integer index; // Makes positional placement easier when undo/ redo
 
-    @Field("committed_at")
+    @Field("chunkBefore")
+    private ObjectId chunkBefore; // either id of chunk that came before or null (set by a delete event)
+
+    @Field("editType")
+    private EditType editType;
+
+    @Field("previousContent")
+    private String previousContent;
+
+    @Field("newContent")
+    private String newContent;
+
+    @Field("versionPostEdit")
+    private long versionPostEdit; // version post edit event
+
+    @Field("compensatesVersion")
+    private Long compensatesVersion; // Indicates the version the undo targeted
+
+    @Field("committedAt")
     private Instant committedAt;
 }

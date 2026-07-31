@@ -1,15 +1,31 @@
-import api from './api'
+interface AuthResponse{
+  message: string;
+  accessToken: string;
+}
+
+interface LogoutResponse{}
 
 export const AuthService = {
   register(userData: any){
-    return api.post('auth/register', userData);
+    const { $api } = useNuxtApp();
+    return $api<AuthResponse>('auth/register', {
+      method: 'POST',
+      body: userData
+    });
   },
 
   login(credentials: any){
-    return api.post('auth/login', credentials);
+    const { $api } = useNuxtApp();
+    return $api<AuthResponse>('auth/login', {
+      method: 'POST',
+      body: credentials
+    });
   },
   
   logout(){
-    return api.delete('auth/logout');
+    const { $api } = useNuxtApp();
+    return $api<LogoutResponse>('auth/logout',{
+      method: 'DELETE'
+    });
   },
 }

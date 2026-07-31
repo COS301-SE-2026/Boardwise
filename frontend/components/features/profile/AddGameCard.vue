@@ -1,36 +1,30 @@
 <template>
-  <base-card
+  <BaseCard
     class="add-card d-flex flex-column justify-center align-center"
-    @click="showAdd = true"
+    @click="$emit('add-game')"
   >
-    <span class="text-h3 font-weight-bold">+</span>
-    <p class="mt-3">Add Game</p>
+    <span style="font-size: var(--fs-h1); font-weight: var(--fw-bold);">+</span>
+    <p style="margin-top: var(--space-3); margin-bottom: 0;">Add Game</p>
 
-  </base-card>
+  </BaseCard>
 </template>
 
 <script setup>
-import AddGameModal from '~/components/features/profile/AddGameModal.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
 
-const emit = defineEmits(['game-added'])
-const showAdd = ref(false)
-
-const handleConfirm = (game) => {
-  emit('game-added', {
-    id:       Date.now(),
-    title:    game.title,
-    category: game.category,
-    image:    '/listing-detail.png',
-  })
-}
+defineEmits(['add-game'])
 </script>
 
 <style scoped>
 .add-card {
   cursor:     pointer;
   overflow:   hidden;
+
   height:     280px;
+  width: 100%;
+
   border:     2px dashed #ccc;
+  border-radius: 16px;
   transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 

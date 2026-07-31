@@ -1,8 +1,9 @@
 <template>
-  <div class="search-row">
+  <div class="d-flex flex-wrap align-center ga-4 mt-6">
 
-    <div class="search">
+    <div class="flex-grow-1">
       <BaseSearch
+        v-model="model"
         placeholder="Search for a community..."
         hide-details
       />
@@ -10,7 +11,6 @@
 
     <BaseButton 
       variant="primary" 
-      class="row-btn"
       @click="$emit('create-community')"
     >
       + Create a community
@@ -22,34 +22,13 @@
 <script setup>
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+
+const model = defineModel({
+  type: String,
+  default: ''
+})
+
+defineEmits([
+  'create-community'
+])
 </script>
-
-<style scoped>
-.search-row {
-  display: flex;
-  gap: var(--space-4);
-  align-items: stretch;
-  margin-top: var(--space-6);
-}
-
-.search {
-  flex: 1;
-}
-
-.row-btn {
-  white-space: nowrap;
-  align-self: stretch;
-  height: auto;
-}
-
-@media (max-width: 700px) {
-  .search-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .row-btn{
-    height: 50px;
-  }
-}
-</style>

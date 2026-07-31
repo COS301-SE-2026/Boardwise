@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,8 +47,8 @@ public class ListingController {
             return ResponseEntity.ok().body(listings);
 
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(null);
-
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(null);
         }
     }
 
@@ -58,6 +58,7 @@ public class ListingController {
         try {
             return ResponseEntity.ok(listingService.getListingById(listingId));
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             e.printStackTrace();
@@ -69,12 +70,13 @@ public class ListingController {
     @PostMapping(value = "/listings", consumes = "multipart/form-data")
     public ResponseEntity<ListingResponse> createListing(
             @RequestPart("data") @Valid ListingRequest req,
-            @RequestPart("image") MultipartFile img,
+            @RequestPart(value="image", required = false) MultipartFile img,
             @RequestHeader("Authorization") String token) {
         try {
             ListingResponse response = listingService.createListing(req, token.replace("Bearer ", ""), img);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(null);
         } catch (Exception e) {
             e.printStackTrace();
@@ -83,18 +85,20 @@ public class ListingController {
     }
 
     // AC-MKT-04: Update a Listing
-    @PatchMapping(value = "/update/listing/{listingId}", consumes = "multipart/form-data")
+    @PatchMapping(value = "/listing/{listingId}", consumes = "multipart/form-data")
     public ResponseEntity<ListingResponse> updateListing(
             @RequestPart("data") @Valid ListingRequest req,
-            @RequestPart(value = "image", required = false) MultipartFile img, // ✅ optional
+            @RequestPart(value = "image", required = false) MultipartFile img,
             @PathVariable String listingId,
             @RequestHeader("Authorization") String token) {
         try {
             ListingResponse updated = listingService.updateListing(listingId, req, token.replace("Bearer ", ""), img);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
             return ResponseEntity.notFound().build();
         } catch (ForbiddenException e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (Exception e) {
             e.printStackTrace();
@@ -103,17 +107,20 @@ public class ListingController {
     }
 
     // AC-MKT-05: Delete a Listing
-    @DeleteMapping("/delete/listing/{listingId}")
+    @DeleteMapping("/listing/{listingId}")
 
     public ResponseEntity<Void> deleteListing(
             @PathVariable String listingId,
             @RequestHeader("Authorization") String token) {
         try {
             listingService.deleteListing(listingId, token.replace("Bearer ", ""));
+            
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
             return ResponseEntity.notFound().build();
         } catch (ForbiddenException e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (Exception e) {
             e.printStackTrace();
@@ -129,29 +136,36 @@ public class ListingController {
             if (listings.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
-
             return ResponseEntity.ok(listings);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(); 
             return ResponseEntity.internalServerError().body(null);
         }
     }
 
     @GetMapping("/listings/search")
-    public ResponseEntity<List<ListingResponse>> getFilteredListings(@RequestParam(required = false) String listingType,
+    public ResponseEntity<Page<ListingResponse>> getFilteredListings(
+            @RequestParam(required = false) String gameTitle,
+            @RequestParam(required = false) String listingTitle,
+            @RequestParam(required = false) String listingType,
             @RequestParam(required = false) String itemType,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
-            @RequestParam(required = false) List<String> genres) {
+            @RequestParam(required = false) List<String> conditions,
+            @RequestParam(required = false) List<String> genres,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+            ) {
         try {
-            List<ListingResponse> listings = listingService.getByFilter(listingType, itemType, minPrice, maxPrice,
-                    genres);
+            Page<ListingResponse> listings = listingService.getByFilter(gameTitle, listingTitle, listingType, itemType, minPrice, maxPrice,
+                    conditions,genres, page, size);
             if (listings.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
             return ResponseEntity.ok(listings);
         } catch (Exception e) {
+            e.printStackTrace(); 
             return ResponseEntity.internalServerError().build();
         }
     }

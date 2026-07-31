@@ -1,55 +1,76 @@
 <template>
-  <BaseModal v-model="open">
-    <div class="content">
+  <BaseModal v-model="open" >
+    <div class="d-flex flex-column ga-6">
 
       <h2>Create Community</h2>
 
-      <div class="form">
+        <BaseInput
+          v-model="form.name"
+          label="Community Name"
+        />
 
-        <div class="input-group">
-          <label>Community Name</label>
-          <BaseInput v-model="name" placeholder="e.g. Catan Lovers" />
-        </div>
+        <BaseTextArea
+          v-model="form.description"
+          placeholder="What is this comunity about ?"
+          :rows="3"
+        />
 
-        <div class="input-group">
-          <label>Description</label>
-          <BaseTextArea v-model="description" placeholder="What is this community about?" :rows="3" />
-        </div>
+      <v-select
+        v-model="form.category"
+        :items="categories"
+        label="Category"
+        variant="outlined"
+        rounded="lg"
+      />
 
-        <div class="input-group">
-          <label>Category</label>
-          <select v-model="category" class="select">
-            <option value="" disabled>Select a category</option>
-            <option>Strategy</option>
-            <option>Family</option>
-            <option>Party</option>
-            <option>Cooperative</option>
-            <option>General</option>
-          </select>
-        </div>
+      <v-btn-toggle
+        v-model="form.visibility"
+        color="primary"
+        mandatory
+        divided
+      >
+        <v-btn value="Public">
+          Public
+        </v-btn>
 
-        <div class="input-group">
-          <label>Type</label>
-          <div class="toggle-row">
-            <button :class="['toggle-btn', { active: type === 'Public' }]" @click="type = 'Public'">Public</button>
-            <button :class="['toggle-btn', { active: type === 'Private' }]" @click="type = 'Private'">Private</button>
-          </div>
-        </div>
+         <v-btn value="Private">
+          Private
+        </v-btn>
+      </v-btn-toggle>
 
-        <div class="input-group">
-          <label>Community Image</label>
-          <div class="upload-row">
-            <BaseButton @click="triggerUpload">Upload Image</BaseButton>
-            <span class="filename">{{ fileName || '···' }}</span>
-            <input ref="fileInput" type="file" accept="image/*" class="hidden-input" @change="handleFileChange" />
-          </div>
-        </div>
 
+        <div class=" d-flex align-center ga-4">
+          <BaseButton @click="fileInput?.click()" >
+            <v-icon start>mdi-upload</v-icon>
+            Upload image
+          </BaseButton>
+
+        <span class=" text-body-2 text-medium-emphasis">
+          {{ fileName || 'No file selected' }}
+        </span>
+
+        <label for="community-image-upload" class="sr-only">Upload Image</label>
+        <input
+          id="community-image-upload"
+          ref="fileInput"
+          type="file"
+          accept="image/*"
+          class="d-none"
+          @change="handleFileChange"
+        />
       </div>
 
-      <div class="actions">
-        <BaseButton @click="closeModal">Cancel</BaseButton>
-        <BaseButton @click="handleCreate">Create</BaseButton>
+      <div class="d-flex justify-end ga-3">
+        <BaseButton
+          variant="secondary"
+          @click="closeModal"
+         >
+         Cancel
+        </BaseButton>
+
+        <BaseButton  @click="handleCreate"   >
+          Create
+      </BaseButton>
       </div>
 
     </div>
@@ -61,132 +82,79 @@ import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseTextArea from '~/components/ui/BaseTextArea.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+import { useCommunity } from '~/composables/useCommunity'
+import { useSnackBar } from '~/composables/useSnackbar'
+import { reactive, ref } from 'vue'
 
-const open = defineModel()
+const { createCommunity, error } = useCommunity()
+const { show } = useSnackBar()
+
+
+const open = defineModel({
+  type: Boolean,
+  default: false
+})
+ 
 const emit = defineEmits(['confirm'])
 
-const name = ref('')
-const description = ref('')
-const category = ref('')
-const type = ref('Public')
-const fileName = ref('')
+const categories = [
+  'Strategy',
+  'Family',
+  'Party',
+  'Cooperative',
+  'General'
+]
+
+const form = reactive({
+  name: '',
+  description: '',
+  category: '',
+  visibility: 'Public'
+})
+
 const fileInput = ref(null)
+const fileName = ref('')
+const file = ref(null)
 
-const triggerUpload = () => fileInput.value?.click()
+const handleFileChange = (event) => {
+  const chosenfile = event.target.files?.[0]
 
-const handleFileChange = (e) => {
-  const file = e.target.files[0]
-  if (file) fileName.value = file.name
+  if(file) {
+    fileName.value = chosenfile.name
+    file.value = chosenfile
+  }
+
 }
 
-const closeModal = () => {
+const closeModal  = () => {
   open.value = false
-  name.value = ''
-  description.value = ''
-  category.value = ''
-  type.value = 'Public'
+
+  form.name = ''
+  form.description = ''
+  form.category = ''
+  form.visibility = 'Public'
   fileName.value = ''
+  file.value = null
 }
 
-const handleCreate = () => {
-  if (!name.value.trim()) return
-  emit('confirm', {
-    id: Date.now(),
-    name: name.value,
-    description: description.value,
-    category: category.value,
-    type: type.value,
-    image: fileName.value || '/images/castle.png',
-    members: 1,
-    members_list: []
-  })
-  closeModal()
+const handleCreate = async () => {
+  if(!form.name.trim()) return
+
+  try{
+    const data = await createCommunity({
+      ...form,
+      communityPfp: file.value
+    })
+    emit('confirm', data.group)
+  } 
+  catch(err){
+    console.error("Failed to create community.", err)
+    show(error.value, 'error')
+
+  }
+  finally{
+    closeModal()
+  }
+  
 }
 </script>
-
-<style scoped>
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-h2 {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-}
-
-.select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-  background: #fff;
-  cursor: pointer;
-}
-
-.toggle-row {
-  display: flex;
-  gap: 12px;
-}
-
-.toggle-btn {
-  flex: 1;
-  padding: 10px;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  background: white;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  color: #555;
-  transition: all 0.15s;
-}
-
-.toggle-btn.active {
-  border-color: #6C3BFF;
-  background: #f3eeff;
-  color: #6C3BFF;
-}
-
-.upload-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.filename {
-  font-size: 14px;
-  color: #888;
-}
-
-.hidden-input {
-  display: none;
-}
-
-.actions {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-}
-</style>

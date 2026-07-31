@@ -1,17 +1,23 @@
 <template> 
-    <BaseCard class="card" @click="openBook"> 
+  <BaseCard 
+    class="cursor-pointer" 
+    @click="$emit('click', rulebook)"
+  > 
 
-        <BaseImage :src="rulebook.image" :alt="rulebook.title" height="200px" fit="cover" />
+  <BaseImage 
+    :src="rulebook.coverUrl" 
+    :alt="rulebook.title" 
+  />
 
-        <div class="pa-3">
-          <p class="text-body-2 font-weight-bold mb-1">
-            {{ rulebook.title }}
-          </p>
+  <div class="pa-4 d-flex flex-column ga-2">
+    <h3 class="card-title">
+      {{ rulebook.title }}
+    </h3>
 
-          <p class="text-caption text-medium-emphasis mb-0">
-            {{ rulebook.category }}
-          </p>
-        </div>
+    <p class="card-meta">
+      {{ rulebook.genre }}
+    </p>
+  </div>
         
     </BaseCard>
 </template>
@@ -24,21 +30,5 @@ const props = defineProps({
     rulebook: Object
 })
 
-const openBook = () => {
-    navigateTo('/library/${props.rulebook.id}')
-}
+defineEmits(['click'])
 </script>
-
-<style scoped>
-.card {
-  cursor: pointer;
-  overflow: hidden;
-  padding: 0;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
-}
-</style>

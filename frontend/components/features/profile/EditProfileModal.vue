@@ -55,8 +55,11 @@ import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseTextarea from '~/components/ui/BaseTextArea.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import { useProfile } from '~/composables/useProfile'
+import { useSnackBar } from '~/composables/useSnackbar';
 
-const { updateProfile, isLoading } = useProfile();
+
+const { updateProfile, isLoading, error } = useProfile();
+const { show } = useSnackBar();
 
 const open = defineModel()
 const emit = defineEmits(['save'])
@@ -68,22 +71,35 @@ const props = defineProps({
   }
 })
 
-const mockUser = {
-  name: 'Alexandra Lee',
-  username: 'alexalee',
-  location: 'Pretoria, South Africa',
-  bio: 'Board game lover • Strategy enthusiast'
-}
 
 const name = ref(props.user.fullName)
 const username = ref(props.user.username)
-const location = ref(mockUser.location)
+const location = ref(props.user.location)
 const bio = ref(props.user.preferences.genres.join('•'))
 
 const handleSave = async () => {
-  const response = await updateProfile(username.value)
-  emit('save', response.data)  
-  open.value = false
+  try{
+    const response = await updateProfile({
+      name : name.value,
+      username : username.value,
+      location : location.value
+    })
+    emit('save', response)  
+    resetRefs()
+  }
+  catch(err){
+    console.error("Failed to update profile details", err)
+    show(error.value, "error");
+  }
+}
+
+const resetRefs = () => {
+    // clear everything
+    open.value = false
+    name.value = ""
+    username.value = ""
+    location.value = ""
+    bio.value = ""
 }
 </script>
 
