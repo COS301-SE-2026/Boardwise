@@ -1,22 +1,31 @@
 <template>
-    <v-container class="container py-16"
+    <v-container class="py-16"
     >
-        <v-row align="center" justify="space-between">
+        <v-row align="center" >
 
-            <v-col cols="12" md="7">
+            <v-col cols="12" md="12" class="text-start">
+                    <div class="hero-heading">
+                        <img
+                            src="/images/BoarleySide.svg"
+                            alt="Boarley"
+                            class="hero-heading-mascot"
+                        />
                     <h1>
-                        Play more.<br>Learn faster.<br> For people who love the table
+                        Play more. Learn faster.<br> 
+                        For people who love the table.
                     </h1>
-                    <div md="7">
+                    </div>
+                    <div class="hero-badges">
                         <span class="hero-badge hero-badge--connect">Connect</span>
                         <span class="hero-badge hero-badge--share">Share</span>
                         <span class="hero-badge hero-badge--play">Play</span> 
                     </div>
                     <p class="mt-6 mb-8">
-                        Access a library of your favourite board games, discover new games,
-                        connect with other players, trade or sell games, all in one place.</p>
+                        Access a library of your favourite board games,
+                        discover new games, connect with other players,
+                        trade or sell games, all in one place.</p>
 
-                    <div class="d-flex flex-wrap ga-4">
+                    <div class="d-flex flex-wrap">
                         <BaseButton
                             variant="secondary"
                             @click="router.push('/library')"
@@ -25,7 +34,9 @@
                         </BaseButton>
 
                         
-                        <BaseButton @click="router.push('/auth/signup')">
+                        <BaseButton 
+                            class="ml-3"
+                            @click="router.push('/auth/signup')">
                             Get started 
                         </BaseButton>
 
