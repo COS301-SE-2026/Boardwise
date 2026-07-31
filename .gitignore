@@ -4,6 +4,9 @@
 /frontend/.nuxt
 /frontend/.output
 /frontend/dist
+frontend/
+backend/
+ai/
 
 #files
 /backend/src/main/resources/application.properties
