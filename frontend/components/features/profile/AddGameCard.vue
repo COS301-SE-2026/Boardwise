@@ -19,8 +19,12 @@ defineEmits(['add-game'])
 .add-card {
   cursor:     pointer;
   overflow:   hidden;
+
   height:     280px;
+  width: 100%;
+
   border:     2px dashed #ccc;
+  border-radius: 16px;
   transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 

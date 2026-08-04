@@ -17,13 +17,10 @@
                 hide-details
             />
 
-            <BaseInput
+            <BaseTextArea
                 v-model="form.description"
-                label="Description"
                 placeholder="What's the event about?"
-                variant="outlined"
-                density="compact"
-                hide-details
+                :rows="4"
             />
 
             <BaseInput
@@ -129,6 +126,8 @@ import { ref, computed, watch,onMounted } from 'vue'
 import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
+import BaseTextArea from '~/components/ui/BaseTextArea.vue'
+
 import { useBoardGames } from '~/composables/useBoardGames'
 import { useSnackBar } from '~/composables/useSnackbar'
 

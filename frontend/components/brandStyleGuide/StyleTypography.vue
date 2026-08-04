@@ -1,7 +1,7 @@
 <template>
     <section class="py-8 section-border" id="typography">
         <SectionTitle 
-            title="02 - Type System" 
+            title="03 - Type System" 
             subtitle="DynaPuff brings playfulness to headers, Plus Jakarta Sans keeps body copy readable, and Comic Neue handles callouts."
         />
 

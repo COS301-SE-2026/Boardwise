@@ -1,6 +1,6 @@
 <template>
-    <v-footer class="bg-grey-lighten-5 py-10">
-        <v-container class="container">
+    <v-footer class=" py-10">
+        <v-container>
             <v-row>
                 <v-col cols="12" md="4">
                     <h3>
@@ -24,11 +24,30 @@
                     </h4>
                     
                     <div class="d-flex flex-column ga-2">
-                        <NuxtLink to="/library">Library</NuxtLink>
-                        <NuxtLink to="/marketplace">Marketplace</NuxtLink>
-                        <NuxtLink to="/community">Communities</NuxtLink>
-                        <NuxtLink to="/events">Events</NuxtLink>
-                        <NuxtLink to="/help">Help</NuxtLink>
+                        <NuxtLink to="/library"
+                            class="text-decoration-none text-medium-emphasis"
+                            >Library
+                        </NuxtLink>
+                        <NuxtLink to="/marketplace"
+                            class="text-decoration-none text-medium-emphasis"
+                            >Marketplace
+                            
+                        </NuxtLink>
+                        <NuxtLink to="/community"
+                            class="text-decoration-none text-medium-emphasis"
+                        >Communities
+
+                        </NuxtLink>
+                        <NuxtLink to="/events"
+                            class="text-decoration-none text-medium-emphasis"
+                        >Events
+
+                        </NuxtLink>
+                        <NuxtLink to="/help"
+                            class="text-decoration-none text-medium-emphasis"
+                        >Help
+
+                        </NuxtLink>
                     </div>
                 </v-col>
 
@@ -44,10 +63,7 @@
                 </v-col>
 
                 <v-col cols="12" md="4">
-                    <h4>
-                        Powered by 
-                    </h4>
-
+                    
                     <a
                         href="https://boardgamegeek.com"
                         target="_blank"
@@ -64,11 +80,6 @@
                 </v-col>
             </v-row>
 
-            <v-divider class="my-8"/>
-
-            <div class="text-center">
-                Boardwise. EPI-USE and WorksOnMyMachine.
-            </div>
         </v-container>
     </v-footer>
 </template>
