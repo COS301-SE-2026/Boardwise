@@ -203,7 +203,7 @@ public class RulebookControllerTest {
         when(rulebookService.getRulebookById(validId))
             .thenThrow(new RulebookNotFoundException(validId));
         // Act and assert
-        mockMvc.perform(get("/api/vault/rulebooks/{id}/", validId.toHexString()))
+        mockMvc.perform(get("/api/vault/rulebooks/{id}", validId.toHexString()))
             .andDo(print())
             .andExpect(status().isNotFound());
     }
