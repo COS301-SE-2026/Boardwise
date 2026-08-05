@@ -1,0 +1,13 @@
+# vscode
+*env
+/.vscode
+
+# Frontend
+/frontend/.nuxt
+/frontend/.output
+/frontend/dist
+/frontend/node_modules
+
+# Backend
+/backend/target
+/backend/
