@@ -9,12 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -55,7 +50,10 @@ import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
 
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @DisplayName("Listing Service Tests")
 @ExtendWith(MockitoExtension.class) // auto create/inject mocks
@@ -626,16 +624,26 @@ class ListingServiceTest {
         List.of("adventure", "strategy"), null);
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "New title",
-        300, "Ludo", "Pretoria", false, "test.png", "original", "like new",
+        300, "Chess", "Pretoria", false, "test.png", "original", "like new",
         "updated description", List.of("adventure", "strategy"), null);
+
+        Boardgame chessGame = new Boardgame(null, null, "Chess", null, null, null, null,null, null, null);
+        when(boardGameRepository.findByTitle("Chess")).thenReturn(Optional.of(chessGame));
+
 
         when(jwtService.extractUserId(fakeToken)).thenReturn(userId);
         when(listingRepository.findById(listingId)).thenReturn(Optional.of(existingListing));
         when(listingRepository.save(any(Listing.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(boardGameRepository.findByTitle(anyString())).thenReturn(Optional.of(bg));
+        // when(boardGameRepository.findByTitle(anyString())).thenReturn(Optional.of(bg));
 
         MockMultipartFile mockImg = new MockMultipartFile("image", "newImage.jpg", "image/jpeg", new byte[]{1, 2, 3});
 
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+            .thenReturn(null);
+            when(s3Client.deleteObject(any(DeleteObjectRequest.class))).thenReturn(null);
+        User mUser = new User();
+        mUser.setId(userId.toHexString());
+        when(userRepository.findById(userId.toHexString())).thenReturn(Optional.of(mUser));
 
         // ACT
         ListingResponse res = listingService.updateListing(listingId, listingRequest, fakeToken, mockImg);
@@ -646,7 +654,7 @@ class ListingServiceTest {
         assertEquals("New title", res.listingTitle());
         verify(listingRepository, times(1)).save(any(Listing.class));  
 
-        verify(boardGameRepository, times(1)).findByTitle("Ludo");
+        verify(boardGameRepository, times(1)).findByTitle("Chess");
         verify(boardGameRepository, never()).insert(any(Boardgame.class));    
     }
 
@@ -665,16 +673,23 @@ class ListingServiceTest {
         List.of("adventure", "strategy"), null);
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "New title",
-        300, "Ludo", "Pretoria", false, "test.png", "original", "like new",
+        300, "Chess", "Pretoria", false, "test.png", "original", "like new",
         "updated description", List.of("adventure", "strategy"), null);
+        when(boardGameRepository.findByTitle("Chess")).thenReturn(Optional.empty());
 
         when(jwtService.extractUserId(fakeToken)).thenReturn(userId);
         when(listingRepository.findById(listingId)).thenReturn(Optional.of(existingListing));
         when(listingRepository.save(any(Listing.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(boardGameRepository.findByTitle(anyString())).thenReturn(Optional.empty());
+        // when(boardGameRepository.findByTitle(anyString())).thenReturn(Optional.empty());
 
         MockMultipartFile mockImg = new MockMultipartFile("image", "newImage.jpg", "image/jpeg", new byte[]{1, 2, 3});
 
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenReturn(null);
+        when(s3Client.deleteObject(any(DeleteObjectRequest.class))).thenReturn(null);
+        User mUser = new User();
+        mUser.setId(userId.toHexString());
+        when(userRepository.findById(userId.toHexString())).thenReturn(Optional.of(mUser));
 
         // ACT
         ListingResponse res = listingService.updateListing(listingId, listingRequest, fakeToken, mockImg);
@@ -687,7 +702,7 @@ class ListingServiceTest {
 
 
         verify(boardGameRepository, times(1)).insert(any(Boardgame.class));
-        verify(boardGameRepository, times(1)).findByTitle("Ludo");
+        verify(boardGameRepository, times(1)).findByTitle("Chess");
     }
 
     @Test   

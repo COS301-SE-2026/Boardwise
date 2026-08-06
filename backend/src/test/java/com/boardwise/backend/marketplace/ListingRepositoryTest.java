@@ -15,9 +15,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.mongodb.test.autoconfigure.DataMongoTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.testcontainers.containers.MongoDBContainer;
 
+import com.boardwise.backend.SharedMongoContainer;
 import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.marketplace.enums.ItemType;
 import com.boardwise.backend.marketplace.enums.ListingStatus;
@@ -27,8 +26,7 @@ import com.boardwise.backend.marketplace.repository.ListingRepository;
 
 @DisplayName("Listing Repository Tests")
 @DataMongoTest()
-
-public class ListingRepositoryTest {
+public class ListingRepositoryTest extends SharedMongoContainer {
     @Autowired
     private ListingRepository listingRepository;
 
@@ -48,9 +46,6 @@ public class ListingRepositoryTest {
         "some description", defaultIMG, ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
         genres, rp);
     }
-
-    @ServiceConnection
-    static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:7.0");
 
     private final ObjectId compId = new ObjectId();
 
