@@ -47,11 +47,12 @@ The system is built around three core domains, each owned by a dedicated backend
 
 | Resource | Link |
 |---|---|
-| Software Requirements Specification (SRS) | [View SRS](./docs/Demo2/srs.md) |
+| Software Requirements Specification (SRS) | [View SRS](./docs/demo2/srs.md) |
+| (SAS) | [View.SAS](./docs/sas.md)|
 | GitHub Project Board | [Open Board](#https://github.com/orgs/COS301-SE-2026/projects/46) |
 | UI Wireframes & Designs | [Open Designs](./docs/design) |
 | Brand Style Guide | [View Guide](./docs/design/brandStyleGuide.pdf) |
-
+| Coding Standards | [View Standards](./docs/design/codingStandards.pdf) |
 ---
 
 # Core Features

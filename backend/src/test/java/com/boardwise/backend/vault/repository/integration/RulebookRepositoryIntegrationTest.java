@@ -6,25 +6,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.mongodb.test.autoconfigure.DataMongoTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.testcontainers.containers.MongoDBContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
+import com.boardwise.backend.SharedMongoContainer;
 import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.repository.RulebookRepository;
 
 @DataMongoTest
-@Testcontainers
-public class RulebookRepositoryIntegrationTest {
-    @Container
-    @ServiceConnection
-    static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:latest");
-
+public class RulebookRepositoryIntegrationTest extends SharedMongoContainer {
     @Autowired
     private MongoTemplate mongoTemplate;
 

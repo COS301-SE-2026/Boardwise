@@ -23,8 +23,15 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # Verifies the code compiles properly without running tests
+      # Verifies the code compiles properly
       - name: Build and Verify Code Compilation
         run: |
           chmod +x ./mvnw
           ./mvnw -B clean compile
+      
+      # Executes the test suite
+      - name: Run Tests
+        run: ./mvnw -B test
+        env:
+          BGG_TOKEN: ${{ secrets.BGG_TOKEN }}
+          BGG_URL: ${{ vars.BGG_URL || 'https://boardgamegeek.com/xmlapi2' }}
