@@ -10,7 +10,6 @@ ai/__pycache__/
 __pycache__
 
 #files
-/backend/src/main/resources/application.properties
 *env*
 error.txt
 err.txt
