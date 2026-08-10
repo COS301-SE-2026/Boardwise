@@ -1,25 +1,28 @@
-package com.boardwise.backend.scraper;
+package com.boardwise.backend.retailsource;
 
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.AbstractMap.SimpleEntry;
 
-import com.boardwise.backend.scraper.dtos.ScrapeResponse;
+import org.springframework.stereotype.Service;
+
+import com.boardwise.backend.retailsource.dtos.ScrapeResponse;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 
-public class BobShopScraper implements WebScraper{
-   
-    public BobShopScraper(){} 
+@Service
+public class TakealotScraper implements WebScraper {
+
+    public TakealotScraper(){} 
     
     private final int MAXNUMITEMS = 15;
-    private final String site = "https://www.bobshop.co.za";
+    private String searchSelector = "input[placeholder='Search for products, brands...']";
+    private final String site = "https://www.takealot.com";
 
-    
     public List<ScrapeResponse> scrape(String toSearch) {
         if(toSearch.isBlank()){
             return null;
@@ -32,24 +35,28 @@ public class BobShopScraper implements WebScraper{
 
             //website
             page.navigate(site);
+            page.waitForSelector(searchSelector);
 
             //find search bar
-            Locator searchBar = page.getByPlaceholder("Search for anything");
+            Locator searchBar = page.getByPlaceholder("Search for products, brands...");
 
             if(searchBar.count() == 0){
-                throw new RuntimeException("Error while trying to find the search bar on Bob Shop");
+                throw new RuntimeException("Error while trying to find the search bar on Takealot");
             }
 
             //update value found in search bar
             searchBar.fill(toSearch);
             searchBar.press("Enter");
-            page.waitForLoadState();
-            page.waitForSelector("a.product-card-container");
+            page.waitForSelector("article[data-ref='product-card']");
+
+            String contentOfPage = page.content();
+
+            if(contentOfPage.contains("We couldn't find results for")){ // 
+                return null;// if its null no results were found
+            }
 
             //find article 
-            List<Locator> cards = page.locator("a.product-card-container").all();
-            System.out.println(cards.size());
-
+            List<Locator> cards =  page.locator("article[data-ref='product-card']").all();
             List<ScrapeResponse> matching = new ArrayList<>();
 
             if(cards.isEmpty()){
@@ -57,20 +64,15 @@ public class BobShopScraper implements WebScraper{
             }
 
             for(Locator card : cards){
-                String classAttr = card.getAttribute("class");
-                if (classAttr != null && classAttr.contains("sponsored")) continue;
-
-                String title = card.locator("div.product-card-title").innerText().trim();
-                if (title.isBlank()) continue;
-
-                String url = card.getAttribute("href");
+                String title = card.locator("[data-ref='panel-content'] h4").innerText();
+                String url = card.locator("a[title='Go to product details']").getAttribute("href");
 
                 // Jaro-Winkler - similarity between 2 sequences
                 float val = JaroWinklerSimilarity(toSearch,title);
 
-                
-                if(val >= stringMatch){
-                    SimpleEntry<String, Float> toAdd = new SimpleEntry<String,Float>(url, val);
+                if(val >= stringMatch && !url.contains("offer_pref")){// remove sponsored items
+                    String officialUrl = site.substring(0,site.length()) + url;
+                    SimpleEntry<String, Float> toAdd = new SimpleEntry<String,Float>(officialUrl, val);
                     matching.add(new ScrapeResponse(site,toAdd));
                 }
             
@@ -81,14 +83,11 @@ public class BobShopScraper implements WebScraper{
 
             matching.sort(Comparator.comparingDouble(r-> r.details().getValue())); // sort in terms of float
 
-            for(ScrapeResponse x: matching){
-                System.out.println(x.details().getKey());
-            }
             return matching;
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        throw new RuntimeException("somehow reached a place you shouldn't have ");
     }
 }

@@ -1,6 +1,7 @@
-package com.boardwise.backend.scraper;
-import com.boardwise.backend.scraper.dtos.*;
+package com.boardwise.backend.retailsource;
 import java.util.List;
+
+import com.boardwise.backend.retailsource.dtos.*;
 
 //Interface class 
 interface WebScraper {

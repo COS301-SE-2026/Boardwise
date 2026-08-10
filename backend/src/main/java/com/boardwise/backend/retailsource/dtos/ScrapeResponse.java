@@ -1,4 +1,4 @@
-package com.boardwise.backend.scraper.dtos;
+package com.boardwise.backend.retailsource.dtos;
 
 import lombok.Builder;
 import java.util.AbstractMap;

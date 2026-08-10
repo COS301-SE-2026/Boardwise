@@ -1,4 +1,4 @@
-package com.boardwise.backend.scraper;
+package com.boardwise.backend.retailsource;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -7,7 +7,7 @@ import java.util.AbstractMap.SimpleEntry;
 
 import org.springframework.stereotype.Service;
 
-import com.boardwise.backend.scraper.dtos.ScrapeResponse;
+import com.boardwise.backend.retailsource.dtos.ScrapeResponse;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Locator;
@@ -15,13 +15,13 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 
 @Service
-public class TakealotScraper implements WebScraper {
+public class ToysRUsScraper implements WebScraper {
 
-    public TakealotScraper(){} 
-    
+    public ToysRUsScraper(){} 
+
     private final int MAXNUMITEMS = 15;
-    private String searchSelector = "input[placeholder='Search for products, brands...']";
-    private final String site = "https://www.takealot.com";
+    private String searchSelector = "input[placeholder='The search for fun starts here...']";
+    private final String site = "https://www.toysrus.co.za/";
 
     public List<ScrapeResponse> scrape(String toSearch) {
         if(toSearch.isBlank()){
@@ -37,26 +37,29 @@ public class TakealotScraper implements WebScraper {
             page.navigate(site);
             page.waitForSelector(searchSelector);
 
+
             //find search bar
-            Locator searchBar = page.getByPlaceholder("Search for products, brands...");
+            Locator searchBar = page.getByPlaceholder("The search for fun starts here...");
 
             if(searchBar.count() == 0){
-                throw new RuntimeException("Error while trying to find the search bar on Takealot");
+                throw new RuntimeException("Error while trying to find the search bar for Toys R US");
             }
+
 
             //update value found in search bar
             searchBar.fill(toSearch);
             searchBar.press("Enter");
-            page.waitForSelector("article[data-ref='product-card']");
+
+            // page.waitForSelector("article[data-ref='product-card']");
 
             String contentOfPage = page.content();
 
-            if(contentOfPage.contains("We couldn't find results for")){ // 
-                return null;// if its null no results were found
+            if(contentOfPage.contains("We couldn’t find anything to match your search.")){ // 
+                return null;
             }
 
             //find article 
-            List<Locator> cards =  page.locator("article[data-ref='product-card']").all();
+            List<Locator> cards =  page.locator("li.product-item").all();
             List<ScrapeResponse> matching = new ArrayList<>();
 
             if(cards.isEmpty()){
@@ -64,15 +67,18 @@ public class TakealotScraper implements WebScraper {
             }
 
             for(Locator card : cards){
-                String title = card.locator("[data-ref='panel-content'] h4").innerText();
-                String url = card.locator("a[title='Go to product details']").getAttribute("href");
+                Locator titleElement = card.locator("a.product-item-link").first();          
+                if (titleElement.count() == 0) continue;
+                
+                
+                String title = titleElement.innerText().trim();
 
-                // Jaro-Winkler - similarity between 2 sequences
+                String url = card.locator("a.product-item-link").first().getAttribute("href");
+
+            // Jaro-Winkler - similarity between 2 sequences
                 float val = JaroWinklerSimilarity(toSearch,title);
-
                 if(val >= stringMatch && !url.contains("offer_pref")){// remove sponsored items
-                    String officialUrl = site.substring(0,site.length()) + url;
-                    SimpleEntry<String, Float> toAdd = new SimpleEntry<String,Float>(officialUrl, val);
+                    SimpleEntry<String, Float> toAdd = new SimpleEntry<String,Float>(url, val);
                     matching.add(new ScrapeResponse(site,toAdd));
                 }
             
@@ -82,12 +88,12 @@ public class TakealotScraper implements WebScraper {
             page.close();
 
             matching.sort(Comparator.comparingDouble(r-> r.details().getValue())); // sort in terms of float
-
             return matching;
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+        //if you ever exit this... wow
         throw new RuntimeException("somehow reached a place you shouldn't have ");
     }
 }
