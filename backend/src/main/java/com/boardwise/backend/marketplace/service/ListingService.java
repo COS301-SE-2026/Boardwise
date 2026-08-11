@@ -45,7 +45,7 @@ public class ListingService {
     @Value("${r2.bucket-listings}")
     private String listingsBucket;
 
-    @Value("${r2.listings.prod.endpoint}")
+    @Value("${r2.listings.endpoint}")
     private String publicUrl;
 
     private final ListingRepository listingRepository;

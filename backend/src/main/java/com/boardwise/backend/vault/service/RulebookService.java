@@ -44,7 +44,7 @@ public class RulebookService {
     private final EditEventRepository editEventRepository;
     private final UserRepository userRepository;
 
-    @Value("${r2.rulebooks.public-prod-url}")
+    @Value("${r2.rulebooks.public-dev-url}")
     private String r2PublicDomain;
 
     @Value("${r2.bucket-rulebooks}")
