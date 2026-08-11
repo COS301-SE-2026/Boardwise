@@ -112,14 +112,22 @@ interface UndoOrRedoActionResponse{
 }
 
 export const LibraryService = {
-    fetchAllRulebooks(search = '', page = 1, limit = 20) {
+    fetchAllRulebooks(filters:{}) {
         const { $api } = useNuxtApp();
+
+        const query = Object.fromEntries(
+            Object.entries(filters).filter(([_, v]) => 
+                v != null &&
+                v !== '' &&
+                v !== 'all' &&
+                v !== 'All' &&
+                !(Array.isArray(v) && v.length === 0)
+            )
+        );
+
         return $api<PaginatedRulebookResponse>('vault/rulebooks', {
-            params: {
-                search: search,
-                page: page,
-                limit: limit
-            }
+            method: 'GET',
+            query: query
         });
     },
 

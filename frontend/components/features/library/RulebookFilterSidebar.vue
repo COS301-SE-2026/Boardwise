@@ -3,9 +3,17 @@
 
     <BaseFilterGroup title="Genres">
       <div
-        v-for="genre in genres"
+        class="genre-option text-capitalize"
+        :class="{active: selectedGenre === 'all' }"
+        @click="selectedGenre='all'"
+      >
+      All
+      </div>
+
+      <div
+        v-for="genre in presetGenres"
         :key="genre"
-        class="genre-option"
+        class="genre-option text-capitalize"
         :class="{ active: selectedGenre === genre }"
         @click="selectedGenre= genre"
       >
@@ -27,12 +35,8 @@
     </BaseFilterGroup>
 
     <BaseFilterGroup title="Player Count">
-        <!-- <div class="d-flex ga-2">
-            <v-text-field v-model="filters.minPlayers" placeholder="Min" type="number" density="compact" hide-details rounded="lg" />
-            <v-text-field v-model="filters.maxPlayers" placeholder="Max" type="number " density="compact" hide-details rounded="lg" />
-        </div> -->
         <v-text-field
-          v-model="filters.playerCount"
+          v-model.number="filters.playerCount"
           placeholder="How many players?"
           type="number"
           density="compact"
@@ -43,7 +47,7 @@
 
     <BaseFilterGroup title="Max Duration (mins)">
       <v-text-field
-        v-model="filters.duration"
+        v-model.number="filters.duration"
         placeholder="e.g. 60"
         type="number"
         density="compact"
@@ -54,7 +58,7 @@
 
     <BaseFilterGroup title="Minimum Age">
       <v-text-field
-        v-model="filters.minAge"
+        v-model.number="filters.minAge"
         placeholder="e.g. 10"
         type="number"
         density="compact"
@@ -66,31 +70,27 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch , computed} from 'vue'
+import { ref, reactive, watch} from 'vue'
+
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue'
 import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue'
 
-const props = defineProps({
-  rulebooks: {
-    type: Array,
-    default: () => []
-  }
-})
-
 const emit = defineEmits(['filter'])
 
-const genres = computed(() => {
-  const unique = [...new Set(props.rulebooks.flatMap(r => r.genres || []))]
-  return ['All', ...unique].sort()
-})
+const presetGenres = [
+  'adventure',
+  'card game',
+  'economic',
+  'family',
+  'fantasy',
+  'strategy',
+];
+const selectedGenre  = ref('all');
+const selectedLanguages = ref([]);
 
 const languages = ['English', 'French', 'Spanish']
-const selectedGenre  = ref('All')
-const selectedLanguages = ref([])
 
 const filters = reactive({
-  // minPlayers: '',
-  // maxPlayers: '',
   playerCount: '',
   duration: '',
   minAge: ''
@@ -98,17 +98,15 @@ const filters = reactive({
 
 watch([selectedGenre, selectedLanguages, filters], () => {
   emit('filter', {
-    genre:   selectedGenre.value,
+    genre:   selectedGenre.value === 'all' ? null : selectedGenre.value,
     languages: selectedLanguages.value,
     ...filters
   })
 }, { deep: true })
 
 const resetFilters = () => {
-  selectedGenre.value   = 'All'
+  selectedGenre.value   = 'all'
   selectedLanguages.value = []
-  // filters.minPlayers     = ''
-  // filters.maxPlayers     = ''
   filters.playerCount = ''
   filters.duration = ''
   filters.minAge = ''

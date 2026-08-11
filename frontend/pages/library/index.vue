@@ -5,21 +5,29 @@
     <div class="d-flex flex-column ga-5 mb-6">
       <SectionTitle title="Library" subtitle="Browse community rulebooks" />
       <RulebookSearch
-        @upload="showUpload = true"
+        @upload="handleUploadRequest"
         @search="handleSearch"
       />
     </div>
 
-  <RulebookCarousel :rulebooks="rulebooks" @select="openRulebook" />
+  <RulebookCarousel :rulebooks="featuredRulebooks" @select="openRulebook" />
 
-  <RecommendedBooks :rulebooks="recommended" @select ="openRulebook"/>
+  <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
+    <v-progress-circular indeterminate color="primary" size="48" />
+  </v-container>
+  <RecommendedBooks v-else :rulebooks="recommended" @select ="openRulebook"/>
 
   <SectionTitle title="All Rulebooks" class="mt-8" />
 
-    <div class="d-flex ga-6 align-start">
-    <RulebookFilterSidebar :rulebooks="rulebooks" @filter="handleFilter" />
-    <RulebookGrid :rulebooks="filteredRulebooks" @select="openRulebook" class="flex-1-1" />
+  <div class="d-flex ga-6 align-start">
+    <RulebookFilterSidebar @filter="handleFilter" />
+    <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
+      <v-progress-circular indeterminate color="primary" size="48" />
+    </v-container>
+    <RulebookGrid v-else :rulebooks="rulebooks" @select="openRulebook" class="flex-1-1" />
   </div>
+
+  <div ref="sentinel" style="height:1px" />
 
   <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
     <div v-if="isLoading" class="d-flex justify-center align-center h-100">
@@ -38,6 +46,7 @@
 
     <UploadRulebookModal
       v-model="showUpload"
+      :loading="isUploading"
       @add="handleUploadRulebook"
     />
 
@@ -45,7 +54,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useIntersectionObserver, useDebounceFn } from '@vueuse/core'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
@@ -61,65 +72,56 @@ import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue
 
 import { useLibrary } from '~/composables/useLibrary'
 import { useVaultUpload } from '~/composables/useVaultUpload';
+import { useAuth } from '~/composables/useAuth';
 
-const {rulebooks, isLoading, getAllRulebooks, getRulebookById, currentRulebook } = useLibrary()
+import { useSnackBar } from '~/composables/useSnackbar';
+
+const { show } = useSnackBar();
+const showFilters = ref(false)
+
+const route = useRoute();
+const router = useRouter();
+
+const {rulebooks, isLoading, getAllRulebooks, getRulebookById, currentRulebook, featuredRulebooks, loadMore, hasMore, fetchFeaturedRulebooks } = useLibrary()
 const {triggerUpload, isUploading, error} = useVaultUpload();
+const { isAuthenticated } = useAuth();
 
 const searchQuery = ref('')
-const activeFilters = ref({})
+const activeFilterState = ref({})
 const showDetail = ref(false)
 const showUpload = ref(false)
 const selectedRulebook = ref(null)
+const sentinel = ref(null)
 
 onMounted(() => { // Does stuff when component loads
-  getAllRulebooks()
+  fetchFeaturedRulebooks();
+  getAllRulebooks({}, true);
 })
 
-const recommended = computed(() => {
-  return rulebooks.value.slice(0, 5);
+useIntersectionObserver(sentinel,([entry])=>{
+  if(entry.isIntersecting&& hasMore.value && !isLoading.value){
+    loadMore();
+  }
 })
 
-const filteredRulebooks = computed(() =>{
-  let result = rulebooks.value
-
-  if(searchQuery.value){
-    const lCaseQuery = searchQuery.value.toLowerCase()
-    result = result.filter(r =>
-      r.title?.toLowerCase().includes(lCaseQuery) ||
-      (r.description && r.description.toLowerCase().includes(lCaseQuery))
-    )
+const handleUploadRequest = () => {
+  if(!isAuthenticated.value){
+    router.push({
+      path: '/auth/signin',
+      query: { redirect: route.fullPath }
+    });
+    return;
   }
+  showUpload.value = true;
+}
 
-  if (activeFilters.value.genre && activeFilters.value.genre !== 'All') {
-    result = result.filter(r => r.genres && r.genres.includes(activeFilters.value.genre))
-  }
+const delaySearch = useDebounceFn((query) => {
+  getAllRulebooks({...activeFilterState.value, search:query || null}, true);
+}, 400);
 
-  if (activeFilters.value.languages?.length) {
-    result = result.filter(r => activeFilters.value.languages.includes(r.language))
-  }
-
-  // if (activeFilters.value.minPlayers) {
-  //   result = result.filter(r => r.minPlayers === Number(activeFilters.value.minPlayers))
-  // }
-
-  // if (activeFilters.value.maxPlayers) {
-  //   result = result.filter(r => r.maxPlayers === Number(activeFilters.value.maxPlayers))
-  // }
-  if(activeFilters.value.playerCount){
-    const target = Number(activeFilters.value.playerCount);
-    result = result.filter(r => r.minPlayers <= target && r.maxPlayers >= target);
-  }
-
-  if(activeFilters.value.duration){
-    result = result.filter(r => r.duration <= Number(activeFilters.value.duration));
-  }
-  
-  if(activeFilters.value.minAge){
-    result = result.filter(r => r.minAge <= Number(activeFilters.value.minAge));
-  }
-
-  return result
-})
+watch(searchQuery, (query) => {
+  delaySearch(query);
+});
 
 
 const openRulebook = async (rulebook) => {
@@ -134,16 +136,27 @@ const handleSearch = (query) => {
 }
 
 const handleFilter = (filters) => {
-  activeFilters.value = filters
+  activeFilterState.value = {
+    genre: filters.genre,
+    languages: filters.languages,
+    playerCount: filters.playerCount,
+    duration: filters.duration,
+    minAge: filters.minAge,
+  }
+    getAllRulebooks({...activeFilterState.value, search: searchQuery.value || null}, true);
 }
 
 const handleUploadRulebook = async (newRulebook) => {
   try{
     await triggerUpload(newRulebook);
-    console.log("Upload accepted");
+    show("Rulebook uploaded successfully!", "success");
     showUpload.value = false;
   }catch(err){
-    console.error("Upload failed", err);
+    show(err.message || 'Failed to upload rulebook', 'error');
   }
 }
+
+const recommended = computed(() => {
+  return featuredRulebooks.value.slice(0, 5);
+})
 </script>

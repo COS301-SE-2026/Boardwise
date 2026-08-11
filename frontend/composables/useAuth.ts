@@ -69,7 +69,7 @@ export const useAuth = () => {
     }
     token.value = null
     isAuthenticated.value = false;
-    router.push('auth/signin');
+    router.push('/auth/signin');
   }
   return {
     token,

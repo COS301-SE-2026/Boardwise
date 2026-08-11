@@ -15,12 +15,16 @@ import BaseCard from '~/components/ui/BaseCard.vue'
 defineEmits(['add-game'])
 </script>
 
-<!-- <style scoped>
+<style scoped>
 .add-card {
   cursor:     pointer;
   overflow:   hidden;
+
   height:     280px;
+  width: 100%;
+
   border:     2px dashed #ccc;
+  border-radius: 16px;
   transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 
@@ -29,4 +33,4 @@ defineEmits(['add-game'])
   background-color: var(--color-surface-alt);
   box-shadow:       var(--shadow-md) !important;
 }
-</style> -->
+</style>

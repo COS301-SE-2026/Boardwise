@@ -5,38 +5,41 @@
       <h2>Edit Community</h2>
 
         <BaseInput 
-          v-model="name" 
+          v-model="form.name" 
           placeholder="Community name" 
           />
       
         <BaseTextArea 
-            v-model="description" 
+            v-model="form.description" 
             placeholder="What is this community about?" 
             :rows="3" 
             />
 
       <v-btn-toggle
-        v-model="form.type"
+        v-model="form.visibility"
         mandatory
         divided  
       >
-        <BaseButton>
+        <v-btn value="Public">
           Public
-        </BaseButton>
+        </v-btn>
 
-        <BaseButton>
+        <v-btn value="Private">
           Private
-        </BaseButton>
+        </v-btn>
     </v-btn-toggle>
 
       <div class="d-flex align-center ga-4">
           <BaseButton @click="fileInput?.click()">
+            <v-icon start>mdi-upload</v-icon>
             Upload Image
           </BaseButton>
 
           <span class="filename">{{ fileName || '···' }}</span>
 
-          <BaseInput
+          <label for="community-image-upload" class="sr-only">Upload Image</label>
+          <input
+            id="community-image-upload"
             ref="fileInput"
             type="file"
             accept="image/*"
@@ -71,6 +74,11 @@ import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseTextArea from '~/components/ui/BaseTextArea.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+import { useSnackBar } from '~/composables/useSnackbar'
+import { useCommunity } from '~/composables/useCommunity'
+
+const { show } = useSnackBar()
+const { editCommunity, error } = useCommunity()
 
 const open = defineModel({
   type: Boolean,
@@ -94,6 +102,7 @@ const form = reactive({
 
 const fileName = ref('')
 const fileInput = ref(null)
+const file = ref(null)
 
 watch(
   () => props.community,
@@ -102,7 +111,7 @@ watch(
     
     form.name = community.name
     form.description = community.description
-    form.type = community.type
+    form.visibility = community.visibility
 
     fileName.value = community.image
   },
@@ -110,23 +119,39 @@ watch(
 )
 
 const handleFileChange = (event) => {
+  const chosenfile = event.target.files?.[0]
 
-  const file = event.target.files[0]
+  if(chosenfile) {
+    fileName.value = chosenfile.name
+    file.value = chosenfile
+  }
 
-  if (file) fileName.value = file.name
 }
 
 const closeModal = () => {
   open.value = false
 }
 
-const handleSave = () => {
-  emit('save', {
-    ...props.community,
-    ...form,
-    image: fileName.value
-  })
-
-  closeModal()
+const handleSave = async () => {
+  try{
+    const response = await editCommunity(
+      props.community.id,
+      file.value,
+      {
+        name: form.name,
+        description: form.description,
+        visibility: form.visibility
+      }
+    )
+    console.log(response.data)
+    emit('save', response.data)
+  }
+  catch(err){
+    console.error("Failed to edit community details", err)
+    show(error.value, 'error')
+  }
+  finally{
+    closeModal()
+  }
 }
 </script>

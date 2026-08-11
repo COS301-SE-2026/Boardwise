@@ -7,10 +7,33 @@
 
     <MarketplaceTabs v-model="activeTab" />
 
-    <div class="d-flex ga-6 mt-6 align-start">
+    <!-- Mobile -->
+    <div class="d-flex d-md-none mt-6 mb-4">
+      <v-chip
+        color="secondary"
+        prepend-icon="mdi-filter-variant"
+        size="large"
+        @click="showFilters = true"
+      >
+        Filters
+      </v-chip>
 
+      <v-navigation-drawer
+        v-model="showFilters"
+        temporary
+        location="left"
+        width="300"
+      >
+        <FilterSidebar @filter="handleFilter" />
+      </v-navigation-drawer>
+    </div>
+
+    <!-- Desktop -->
+    <div class="d-none d-md-flex ga-6 mt-6 align-start">
       <FilterSidebar @filter="handleFilter"/>
-      <div v-if = "loading">Loading listings...</div> 
+      <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
+        <v-progress-circular indeterminate color="primary" size="48" />
+      </v-container>
       <ListingGrid  v-else :listings="listings" />
     </div>
     
@@ -43,6 +66,7 @@ import { useIntersectionObserver, useDebounceFn  } from '@vueuse/core'
 
 const router = useRouter();
 const activeTab = ref('Community')
+const showFilters = ref(false)
 const showCreateListing = ref(false)
 
 const {listings, loading, fetchListings, addListing, loadMore, hasMore} = useMarketplace();
@@ -113,7 +137,7 @@ watch(searchQ,(query)=>{
   align-items: flex-start;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .marketplace-layout {
     flex-direction: column;
   }

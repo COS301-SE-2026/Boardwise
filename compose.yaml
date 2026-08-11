@@ -25,6 +25,7 @@ services:
     restart: on-failure
     environment:
       - DB_URL=${DB_URL}
+      - PROD_DB_URL=${PROD_DB_URL}
       - JWT_SECRET=${JWT_SECRET}
       - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
       - R2_ACCESS_KEY=${R2_ACCESS_KEY}
@@ -51,28 +52,29 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s
-  # ai-gateway:
-  #   build: ./ai/
-  #   restart: on-failure
-  #   environment:
-  #     - DB_URL=${DB_URL}
-  #     - DB_NAME=${DB_NAME}
-  #     - JWT_SECRET=${JWT_SECRET}
-  #     - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
-  #     - R2_BUCKET_RULEBOOKS=${R2_BUCKET_RULEBOOKS}
-  #     - R2_ACCESS_KEY=${R2_ACCESS_KEY}
-  #     - R2_SECRET_KEY=${R2_SECRET_KEY}
-  #   ports:
-  #     - 8000:8000
-  #   depends_on:
-  #     mongodb:
-  #       condition: service_healthy
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 20s
+  ai-gateway:
+    build: ./ai/
+    restart: on-failure
+    environment:
+      - DB_URL=${PROD_DB_URL}
+      - DB_NAME=${DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+      - R2_BUCKET_RULEBOOKS=${R2_BUCKET_RULEBOOKS}
+      - R2_ACCESS_KEY=${R2_ACCESS_KEY}
+      - R2_SECRET_KEY=${R2_SECRET_KEY}
+    ports:
+      - 8000:8000
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
 
 volumes:

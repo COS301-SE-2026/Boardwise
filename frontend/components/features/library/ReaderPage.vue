@@ -104,11 +104,7 @@ const formattedPlayerCount = computed(() => {
 });
 
 const formattedGenres = computed(() => {
-  if(!props.rulebook) return "";
-
-  const genreArray = props.rulebook.genres;
-
-  return `${genreArray.join(', ')}`;
+  return props.rulebook?.genres?.join(', ') ?? '';
 });
 
 const contentSegments = computed(() => {
