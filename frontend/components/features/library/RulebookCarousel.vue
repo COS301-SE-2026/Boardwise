@@ -60,7 +60,7 @@
               </v-btn>
             </div>
           </div>
-        </div>
+        </v-carousel-item>
       </v-carousel-item>
     </v-carousel>
   </div>
