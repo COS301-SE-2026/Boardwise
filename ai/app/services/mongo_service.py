@@ -163,8 +163,8 @@ def create_rulebook_text(
     rulebook_id: str,
     chunks_list: list[dict],
     session=None
-) -> str:
-    """Creates the RULEBOOK_TEXT document containing the array of embedded CHUNK subdocuments"""
+) -> list[str]:
+    """Creates individual flattened RULEBOOK_TEXT chunk documents for vector search."""
     db = get_db()
     rulebook_obj_id = ObjectId(rulebook_id)
 
@@ -174,15 +174,25 @@ def create_rulebook_text(
         raise ValueError(f"Rulebook '{rulebook_id}' not found.")
 
     now = datetime.now(timezone.utc)
+    chunks_to_insert = []
 
-    result = db["RULEBOOK_TEXT"].insert_one({
-        "rulebookId": rulebook_obj_id,
-        "version": 0,
-        "chunks": chunks_list,
-        "updatedAt": now
-    }, session=session)
+    for chunk in chunks_list:
+        chunk_obj_id = ObjectId(chunk["chunkId"])
 
-    return str(result.inserted_id)
+        chunks_to_insert.append({
+            "rulebookId": rulebook_obj_id,
+            "chunkId": chunk_obj_id,
+            "index": chunk["index"],
+            "content": chunk["content"],
+            "embedding": chunk.get("embedding",[]),
+            "charCount": len(chunk["content"]),
+            "createdAt": now,
+            "updatedAt": now
+        })
+
+    result = db["RULEBOOK_TEXT"].insert_many(chunks_to_insert, session=session)
+
+    return [str(inserted_id) for inserted_id in result.inserted_ids]
 
 def is_token_valid(jti: str) -> bool:
     """Checks the MongoDB database to see if the token has been invalidated"""
