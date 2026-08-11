@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routers import rulebook
 from app.services import mongo_service
 from app.services import r2_service
-
+# random comment for changes sake
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
