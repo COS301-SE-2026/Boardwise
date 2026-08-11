@@ -35,7 +35,7 @@ jobs:
         - name: Build and push backend image
           working-directory: backend
           run: |
-            docker build -t ${{ env.ECR_REGISTRY }}/boardwise:${{ github.sha }} -t ${{ env.ECR_REGISTRY }}/boardwise-backend:latest .
+            docker build -t ${{ env.ECR_REGISTRY }}/boardwise:${{ github.sha }} -t ${{ env.ECR_REGISTRY }}/boardwise:latest .
             docker push ${{ env.ECR_REGISTRY }}/boardwise:${{ github.sha }}
             docker push ${{ env.ECR_REGISTRY }}/boardwise:latest
 
