@@ -48,7 +48,7 @@ import com.boardwise.backend.marketplace.enums.Genres;
 @Component
 @Profile("!test")
 public class Seeding {
-
+    // this is just for Git to see changes
     private ObjectId getObjectIdFromUsername(String username, UserRepository userRepository) {
             return new ObjectId(userRepository.findByUsername(username).get().getId());
     }
