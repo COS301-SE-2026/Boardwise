@@ -7,6 +7,7 @@ import java.util.AbstractMap.SimpleEntry;
 
 import org.springframework.stereotype.Service;
 
+import com.boardwise.backend.retailsource.dtos.RetailSourceItemDTO;
 import com.boardwise.backend.retailsource.dtos.ScrapeResponse;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
@@ -23,7 +24,7 @@ public class TakealotScraper implements WebScraper {
     private String searchSelector = "input[placeholder='Search for products, brands...']";
     private final String site = "https://www.takealot.com";
 
-    public List<ScrapeResponse> scrape(String toSearch) {
+    public List<RetailSourceItemDTO> scrape(String toSearch) {
         if(toSearch.isBlank()){
             return null;
         }
@@ -60,7 +61,7 @@ public class TakealotScraper implements WebScraper {
             List<ScrapeResponse> matching = new ArrayList<>();
 
             if(cards.isEmpty()){
-                return matching;// for some reason?? should lowkey an exception because wow
+                return null;// for some reason?? should lowkey an exception because wow
             }
 
             for(Locator card : cards){
@@ -83,11 +84,19 @@ public class TakealotScraper implements WebScraper {
 
             matching.sort(Comparator.comparingDouble(r-> r.details().getValue())); // sort in terms of float
 
-            return matching;
+            for(ScrapeResponse m: matching){
+                System.out.print(m.details().getKey() +"\n");
+            }
+            return null;
 
         } catch (Exception e) {
             e.printStackTrace();
         }
         throw new RuntimeException("somehow reached a place you shouldn't have ");
+    }
+
+    public static void main(String[] args) {
+        TakealotScraper takealotScraper = new TakealotScraper();
+        takealotScraper.scrape("Monopoly");
     }
 }

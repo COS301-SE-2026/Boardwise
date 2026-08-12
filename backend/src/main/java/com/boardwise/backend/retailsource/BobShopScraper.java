@@ -18,6 +18,7 @@ public class BobShopScraper implements WebScraper {
     public BobShopScraper() {
     }
 
+    private final String RETAILERNAME = "Bobshop";
     private final int MAXNUMITEMS = 15;
     private final String site = "https://www.bobshop.co.za";
 
@@ -99,7 +100,7 @@ public class BobShopScraper implements WebScraper {
 
                 if (val >= stringMatch) {
                     SimpleEntry<String, Float> toAdd = new SimpleEntry<String, Float>(url, val);
-                    retailSourceItemDTOs.add(new RetailSourceItemDTO(title, foundPrice, url, price, imageUrl, val));
+                    retailSourceItemDTOs.add(new RetailSourceItemDTO(title, RETAILERNAME , url, price, imageUrl, val));
                     matching.add(new ScrapeResponse(site, toAdd));
                 }
 
@@ -111,17 +112,12 @@ public class BobShopScraper implements WebScraper {
             page.close();
 
             matching.sort(Comparator.comparingDouble(r -> r.details().getValue())); // sort in terms of float
-            
+
             return retailSourceItemDTOs;
 
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public static void main(String[] args) {
-        BobShopScraper bs = new BobShopScraper();
-        bs.scrape("Monopoly");
     }
 }

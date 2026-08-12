@@ -7,6 +7,7 @@ import java.util.AbstractMap.SimpleEntry;
 
 import org.springframework.stereotype.Service;
 
+import com.boardwise.backend.retailsource.dtos.RetailSourceItemDTO;
 import com.boardwise.backend.retailsource.dtos.ScrapeResponse;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
@@ -23,7 +24,7 @@ public class ToysRUsScraper implements WebScraper {
     private String searchSelector = "input[placeholder='The search for fun starts here...']";
     private final String site = "https://www.toysrus.co.za/";
 
-    public List<ScrapeResponse> scrape(String toSearch) {
+    public List<RetailSourceItemDTO> scrape(String toSearch) {
         if(toSearch.isBlank()){
             return null;
         }
@@ -63,7 +64,7 @@ public class ToysRUsScraper implements WebScraper {
             List<ScrapeResponse> matching = new ArrayList<>();
 
             if(cards.isEmpty()){
-                return matching;// for some reason?? should lowkey an exception because wow
+                return null;// for some reason?? should lowkey an exception because wow
             }
 
             for(Locator card : cards){
@@ -88,7 +89,7 @@ public class ToysRUsScraper implements WebScraper {
             page.close();
 
             matching.sort(Comparator.comparingDouble(r-> r.details().getValue())); // sort in terms of float
-            return matching;
+            return null;
 
         } catch (Exception e) {
             e.printStackTrace();
