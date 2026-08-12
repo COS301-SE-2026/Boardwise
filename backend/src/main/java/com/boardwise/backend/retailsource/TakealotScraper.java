@@ -23,7 +23,9 @@ public class TakealotScraper implements WebScraper {
     private final int MAXNUMITEMS = 15;
     private String searchSelector = "input[placeholder='Search for products, brands...']";
     private final String site = "https://www.takealot.com";
+    private final String RETAILERNAME = "Takealot";
 
+    @Override
     public List<RetailSourceItemDTO> scrape(String toSearch) {
         if(toSearch.isBlank()){
             return null;
@@ -58,36 +60,42 @@ public class TakealotScraper implements WebScraper {
 
             //find article 
             List<Locator> cards =  page.locator("article[data-ref='product-card']").all();
-            List<ScrapeResponse> matching = new ArrayList<>();
+            List<RetailSourceItemDTO> retailSourceItemDTOs = new ArrayList<>();
 
             if(cards.isEmpty()){
                 return null;// for some reason?? should lowkey an exception because wow
             }
 
             for(Locator card : cards){
+
+                String price = card.locator("[data-ref='price'] .currency").innerText();
+                double actualPrice = parsePrice(price);                
+
+
+                Locator listPriceLoc = card.locator("[data-ref='list-price'] .currency");
+                Double listPrice = listPriceLoc.count() > 0 ? parsePrice(listPriceLoc.innerText()) : null;
+                
+                String imageUrl = card.locator("[data-ref='product-image']").getAttribute("src");
+
                 String title = card.locator("[data-ref='panel-content'] h4").innerText();
                 String url = card.locator("a[title='Go to product details']").getAttribute("href");
 
+                Double storedPrice = (listPrice == null)? actualPrice : Double.valueOf(listPrice);
                 // Jaro-Winkler - similarity between 2 sequences
                 float val = JaroWinklerSimilarity(toSearch,title);
 
                 if(val >= stringMatch && !url.contains("offer_pref")){// remove sponsored items
                     String officialUrl = site.substring(0,site.length()) + url;
-                    SimpleEntry<String, Float> toAdd = new SimpleEntry<String,Float>(officialUrl, val);
-                    matching.add(new ScrapeResponse(site,toAdd));
+                    retailSourceItemDTOs.add(new RetailSourceItemDTO(title,RETAILERNAME, officialUrl, storedPrice, imageUrl, val));
                 }
             
-                if(matching.size() >= MAXNUMITEMS) break;
+                if(retailSourceItemDTOs.size() >= MAXNUMITEMS) break;
             }
-            
             page.close();
 
-            matching.sort(Comparator.comparingDouble(r-> r.details().getValue())); // sort in terms of float
-
-            for(ScrapeResponse m: matching){
-                System.out.print(m.details().getKey() +"\n");
-            }
-            return null;
+            retailSourceItemDTOs.sort(Comparator.comparingDouble(r -> r.JaroWinklerSimilarityScore())); // sort in terms of float
+            System.out.println(retailSourceItemDTOs);
+            return retailSourceItemDTOs;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -95,8 +103,7 @@ public class TakealotScraper implements WebScraper {
         throw new RuntimeException("somehow reached a place you shouldn't have ");
     }
 
-    public static void main(String[] args) {
-        TakealotScraper takealotScraper = new TakealotScraper();
-        takealotScraper.scrape("Monopoly");
+    private Double parsePrice(String raw) {
+        return Double.valueOf(raw.replace("R", "").replace(",", "").trim());
     }
 }

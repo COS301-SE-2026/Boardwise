@@ -22,6 +22,7 @@ public class BobShopScraper implements WebScraper {
     private final int MAXNUMITEMS = 15;
     private final String site = "https://www.bobshop.co.za";
 
+    @Override
     public List<RetailSourceItemDTO> scrape(String toSearch) {
         if (toSearch.isBlank()) {
             return null;
@@ -104,14 +105,14 @@ public class BobShopScraper implements WebScraper {
                     matching.add(new ScrapeResponse(site, toAdd));
                 }
 
-                if (matching.size() >= MAXNUMITEMS)
+                if (retailSourceItemDTOs.size() >= MAXNUMITEMS)
                     break;
 
             }
 
             page.close();
 
-            matching.sort(Comparator.comparingDouble(r -> r.details().getValue())); // sort in terms of float
+            retailSourceItemDTOs.sort(Comparator.comparingDouble(r -> r.JaroWinklerSimilarityScore())); // sort in terms of float
 
             return retailSourceItemDTOs;
 

@@ -24,6 +24,7 @@ public class ToysRUsScraper implements WebScraper {
     private String searchSelector = "input[placeholder='The search for fun starts here...']";
     private final String site = "https://www.toysrus.co.za/";
 
+    @Override
     public List<RetailSourceItemDTO> scrape(String toSearch) {
         if(toSearch.isBlank()){
             return null;
