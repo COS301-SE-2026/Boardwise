@@ -8,13 +8,16 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 
 import org.bson.types.ObjectId;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,12 +30,16 @@ import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.marketplace.enums.ListingStatus;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.marketplace.service.ListingService;
+import com.boardwise.backend.shared.config.SecurityConfig;
 import com.boardwise.backend.shared.security.JWTService;
+import com.boardwise.backend.shared.security.JwtFilter;
 import com.boardwise.backend.user_service.repos.TokenBlackListRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.services.MyUserDetailsService;
 
 
 @WebMvcTest(ListingController.class)
+@Import({SecurityConfig.class, JwtFilter.class})
 public class ListingControllerTest{
 
     @MockitoBean
@@ -41,6 +48,8 @@ public class ListingControllerTest{
     @MockitoBean
     private ListingService listingService;
 
+    @MockitoBean
+    MyUserDetailsService userDetailsService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -72,6 +81,21 @@ public class ListingControllerTest{
         );
     }
 
+    @BeforeEach
+    void setup() throws Exception{
+        final String validToken = "valid-test-token";
+        final ObjectId userId = new ObjectId();
+
+        when(jwtService.extractUserId(validToken)).thenReturn(userId);
+        
+        UserDetails mockUser = org.springframework.security.core.userdetails.User
+            .withUsername(userId.toHexString())
+            .password("notUsed")
+            .roles("USER")
+            .build();
+        when(userDetailsService.loadUserByUserId(userId.toHexString())).thenReturn(mockUser);
+        when(jwtService.validateToken(validToken, mockUser)).thenReturn(true);
+    }
 
     @Test
     @DisplayName("GET /listings returns 200 with listings")
@@ -156,7 +180,7 @@ public class ListingControllerTest{
         when(listingService.createListing(any(), any(), any())).thenReturn(buildDefaultResponse());
 
         //ACT & ASSERT
-        mockMvc.perform(multipart("/api/marketplace/listings").file(image).file(data).header("Authorization", "Bearer fake").with(csrf())).andExpect(status().isOk());        
+        mockMvc.perform(multipart("/api/marketplace/listings").file(image).file(data).header("Authorization", "Bearer valid-test-token").with(csrf())).andExpect(status().isOk());        
     }
 
     @Test
@@ -171,7 +195,7 @@ public class ListingControllerTest{
         when(listingService.createListing(any(), any(), any())).thenThrow(IllegalArgumentException.class);
 
         //ACT & ASSERT
-        mockMvc.perform(multipart("/api/marketplace/listings").file(image).file(data).header("Authorization", "Bearer fake").with(csrf())).andExpect(status().isBadRequest());        
+        mockMvc.perform(multipart("/api/marketplace/listings").file(image).file(data).header("Authorization", "Bearer valid-test-token").with(csrf())).andExpect(status().isBadRequest());        
     }
 
 
@@ -194,7 +218,7 @@ public class ListingControllerTest{
         .with(request->{
             request.setMethod("PATCH"); 
             return request;})
-        .header("Authorization", "Bearer fake"))
+        .header("Authorization", "Bearer valid-test-token"))
         .andExpect(status().isInternalServerError());
     }
 
@@ -217,7 +241,7 @@ public class ListingControllerTest{
         .with(request->{
             request.setMethod("PATCH"); 
             return request;})
-        .header("Authorization", "Bearer fake")).andExpect(status().isOk());        
+        .header("Authorization", "Bearer valid-test-token")).andExpect(status().isOk());        
     }
     
     @Test
@@ -235,7 +259,7 @@ public class ListingControllerTest{
         mockMvc.perform(multipart("/api/marketplace/listing/someListingId")
         .file(image)
         .file(data)
-        .header("Authorization", "Bearer fake")
+        .header("Authorization", "Bearer valid-test-token")
         .with(csrf()) 
         .with(request->{
             request.setMethod("PATCH"); 
@@ -258,7 +282,7 @@ public class ListingControllerTest{
         mockMvc.perform(multipart("/api/marketplace/listing/someListingId")
         .file(image)
         .file(data)
-        .header("Authorization", "Bearer fake")
+        .header("Authorization", "Bearer valid-test-token")
         .with(csrf())
         .with(request->{
             request.setMethod("PATCH"); 
@@ -274,7 +298,7 @@ public class ListingControllerTest{
         doNothing().when(listingService).deleteListing(any(), any());
         //ACT & ASSERT
         mockMvc.perform(delete("/api/marketplace/listing/someId")
-        .header("Authorization", "Bearer fake")
+        .header("Authorization", "Bearer valid-test-token")
         .with(csrf()))
         .andExpect(status().isNoContent());        
     }
@@ -287,7 +311,7 @@ public class ListingControllerTest{
         doThrow(new IllegalArgumentException()).when(listingService).deleteListing(any(),any());
         //ACT & ASSERT
         mockMvc.perform(delete("/api/marketplace/listing/someId")
-        .header("Authorization", "Bearer fake")
+        .header("Authorization", "Bearer valid-test-token")
         .with(csrf()))
         .andExpect(status().isNotFound());    
     }
@@ -300,7 +324,7 @@ public class ListingControllerTest{
         doThrow(new ForbiddenException("err")).when(listingService).deleteListing(any(),any());
         //ACT & ASSERT
         mockMvc.perform(delete("/api/marketplace/listing/someId")
-        .header("Authorization", "Bearer fake")
+        .header("Authorization", "Bearer valid-test-token")
         .with(csrf()))
         .andExpect(status().isForbidden());    
     }
@@ -313,7 +337,7 @@ public class ListingControllerTest{
         doThrow(new RuntimeException()).when(listingService).deleteListing(any(),any());
         //ACT & ASSERT
         mockMvc.perform(delete("/api/marketplace/listing/someId")
-        .header("Authorization", "Bearer fake")
+        .header("Authorization", "Bearer valid-test-token")
         .with(csrf()))
         .andExpect(status().isInternalServerError());    
     }
@@ -326,7 +350,7 @@ public class ListingControllerTest{
         when(listingService.getUserListings(any())).thenReturn(List.of(buildDefaultResponse()));
 
         //ACT & ASSERT
-        mockMvc.perform(get("/api/marketplace/listings/user").header("Authorization", "Bearer fake")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/marketplace/listings/user").header("Authorization", "Bearer valid-test-token")).andExpect(status().isOk());
     }
 
     @Test
@@ -336,7 +360,7 @@ public class ListingControllerTest{
         //ARRANGE 
         when(listingService.getUserListings(any())).thenReturn(List.of());
         //ACT & ASSERT
-        mockMvc.perform(get("/api/marketplace/listings/user").header("Authorization", "Bearer fake")).andExpect(status().isNoContent());
+        mockMvc.perform(get("/api/marketplace/listings/user").header("Authorization", "Bearer valid-test-token")).andExpect(status().isNoContent());
     }
 
     @Test
@@ -347,7 +371,7 @@ public class ListingControllerTest{
         when(listingService.getUserListings(any())).thenThrow(new RuntimeException());
         //ACT & ASSERT
         mockMvc.perform(get("/api/marketplace/listings/user")
-        .header("Authorization", "Bearer fake"))
+        .header("Authorization", "Bearer valid-test-token"))
         .andExpect(status().isInternalServerError());
     }
 

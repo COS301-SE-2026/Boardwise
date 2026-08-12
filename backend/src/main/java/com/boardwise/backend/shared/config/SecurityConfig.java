@@ -2,7 +2,6 @@ package com.boardwise.backend.shared.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -29,7 +28,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@Profile("!test")
+// @Profile("!test")
 public class SecurityConfig {
 
     private final MyUserDetailsService userDetailsService; 
@@ -58,8 +57,9 @@ public class SecurityConfig {
                         
                     ).permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/vault/rulebooks/*/text").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/vault/rulebooks/*/").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/vault/rulebooks/*", "/api/vault/rulebooks/*").permitAll()
                     .requestMatchers("/api/stomp","/api/stomp/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/boardgames/genres").permitAll()
                     .anyRequest()
                     .authenticated()
                 )
@@ -95,7 +95,12 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Specify frontend origin
-        configuration.setAllowedOrigins(List.of("http://localhost:3000","http://127.0.0.1:3000"));
+        configuration.setAllowedOrigins(List.of(
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "https://www.boardwise.games",
+            "https://boardwise.games"
+        ));
 
         // Allow OPTIONS for preflight requests
         configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
