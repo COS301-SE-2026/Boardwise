@@ -3,12 +3,10 @@ package com.boardwise.backend.retailsource;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.AbstractMap.SimpleEntry;
 
 import org.springframework.stereotype.Service;
 
 import com.boardwise.backend.retailsource.dtos.RetailSourceItemDTO;
-import com.boardwise.backend.retailsource.dtos.ScrapeResponse;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Locator;
@@ -23,6 +21,7 @@ public class ToysRUsScraper implements WebScraper {
     private final int MAXNUMITEMS = 15;
     private String searchSelector = "input[placeholder='The search for fun starts here...']";
     private final String site = "https://www.toysrus.co.za/";
+    private final String RETAILERNAME="ToysRUs";
 
     @Override
     public List<RetailSourceItemDTO> scrape(String toSearch) {
@@ -62,12 +61,14 @@ public class ToysRUsScraper implements WebScraper {
 
             //find article 
             List<Locator> cards =  page.locator("li.product-item").all();
-            List<ScrapeResponse> matching = new ArrayList<>();
 
             if(cards.isEmpty()){
                 return null;// for some reason?? should lowkey an exception because wow
             }
 
+            List<RetailSourceItemDTO> retailSourceItemDTOs = new ArrayList<>();
+
+    
             for(Locator card : cards){
                 Locator titleElement = card.locator("a.product-item-link").first();          
                 if (titleElement.count() == 0) continue;
@@ -76,26 +77,42 @@ public class ToysRUsScraper implements WebScraper {
                 String title = titleElement.innerText().trim();
 
                 String url = card.locator("a.product-item-link").first().getAttribute("href");
+            
+                Locator priceLoc = card.locator(".price-wrapper").first();
+                double price = Double.parseDouble(priceLoc.getAttribute("data-price-amount"));
+
+                String imageUrl = card.getAttribute("data-image");
+
+                if (imageUrl == null || imageUrl.isBlank() || imageUrl.contains("placeholder")) {
+                    imageUrl = null; 
+                }
 
             // Jaro-Winkler - similarity between 2 sequences
                 float val = JaroWinklerSimilarity(toSearch,title);
                 if(val >= stringMatch && !url.contains("offer_pref")){// remove sponsored items
-                    SimpleEntry<String, Float> toAdd = new SimpleEntry<String,Float>(url, val);
-                    matching.add(new ScrapeResponse(site,toAdd));
+                        String officialUrl = url;
+                        retailSourceItemDTOs.add(new RetailSourceItemDTO(title, RETAILERNAME, officialUrl,price ,imageUrl, val));
+
                 }
             
-                if(matching.size() >= MAXNUMITEMS) break;
+                if(retailSourceItemDTOs.size() >= MAXNUMITEMS) break;
             }
             
             page.close();
 
-            matching.sort(Comparator.comparingDouble(r-> r.details().getValue())); // sort in terms of float
-            return null;
+            retailSourceItemDTOs.sort(Comparator.comparingDouble(r-> r.JaroWinklerSimilarityScore())); // sort in terms of float
+            System.out.println(retailSourceItemDTOs);
+            return retailSourceItemDTOs;
 
         } catch (Exception e) {
             e.printStackTrace();
         }
         //if you ever exit this... wow
         throw new RuntimeException("somehow reached a place you shouldn't have ");
+    }
+
+    public static void main(String[] args) {
+        ToysRUsScraper toysRUsScraper = new ToysRUsScraper();
+        toysRUsScraper.scrape("Monopoly");
     }
 }

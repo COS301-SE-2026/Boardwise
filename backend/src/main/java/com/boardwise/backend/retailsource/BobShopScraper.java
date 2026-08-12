@@ -58,8 +58,6 @@ public class BobShopScraper implements WebScraper {
                 return null;// for some reason?? should lowkey an exception because wow
             }
 
-            List<ScrapeResponse> matching = new ArrayList<>();
-
             List<RetailSourceItemDTO> retailSourceItemDTOs = new ArrayList<>();
 
             for (Locator card : cards) {
@@ -100,9 +98,7 @@ public class BobShopScraper implements WebScraper {
                 float val = JaroWinklerSimilarity(toSearch, title);
 
                 if (val >= stringMatch) {
-                    SimpleEntry<String, Float> toAdd = new SimpleEntry<String, Float>(url, val);
                     retailSourceItemDTOs.add(new RetailSourceItemDTO(title, RETAILERNAME , url, price, imageUrl, val));
-                    matching.add(new ScrapeResponse(site, toAdd));
                 }
 
                 if (retailSourceItemDTOs.size() >= MAXNUMITEMS)

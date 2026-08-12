@@ -3,12 +3,10 @@ package com.boardwise.backend.retailsource;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.AbstractMap.SimpleEntry;
 
 import org.springframework.stereotype.Service;
 
 import com.boardwise.backend.retailsource.dtos.RetailSourceItemDTO;
-import com.boardwise.backend.retailsource.dtos.ScrapeResponse;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Locator;
