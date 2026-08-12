@@ -1,13 +1,12 @@
 package com.boardwise.backend.retailsource.dtos;
 
-import java.util.List;
 import lombok.Builder;
 
 @Builder
 public record RetailSourceItemDTO(
-        String gameIitle,
         String retailTitle,
+        String retailer,
+        String url,// site based URL
         Double price,
-        String description,
-        String imageUrl)
-        {}
+        String imageUrl, // image
+        float JaroWinklerSimilarityScore){}

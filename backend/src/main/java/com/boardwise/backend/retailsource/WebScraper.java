@@ -4,8 +4,8 @@ import java.util.List;
 import com.boardwise.backend.retailsource.dtos.*;
 
 //Interface class 
-interface WebScraper {
-    public List<ScrapeResponse> scrape(String toSearch);    
+public interface WebScraper {
+    public List<RetailSourceItemDTO> scrape(String toSearch);    
     public final float stringMatch = 0.49f; // >=49% string match gets Returned
     
     private int countMatchingChars(String x, String y){
