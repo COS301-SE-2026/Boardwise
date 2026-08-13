@@ -6,8 +6,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import com.boardwise.backend.user_service.dtos.InviteNotification;
+import com.boardwise.backend.user_service.enums.RSVPStatus;
 import com.boardwise.backend.user_service.models.EventAttendee;
-import com.boardwise.backend.user_service.models.RSVPStatus;
 import com.boardwise.backend.user_service.repos.EventAttendeeRepository;
 
 @Service

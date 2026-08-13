@@ -208,6 +208,16 @@ public class ProfileController {
         }
     }
 
+
+    @GetMapping("/{userId}/friends")
+    public ResponseEntity<?> getFriendsList(
+        @PathVariable String userId,
+        HttpServletRequest req
+    ){
+        String token = extractToken(req);
+        
+    }
+
     public static String extractToken(HttpServletRequest req){
         String header = req.getHeader("Authorization");
         if(header == null || !header.startsWith("Bearer "))
