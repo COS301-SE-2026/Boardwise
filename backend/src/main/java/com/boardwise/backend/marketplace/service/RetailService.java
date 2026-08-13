@@ -1,11 +1,14 @@
-package com.boardwise.backend.retailsource;
+package com.boardwise.backend.marketplace.service;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.boardwise.backend.retailsource.dtos.RetailSourceItemDTO;
+import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
+import com.boardwise.backend.marketplace.service.webscrapers.BobShopScraper;
+import com.boardwise.backend.marketplace.service.webscrapers.TakealotScraper;
+import com.boardwise.backend.marketplace.service.webscrapers.ToysRUsScraper;
 
-public class RetailSource {
+public class RetailService {
     private static  final List<RetailSourceItemDTO> overall = new ArrayList<>();
 
     private static TakealotScraper ts = new TakealotScraper();
@@ -21,6 +24,7 @@ public class RetailSource {
             addToList(takealotResults);
             addToList(bobShopResults);
             addToList(toysrusResults);
+            
             if(overall.size() < 0){
                 throw new RuntimeException("Error while ");
             }

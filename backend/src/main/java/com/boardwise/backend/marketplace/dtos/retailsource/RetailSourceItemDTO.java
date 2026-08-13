@@ -1,4 +1,4 @@
-package com.boardwise.backend.retailsource.dtos;
+package com.boardwise.backend.marketplace.dtos.retailsource;
 
 import lombok.Builder;
 

@@ -1,13 +1,13 @@
-package com.boardwise.backend.retailsource;
+package com.boardwise.backend.marketplace.service.webscrapers;
 import java.util.List;
 
-import com.boardwise.backend.retailsource.dtos.*;
+import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
 
 //Interface class 
 public interface WebScraper {
     
     public List<RetailSourceItemDTO> scrape(String toSearch);    
-    public final float stringMatch = 0.49f; // >=49% string match gets Returned
+    public final float STRINGMATCH = 0.49f; // >=49% string match gets Returned
     
     private int countMatchingChars(String x, String y){
         if(x.isBlank()|| y.isBlank()){

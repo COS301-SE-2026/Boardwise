@@ -1,4 +1,4 @@
-package com.boardwise.backend.retailsource;
+package com.boardwise.backend.marketplace.service.webscrapers;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.boardwise.backend.retailsource.dtos.RetailSourceItemDTO;
+import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Locator;
@@ -89,7 +89,7 @@ public class ToysRUsScraper implements WebScraper {
 
             // Jaro-Winkler - similarity between 2 sequences
                 float val = JaroWinklerSimilarity(toSearch,title);
-                if(val >= stringMatch && !url.contains("offer_pref")){// remove sponsored items
+                if(val >= STRINGMATCH && !url.contains("offer_pref")){// remove sponsored items
                         String officialUrl = url;
                         retailSourceItemDTOs.add(new RetailSourceItemDTO(title, RETAILERNAME, officialUrl,price ,imageUrl, val));
 
