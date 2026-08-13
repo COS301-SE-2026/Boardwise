@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import com.boardwise.backend.user_service.dtos.FriendRequestResponseDTO;
+import com.boardwise.backend.user_service.dtos.FriendsListDTO;
 import com.boardwise.backend.user_service.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
 import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
@@ -42,7 +44,7 @@ public class ProfileController {
     @GetMapping("/{userId}")
     public ResponseEntity<?> getOtherUserProfile(@PathVariable String userId){
         try{
-            ProfileResponseDTO res = service.getProfile(userId, null);
+            ProfileResponseDTO res = service.getProfile(userId);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(NoSuchElementException e){
@@ -208,14 +210,74 @@ public class ProfileController {
         }
     }
 
-
-    @GetMapping("/{userId}/friends")
-    public ResponseEntity<?> getFriendsList(
-        @PathVariable String userId,
+    // own friends list
+    @GetMapping("/friends")
+    public ResponseEntity<?> getOwnFriendsList(
         HttpServletRequest req
     ){
         String token = extractToken(req);
-        
+        FriendsListDTO friends = service.getOwnFriendsList(token);
+        return new ResponseEntity<>(friends, HttpStatus.OK);
+    }
+
+    // get another user's friends list
+    @GetMapping("/{userId}/friends")
+    public ResponseEntity<?> getOtherUserFriendsList(
+        @PathVariable String userId,
+        HttpServletRequest req
+    ) {
+        try{
+            String token = extractToken(req);
+            FriendsListDTO friends = service.getUserFriendsList(token, userId);
+            return new ResponseEntity<>(friends, HttpStatus.OK);
+        }
+        catch(NoSuchElementException e){
+            Map<String, String> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+    }
+    
+    // get friends requests
+    @GetMapping("/friendRequests")
+    public ResponseEntity<?> getFriendRequests(
+        HttpServletRequest req
+    ) {
+        String token = extractToken(req);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+    
+    // send friend request to a user (userId)
+    @PostMapping("/{userId}/friendRequests")
+    public ResponseEntity<?> sendFriendRequest(
+        @PathVariable String userId,
+        HttpServletRequest req
+    ) {
+        String token = extractToken(req);
+        FriendRequestResponseDTO res = service.sendFriendRequest(token, userId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    // respond to friend request (requestId)
+    @PatchMapping("/friendRequests/{requestId}")
+    public ResponseEntity<?> respondToFriendRequest(
+        @PathVariable String requestId,
+        @RequestParam String status,
+        HttpServletRequest req
+    ) {
+        FriendRequestResponseDTO res = service.respondToFriendRequest(requestId, status);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    // unfriend a user
+    @DeleteMapping("/friends/{userId}")
+    public ResponseEntity<?> unfriendUser(
+        @PathVariable String userId,
+        HttpServletRequest req
+    ) {
+        String token = extractToken(req);
+        FriendRequestResponseDTO res = service.unfriendUser(token, userId);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     public static String extractToken(HttpServletRequest req){

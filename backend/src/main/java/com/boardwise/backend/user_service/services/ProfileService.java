@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Example;
@@ -19,6 +20,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.boardwise.backend.shared.security.JWTService;
+import com.boardwise.backend.user_service.dtos.FriendDTO;
+import com.boardwise.backend.user_service.dtos.FriendRequestResponseDTO;
+import com.boardwise.backend.user_service.dtos.FriendsListDTO;
 import com.boardwise.backend.user_service.dtos.GameInventoryDTO;
 import com.boardwise.backend.user_service.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
@@ -26,6 +30,7 @@ import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileSearchResponse;
 import com.boardwise.backend.user_service.dtos.UpdateProfileDTO;
+import com.boardwise.backend.user_service.enums.FriendStatus;
 import com.boardwise.backend.user_service.models.*;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.FriendShipRepository;
@@ -56,19 +61,14 @@ public class ProfileService {
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     public ProfileResponseDTO getOwnProfile(String token) {
-        // get username from token
+        // get user id from token
         ObjectId userId = jwtService.extractUserId(token);
-        User extractedUser = userRepo.findById(userId.toString()).get();
-        return getProfile(null, extractedUser);
+        return getProfile(userId.toString());
     }
 
-    public ProfileResponseDTO getProfile(String username, User own) {
+    public ProfileResponseDTO getProfile(String userId) {
         // get user data from db
-        User user = own == null ? 
-                    userRepo.findByUsername(username)
-                                        .orElseThrow() :
-                    own;
-        
+        User user = userRepo.findById(userId).get();
         
         // get the games from stored ids                                
         List<GameInventoryDTO> games = new ArrayList<>();
@@ -92,22 +92,19 @@ public class ProfileService {
         int groupCount = gms.size();
         
         // Get community id, name and image
-        List<Map<String, String>> communities = null;
-        if(own != null){
-            communities = new ArrayList<>();
-            for(GroupMembership membership : gms){
-                Map<String, String> community = new HashMap<>();
-                Group group = groupRepo.findById(membership.getGroupId()).get();
-                community.put("id", group.getId());
-                community.put("name", group.getName());
-                community.put("image", group.getImageUrl());
+        List<Map<String, String>> communities = new ArrayList<>();
+        for(GroupMembership membership : gms){
+            Map<String, String> community = new HashMap<>();
+            Group group = groupRepo.findById(membership.getGroupId()).get();
+            community.put("id", group.getId());
+            community.put("name", group.getName());
+            community.put("image", group.getImageUrl());
 
-                communities.add(community);
-            }
+            communities.add(community);
         }
         
         // get friend count
-        int friendCount = (int) fsRepo.countByUserAIdOrUserBId(user.getId(), user.getId());
+        int friendCount = fsRepo.findByUserAndStatus(userId, FriendStatus.ACCEPTED).size();
 
         DateTimeFormatter formatter = DateTimeFormatter
                                         .ofPattern("dd-MM-yyyy")
@@ -385,6 +382,88 @@ public class ProfileService {
         result.put("games", games);
    
         return result;
+    }
+
+    public FriendsListDTO getOwnFriendsList(String token) {
+        String userId = jwtService.extractUserId(token).toString();
+        List<Friendship> friendships = fsRepo.findByUserAndStatus(userId, FriendStatus.ACCEPTED);
+        List<FriendDTO> friends = makeFriendsList(friendships, userId);
+
+        return new FriendsListDTO(
+            "User friends list successfully retrieved",
+            friends,
+            null
+        );
+    }
+
+    public FriendsListDTO getUserFriendsList(String token, String userId){
+        // the person whose friend list is requested
+        if(!userRepo.existsById(userId))
+            throw new NoSuchElementException("User associated with id: " + userId + " does not exist.");
+
+        String clientId = jwtService.extractUserId(token).toString(); // requester
+
+
+        List<Friendship> friendships = fsRepo.findByUserAndStatus(userId, FriendStatus.ACCEPTED);
+        List<Friendship> clientFriendships = fsRepo.findByUserAndStatus(clientId, FriendStatus.ACCEPTED);
+
+        List<FriendDTO> friends = makeFriendsList(friendships, userId);
+        List<FriendDTO> clientFriends = makeFriendsList(clientFriendships, clientId);
+
+        List<FriendDTO> mutuals = new ArrayList<>();
+
+        for(FriendDTO friend : friends){
+            for(FriendDTO clientFriend : clientFriends){
+                if(friend.id().equals(clientFriend.id())){
+                    mutuals.add(friend);
+                }
+            }
+        }
+
+        return new FriendsListDTO(
+            "User friends list successfully retrieved",
+            friends,
+            mutuals
+        );
+    }
+
+    private List<FriendDTO> makeFriendsList(List<Friendship> friendships, String listOwner){
+        List<FriendDTO> friends = new ArrayList<>();
+
+        for(Friendship fs : friendships){
+            String friendId = fs.getSender().equals(listOwner) ? fs.getReceiver() : fs.getSender();
+            Optional<User> friendOp = userRepo.findById(friendId);
+            
+            if(friendOp.isEmpty()) // Just in case something happened with this user's account and their id isn't on our db
+                continue;
+
+            // make friend dto and add to friends array
+            User friend = friendOp.get();
+            FriendDTO dto = new FriendDTO(
+                friend.getId(),
+                friend.getUsername(),
+                (friend.getFirstName() + " " + friend.getLastName()),
+                friend.getProfilePicture()
+            );
+            friends.add(dto);
+        }
+
+        return friends;
+    }
+
+    public FriendRequestResponseDTO sendFriendRequest(String token, String userId) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'sendFriendRequest'");
+    }
+
+    public FriendRequestResponseDTO respondToFriendRequest(String requestId, String status) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'respondToFriendRequest'");
+    }
+
+    public FriendRequestResponseDTO unfriendUser(String token, String userId) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'unfriendUser'");
     }
 
 }
