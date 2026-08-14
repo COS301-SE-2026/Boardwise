@@ -50,8 +50,7 @@ public class BobShopScraper implements WebScraper {
 
             // find article
             List<Locator> cards = page.locator("a.product-card-container").all();
-            System.out.println(cards.size());
-
+            
             if (cards.isEmpty()) {
                 return null;// for some reason?? should lowkey an exception because wow
             }
@@ -89,9 +88,6 @@ public class BobShopScraper implements WebScraper {
                 if (imageEl.count() > 0) {
                     imageUrl = imageEl.first().getAttribute("src");
                 }
-
-                System.out.print("Card details: " + title + ":\n" + (imageUrl != null ? imageUrl : "No image") + "\n");
-
                 // Jaro-Winkler - similarity between 2 sequences
                 float val = JaroWinklerSimilarity(toSearch, title);
 

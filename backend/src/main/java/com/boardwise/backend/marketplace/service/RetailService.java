@@ -9,13 +9,13 @@ import com.boardwise.backend.marketplace.service.webscrapers.TakealotScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.ToysRUsScraper;
 
 public class RetailService {
-    private static  final List<RetailSourceItemDTO> overall = new ArrayList<>();
+    private   final List<RetailSourceItemDTO> overall = new ArrayList<>();
 
-    private static TakealotScraper ts = new TakealotScraper();
-    private static BobShopScraper bss = new BobShopScraper();
-    private static ToysRUsScraper trus = new ToysRUsScraper();
+    private final TakealotScraper ts = new TakealotScraper();
+    private final BobShopScraper bss = new BobShopScraper();
+    private final ToysRUsScraper trus = new ToysRUsScraper();
 
-    public static  List<RetailSourceItemDTO> findWebListings(String s){
+    public  List<RetailSourceItemDTO> findWebListings(String s){
         try{
             List<RetailSourceItemDTO> takealotResults = ts.scrape(s);
             List<RetailSourceItemDTO> bobShopResults = bss.scrape(s);
@@ -26,7 +26,7 @@ public class RetailService {
             addToList(toysrusResults);
             
             if(overall.size() < 0){
-                throw new RuntimeException("Error while ");
+                throw new RuntimeException("Error while finding :" + s);
             }
         }
         catch(Exception e){
@@ -35,10 +35,9 @@ public class RetailService {
         return overall;
     };
 
-    private static void addToList(List<RetailSourceItemDTO> ls){
+    private  void addToList(List<RetailSourceItemDTO> ls){
         for(RetailSourceItemDTO a:ls){
             overall.add(a);
         }
     }
-    
 }

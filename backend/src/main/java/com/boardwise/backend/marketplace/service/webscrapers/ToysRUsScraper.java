@@ -101,7 +101,6 @@ public class ToysRUsScraper implements WebScraper {
             page.close();
 
             retailSourceItemDTOs.sort(Comparator.comparingDouble(r-> r.JaroWinklerSimilarityScore())); // sort in terms of float
-            System.out.println(retailSourceItemDTOs);
             return retailSourceItemDTOs;
 
         } catch (Exception e) {
