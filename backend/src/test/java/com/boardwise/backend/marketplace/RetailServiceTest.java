@@ -41,7 +41,8 @@ public class RetailServiceTest {
     //helper: Generate random RetailSericeItemDTO
 
     RetailSourceItemDTO genValidRetailSourceItemDTO(String retailerName, String toSearch, Double price, float JWValue ){
-        if(retailerName.isBlank() || !retailerName.equalsIgnoreCase("Takealot") || !retailerName.equalsIgnoreCase("BobShop") || !retailerName.equalsIgnoreCase("ToysRUs")){
+        List<String> valid = List.of("Takealot", "BobShop", "ToysRUs");
+        if (retailerName.isBlank() || valid.stream().noneMatch(retailerName::equalsIgnoreCase)) {
             throw new IllegalArgumentException("Invalid Retailer Name");
         }
         String url = "http://validurl.com";
@@ -79,6 +80,9 @@ public class RetailServiceTest {
         assertTrue(!finalList.isEmpty());
         assertTrue(finalList.size() == 6);
     }
+
+    @DisplayName("Should return an empty list of retail source item DTOS on success")
+    @Test
     public void shouldReturnAnEmptyList(){
         //ARRANGE 
         String toSearch = "ExampleString";
@@ -91,7 +95,7 @@ public class RetailServiceTest {
 
         //ASSERT 
         assertNotNull(finalList);
-        assertTrue(!finalList.isEmpty());
+        assertTrue(finalList.isEmpty());
     }
     
 
