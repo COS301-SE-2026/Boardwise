@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.shared.services.NotificationService;
 import com.boardwise.backend.user_service.dtos.FriendDTO;
+import com.boardwise.backend.user_service.dtos.FriendRequestDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestResponseDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestsDTO;
 import com.boardwise.backend.user_service.dtos.FriendsListDTO;
@@ -456,8 +457,42 @@ public class ProfileService {
     }
 
     public FriendRequestsDTO getFriendRequests(String token) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getFriendRequests'");
+        String userId = jwtService.extractUserId(token).toString();
+
+        Friendship forExample = new Friendship();
+        forExample.setReceiver(userId);
+        forExample.setStatus(FriendStatus.REQUESTED);
+        Example<Friendship> example = Example.of(forExample);
+        List<Friendship> friendships = fsRepo.findAll(example);
+        List<FriendRequestDTO> requests = new ArrayList<>();
+
+        for(Friendship fs : friendships){
+            String friendId = fs.getSender().equals(userId) ? fs.getReceiver() : fs.getSender();
+            Optional<User> friendOp = userRepo.findById(friendId);
+            
+            if(friendOp.isEmpty()) // Just in case something happened with this user's account and their id isn't on our db
+                continue;
+
+            // make friend dto and add to friends array
+            User friend = friendOp.get();
+            FriendDTO friendDTO = new FriendDTO(
+                friend.getId(),
+                friend.getUsername(),
+                (friend.getFirstName() + " " + friend.getLastName()),
+                friend.getProfilePicture()
+            );
+
+            FriendRequestDTO request = new FriendRequestDTO(
+                fs.getId(), 
+                friendDTO
+            );
+            requests.add(request);
+        }
+
+        return new FriendRequestsDTO(
+            "User friend request successfully retrieved",
+            requests
+        );
     }
 
     public FriendRequestResponseDTO sendFriendRequest(String token, String userId) {
@@ -498,8 +533,8 @@ public class ProfileService {
         fsRepo.save(friendship);
 
         // notify 
-        Notification notification = null;
-        notificationService.send(userId, notification);
+        // Notification notification = null;
+        // notificationService.send(userId, notification);
 
         return new FriendRequestResponseDTO(
             "Friend request successfully sent."

@@ -524,11 +524,11 @@ public class CommunityService {
                                             .get().getName();
 
         InviteNotification payload = new InviteNotification(
-            "NEW_INVITE",
+            "EVENT_INVITE",
             inviter.getUsername() + " invited you to '" + eventTitle + "'"
         );
 
-        notifService.sendInviteNotification(
+        notifService.send(
             invitee.get().getId(), 
             payload
         );
