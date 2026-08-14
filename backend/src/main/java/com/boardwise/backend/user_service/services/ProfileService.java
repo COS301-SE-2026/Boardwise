@@ -20,10 +20,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.boardwise.backend.shared.security.JWTService;
+import com.boardwise.backend.shared.services.NotificationService;
 import com.boardwise.backend.user_service.dtos.FriendDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestResponseDTO;
+import com.boardwise.backend.user_service.dtos.FriendRequestsDTO;
 import com.boardwise.backend.user_service.dtos.FriendsListDTO;
 import com.boardwise.backend.user_service.dtos.GameInventoryDTO;
+import com.boardwise.backend.user_service.dtos.Notification;
 import com.boardwise.backend.user_service.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
 import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
@@ -57,6 +60,7 @@ public class ProfileService {
     private final R2StorageService bucket;
     private final GeoApiContext geoContext;
     private final MongoTemplate template;
+    private final NotificationService notificationService;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
@@ -451,9 +455,55 @@ public class ProfileService {
         return friends;
     }
 
-    public FriendRequestResponseDTO sendFriendRequest(String token, String userId) {
+    public FriendRequestsDTO getFriendRequests(String token) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'sendFriendRequest'");
+        throw new UnsupportedOperationException("Unimplemented method 'getFriendRequests'");
+    }
+
+    public FriendRequestResponseDTO sendFriendRequest(String token, String userId) {
+        String clientId = jwtService.extractUserId(token).toString();
+        
+        if(!userRepo.existsById(userId))
+            throw new NoSuchElementException("User associated with id: " + userId + " does not exist.");
+
+        if(clientId.equals(userId))
+            throw new IllegalArgumentException("Users cannot send friend requests to themselves.");
+
+        // check that these two haven't been friends already
+        
+        Friendship forExample = new Friendship();
+        forExample.setSender(clientId);
+        forExample.setReceiver(userId);
+        forExample.setStatus(FriendStatus.ACCEPTED);
+        Example<Friendship> example = Example.of(forExample);
+        Optional<Friendship> cs = fsRepo.findOne(example); // client is sender
+
+        forExample.setSender(userId);
+        forExample.setReceiver(clientId);
+        example = Example.of(forExample);
+        Optional<Friendship> cr = fsRepo.findOne(example); // client is receiver
+
+        Friendship friendship;
+        if(cs.isPresent()){
+            friendship = cs.get();
+            friendship.setStatus(FriendStatus.REQUESTED);
+        }
+        else if(cr.isPresent()){
+            friendship = cr.get();
+            friendship.setStatus(FriendStatus.REQUESTED);
+        }
+        else{
+            friendship = new Friendship(clientId, userId);
+        }
+        fsRepo.save(friendship);
+
+        // notify 
+        Notification notification = null;
+        notificationService.send(userId, notification);
+
+        return new FriendRequestResponseDTO(
+            "Friend request successfully sent."
+        );
     }
 
     public FriendRequestResponseDTO respondToFriendRequest(String requestId, String status) {

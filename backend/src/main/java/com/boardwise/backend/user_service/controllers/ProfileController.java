@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.boardwise.backend.user_service.dtos.FriendRequestResponseDTO;
+import com.boardwise.backend.user_service.dtos.FriendRequestsDTO;
 import com.boardwise.backend.user_service.dtos.FriendsListDTO;
 import com.boardwise.backend.user_service.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
@@ -244,7 +245,8 @@ public class ProfileController {
         HttpServletRequest req
     ) {
         String token = extractToken(req);
-        return new ResponseEntity<>(HttpStatus.OK);
+        FriendRequestsDTO res = service.getFriendRequests(token);
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
     
     // send friend request to a user (userId)
@@ -255,7 +257,7 @@ public class ProfileController {
     ) {
         String token = extractToken(req);
         FriendRequestResponseDTO res = service.sendFriendRequest(token, userId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     // respond to friend request (requestId)
@@ -266,7 +268,7 @@ public class ProfileController {
         HttpServletRequest req
     ) {
         FriendRequestResponseDTO res = service.respondToFriendRequest(requestId, status);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     // unfriend a user
@@ -277,7 +279,7 @@ public class ProfileController {
     ) {
         String token = extractToken(req);
         FriendRequestResponseDTO res = service.unfriendUser(token, userId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     public static String extractToken(HttpServletRequest req){
