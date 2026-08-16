@@ -579,9 +579,24 @@ public class ProfileService {
         
     }
 
-    public FriendRequestResponseDTO unfriendUser(String token, String userId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'unfriendUser'");
+    public FriendRequestResponseDTO unfriendUser(String token, String userId) throws NoSuchElementException, IllegalAccessException {
+        String clientId = jwtService.extractUserId(token).toString();
+        User client = userRepo.findById(clientId).get();
+
+        if(!userRepo.existsById(userId))
+            throw new NoSuchElementException("User with id: " + userId + " does not exist.");
+
+        Optional<Friendship> preFriendship = fsRepo.findFriendShipBetweenUsers(client.getId(), userId);
+        if(preFriendship.isEmpty() || preFriendship.get().getStatus() != FriendStatus.ACCEPTED)
+            throw new IllegalAccessException("Requesting user is a not friends with the user associated with id: " + userId + ".");
+
+        Friendship friendship = preFriendship.get();
+        friendship.setStatus(FriendStatus.DECLINED);
+        fsRepo.save(friendship);
+
+        return new FriendRequestResponseDTO(
+            "Unfriend user query successful."
+        );
     }
 
 }

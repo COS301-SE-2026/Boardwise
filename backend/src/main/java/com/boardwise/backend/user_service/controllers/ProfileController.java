@@ -302,9 +302,21 @@ public class ProfileController {
         @PathVariable String userId,
         HttpServletRequest req
     ) {
-        String token = extractToken(req);
-        FriendRequestResponseDTO res = service.unfriendUser(token, userId);
-        return new ResponseEntity<>(res, HttpStatus.OK);
+        try{
+            String token = extractToken(req);
+            FriendRequestResponseDTO res = service.unfriendUser(token, userId);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(NoSuchElementException e){
+            Map<String, String> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        catch(IllegalAccessException e){
+            Map<String, String> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
     }
 
     public static String extractToken(HttpServletRequest req){
