@@ -21,13 +21,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.shared.services.NotificationService;
+import com.boardwise.backend.user_service.dtos.FriendConfirmationNotification;
 import com.boardwise.backend.user_service.dtos.FriendDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestDTO;
+import com.boardwise.backend.user_service.dtos.FriendRequestNotification;
 import com.boardwise.backend.user_service.dtos.FriendRequestResponseDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestsDTO;
 import com.boardwise.backend.user_service.dtos.FriendsListDTO;
 import com.boardwise.backend.user_service.dtos.GameInventoryDTO;
-import com.boardwise.backend.user_service.dtos.Notification;
 import com.boardwise.backend.user_service.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
 import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
@@ -497,6 +498,7 @@ public class ProfileService {
 
     public FriendRequestResponseDTO sendFriendRequest(String token, String userId) throws IllegalAccessException, IllegalArgumentException, NoSuchElementException{
         String clientId = jwtService.extractUserId(token).toString();
+        User client = userRepo.findById(clientId).get();
         
         if(!userRepo.existsById(userId))
             throw new NoSuchElementException("User associated with id: " + userId + " does not exist.");
@@ -506,9 +508,10 @@ public class ProfileService {
 
         // check that these two don't have a friendship record already
         Optional<Friendship> existingfs = fsRepo.findFriendShipBetweenUsers(userId, clientId);
+        Friendship friendship;
 
         if(existingfs.isPresent()){
-            Friendship friendship = existingfs.get();
+            friendship = existingfs.get();
             if(friendship.getStatus() == FriendStatus.ACCEPTED)
                 throw new IllegalAccessException("User is already friends with user of id: " + userId + ".");
             else if(friendship.getStatus() == FriendStatus.REQUESTED){
@@ -524,17 +527,26 @@ public class ProfileService {
                 friendship.setSender(clientId);
                 friendship.setReceiver(userId);
                 friendship.setStatus(FriendStatus.REQUESTED);
-                fsRepo.save(friendship);
             }
         }
         else{
-            Friendship friendship = new Friendship(clientId, userId);
-            fsRepo.save(friendship);
+            friendship = new Friendship(clientId, userId);
         }
-        
+
+        friendship = fsRepo.save(friendship);
         // notify the receiver
-        // Notification notification = null;
-        // notificationService.send(userId, notification);
+        FriendDTO sender = new FriendDTO(
+            client.getId(),
+            client.getUsername(),
+            client.getFirstName() + " " + client.getLastName(),
+            client.getProfilePicture()
+        );
+        FriendRequestDTO dto = new FriendRequestDTO(
+            friendship.getId(),
+            sender
+        );
+        FriendRequestNotification notification = new FriendRequestNotification(dto);
+        notificationService.send(userId, notification);
 
         return new FriendRequestResponseDTO(
             "Friend request successfully sent."
@@ -568,15 +580,24 @@ public class ProfileService {
 
         Friendship fs = pre.get();
         fs.setStatus(newStatus);
-        fsRepo.save(fs);
+        fs = fsRepo.save(fs);
 
         // notify sender that these users are friends now (on acceptance)
+        if(newStatus.equals(FriendStatus.ACCEPTED)){
+            FriendDTO sender = new FriendDTO( // client = responder
+                clientId,
+                client.getUsername(),
+                client.getFirstName() + " " + client.getLastName(), 
+                client.getProfilePicture()
+            );
 
+            FriendConfirmationNotification notification = new FriendConfirmationNotification(sender);
+            notificationService.send(clientId, notification);
+        }
 
         return new FriendRequestResponseDTO(
             "Friend request response successfully recorded."
         );
-        
     }
 
     public FriendRequestResponseDTO unfriendUser(String token, String userId) throws NoSuchElementException, IllegalAccessException {

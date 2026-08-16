@@ -29,6 +29,8 @@ public class NotificationService {
     }
 
     public void send(String receiver, Notification notification){
+        // TODO: Add notifications persistence
+
         messagingTemplate.convertAndSendToUser(
             receiver, 
             "/queue/notification", 

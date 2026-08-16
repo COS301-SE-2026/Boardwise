@@ -520,13 +520,15 @@ public class CommunityService {
         );
         eaRepo.save(newAttendee);
 
-        String eventTitle = eventRepo.findById(inviteInfo.eventId())
-                                            .get().getName();
-
-        InviteNotification payload = new InviteNotification(
-            "EVENT_INVITE",
-            inviter.getUsername() + " invited you to '" + eventTitle + "'"
-        );
+        Event event = eventRepo.findById(inviteInfo.eventId()).get();        
+        EventInviteInfo invite = new EventInviteInfo(
+            event.getId(),
+            event.getName(),
+            event.getEventImg(),
+            event.getStartDateTime().toLocalDate()
+        ); 
+        EventHostInfo sender = new EventHostInfo(inviter.getUsername(), inviter.getProfilePicture());                                   
+        InviteNotification payload = new InviteNotification(sender, invite);
 
         notifService.send(
             invitee.get().getId(), 
