@@ -18,8 +18,6 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.client.match.MockRestRequestMatchers;
 import org.springframework.test.web.client.response.MockRestResponseCreators;
 import org.springframework.web.client.RestClient;
-
-import com.boardwise.backend.shared.services.BoardGameService;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.services.R2StorageService;
@@ -112,6 +110,8 @@ public class BoardGameServiceUnitTests {
 
         // Assert
         mockServer.verify();
+
+        @SuppressWarnings("unchecked")
         ArgumentCaptor<List<Boardgame>> captor = ArgumentCaptor.forClass(List.class);
         verify(gameRepo).saveAll(captor.capture());
         List<Boardgame> argument = captor.getValue();
@@ -197,6 +197,8 @@ public class BoardGameServiceUnitTests {
 
         // Assert
         mockServer.verify();
+
+        @SuppressWarnings("unchecked")
         ArgumentCaptor<List<Boardgame>> captor = ArgumentCaptor.forClass(List.class);
         verify(gameRepo).saveAll(captor.capture());
         List<Boardgame> argument = captor.getValue();
