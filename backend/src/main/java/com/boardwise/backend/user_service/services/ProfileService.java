@@ -418,11 +418,9 @@ public class ProfileService {
 
         List<FriendDTO> mutuals = new ArrayList<>();
 
-        for(FriendDTO friend : friends){
-            for(FriendDTO clientFriend : clientFriends){
-                if(friend.id().equals(clientFriend.id())){
-                    mutuals.add(friend);
-                }
+        for(FriendDTO clientFriend : clientFriends){
+            if(friends.contains(clientFriend)){
+                mutuals.add(clientFriend);
             }
         }
 
