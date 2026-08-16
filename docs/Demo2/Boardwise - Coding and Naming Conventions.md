@@ -190,6 +190,29 @@ Shared rules across all languages:
 - No single letters except loop counters (`i`, `j`) and lambdas.
 - Booleans read as a yes/no question: `isActive`, `hasLock`, `canEdit`.
 
+## 5a. Service-layer conventions (error handling & internal consistency)
+
+**Error signaling:**
+
+- **Service functions:** Anything writing to or reading from MongoDB, R2 or external systems raises an exception on failure.
+- **Pipeline-stage functions:** Functions invoked in sequence by `ingestion.py` return a `(success: bool, ..., reason: str)` tuple instead of raising.
+- Anuthing outside the two categories mentioned above raises `HTTPException` directly.
+
+**Type hints:**
+
+- Use `str | None` (PEP 604), not `Optional[str]`.
+- Use lowercase generics (`list[dict]`, `tuple[bool, str]`), not `typing.List` / `typing.Tuple`.
+  - Only import from `typing` for things without a builtin equivalent (e.g. `Any`)
+
+**Logging:**
+- Every module under `app/services/` gets its own `logger = logging.getLogger(__name__)` and logs at minimum: successful state-changing operations (info) and caught exceptions before re-raising (exception/warning).
+
+**Comments in multi-stage functions:**
+- When a function executes a sequence of named stages (e.g. the ingestion pipeline), mark each stage with a banner comment matching the stage names used elsewhere in the system (Mongo `stage` values, pipeline diagrams): `# ========== Stage 1: Sanitise ==========`
+- Don't use generic numbered-step comments (`# 1. Do the thing`) as they restate control flow instead of explaining intent. This violates the "comment why, not what" rule listed below in Section 8.
+
+****
+
 ## 6. API & JSON conventions
 
 ### Route structure
@@ -256,7 +279,6 @@ class RulebookResponse(CamelModel):
 
 ## 7. MongoDB conventions
 
-- Collection names: camelCase, plural — `users`, `listings`, `rulebooks`, `editEvents`.
 - Field names: camelCase, matching the API exactly (`rulebookId`, `versionAfter`).
 - The Mongo `_id` ObjectId stays `_id` internally but is exposed as `id` (camelCase) in API responses. Never leak `_id` to the frontend.
 - Reference fields end in `Id`: `editorId`, `rulebookId`, `ownerId`.
@@ -307,4 +329,4 @@ Set this up once, in a `chore/` branch this sprint. After that, inconsistent cod
 
 ---
 
-*Living document, update at retro when the team agrees on a change. Last updated 25 May 2026.*
+*Living document, update at retro when the team agrees on a change. Last updated 16 August 2026.*
