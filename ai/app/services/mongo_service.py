@@ -115,7 +115,7 @@ def update_ingestion_job(
     job_status: str, # Processing | Completed | Failed
     failure_reason: str = ""
 ) -> bool:
-    """Updates the specified Injestion Job document"""
+    """Updates the specified Ingestion Job document"""
     db = get_db()
 
     now = datetime.now(timezone.utc)

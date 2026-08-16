@@ -36,12 +36,10 @@ def sanitise_pdf(file_bytes: bytes) -> tuple[bool, str]:
             if pattern_index == -1:
                 break
 
-            # Proximity window
             slice_start = max(0, pattern_index - 100)
             slice_end = min(len(file_bytes), pattern_index + len(pattern) + 100 )
             file_bytes_slice = file_bytes[slice_start:slice_end]
 
-            # Check if any safe context exists in this window
             is_safe = False
             for safe_context in SAFE_CONTEXTS:
                 if safe_context in file_bytes_slice:
