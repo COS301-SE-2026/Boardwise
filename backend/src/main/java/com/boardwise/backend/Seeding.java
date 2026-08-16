@@ -31,7 +31,7 @@ import com.boardwise.backend.user_service.models.GroupMembership;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.EventAttendeeRepository;
-import com.boardwise.backend.user_service.repos.EventsRepository;
+import com.boardwise.backend.user_service.repos.EventRepository;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
@@ -68,7 +68,7 @@ public class Seeding {
         
     @Bean
     public CommandLineRunner seedDB(ListingRepository listingRepository, BoardGameRepository boardGameRepository, GroupMembershipRepository groupMembershipRepository,
-            GroupRepository groupRepository, UserRepository userRepository, EditEventRepository editEventRepository, EventsRepository eventsRepository, EventAttendeeRepository eaRepository,
+            GroupRepository groupRepository, UserRepository userRepository, EditEventRepository editEventRepository, EventRepository eventsRepository, EventAttendeeRepository eaRepository,
             IngestionJobRepository ingestionJobRepository, RulebookRepository rulebookRepository, RulebookTextRepository rulebookTextRepository, GeoApiContext geoApiContext) {
         return args -> {
             // User Repository
