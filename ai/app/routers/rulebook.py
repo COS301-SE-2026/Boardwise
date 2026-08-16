@@ -2,11 +2,10 @@ import logging
 from typing import Optional
 from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, Depends,HTTPException, status
 from app.dependencies import verify_jwt
-from app.models.schemas import UploadResponse, JobStatusResponse
+from app.models.schemas import UploadResponse
 from app.services import mongo_service
 from app.config import settings
 from app.pipeline.ingestion import run_ingestion_pipeline
-from bson import ObjectId
 
 logger = logging.getLogger(__name__)
 
@@ -100,28 +99,3 @@ async def upload_rulebook(
         rulebook_id=rulebook_id,
         job_id=job_id
     )
-
-@router.get(
-    "/status/{job_id}",
-    response_model=JobStatusResponse,
-    status_code=status.HTTP_200_OK
-)
-async def get_job_status(job_id: str, payload: dict = Depends(verify_jwt)):
-    """
-    Allows the frontend to poll for the current status of an ingestion job.
-    """
-    if not ObjectId.is_valid(job_id):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid job_id format."
-        )
-
-    ingestion_job = mongo_service.get_ingestion_job(job_id)
-
-    if not ingestion_job:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Ingestion job with id '{job_id}' does not exist."
-        )
-
-    return ingestion_job

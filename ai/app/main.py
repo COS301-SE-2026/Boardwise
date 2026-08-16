@@ -2,7 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import rulebook
+from app.routers import rulebook, job
 from app.services import mongo_service
 from app.services import r2_service
 
@@ -49,6 +49,7 @@ app.add_middleware(
 )
 
 app.include_router(rulebook.router)
+app.include_router(job.router)
 
 @app.get("/health", tags=["System"])
 async def health_check():
