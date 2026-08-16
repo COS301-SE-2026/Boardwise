@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routers import rulebook
 from app.services import mongo_service
 from app.services import r2_service
-# random comment for changes sake
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -17,14 +17,11 @@ async def lifespan(app: FastAPI):
     """
     Executes startup and shutdown logic
     """
-    # Startup
     logger.info("Starting Boardwise AI Gateway...")
     try:
-        # Ping mongo
         mongo_service.ping_database()
         logger.info("MongoDB connection verified.")
 
-        # Ping R2
         r2_service.ping_r2_storage()
         logger.info("Connection to R2 bucket verified")
     except Exception as e:
@@ -33,7 +30,6 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    # Shutdown
     logger.info("Shutting down AI Gateway...")
     mongo_service.client.close()
 
@@ -47,7 +43,6 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:8080", "http://localhost:3000", "https://www.boardwise.games", "https://boardwise.games"],
-    # allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]

@@ -12,12 +12,10 @@ def extract_text(file_bytes: bytes) -> tuple[bool, str]:
     Returns: (success, extracted_text).
     """
     try:
-        # 1. Initialisation
         with fitz.open(stream=file_bytes, filetype="pdf") as pdf_document:
             if len(pdf_document) == 0:
                 return (False, "")
 
-            #2. Text Extraction and Processing
             extracted_text = []
             for page in pdf_document:
                 raw_content = page.get_text()
@@ -26,7 +24,6 @@ def extract_text(file_bytes: bytes) -> tuple[bool, str]:
                 else:
                     text = ""
 
-                # OCR Fallback
                 if len(text) < 50:
                     page_pixmap = page.get_pixmap(dpi=300)
                     pillow_image_object = Image.open(io.BytesIO(page_pixmap.tobytes("png")))
@@ -35,7 +32,6 @@ def extract_text(file_bytes: bytes) -> tuple[bool, str]:
                 if len(text) != 0:
                     extracted_text.append(text)
 
-            # 3. Validation
             final_joined_text = "\n\n".join(extracted_text)
 
             if len(final_joined_text) == 0:

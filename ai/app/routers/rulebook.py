@@ -32,14 +32,12 @@ async def upload_rulebook(
     Accepts a PDF rulebook upload, initialises the database state,
     and starts the ingestion pipeline.
     """
-    # Validate file type
     if file.content_type != "application/pdf":
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail="Only PDF files are allowed."
         )
 
-    # Read file and validate file size
     file_bytes = await file.read()
     max_bytes = settings.MAX_FILE_SIZE_MB * 1024 * 1024
     if len(file_bytes) > max_bytes:
@@ -62,7 +60,6 @@ async def upload_rulebook(
         )
 
     try:
-        # Initialise database
         rulebook_id = mongo_service.create_rulebook(
             title=title,
             edition=edition,
@@ -84,10 +81,9 @@ async def upload_rulebook(
         logger.exception("Failed to initialise upload.")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An internal server error occured while initialising the upload."
+            detail="An internal server error occurred while initialising the upload."
         ) from e
 
-    # Send bytes to background task
     safe_filename = file.filename or "untitled_rulebook.pdf"
     background_tasks.add_task(
         run_ingestion_pipeline,
@@ -114,17 +110,14 @@ async def get_job_status(job_id: str, payload: dict = Depends(verify_jwt)):
     """
     Allows the frontend to poll for the current status of an ingestion job.
     """
-    # Validation
     if not ObjectId.is_valid(job_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid job_id format."
         )
 
-    # Database Fetch
     ingestion_job = mongo_service.get_ingestion_job(job_id)
 
-    # Response Handling
     if not ingestion_job:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
