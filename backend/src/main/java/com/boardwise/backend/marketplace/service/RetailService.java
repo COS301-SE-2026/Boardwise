@@ -45,7 +45,7 @@ public class RetailService {
         }
     };
 
-    private  void addToList(List<RetailSourceItemDTO> overall,List<RetailSourceItemDTO> ls){
+    private void addToList(List<RetailSourceItemDTO> overall,List<RetailSourceItemDTO> ls){
         if (ls == null) return;
         for(RetailSourceItemDTO a:ls){
             overall.add(a);

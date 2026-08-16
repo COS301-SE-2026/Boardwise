@@ -3,6 +3,7 @@ package com.boardwise.backend.marketplace.service.webscrapers;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
 import com.microsoft.playwright.Browser;
@@ -22,7 +23,7 @@ public class BobShopScraper implements WebScraper {
 
     @Override
     public List<RetailSourceItemDTO> scrape(String toSearch) {
-        if (toSearch.isBlank()) {
+        if (toSearch == null || toSearch.isBlank()) {
             return null;
         }
         try (Playwright playwright = Playwright.create()) {
@@ -58,42 +59,26 @@ public class BobShopScraper implements WebScraper {
             List<RetailSourceItemDTO> retailSourceItemDTOs = new ArrayList<>();
 
             for (Locator card : cards) {
+                // data from DOM
                 String classAttr = card.getAttribute("class");
-                if (classAttr != null && classAttr.contains("sponsored"))
-                    continue;
-
-                String title = card.locator("div.product-card-title").innerText().trim();
-                if (title.isBlank())
-                    continue;
-
+                String title = card.locator("div.product-card-title").innerText();
                 String url = card.getAttribute("href");
 
                 // Price extraction
 
                 Locator priceEl = card.locator("currency-output.font-weight-bolder");
-                String foundPrice = null;
+                String randsRaw = null;
+                String centsRaw = null;
                 if (priceEl.count() > 0) {
-                    String rands = priceEl.locator("span").first().innerText().replace("R", "").trim();
-                    if (rands.contains(","))
-                        rands = rands.replace(",", ""); // R1,000 (SA system is js weird like that)
-                    String cents = priceEl.locator("sup").first().innerText().trim();
-                    foundPrice = rands + "." + cents;
+                    randsRaw = priceEl.locator("span").first().innerText();
+                    centsRaw = priceEl.locator("sup").first().innerText();
                 }
 
-                Double price = Double.parseDouble(foundPrice);
 
                 Locator imageEl = card.locator("image-container");
+                String imageUrl = imageEl.count() > 0 ? imageEl.first().getAttribute("src") : null;
 
-                String imageUrl = null;
-                if (imageEl.count() > 0) {
-                    imageUrl = imageEl.first().getAttribute("src");
-                }
-                // Jaro-Winkler - similarity between 2 sequences
-                float val = JaroWinklerSimilarity(toSearch, title);
-
-                if (val >= STRINGMATCH) {
-                    retailSourceItemDTOs.add(new RetailSourceItemDTO(title, RETAILERNAME , url, price, imageUrl, val));
-                }
+                buildItem(toSearch, title, classAttr, url, randsRaw, centsRaw, imageUrl).ifPresent(retailSourceItemDTOs::add);
 
                 if (retailSourceItemDTOs.size() >= MAXNUMITEMS)
                     break;
@@ -102,7 +87,7 @@ public class BobShopScraper implements WebScraper {
 
             page.close();
 
-            retailSourceItemDTOs.sort(Comparator.comparingDouble(r -> r.JaroWinklerSimilarityScore())); // sort in terms of float
+            sortBySimilarity(retailSourceItemDTOs); // sort in terms of float
 
             return retailSourceItemDTOs;
 
@@ -111,4 +96,50 @@ public class BobShopScraper implements WebScraper {
         }
         return null;
     }
+
+    protected boolean isSponsored(String classAttr){
+        return classAttr != null && classAttr.contains("sponsored");
+    }
+
+    protected Double parsePrice(String randsRaw, String centsRaw) {
+        if (randsRaw == null || centsRaw == null) {
+            return null;
+        }
+        String rands = randsRaw.replace("R", "").trim();
+        if (rands.contains(","))
+            rands = rands.replace(",", ""); // R1,000 (SA system is js weird like that)
+        String cents = centsRaw.trim();
+        try {
+            return Double.parseDouble(rands + "." + cents);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    protected Optional<RetailSourceItemDTO> buildItem(
+            String toSearch, String rawTitle, String classAttr, String url,
+            String randsRaw, String centsRaw, String imageUrl) {
+
+        if (isSponsored(classAttr))
+            return Optional.empty();
+
+        String title = rawTitle == null ? "" : rawTitle.trim();
+        if (title.isBlank())
+            return Optional.empty();
+
+        Double price = parsePrice(randsRaw, centsRaw);
+
+        // Jaro-Winkler - similarity between 2 sequences
+        float val = JaroWinklerSimilarity(toSearch, title);
+
+        if (val < STRINGMATCH)
+            return Optional.empty();
+
+        return Optional.of(new RetailSourceItemDTO(title, RETAILERNAME, url, price, imageUrl, val));
+    }
+
+    protected void sortBySimilarity(List<RetailSourceItemDTO> items) {
+        items.sort(Comparator.comparingDouble(RetailSourceItemDTO::JaroWinklerSimilarityScore));
+    }
+
 }
