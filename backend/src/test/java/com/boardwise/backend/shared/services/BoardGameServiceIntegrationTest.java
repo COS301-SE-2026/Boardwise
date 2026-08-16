@@ -15,7 +15,7 @@ import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 
 @DisplayName("Board Game Service Integration Tests")
-public class BoardGameServiceIntegrationTests extends BaseIntegrationTest {
+public class BoardGameServiceIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private BoardGameRepository gameRepo;

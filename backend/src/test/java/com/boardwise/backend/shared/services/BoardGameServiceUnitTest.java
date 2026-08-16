@@ -26,7 +26,7 @@ import com.boardwise.backend.user_service.repos.BoardGameSearch;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Board Game Service Tests")
-public class BoardGameServiceUnitTests {
+public class BoardGameServiceUnitTest {
 
     private BoardGameRepository gameRepo;
     private BoardGameSearch gameSearch;

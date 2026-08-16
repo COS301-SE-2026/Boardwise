@@ -8,7 +8,7 @@ import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.repos.UserRepository;
 
 @DisplayName("Authentication Service Unit Tests")
-public class AuthServiceUnitTests {
+public class AuthServiceUnitTest {
 
     @Mock
     private UserRepository userRepo;
