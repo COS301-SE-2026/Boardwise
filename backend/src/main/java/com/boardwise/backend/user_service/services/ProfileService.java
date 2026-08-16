@@ -401,7 +401,7 @@ public class ProfileService {
         );
     }
 
-    public FriendsListDTO getUserFriendsList(String token, String userId){
+    public FriendsListDTO getUserFriendsList(String token, String userId) throws NoSuchElementException{
         // the person whose friend list is requested
         if(!userRepo.existsById(userId))
             throw new NoSuchElementException("User associated with id: " + userId + " does not exist.");
@@ -495,7 +495,7 @@ public class ProfileService {
         );
     }
 
-    public FriendRequestResponseDTO sendFriendRequest(String token, String userId) {
+    public FriendRequestResponseDTO sendFriendRequest(String token, String userId) throws IllegalAccessException, IllegalArgumentException, NoSuchElementException{
         String clientId = jwtService.extractUserId(token).toString();
         
         if(!userRepo.existsById(userId))
@@ -504,35 +504,35 @@ public class ProfileService {
         if(clientId.equals(userId))
             throw new IllegalArgumentException("Users cannot send friend requests to themselves.");
 
-        // check that these two haven't been friends already
-        
-        Friendship forExample = new Friendship();
-        forExample.setSender(clientId);
-        forExample.setReceiver(userId);
-        forExample.setStatus(FriendStatus.ACCEPTED);
-        Example<Friendship> example = Example.of(forExample);
-        Optional<Friendship> cs = fsRepo.findOne(example); // client is sender
+        // check that these two don't have a friendship record already
+        Optional<Friendship> existingfs = fsRepo.findFriendShipBetweenUsers(userId, clientId);
 
-        forExample.setSender(userId);
-        forExample.setReceiver(clientId);
-        example = Example.of(forExample);
-        Optional<Friendship> cr = fsRepo.findOne(example); // client is receiver
+        if(existingfs.isPresent()){
+            Friendship friendship = existingfs.get();
+            if(friendship.getStatus() == FriendStatus.ACCEPTED)
+                throw new IllegalAccessException("User is already friends with user of id: " + userId + ".");
+            else if(friendship.getStatus() == FriendStatus.REQUESTED){
+                String message;
+                if(friendship.getSender().equals(clientId))
+                    message = "User already sent a request to user associated with id: " + userId + ".";
+                else
+                    message = "User has a request from user associated with id: " + userId + ".";
 
-        Friendship friendship;
-        if(cs.isPresent()){
-            friendship = cs.get();
-            friendship.setStatus(FriendStatus.REQUESTED);
-        }
-        else if(cr.isPresent()){
-            friendship = cr.get();
-            friendship.setStatus(FriendStatus.REQUESTED);
+                throw new IllegalAccessException(message);
+            }
+            else{
+                friendship.setSender(clientId);
+                friendship.setReceiver(userId);
+                friendship.setStatus(FriendStatus.REQUESTED);
+                fsRepo.save(friendship);
+            }
         }
         else{
-            friendship = new Friendship(clientId, userId);
+            Friendship friendship = new Friendship(clientId, userId);
+            fsRepo.save(friendship);
         }
-        fsRepo.save(friendship);
-
-        // notify 
+        
+        // notify the receiver
         // Notification notification = null;
         // notificationService.send(userId, notification);
 
@@ -541,9 +541,42 @@ public class ProfileService {
         );
     }
 
-    public FriendRequestResponseDTO respondToFriendRequest(String requestId, String status) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'respondToFriendRequest'");
+    public FriendRequestResponseDTO respondToFriendRequest(String token, String requestId, String status) throws NoSuchElementException, IllegalArgumentException, IllegalAccessException{
+        // retrieve database objects
+        Optional<Friendship> pre = fsRepo.findById(requestId);
+        String clientId = jwtService.extractUserId(token).toString();
+        User client = userRepo.findById(clientId).get();
+        
+        status = status.toUpperCase();
+        
+        // validation fr
+        if(pre.isEmpty())
+            throw new NoSuchElementException("Friend request with id: " + requestId + " does not exist.");
+
+        if(!pre.get().getReceiver().equals(client.getId()))
+            throw new IllegalAccessException("Friend request with id: " + requestId + " was not sent to the requesting user (client).");
+
+        if(pre.get().getStatus() != FriendStatus.REQUESTED)
+            throw new IllegalAccessException("Friend request with id: " + requestId + " already has a response.");
+
+        FriendStatus newStatus = switch (status) {
+            case "ACCEPT" -> FriendStatus.ACCEPTED;
+            case "DECLINED" -> FriendStatus.DECLINED;
+            default -> throw new IllegalArgumentException("Friend Request response status must be either \"accept\" or \"decline\".");
+
+        };
+
+        Friendship fs = pre.get();
+        fs.setStatus(newStatus);
+        fsRepo.save(fs);
+
+        // notify sender that these users are friends now (on acceptance)
+
+
+        return new FriendRequestResponseDTO(
+            "Friend request response successfully recorded."
+        );
+        
     }
 
     public FriendRequestResponseDTO unfriendUser(String token, String userId) {
