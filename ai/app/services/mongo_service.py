@@ -1,4 +1,5 @@
 import os
+import logging
 from datetime import datetime, timezone
 from typing import Any
 from pymongo import MongoClient
@@ -6,6 +7,8 @@ from pymongo.errors import ConnectionFailure
 from bson import ObjectId
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 client = MongoClient(settings.MONGODB_URL)
 
@@ -26,10 +29,12 @@ def create_rulebook(
 
     boardgame = db["BOARD_GAME"].find_one({"title": title})
     if not boardgame:
+        logger.warning("Rulebook creation rejected: boardgame '%s' not found.", title)
         raise ValueError(f"Boardgame '{title}' not found.")
 
     user = db["USER"].find_one({"_id": ObjectId(contributor_id)})
     if not user:
+        logger.warning("Rulebook creation rejected: user '%s' not found.", contributor_id)
         raise ValueError(f"User '{contributor_id}' not found.")
 
     now = datetime.now(timezone.utc)
@@ -62,7 +67,7 @@ def create_rulebook(
 
     return str(result.inserted_id)
 
-def update_rulebook_status(rulebook_id: str, status: str, version: int = -1) -> bool:
+def update_rulebook_status(rulebook_id: str, status: str, version: int = -1):
     """Updates the status of the specific rulebook"""
     db = get_db()
 
@@ -74,9 +79,11 @@ def update_rulebook_status(rulebook_id: str, status: str, version: int = -1) -> 
 
     result = db["RULEBOOK"].update_one(filter_by_id, update)
 
-    return result.modified_count == 1
+    if result.modified_count != 1:
+        logger.warning("Failed to update rulebook %s: no document matched.", rulebook_id)
+        raise ValueError(f"Rulebook '{rulebook_id}' not found or not modified.")
 
-def update_rulebook_r2_pdf_key(rulebook_id: str, r2_pdf_key: str) -> bool:
+def update_rulebook_r2_pdf_key(rulebook_id: str, r2_pdf_key: str):
     """Updates the R2 PDF key of the specific rulebook"""
     db = get_db()
 
@@ -85,7 +92,9 @@ def update_rulebook_r2_pdf_key(rulebook_id: str, r2_pdf_key: str) -> bool:
         {"$set": {"r2PdfKey": r2_pdf_key}}
     )
 
-    return result.modified_count == 1
+    if result.modified_count != 1:
+        logger.warning("Failed to update rulebook %s: no document matched.", rulebook_id)
+        raise ValueError(f"Rulebook '{rulebook_id}' not found or not modified.")
 
 def create_ingestion_job(rulebook_id: str) -> str:
     """Inserts a new document into the INGESTION_JOB collection"""
@@ -94,6 +103,7 @@ def create_ingestion_job(rulebook_id: str) -> str:
 
     rulebook = db["RULEBOOK"].find_one({"_id": rulebook_obj_id})
     if not rulebook:
+        logger.warning("Ingestion job creation rejected: rulebook '%s' not found.", rulebook_id)
         raise ValueError(f"Rulebook '{rulebook_id}' not found.")
 
     now = datetime.now(timezone.utc)
@@ -113,8 +123,7 @@ def update_ingestion_job(
     job_id: str,
     stage: str,
     job_status: str, # Processing | Completed | Failed
-    failure_reason: str = ""
-) -> bool:
+    failure_reason: str = ""):
     """Updates the specified Ingestion Job document"""
     db = get_db()
 
@@ -131,7 +140,9 @@ def update_ingestion_job(
 
     result = db["INGESTION_JOB"].update_one(filter_by_id, update)
 
-    return result.modified_count == 1
+    if result.modified_count != 1:
+        logger.warning("Failed to update ingestion job %s: no document matched.", job_id)
+        raise ValueError(f"Ingestion job '{job_id}' not found or not modified.")
 
 def create_rulebook_text(
     rulebook_id: str,
@@ -143,6 +154,7 @@ def create_rulebook_text(
 
     rulebook = db["RULEBOOK"].find_one({"_id": rulebook_obj_id})
     if not rulebook:
+        logger.warning("Rulebook text creation rejected: rulebook '%s' not found.", rulebook_id)
         raise ValueError(f"Rulebook '{rulebook_id}' not found.")
 
     now = datetime.now(timezone.utc)
@@ -171,7 +183,7 @@ def get_ingestion_job(job_id: str) -> dict | None:
     doc = db["INGESTION_JOB"].find_one({"_id": ObjectId(job_id)})
 
     if doc:
-        doc["job_id"] = str(doc.pop("_id")) # Effectively replacing the _id field with the job_id field
+        doc["id"] = str(doc.pop("_id"))
         doc["rulebookId"] = str(doc["rulebookId"])
 
     return doc
