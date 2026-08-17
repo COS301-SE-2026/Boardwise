@@ -1,7 +1,7 @@
 <template>
-    <BaseCard class="auth-card">
+    <BaseCard class="auth-card" data-test="auth-card">
         <div class="form">
-            <h2 class="form-title">{{ title }}</h2>
+            <h2 class="form-title" data-test="auth-title">{{ title }}</h2>
 
             <BaseInput 
                 v-for="field in fields"
@@ -9,12 +9,14 @@
                 v-model="values[field.key]"
                 :type="field.type ?? 'text'"
                 :placeholder="field.placeholder"
+                :data-test="`input-${field.key}`"
             />
 
             <BaseButton 
                 block
                 size="large"
                 class="mt-2"
+                data-test="submit-button"
                 @click="submitForm"
             >
                 {{ buttonText }}
