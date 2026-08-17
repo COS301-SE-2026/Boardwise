@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routers import rulebook
 from app.services import mongo_service
 from app.services import r2_service
-
+# random comment for changes sake
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -46,7 +46,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080", "http://localhost:3000"],
+    allow_origins=["http://localhost:8080", "http://localhost:3000", "https://www.boardwise.games", "https://boardwise.games"],
     # allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
