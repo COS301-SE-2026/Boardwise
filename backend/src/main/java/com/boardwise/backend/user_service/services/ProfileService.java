@@ -246,7 +246,8 @@ public class ProfileService {
     }
 
     public Map<String, Object> updateOrSetPreferences(
-        String token, PreferencesRequestDTO prefData
+        String token, 
+        PreferencesRequestDTO prefData
     ){
         String userId = jwtService.extractUserId(token).toString();
         User user = userRepo.findById(userId).get();
@@ -438,6 +439,7 @@ public class ProfileService {
             String friendId = fs.getSender().equals(listOwner) ? fs.getReceiver() : fs.getSender();
             Optional<User> friendOp = userRepo.findById(friendId);
             
+            // TODO: Make it be known that something is up, instead of failing silently
             if(friendOp.isEmpty()) // Just in case something happened with this user's account and their id isn't on our db
                 continue;
 
@@ -466,8 +468,7 @@ public class ProfileService {
         List<FriendRequestDTO> requests = new ArrayList<>();
 
         for(Friendship fs : friendships){
-            String friendId = fs.getSender().equals(userId) ? fs.getReceiver() : fs.getSender();
-            Optional<User> friendOp = userRepo.findById(friendId);
+            Optional<User> friendOp = userRepo.findById(fs.getSender());
             
             if(friendOp.isEmpty()) // Just in case something happened with this user's account and their id isn't on our db
                 continue;

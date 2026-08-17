@@ -1,5 +1,6 @@
 package com.boardwise.backend.user_service.fixtures;
 
+import com.boardwise.backend.user_service.enums.FriendStatus;
 import com.boardwise.backend.user_service.models.Friendship;
 import com.boardwise.backend.user_service.models.User;
 
@@ -66,19 +67,35 @@ public class ProfileServiceFixtures {
     // Friendships (Friend1 is a mutual of friend3 and Owner)
     public static Friendship friendship1(){
         Friendship fs = new Friendship(OWNER_ID, FRIEND_ID1);
+        fs.setStatus(FriendStatus.ACCEPTED);
         fs.setId("fs-001");
         return fs;
     }
 
     public static Friendship friendship2(){
         Friendship fs = new Friendship(FRIEND_ID2, OWNER_ID);
+        fs.setStatus(FriendStatus.ACCEPTED);
         fs.setId("fs-002");
         return fs;
     }
 
     public static Friendship friendship3(){
         Friendship fs = new Friendship(FRIEND_ID3, FRIEND_ID1);
+        fs.setStatus(FriendStatus.ACCEPTED);
         fs.setId("fs-003");
+        return fs;
+    }
+
+    // friendships (as friend requests)
+    public static Friendship friendship4(){
+        Friendship fs = new Friendship(FRIEND_ID1, FRIEND_ID2);
+        fs.setId("fs-004");
+        return fs;
+    }
+
+    public static Friendship friendship5(){
+        Friendship fs = new Friendship(FRIEND_ID3, FRIEND_ID2);
+        fs.setId("fs-005");
         return fs;
     }
 
