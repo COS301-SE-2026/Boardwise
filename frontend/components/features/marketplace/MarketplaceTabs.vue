@@ -1,5 +1,5 @@
 <template>
-  <v-tabs :model-value="modelValue" color="primary" @update:model-value="$emit('update:modelValue', $event)">
+  <v-tabs data-test="marketplace-tabs" :model-value="modelValue" color="primary" @update:model-value="$emit('update:modelValue', $event)">
     <v-tab v-for="tab in tabs" :key="tab" :value="tab">
       {{ tab }}
     </v-tab>
