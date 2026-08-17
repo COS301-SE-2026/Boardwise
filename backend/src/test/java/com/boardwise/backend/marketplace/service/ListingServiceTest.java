@@ -1,5 +1,5 @@
 
-package com.boardwise.backend.marketplace;
+package com.boardwise.backend.marketplace.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

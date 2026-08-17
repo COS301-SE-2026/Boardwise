@@ -1,4 +1,4 @@
-package com.boardwise.backend.marketplace;
+package com.boardwise.backend.marketplace.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

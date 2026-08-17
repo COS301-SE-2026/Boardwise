@@ -1,4 +1,4 @@
-package com.boardwise.backend.marketplace;
+package com.boardwise.backend.marketplace.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;

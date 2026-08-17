@@ -40,7 +40,7 @@ public class RetailService {
             }
             return overall;
         }
-        catch(Exception e){
+        catch (RuntimeException e){
             throw new RuntimeException(e.getMessage());
         }
     };

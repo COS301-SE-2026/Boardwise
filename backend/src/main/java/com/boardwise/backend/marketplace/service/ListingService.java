@@ -255,7 +255,6 @@ public class ListingService {
                 saved.setImageUrl(imageUrl);
             } catch (IOException e) {
                 saved.setImageUrl(defaultImage);
-                e.printStackTrace();
             }
         }
         //failsafe
@@ -358,14 +357,11 @@ public class ListingService {
                 .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + listingId));
 
         if (!userId.equals(existing.getUserId())) {
-            
-            System.out.println("token userId: " + userId);
-            System.out.println("listing userId: " + existing.getUserId());
             throw new ForbiddenException("Cannot update " + listingId);
         }
 
         // sanity check
-        if (req != null && !req.itemType().equals(existing.getItemType())) {
+        if (!req.itemType().equals(existing.getItemType())) {
             ItemType.fromValue(req.itemType());
             existing.setItemType(req.itemType());
         }
