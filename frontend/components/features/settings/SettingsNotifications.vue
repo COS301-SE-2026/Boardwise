@@ -90,7 +90,7 @@ const items = ref([
 const savePreferences = () => {
     emit(
         'save',
-        items.reduce((acc, item) => {
+        items.value.reduce((acc, item) => {
             acc[item.key] = item.enabled
             return acc
         },{})
