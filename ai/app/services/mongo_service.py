@@ -20,6 +20,10 @@ def get_db():
     db_name = os.getenv("DB_NAME") or settings.MONGODB_DATABASE or "ci_fallback_db"
     return client[db_name]
 
+def sanitise_for_log(user_input: str) -> str:
+    """Removes line breaks to prevent Log Injection (Log Forging)."""
+    return str(user_input).replace('\n', '_').replace('\r', '_')
+
 def create_rulebook(
     title: str,
     edition: str | None,
@@ -31,10 +35,13 @@ def create_rulebook(
     """Inserts a new document into the RULEBOOK collection"""
     db = get_db()
 
-    boardgame = db["BOARD_GAME"].find_one({"title": title}, session=session)
+    safe_title = str(title)
+
+    boardgame = db["BOARD_GAME"].find_one({"title": safe_title}, session=session)
     if not boardgame:
-        logger.warning("Rulebook creation rejected: boardgame '%s' not found.", title)
-        raise ValueError(f"Boardgame '{title}' not found.")
+        sanitised_title = sanitise_for_log(safe_title)
+        logger.warning("Rulebook creation rejected: boardgame '%s' not found.", sanitised_title)
+        raise ValueError(f"Boardgame '{safe_title}' not found.")
 
     user = db["USER"].find_one({"_id": ObjectId(contributor_id)}, session=session)
     if not user:
@@ -46,7 +53,7 @@ def create_rulebook(
     result = db["RULEBOOK"].insert_one({
         "coverUrl": boardgame["imageURL"] if boardgame["imageURL"] else "",
         "gameId": boardgame["_id"],
-        "title": title,
+        "title": safe_title,
         "edition": edition,
         "status": "Processing",
         "version": 0,
@@ -189,8 +196,10 @@ def get_ingestion_job(job_id: str) -> dict | None:
     the method marks the job and its rulebook 'Failed' before returning
     """
     db = get_db()
+    
+    safe_job_id = str(job_id)
 
-    doc = db["INGESTION_JOB"].find_one({"_id": ObjectId(job_id)})
+    doc = db["INGESTION_JOB"].find_one({"_id": ObjectId(safe_job_id)})
 
     if not doc:
         return None
@@ -198,14 +207,15 @@ def get_ingestion_job(job_id: str) -> dict | None:
     if doc["jobStatus"] == "Processing":
         age = datetime.now(timezone.utc) - doc["startedAt"].replace(tzinfo=timezone.utc)
         if age > timedelta(minutes=STALE_JOB_THRESHOLD_MINUTES):
-            logger.warning("Job %s is stale (age %s) - marking as failed.", job_id, age)
+            sanitised_job_id = sanitise_for_log(safe_job_id)
+            logger.warning("Job %s is stale (age %s) - marking as failed.", sanitised_job_id, age)
             mark_pipeline_failed(
                 str(doc["rulebookId"]),
-                job_id,
+                safe_job_id,
                 doc["stage"],
                 reason=(f"Timed out after exceeding the {STALE_JOB_THRESHOLD_MINUTES}-minute processing threshold. Possible crash mid-pipeline.")
             )
-            doc = db["INGESTION_JOB"].find_one({"_id": ObjectId(job_id)})
+            doc = db["INGESTION_JOB"].find_one({"_id": ObjectId(safe_job_id)})
 
     doc["id"] = str(doc.pop("_id"))
     doc["rulebookId"] = str(doc["rulebookId"])

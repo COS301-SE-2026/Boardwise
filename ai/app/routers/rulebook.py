@@ -1,4 +1,6 @@
 import logging
+import re
+from typing import Annotated
 from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, Depends, HTTPException, status
 from app.dependencies import verify_jwt
 from app.models.schemas import UploadResponse
@@ -14,6 +16,8 @@ router = APIRouter(
     tags=["rulebooks"]
 )
 
+SAFE_TEXT_PATTERN = r"^[\w\s\-.,&'\(\)!?]+$"
+
 @router.post(
     "/upload",
     response_model=UploadResponse,
@@ -21,11 +25,11 @@ router = APIRouter(
 )
 async def upload_rulebook(
     background_tasks: BackgroundTasks,
-    title: str = Form(...),
-    edition: str | None = Form(None),
-    language: str = Form(...),
-    file: UploadFile = File(...),
-    payload: dict = Depends(verify_jwt)
+    title: Annotated[str, Form(min_length=1, max_length=150, strip_whitespace=True, pattern=SAFE_TEXT_PATTERN)],
+    language: Annotated[str, Form(min_length=2, max_length=10, strip_whitespace=True, pattern=r"^[a-zA-Z\-]+$")],
+    file: Annotated[UploadFile, File()],
+    payload: Annotated[dict, Depends(verify_jwt)],
+    edition: Annotated[str | None, Form(max_length=150, strip_whitespace=True, pattern=SAFE_TEXT_PATTERN)] = None,
 ):
     """
     Accepts a PDF rulebook upload, initialises the database state,
