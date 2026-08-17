@@ -73,15 +73,12 @@ async def upload_rulebook(
         )
 
     try:
-        rulebook_id = mongo_service.create_rulebook(
+        rulebook_id, job_id = mongo_service.create_rulebook_and_job(
             title=title,
             edition=edition,
             contributor_id=contributor_id,
-            language=language,
-            r2_pdf_key=""
+            language=language
         )
-
-        job_id = mongo_service.create_ingestion_job(rulebook_id)
 
     except ValueError as e:
         logger.warning("Upload rejected: %s", str(e))
