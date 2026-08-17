@@ -9,7 +9,7 @@ export interface RetailResult {
     url?: string
 }
 
-ecport const useRetail = () => {
+export const useRetail = () => {
     const retailResults = ref<RetailResult[]>([])
     const retailLoading = ref(false)
     const retailError = ref<string | null>(null)
