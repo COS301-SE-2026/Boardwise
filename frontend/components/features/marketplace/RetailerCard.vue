@@ -1,8 +1,9 @@
 <template>
-  <BaseCard class="retail-card" @click="openRetailLink">
+  <BaseCard data-test="retailer-card" class="retail-card" @click="openRetailLink">
 
     <div class="image-container">
       <BaseImage
+        data-test="retailer-image"
         :src="retail.imageUrl ?? '/default-listing.png'"
         :alt="retail.retailTitle"
         height="200px"
@@ -11,17 +12,18 @@
 
     <v-card-text class="pa-4 d-flex flex-column ga-2">
 
-      <h2 class="retail-title">
+      <h2 class="retail-title" data-test="retailer-title">
         {{ retail.retailerTitle }}
       </h2>
 
-      <h3 class="retail-name">
+      <h3 class="retail-name" data-test="retailer-name">
         {{ retail.retailerName }}
       </h3>
 
       <p
         v-if="retail.price != null"
         class="price ma-0"
+        data-test="retailer-price"
       >
         R{{ retail.price }} 
       </p>

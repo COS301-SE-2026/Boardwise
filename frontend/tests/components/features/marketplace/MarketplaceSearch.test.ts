@@ -1,8 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import MarketplaceSearch from '~/components/features/marketplace/MarketplaceSearch.vue'
-import BaseSearch from '~/components/ui/BaseSearch.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
 
 describe('MarketplaceSearch.vue', () => {
     it('renders the search and create listings controls', () => {
