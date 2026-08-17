@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 
 import HelpContact from '~/components/features/help/HelpContact.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
 
 describe('HelpContact', () => {
   const mountComponent = () =>
