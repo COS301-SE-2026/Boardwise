@@ -22,17 +22,18 @@ def create_rulebook(
     edition: str | None,
     contributor_id: str,
     language: str,
-    r2_pdf_key: str
+    r2_pdf_key: str,
+    session = None
 ) -> str:
     """Inserts a new document into the RULEBOOK collection"""
     db = get_db()
 
-    boardgame = db["BOARD_GAME"].find_one({"title": title})
+    boardgame = db["BOARD_GAME"].find_one({"title": title}, session=session)
     if not boardgame:
         logger.warning("Rulebook creation rejected: boardgame '%s' not found.", title)
         raise ValueError(f"Boardgame '{title}' not found.")
 
-    user = db["USER"].find_one({"_id": ObjectId(contributor_id)})
+    user = db["USER"].find_one({"_id": ObjectId(contributor_id)}, session=session)
     if not user:
         logger.warning("Rulebook creation rejected: user '%s' not found.", contributor_id)
         raise ValueError(f"User '{contributor_id}' not found.")
@@ -63,11 +64,11 @@ def create_rulebook(
         "minAge":boardgame.get("minAge", -1),
         "duration":boardgame.get("duration", -1),
         "genres":boardgame.get("genres", []),
-    })
+    }, session=session)
 
     return str(result.inserted_id)
 
-def update_rulebook_status(rulebook_id: str, status: str, version: int = -1):
+def update_rulebook_status(rulebook_id: str, status: str, version: int = -1, session=None):
     """Updates the status of the specific rulebook"""
     db = get_db()
 
@@ -77,31 +78,32 @@ def update_rulebook_status(rulebook_id: str, status: str, version: int = -1):
     if version != -1:
         update["$set"]["version"] = version
 
-    result = db["RULEBOOK"].update_one(filter_by_id, update)
+    result = db["RULEBOOK"].update_one(filter_by_id, update, session=session)
 
     if result.modified_count != 1:
         logger.warning("Failed to update rulebook %s: no document matched.", rulebook_id)
         raise ValueError(f"Rulebook '{rulebook_id}' not found or not modified.")
 
-def update_rulebook_r2_pdf_key(rulebook_id: str, r2_pdf_key: str):
+def update_rulebook_r2_pdf_key(rulebook_id: str, r2_pdf_key: str, session=None):
     """Updates the R2 PDF key of the specific rulebook"""
     db = get_db()
 
     result = db["RULEBOOK"].update_one(
         {"_id": ObjectId(rulebook_id)},
-        {"$set": {"r2PdfKey": r2_pdf_key}}
+        {"$set": {"r2PdfKey": r2_pdf_key}},
+        session=session
     )
 
     if result.modified_count != 1:
         logger.warning("Failed to update rulebook %s: no document matched.", rulebook_id)
         raise ValueError(f"Rulebook '{rulebook_id}' not found or not modified.")
 
-def create_ingestion_job(rulebook_id: str) -> str:
+def create_ingestion_job(rulebook_id: str, session = None) -> str:
     """Inserts a new document into the INGESTION_JOB collection"""
     db = get_db()
     rulebook_obj_id = ObjectId(rulebook_id)
 
-    rulebook = db["RULEBOOK"].find_one({"_id": rulebook_obj_id})
+    rulebook = db["RULEBOOK"].find_one({"_id": rulebook_obj_id}, session=session)
     if not rulebook:
         logger.warning("Ingestion job creation rejected: rulebook '%s' not found.", rulebook_id)
         raise ValueError(f"Rulebook '{rulebook_id}' not found.")
@@ -115,7 +117,7 @@ def create_ingestion_job(rulebook_id: str) -> str:
         "failureReason": None,
         "startedAt": now,
         "completedAt": None,
-    })
+    }, session=session)
 
     return str(result.inserted_id)
 
@@ -123,7 +125,7 @@ def update_ingestion_job(
     job_id: str,
     stage: str,
     job_status: str, # Processing | Completed | Failed
-    failure_reason: str = ""):
+    failure_reason: str = "", session=None):
     """Updates the specified Ingestion Job document"""
     db = get_db()
 
@@ -138,7 +140,7 @@ def update_ingestion_job(
         }
     }
 
-    result = db["INGESTION_JOB"].update_one(filter_by_id, update)
+    result = db["INGESTION_JOB"].update_one(filter_by_id, update, session=session)
 
     if result.modified_count != 1:
         logger.warning("Failed to update ingestion job %s: no document matched.", job_id)
@@ -146,13 +148,14 @@ def update_ingestion_job(
 
 def create_rulebook_text(
     rulebook_id: str,
-    chunks_list: list[dict]
+    chunks_list: list[dict],
+    session=None
 ) -> str:
     """Creates the RULEBOOK_TEXT document containing the array of embedded CHUNK subdocuments"""
     db = get_db()
     rulebook_obj_id = ObjectId(rulebook_id)
 
-    rulebook = db["RULEBOOK"].find_one({"_id": rulebook_obj_id})
+    rulebook = db["RULEBOOK"].find_one({"_id": rulebook_obj_id}, session=session)
     if not rulebook:
         logger.warning("Rulebook text creation rejected: rulebook '%s' not found.", rulebook_id)
         raise ValueError(f"Rulebook '{rulebook_id}' not found.")
@@ -164,7 +167,7 @@ def create_rulebook_text(
         "version": 0,
         "chunks": chunks_list,
         "updatedAt": now
-    })
+    }, session=session)
 
     return str(result.inserted_id)
 
@@ -194,3 +197,58 @@ def ping_database():
         client.admin.command('ping')
     except ConnectionFailure as e:
         raise e
+
+def create_rulebook_and_job(
+    title: str,
+    edition: str | None,
+    contributor_id: str,
+    language: str
+) -> tuple[str, str]:
+    """
+    Atomically creates a RULEBOOK and its paired INGESTION_JOB.
+    If either insert fails, both are rolled back.
+    """
+    with client.start_session() as session:
+        with session.start_transaction():
+            rulebook_id = create_rulebook(
+                title=title,
+                edition=edition,
+                contributor_id=contributor_id,
+                language=language,
+                r2_pdf_key="",
+                session=session
+            )
+            job_id = create_ingestion_job(rulebook_id, session=session)
+
+    logger.info("Created rulebook %s with job %s.", rulebook_id, job_id)
+    return (rulebook_id, job_id)
+
+def finalise_rulebook_ingestion(
+    rulebook_id: str,
+    job_id: str,
+    r2_pdf_key: str,
+    chunks_list: list[dict]
+) -> None:
+    """
+    Atomically applies all post-R2-upload Mongo writes: sets the rulebook's
+    r2PdfKey, stores the text chunks, marks the rulebook as 'Ready', and marks
+    the job as 'Completed'. Assumes that the R2 upload was successful.
+    """
+    with client.start_session() as session:
+        with session.start_transaction():
+            update_rulebook_r2_pdf_key(rulebook_id, r2_pdf_key, session=session)
+            create_rulebook_text(rulebook_id, chunks_list, session=session)
+            update_rulebook_status(rulebook_id, "Ready",1, session=session)
+            update_ingestion_job(job_id, "Store", "Completed", session=session)
+
+    logger.info("Finalised ingestion for rulebook %s.", rulebook_id)
+
+def mark_pipeline_failed(rulebook_id: str, job_id: str, stage: str, reason: str) -> None:
+    """Atomically marks both the ingestion job and its rulebook as Failed."""
+    with client.start_session() as session:
+        with session.start_transaction():
+            update_ingestion_job(job_id, stage, "Failed", reason, session=session)
+            update_rulebook_status(rulebook_id, "Failed", session=session)
+
+    logger.info("Marked pipeline failed for rulebook %s at stage %s.", rulebook_id, stage)
+
