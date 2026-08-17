@@ -3,6 +3,7 @@ package com.boardwise.backend.marketplace.service.webscrapers;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -25,7 +26,7 @@ public class ToysRUsScraper implements WebScraper {
 
     @Override
     public List<RetailSourceItemDTO> scrape(String toSearch) {
-        if(toSearch.isBlank()){
+        if(toSearch== null || toSearch.isBlank()){
             return null;
         }
         try(Playwright playwright = Playwright.create()){
@@ -79,7 +80,7 @@ public class ToysRUsScraper implements WebScraper {
                 String url = card.locator("a.product-item-link").first().getAttribute("href");
             
                 Locator priceLoc = card.locator(".price-wrapper").first();
-                double price = Double.parseDouble(priceLoc.getAttribute("data-price-amount"));
+                String priceRaw = priceLoc.count() > 0 ? priceLoc.getAttribute("data-price-amount") : null;
 
                 String imageUrl = card.getAttribute("data-image");
 
@@ -87,20 +88,15 @@ public class ToysRUsScraper implements WebScraper {
                     imageUrl = null; 
                 }
 
-            // Jaro-Winkler - similarity between 2 sequences
-                float val = JaroWinklerSimilarity(toSearch,title);
-                if(val >= STRINGMATCH && !url.contains("offer_pref")){// remove sponsored items
-                        String officialUrl = url;
-                        retailSourceItemDTOs.add(new RetailSourceItemDTO(title, RETAILERNAME, officialUrl,price ,imageUrl, val));
 
-                }
-            
+                buildItem(toSearch, title, url, priceRaw, imageUrl).ifPresent(retailSourceItemDTOs::add);
+
                 if(retailSourceItemDTOs.size() >= MAXNUMITEMS) break;
             }
             
             page.close();
 
-            retailSourceItemDTOs.sort(Comparator.comparingDouble(r-> r.JaroWinklerSimilarityScore())); // sort in terms of float
+            sortBySimilarity(retailSourceItemDTOs); // sort in terms of float
             return retailSourceItemDTOs;
 
         } catch (Exception e) {
@@ -110,8 +106,59 @@ public class ToysRUsScraper implements WebScraper {
         throw new RuntimeException("somehow reached a place you shouldn't have ");
     }
 
-    public static void main(String[] args) {
-        ToysRUsScraper toysRUsScraper = new ToysRUsScraper();
-        toysRUsScraper.scrape("Monopoly");
+protected boolean noResultsFound(String pageContent) {
+        return pageContent != null && pageContent.contains("We couldn\u2019t find anything to match your search.");
     }
+
+    protected boolean isSponsored(String url) {
+        return url != null && url.contains("offer_pref");
+    }
+
+    protected String cleanImageUrl(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank() || imageUrl.contains("placeholder")) {
+            return null;
+        }
+        return imageUrl;
+    }
+
+    protected Double parsePrice(String priceRaw) {
+        if (priceRaw == null) {
+            return null;
+        }
+        try {
+            return Double.parseDouble(priceRaw);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    protected Optional<RetailSourceItemDTO> buildItem(
+            String toSearch, String rawTitle, String url, String priceRaw, String rawImageUrl) {
+
+        if (isSponsored(url)) {
+            return Optional.empty();
+        }
+
+        String title = rawTitle == null ? "" : rawTitle.trim();
+        if (title.isBlank()) {
+            return Optional.empty();
+        }
+
+        Double price = parsePrice(priceRaw);
+        String imageUrl = cleanImageUrl(rawImageUrl);
+
+        // Jaro-Winkler - similarity between 2 sequences
+        float val = JaroWinklerSimilarity(toSearch, title);
+
+        if (val < STRINGMATCH) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new RetailSourceItemDTO(title, RETAILERNAME, url, price, imageUrl, val));
+    }
+
+    protected void sortBySimilarity(List<RetailSourceItemDTO> items) {
+        items.sort(Comparator.comparingDouble(RetailSourceItemDTO::JaroWinklerSimilarityScore));
+    }
+
 }
