@@ -3,6 +3,7 @@ package com.boardwise.backend.marketplace.service.webscrapers;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,7 @@ public class TakealotScraper implements WebScraper {
     public TakealotScraper(){} 
     
     private final int MAXNUMITEMS = 15;
-    private String searchSelector = "input[placeholder='Search for products, brands...']";
+    private final String searchSelector = "input[placeholder='Search for products, brands...']";
     private final String site = "https://www.takealot.com";
     private final String RETAILERNAME = "Takealot";
 
@@ -66,41 +67,88 @@ public class TakealotScraper implements WebScraper {
 
             for(Locator card : cards){
 
-                String price = card.locator("[data-ref='price'] .currency").innerText();
-                double actualPrice = parsePrice(price);                
-
+                String priceRaw = card.locator("[data-ref='price'] .currency").innerText();
 
                 Locator listPriceLoc = card.locator("[data-ref='list-price'] .currency");
-                Double listPrice = listPriceLoc.count() > 0 ? parsePrice(listPriceLoc.innerText()) : null;
+                String listPriceRaw = listPriceLoc.count() > 0 ? listPriceLoc.innerText() : null;
                 
                 String imageUrl = card.locator("[data-ref='product-image']").getAttribute("src");
 
                 String title = card.locator("[data-ref='panel-content'] h4").innerText();
                 String url = card.locator("a[title='Go to product details']").getAttribute("href");
 
-                Double storedPrice = (listPrice == null)? actualPrice : Double.valueOf(listPrice);
                 // Jaro-Winkler - similarity between 2 sequences
-                float val = JaroWinklerSimilarity(toSearch,title);
-
-                if(val >= STRINGMATCH && !url.contains("offer_pref")){// remove sponsored items
-                    String officialUrl = site.substring(0,site.length()) + url;
-                    retailSourceItemDTOs.add(new RetailSourceItemDTO(title,RETAILERNAME, officialUrl, storedPrice, imageUrl, val));
-                }
             
+                buildItem(toSearch, title, url, priceRaw, listPriceRaw, imageUrl).ifPresent(retailSourceItemDTOs::add);
+
                 if(retailSourceItemDTOs.size() >= MAXNUMITEMS) break;
             }
             page.close();
 
-            retailSourceItemDTOs.sort(Comparator.comparingDouble(r -> r.JaroWinklerSimilarityScore())); // sort in terms of float
+            sortBySimilarity(retailSourceItemDTOs); // sort in terms of float
             return retailSourceItemDTOs;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(toSearch);
         }
-        throw new RuntimeException("somehow reached a place you shouldn't have ");
     }
 
-    private Double parsePrice(String raw) {
-        return Double.valueOf(raw.replace("R", "").replace(",", "").trim());
+ protected boolean noResultsFound(String pageContent) {
+        return pageContent != null && pageContent.contains("We couldn't find results for");
+    }
+
+    protected boolean isSponsored(String url) {
+        return url != null && url.contains("offer_pref");
+    }
+
+    protected Double parsePrice(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        try {
+            return Double.valueOf(raw.replace("R", "").replace(",", "").trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    protected String buildOfficialUrl(String relativeUrl) {
+        if (relativeUrl == null) {
+            return null;
+        }
+        return site + relativeUrl;
+    }
+
+    protected Optional<RetailSourceItemDTO> buildItem(
+            String toSearch, String rawTitle, String relativeUrl,
+            String priceRaw, String listPriceRaw, String imageUrl) {
+
+        String officialUrl = buildOfficialUrl(relativeUrl);
+
+        if (isSponsored(officialUrl)) {
+            return Optional.empty();
+        }
+
+        String title = rawTitle == null ? "" : rawTitle.trim();
+        if (title.isBlank()) {
+            return Optional.empty();
+        }
+
+        Double actualPrice = parsePrice(priceRaw);
+        Double listPrice = parsePrice(listPriceRaw);
+        Double storedPrice = (listPrice == null) ? actualPrice : listPrice;
+
+        // Jaro-Winkler - similarity between 2 sequences
+        float val = JaroWinklerSimilarity(toSearch, title);
+
+        if (val < STRINGMATCH) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new RetailSourceItemDTO(title, RETAILERNAME, officialUrl, storedPrice, imageUrl, val));
+    }
+
+    protected void sortBySimilarity(List<RetailSourceItemDTO> items) {
+        items.sort(Comparator.comparingDouble(RetailSourceItemDTO::JaroWinklerSimilarityScore));
     }
 }
