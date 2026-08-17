@@ -1,6 +1,5 @@
 import logging
-from typing import Optional
-from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, Depends,HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, Depends, HTTPException, status
 from app.dependencies import verify_jwt
 from app.models.schemas import UploadResponse
 from app.services import mongo_service
@@ -23,7 +22,7 @@ router = APIRouter(
 async def upload_rulebook(
     background_tasks: BackgroundTasks,
     title: str = Form(...),
-    edition: Optional[str] = Form(None),
+    edition: str | None = Form(None),
     language: str = Form(...),
     file: UploadFile = File(...),
     payload: dict = Depends(verify_jwt)

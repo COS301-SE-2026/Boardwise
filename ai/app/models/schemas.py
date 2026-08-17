@@ -1,7 +1,6 @@
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 from datetime import datetime
-from typing import Optional
 
 class BaseAPIModel(BaseModel):
     """
@@ -26,6 +25,6 @@ class JobStatusResponse(BaseAPIModel):
     rulebook_id: str
     stage: str
     job_status: str
-    failure_reason: Optional[str] = None
+    failure_reason: str | None = None
     started_at: datetime
-    completed_at: Optional[datetime] = None
+    completed_at: datetime | None = None

@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Path, status
 from app.dependencies import verify_jwt
 from app.models.schemas import JobStatusResponse
 from app.services import mongo_service
@@ -8,16 +8,16 @@ from bson import ObjectId
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/api/vault/jobs/",
+    prefix="/api/vault/jobs",
     tags=["jobs"]
 )
 
 @router.get(
-    "/{job_id}",
+    "/{jobId}",
     response_model=JobStatusResponse,
     status_code=status.HTTP_200_OK
 )
-async def get_job_status(job_id: str, payload: dict = Depends(verify_jwt)):
+async def get_job_status(job_id: str = Path(..., alias="jobId"), payload: dict = Depends(verify_jwt)):
     """
     Allows the frontend to poll for the current status of an ingestion job.
     """

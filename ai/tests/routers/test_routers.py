@@ -4,15 +4,26 @@ from bson import ObjectId
 from app.main import app
 from app.dependencies import verify_jwt
 
+MINIMAL_PDF = (
+    b"%PDF-1.4\n"
+    b"1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
+    b"2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n"
+    b"2 0 obj\n<< /Type /Pages /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n"
+    b"xref\n0 3\n0000000000 65535 f \n0000000010 00000 n \n0000000060 00000 n \n0000000111 00000 n \n"
+    b"trailer\n<< /Size 4 /Root 1 0 R >>\n"
+    b"startxref\n110\n%%EOF\n"
+)
+
 def test_upload_rejects_non_pdf(client, mock_auth):
     """Proves the Gateway rejects invalid file types instantly."""
-
-    # Simulate uploading a shell script
+    # Arrange
     files = {"file": ("malware.sh", b"echo 'hacked'", "application/x-sh")}
     data = {"title": "Hack", "language": "en"}
 
+    # Act
     response = client.post("/api/vault/rulebooks/upload", data=data, files=files)
 
+    # Assert
     assert response.status_code == 415
     assert "Only PDF files" in response.json()["detail"]
 
@@ -21,12 +32,10 @@ def test_upload_rejects_non_pdf(client, mock_auth):
 def test_upload_success_mocked(mock_add_task, mock_mongo, client, mock_auth):
     """Proves that a valid upload returns a 202 and starts the background job."""
     # Setup mocks
-    mock_mongo.create_rulebook.return_value = "mock_rulebook_123"
-    mock_mongo.create_ingestion_job.return_value = "mock_job_123"
+    mock_mongo.create_rulebook_and_job.return_value = ("mock_rulebook_123", "mock_job_123")
 
     # Arrange
-    mock_pdf = b"%PDF-1.4...Mock content..."
-    files = {"file": ("catan.pdf", mock_pdf, "application/pdf")}
+    files = {"file": ("catan.pdf", MINIMAL_PDF, "application/pdf")}
     data = {"title": "Catan", "language": "en"}
 
     # Act
@@ -36,10 +45,10 @@ def test_upload_success_mocked(mock_add_task, mock_mongo, client, mock_auth):
     assert response.status_code == 202
     assert response.json()["rulebookId"] == "mock_rulebook_123"
 
-    mock_mongo.create_rulebook.assert_called_once()
+    mock_mongo.create_rulebook_and_job.assert_called_once()
     mock_add_task.assert_called_once()
 
-@patch("app.routers.rulebook.mongo_service")
+@patch("app.routers.job.mongo_service")
 def test_get_job_status_success_for_valid_job_id(mock_mongo, client, mock_auth):
     """Proves that a valid job id returns the current status of an ingestion job"""
     # Arrange
@@ -55,7 +64,7 @@ def test_get_job_status_success_for_valid_job_id(mock_mongo, client, mock_auth):
     }
 
     # Act
-    response = client.get(f"/api/vault/rulebooks/status/{mock_job_id}")
+    response = client.get(f"/api/vault/jobs/{mock_job_id}")
 
     # Assert
     assert response.status_code == 200
@@ -125,11 +134,10 @@ def test_upload_rejects_token_missing_sub_claim(client):
 def test_upload_throws_value_error(mock_mongo,client, mock_auth):
     """Proves that upload fails if a value related errror occurs"""
     # Arrange
-    mock_mongo.create_rulebook.side_effect = ValueError("Boardgame 'Catan' not found.")
+    mock_mongo.create_rulebook_and_job.side_effect = ValueError("Boardgame 'Catan' not found.")
 
     # Arrange
-    mock_pdf = b"%PDF-1.4...Mock content..."
-    files = {"file": ("catan.pdf", mock_pdf, "application/pdf")}
+    files = {"file": ("catan.pdf", MINIMAL_PDF, "application/pdf")}
     data = {"title": "Catan", "language": "en"}
 
     # Act
@@ -139,17 +147,16 @@ def test_upload_throws_value_error(mock_mongo,client, mock_auth):
     assert response.status_code == 400
     assert response.json()["detail"] == "Upload rejected"
 
-    mock_mongo.create_rulebook.assert_called_once()
+    mock_mongo.create_rulebook_and_job.assert_called_once()
 
 @patch("app.routers.rulebook.mongo_service")
 def test_upload_throws_error_for_unexpected_failure(mock_mongo,client, mock_auth):
     """Proves that upload fails if an internal server errror occurs"""
     # Arrange
-    mock_mongo.create_rulebook.side_effect = Exception("Unexpected error occured.")
+    mock_mongo.create_rulebook_and_job.side_effect = Exception("Unexpected error occurred.")
 
     # Arrange
-    mock_pdf = b"%PDF-1.4...Mock content..."
-    files = {"file": ("catan.pdf", mock_pdf, "application/pdf")}
+    files = {"file": ("catan.pdf", MINIMAL_PDF, "application/pdf")}
     data = {"title": "Catan", "language": "en"}
 
     # Act
@@ -157,7 +164,7 @@ def test_upload_throws_error_for_unexpected_failure(mock_mongo,client, mock_auth
 
     # Assert
     assert response.status_code == 500
-    assert response.json()["detail"] == "An internal server error occured while initialising the upload."
+    assert response.json()["detail"] == "An internal server error occurred while initialising the upload."
 
 def test_get_job_status_fails_for_invalid_job_id(client, mock_auth):
     """Proves that the ingestion job status cannot be fetched if the job id is invalid"""
@@ -165,13 +172,13 @@ def test_get_job_status_fails_for_invalid_job_id(client, mock_auth):
     mock_job_id = "definitely_invalid"
 
     # Act
-    response = client.get(f"/api/vault/rulebooks/status/{mock_job_id}")
+    response = client.get(f"/api/vault/jobs/{mock_job_id}")
 
     # Assert
     assert response.status_code == 400
     assert response.json()["detail"] == "Invalid job_id format."
 
-@patch("app.routers.rulebook.mongo_service")
+@patch("app.routers.job.mongo_service")
 def test_get_job_status_fails_for_job_id_that_does_not_exist(mock_mongo, client, mock_auth):
     """Proves that the ingestion job status cannot be fetech for a valid job id that does not exist."""
     # Arrange
@@ -179,7 +186,7 @@ def test_get_job_status_fails_for_job_id_that_does_not_exist(mock_mongo, client,
     mock_mongo.get_ingestion_job.return_value = None
 
     # Act
-    response = client.get(f"/api/vault/rulebooks/status/{mock_job_id}")
+    response = client.get(f"/api/vault/jobs/{mock_job_id}")
 
     # Assert
     assert response.status_code == 404

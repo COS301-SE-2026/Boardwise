@@ -1,6 +1,6 @@
 import os
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Any
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
@@ -11,6 +11,9 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 client = MongoClient(settings.MONGODB_URL)
+
+# 50MB worst-case OCR estimate
+STALE_JOB_THRESHOLD_MINUTES = 20
 
 def get_db():
     """Returns instance of the database"""
@@ -23,7 +26,7 @@ def create_rulebook(
     contributor_id: str,
     language: str,
     r2_pdf_key: str,
-    session = None
+    session=None
 ) -> str:
     """Inserts a new document into the RULEBOOK collection"""
     db = get_db()
@@ -68,7 +71,7 @@ def create_rulebook(
 
     return str(result.inserted_id)
 
-def update_rulebook_status(rulebook_id: str, status: str, version: int = -1, session=None):
+def update_rulebook_status(rulebook_id: str, status: str, version: int = -1, session=None) -> None:
     """Updates the status of the specific rulebook"""
     db = get_db()
 
@@ -84,7 +87,7 @@ def update_rulebook_status(rulebook_id: str, status: str, version: int = -1, ses
         logger.warning("Failed to update rulebook %s: no document matched.", rulebook_id)
         raise ValueError(f"Rulebook '{rulebook_id}' not found or not modified.")
 
-def update_rulebook_r2_pdf_key(rulebook_id: str, r2_pdf_key: str, session=None):
+def update_rulebook_r2_pdf_key(rulebook_id: str, r2_pdf_key: str, session=None) -> None:
     """Updates the R2 PDF key of the specific rulebook"""
     db = get_db()
 
@@ -98,7 +101,7 @@ def update_rulebook_r2_pdf_key(rulebook_id: str, r2_pdf_key: str, session=None):
         logger.warning("Failed to update rulebook %s: no document matched.", rulebook_id)
         raise ValueError(f"Rulebook '{rulebook_id}' not found or not modified.")
 
-def create_ingestion_job(rulebook_id: str, session = None) -> str:
+def create_ingestion_job(rulebook_id: str, session=None) -> str:
     """Inserts a new document into the INGESTION_JOB collection"""
     db = get_db()
     rulebook_obj_id = ObjectId(rulebook_id)
@@ -125,7 +128,7 @@ def update_ingestion_job(
     job_id: str,
     stage: str,
     job_status: str, # Processing | Completed | Failed
-    failure_reason: str = "", session=None):
+    failure_reason: str = "", session=None) -> None:
     """Updates the specified Ingestion Job document"""
     db = get_db()
 
@@ -180,14 +183,32 @@ def is_token_valid(jti: str) -> bool:
     return doc is None
 
 def get_ingestion_job(job_id: str) -> dict | None:
-    """Returns a single INGESTION_JOB document with the matching id"""
+    """
+    Returns a single INGESTION_JOB document with the matching id.
+    If the job is stuck in "Processing" past STALE_JOB_THRESHOLD_MINUTES,
+    the method marks the job and its rulebook 'Failed' before returning
+    """
     db = get_db()
 
     doc = db["INGESTION_JOB"].find_one({"_id": ObjectId(job_id)})
 
-    if doc:
-        doc["id"] = str(doc.pop("_id"))
-        doc["rulebookId"] = str(doc["rulebookId"])
+    if not doc:
+        return None
+
+    if doc["jobStatus"] == "Processing":
+        age = datetime.now(timezone.utc) - doc["startedAt"].replace(tzinfo=timezone.utc)
+        if age > timedelta(minutes=STALE_JOB_THRESHOLD_MINUTES):
+            logger.warning("Job %s is stale (age %s) - marking as failed.", job_id, age)
+            mark_pipeline_failed(
+                str(doc["rulebookId"]),
+                job_id,
+                doc["stage"],
+                reason=(f"Timed out after exceeding the {STALE_JOB_THRESHOLD_MINUTES}-minute processing threshold. Possible crash mid-pipeline.")
+            )
+            doc = db["INGESTION_JOB"].find_one({"_id": ObjectId(job_id)})
+
+    doc["id"] = str(doc.pop("_id"))
+    doc["rulebookId"] = str(doc["rulebookId"])
 
     return doc
 
@@ -251,4 +272,3 @@ def mark_pipeline_failed(rulebook_id: str, job_id: str, stage: str, reason: str)
             update_rulebook_status(rulebook_id, "Failed", session=session)
 
     logger.info("Marked pipeline failed for rulebook %s at stage %s.", rulebook_id, stage)
-
