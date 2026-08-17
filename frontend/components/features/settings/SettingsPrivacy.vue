@@ -21,19 +21,22 @@
            />
 
            <v-list>
-            <v-list-item>
+            <v-list-item
+                v-for="item in items"
+                :key="item.key"
+            >
                 <div class="d-flex justify-space-between align-center w-100">
                     <div>
                         <div class="text-body-1 font-weight-medium">
-                            {{ items.label }}
+                            {{ item.label }}
                         </div>
                         <div class="text-body-2 text-medium-emphasis">
-                            {{ items.description }}
+                            {{ item.description }}
                         </div>
                     </div>
 
                     <v-switch
-                        v-model="items.enabled"
+                        v-model="item.enabled"
                         color="primary"
                         hide-details
                     />
