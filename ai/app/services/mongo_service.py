@@ -139,8 +139,10 @@ def update_ingestion_job(
     """Updates the specified Ingestion Job document"""
     db = get_db()
 
+    safe_job_id = str(job_id)
+
     now = datetime.now(timezone.utc)
-    filter_by_id = {"_id": ObjectId(job_id)}
+    filter_by_id = {"_id": ObjectId(safe_job_id)}
     update = {
         "$set": {
             "stage": stage,
@@ -153,8 +155,9 @@ def update_ingestion_job(
     result = db["INGESTION_JOB"].update_one(filter_by_id, update, session=session)
 
     if result.modified_count != 1:
-        logger.warning("Failed to update ingestion job %s: no document matched.", job_id)
-        raise ValueError(f"Ingestion job '{job_id}' not found or not modified.")
+        sanitised_job_id = sanitise_for_log(safe_job_id)
+        logger.warning("Failed to update ingestion job %s: no document matched.", sanitised_job_id)
+        raise ValueError(f"Ingestion job '{safe_job_id}' not found or not modified.")
 
 def create_rulebook_text(
     rulebook_id: str,
