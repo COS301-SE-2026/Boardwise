@@ -23,6 +23,7 @@ describe('SignInForm.vue', () => {
         errorRef.value = ''
     })
 
+    // Sucess Tests
     it('handles successful sign in and redirects to library', async () => {
         loginMock.mockResolvedValue(true)
         const wrapper = mount(SignInForm)
@@ -34,6 +35,7 @@ describe('SignInForm.vue', () => {
         expect(push).toHaveBeenCalledWith('/library')
     })
 
+    // Fail Tests
     it('sets error state when required fields are missing', async () => {
         const wrapper = mount(SignInForm)
 
@@ -42,5 +44,27 @@ describe('SignInForm.vue', () => {
 
         expect(errorRef.value).toBe('Please fill in all fields.')
         expect(loginMock).not.toHaveBeenCalled()
+    })
+
+    // Edge Case Tests
+    it('does NOT navigate to /library if login returns false', async () => {
+        loginMock.mockResolvedValue(false)
+        const wrapper = mount(SignInForm)
+
+        const authForm = wrapper.findComponent({ name: 'AuthForm' })
+        await authForm.vm.$emit('submit', { username: 'baduser', password: 'wrongpassword' })
+
+        expect(loginMock).toHaveBeenCalledWith({ username: 'baduser', password: 'wrongpassword'})
+        expect(push).not.toHaveBeenCalled()
+    })
+
+    it('sets error state if only password is provided without username', async () => {
+        const wrapper = mount(SignInForm)
+
+        const authForm = wrapper.findComponent({ name: 'AuthForm' })
+        await authForm.vm.$emit('submit', { username: '', password: 'somePassword' })
+
+        expect(errorRef.value).toBe('Please fill in all fileds.')
+        expect(loginMock).not.toHaveBeenCalled() 
     })
 })
