@@ -1,4 +1,3 @@
-import type { returnValue } from 'happy-dom/lib/PropertySymbol'
 import { ref } from 'vue'
 
 export interface RetailResult {
@@ -38,6 +37,12 @@ export const useRetail = () => {
         }
         catch (error: any) {
             console.error('Failed to fetch retail results', error)
+
+            retailError.value = 'Failed to load retail results.'
+            retailResults.value = []
+        } 
+        finally {
+            retailLoading.value = false
         }
     }
 

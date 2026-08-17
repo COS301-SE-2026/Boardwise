@@ -54,6 +54,11 @@
           size="48"
         />
       </v-container>
+      
+      <RetailerGrid 
+        v-else 
+        :retailers="retailResults"
+      />
     </template>
 
     <div ref="sentinel" style="height:1px" />
@@ -87,7 +92,7 @@ import { useIntersectionObserver, useDebounceFn  } from '@vueuse/core'
 import { useRetail } from '~/composables/useRetail'
 
 const router = useRouter();
-const activeTab = ref('Community')
+const activeTab = ref('Community Listings')
 const showFilters = ref(false)
 const showCreateListing = ref(false)
 
@@ -118,8 +123,19 @@ const activeFilterState = ref({})
 
 
 const delaySearch = useDebounceFn((query) => {
+  if(activeTab.value === 'Web'){
+    fetchRetail(query)
+    return
+  }
+
   fetchListings({ ...activeFilterState.value, search: query || null }, true)
 }, 400)
+
+watch(activeTab, (tab) => {
+  if(tab === 'Web') {
+    fetchRetail(searchQ.value)
+  }
+})
 
 watch(searchQ,(query)=>{
   delaySearch(query);

@@ -12,21 +12,21 @@
     <v-card-text class="pa-4 d-flex flex-column ga-2">
 
       <h2 class="retail-title">
-        {{ retailers.retailerTitle }}
+        {{ retail.retailerTitle }}
       </h2>
 
       <h3 class="retail-name">
-        {{ retailers.retailerName }}
+        {{ retail.retailerName }}
       </h3>
 
       <p
+        v-if="retail.price != null"
         class="price ma-0"
       >
-        R{{ retailer.price }} 
-        <br />
+        R{{ retail.price }} 
       </p>
-    </v-card-text>
 
+    </v-card-text>
   </BaseCard>
 </template>
 
@@ -73,7 +73,7 @@ const openRetailLink = () => {
   margin: 0;
 }
 
-.retailer-name {
+.retail-name {
   margin: 0;
   font-size: var(--fs-body);
   font-weight: var(--fw-semibold);

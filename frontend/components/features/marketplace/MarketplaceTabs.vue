@@ -1,5 +1,5 @@
 <template>
-  <v-tabs v-model="selectedTab" color="primary">
+  <v-tabs :model-value="modelValue" color="primary" @update:model-value="$emit('update:modelValue', $event)">
     <v-tab v-for="tab in tabs" :key="tab" :value="tab">
       {{ tab }}
     </v-tab>
@@ -8,10 +8,17 @@
 
 <script setup>
 
+defineProps({
+  modelValue: {
+    type: String,
+    default: 'Community Listings'
+  }
+})
+
+defineEmits(['update:modelValue'])
+
 const tabs = [
   'Community Listings',
   'Web'
 ]
-
-const selectedTab = ref('Community Listings')
 </script>
