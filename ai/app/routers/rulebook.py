@@ -6,6 +6,7 @@ from app.models.schemas import UploadResponse
 from app.services import mongo_service
 from app.config import settings
 from app.pipeline.ingestion import run_ingestion_pipeline
+from bson import ObjectId
 
 logger = logging.getLogger(__name__)
 
@@ -37,13 +38,19 @@ async def upload_rulebook(
             detail="Only PDF files are allowed."
         )
 
-    file_bytes = await file.read()
     max_bytes = settings.MAX_FILE_SIZE_MB * 1024 * 1024
-    if len(file_bytes) > max_bytes:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"File exceeds {settings.MAX_FILE_SIZE_MB}MB limit."
-        )
+    chunk_size = 1024 * 1024
+    file_bytes = bytearray()
+
+    while chunk := await file.read(chunk_size):
+        file_bytes.extend(chunk)
+        if len(file_bytes) > max_bytes:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"File exceeds {settings.MAX_FILE_SIZE_MB}MB limit."
+            )
+
+    file_bytes = bytes(file_bytes)
 
     if not file_bytes or not file_bytes.startswith(b"%PDF"):
         raise HTTPException(
@@ -56,6 +63,13 @@ async def upload_rulebook(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="sub is missing from token."
+        )
+
+    if not ObjectId.is_valid(contributor_id):
+        logger.warning("Upload rejected: malformed sub claim '%s'.", contributor_id)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token subject."
         )
 
     try:

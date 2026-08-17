@@ -18,7 +18,9 @@ SAFE_CONTEXTS = [
 
 def sanitise_pdf(file_bytes: bytes) -> tuple[bool, str]:
     """
-    Scans raw PDF bytes for potentially dangerous execution patterns.
+    Scans raw PDF bytes for unobfuscated dangerous execution patterns in plain byte content.
+    
+    Scope: this is a naive-payload check, not a full malware scanner.
     Returns:
         (True, "") if the PDF is safe.
         (False, "failure_reason") if an unsafe pattern is found outside a safe context
