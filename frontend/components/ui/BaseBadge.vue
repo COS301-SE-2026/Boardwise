@@ -64,6 +64,9 @@ const resolvedColor = computed(() => {
   letter-spacing: normal !important;
   box-shadow: var(--shadow-sm);
   transition: transform var(--transition-fast) !important;
+
+  width: fit-content;
+  align-self: flex-start;
 }
  
 .badge--absolute {

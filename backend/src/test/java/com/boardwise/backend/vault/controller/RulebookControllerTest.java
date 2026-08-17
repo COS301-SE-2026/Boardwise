@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 
 import java.time.Instant;
 import java.util.List;
@@ -202,7 +203,8 @@ public class RulebookControllerTest {
         when(rulebookService.getRulebookById(validId))
             .thenThrow(new RulebookNotFoundException(validId));
         // Act and assert
-        mockMvc.perform(get("/api/vault/rulebooks/{id}/", validId.toHexString()))
+        mockMvc.perform(get("/api/vault/rulebooks/{id}", validId.toHexString()))
+            .andDo(print())
             .andExpect(status().isNotFound());
     }
     

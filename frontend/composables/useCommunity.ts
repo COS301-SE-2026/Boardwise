@@ -57,6 +57,8 @@ export const useCommunity = () => {
         catch(err: any){
             error.value = err.data?.message || "Could not get community."
             throw err;
+        }finally{
+            loading.value = false;
         }
     }
 

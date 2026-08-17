@@ -17,42 +17,43 @@
       class="popular-carousel mt-4"
       cycle
     >
+      <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
+        <v-progress-circular indeterminate color="primary" size="48" />
+      </v-container>
+
       <v-carousel-item
+        v-else
         v-for="rulebook in rulebooks"
         :key="rulebook.id"
       >
-        <div class="carousel-slide" 
-          @click="$emit('select', rulebook)"
-        >
-          <BaseImage 
-            :src="rulebook.coverUrl" 
-            :alt="rulebook.title" 
-            height="100%" 
-            fit="cover" 
-          />
+        <BaseImage 
+          :src="rulebook.coverUrl" 
+          :alt="rulebook.title" 
+          height="100%" 
+          fit="cover" 
+        />
 
-          <div class="carousel-caption">
-            <div class="carousel-content">
-              <v-chip
-                color="primary"
-                size="small"
-                variant="flat"
-                class="mb-3"
-              >
-                Popular
-              </v-chip>
+        <div class="carousel-caption">
+          <div class="carousel-content">
+            <v-chip
+              color="primary"
+              size="small"
+              variant="flat"
+              class="mb-3"
+            >
+              Popular
+            </v-chip>
 
-              <h2>{{  rulebook.title }}</h2>
+            <h2>{{  rulebook.title }}</h2>
 
-              <p>{{ rulebook.genre }}</p>
-              
-              <v-btn 
-                color="primary"
-                rounded="pill"
-              >
-                Read Rulebook
-              </v-btn>
-            </div>
+            <p>{{ rulebook.genre }}</p>
+            
+            <v-btn 
+              color="primary"
+              rounded="pill"
+            >
+              Read Rulebook
+            </v-btn>
           </div>
         </div>
       </v-carousel-item>
@@ -63,6 +64,9 @@
 <script setup>
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
+import { useLibrary } from '~/composables/useLibrary';
+
+const { isLoading } = useLibrary()
 
 defineProps({
   title: String,
