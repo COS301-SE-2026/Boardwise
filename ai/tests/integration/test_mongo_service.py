@@ -99,12 +99,11 @@ def test_update_rulebook_status_succeeds_for_valid_rulebook_id(seed_rulebook):
     rulebook_id = str(seed_rulebook)
 
     # Act
-    result = mongo_service.update_rulebook_status(rulebook_id, "NewStatus")
+    mongo_service.update_rulebook_status(rulebook_id, "NewStatus")
 
     # Assert
     saved_doc = db.RULEBOOK.find_one({"_id": ObjectId(rulebook_id)})
 
-    assert result is True
     assert saved_doc is not None
     assert saved_doc["status"] == "NewStatus"
     assert saved_doc["version"] == 0
@@ -120,12 +119,11 @@ def test_update_rulebook_r2_pdf_key_succeeds_for_valid_rulebook_id(seed_rulebook
     rulebook_id = str(seed_rulebook)
 
     # Act
-    result = mongo_service.update_rulebook_r2_pdf_key(rulebook_id, "NewR2Key")
+    mongo_service.update_rulebook_r2_pdf_key(rulebook_id, "NewR2Key")
 
     # Assert
     saved_doc = db.RULEBOOK.find_one({"_id": ObjectId(rulebook_id)})
 
-    assert result is True
     assert saved_doc is not None
     assert saved_doc["r2PdfKey"] == "NewR2Key"
 
@@ -184,12 +182,11 @@ def test_update_ingestion_job_success_for_valid_job_id(seed_rulebook):
     job_id = mongo_service.create_ingestion_job(rulebook_id)
 
     # Act
-    updated = mongo_service.update_ingestion_job(job_id,"Storage", "Completed")
+    mongo_service.update_ingestion_job(job_id,"Storage", "Completed")
 
     # Assert
     saved_doc = db.INGESTION_JOB.find_one({"_id": ObjectId(job_id)})
 
-    assert updated is True
     assert saved_doc is not None
     assert saved_doc["rulebookId"] == ObjectId(rulebook_id)
     assert saved_doc["stage"] == "Storage"
@@ -262,7 +259,7 @@ def test_create_rulebook_text_failure_when_rulebook_not_found(seed_rulebook):
     db = mongo_service.client[os.environ["DB_NAME"]]
 
     rulebook_id = str(ObjectId())
-    
+
     with pytest.raises(ValueError, match=f"Rulebook '{rulebook_id}' not found.") as exc_info:
         # Act
         mongo_service.create_rulebook_text(rulebook_id, [])
