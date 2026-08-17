@@ -7,36 +7,55 @@
 
     <MarketplaceTabs v-model="activeTab" />
 
-    <!-- Mobile -->
-    <div class="d-flex d-md-none mt-6 mb-4">
-      <v-chip
-        color="secondary"
-        prepend-icon="mdi-filter-variant"
-        size="large"
-        @click="showFilters = true"
-      >
-        Filters
-      </v-chip>
+    <!-- Community Listings -->
+    <template v-if="activeTab === 'Community Listings'">
+      <!-- Mobile -->
+      <div class="d-flex d-md-none mt-6 mb-4">
+        <v-chip
+          color="secondary"
+          prepend-icon="mdi-filter-variant"
+          size="large"
+          @click="showFilters = true"
+        >
+          Filters
+        </v-chip>
 
-      <v-navigation-drawer
-        v-model="showFilters"
-        temporary
-        location="left"
-        width="300"
-      >
-        <FilterSidebar @filter="handleFilter" />
-      </v-navigation-drawer>
-    </div>
+        <v-navigation-drawer
+          v-model="showFilters"
+          temporary
+          location="left"
+          width="300"
+        >
+          <FilterSidebar @filter="handleFilter" />
+        </v-navigation-drawer>
+      </div>
 
-    <!-- Desktop -->
-    <div class="d-none d-md-flex ga-6 mt-6 align-start">
-      <FilterSidebar @filter="handleFilter"/>
-      <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
-        <v-progress-circular indeterminate color="primary" size="48" />
-      </v-container>
-      <ListingGrid  v-else :listings="listings" />
-    </div>
+      <!-- Desktop -->
+      <div class="d-none d-md-flex ga-6 mt-6 align-start">
+        <FilterSidebar @filter="handleFilter"/>
+        <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
+          <v-progress-circular indeterminate color="primary" size="48" />
+        </v-container>
+        <ListingGrid  v-else :listings="listings" />
+      </div>
+      
+    </template>
     
+    <!-- External Retail -->
+    <template v-else-if="activeTab === 'Web'">
+      <v-container
+        v-if="retailLoading"
+        class="d-flex justify-center align-center"
+        style="min-height: 60vh"
+      >
+        <v-progress-circular 
+          indeterminate
+          color="primary"
+          size="48"
+        />
+      </v-container>
+    </template>
+
     <div ref="sentinel" style="height:1px" />
 
     <AddListingModal
@@ -51,6 +70,7 @@
 definePageMeta({
   middleware: 'auth'
 })
+
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 
@@ -60,9 +80,11 @@ import MarketplaceTabs from '~/components/features/marketplace/MarketplaceTabs.v
 import FilterSidebar from '~/components/features/marketplace/FilterSidebar.vue'
 import ListingGrid from '~/components/features/marketplace/ListingGrid.vue'
 import AddListingModal from '~/components/features/profile/AddListingModal.vue'
+
 import { useRouter } from 'vue-router'
 import { useMarketplace } from '~/composables/useMarketplace'
 import { useIntersectionObserver, useDebounceFn  } from '@vueuse/core'
+import { useRetail } from '~/composables/useRetail'
 
 const router = useRouter();
 const activeTab = ref('Community')
@@ -70,6 +92,8 @@ const showFilters = ref(false)
 const showCreateListing = ref(false)
 
 const {listings, loading, fetchListings, addListing, loadMore, hasMore} = useMarketplace();
+
+const {retailResults, retailLoading, fetchRetail } = useRetail()
 
 onMounted(() => {
   if(!localStorage.getItem('access_token')){
