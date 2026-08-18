@@ -1,4 +1,4 @@
-from app.services.sanitiser import sanitise_pdf
+from ai.app.ingestion.sanitiser import sanitise_pdf
 
 def test_sanitise_pdf_accepts_clean_pdf(safe_pdf_bytes):
     """Injecting the standard safe bytes fixture from conftest.py"""

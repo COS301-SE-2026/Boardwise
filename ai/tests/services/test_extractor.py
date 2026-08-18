@@ -1,5 +1,5 @@
 from unittest.mock import patch, MagicMock
-from app.services.extractor import extract_text
+from ai.app.ingestion.extractor import extract_text
 
 @patch("app.services.extractor.fitz.open")
 def test_extract_text_accepts_native_pdf_text(mock_fitz_open, safe_pdf_bytes):

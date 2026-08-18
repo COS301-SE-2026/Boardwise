@@ -4,10 +4,10 @@ from datetime import datetime, timezone
 from sentence_transformers import SentenceTransformer
 
 from app.services import mongo_service, r2_service
-from app.services.chunker import generate_chunks
-from app.services.extractor import extract_text
-from app.services.sanitiser import sanitise_pdf
-from app.services.vectoriser import vectorise_chunks
+from ai.app.ingestion.chunker import generate_chunks
+from ai.app.ingestion.extractor import extract_text
+from ai.app.ingestion.sanitiser import sanitise_pdf
+from ai.app.ingestion.vectoriser import vectorise_chunks
 
 logger = logging.getLogger(__name__)
 

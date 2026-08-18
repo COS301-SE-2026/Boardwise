@@ -1,4 +1,4 @@
-from app.services.chunker import generate_chunks
+from ai.app.ingestion.chunker import generate_chunks
 from bson.objectid import ObjectId
 
 def test_generate_chunks_accepts_and_processes_standard_document_correctly(standard_extracted_text):
