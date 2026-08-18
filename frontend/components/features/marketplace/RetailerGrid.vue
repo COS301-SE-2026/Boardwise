@@ -1,5 +1,5 @@
 <template>
-  <BaseGrid>
+  <BaseGrid data-test="retailer-grid">
     <RetailerCard
       v-for="retail in retailers"
       :key="retail.url"
