@@ -1,12 +1,14 @@
 <template>
-  <div class="d-flex flex-column ga-5">
+  <div class="d-flex flex-column ga-5" data-test="marketplace-header">
 
     <SectionTitle
+      data-test="marketplace-title"
       title="Marketplace"
       subtitle="Buy, Rent and List board games with the community"
     />
 
     <MarketplaceSearch
+      data-test="marketplace-search"
      @search="$emit('search', $event)" 
      @create-listing="$emit('create-listing')" 
     />
