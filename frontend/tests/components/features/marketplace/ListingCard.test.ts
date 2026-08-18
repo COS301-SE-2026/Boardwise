@@ -108,7 +108,7 @@ describe('ListingCard.vue', () => {
         expect(wrapper.find('[data-test="rental-period"]').text()).toContain('2026-08-27')
     })
 
-    it('opens the retailer link in a new tab when clicked', async () => {
+    it('opens the listing link in a new tab when clicked', async () => {
         const wrapper = mount(ListingCard, {
             props: {
                 listing
@@ -129,13 +129,9 @@ describe('ListingCard.vue', () => {
             }
         })
 
-        await wrapper
-            .find('[data-test="listing-card"]')
-            .trigger('click')
+        await wrapper.find('[data-test="listing-card"]').trigger('click')
 
-        expect(push).toHaveBeenCalledWith(
-            '/marketplace/1'
-        )
+        expect(push).toHaveBeenCalledWith('/marketplace/1')
     })
 
     it('uses unknown when username is missing', () => {
@@ -157,8 +153,6 @@ describe('ListingCard.vue', () => {
             }
         })
 
-        expect(
-            wrapper.find('[data-test="listing-username"]').text()
-        ).toBe('@unknown')
+        expect(wrapper.find('[data-test="listing-username"]').text()).toBe('@unknown')
     })
 })
