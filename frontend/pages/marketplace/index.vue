@@ -1,11 +1,11 @@
 <template>
-  <PageContainer>
+  <PageContainer data-test="page-container">
 
-    <Navbar />
+    <Navbar data-test="navbar" />
 
-    <MarketplaceHeader v-model="searchQ" @create-listing="showCreateListing = true" />
+    <MarketplaceHeader data-test="marketplace-header" v-model="searchQ" @create-listing="showCreateListing = true" />
 
-    <MarketplaceTabs v-model="activeTab" />
+    <MarketplaceTabs data-test="marketplace-tabs" v-model="activeTab" />
 
     <!-- Community Listings -->
     <template v-if="activeTab === 'Community Listings'">
@@ -26,17 +26,17 @@
           location="left"
           width="300"
         >
-          <FilterSidebar @filter="handleFilter" />
+          <FilterSidebar data-test="filter-sidebar" @filter="handleFilter" />
         </v-navigation-drawer>
       </div>
 
       <!-- Desktop -->
       <div class="d-none d-md-flex ga-6 mt-6 align-start">
-        <FilterSidebar @filter="handleFilter"/>
+        <FilterSidebar data-test="filter-sidebar" @filter="handleFilter"/>
         <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
-          <v-progress-circular indeterminate color="primary" size="48" />
+          <v-progress-circular data-test="loading-spinner" indeterminate color="primary" size="48" />
         </v-container>
-        <ListingGrid  v-else :listings="listings" />
+        <ListingGrid data-test="listing-grid" v-else :listings="listings" />
       </div>
       
     </template>
@@ -49,6 +49,7 @@
         style="min-height: 60vh"
       >
         <v-progress-circular 
+          data-test="loading-spinner"
           indeterminate
           color="primary"
           size="48"
@@ -56,6 +57,7 @@
       </v-container>
       
       <RetailerGrid 
+        data-test="retailer-grid"
         v-else 
         :retailers="retailResults"
       />
@@ -64,6 +66,7 @@
     <div ref="sentinel" style="height:1px" />
 
     <AddListingModal
+      data-test="add-listing-modal"
       v-model="showCreateListing" 
       @confirm="handleAdd"
     />
