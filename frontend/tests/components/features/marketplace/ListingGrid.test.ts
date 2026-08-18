@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
-import ListingsGrid from '~/components/features/marketplace/ListingsGrid.vue'
+import ListingGrid from '~/components/features/marketplace/ListingGrid.vue'
 
 describe('ListingsGrid.vue', () => {
 
@@ -22,7 +22,7 @@ describe('ListingsGrid.vue', () => {
     ]
 
     it('renders listing card for each listing', () => {
-        const wrapper = mount(ListingsGrid, {
+        const wrapper = mount(ListingGrid, {
             props: {
                 listings
             },
@@ -45,7 +45,7 @@ describe('ListingsGrid.vue', () => {
     })
 
     it('renders no listing cards when there are no listings', () => {
-        const wrapper = mount(ListingsGrid, {
+        const wrapper = mount(ListingGrid, {
             props: {
                 listings: []
             },
@@ -66,7 +66,7 @@ describe('ListingsGrid.vue', () => {
     })
 
     it('passes each listing to the listing card', () => {
-        const wrapper = mount(ListingsGrid, {
+        const wrapper = mount(ListingGrid, {
             props: {
                 listings
             },
@@ -91,7 +91,7 @@ describe('ListingsGrid.vue', () => {
         const cards = wrapper.findAll('[data-test="listing-card"]')
 
         expect(cards[0]?.text()).toBe('Catan')
-        expect(cards[1]?.text()).toBe('Ticket to Ride')
+        expect(cards[1]?.text()).toBe('Ticket to Store')
     })
 
 })
