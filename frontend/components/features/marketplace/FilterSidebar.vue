@@ -1,5 +1,5 @@
 <template>
-  <BaseFilterSidebar @reset="resetFilters">
+  <BaseFilterSidebar data-test="filter-sidebar" @reset="resetFilters">
 
     <BaseFilterGroup title="genres">
       <div
@@ -7,6 +7,7 @@
         :key="genre"
         class="genre-option"
         :class="{ active: selectedGenre === genre }"
+        data-test="`genre-${genre.toLowerCase()}`"
         @click="selectedGenre= genre"
       >
         {{ genre }}
@@ -14,14 +15,14 @@
     </BaseFilterGroup>
 
     <BaseFilterGroup title="Listing Type">
-      <v-checkbox v-model="filters.rent" label="Rent" density="compact" color="primary" hide-details />
-      <v-checkbox v-model="filters.sale" label="For Sale" density="compact" color="primary" hide-details />
+      <v-checkbox data-test="rent-filter" v-model="filters.rent" label="Rent" density="compact" color="primary" hide-details />
+      <v-checkbox data-test="sale-filter" v-model="filters.sale" label="For Sale" density="compact" color="primary" hide-details />
     </BaseFilterGroup>
 
     <BaseFilterGroup title="Price Range">
       <div class="d-flex ga-2">
-        <v-text-field v-model="filters.minPrice" placeholder="Min" prefix="R" type="number" density="compact" hide-details />
-        <v-text-field v-model="filters.maxPrice" placeholder="Max" prefix="R" type="number" density="compact" hide-details />
+        <v-text-field data-test="min-price" v-model="filters.minPrice" placeholder="Min" prefix="R" type="number" density="compact" hide-details />
+        <v-text-field data-test="max-price" v-model="filters.maxPrice" placeholder="Max" prefix="R" type="number" density="compact" hide-details />
       </div>
     </BaseFilterGroup>
 
@@ -29,6 +30,7 @@
       <v-checkbox
         v-for="c in conditions"
         :key="c"
+        :data-test="`condition-${c.toLowerCase().replace(' ', '-')}`"
         :label="c"
         :value="c"
         v-model="selectedConditions"

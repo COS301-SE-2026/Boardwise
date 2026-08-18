@@ -1,14 +1,16 @@
 <template>
-  <BaseCard class="listing-card" @click="openListing">
+  <BaseCard data-test="listing-card" class="listing-card" @click="openListing">
 
     <div class="image-container">
       <BaseImage
+        data-test="listing-image"
         :src="listing.imageUrl ?? '/default-listing.png'"
         :alt="listing.gameTitle"
         height="200px"
       />
 
       <BaseBadge
+        data-test="listing-badge"
         class="badge"
         :variant="listing.listingType === 'rental' ? 'rent' : 'sale'"
       >
@@ -18,15 +20,16 @@
 
     <v-card-text class="pa-4 d-flex flex-column ga-2">
 
-      <h2 class="listing-title">
+      <h2 class="listing-title" data-test="listing-title">
         {{ listing.listingTitle }}
       </h2>
 
-      <h3 class="listing-game">
+      <h3 class="listing-game" data-test="listing-game">
         {{ listing.gameTitle }}
       </h3>
 
-      <p
+      <p  
+        data-test="listing-price"
         class="price ma-0"
         :style="{ 
           color: listing.listingType === 'rental' 
@@ -39,6 +42,7 @@
 
         <span v-if="listing.listingType === 'rental'" 
           class="period"
+          data-test="listing-period"
         >
           {{
             listing.rentalPeriod
@@ -49,9 +53,9 @@
       </p>
 
       <div class="meta">
-        <span>@{{ listing.username ?? 'unknown' }}</span>
+        <span data-test="listing-username">@{{ listing.username ?? 'unknown' }}</span>
 
-        <span v-if="listing.location" class="d-flex align-center ga-1">
+        <span v-if="listing.location" data-test="listing-location" class="d-flex align-center ga-1">
           <v-icon size="16"> mdi-map-marker</v-icon> 
           {{ listing.location }}
         </span>
