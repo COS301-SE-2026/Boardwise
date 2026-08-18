@@ -29,10 +29,10 @@ def run_ingestion_pipeline(
         # =========== Stage 2: Extract ===========
         mongo_service.update_ingestion_job(job_id, "Extract", "Processing")
 
-        extract_success, extracted_text = extract_text(file_bytes)
+        extract_success, extracted_text, extract_reason = extract_text(file_bytes)
 
         if not extract_success:
-            mongo_service.mark_pipeline_failed(rulebook_id, job_id, "Extract", "Extraction failed.")
+            mongo_service.mark_pipeline_failed(rulebook_id, job_id, "Extract", extract_reason)
             return
 
         # =========== Stage 3: Chunk ===========
