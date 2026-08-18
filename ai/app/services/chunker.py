@@ -9,13 +9,11 @@ def generate_chunks(full_text: str) -> tuple[bool, list[dict], str]:
     Returns: (success, list_of_chunks, failure_reason)
     """
     try:
-        # 1. Semantic Splitting
         raw_chunks = full_text.split("\n\n")
 
         chunks = []
         current_index = 0
 
-        # 2. Schema Mapping
         for chunk in raw_chunks:
             clean_chunk = chunk.strip()
 
@@ -30,7 +28,6 @@ def generate_chunks(full_text: str) -> tuple[bool, list[dict], str]:
             chunks.append(new_chunk)
             current_index += 1
 
-        # 3. Validation
         if not chunks:
             return (False, [], "Chunks resulted in 0 valid segments")
 
@@ -38,4 +35,4 @@ def generate_chunks(full_text: str) -> tuple[bool, list[dict], str]:
         return(True, chunks, "")
     except Exception:
         logger.exception("Chunking failed")
-        return (False, [], "Internal error occured during text chunking")
+        return (False, [], "Internal error occurred during text chunking")

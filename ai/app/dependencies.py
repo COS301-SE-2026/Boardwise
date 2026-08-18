@@ -19,14 +19,12 @@ def verify_jwt(
     """
     token = credentials.credentials
     try:
-        # Get the JWT payload
         payload = jwt.decode(
             token,
             settings.JWT_SECRET,
-            algorithms=[settings.JWT_ALGORITHM]
+            algorithms=[settings.JWT_ALGORITHM or "HS512"]
         )
 
-        # Extract jti (Token ID)
         jti = payload.get("jti")
         if not jti:
             logger.warning("Token structure is invalid as the JTI is missing.")
@@ -35,7 +33,6 @@ def verify_jwt(
                 detail="Invalid token structure: missing JTI."
             )
 
-        # Check if token is blacklisted
         if not is_token_valid(jti):
             logger.warning("Token is invalid because it has been blacklisted.")
             raise HTTPException(

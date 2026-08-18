@@ -2,11 +2,12 @@ name: Feature - AI Gateway
 
 on:
     push:
-        branches-ignore: ["main"]
+        branches: ["dev"]
         paths: ["ai/**"]
     pull_request:
         branches: ["dev"]
         paths: ["ai/**"]
+    workflow_dispatch:
 
 jobs:
     test-ai:
@@ -17,6 +18,7 @@ jobs:
             image: mongo:latest
             ports:
               - 27017:27017
+            command: mongod --replSet rs0
 
         env:
           JWT_SECRET: "ci_dummy_secret_key_12345"
@@ -49,6 +51,11 @@ jobs:
               run: |
                 python -m pip install --upgrade pip
                 pip install -r requirements-dev.txt
+            
+            - name: Initialise MongoDB Replica Set
+              run: |
+                mongosh --host localhost:27017 --eval 'rs.initiate({_id: "rs0", members: [{_id: 0, host: "localhost:27017"}]})'
+                sleep 5
 
             - name: Run Tests
               run: pytest -v tests/

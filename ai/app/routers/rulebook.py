@@ -1,8 +1,9 @@
 import logging
-from typing import Optional
-from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, Depends,HTTPException, status
+import re
+from typing import Annotated
+from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, Depends, HTTPException, status
 from app.dependencies import verify_jwt
-from app.models.schemas import UploadResponse, JobStatusResponse
+from app.models.schemas import UploadResponse
 from app.services import mongo_service
 from app.config import settings
 from app.pipeline.ingestion import run_ingestion_pipeline
@@ -15,6 +16,8 @@ router = APIRouter(
     tags=["rulebooks"]
 )
 
+SAFE_TEXT_PATTERN = r"^[\w\s\-.,&'\(\)!?]+$"
+
 @router.post(
     "/upload",
     response_model=UploadResponse,
@@ -22,31 +25,35 @@ router = APIRouter(
 )
 async def upload_rulebook(
     background_tasks: BackgroundTasks,
-    title: str = Form(...),
-    edition: Optional[str] = Form(None),
-    language: str = Form(...),
-    file: UploadFile = File(...),
-    payload: dict = Depends(verify_jwt)
+    title: Annotated[str, Form(min_length=1, max_length=150, strip_whitespace=True, pattern=SAFE_TEXT_PATTERN)],
+    language: Annotated[str, Form(min_length=2, max_length=10, strip_whitespace=True, pattern=r"^[a-zA-Z\-]+$")],
+    file: Annotated[UploadFile, File()],
+    payload: Annotated[dict, Depends(verify_jwt)],
+    edition: Annotated[str | None, Form(max_length=150, strip_whitespace=True, pattern=SAFE_TEXT_PATTERN)] = None,
 ):
     """
     Accepts a PDF rulebook upload, initialises the database state,
     and starts the ingestion pipeline.
     """
-    # Validate file type
     if file.content_type != "application/pdf":
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail="Only PDF files are allowed."
         )
 
-    # Read file and validate file size
-    file_bytes = await file.read()
     max_bytes = settings.MAX_FILE_SIZE_MB * 1024 * 1024
-    if len(file_bytes) > max_bytes:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"File exceeds {settings.MAX_FILE_SIZE_MB}MB limit."
-        )
+    chunk_size = 1024 * 1024
+    file_bytes = bytearray()
+
+    while chunk := await file.read(chunk_size):
+        file_bytes.extend(chunk)
+        if len(file_bytes) > max_bytes:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"File exceeds {settings.MAX_FILE_SIZE_MB}MB limit."
+            )
+
+    file_bytes = bytes(file_bytes)
 
     if not file_bytes or not file_bytes.startswith(b"%PDF"):
         raise HTTPException(
@@ -61,17 +68,20 @@ async def upload_rulebook(
             detail="sub is missing from token."
         )
 
+    if not ObjectId.is_valid(contributor_id):
+        logger.warning("Upload rejected: malformed sub claim '%s'.", contributor_id)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token subject."
+        )
+
     try:
-        # Initialise database
-        rulebook_id = mongo_service.create_rulebook(
+        rulebook_id, job_id = mongo_service.create_rulebook_and_job(
             title=title,
             edition=edition,
             contributor_id=contributor_id,
-            language=language,
-            r2_pdf_key=""
+            language=language
         )
-
-        job_id = mongo_service.create_ingestion_job(rulebook_id)
 
     except ValueError as e:
         logger.warning("Upload rejected: %s", str(e))
@@ -84,10 +94,9 @@ async def upload_rulebook(
         logger.exception("Failed to initialise upload.")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An internal server error occured while initialising the upload."
+            detail="An internal server error occurred while initialising the upload."
         ) from e
 
-    # Send bytes to background task
     safe_filename = file.filename or "untitled_rulebook.pdf"
     background_tasks.add_task(
         run_ingestion_pipeline,
@@ -104,31 +113,3 @@ async def upload_rulebook(
         rulebook_id=rulebook_id,
         job_id=job_id
     )
-
-@router.get(
-    "/status/{job_id}",
-    response_model=JobStatusResponse,
-    status_code=status.HTTP_200_OK
-)
-async def get_job_status(job_id: str, payload: dict = Depends(verify_jwt)):
-    """
-    Allows the frontend to poll for the current status of an ingestion job.
-    """
-    # Validation
-    if not ObjectId.is_valid(job_id):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid job_id format."
-        )
-
-    # Database Fetch
-    ingestion_job = mongo_service.get_ingestion_job(job_id)
-
-    # Response Handling
-    if not ingestion_job:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Ingestion job with id '{job_id}' does not exist."
-        )
-
-    return ingestion_job
