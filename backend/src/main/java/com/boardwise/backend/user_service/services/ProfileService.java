@@ -74,7 +74,9 @@ public class ProfileService {
 
     public ProfileResponseDTO getProfile(String userId) {
         // get user data from db
-        User user = userRepo.findById(userId).get();
+        User user = userRepo.findById(userId).orElseThrow(
+            () -> new NoSuchElementException("User with id:" +  userId + "does not exist.")
+        );
         
         // get the games from stored ids                                
         List<GameInventoryDTO> games = new ArrayList<>();
@@ -572,7 +574,7 @@ public class ProfileService {
 
         FriendStatus newStatus = switch (status) {
             case "ACCEPT" -> FriendStatus.ACCEPTED;
-            case "DECLINED" -> FriendStatus.DECLINED;
+            case "DECLINE" -> FriendStatus.DECLINED;
             default -> throw new IllegalArgumentException("Friend Request response status must be either \"accept\" or \"decline\".");
 
         };
@@ -591,7 +593,7 @@ public class ProfileService {
             );
 
             FriendConfirmationNotification notification = new FriendConfirmationNotification(sender);
-            notificationService.send(clientId, notification);
+            notificationService.send(fs.getSender(), notification);
         }
 
         return new FriendRequestResponseDTO(

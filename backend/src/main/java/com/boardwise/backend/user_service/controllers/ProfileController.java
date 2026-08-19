@@ -50,7 +50,7 @@ public class ProfileController {
         }
         catch(NoSuchElementException e){
             Map<String, Object> res = new HashMap<>();
-            res.put("message", "User with that username does not exist.");
+            res.put("message", e.getMessage());
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
         catch(Exception e){
