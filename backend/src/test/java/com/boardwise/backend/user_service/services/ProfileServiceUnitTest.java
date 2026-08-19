@@ -1,10 +1,13 @@
 package com.boardwise.backend.user_service.services;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.ArgumentMatchers.any;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -14,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -23,7 +27,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.shared.services.NotificationService;
 import com.boardwise.backend.user_service.dtos.FriendDTO;
-import com.boardwise.backend.user_service.dtos.FriendRequestDTO;
+import com.boardwise.backend.user_service.dtos.FriendRequestNotification;
+import com.boardwise.backend.user_service.dtos.FriendRequestResponseDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestsDTO;
 import com.boardwise.backend.user_service.dtos.FriendsListDTO;
 import com.boardwise.backend.user_service.enums.FriendStatus;
@@ -178,7 +183,7 @@ public class ProfileServiceUnitTest {
         
         @Test
         @DisplayName("Should attempt to retrieve a non-existent user's friends list and throw a NoSuchElementException")
-        void shouldThrowANoSuchElementException(){
+        void shouldAttemptToRetrieveANonExistentUsersFriendsListAndThrowANoSuchElementException(){
             // Arrange
             Mockito.when(userRepo.existsById(anyString())).thenReturn(false);
 
@@ -227,6 +232,221 @@ public class ProfileServiceUnitTest {
             assertEquals(ProfileServiceFixtures.FRIEND_ID3, senderOfIndex1.id());
         }
         
+        @Test
+        @DisplayName("Should send a friend request and respond with success message for request being sent")
+        void shouldReturnAFriendRequestResponseDTOWithSuccessMessage() throws IllegalAccessException, IllegalArgumentException, NoSuchElementException{
+            // Arrange
+            User friend = ProfileServiceFixtures.owner(); // clientId
+            User friend3 = ProfileServiceFixtures.friend3(); // userId
+
+            Mockito.when(jwtService.extractUserId(anyString()))
+                    .thenReturn(new ObjectId(friend.getId()));
+
+            Mockito.when(userRepo.findById(friend.getId()))
+                    .thenReturn(Optional.of(friend));
+
+            Mockito.when(userRepo.existsById(friend3.getId()))
+                    .thenReturn(true);
+
+            Mockito.when(fsRepo.findFriendShipBetweenUsers(friend3.getId(), friend.getId()))
+                    .thenReturn(Optional.empty());
+            
+            Friendship fs = new Friendship(friend.getId(), friend3.getId());
+            fs.setId("fs-006");
+            Mockito.when(fsRepo.save(any())).thenReturn(fs);
+
+            // Act 
+            FriendRequestResponseDTO result = profileService.sendFriendRequest("", friend3.getId());
+
+            // Assert
+            ArgumentCaptor<Friendship> captor = ArgumentCaptor.forClass(Friendship.class);
+            verify(fsRepo, times(1)).save(captor.capture());
+            Friendship saved = captor.getValue();
+            assertEquals(friend.getId(), saved.getSender());
+            assertEquals(friend3.getId(), saved.getReceiver());
+            assertEquals(FriendStatus.REQUESTED, saved.getStatus());
+
+            verify(fsRepo, times(1)).findFriendShipBetweenUsers(friend3.getId(), friend.getId());
+
+            ArgumentCaptor<FriendRequestNotification> frCaptor = ArgumentCaptor.forClass(FriendRequestNotification.class);
+            verify(notificationService, times(1)).send(eq(friend3.getId()), frCaptor.capture());
+            FriendRequestNotification savedNotification = frCaptor.getValue();
+            assertEquals("FRIEND_REQUEST", savedNotification.type());
+            assertEquals("fs-006", savedNotification.request().id());
+            assertEquals(ProfileServiceFixtures.OWNER_ID, savedNotification.request().sender().id());
+
+            assertEquals("Friend request successfully sent.", result.message());
+        
+        }
+        
+        @Test
+        @DisplayName("Should send a friend request and respond with success message for request being sent after operating on an existing friendship")
+        void shouldReturnAFriendRequestResponseDTOWithSuccessMessageViaExistingFriendship() throws IllegalAccessException, IllegalArgumentException, NoSuchElementException{
+            // Arrange
+            User friend = ProfileServiceFixtures.owner(); // clientId
+            User friend3 = ProfileServiceFixtures.friend3(); // userId
+
+            Mockito.when(jwtService.extractUserId(anyString()))
+                    .thenReturn(new ObjectId(friend.getId()));
+
+            Mockito.when(userRepo.findById(friend.getId()))
+                    .thenReturn(Optional.of(friend));
+
+            Mockito.when(userRepo.existsById(friend3.getId()))
+                    .thenReturn(true);
+
+            Friendship fs = new Friendship(friend.getId(), friend3.getId());
+            fs.setId("fs-005");
+            fs.setStatus(FriendStatus.DECLINED);
+            Mockito.when(fsRepo.findFriendShipBetweenUsers(friend3.getId(), friend.getId()))
+                    .thenReturn(Optional.of(fs));
+
+            Mockito.when(fsRepo.save(any())).thenReturn(fs);
+
+            // Act 
+            FriendRequestResponseDTO result = profileService.sendFriendRequest("", friend3.getId());
+
+            // Arrange
+            ArgumentCaptor<FriendRequestNotification> frCaptor = ArgumentCaptor.forClass(FriendRequestNotification.class);
+            verify(notificationService, times(1)).send(eq(friend3.getId()), frCaptor.capture());
+            FriendRequestNotification savedNotification = frCaptor.getValue();
+            assertEquals("FRIEND_REQUEST", savedNotification.type());
+            assertEquals("fs-005", savedNotification.request().id());
+            assertEquals(ProfileServiceFixtures.OWNER_ID, savedNotification.request().sender().id());
+            
+            ArgumentCaptor<Friendship> captor = ArgumentCaptor.forClass(Friendship.class);
+            verify(fsRepo, times(1)).save(captor.capture());
+            Friendship saved = captor.getValue();
+            assertEquals(friend.getId(), saved.getSender());
+            assertEquals(friend3.getId(), saved.getReceiver());
+            assertEquals(FriendStatus.REQUESTED, saved.getStatus());
+
+            assertEquals("Friend request successfully sent.", result.message());
+            
+        }
+    
+        @Test
+        @DisplayName("Should attempt to send a friend request to a non-existent user and throw a NoSuchElementException")
+        void shouldAttemptToSendFriendRequestToNonExistentUserAndThrowANoSuchElementException(){
+            // Arrange
+            User friend = ProfileServiceFixtures.owner();
+            String nonExistentId = "507f1f77bcf86cd799439015";
+            Mockito.when(jwtService.extractUserId(anyString()))
+                    .thenReturn(new ObjectId(friend.getId()));
+
+            Mockito.when(userRepo.findById(friend.getId()))
+                    .thenReturn(Optional.of(friend));
+
+            Mockito.when(userRepo.existsById(anyString()))
+                    .thenReturn(false);
+
+            
+            // Act & Assert
+            assertThatThrownBy(() -> profileService.sendFriendRequest("", nonExistentId))
+                    .isInstanceOf(NoSuchElementException.class)
+                    .hasMessage("User associated with id: " + nonExistentId + " does not exist.");
+        }
+
+        @Test
+        @DisplayName("Should attempt to send a friend request to self and throw a IllegalArgumentException")
+        void shouldAttemptToSendFriendRequestToSelfndThrowAnIllegalArgumentException(){
+            // Arrange
+            User friend = ProfileServiceFixtures.owner();
+            Mockito.when(jwtService.extractUserId(anyString()))
+                    .thenReturn(new ObjectId(friend.getId()));
+
+            Mockito.when(userRepo.findById(friend.getId()))
+                    .thenReturn(Optional.of(friend));
+
+            Mockito.when(userRepo.existsById(friend.getId()))
+                    .thenReturn(true);
+            
+            // Act & Assert
+            assertThatThrownBy(() -> profileService.sendFriendRequest("null", friend.getId()))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Users cannot send friend requests to themselves.");
+    
+        }
+        
+        @Test
+        @DisplayName("Should attempt to send a friend request to a user with whom already friends and throw an IllegalAccessException")
+        void shouldAttemptToSendFriendRequestToUserWithWhomAlreadyFriendsAndThrowAnIllegalAccessException(){
+            // Arrange
+            Friendship fs = ProfileServiceFixtures.friendship1();
+            User owner = ProfileServiceFixtures.owner();
+            User friend1 = ProfileServiceFixtures.friend1();
+
+            Mockito.when(jwtService.extractUserId(anyString()))
+                    .thenReturn(new ObjectId(owner.getId()));
+            
+            Mockito.when(userRepo.findById(owner.getId()))
+                    .thenReturn(Optional.of(owner));
+
+            Mockito.when(userRepo.existsById(friend1.getId()))
+                    .thenReturn(true);
+            
+            Mockito.when(fsRepo.findFriendShipBetweenUsers(friend1.getId(), owner.getId()))
+                    .thenReturn(Optional.of(fs));
+
+            // Act && Assert
+            assertThatThrownBy(() -> profileService.sendFriendRequest("null", friend1.getId()))
+                    .isInstanceOf(IllegalAccessException.class)
+                    .hasMessage("User is already friends with user of id: " + friend1.getId() + ".");
+        }
+
+        @Test
+        @DisplayName("Should attempt to send a friend request to a user to whom a friend request was already sent to and throw an IllegalAccessException")
+        void shouldAttemptToSendFriendRequestToUserToWhomAFriendRequestHasBeenSentToAndThrowAnIllegalAccessException(){
+            // Arrange
+            Friendship fs = ProfileServiceFixtures.friendship4();
+            User friend1 = ProfileServiceFixtures.friend1();
+            User friend2 = ProfileServiceFixtures.friend2();
+
+            Mockito.when(jwtService.extractUserId(anyString()))
+                    .thenReturn(new ObjectId(friend1.getId()));
+            
+            Mockito.when(userRepo.findById(friend1.getId()))
+                    .thenReturn(Optional.of(friend1));
+
+            Mockito.when(userRepo.existsById(friend2.getId()))
+                    .thenReturn(true);
+            
+            Mockito.when(fsRepo.findFriendShipBetweenUsers(friend2.getId(), friend1.getId()))
+                    .thenReturn(Optional.of(fs));
+
+            // Act && Assert
+            assertThatThrownBy(() -> profileService.sendFriendRequest("null", friend2.getId()))
+                    .isInstanceOf(IllegalAccessException.class)
+                    .hasMessage("User already sent a request to user associated with id: " + friend2.getId() + ".");
+
+        }
+
+        @Test
+        @DisplayName("Should attempt to send a friend request to a user to whom a friend request was already received from and throw an IllegalAccessException")
+        void shouldAttemptToSendFriendRequestToUserToWhomAFriendRequestExistsFromAndThrowAnIllegalAccessException(){
+            // Arrange
+            Friendship fs = ProfileServiceFixtures.friendship4();
+            User friend1 = ProfileServiceFixtures.friend1();
+            User friend2 = ProfileServiceFixtures.friend2();
+
+            Mockito.when(jwtService.extractUserId(anyString()))
+                    .thenReturn(new ObjectId(friend2.getId()));
+            
+            Mockito.when(userRepo.findById(friend2.getId()))
+                    .thenReturn(Optional.of(friend2));
+
+            Mockito.when(userRepo.existsById(friend1.getId()))
+                    .thenReturn(true);
+            
+            Mockito.when(fsRepo.findFriendShipBetweenUsers(friend1.getId(), friend2.getId()))
+                    .thenReturn(Optional.of(fs));
+
+            // Act && Assert
+            assertThatThrownBy(() -> profileService.sendFriendRequest("null", friend1.getId()))
+                    .isInstanceOf(IllegalAccessException.class)
+                    .hasMessage("User has a request from user associated with id: " + friend1.getId() + ".");
+        }
+    
     }
 
 }
