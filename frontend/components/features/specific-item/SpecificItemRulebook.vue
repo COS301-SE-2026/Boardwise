@@ -14,7 +14,7 @@
     </BaseCard>
 
     <div class="rulebook__footer">
-    <BaseButton @click="$router.push(`/library/${rulebook.id}`)">
+    <BaseButton @click="router.push(`/library/${rulebook.id}`)">
         View full rulebook
     </BaseButton>
     </div>
@@ -23,10 +23,15 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useRouter
+
+ } from 'vue-router'
 import BaseTabs from '~/components/ui/BaseTabs.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+
+const router = useRouter()
 
 const props = defineProps({
   rulebook: { type: Object, default: null }
