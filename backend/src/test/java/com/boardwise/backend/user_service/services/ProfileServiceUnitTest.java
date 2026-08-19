@@ -517,7 +517,7 @@ public class ProfileServiceUnitTest {
         
         @Test
         @DisplayName("Should respond to a received friend request with an invalid status and throw an IllegalArgumentException")
-        void shouldRespondToAFriendRequestWithInvalidStatus() throws IllegalAccessException, IllegalArgumentException, NoSuchElementException{
+        void shouldRespondToAFriendRequestWithInvalidStatus() {
             // Arrange
             User friend2 = ProfileServiceFixtures.friend2();
             Friendship fs = ProfileServiceFixtures.friendship4();
@@ -540,7 +540,7 @@ public class ProfileServiceUnitTest {
         
         @Test
         @DisplayName("Should attempt to respond to request that already has response status (Accepted or Declined) and throw an IllegalAccessException")
-        void shouldAttemptToRespondToFriendRequestThatAlreadyHasAResponseAndThrowIllegalAccessException() throws IllegalAccessException, IllegalArgumentException, NoSuchElementException{
+        void shouldAttemptToRespondToFriendRequestThatAlreadyHasAResponseAndThrowIllegalAccessException() {
             // Arrange
             User friend2 = ProfileServiceFixtures.friend2();
             Friendship fs = ProfileServiceFixtures.friendship4();
@@ -564,7 +564,7 @@ public class ProfileServiceUnitTest {
 
         @Test
         @DisplayName("Should attempt to respond to request that user is not the receiver of and throw an IllegalAccessException")
-        void shouldAttemptToRespondToFriendRequestThatUserIsNotReceiverOfAndThrowIllegalAccessException() throws IllegalAccessException, IllegalArgumentException, NoSuchElementException{
+        void shouldAttemptToRespondToFriendRequestThatUserIsNotReceiverOfAndThrowIllegalAccessException() {
             // Arrange
             User friend2 = ProfileServiceFixtures.friend2();
             Friendship fs = ProfileServiceFixtures.friendship2();
@@ -587,7 +587,7 @@ public class ProfileServiceUnitTest {
 
         @Test
         @DisplayName("Should attempt to respond to request that is non-existent and throw a NoSuchElementException")
-        void shouldAttemptToRespondToFriendRequestThatIsNonExistentAndThrowIllegalAccessException() throws IllegalAccessException, IllegalArgumentException, NoSuchElementException{
+        void shouldAttemptToRespondToFriendRequestThatIsNonExistentAndThrowIllegalAccessException() {
             // Arrange
             User friend2 = ProfileServiceFixtures.friend2();
             String nonexistentId = "fs-999";
@@ -608,7 +608,110 @@ public class ProfileServiceUnitTest {
 
         }
         
+        @Test
+        @DisplayName("Should unfriend a user and return a FriendRequestResponseDTO with a success message")
+        void shouldUnfriendAUserAndReturnAFriendRequestDTOWithSuccessMessage() throws NoSuchElementException, IllegalAccessException{
+            // Arrange 
+            User owner = ProfileServiceFixtures.owner(); // cl
+            String toUnfriend = ProfileServiceFixtures.FRIEND_ID1;
+            Friendship fs = ProfileServiceFixtures.friendship1();
+
+            Mockito.when(jwtService.extractUserId(anyString()))   
+                    .thenReturn(new ObjectId(owner.getId()));
+
+            Mockito.when(userRepo.findById(owner.getId()))   
+                    .thenReturn(Optional.of(owner));
+
+            Mockito.when(userRepo.existsById(toUnfriend))
+                    .thenReturn(true);
+
+            Mockito.when(fsRepo.findFriendShipBetweenUsers(owner.getId(), toUnfriend))
+                    .thenReturn(Optional.of(fs));
+            
+            // Act
+            FriendRequestResponseDTO result = profileService.unfriendUser("", toUnfriend);
+
+            // Assert
+            assertEquals("Unfriend user query successful.", result.message());
+            verify(fsRepo, times(1)).save(any());
+        }
+
+        @Test
+        @DisplayName("Should attempt to unfriend a Non-existent user and throw a NoSuchElementException")
+        void shouldAttemptToUnfriendNonExistentUserAndThrowANoSuchElementException() {
+            // Arrange
+            User owner = ProfileServiceFixtures.owner(); // cl
+            String toUnfriend = "507f1f77bcf86cd799439100";
         
+            Mockito.when(jwtService.extractUserId(anyString()))   
+                    .thenReturn(new ObjectId(owner.getId()));
+
+            Mockito.when(userRepo.findById(owner.getId()))   
+                    .thenReturn(Optional.of(owner));
+
+            Mockito.when(userRepo.existsById(toUnfriend))
+                    .thenReturn(false);
+
+    
+            // Act & Assert
+            assertThatThrownBy(() -> profileService.unfriendUser("toUnfriend", toUnfriend))
+                .isInstanceOf(NoSuchElementException.class)
+                .hasMessage("User with id: " + toUnfriend + " does not exist.");
+
+        }
+
+        @Test
+        @DisplayName("Should attempt to unfriend a user with whom the client has no associated Friendship record and throw an IllegalAccessException")
+        void shouldAttemptToUnfriendAUserTheClientHasNoAssociatedFriendshipWithAndThrowAnIllegalAccessException(){
+            // Arrange
+            User owner = ProfileServiceFixtures.owner(); // cl
+            String toUnfriend = ProfileServiceFixtures.FRIEND_ID3;
+        
+            Mockito.when(jwtService.extractUserId(anyString()))   
+                    .thenReturn(new ObjectId(owner.getId()));
+
+            Mockito.when(userRepo.findById(owner.getId()))   
+                    .thenReturn(Optional.of(owner));
+
+            Mockito.when(userRepo.existsById(toUnfriend))
+                    .thenReturn(true);
+            
+            Mockito.when(fsRepo.findFriendShipBetweenUsers(owner.getId(), toUnfriend))
+                    .thenReturn(Optional.empty());
+    
+            // Act & Assert
+            assertThatThrownBy(() -> profileService.unfriendUser("toUnfriend", toUnfriend))
+                .isInstanceOf(IllegalAccessException.class)
+                .hasMessage("Requesting user is a not friends with the user associated with id: " + toUnfriend + ".");
+
+        }
+
+        @Test
+        @DisplayName("Should attempt to unfriend a user with whom the client is not friends with yet and throw an IllegalAccessException")
+        void shouldAttemptToUnfriendAUserTheClientIsNotFriendsWithAndThrowAnIllegalAccessException(){
+            // Arrange
+            User owner = ProfileServiceFixtures.owner(); // cl
+            String toUnfriend = ProfileServiceFixtures.FRIEND_ID3;
+            Friendship fs = new Friendship(owner.getId(), toUnfriend);
+        
+            Mockito.when(jwtService.extractUserId(anyString()))   
+                    .thenReturn(new ObjectId(owner.getId()));
+
+            Mockito.when(userRepo.findById(owner.getId()))   
+                    .thenReturn(Optional.of(owner));
+
+            Mockito.when(userRepo.existsById(toUnfriend))
+                    .thenReturn(true);
+            
+            Mockito.when(fsRepo.findFriendShipBetweenUsers(owner.getId(), toUnfriend))
+                    .thenReturn(Optional.of(fs));
+    
+            // Act & Assert
+            assertThatThrownBy(() -> profileService.unfriendUser("toUnfriend", toUnfriend))
+                .isInstanceOf(IllegalAccessException.class)
+                .hasMessage("Requesting user is a not friends with the user associated with id: " + toUnfriend + ".");
+
+        }
     }
 
 }
