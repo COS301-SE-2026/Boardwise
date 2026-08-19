@@ -26,7 +26,6 @@ def fetch_candidate_chunks(
             },
             {
                 "$project": {
-                    "embedding": 0,
                     "_id": 1,
                     "chunkId": 1,
                     "content": 1,

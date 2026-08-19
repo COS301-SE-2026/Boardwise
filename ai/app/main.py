@@ -41,12 +41,13 @@ async def lifespan(app: FastAPI):
             "cross-encoder/ms-marco-MiniLM-L6-v2", device="cpu"
         )
         logger.info("Cross-encoder re-ranker model loaded successfully.")
+        
+        app.state.ml_models = ml_models
     except Exception:
         logger.exception("FATAL BOOT ERROR: Infrastructure check failed")
         raise
 
-    # Yielding the dictionary securely binds it to request.app.state
-    yield {"ml_models": ml_models}
+    yield
 
     logger.info("Shutting down AI Gateway. Clearing memory footprint...")
     mongo_service.client.close()

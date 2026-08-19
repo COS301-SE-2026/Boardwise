@@ -14,10 +14,10 @@ from fastapi import (
     status,
 )
 
-from ai.app.generation.llm import generate_answer
-from ai.app.generation.prompt import build_chat_messages
 from app.config import settings
 from app.dependencies import verify_jwt
+from app.generation.llm import generate_answer
+from app.generation.prompt import build_chat_messages
 from app.models.schemas import Citation, QueryRequest, QueryResponse, UploadResponse
 from app.pipeline.ingestion import run_ingestion_pipeline
 from app.retrieval.retriever import retrieve_context
@@ -55,7 +55,7 @@ async def upload_rulebook(
     payload: Annotated[dict, Depends(verify_jwt)],
     edition: Annotated[
         str | None,
-        Form(max_length=150, strip_whitespace=True, pattern=SAFE_TEXT_PATTERN),
+        Form(max_length=150, strip_whitespace=True, pattern=r"^[\w\s\-.,&'\(\)!?]*$"),
     ] = None,
 ):
     """

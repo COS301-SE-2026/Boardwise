@@ -1,7 +1,9 @@
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
+
 
 class Settings:
     # MONGODB_URL: str | None = os.getenv("PROD_DB_URL")
@@ -13,7 +15,11 @@ class Settings:
     R2_BUCKET_RULEBOOKS: str | None = os.getenv("R2_BUCKET_RULEBOOKS")
     R2_ACCESS_KEY: str | None = os.getenv("R2_ACCESS_KEY")
     R2_SECRET_KEY: str | None = os.getenv("R2_SECRET_KEY")
-    R2_ENDPOINT_URL: str = f"https://{os.getenv('R2_ACCOUNT_ID')}.r2.cloudflarestorage.com"
+    R2_ENDPOINT_URL: str = (
+        f"https://{os.getenv('R2_ACCOUNT_ID')}.r2.cloudflarestorage.com"
+    )
     MAX_FILE_SIZE_MB: int = 50
+    HF_TOKEN: str | None = os.getenv("HF_TOKEN")
+
 
 settings = Settings()

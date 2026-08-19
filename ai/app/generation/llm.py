@@ -1,16 +1,15 @@
 import logging
-import os
 import time
 
 from fastapi import HTTPException
 from huggingface_hub import InferenceClient
 from huggingface_hub.errors import HfHubHTTPError
 
+from app.config import settings
+
 logger = logging.getLogger(__name__)
 
-hf_client = InferenceClient(
-    model="Qwen/Qwen2.5-7B-Instruct", token=os.getenv("HF_TOKEN")
-)
+hf_client = InferenceClient(model="Qwen/Qwen2.5-7B-Instruct", token=settings.HF_TOKEN)
 
 
 def generate_answer(messages: list[dict], max_retries: int = 3) -> str:
