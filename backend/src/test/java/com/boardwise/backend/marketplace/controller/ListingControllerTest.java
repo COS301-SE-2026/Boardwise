@@ -24,12 +24,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import com.boardwise.backend.marketplace.controller.ListingController;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
 import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.marketplace.enums.ListingStatus;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.marketplace.service.ListingService;
+import com.boardwise.backend.marketplace.service.RetailService;
 import com.boardwise.backend.shared.config.SecurityConfig;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.shared.security.JwtFilter;
@@ -41,6 +41,8 @@ import com.boardwise.backend.user_service.services.MyUserDetailsService;
 @WebMvcTest(ListingController.class)
 @Import({SecurityConfig.class, JwtFilter.class})
 public class ListingControllerTest{
+    @MockitoBean
+    private RetailService retailService;
 
     @MockitoBean
     private JWTService jwtService;
@@ -116,7 +118,7 @@ public class ListingControllerTest{
         when(listingService.getAllActiveListings()).thenReturn(List.of());
         //ACT & ASSERT
          mockMvc.perform(get("/api/marketplace/listings"))
-               .andExpect(status().isAccepted());
+               .andExpect(status().isNoContent());
     }
 
     @Test
@@ -215,9 +217,6 @@ public class ListingControllerTest{
         .file(image)
         .file(data)
         .with(csrf())
-        .with(request->{
-            request.setMethod("PATCH"); 
-            return request;})
         .header("Authorization", "Bearer valid-test-token"))
         .andExpect(status().isInternalServerError());
     }

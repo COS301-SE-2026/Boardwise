@@ -5,6 +5,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.stereotype.Service;
+
 import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
@@ -12,6 +14,8 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 
+
+@Service
 public class BobShopScraper implements WebScraper {
 
     public BobShopScraper() {

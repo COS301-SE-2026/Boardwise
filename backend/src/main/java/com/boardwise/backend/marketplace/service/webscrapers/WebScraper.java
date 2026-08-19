@@ -1,9 +1,12 @@
 package com.boardwise.backend.marketplace.service.webscrapers;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
 
 //Interface class 
+@Service
 public interface WebScraper {
     
     public List<RetailSourceItemDTO> scrape(String toSearch);    

@@ -1,6 +1,5 @@
 package com.boardwise.backend.marketplace.controller;
 
-import com.boardwise.backend.user_service.controllers.Authcontrollers;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,14 +30,12 @@ import java.util.*;
 
 public class ListingController {
 
-    private final Authcontrollers authcontrollers;
     private final ListingService listingService;
     private final RetailService retailService;
 
-    public ListingController(ListingService listingService, RetailService retailService, Authcontrollers authcontrollers) {
+    public ListingController(ListingService listingService, RetailService retailService) {
         this.listingService = listingService;
         this.retailService = retailService;
-        this.authcontrollers = authcontrollers;
     }
 
     // AC-MKT-01: Get All Active Listings
@@ -47,7 +44,7 @@ public class ListingController {
         try {
             List<ListingResponse> listings = listingService.getAllActiveListings();
             if (listings.isEmpty()) {
-                return ResponseEntity.accepted().body(null);
+                return ResponseEntity.noContent().build();
             }
 
             return ResponseEntity.ok().body(listings);
