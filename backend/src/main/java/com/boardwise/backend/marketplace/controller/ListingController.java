@@ -1,5 +1,6 @@
 package com.boardwise.backend.marketplace.controller;
 
+import com.boardwise.backend.user_service.controllers.Authcontrollers;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 
 import com.boardwise.backend.marketplace.dtos.listing.ListingRequest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
+import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.marketplace.service.*;
 
@@ -29,10 +31,14 @@ import java.util.*;
 
 public class ListingController {
 
+    private final Authcontrollers authcontrollers;
     private final ListingService listingService;
+    private final RetailService retailService;
 
-    public ListingController(ListingService listingService) {
+    public ListingController(ListingService listingService, RetailService retailService, Authcontrollers authcontrollers) {
         this.listingService = listingService;
+        this.retailService = retailService;
+        this.authcontrollers = authcontrollers;
     }
 
     // AC-MKT-01: Get All Active Listings
@@ -165,6 +171,12 @@ public class ListingController {
     }
 
 
-    //RETAIL SERVICE
-    
+    @GetMapping("/retail-listings")
+    public ResponseEntity<Page<RetailSourceItemDTO>> getRetailListings(
+            @RequestParam(required = false) String game,
+            @RequestParam(required = false, defaultValue = "0") Integer page) {
+
+        Page<RetailSourceItemDTO> results = retailService.getRetailListingsPage(game, page);
+        return ResponseEntity.ok(results);
+    }
 }

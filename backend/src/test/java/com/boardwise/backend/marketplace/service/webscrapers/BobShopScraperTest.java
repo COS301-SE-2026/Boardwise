@@ -121,7 +121,7 @@ class BobShopScraperTest {
     @Test
     public void buildItemBelowSimilarityThresholdReturnsEmpty() {
         Optional<RetailSourceItemDTO> result = scraper.buildItem(
-                "Catan", "Completely Unrelated Kitchen Blender", "product-card-container",
+                "Catan", "iphone 17", "product-card-container",
                 "/products/blender", "R699", "00", "img.jpg");
 
         assertTrue(result.isEmpty());

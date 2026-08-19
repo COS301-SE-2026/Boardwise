@@ -1,6 +1,9 @@
 package com.boardwise.backend.marketplace.service;
 
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -16,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 
 import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
-import com.boardwise.backend.marketplace.service.RetailService;
 import com.boardwise.backend.marketplace.service.webscrapers.BobShopScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.TakealotScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.ToysRUsScraper;
@@ -42,7 +44,7 @@ public class RetailServiceTest {
 
     RetailSourceItemDTO genValidRetailSourceItemDTO(String retailerName, String toSearch, Double price, float JWValue ){
         List<String> valid = List.of("Takealot", "BobShop", "ToysRUs");
-        if (retailerName.isBlank() || valid.stream().noneMatch(retailerName::equalsIgnoreCase)) {
+        if (retailerName == null || retailerName.isBlank() || valid.stream().noneMatch(retailerName::equalsIgnoreCase)) {
             throw new IllegalArgumentException("Invalid Retailer Name");
         }
         String url = "http://validurl.com";
@@ -77,8 +79,8 @@ public class RetailServiceTest {
 
         //ASSERT 
         assertNotNull(finalList);
-        assertTrue(!finalList.isEmpty());
-        assertTrue(finalList.size() == 6);
+        assertFalse(finalList.isEmpty());
+        assertEquals(6, finalList.size());
     }
 
     @DisplayName("Should return an empty list of retail source item DTOS on success")
@@ -98,7 +100,38 @@ public class RetailServiceTest {
         assertTrue(finalList.isEmpty());
     }
     
-    
-
+    @DisplayName("Should return partial results when one scraper throws")
+    @Test
+    public void shouldReturnPartialResultsWhenOneScraperFails() {
+        // ARRANGE
+        String toSearch = "ExampleString";
+ 
+        List<RetailSourceItemDTO> tsResults = new ArrayList<>();
+        tsResults.add(genValidRetailSourceItemDTO("Takealot", "Monopoly board game Test 1 ", 500.00, 0.31f));
+ 
+        when(ts.scrape(toSearch)).thenReturn(tsResults);
+        when(bss.scrape(toSearch)).thenThrow(new RuntimeException("BobShop is down"));
+        when(trus.scrape(toSearch)).thenReturn(new ArrayList<>());
+ 
+        // ACT
+        List<RetailSourceItemDTO> finalList = retailService.findWebListings(toSearch);
+ 
+        // ASSERT
+        assertNotNull(finalList);
+        assertEquals(1, finalList.size());
+    }
+ 
+    @DisplayName("Should return empty list without calling scrapers when query is blank")
+    @Test
+    public void shouldShortCircuitOnBlankQuery() {
+        // ACT
+        List<RetailSourceItemDTO> finalList = retailService.findWebListings("   ");
+ 
+        // ASSERT
+        assertNotNull(finalList);
+        assertTrue(finalList.isEmpty());
+        verifyNoInteractions(ts, bss, trus);
+    }
+ 
 }
 

@@ -2,13 +2,24 @@ package com.boardwise.backend.marketplace.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
 import com.boardwise.backend.marketplace.service.webscrapers.BobShopScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.TakealotScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.ToysRUsScraper;
 
+@Service
 public class RetailService {
+
+    private static final int PAGE_SIZE = 20;
 
     private final TakealotScraper ts;
     private final BobShopScraper bss;
@@ -20,35 +31,48 @@ public class RetailService {
         this.trus = trus;
     }
 
-    public  List<RetailSourceItemDTO> findWebListings(String s){
-        try{
-            List<RetailSourceItemDTO> overall = new ArrayList<>();
-
-            List<RetailSourceItemDTO> takealotResults = ts.scrape(s);
-            List<RetailSourceItemDTO> bobShopResults = bss.scrape(s);
-            List<RetailSourceItemDTO> toysrusResults = trus.scrape(s);
-
-            addToList(overall, takealotResults);
-            addToList(overall,bobShopResults);
-            addToList(overall,toysrusResults);
-            
-            if(overall.size() < 0){
-                throw new RuntimeException("Error while finding :" + s);
-            }
-            else if(overall.isEmpty()){
-                return new ArrayList<>();
-            }
-            return overall;
+    protected List<RetailSourceItemDTO> findWebListings(String s) {
+        if (!StringUtils.hasText(s)) {
+            return new ArrayList<>();
         }
-        catch (RuntimeException e){
-            throw new RuntimeException(e.getMessage());
-        }
-    };
 
-    private void addToList(List<RetailSourceItemDTO> overall,List<RetailSourceItemDTO> ls){
-        if (ls == null) return;
-        for(RetailSourceItemDTO a:ls){
-            overall.add(a);
+        // individual processes happening concurrently
+        CompletableFuture<List<RetailSourceItemDTO>> takealotFuture = CompletableFuture.supplyAsync(() -> safeScrape(ts::scrape, s, "Takealot"));
+        CompletableFuture<List<RetailSourceItemDTO>> bobShopFuture = CompletableFuture.supplyAsync(() -> safeScrape(bss::scrape, s, "BobShop"));
+        CompletableFuture<List<RetailSourceItemDTO>> toysRUsFuture = CompletableFuture.supplyAsync(() -> safeScrape(trus::scrape, s, "ToysRUs"));
+
+        CompletableFuture.allOf(takealotFuture, bobShopFuture, toysRUsFuture).join();
+
+        List<RetailSourceItemDTO> overall = new ArrayList<>();
+        overall.addAll(takealotFuture.join());
+        overall.addAll(bobShopFuture.join());
+        overall.addAll(toysRUsFuture.join());
+
+        return overall;
+    }
+
+    private List<RetailSourceItemDTO> safeScrape(java.util.function.Function<String, List<RetailSourceItemDTO>> scraper,
+            String query, String sourceName) {
+        try {
+            List<RetailSourceItemDTO> result = scraper.apply(query);
+            return result != null ? result : new ArrayList<>();
+        } catch (Exception e) {
+            return new ArrayList<>();
         }
+    }
+
+    public Page<RetailSourceItemDTO> getRetailListingsPage(String s, Integer pageNum) {
+        List<RetailSourceItemDTO> overall = findWebListings(s);
+
+        int page = (pageNum == null || pageNum < 0) ? 0 : pageNum;
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+
+        int start = (int) pageable.getOffset();
+        if (start >= overall.size()) {
+            return new PageImpl<>(new ArrayList<>(), pageable, overall.size());
+        }
+        int end = Math.min(start + pageable.getPageSize(), overall.size());
+
+        return new PageImpl<>(overall.subList(start, end), pageable, overall.size());
     }
 }
