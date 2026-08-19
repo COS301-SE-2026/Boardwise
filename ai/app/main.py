@@ -59,10 +59,10 @@ app = FastAPI(
     description="""
     An asynchronous Retrieval-Augmented Generation (RAG) gateway for the Boardwise tabletop gaming platform.
     
-    ### Core Capabilities:
-    * **Ingestion Pipeline:** PDF sanitisation, OCR text extraction, and hierarchical chunking.
-    * **Vectorisation:** Matryoshka dimensionality truncation and MongoDB Binary Quantization via Nomic embeddings.
-    * **Retrieval & Generation:** Vector similarity search, cross-encoder re-ranking, and LLM context generation.
+    Core Capabilities:
+    - Ingestion Pipeline: PDF sanitisation, OCR text extraction, and hierarchical chunking.
+    - Vectorisation: Matryoshka dimensionality truncation and MongoDB Binary Quantization via Nomic embeddings.
+    - Retrieval & Generation: Vector similarity search, cross-encoder re-ranking, and LLM context generation.
     """,
     version="1.0.0",
     lifespan=lifespan,
