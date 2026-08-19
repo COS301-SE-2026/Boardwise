@@ -5,7 +5,7 @@
 
       <div class="image-container">
         <BaseImage :src="listing.imageUrl" :alt="listing.listingTitle" height="200px" />
-        <BaseBadge :variant="listing.type === 'rent' ? 'rent' : 'sale'" class="badge">
+        <BaseBadge :variant="listing.listingType === 'rental' ? 'rent' : 'sale'" class="badge">
           {{ listing.listingType === 'rental' ? 'For rent' : 'For sale' }}
         </BaseBadge>
       </div>
@@ -32,6 +32,9 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseBadge from '~/components/ui/BaseBadge.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'

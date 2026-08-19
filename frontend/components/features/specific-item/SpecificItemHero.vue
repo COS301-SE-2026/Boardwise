@@ -32,10 +32,10 @@
 
       <div class="actions">
         <BaseButton @click="showContact = true">Contact lister</BaseButton>
-        <BaseButton variant="secondary" @click="$router.push(`/library/${listing.rulebookId}`)">
+        <BaseButton variant="secondary" @click="router.push(`/library/${listing.rulebookId}`)">
             Read rulebook
         </BaseButton>
-        <BaseButton variant="secondary" @click="$router.back()">Go back</BaseButton>
+        <BaseButton variant="secondary" @click="router.back()">Go back</BaseButton>
         </div>
 
     </div>
@@ -48,10 +48,14 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseBadge from '~/components/ui/BaseBadge.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
 import ContactListerModal from './ContactListerModal.vue'
+
+const router = useRouter()
 
 const props = defineProps({
   listing: {
