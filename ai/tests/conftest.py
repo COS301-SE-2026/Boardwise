@@ -26,22 +26,27 @@ def disable_live_db_connections():
         yield mock_mongo_ping, mock_r2_ping
 
 
-def mock_ml_models():
-    """Provides mock ML models to prevent RAM OOM crashes in Fargate."""
+@pytest.fixture
+def mock_embedder():
+    """Provides a mocked SentenceTransformer to prevent RAM OOM crashes in Fargate."""
     embedder_mock = MagicMock()
     embedder_mock.encode.return_value = [0.5] * 256
+    return embedder_mock
 
+
+@pytest.fixture
+def mock_reranker():
+    """Provides a mocked CrossEncoder to prevent RAM OOM crashes in Fargate."""
     reranker_mock = MagicMock()
     reranker_mock.predict.return_value = [0.95, 0.80, 0.20]
-
-    return {"embedder": embedder_mock, "reranker": reranker_mock}
+    return reranker_mock
 
 
 # ========== Application Clients & Dependencies ==========
 
 
 @pytest.fixture
-def client():
+def client(mock_embedder, mock_reranker):
     """
     Provides a TestClient instance for router tests.
     Uses a context manager ('with') to trigger the lifespan boot sequence.
@@ -51,8 +56,8 @@ def client():
         patch("app.main.SentenceTransformer") as mock_st,
         patch("app.main.CrossEncoder") as mock_ce,
     ):
-        mock_st.return_value = mock_ml_models()["embedder"]
-        mock_ce.return_value = mock_ml_models()["reranker"]
+        mock_st.return_value = mock_embedder
+        mock_ce.return_value = mock_reranker
 
         # The 'with' block here is required to trigger @asynccontextmanager
         with TestClient(app) as test_client:
