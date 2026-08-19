@@ -14,10 +14,13 @@ from fastapi import (
     status,
 )
 
+from ai.app.generation.llm import generate_answer
+from ai.app.generation.prompt import build_chat_messages
 from app.config import settings
 from app.dependencies import verify_jwt
-from app.models.schemas import UploadResponse
+from app.models.schemas import Citation, QueryRequest, QueryResponse, UploadResponse
 from app.pipeline.ingestion import run_ingestion_pipeline
+from app.retrieval.retriever import retrieve_context
 from app.services import mongo_service
 
 logger = logging.getLogger(__name__)
@@ -138,3 +141,51 @@ async def upload_rulebook(
         rulebook_id=rulebook_id,
         job_id=job_id,
     )
+
+
+@router.post("/{rulebookId}/query", response_model=QueryResponse)
+async def query_rulebook(rulebookId: str, payload: QueryRequest, request: Request):
+    """
+    Executes a RAG query against a specific rulebook.
+    Retrieves vector context, scores relevance, and generates a grounded LLM answer.
+    """
+    try:
+        query = payload.query
+        ml_models = request.app.state.ml_models
+
+        retrieved_chunks = retrieve_context(query, rulebookId, ml_models)
+
+        if not retrieved_chunks:
+            logger.info(
+                "No context found for rulebook %s. Bypassing LLM generation.",
+                rulebookId,
+            )
+            return QueryResponse(
+                answer="I cannot find the answer to this rule in the provided text.",
+                citations=[],
+            )
+
+        messages = build_chat_messages(query, retrieved_chunks)
+        answer = generate_answer(messages)
+
+        citations = [
+            Citation(
+                chunkId=chunk.get("chunkId", "unknown"),
+                index=chunk.get("index", 0),
+                content=chunk.get("content", ""),
+                relevanceScore=chunk.get("relevanceScore", 0.0),
+            )
+            for chunk in retrieved_chunks
+        ]
+        logger.info("Successfully processed query for rulebook %s.", rulebookId)
+        return QueryResponse(answer=answer, citations=citations)
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception(
+            "Unexpected error occurred while querying rulebook %s", rulebookId
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="An unexpected error occurred while processing your query.",
+        )
