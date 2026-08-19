@@ -43,15 +43,20 @@ Boardwise is a comprehensive digital ecosystem for board game enthusiasts that c
 
 Boardwise digitises and expands the tabletop gaming experience for the South African board gaming community, which remains largely offline and fragmented. The platform is a store-agnostic ecosystem where enthusiasts can connect, rent and sell games peer-to-peer, organise events, and collaboratively maintain a shared library of digitised rulebooks.
 
-The system is built around three core domains, each owned by a dedicated backend service: a **User & Community Service**, a **Marketplace Service**, and a **Shared Library (The Vault)** with an AI ingestion pipeline.
+The system is built around three core domains, each owned by a dedicated backend service: 
+- **User & Community Service**
+- **Marketplace Service**
+-  **Shared Library (The Vault)** with an AI ingestion pipeline.
+
+The Demo 3 iteration focuses on completing and integrating these core capabilities while imporving the system's accessibility, responsiveness, installability and overalll product quality. 
 
 | Resource | Link |
 |---|---|
 | Software Requirements Specification (SRS) | [View SRS](./docs/Demo2/srs.md) |
-| (SAS) | [View.SAS](./docs/Demo2/sas.md)|
-| GitHub Project Board | [Open Board](#https://github.com/orgs/COS301-SE-2026/projects/46) |
+| Software Architecture Specification (SAS) | [View.SAS](./docs/Demo2/sas.md)|
+| GitHub Project Board | [Open Board](https://github.com/orgs/COS301-SE-2026/projects/46) |
 | UI Wireframes & Designs | [Open Designs](./docs/design) |
-| Brand Style Guide | [View Guide](./docs/design/brandStyleGuide.pdf) |
+| Brand Style Guide (pdf version)  | [View Guide](./docs/design/brandStyleGuide.pdf) |
 | Coding Standards | [View Standards](./docs/design/codingStandards.pdf) |
 ---
 
@@ -59,10 +64,15 @@ The system is built around three core domains, each owned by a dedicated backend
 
 | Feature | What it does | Built with |
 |---|---|---|
-| **Shared Rulebook Library (The Vault)** | Upload, browse, read and collaboratively edit digitised rulebooks with version history | Spring Boot · FastAPI · MongoDB · Cloudflare R2 |
-| **Marketplace** | Create, browse and manage peer-to-peer rental and sale listings; discover external retail sources | Spring Boot · MongoDB · Cloudflare R2 |
-| **Community & Events** | Schedule public, friends-only and private events; RSVP and manage attendees | Spring Boot · MongoDB |
-| **User Profiles & Social** | Manage profiles, game inventory, preferences, friends and groups | Spring Boot · Spring Security · JWT |
+| **Shared Rulebook Library (The Vault)** | Upload, browse, read and collaboratively maintain digitised rulebooks | Spring Boot · FastAPI · MongoDB · Cloudflare R2 |
+| **AI Rule Resolution** | Ask questions about board game rules and receive answers grounded in relevant rulebook information | FastAPI · Python · RAG |
+| **Marketplace** | Create, browse and manage peer-to-peer rental and sale listings | Spring Boot · MongoDB · Cloudflare R2 |
+| **Community & Events** | Schedule public, friends-only and private events and manage participation | Spring Boot · MongoDB |
+| **User Profiles & Social** | Manage profiles, game collections, preferences, friends and groups | Spring Boot · Spring Security · JWT |
+| **Notifications** | View system notifications through the profile interface and dedicated notification page | Vue · Nuxt · Backend Services |
+| **Administration** | Provide administrative functionality for managing and monitoring the platform | Vue · Nuxt · Backend Services |
+| **PWA** | Provide an installable, responsive experience across supported devices | Nuxt · PWA |
+
 
 ---
 
@@ -134,6 +144,25 @@ Boardwise is developed by a multidisciplinary team of University of Pretoria Com
 | **Njabulo Mathonsi** | DevOps Engineer · Services Engineer | CI/CD, backend services, data flow & authentication | [LinkedIn](https://www.linkedin.com/in/njabulo-mathonsi-5126983aa/) |
 | **Palesa Nkosi** | UI/UX Designer · UI Engineer | Responsive UI, accessibility, interface & experience design | [LinkedIn](https://www.linkedin.com/in/bridget-nkosi-03734834b) |
 | **Bandile Mnyandu** | Services Engineer · Integration Engineer | Backend validation, integration, testing strategy | [LinkedIn](https://www.linkedin.com/in/bandile-mnyandu-900b96303/) |
+
+### Team Structure
+
+**Frontend & Design**
+
+* Hayley Booysen
+* Palesa Nkosi
+
+**Backend**
+
+* Njabulo Mathonsi
+* Karabo Nkomo
+* Bandile Mnyandu
+
+**Integration & QA**
+
+* Entire team
+
+
 
 ---
 
@@ -225,22 +254,64 @@ cd ai && pip install -r requirements.txt && uvicorn main:app --reload
 
 # Documentation
 
-| Document | Description |
-|---|---|
-| [SRS](./docs/Demo2/srs.md)  | Functional & non-functional requirements, use cases, domain model, API contracts, architecture |
-| [Brand Style Guide](./docs/design/brandStyleGuide%20(version%202).pdf) | Colour palette, typography, components, accessibility |
-| [Wireframes](./docs/design) | UI/UX designs and navigation flows |
-| [Design Tokens](./frontend/assets/theme.css) | Global styling variables for frontend consistency |
+| Document                                                                   | Description                                                                               |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| [SRS](./docs/Demo2/srs.md)                                                 | Functional and non-functional requirements, use cases, domain model and service contracts |
+| [SAS](./docs/Demo2/sas.md)                                                 | System architecture and architectural decisions                                           |
+| [Brand Style Guide](./docs/design/brandStyleGuide%20%28version%202%29.pdf) | Colour palette, typography, components and accessibility                                  |
+| [Wireframes & Designs](./docs/design)                                      | UI/UX designs and navigation flows                                                        |
+| [Design Tokens](./frontend/assets/theme.css)                               | Global frontend styling variables                                                         |
+
+The [Boardwise Wiki](https://github.com/COS301-SE-2026/Boardwise/wiki) contains operational project information including:
+
+* Sprint planning
+* Development workflow
+* Architecture and deployment
+* Testing procedures
+* Troubleshooting
+* Project decisions
+* Team processes
 
 ---
 
+
 # Project Goals
 
-- Digitise the South African tabletop gaming experience
-- Strengthen local gaming communities through events and groups
-- Improve rulebook accessibility via a collaborative shared library
-- Enable peer-to-peer rentals and sales without retailer lock-in
-- Build a maintainable, scalable, free-tier-hosted, open-source platform
+* Digitise the South African tabletop gaming experience
+* Strengthen local gaming communities through events and groups
+* Improve rulebook accessibility through a shared digital library
+* Provide AI-assisted rule resolution using relevant rulebook information
+* Enable peer-to-peer rentals and sales
+* Provide a responsive and accessible user experience
+* Deliver an installable Progressive Web Application
+* Maintain a scalable, maintainable and secure system
+
+---
+
+# Demo 3 Definition of Done
+
+For Demo 3, Boardwise features are considered complete when they are:
+
+* Integrated across the required system components
+* Tested and functioning in the deployed environment
+* Responsive across supported screen sizes
+* Accessible where applicable
+* Reviewed through the team's development workflow
+* Supported by appropriate documentation
+
+The system should demonstrate a complete user experience rather than isolated functionality.
+
+---
+
+# Project Links
+
+| Resource                | Link                                                                |
+| ----------------------- | ------------------------------------------------------------------- |
+| Live System          | [boardwise.games](https://boardwise.games/)                         |
+| GitHub Repository    | [Boardwise](https://github.com/COS301-SE-2026/Boardwise)            |
+| GitHub Project Board | [Project Board](https://github.com/orgs/COS301-SE-2026/projects/46) |
+| GitHub Issues        | [Issues](https://github.com/COS301-SE-2026/Boardwise/issues)        |
+| Boardwise Wiki       | [Wiki](https://github.com/COS301-SE-2026/Boardwise/wiki)            |
 
 ---
 
