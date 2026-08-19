@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import CrossEncoder, SentenceTransformer
 
 from app.routers import job, rulebook
 from app.services import mongo_service, r2_service
@@ -36,6 +36,11 @@ async def lifespan(app: FastAPI):
             "nomic-ai/nomic-embed-text-v1.5", device="cpu", trust_remote_code=True
         )
         logger.info("Nomic embedding model loaded successfully.")
+
+        ml_models["reranker_model"] = CrossEncoder(
+            "cross-encoder/ms-marco-MiniLM-L6-v2", device="cpu"
+        )
+        logger.info("Cross-encoder re-ranker model loaded successfully.")
     except Exception:
         logger.exception("FATAL BOOT ERROR: Infrastructure check failed")
         raise
