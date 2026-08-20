@@ -18,8 +18,8 @@ from app.config import settings
 from app.dependencies import verify_index_ready, verify_jwt
 from app.generation.llm import generate_answer
 from app.generation.prompt import build_chat_messages
+from app.ingestion.ingestion import run_ingestion_pipeline
 from app.models.schemas import Citation, QueryRequest, QueryResponse, UploadResponse
-from app.pipeline.ingestion import run_ingestion_pipeline
 from app.retrieval.retriever import retrieve_context
 from app.services import mongo_service
 
@@ -148,7 +148,7 @@ async def query_rulebook(
     rulebookId: str,
     payload: QueryRequest,
     request: Request,
-    _: Annotated[None, Depends(verify_index_ready)]
+    _: Annotated[None, Depends(verify_index_ready)],
 ):
     """
     Executes a RAG query against a specific rulebook.
