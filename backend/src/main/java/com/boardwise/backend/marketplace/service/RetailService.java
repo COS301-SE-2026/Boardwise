@@ -32,6 +32,11 @@ public class RetailService {
     }
 
     protected List<RetailSourceItemDTO> findWebListings(String s) {
+         System.out.println("findWebListings called with s=[" + s + "]");
+        if (!StringUtils.hasText(s)) {
+            System.out.println("Short-circuited: blank query");
+            return new ArrayList<>();
+        }
         if (!StringUtils.hasText(s)) {
             return new ArrayList<>();
         }

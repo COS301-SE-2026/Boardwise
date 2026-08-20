@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -70,16 +71,16 @@ public class ListingController {
     @PostMapping(value = "/listings", consumes = "multipart/form-data")
     public ResponseEntity<ListingResponse> createListing(
             @RequestPart("data") @Valid ListingRequest req,
-            @RequestPart(value="image", required = false) MultipartFile img,
+            @RequestPart(value = "image", required = false) MultipartFile img,
             @RequestHeader("Authorization") String token) {
         try {
             ListingResponse response = listingService.createListing(req, token.replace("Bearer ", ""), img);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            
+
             return ResponseEntity.badRequest().body(null);
         } catch (Exception e) {
-            
+
             return ResponseEntity.internalServerError().body(null);
         }
     }
@@ -111,16 +112,16 @@ public class ListingController {
             @RequestHeader("Authorization") String token) {
         try {
             listingService.deleteListing(listingId, token.replace("Bearer ", ""));
-            
+
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
-            
+
             return ResponseEntity.notFound().build();
         } catch (ForbiddenException e) {
-            
+
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (Exception e) {
-            
+
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -136,7 +137,7 @@ public class ListingController {
             return ResponseEntity.ok(listings);
 
         } catch (Exception e) {
-             
+
             return ResponseEntity.internalServerError().body(null);
         }
     }
@@ -152,28 +153,34 @@ public class ListingController {
             @RequestParam(required = false) List<String> conditions,
             @RequestParam(required = false) List<String> genres,
             @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size
-            ) {
+            @RequestParam(required = false) Integer size) {
         try {
-            Page<ListingResponse> listings = listingService.getByFilter(gameTitle, listingTitle, listingType, itemType, minPrice, maxPrice,
-                    conditions,genres, page, size);
+            Page<ListingResponse> listings = listingService.getByFilter(gameTitle, listingTitle, listingType, itemType,
+                    minPrice, maxPrice,
+                    conditions, genres, page, size);
             if (listings.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
             return ResponseEntity.ok(listings);
         } catch (Exception e) {
-             
+
             return ResponseEntity.internalServerError().build();
         }
     }
 
-
-    @GetMapping("/retail-listings")
+    @PostMapping("/listings/retail")
     public ResponseEntity<Page<RetailSourceItemDTO>> getRetailListings(
-            @RequestParam(required = false) String game,
+            @RequestBody(required = false) String game,
             @RequestParam(required = false, defaultValue = "0") Integer page) {
 
-        Page<RetailSourceItemDTO> results = retailService.getRetailListingsPage(game, page);
-        return ResponseEntity.ok(results);
+        try {
+            long f = System.currentTimeMillis();
+            Page<RetailSourceItemDTO> results = retailService.getRetailListingsPage(game, page);
+
+            return ResponseEntity.ok(results);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(null);
+        }
+
     }
 }
