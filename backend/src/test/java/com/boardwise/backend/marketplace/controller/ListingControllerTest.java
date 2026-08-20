@@ -21,10 +21,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
+import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
 import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.marketplace.enums.ListingStatus;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
@@ -59,6 +61,7 @@ public class ListingControllerTest{
     @MockitoBean
     private UserRepository userRepository;
 
+    
     @MockitoBean
     private TokenBlackListRepository tokenBlackListRepository;
 
@@ -415,7 +418,44 @@ public class ListingControllerTest{
         //ACT & ASSERT
         mockMvc.perform(get("/api/marketplace/listings/search")).andExpect(status().isInternalServerError());
     }
-    
 
+    @Test
+    @WithMockUser
+    @DisplayName("POST External Retailer 200 OK With body")
+    public void getExternalRetailerListings_200WithBody() throws Exception{
+        //ARRANGE   
+        
+        RetailSourceItemDTO a = new RetailSourceItemDTO("Something cool, i guess","Takealot","somevalidurl",0.00,"imagineanimageHere.someformat",0.0f);
+        Page<RetailSourceItemDTO> fakeObjs= new PageImpl<>(List.of(a,a,a,a,a));
+        
+        when(retailService.getRetailListingsPage("wraps",0)).thenReturn(fakeObjs);
+        
+        //ACT & ASSERT
+        mockMvc.perform(post("/api/marketplace/listings/retail")).andExpect(status().isOk());
+        
+    }
+    
+    @DisplayName("POST External Retailer 204 No Content Without body")
+    public void getExternalRetailerListingsWithoutbody_204() throws Exception{
+        //ARRANGE   
+        Page<RetailSourceItemDTO> fakeObjs= null;
+        
+        when(retailService.getRetailListingsPage("wraps",0)).thenReturn(fakeObjs);
+        
+        //ACT & ASSERT
+        mockMvc.perform(post("/api/marketplace/listings/retail")).andExpect(status().isNoContent());
+    }
+
+    @DisplayName("POST External Retailer 500 InternalServerError with body")
+    public void getExternalRetailerListingswith_500() throws Exception{
+        //ARRANGE   
+        RetailSourceItemDTO a = new RetailSourceItemDTO("Something cool, i guess","Takealot","somevalidurl",0.00,"imagineanimageHere.someformat",0.0f);
+        Page<RetailSourceItemDTO> fakeObjs= new PageImpl<>(List.of(a,a,a,a,a));
+
+        when(retailService.getRetailListingsPage(null,0)).thenReturn(fakeObjs);
+        
+        //ACT & ASSERT
+        mockMvc.perform(post("/api/marketplace/listings/retail")).andExpect(status().isInternalServerError());
+    }
 
 }

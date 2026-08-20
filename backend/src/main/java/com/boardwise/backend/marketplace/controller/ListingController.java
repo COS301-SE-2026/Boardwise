@@ -174,7 +174,6 @@ public class ListingController {
             @RequestParam(required = false, defaultValue = "0") Integer page) {
 
         try {
-            long f = System.currentTimeMillis();
             Page<RetailSourceItemDTO> results = retailService.getRetailListingsPage(game, page);
 
             return ResponseEntity.ok(results);
