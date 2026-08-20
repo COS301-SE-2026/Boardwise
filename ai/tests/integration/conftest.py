@@ -1,18 +1,28 @@
 import os
+from unittest.mock import patch
+
 import pytest
+from fastapi.testclient import TestClient
 
 os.environ["DB_NAME"] = "ci_fallback_db"
 
-from bson import ObjectId
-from app.services import mongo_service
 from datetime import datetime, timezone
 
+from app.main import app
+from app.services import mongo_service
+from bson import ObjectId
+
+
 @pytest.fixture(autouse=True)
-def clean_db():
+def clean_db(request):
     """
-    Runs before every integration test.
     Wipes all collections to guarantee a clean slate.
+    ONLY runs if the test is explicitly marked with @pytest.mark.db
     """
+    if not request.node.get_closest_marker("db"):
+        yield
+        return
+
     db = mongo_service.client[os.environ["DB_NAME"]]
 
     db.RULEBOOK.delete_many({})
@@ -24,6 +34,7 @@ def clean_db():
 
     yield
 
+
 @pytest.fixture
 def seed_user() -> ObjectId:
     """Inserts a dummy user and returns their exact ObjectId."""
@@ -31,16 +42,20 @@ def seed_user() -> ObjectId:
     result = db.USER.insert_one({"username": "alice_test"})
     return result.inserted_id
 
+
 @pytest.fixture
 def seed_board_game() -> ObjectId:
     """Inserts a dummy board game and returns its exact ObjectId."""
     db = mongo_service.client[os.environ["DB_NAME"]]
-    result = db.BOARD_GAME.insert_one({
-        "title": "Dune",
-        "imageURL": "https://mocksite.com/dune.png",
-        "description": "Galactic conquest"
-    })
+    result = db.BOARD_GAME.insert_one(
+        {
+            "title": "Dune",
+            "imageURL": "https://mocksite.com/dune.png",
+            "description": "Galactic conquest",
+        }
+    )
     return result.inserted_id
+
 
 @pytest.fixture
 def seed_rulebook(seed_board_game, seed_user) -> ObjectId | None:
@@ -52,29 +67,32 @@ def seed_rulebook(seed_board_game, seed_user) -> ObjectId | None:
     now = datetime.now(timezone.utc)
 
     if boardgame and user:
-        result = db.RULEBOOK.insert_one({
-            "coverUrl": boardgame.get("imageURL",""),
-            "gameId": boardgame["_id"],
-            "title": boardgame.get("title", "Unknown"),
-            "edition": None,
-            "status": "Processing",
-            "version": 0,
-            "contributorId": seed_user,
-            "contributorUsername": user.get("username", "Unknown"),
-            "description": boardgame.get("description",""),
-            "language": "en",
-            "r2PdfKey": "",
-            "r2CoverKey": "rulebooks/default_cover.png",
-            "lockHeldBy": None,
-            "lockExpiresAt": None,
-            "undoStack": [],
-            "redoStack": [],
-            "uploadedAt":now,
-            "updatedAt":now,
-        })
+        result = db.RULEBOOK.insert_one(
+            {
+                "coverUrl": boardgame.get("imageURL", ""),
+                "gameId": boardgame["_id"],
+                "title": boardgame.get("title", "Unknown"),
+                "edition": None,
+                "status": "Processing",
+                "version": 0,
+                "contributorId": seed_user,
+                "contributorUsername": user.get("username", "Unknown"),
+                "description": boardgame.get("description", ""),
+                "language": "en",
+                "r2PdfKey": "",
+                "r2CoverKey": "rulebooks/default_cover.png",
+                "lockHeldBy": None,
+                "lockExpiresAt": None,
+                "undoStack": [],
+                "redoStack": [],
+                "uploadedAt": now,
+                "updatedAt": now,
+            }
+        )
         return result.inserted_id
 
     return None
+
 
 @pytest.fixture
 def mock_pdf_bytes() -> bytes:
@@ -96,3 +114,50 @@ def mock_pdf_bytes() -> bytes:
         b"startxref\n310\n"
         b"%%EOF"
     )
+
+
+@pytest.fixture(autouse=True)
+def disable_live_db_connections(request):
+    """
+    Prevents the FastAPI lifespan from pinging the live MongoDB Atlas
+    cluster or Cloudflare R2 buckets during CI/CD.
+    If test is marked with 'db', we bypass this mock so the DB can actually connect
+    """
+    if request.node.get_closest_marker("db"):
+        yield None, None, None
+        return
+
+    with (
+        patch(
+            "app.services.mongo_service.ping_database", return_value=True
+        ) as mock_mongo_ping,
+        patch(
+            "app.services.r2_service.ping_r2_storage", return_value=True
+        ) as mock_r2_ping,
+        patch(
+            "app.main.initialise_vector_index", return_value=True
+        ) as mock_vector_init,
+    ):
+        yield mock_mongo_ping, mock_r2_ping, mock_vector_init
+
+
+# ========== Application Clients & Dependencies ==========
+
+
+@pytest.fixture
+def client(mock_embedder, mock_reranker):
+    """
+    Provides a TestClient instance for router tests.
+    Uses a context manager ('with') to trigger the lifespan boot sequence.
+    Patches the model initialisations so app.state.ml_models gets the mocks.
+    """
+    with (
+        patch("app.main.SentenceTransformer") as mock_st,
+        patch("app.main.CrossEncoder") as mock_ce,
+    ):
+        mock_st.return_value = mock_embedder
+        mock_ce.return_value = mock_reranker
+
+        # The 'with' block here is required to trigger @asynccontextmanager
+        with TestClient(app) as test_client:
+            yield test_client

@@ -1,29 +1,10 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from app.dependencies import verify_jwt
 from app.main import app
-from fastapi.testclient import TestClient
 
-# ========== Infrastructure Security & ML Mocks ==========
-
-
-@pytest.fixture(autouse=True)
-def disable_live_db_connections():
-    """
-    Automatically runs before every test.
-    Prevents the FastAPI lifespan from pinging the live MongoDB Atlas
-    cluster or Cloudflare R2 buckets during CI/CD.
-    """
-    with (
-        patch(
-            "app.services.mongo_service.ping_database", return_value=True
-        ) as mock_mongo_ping,
-        patch(
-            "app.services.r2_service.ping_r2_storage", return_value=True
-        ) as mock_r2_ping,
-    ):
-        yield mock_mongo_ping, mock_r2_ping
+# ========== ML Mocks ==========
 
 
 @pytest.fixture
@@ -40,28 +21,6 @@ def mock_reranker():
     reranker_mock = MagicMock()
     reranker_mock.predict.return_value = [0.95, 0.80, 0.20]
     return reranker_mock
-
-
-# ========== Application Clients & Dependencies ==========
-
-
-@pytest.fixture
-def client(mock_embedder, mock_reranker):
-    """
-    Provides a TestClient instance for router tests.
-    Uses a context manager ('with') to trigger the lifespan boot sequence.
-    Patches the model initialisations so app.state.ml_models gets the mocks.
-    """
-    with (
-        patch("app.main.SentenceTransformer") as mock_st,
-        patch("app.main.CrossEncoder") as mock_ce,
-    ):
-        mock_st.return_value = mock_embedder
-        mock_ce.return_value = mock_reranker
-
-        # The 'with' block here is required to trigger @asynccontextmanager
-        with TestClient(app) as test_client:
-            yield test_client
 
 
 @pytest.fixture
@@ -137,7 +96,9 @@ def empty_pdf_bytes() -> bytes:
     """Empty PDF"""
     return b"%PDF-1.4\n<< >>\n%EOF"
 
+
 # ========== Vectoriser fixtures ==========
+
 
 @pytest.fixture
 def valid_chunk_list() -> list[dict]:
@@ -147,15 +108,16 @@ def valid_chunk_list() -> list[dict]:
             "chunkId": "mock_id_1",
             "index": 0,
             "content": "Setup: Each player takes a player board.",
-            "charCount": 40
+            "charCount": 40,
         },
         {
             "chunkId": "mock_id_1",
             "index": 1,
             "content": "Phase 1: Draw two cards.",
-            "charCount": 24
-        }
+            "charCount": 24,
+        },
     ]
+
 
 @pytest.fixture
 def mock_nomic_embedder():
@@ -165,8 +127,8 @@ def mock_nomic_embedder():
     [:,:256] truncation logic to be tested.
     """
     mock_model = MagicMock()
-    
-    dummy_embeddings = [[0.1] * 768, [0.5] * 768] # 2 x 768 array for 2 chunks
-    
+
+    dummy_embeddings = [[0.1] * 768, [0.5] * 768]  # 2 x 768 array for 2 chunks
+
     mock_model.encode.return_value = dummy_embeddings
     return mock_model

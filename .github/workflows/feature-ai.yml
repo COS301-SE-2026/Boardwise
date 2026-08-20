@@ -30,6 +30,7 @@ jobs:
           R2_ACCESS_KEY_ID: "dummy_key"
           R2_SECRET_ACCESS_KEY: "dummy_secret"
           R2_BUCKET_RULEBOOKS: "dummy_bucket"
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
 
         defaults:
             run:
@@ -44,7 +45,7 @@ jobs:
 
             - uses: actions/setup-python@v5
               with:
-                python-version: '3.12'
+                python-version: '3.13'
                 cache: 'pip'
 
             - name: Install Python Dependencies
@@ -58,4 +59,4 @@ jobs:
                 sleep 5
 
             - name: Run Tests
-              run: pytest -v tests/
+              run: python -m pytest -v tests/
