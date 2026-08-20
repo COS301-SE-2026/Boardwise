@@ -76,7 +76,7 @@ async def upload_rulebook(
         file_bytes.extend(chunk)
         if len(file_bytes) > max_bytes:
             raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
                 detail=f"File exceeds {settings.MAX_FILE_SIZE_MB}MB limit.",
             )
 
@@ -84,7 +84,7 @@ async def upload_rulebook(
 
     if not file_bytes or not file_bytes.startswith(b"%PDF"):
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="The uploaded file is empty or corrupted.",
         )
 
@@ -143,7 +143,11 @@ async def upload_rulebook(
     )
 
 
-@router.post("/{rulebookId}/query", response_model=QueryResponse)
+@router.post(
+    "/{rulebookId}/query",
+    response_model=QueryResponse,
+    dependencies=[Depends(verify_jwt)],
+)
 async def query_rulebook(
     rulebookId: str,
     payload: QueryRequest,

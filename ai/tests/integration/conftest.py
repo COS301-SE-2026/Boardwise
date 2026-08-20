@@ -2,6 +2,7 @@ import os
 from unittest.mock import patch
 
 import pytest
+from app.dependencies import verify_index_ready
 from fastapi.testclient import TestClient
 
 os.environ["DB_NAME"] = "ci_fallback_db"
@@ -161,3 +162,13 @@ def client(mock_embedder, mock_reranker):
         # The 'with' block here is required to trigger @asynccontextmanager
         with TestClient(app) as test_client:
             yield test_client
+
+
+@pytest.fixture
+def mock_verify_index_ready():
+    """Mocks the verify_index_ready dependency to bypass MongoDB index checks."""
+    app.dependency_overrides[verify_index_ready] = lambda: None
+
+    yield
+
+    app.dependency_overrides.pop(verify_index_ready, None)

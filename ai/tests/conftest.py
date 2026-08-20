@@ -65,6 +65,18 @@ def safe_pdf_with_exceptions() -> bytes:
     """
     return b"%PDF-1.4\n<< /Type /Catalog ... /JavaScript >>\n%EOF"
 
+@pytest.fixture
+def minimal_pdf():
+    return (
+        b"%PDF-1.4\n"
+        b"1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
+        b"2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n"
+        b"2 0 obj\n<< /Type /Pages /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n"
+        b"xref\n0 3\n0000000000 65535 f \n0000000010 00000 n \n0000000060 00000 n \n0000000111 00000 n \n"
+        b"trailer\n<< /Size 4 /Root 1 0 R >>\n"
+        b"startxref\n110\n%%EOF\n"
+    )
+
 
 # ========== Extractor and Chunker fixtures ==========
 
