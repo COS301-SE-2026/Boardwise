@@ -1,4 +1,5 @@
 import logging
+from typing import Annotated
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def verify_jwt(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(bearer_scheme)],
 ) -> dict:
     """
     Verifies if the JWT attached to bearer is valid.

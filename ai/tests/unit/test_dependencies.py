@@ -20,7 +20,7 @@ def create_test_token(payload_overrides: dict | None = None) -> str:
     return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 
 
-@patch("app.dependencies.is_token_valid")
+@patch("app.services.mongo_service.is_token_valid")
 def test_verify_jwt_valid_token_returns_payload(mock_is_valid):
     # Arrange
     mock_is_valid.return_value = True
@@ -51,7 +51,7 @@ def test_verify_jwt_missing_jti_raises_401():
     assert "missing JTI" in exc_info.value.detail
 
 
-@patch("app.dependencies.is_token_valid")
+@patch("app.services.mongo_service.is_token_valid")
 def test_verify_jwt_blacklisted_token_raises_401(mock_is_valid):
     # Arrange
     mock_is_valid.return_value = False

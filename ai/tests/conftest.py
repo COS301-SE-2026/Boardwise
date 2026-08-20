@@ -136,3 +136,37 @@ def empty_extracted_text() -> str:
 def empty_pdf_bytes() -> bytes:
     """Empty PDF"""
     return b"%PDF-1.4\n<< >>\n%EOF"
+
+# ========== Vectoriser fixtures ==========
+
+@pytest.fixture
+def valid_chunk_list() -> list[dict]:
+    """A List of chunks"""
+    return [
+        {
+            "chunkId": "mock_id_1",
+            "index": 0,
+            "content": "Setup: Each player takes a player board.",
+            "charCount": 40
+        },
+        {
+            "chunkId": "mock_id_1",
+            "index": 1,
+            "content": "Phase 1: Draw two cards.",
+            "charCount": 24
+        }
+    ]
+
+@pytest.fixture
+def mock_nomic_embedder():
+    """
+    Mocks the SentenceTransformer specifically for the vectoriser tests.
+    Returns a 768-dimensional array for each input chunk to allow the numpy
+    [:,:256] truncation logic to be tested.
+    """
+    mock_model = MagicMock()
+    
+    dummy_embeddings = [[0.1] * 768, [0.5] * 768] # 2 x 768 array for 2 chunks
+    
+    mock_model.encode.return_value = dummy_embeddings
+    return mock_model
