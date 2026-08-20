@@ -155,6 +155,7 @@ def client(mock_embedder, mock_reranker):
     with (
         patch("app.main.SentenceTransformer") as mock_st,
         patch("app.main.CrossEncoder") as mock_ce,
+        patch.object(mongo_service.client, "close"),
     ):
         mock_st.return_value = mock_embedder
         mock_ce.return_value = mock_reranker
@@ -172,3 +173,10 @@ def mock_verify_index_ready():
     yield
 
     app.dependency_overrides.pop(verify_index_ready, None)
+
+@pytest.fixture(scope="session", autouse=True)
+def cleanup_db_connect_after_all_tests():
+    """Ensures the MongoDB connection is closed after the whole test suite finishes."""
+    yield
+    from app.services import mongo_service
+    mongo_service.client.close()
