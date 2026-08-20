@@ -1,6 +1,6 @@
 import { describe, it, vi, expect, beforeEach } from 'vitest'
 import { mount} from '@vue/test-utils'
-import AuthForm from '@/components/features/auth/SignInForm.vue'
+
 import SignInForm from '@/components/features/auth/SignInForm.vue'
 
 const push = vi.fn()
