@@ -1,5 +1,5 @@
 import logging
-
+from bson import ObjectId
 from app.services import mongo_service
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ def fetch_candidate_chunks(
                     "queryVector": query_vector,
                     "numCandidates": 50,
                     "limit": limit,
-                    "filter": {"rulebookId": rulebook_id},
+                    "filter": {"rulebookId": ObjectId(rulebook_id)},
                 }
             },
             {

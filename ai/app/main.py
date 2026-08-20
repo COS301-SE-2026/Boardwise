@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from init_vector_index import initialise_vector_index
 from sentence_transformers import CrossEncoder, SentenceTransformer
 
 from app.routers import job, rulebook
@@ -30,6 +31,8 @@ async def lifespan(app: FastAPI):
         r2_service.ping_r2_storage()
         logger.info("Connection to R2 bucket verified.")
 
+        initialise_vector_index()
+
         # device="cpu" is set to avoid searching for CUDA on Fargate
         # trust_remote_code=True is required for Nomic models via HuggingFace
         ml_models["embedding_model"] = SentenceTransformer(
@@ -41,7 +44,7 @@ async def lifespan(app: FastAPI):
             "cross-encoder/ms-marco-MiniLM-L6-v2", device="cpu"
         )
         logger.info("Cross-encoder re-ranker model loaded successfully.")
-        
+
         app.state.ml_models = ml_models
     except Exception:
         logger.exception("FATAL BOOT ERROR: Infrastructure check failed")

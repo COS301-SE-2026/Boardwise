@@ -37,6 +37,12 @@ def initialise_vector_index():
             },
         ]
     }
+    
+    try:
+        logger.info("Attempting to drop existing vector index...")
+        collection.drop_search_index("vector_index")
+    except OperationFailure:
+        logger.info("No existing index to drop.")
 
     search_index_model = SearchIndexModel(
         definition=index_definition, name="vector_index", type="vectorSearch"
@@ -48,7 +54,6 @@ def initialise_vector_index():
         logger.info("Vector index 'vector_index' created successfully.")
     except OperationFailure:
         logger.exception("Index creation failed (Index may already exist)")
-
 
 if __name__ == "__main__":
     initialise_vector_index()

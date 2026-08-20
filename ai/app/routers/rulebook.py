@@ -15,7 +15,7 @@ from fastapi import (
 )
 
 from app.config import settings
-from app.dependencies import verify_jwt
+from app.dependencies import verify_index_ready, verify_jwt
 from app.generation.llm import generate_answer
 from app.generation.prompt import build_chat_messages
 from app.models.schemas import Citation, QueryRequest, QueryResponse, UploadResponse
@@ -25,7 +25,7 @@ from app.services import mongo_service
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/vault/rulebooks", tags=["rulebooks"])
+router = APIRouter(tags=["rulebooks"])
 
 SAFE_TEXT_PATTERN = r"^[\w\s\-.,&'\(\)!?]+$"
 
@@ -144,7 +144,12 @@ async def upload_rulebook(
 
 
 @router.post("/{rulebookId}/query", response_model=QueryResponse)
-async def query_rulebook(rulebookId: str, payload: QueryRequest, request: Request):
+async def query_rulebook(
+    rulebookId: str,
+    payload: QueryRequest,
+    request: Request,
+    _: Annotated[None, Depends(verify_index_ready)]
+):
     """
     Executes a RAG query against a specific rulebook.
     Retrieves vector context, scores relevance, and generates a grounded LLM answer.
@@ -170,7 +175,7 @@ async def query_rulebook(rulebookId: str, payload: QueryRequest, request: Reques
 
         citations = [
             Citation(
-                chunkId=chunk.get("chunkId", "unknown"),
+                chunkId=str(chunk.get("chunkId", "unknown")),
                 index=chunk.get("index", 0),
                 content=chunk.get("content", ""),
                 relevanceScore=chunk.get("relevanceScore", 0.0),
