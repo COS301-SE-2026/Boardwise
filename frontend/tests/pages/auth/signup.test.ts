@@ -33,7 +33,7 @@ describe('SignUpPage', () => {
         expect(wrapper.find('[data-test="v-col"]').exists()).toBe(true)
     })
 
-    it('renders the SignUPForm component inside the layout', () { 
+    it('renders the SignUPForm component inside the layout', ()  => { 
         const wrapper = mountPage() 
 
         const form = wrapper.find('[data-test="sign-up-form"]')
