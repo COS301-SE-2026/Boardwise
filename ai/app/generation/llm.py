@@ -32,9 +32,9 @@ def generate_answer(messages: list[dict], max_retries: int = 3) -> str:
             return answer
 
         except HfHubHTTPError as error:
-            status_code = error.response.status_code
+            status_code = getattr(error.response, "status_code", None)
 
-            if status_code in (503, 429):
+            if status_code and status_code in (503, 429):
                 logger.warning(
                     "Hugging Face API returned %d. Attempt %d of %d.",
                     status_code,
@@ -64,6 +64,6 @@ def generate_answer(messages: list[dict], max_retries: int = 3) -> str:
             logger.exception("Critical error during LLM text generation.")
             raise HTTPException(
                 status_code=500,
-                detail="An unexpected error occured during answer generation.",
+                detail="An unexpected error occurred during answer generation.",
             )
     raise HTTPException(status_code=500, detail="Answer generation failed")
