@@ -11,6 +11,12 @@
                 @submit="handleSignIn"
             />
 
+            <p class="text-end text-body-2 mt-2">
+                <NuxtLink to="/auth/forgotpassword" class="text-primary">
+                    Forgot Password?
+                </NuxtLink>
+            </p>
+
             <v-alert 
                 v-if="error"
                 type="error"

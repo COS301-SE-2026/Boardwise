@@ -2,6 +2,7 @@
     <BaseCard class="auth-card" data-test="auth-card">
         <div class="form">
             <h2 class="form-title" data-test="auth-title">{{ title }}</h2>
+            <p v-if="subtitle" class="form-subtitle" data-test="auth-subtitle">{{ subtitle }}</p>
 
             <BaseInput 
                 v-for="field in fields"
@@ -32,6 +33,7 @@ import BaseCard from '~/components/ui/BaseCard.vue'
 
 const props = defineProps({
     title: String,
+    subtitle: string,
     buttonText: String,
     fields: {
         type: Array,
@@ -70,6 +72,14 @@ const submitForm = () => {
     font-family: var(--font-display);
     font-size: var(--fs-h2);
     color: var(--color-secondary);
+    margin-bottom: .5rem;
+}
+
+.form-subtitle {
+    text-align: center;
+    font-size: var(--fs-body-sm, .875rem);
+    color: var(--color-text-muted);
+    margin-top: -.5rem;
     margin-bottom: .5rem;
 }
 </style>
