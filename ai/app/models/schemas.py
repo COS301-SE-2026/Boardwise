@@ -26,7 +26,7 @@ class JobStatusResponse(BaseAPIModel):
     completed_at: datetime | None = None
 
 
-class QueryRequest(BaseModel):
+class QueryRequest(BaseAPIModel):
     query: str = Field(
         ...,
         min_length=3,
@@ -35,13 +35,13 @@ class QueryRequest(BaseModel):
     )
 
 
-class Citation(BaseModel):
-    chunkId: str
+class Citation(BaseAPIModel):
+    chunk_id: str
     index: int
     content: str
-    relevanceScore: float
+    relevance_score: float
 
 
-class QueryResponse(BaseModel):
+class QueryResponse(BaseAPIModel):
     answer: str
     citations: list[Citation]
