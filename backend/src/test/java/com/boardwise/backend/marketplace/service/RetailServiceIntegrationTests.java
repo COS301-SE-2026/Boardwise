@@ -1,4 +1,4 @@
-package com.boardwise.backend.support;
+package com.boardwise.backend.marketplace.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import com.boardwise.backend.BaseIntegrationTest;
 import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
 import com.boardwise.backend.marketplace.model.ScrapeCache;
 import com.boardwise.backend.marketplace.repository.ScrapeCacheRepository;
@@ -23,7 +24,7 @@ import com.boardwise.backend.marketplace.service.webscrapers.TakealotScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.ToysRUsScraper;
 
 @DisplayName("Retail Service Integration Tests")
-public class RetailServiceIntegrationTests extends AbstractIntegrationTest {
+public class RetailServiceIntegrationTests extends BaseIntegrationTest {
 
     @Autowired
     private RetailService retailService;

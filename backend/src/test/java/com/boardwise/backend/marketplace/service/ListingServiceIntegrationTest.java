@@ -1,4 +1,4 @@
-package com.boardwise.backend.support;
+package com.boardwise.backend.marketplace.service;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 
@@ -10,6 +10,7 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import static org.assertj.core.api.Assertions.*;
 
+import com.boardwise.backend.BaseIntegrationTest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
 import com.boardwise.backend.marketplace.enums.Condition;
 import com.boardwise.backend.marketplace.enums.Genres;
@@ -19,7 +20,7 @@ import com.boardwise.backend.marketplace.model.Listing;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.marketplace.service.ListingService;
 
-public class ListingServiceIntegrationTest extends AbstractIntegrationTest {
+public class ListingServiceIntegrationTest extends BaseIntegrationTest {
 
     @BeforeEach
     void setUp() {
