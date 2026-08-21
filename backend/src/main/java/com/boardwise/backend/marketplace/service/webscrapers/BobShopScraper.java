@@ -35,7 +35,7 @@ public class BobShopScraper implements WebScraper {
             Browser chromium = playwright.chromium().launch();
             BrowserContext context = chromium.newContext();
             Page page = context.newPage();
-
+            context.setDefaultTimeout(60000);
             // website
             page.navigate(site);
 
