@@ -13,6 +13,8 @@
                 :data-test="`input-${field.key}`"
             />
 
+            <slot name="after-fields" />
+
             <BaseButton 
                 block
                 size="large"
@@ -33,7 +35,7 @@ import BaseCard from '~/components/ui/BaseCard.vue'
 
 const props = defineProps({
     title: String,
-    subtitle: string,
+    subtitle: String,
     buttonText: String,
     fields: {
         type: Array,
@@ -81,5 +83,11 @@ const submitForm = () => {
     color: var(--color-text-muted);
     margin-top: -.5rem;
     margin-bottom: .5rem;
+}
+
+.forgot-link {
+    text-align: right;
+    margin-top: -8px;
+    margin-bottom: -4px;
 }
 </style>

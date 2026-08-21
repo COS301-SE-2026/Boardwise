@@ -9,13 +9,17 @@
                 buttonText="Sign In"
                 :fields="fields"
                 @submit="handleSignIn"
-            />
+            >
+            
+                <template #after-fields>
+                    <p class="text-end text-body-2 forgot-link">
+                        <NuxtLink to="/auth/forgotpassword" class="text-primary">
+                            Forgot Password?
+                        </NuxtLink>
+                    </p>
+                </template>
 
-            <p class="text-end text-body-2 mt-2">
-                <NuxtLink to="/auth/forgotpassword" class="text-primary">
-                    Forgot Password?
-                </NuxtLink>
-            </p>
+            </AuthForm>
 
             <v-alert 
                 v-if="error"
@@ -92,5 +96,9 @@ const handleSignIn = async (data) => {
 
 .auth-link a:hover{
     text-decoration: underline;
+}
+
+.forgot-link {
+    margin-top: -8px;
 }
 </style>
