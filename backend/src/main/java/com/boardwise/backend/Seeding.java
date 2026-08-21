@@ -237,11 +237,8 @@ public class Seeding {
                                 "Kingdom Builder base game. Complete, all tiles and tokens present. Minor box shelf wear.",
                                 "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/KingdomBuilder.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-                                List.of(Genres.STRATEGY.getValue(), Genres.TERRITORY_BUILDING.getValue()), null),
+                                List.of(Genres.STRATEGY.getValue(), Genres.TERRITORY_BUILDING.getValue()), null));
 
-                        new Listing(null, "zoe_tiles", getObjectIdFromUsername("zoe_tiles", userRepository),"merch","sale",650,"Braam",true,"Custom Monopoly hoodie", "fair","Monopoly","unknown",
-                                "2XL Monopoly man hoodie","https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/MonopolyManHoodie.jpg",ListingStatus.AVAILABLE,LocalDateTime.now(),LocalDateTime.now(), List.of(Genres.STRATEGY.getValue(),Genres.DICE.getValue()),null));
-                                
                 listingRepository.saveAll(listings);
                 System.out.println("Seeded " + listings.size() + " listings");
             } else {
