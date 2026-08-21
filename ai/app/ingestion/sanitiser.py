@@ -8,17 +8,17 @@ UNSAFE_PATTERNS = [
     b"/OpenAction",
     b"/Launch",
     b"/EmbeddedFile",
-    b"/XFA"
+    b"/XFA",
 ]
 
-SAFE_CONTEXTS = [
-    b"/Type /Catalog",
-    b"/AcroForm"
-]
+SAFE_CONTEXTS = [b"/Type /Catalog", b"/AcroForm"]
+
 
 def sanitise_pdf(file_bytes: bytes) -> tuple[bool, str]:
     """
-    Scans raw PDF bytes for potentially dangerous execution patterns.
+    Scans raw PDF bytes for unobfuscated dangerous execution patterns in plain byte content.
+
+    Scope: this is a naive-payload check, not a full malware scanner.
     Returns:
         (True, "") if the PDF is safe.
         (False, "failure_reason") if an unsafe pattern is found outside a safe context
@@ -36,12 +36,10 @@ def sanitise_pdf(file_bytes: bytes) -> tuple[bool, str]:
             if pattern_index == -1:
                 break
 
-            # Proximity window
             slice_start = max(0, pattern_index - 100)
-            slice_end = min(len(file_bytes), pattern_index + len(pattern) + 100 )
+            slice_end = min(len(file_bytes), pattern_index + len(pattern) + 100)
             file_bytes_slice = file_bytes[slice_start:slice_end]
 
-            # Check if any safe context exists in this window
             is_safe = False
             for safe_context in SAFE_CONTEXTS:
                 if safe_context in file_bytes_slice:
@@ -49,7 +47,7 @@ def sanitise_pdf(file_bytes: bytes) -> tuple[bool, str]:
                     break
 
             if not is_safe:
-                logger.warning("Unsafe PDF: Contains %s", pattern.decode('utf-8'))
+                logger.warning("Unsafe PDF: Contains %s", pattern.decode("utf-8"))
                 return (False, f"Unsafe PDF: Contains {pattern.decode('utf-8')}")
 
             start_search = pattern_index + len(pattern)

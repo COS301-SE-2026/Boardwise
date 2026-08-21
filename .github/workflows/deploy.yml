@@ -1,0 +1,118 @@
+name: Deploy application
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: eu-north-1
+  AWS_ROLE_ARN: arn:aws:iam::406658519992:role/github-actions-deploy-role
+  ECR_REGISTRY: 406658519992.dkr.ecr.eu-north-1.amazonaws.com
+  ECS_CLUSTER: boardwise-cluster
+  S3_BUCKET: boardwise-frontend
+  CLOUDFRONT_DISTRIBUTION_ID: E2W87L0QGRA613
+
+jobs:
+  backend-deployment: # handles deployment of Java backend
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v4 # checks code out onto VM
+
+        - name: Set AWS details
+          uses: aws-actions/configure-aws-credentials@v4
+          with:
+            role-to-assume: ${{ env.AWS_ROLE_ARN }}
+            aws-region: ${{ env.AWS_REGION }}
+        
+        - name: Login to ECR
+          uses: aws-actions/amazon-ecr-login@v2
+
+        - name: Build and push backend image
+          working-directory: backend
+          run: |
+            docker build -t ${{ env.ECR_REGISTRY }}/boardwise:${{ github.sha }} -t ${{ env.ECR_REGISTRY }}/boardwise:latest .
+            docker push ${{ env.ECR_REGISTRY }}/boardwise:${{ github.sha }}
+            docker push ${{ env.ECR_REGISTRY }}/boardwise:latest
+
+        - name: Trigger new ECS deployment with recently pushed image
+          run: |
+            aws ecs update-service \
+                --cluster ${{ env.ECS_CLUSTER }} \
+                --service boardwise-backend-service \
+                --force-new-deployment
+
+  ai-deployment: # handles deployment of Python/AI backend
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v4
+
+        - name: Set AWS details fr
+          uses: aws-actions/configure-aws-credentials@v4
+          with:
+            role-to-assume: ${{ env.AWS_ROLE_ARN }}
+            aws-region: ${{ env.AWS_REGION }}
+        
+        - name: Login to ECR
+          uses: aws-actions/amazon-ecr-login@v2
+
+        - name: Build and push backend image
+          working-directory: ai
+          run: |
+            docker build -t ${{ env.ECR_REGISTRY }}/boardwise-python:${{ github.sha }} -t ${{ env.ECR_REGISTRY }}/boardwise-python:latest .
+            docker push ${{ env.ECR_REGISTRY }}/boardwise-python:${{ github.sha }}
+            docker push ${{ env.ECR_REGISTRY }}/boardwise-python:latest
+
+        - name: Trigger new ECS deployment with recently pushed image
+          run: |
+            aws ecs update-service \
+                --cluster ${{ env.ECS_CLUSTER }} \
+                --service boardwise-python-service \
+                --force-new-deployment
+
+  frontend-deployment:
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v4
+
+        - name: Setup Node
+          uses: actions/setup-node@v4
+          with:
+            node-version: '24'
+
+        - name: Install deps
+          working-directory: frontend
+          run: npm ci
+
+        - name: Build frontend
+          working-directory: frontend
+          env:
+            APP_ENV: prod
+            PROD_API_BASE: https://api.boardwise.games/api/
+            PROD_WS_API_BASE: wss://api.boardwise.games/api/stomp
+            PROD_FAST_API_BASE: https://library.boardwise.games/api/
+          run:
+            npm run build
+        
+        - name: Set AWS details fr
+          uses: aws-actions/configure-aws-credentials@v4
+          with:
+            role-to-assume: ${{ env.AWS_ROLE_ARN }}
+            aws-region: ${{ env.AWS_REGION }}
+            
+        - name: Put frontend on S3
+          working-directory: frontend
+          run: |
+            aws s3 sync .output/public/ s3://${{ env.S3_BUCKET }} --delete
+
+        - name: Clear CloudFront cache
+          run: |
+            aws cloudfront create-invalidation \
+              --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} \
+              --paths "/*"
+
+

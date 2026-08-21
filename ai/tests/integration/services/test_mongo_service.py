@@ -1,8 +1,11 @@
 import os
+
 import pytest
 from app.services import mongo_service
 from bson import ObjectId
 
+
+@pytest.mark.db
 def test_create_rulebook_success(seed_board_game, seed_user):
     """
     Verifies a rulebook is created successfully
@@ -18,7 +21,7 @@ def test_create_rulebook_success(seed_board_game, seed_user):
         edition=None,
         contributor_id=contributor_id_str,
         language="en",
-        r2_pdf_key=""
+        r2_pdf_key="",
     )
 
     # Assert
@@ -40,7 +43,9 @@ def test_create_rulebook_success(seed_board_game, seed_user):
 
     assert saved_doc["uploadedAt"] == saved_doc["updatedAt"]
 
-def test_create_rulebook_failure_when_board_game_not_found(seed_board_game ,seed_user):
+
+@pytest.mark.db
+def test_create_rulebook_failure_when_board_game_not_found(seed_board_game, seed_user):
     """
     Verifies that rulebook creation fails when
     associated board game does not exists in the database.
@@ -49,14 +54,16 @@ def test_create_rulebook_failure_when_board_game_not_found(seed_board_game ,seed
     db = mongo_service.client[os.environ["DB_NAME"]]
     contributor_id_str = str(seed_user)
 
-    with pytest.raises(ValueError, match=r"Boardgame 'DoesNotExist' not found.") as exc_info:
+    with pytest.raises(
+        ValueError, match=r"Boardgame 'DoesNotExist' not found."
+    ) as exc_info:
         # Act
         mongo_service.create_rulebook(
             title="DoesNotExist",
             edition=None,
             contributor_id=contributor_id_str,
             language="en",
-            r2_pdf_key=""
+            r2_pdf_key="",
         )
 
     # Assert
@@ -64,7 +71,11 @@ def test_create_rulebook_failure_when_board_game_not_found(seed_board_game ,seed
     assert exc_info.type is ValueError
     assert "Boardgame 'DoesNotExist' not found." in exc_info.value.args
 
-def test_create_rulebook_failure_when_contributor_id_not_found(seed_board_game ,seed_user):
+
+@pytest.mark.db
+def test_create_rulebook_failure_when_contributor_id_not_found(
+    seed_board_game, seed_user
+):
     """
     Verifies that rulebook creation fails when
     associated contributor (user) does not exists in the database.
@@ -73,14 +84,16 @@ def test_create_rulebook_failure_when_contributor_id_not_found(seed_board_game ,
     db = mongo_service.client[os.environ["DB_NAME"]]
     contributor_id_str = str(ObjectId())
 
-    with pytest.raises(ValueError, match=f"User '{contributor_id_str}' not found.") as exc_info:
+    with pytest.raises(
+        ValueError, match=f"User '{contributor_id_str}' not found."
+    ) as exc_info:
         # Act
         mongo_service.create_rulebook(
             title="Dune",
             edition=None,
             contributor_id=contributor_id_str,
             language="en",
-            r2_pdf_key=""
+            r2_pdf_key="",
         )
 
     # Assert
@@ -88,6 +101,8 @@ def test_create_rulebook_failure_when_contributor_id_not_found(seed_board_game ,
     assert exc_info.type is ValueError
     assert f"User '{contributor_id_str}' not found." in exc_info.value.args
 
+
+@pytest.mark.db
 def test_update_rulebook_status_succeeds_for_valid_rulebook_id(seed_rulebook):
     """
     Verifies rulebook status is updated successfully
@@ -99,16 +114,17 @@ def test_update_rulebook_status_succeeds_for_valid_rulebook_id(seed_rulebook):
     rulebook_id = str(seed_rulebook)
 
     # Act
-    result = mongo_service.update_rulebook_status(rulebook_id, "NewStatus")
+    mongo_service.update_rulebook_status(rulebook_id, "NewStatus")
 
     # Assert
     saved_doc = db.RULEBOOK.find_one({"_id": ObjectId(rulebook_id)})
 
-    assert result is True
     assert saved_doc is not None
     assert saved_doc["status"] == "NewStatus"
     assert saved_doc["version"] == 0
 
+
+@pytest.mark.db
 def test_update_rulebook_r2_pdf_key_succeeds_for_valid_rulebook_id(seed_rulebook):
     """
     Verifies rulebook r2 pdf key is updated successfully
@@ -120,15 +136,16 @@ def test_update_rulebook_r2_pdf_key_succeeds_for_valid_rulebook_id(seed_rulebook
     rulebook_id = str(seed_rulebook)
 
     # Act
-    result = mongo_service.update_rulebook_r2_pdf_key(rulebook_id, "NewR2Key")
+    mongo_service.update_rulebook_r2_pdf_key(rulebook_id, "NewR2Key")
 
     # Assert
     saved_doc = db.RULEBOOK.find_one({"_id": ObjectId(rulebook_id)})
 
-    assert result is True
     assert saved_doc is not None
     assert saved_doc["r2PdfKey"] == "NewR2Key"
 
+
+@pytest.mark.db
 def test_create_ingestion_job_success(seed_rulebook):
     """
     Verifies an ingestion job is created successfully
@@ -152,6 +169,8 @@ def test_create_ingestion_job_success(seed_rulebook):
     assert saved_doc["failureReason"] is None
     assert saved_doc["completedAt"] is None
 
+
+@pytest.mark.db
 def test_create_ingestion_job_failure_when_rulebook_not_found(seed_rulebook):
     """
     Verifies ingestion job creation fails when
@@ -161,8 +180,10 @@ def test_create_ingestion_job_failure_when_rulebook_not_found(seed_rulebook):
     db = mongo_service.client[os.environ["DB_NAME"]]
 
     rulebook_id = str(ObjectId())
-    
-    with pytest.raises(ValueError, match=f"Rulebook '{rulebook_id}' not found.") as exc_info:
+
+    with pytest.raises(
+        ValueError, match=f"Rulebook '{rulebook_id}' not found."
+    ) as exc_info:
         # Act
         mongo_service.create_ingestion_job(rulebook_id)
 
@@ -171,6 +192,8 @@ def test_create_ingestion_job_failure_when_rulebook_not_found(seed_rulebook):
     assert exc_info.type is ValueError
     assert f"Rulebook '{rulebook_id}' not found." in exc_info.value.args
 
+
+@pytest.mark.db
 def test_update_ingestion_job_success_for_valid_job_id(seed_rulebook):
     """
     Verifies ingestion job is updated successfully
@@ -184,12 +207,11 @@ def test_update_ingestion_job_success_for_valid_job_id(seed_rulebook):
     job_id = mongo_service.create_ingestion_job(rulebook_id)
 
     # Act
-    updated = mongo_service.update_ingestion_job(job_id,"Storage", "Completed")
+    mongo_service.update_ingestion_job(job_id, "Storage", "Completed")
 
     # Assert
     saved_doc = db.INGESTION_JOB.find_one({"_id": ObjectId(job_id)})
 
-    assert updated is True
     assert saved_doc is not None
     assert saved_doc["rulebookId"] == ObjectId(rulebook_id)
     assert saved_doc["stage"] == "Storage"
@@ -197,6 +219,8 @@ def test_update_ingestion_job_success_for_valid_job_id(seed_rulebook):
     assert saved_doc["failureReason"] == ""
     assert saved_doc["completedAt"] is not None
 
+
+@pytest.mark.db
 def test_get_ingestion_job_success(seed_rulebook):
     """Verifies that get ingestion job retrieves the specified ingestion job"""
     # Arrange
@@ -214,6 +238,8 @@ def test_get_ingestion_job_success(seed_rulebook):
     assert saved_doc["failureReason"] is None
     assert saved_doc["completedAt"] is None
 
+
+@pytest.mark.db
 def test_create_rulebook_text_success(seed_rulebook):
     """
     Verifies a rulebook text is created successfully
@@ -225,34 +251,23 @@ def test_create_rulebook_text_success(seed_rulebook):
     rulebook_id = str(seed_rulebook)
 
     chunks_list = [
-        {
-            "chunkId": ObjectId(),
-            "index": 0,
-            "content": "Content for the first chunk."
-        },
-        {
-            "chunkId": ObjectId(),
-            "index": 1,
-            "content": "Content for the second chunk."
-        },
-        {
-            "chunkId": ObjectId(),
-            "index": 2,
-            "content": "Content for the third chunk."
-        }
+        {"chunkId": ObjectId(), "index": 0, "content": "Content for the first chunk."},
+        {"chunkId": ObjectId(), "index": 1, "content": "Content for the second chunk."},
+        {"chunkId": ObjectId(), "index": 2, "content": "Content for the third chunk."},
     ]
 
     # Act
-    job_id = mongo_service.create_rulebook_text(rulebook_id, chunks_list)
+    inserted_chunks = mongo_service.create_rulebook_text(rulebook_id, chunks_list)
 
     # Assert
-    saved_doc = db.RULEBOOK_TEXT.find_one({"_id": ObjectId(job_id)})
+    saved_doc = db.RULEBOOK_TEXT.find_one({"_id": ObjectId(inserted_chunks[0])})
 
     assert saved_doc is not None
     assert saved_doc["rulebookId"] == ObjectId(rulebook_id)
-    assert saved_doc["version"] == 0
-    assert saved_doc["chunks"][0]["content"] == "Content for the first chunk."
+    assert saved_doc["content"] == "Content for the first chunk."
 
+
+@pytest.mark.db
 def test_create_rulebook_text_failure_when_rulebook_not_found(seed_rulebook):
     """
     Verifies rulebook text creation fails when
@@ -262,8 +277,10 @@ def test_create_rulebook_text_failure_when_rulebook_not_found(seed_rulebook):
     db = mongo_service.client[os.environ["DB_NAME"]]
 
     rulebook_id = str(ObjectId())
-    
-    with pytest.raises(ValueError, match=f"Rulebook '{rulebook_id}' not found.") as exc_info:
+
+    with pytest.raises(
+        ValueError, match=f"Rulebook '{rulebook_id}' not found."
+    ) as exc_info:
         # Act
         mongo_service.create_rulebook_text(rulebook_id, [])
 
@@ -272,6 +289,8 @@ def test_create_rulebook_text_failure_when_rulebook_not_found(seed_rulebook):
     assert exc_info.type is ValueError
     assert f"Rulebook '{rulebook_id}' not found." in exc_info.value.args
 
+
+@pytest.mark.db
 def test_is_token_valid_success():
     """Verifies that the check passes if the token is not blacklisted"""
     # Arrange
@@ -283,6 +302,8 @@ def test_is_token_valid_success():
     # Assert
     assert valid is True
 
+
+@pytest.mark.db
 def test_is_token_valid_failure_for_revoked_jti():
     """Verifies that the check fails if the token is blacklisted"""
     # Arrange
