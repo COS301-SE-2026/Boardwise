@@ -3,6 +3,7 @@ import logging
 from bson import ObjectId
 
 from app.services import mongo_service
+from app.utils.logging_utils import sanitise_log_input
 
 logger = logging.getLogger(__name__)
 
@@ -46,9 +47,12 @@ def fetch_candidate_chunks(
         logger.info(
             "Successfully retrieved %d candidate chunks for rulebook %s",
             len(results),
-            rulebook_id,
+            sanitise_log_input(rulebook_id),
         )
         return results
     except Exception:
-        logger.exception("Failed to execute vector search for rulebook %s", rulebook_id)
+        logger.exception(
+            "Failed to execute vector search for rulebook %s",
+            sanitise_log_input(rulebook_id),
+        )
         raise

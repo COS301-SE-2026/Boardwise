@@ -5,6 +5,7 @@ from fastapi import HTTPException
 
 from app.retrieval.reranker import rerank_chunks
 from app.retrieval.vector_store import fetch_candidate_chunks
+from app.utils.logging_utils import sanitise_log_input
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,10 @@ def retrieve_context(query: str, rulebook_id: str, ml_models: dict) -> list[dict
         candidates = fetch_candidate_chunks(rulebook_id, query_vector, limit=15)
 
         if not candidates:
-            logger.info("No candidates found in MongoDB for rulebook %s.", rulebook_id)
+            logger.info(
+                "No candidates found in MongoDB for rulebook %s.",
+                sanitise_log_input(rulebook_id),
+            )
             return []
 
         # ========== Stage 3: Cross-Encoder Re-Ranking ==========

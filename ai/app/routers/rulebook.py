@@ -22,6 +22,7 @@ from app.ingestion.ingestion import run_ingestion_pipeline
 from app.models.schemas import Citation, QueryRequest, QueryResponse, UploadResponse
 from app.retrieval.retriever import retrieve_context
 from app.services import mongo_service
+from app.utils.logging_utils import sanitise_log_input
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,21 @@ SAFE_TEXT_PATTERN = r"^[\w\s\-.,&'\(\)!?]+$"
 
 
 @router.post(
-    "/upload", response_model=UploadResponse, status_code=status.HTTP_202_ACCEPTED
+    "/upload",
+    response_model=UploadResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    responses={
+        500: {
+            "description": "Internal Server Error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "An internal server error occurred while initialising the upload."
+                    }
+                }
+            },
+        }
+    },
 )
 async def upload_rulebook(
     background_tasks: BackgroundTasks,
@@ -96,7 +111,10 @@ async def upload_rulebook(
         )
 
     if not ObjectId.is_valid(contributor_id):
-        logger.warning("Upload rejected: malformed sub claim '%s'.", contributor_id)
+        logger.warning(
+            "Upload rejected: malformed sub claim '%s'.",
+            sanitise_log_input(contributor_id),
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token subject."
         )
@@ -144,12 +162,24 @@ async def upload_rulebook(
 
 
 @router.post(
-    "/{rulebookId}/query",
+    "/{rulebook_id}/query",
     response_model=QueryResponse,
     dependencies=[Depends(verify_jwt)],
+    responses={
+        500: {
+            "description": "Internal Server Error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "An unexpected error occurred while processing your query."
+                    }
+                }
+            },
+        }
+    },
 )
 async def query_rulebook(
-    rulebookId: str,
+    rulebook_id: str,
     payload: QueryRequest,
     request: Request,
     _: Annotated[None, Depends(verify_index_ready)],
@@ -162,12 +192,12 @@ async def query_rulebook(
         query = payload.query
         ml_models = request.app.state.ml_models
 
-        retrieved_chunks = retrieve_context(query, rulebookId, ml_models)
+        retrieved_chunks = retrieve_context(query, rulebook_id, ml_models)
 
         if not retrieved_chunks:
             logger.info(
                 "No context found for rulebook %s. Bypassing LLM generation.",
-                rulebookId,
+                sanitise_log_input(rulebook_id),
             )
             return QueryResponse(
                 answer="I cannot find the answer to this rule in the provided text.",
@@ -186,13 +216,17 @@ async def query_rulebook(
             )
             for chunk in retrieved_chunks
         ]
-        logger.info("Successfully processed query for rulebook %s.", rulebookId)
+        logger.info(
+            "Successfully processed query for rulebook %s.",
+            sanitise_log_input(rulebook_id),
+        )
         return QueryResponse(answer=answer, citations=citations)
     except HTTPException:
         raise
     except Exception:
         logger.exception(
-            "Unexpected error occurred while querying rulebook %s", rulebookId
+            "Unexpected error occurred while querying rulebook %s",
+            sanitise_log_input(rulebook_id),
         )
         raise HTTPException(
             status_code=500,

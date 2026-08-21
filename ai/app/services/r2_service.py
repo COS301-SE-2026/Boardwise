@@ -53,6 +53,6 @@ def ping_r2_storage():
     """Pings the S3 compatible object storage"""
     try:
         s3.head_bucket(Bucket=settings.R2_BUCKET_RULEBOOKS)
-    except ClientError as e:
+    except ClientError:
         logger.exception("R2 Connection failed")
-        raise e
+        raise
