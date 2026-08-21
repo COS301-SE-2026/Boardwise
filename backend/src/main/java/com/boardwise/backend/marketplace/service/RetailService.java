@@ -1,9 +1,11 @@
 package com.boardwise.backend.marketplace.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -12,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
+import com.boardwise.backend.marketplace.model.ScrapeCache;
+import com.boardwise.backend.marketplace.repository.ScrapeCacheRepository;
 import com.boardwise.backend.marketplace.service.webscrapers.BobShopScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.TakealotScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.ToysRUsScraper;
@@ -25,18 +29,19 @@ public class RetailService {
     private final BobShopScraper bss;
     private final ToysRUsScraper trus;
 
-    public RetailService(TakealotScraper ts, BobShopScraper bss, ToysRUsScraper trus) {
+    private final ScrapeCacheRepository scrapeCacheRepository;
+    
+    @Value("${scrape.cache.ttl.minutes:60}")
+    private long ttlMin;
+
+    public RetailService(ScrapeCacheRepository scrapeCacheRepository,TakealotScraper ts, BobShopScraper bss, ToysRUsScraper trus) {
         this.ts = ts;
         this.bss = bss;
         this.trus = trus;
+        this.scrapeCacheRepository = scrapeCacheRepository;
     }
 
     protected List<RetailSourceItemDTO> findWebListings(String s) {
-         System.out.println("findWebListings called with s=[" + s + "]");
-        if (!StringUtils.hasText(s)) {
-            System.out.println("Short-circuited: blank query");
-            return new ArrayList<>();
-        }
         if (!StringUtils.hasText(s)) {
             return new ArrayList<>();
         }
@@ -56,6 +61,26 @@ public class RetailService {
         return overall;
     }
 
+    protected List<RetailSourceItemDTO> findWebListingsCached(String s) {
+        if (!StringUtils.hasText(s)) {
+            return new ArrayList<>();
+        }
+
+        return scrapeCacheRepository.findBySearchTerm(s)
+            .filter(this::isFresh)
+            .map(cache -> {
+                System.out.println("Cache hit for s=[" + s + "]");
+                return cache.getResults();
+            })
+            .orElseGet(() -> rescrapeAndCache(s));
+    }
+
+    private boolean isFresh(com.boardwise.backend.marketplace.model.ScrapeCache cache) {
+        if (cache.getLastScrapedAt() == null) return false;
+        long ageMinutes = java.time.Duration.between(cache.getLastScrapedAt(), java.time.LocalDateTime.now()).toMinutes();
+        return ageMinutes < ttlMin;
+    }
+
     private List<RetailSourceItemDTO> safeScrape(java.util.function.Function<String, List<RetailSourceItemDTO>> scraper,
             String query, String sourceName) {
         try {
@@ -67,7 +92,7 @@ public class RetailService {
     }
 
     public Page<RetailSourceItemDTO> getRetailListingsPage(String s, Integer pageNum) {
-        List<RetailSourceItemDTO> overall = findWebListings(s);
+        List<RetailSourceItemDTO> overall = findWebListingsCached(s);
 
         int page = (pageNum == null || pageNum < 0) ? 0 : pageNum;
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
@@ -79,5 +104,22 @@ public class RetailService {
         int end = Math.min(start + pageable.getPageSize(), overall.size());
 
         return new PageImpl<>(overall.subList(start, end), pageable, overall.size());
+    }
+
+    private List<RetailSourceItemDTO> rescrapeAndCache(String s) {
+        System.out.println("Cache miss/stale, rescraping for s=[" + s + "]");
+        List<RetailSourceItemDTO> overall = findWebListings(s); 
+
+        ScrapeCache existing = scrapeCacheRepository.findBySearchTerm(s).orElse(null);
+
+        ScrapeCache toSave =ScrapeCache.builder()
+        .id(existing != null ? existing.getId() : null)
+        .searchTerm(s)
+        .results(overall)
+        .lastScrapedAt(LocalDateTime.now())
+        .build();
+
+        scrapeCacheRepository.save(toSave);
+        return overall;
     }
 }
