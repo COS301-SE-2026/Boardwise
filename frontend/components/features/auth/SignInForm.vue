@@ -48,8 +48,8 @@ const router = useRouter()
 const { login, error, loading} = useAuth()
 
 const fields = [
-    { key: 'username', placeholder: 'Username', type: 'text' },
-    { key: 'password', placeholder: 'Password', type: 'password' }
+    { key: 'username', label: 'Username', type: 'text', rules: [required()]},
+    { key: 'password', label: 'Password', type: 'password', rules: [required()] }
 ]
 
 const handleSignIn = async (data) => {

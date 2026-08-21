@@ -51,7 +51,7 @@ const emailSent = ref(false)
 const submittedEmail = ref('')
 
 const fields = [
-    { key: 'emailAddress', placeholder: 'Type your email', type:'email'}
+    { key: 'emailAddress', label: 'Email Address', type:'email', rules: [required(), isEmail()]}
 ]
 
 const handleForgotPassword = async (data) => {

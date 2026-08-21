@@ -9,6 +9,8 @@
                 :key="field.key"
                 v-model="values[field.key]"
                 :type="field.type ?? 'text'"
+                :label="field.label"
+                :rules="getFieldRules(field)"
                 :placeholder="field.placeholder"
                 :data-test="`input-${field.key}`"
             />
@@ -29,6 +31,8 @@
 </template>
 
 <script setup>
+import { ref, reactive } from 'vue'
+
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
@@ -45,11 +49,28 @@ const props = defineProps({
 
 const emit = defineEmits(['submit'])
 
+const formRef = ref(null)
+
 const values = reactive(
     Object.fromEntries(props.fields.map(f => [f.key, '']))
 )
 
-const submitForm = () => {
+const getFieldRules = (field) => {
+    const baseRules = field.rules || []
+    if(field.key === 'confirmPassword') {
+        return [
+            ...baseRules,
+            (v) => v === values.password || 'Passwords do not match'
+        ]
+    }
+
+    return baseRules
+}
+
+const submitForm = async () => {
+    const { valid } = await formRef.value.validate()
+    if (!valid) return 
+    
     emit('submit', { ...values })
 }
 

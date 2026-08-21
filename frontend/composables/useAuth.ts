@@ -2,6 +2,43 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { AuthService } from '~/services/authService'
 
+export const required = (message : string = 'This field is required') => (value: any) => {
+  return (value !== null && value !== undefined && String(value).trim() !== '') || message 
+}
+
+export const isEmail = (message ?: string) => (value : any) => {
+  if(!value) return true
+
+  if (/\s/.test(value)){
+    return message || 'Email cannot contain spaces'
+  }
+
+  const atIndex = value.indexOf('@')
+  if(atIndex <= 0) {
+    return message || 'Email must include an "@" before the domain'
+  }
+
+  if(value.indexOf('@', atIndex + 1) !== -1) {
+    return message || 'Email can only contain one "@"'
+  }
+
+  const domain = value.slice(atIndex + 1) 
+  if(!domain.includes('.')) {
+    return message || 'Email domain must include a "." (e.g. name@example.com)'
+  }
+
+  if(domain.startsWith('.') || domain.endsWith('.')) {
+    return message || 'Email domain is not valid'
+  }
+
+  return true
+}
+
+export const minLength = (length: number, message?: string) => (value: string): true | string => {
+  if(!value) return true
+  return value.length >= length || message ||'Must be at least 3 characters'
+}
+
 export const useAuth = () => {
   const router = useRouter();
 
