@@ -34,12 +34,16 @@ public class ListingServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void shouldStoreAndRetrieveListing(){
-        Listing listing = new Listing("rtickyv", "IamR3al", new ObjectId(), ItemType.FullBoardGame.name(), "sale", 50.0, "Hatfied", true, "title", Condition.FAIR.name(), "Monopoly", "gg", "desc", "image", ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(), List.of(Genres.ABSTRACT.getValue()), null);
+        Listing listing = new Listing("rtickyv", "IamR3al", new ObjectId(), ItemType.FullBoardGame.getValue(), "sale", 50.0, "Hatfied", true, "title", Condition.FAIR.name(), "Monopoly", "gg", "desc", "image", ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(), List.of(Genres.ABSTRACT.getValue()), null);
         listingRepository.save(listing);
         List<ListingResponse> results = listingService.getAllActiveListings();
 
         assertThat(results).hasSize(1);
+        assertThat(results.get(0).gameTitle()).isEqualTo("Monopoly");
+        assertThat(results.get(0).itemType()).isEqualTo(ItemType.FullBoardGame.getValue());
     }
+
+    
 
     
 }

@@ -1,5 +1,8 @@
 package com.boardwise.backend.marketplace.service;
 
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -7,18 +10,24 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
+import com.boardwise.backend.marketplace.model.ScrapeCache;
+import com.boardwise.backend.marketplace.repository.ScrapeCacheRepository;
 import com.boardwise.backend.marketplace.service.webscrapers.BobShopScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.TakealotScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.ToysRUsScraper;
@@ -27,10 +36,13 @@ import com.boardwise.backend.marketplace.service.webscrapers.ToysRUsScraper;
 @DisplayName("Retail Service Tests")
 @ExtendWith(MockitoExtension.class) // auto create/inject mocks
 public class RetailServiceTest {
-
     
     @InjectMocks
     private RetailService retailService;
+
+    @Mock
+    private ScrapeCacheRepository scrapeCacheRepository;
+
     @Mock 
     TakealotScraper ts;
     
@@ -39,6 +51,12 @@ public class RetailServiceTest {
 
     @Mock
     ToysRUsScraper trus;
+
+    @BeforeEach
+    void setUp(){
+        ReflectionTestUtils.setField(retailService, "ttlMin", 60L);
+    }
+
 
     //helper: Generate random RetailSericeItemDTO
 
@@ -132,6 +150,94 @@ public class RetailServiceTest {
         assertTrue(finalList.isEmpty());
         verifyNoInteractions(ts, bss, trus);
     }
+
+    @DisplayName("Should serve from cache and skip scrapers when cache is fresh")
+    @Test
+    public void shouldServeFromCacheWhenFresh() {
+        // ARRANGE
+        String toSearch = "Catan";
+        List<RetailSourceItemDTO> cachedResults = new ArrayList<>();
+        cachedResults.add(genValidRetailSourceItemDTO("Takealot", "Catan cached", 400.0, 0.5f));
+
+        ScrapeCache freshCache = ScrapeCache.builder()
+            .id("abc123")
+            .searchTerm(toSearch)
+            .results(cachedResults)
+            .lastScrapedAt(LocalDateTime.now().minusMinutes(5)) // well within 60min TTL
+            .build();
+
+        when(scrapeCacheRepository.findBySearchTerm(toSearch)).thenReturn(Optional.of(freshCache));
+
+        // ACT
+        List<RetailSourceItemDTO> result = retailService.findWebListingsCached(toSearch);
+
+        // ASSERT
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        verifyNoInteractions(ts, bss, trus); // scrapers never called on cache hit
+        verify(scrapeCacheRepository, never()).save(org.mockito.ArgumentMatchers.any()); // no write on read-only hit
+    }
+
+    @DisplayName("Should rescrape and save when cache is stale")
+    @Test
+    public void shouldRescrapeWhenCacheIsStale() {
+        // ARRANGE
+        String toSearch = "Risk";
+        ScrapeCache staleCache = ScrapeCache.builder()
+            .id("xyz789")
+            .searchTerm(toSearch)
+            .results(new ArrayList<>())
+            .lastScrapedAt(LocalDateTime.now().minusMinutes(120)) // older than 60min TTL
+            .build();
+
+        List<RetailSourceItemDTO> freshResults = new ArrayList<>();
+        freshResults.add(genValidRetailSourceItemDTO("BobShop", "Risk fresh", 350.0, 0.4f));
+
+        when(scrapeCacheRepository.findBySearchTerm(toSearch)).thenReturn(Optional.of(staleCache));
+        when(ts.scrape(toSearch)).thenReturn(new ArrayList<>());
+        when(bss.scrape(toSearch)).thenReturn(freshResults);
+        when(trus.scrape(toSearch)).thenReturn(new ArrayList<>());
+
+        // ACT
+        List<RetailSourceItemDTO> result = retailService.findWebListingsCached(toSearch);
+
+        // ASSERT
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        verify(ts, times(1)).scrape(toSearch);
+        verify(bss, times(1)).scrape(toSearch);
+        verify(trus, times(1)).scrape(toSearch);
+
+        ArgumentCaptor<ScrapeCache> captor = ArgumentCaptor.forClass(ScrapeCache.class);
+        verify(scrapeCacheRepository, times(1)).save(captor.capture());
+        assertEquals("xyz789", captor.getValue().getId()); // reused existing doc's id, no duplicate row
+        assertEquals(toSearch, captor.getValue().getSearchTerm());
+    }
  
+    @DisplayName("Should rescrape and save when no cache entry exists yet")
+    @Test
+    public void shouldRescrapeWhenNoCacheEntryExists() {
+        // ARRANGE
+        String toSearch = "Uno";
+        List<RetailSourceItemDTO> freshResults = new ArrayList<>();
+        freshResults.add(genValidRetailSourceItemDTO("ToysRus", "Uno fresh", 89.99, 0.6f));
+
+        when(scrapeCacheRepository.findBySearchTerm(toSearch)).thenReturn(Optional.empty());
+        when(ts.scrape(toSearch)).thenReturn(new ArrayList<>());
+        when(bss.scrape(toSearch)).thenReturn(new ArrayList<>());
+        when(trus.scrape(toSearch)).thenReturn(freshResults);
+
+        // ACT
+        List<RetailSourceItemDTO> result = retailService.findWebListingsCached(toSearch);
+
+        // ASSERT
+        assertNotNull(result);
+        assertEquals(1, result.size());
+
+        ArgumentCaptor<ScrapeCache> captor = ArgumentCaptor.forClass(ScrapeCache.class);
+        verify(scrapeCacheRepository, times(1)).save(captor.capture());
+        assertEquals(null, captor.getValue().getId()); // no existing doc, new insert
+    }
+
 }
 
