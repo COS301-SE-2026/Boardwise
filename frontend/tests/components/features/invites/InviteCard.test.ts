@@ -74,6 +74,6 @@ describe('InviteCard', () => {
         await declineButton.trigger('click')
 
         expect(wrapper.emitted('decline')).toBeTruthy()
-        expect(wrapper.emitted('decline')![1]).toEqual([mockInvite.event.id])
+        expect(wrapper.emitted('decline')![0]).toEqual([mockInvite.event.id])
     })
 })
