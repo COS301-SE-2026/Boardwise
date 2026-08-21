@@ -1,7 +1,8 @@
-import boto3
-from dotenv import load_dotenv
-from botocore.exceptions import ClientError
 import os
+
+import boto3
+from botocore.exceptions import ClientError
+from dotenv import load_dotenv
 
 load_dotenv("../.env")
 
@@ -15,7 +16,7 @@ s3 = boto3.client(
     endpoint_url=f"https://{account_id}.r2.cloudflarestorage.com",
     aws_access_key_id=access_key,
     aws_secret_access_key_id=secret_key,
-    region_name="auto"
+    region_name="auto",
 )
 try:
     s3.head_bucket(Bucket=bucket_rulebooks)
