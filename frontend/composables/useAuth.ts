@@ -1,4 +1,4 @@
-import {ref} from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { AuthService } from '~/services/authService'
 
@@ -71,6 +71,37 @@ export const useAuth = () => {
     isAuthenticated.value = false;
     router.push('/auth/signin');
   }
+
+  const forgotPassword = async (emailAddress: string): Promise<boolean> => {
+    error.value = ''
+    isLoading.value = true;
+
+    try {
+      await AuthService.forgotPassword(emailAddress);
+      return true;
+    } catch(err: any){
+      error.value = err.data?.message || 'Could not send reset link. Please try again.';
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  const resetPassword = async (payload: { token: string | string[], password: string }): Promise<boolean> => {
+    error.value = ''
+    isLoading.value = true;
+
+    try {
+      await AuthService.resetPasswprd(payload);
+      return true;
+    } catch(err: any){
+      error.value = err.data?.message || 'Could not send reset link. Please try again.';
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   return {
     token,
     isAuthenticated,
@@ -78,6 +109,8 @@ export const useAuth = () => {
     isLoading,
     login,
     register,
-    logout
+    logout,
+    forgotPassword,
+    resetPassword
   }
 }
