@@ -3,15 +3,19 @@ package com.boardwise.backend.marketplace.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
 import com.boardwise.backend.marketplace.model.ScrapeCache;
@@ -19,6 +23,11 @@ import com.boardwise.backend.marketplace.repository.ScrapeCacheRepository;
 import com.boardwise.backend.marketplace.service.webscrapers.BobShopScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.TakealotScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.ToysRUsScraper;
+import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repos.UserRepository.GameOwnershipCount;
+import com.boardwise.backend.user_service.models.Boardgame;
+import com.boardwise.backend.user_service.repos.BoardGameRepository;
+
 
 @Service
 public class RetailService {
@@ -34,11 +43,13 @@ public class RetailService {
     @Value("${scrape.cache.ttl.minutes:60}")
     private long ttlMin;
 
-    public RetailService(ScrapeCacheRepository scrapeCacheRepository,TakealotScraper ts, BobShopScraper bss, ToysRUsScraper trus) {
+    public RetailService(ScrapeCacheRepository scrapeCacheRepository,TakealotScraper ts, BobShopScraper bss, ToysRUsScraper trus, UserRepository userRepository, BoardGameRepository boardGameRepository) {
         this.ts = ts;
         this.bss = bss;
         this.trus = trus;
         this.scrapeCacheRepository = scrapeCacheRepository;
+        this.userRepository = userRepository;
+        this.boardGameRepository = boardGameRepository;
     }
 
     protected List<RetailSourceItemDTO> findWebListings(String s) {
@@ -75,13 +86,13 @@ public class RetailService {
             .orElseGet(() -> rescrapeAndCache(s));
     }
 
-    private boolean isFresh(com.boardwise.backend.marketplace.model.ScrapeCache cache) {
+    private boolean isFresh(ScrapeCache cache) {
         if (cache.getLastScrapedAt() == null) return false;
         long ageMinutes = java.time.Duration.between(cache.getLastScrapedAt(), java.time.LocalDateTime.now()).toMinutes();
         return ageMinutes < ttlMin;
     }
 
-    private List<RetailSourceItemDTO> safeScrape(java.util.function.Function<String, List<RetailSourceItemDTO>> scraper,
+    private List<RetailSourceItemDTO> safeScrape(Function<String, List<RetailSourceItemDTO>> scraper,
             String query, String sourceName) {
         try {
             List<RetailSourceItemDTO> result = scraper.apply(query);
@@ -121,5 +132,48 @@ public class RetailService {
 
         scrapeCacheRepository.save(toSave);
         return overall;
+    }
+
+    //RECCOMMENDATION ALGORITHM
+    //CURRENT APPROACH: fetch as many listings as possible 
+    private final UserRepository userRepository;
+    private final BoardGameRepository boardGameRepository;
+     
+    //number of Games to search for 
+    private final int NUMOFGAMES = 3;
+    @Scheduled(fixedDelayString = "${scrape.cache.refresh.interval.ms:3600000}")
+    protected void recommendedScraper(){
+        //SHOULDDO: compute most popular first 
+        //get first n games 
+        List<GameOwnershipCount> currGames = new ArrayList<>(userRepository.findMostOwnedGameIds(NUMOFGAMES));
+        //fall back 
+        List<Boardgame> games = new ArrayList<>();
+
+        if(currGames.size() < 3){
+           games = boardGameRepository.findAllBy(Limit.of(NUMOFGAMES));
+
+           if(games.isEmpty()){
+            throw new RuntimeException("Error while trying to fetch popular games");
+           }
+
+        } else{
+            for(GameOwnershipCount x : currGames){
+                // get Game from boardgame 
+
+                Optional<Boardgame> bg = boardGameRepository.findById(x.getId());
+
+                if(bg.isEmpty()){
+                    throw new RuntimeException("Error while trying to fetch id: " + x.getId());
+                }
+                
+                //bg is not empty/ is PRESENT
+                games.add(bg.get());
+            }
+        }
+        //scrape based on current 
+
+        for(Boardgame bg : games){
+            this.findWebListingsCached(bg.getTitle()+" Boardgame");
+        }
     }
 }
