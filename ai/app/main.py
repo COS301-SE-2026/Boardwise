@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from init_vector_index import initialise_vector_index
 from sentence_transformers import CrossEncoder, SentenceTransformer
 
-from app.routers import job, rulebook
+from app.routers import internal, job, rulebook
 from app.services import mongo_service, r2_service
 
 logging.basicConfig(
@@ -86,6 +86,7 @@ app.add_middleware(
 
 app.include_router(rulebook.router, prefix="/api/vault/rulebooks")
 app.include_router(job.router, prefix="/api/vault/jobs")
+app.include_router(internal.router, prefix="/api/vault/internal")
 
 
 @app.get("/health", tags=["System"])

@@ -39,7 +39,7 @@ def fetch_candidate_chunks(
             },
         ]
 
-        db = mongo_service.client.get_default_database()
+        db = mongo_service.get_db()
         collection = db["RULEBOOK_TEXT"]
 
         results = list(collection.aggregate(pipeline))

@@ -62,7 +62,7 @@ def verify_index_ready():
     FastAPI dependency to ensure the vector index is queryable.
     Returns True if ready, otherwise raises a 503 Service Unavailable.
     """
-    db = mongo_service.client.get_default_database()
+    db = mongo_service.get_db()
     collection = db["RULEBOOK_TEXT"]
 
     try:
