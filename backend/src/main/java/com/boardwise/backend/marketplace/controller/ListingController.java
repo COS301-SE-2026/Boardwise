@@ -168,13 +168,12 @@ public class ListingController {
         }
     }
 
-    @PostMapping("/listings/retail")
-    public ResponseEntity<Page<RetailSourceItemDTO>> getRetailListings(
-            @RequestBody(required = false) String game,
-            @RequestParam(required = false, defaultValue = "0") Integer page) {
-
+    @GetMapping("/listings/retail")
+    public ResponseEntity<Page<RetailSourceItemDTO>> getPersonalizedRetailItems(
+        @RequestHeader("Authorization") String token,
+        @RequestParam(required = false, defaultValue = "0") Integer page) {
         try {
-            Page<RetailSourceItemDTO> results = retailService.getRetailListingsPage(game, page);
+            Page<RetailSourceItemDTO> results = retailService.getPersonalizedRetailListings(token.replace("Bearer ", ""), page);
 
             return ResponseEntity.ok(results);
         } catch (Exception e) {

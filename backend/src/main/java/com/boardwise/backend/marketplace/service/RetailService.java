@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.logging.Logger;
 
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
@@ -23,14 +25,19 @@ import com.boardwise.backend.marketplace.repository.ScrapeCacheRepository;
 import com.boardwise.backend.marketplace.service.webscrapers.BobShopScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.TakealotScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.ToysRUsScraper;
+import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.repos.UserRepository;
 import com.boardwise.backend.user_service.repos.UserRepository.GameOwnershipCount;
 import com.boardwise.backend.user_service.models.Boardgame;
+import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 
 
 @Service
 public class RetailService {
+
+    //Logger
+    private Logger logger = Logger.getLogger(RetailService.class.getName());
 
     private static final int PAGE_SIZE = 20;
 
@@ -38,18 +45,23 @@ public class RetailService {
     private final BobShopScraper bss;
     private final ToysRUsScraper trus;
 
+    //AUTH
+    private final JWTService jwtService;
+
+
     private final ScrapeCacheRepository scrapeCacheRepository;
     
     @Value("${scrape.cache.ttl.minutes:60}")
     private long ttlMin;
 
-    public RetailService(ScrapeCacheRepository scrapeCacheRepository,TakealotScraper ts, BobShopScraper bss, ToysRUsScraper trus, UserRepository userRepository, BoardGameRepository boardGameRepository) {
+    public RetailService(ScrapeCacheRepository scrapeCacheRepository,TakealotScraper ts, BobShopScraper bss, ToysRUsScraper trus, UserRepository userRepository, BoardGameRepository boardGameRepository, JWTService jwtService) {
         this.ts = ts;
         this.bss = bss;
         this.trus = trus;
         this.scrapeCacheRepository = scrapeCacheRepository;
         this.userRepository = userRepository;
         this.boardGameRepository = boardGameRepository;
+        this.jwtService = jwtService;
     }
 
     protected List<RetailSourceItemDTO> findWebListings(String s) {
@@ -102,19 +114,80 @@ public class RetailService {
         }
     }
 
-    public Page<RetailSourceItemDTO> getRetailListingsPage(String s, Integer pageNum) {
-        List<RetailSourceItemDTO> overall = findWebListingsCached(s);
-
+    private Page<RetailSourceItemDTO> paginate(List<RetailSourceItemDTO> overall, Integer pageNum) {
         int page = (pageNum == null || pageNum < 0) ? 0 : pageNum;
         Pageable pageable = PageRequest.of(page, PAGE_SIZE);
-
+ 
         int start = (int) pageable.getOffset();
         if (start >= overall.size()) {
             return new PageImpl<>(new ArrayList<>(), pageable, overall.size());
         }
         int end = Math.min(start + pageable.getPageSize(), overall.size());
-
         return new PageImpl<>(overall.subList(start, end), pageable, overall.size());
+    } 
+    private List<Boardgame> getGloballyPopularGames() {
+        List<GameOwnershipCount> topOwned = userRepository.findMostOwnedGameIds(NUMOFGAMES);
+ 
+        List<Boardgame> games = new ArrayList<>();
+        if (!topOwned.isEmpty()) {
+            List<String> ownedIds = topOwned.stream().map(GameOwnershipCount::getId).toList();
+            games.addAll(boardGameRepository.findAllById(ownedIds));
+        }
+ 
+        int shortfall = NUMOFGAMES - games.size();
+        if (shortfall > 0) {
+            List<String> alreadySelectedIds = games.stream().map(Boardgame::getId).toList();
+            List<Boardgame> fallbackCandidates = boardGameRepository.findAllBy(Limit.of(shortfall + NUMOFGAMES));
+ 
+            fallbackCandidates.stream()
+                .filter(bg -> !alreadySelectedIds.contains(bg.getId()))
+                .limit(shortfall)
+                .forEach(games::add);
+        }
+ 
+        return games;
+    }
+
+    private Page<RetailSourceItemDTO> emptyPage(Integer pageNum) {
+        int page = (pageNum == null || pageNum < 0) ? 0 : pageNum;
+        return new PageImpl<>(new ArrayList<>(), PageRequest.of(page, PAGE_SIZE), 0);
+    }
+    
+    public Page<RetailSourceItemDTO> getPersonalizedRetailListings(String token, Integer pageNum) {
+        //Extract userId
+        ObjectId userId = jwtService.extractUserId(token);
+        //Get the users details 
+        Optional<User> user = userRepository.findById(userId.toString());
+
+        if (user.isEmpty()){
+            logger.info(() -> "Error while trying to find user for personalised listings: " + userId.toString());
+            return null;
+        }
+
+        //Look at what games the user has 
+        List<String> ownedGameIds = user.get().getOwnedGames();
+        List<Boardgame> games; // games with the names
+
+        if(ownedGameIds != null && !ownedGameIds.isEmpty()){
+            List<String> topNGames = ownedGameIds.stream().toList();
+            games = boardGameRepository.findAllById(topNGames);
+        }
+        else{
+            //no inventory probably a new user
+            System.out.println("User has no inventory so global best is being used");
+            games = getGloballyPopularGames();
+        }
+
+        if(games.isEmpty()){
+            return emptyPage(pageNum);
+        }
+
+        List<RetailSourceItemDTO> combined = new ArrayList<>();
+        for (Boardgame bg : games) {
+            combined.addAll(findWebListingsCached(bg.getTitle() + " Boardgame"));
+        }
+
+        return paginate(combined, pageNum);
     }
 
     private List<RetailSourceItemDTO> rescrapeAndCache(String s) {
@@ -150,12 +223,7 @@ public class RetailService {
         List<Boardgame> games = new ArrayList<>();
 
         if(currGames.size() < 3){
-           games = boardGameRepository.findAllBy(Limit.of(NUMOFGAMES));
-
-           if(games.isEmpty()){
-            throw new RuntimeException("Error while trying to fetch popular games");
-           }
-
+           games = getGloballyPopularGames();
         } else{
             for(GameOwnershipCount x : currGames){
                 // get Game from boardgame 
