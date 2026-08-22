@@ -209,7 +209,7 @@ async def query_rulebook(
 
         citations = [
             Citation(
-                chunk_id=str(chunk.get("chunkId", "unknown")),
+                chunk_id=chunk.get("chunkId", "unknown"),
                 index=chunk.get("index", 0),
                 content=chunk.get("content", ""),
                 relevance_score=chunk.get("relevanceScore", 0.0),

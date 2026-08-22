@@ -13,7 +13,7 @@ def fetch_candidate_chunks(
 ) -> list[dict]:
     """
     Executes a vector search against MongoDB Atlas to find the most relevant rulebook chunks.
-    Filters strictly by rulebookId and drops the raw vector from the response to preserve RAM.
+    Filters by rulebookId and drops the raw vector from the response to preserve RAM.
     """
     try:
         pipeline = [
@@ -29,8 +29,8 @@ def fetch_candidate_chunks(
             },
             {
                 "$project": {
-                    "_id": 1,
-                    "chunkId": 1,
+                    "_id": 0,
+                    "chunkId": {"$toString": "$_id"},
                     "content": 1,
                     "index": 1,
                     "charCount": 1,

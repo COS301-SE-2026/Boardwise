@@ -211,8 +211,8 @@ def create_rulebook_text(
 
         chunks_to_insert.append(
             {
+                "_id": chunk_obj_id,
                 "rulebookId": rulebook_obj_id,
-                "chunkId": chunk_obj_id,
                 "index": chunk["index"],
                 "content": chunk["content"],
                 "embedding": chunk.get("embedding", []),

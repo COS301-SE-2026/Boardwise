@@ -18,14 +18,11 @@ import tools.jackson.databind.ser.std.ToStringSerializer;
 public class RulebookText {
 
     @Id
-    private ObjectId id;
+    @JsonSerialize(using = ToStringSerializer.class)
+    private ObjectId chunkId;
 
     @Field("rulebookId")
     private ObjectId rulebookId;
-
-    @JsonSerialize(using = ToStringSerializer.class)
-    @Field("chunkId")
-    private ObjectId chunkId;
 
     @Field("index")
     private Integer index;
