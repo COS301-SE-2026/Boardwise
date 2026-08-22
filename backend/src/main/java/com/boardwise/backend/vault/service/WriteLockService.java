@@ -439,17 +439,10 @@ public class WriteLockService {
 
         switch (targetEvent.getEditType()) {
             case EditType.INSERT:
-                rulebookTextRepository.atomicDeleteChunk(rulebookId, targetEvent.getChunkId());
-                broadcastEventType = "CHUNK_DELETED";
-                inverseEditType = EditType.DELETE;
-                eventPreviousContent = targetEvent.getNewContent();
-
-                eventIndex = targetEvent.getIndex();
-                break;
-            case EditType.DELETE:
                 int targetIndex = targetEvent.getIndex();
 
-                RulebookText updatedDocument = rulebookTextRepository.atomicInsertChunk(rulebookId, targetEvent.getPreviousContent(), targetIndex);
+                RulebookText updatedDocument = rulebookTextRepository.atomicInsertChunk(rulebookId,
+                        targetEvent.getNewContent(), targetIndex);
 
                 if (updatedDocument == null) {
                     throw new ConcurrentModificationAnomalyException("Failed to insert chunk.");
@@ -459,17 +452,23 @@ public class WriteLockService {
 
                 broadcastEventType = "CHUNK_INSERTED";
                 inverseEditType = EditType.INSERT;
-                eventNewContent = targetEvent.getPreviousContent();
 
+                eventNewContent = targetEvent.getNewContent();
                 eventIndex = actualRestoredIndex;
                 break;
+            case EditType.DELETE:
+                rulebookTextRepository.atomicDeleteChunk(rulebookId, targetEvent.getChunkId());
+                broadcastEventType = "CHUNK_DELETED";
+                inverseEditType = EditType.DELETE;
+                eventPreviousContent = targetEvent.getPreviousContent();
+                eventIndex = targetEvent.getIndex();
+                break;
             case EditType.UPDATE:
-                rulebookTextRepository.atomicUpdateChunk(rulebookId, targetEvent.getChunkId(), targetEvent.getPreviousContent());
+                rulebookTextRepository.atomicUpdateChunk(rulebookId, targetEvent.getChunkId(), targetEvent.getNewContent());
                 broadcastEventType = "DELTA_COMMITTED";
                 inverseEditType = EditType.UPDATE;
-                eventNewContent = targetEvent.getPreviousContent();
-                eventPreviousContent = targetEvent.getNewContent();
-
+                eventPreviousContent = targetEvent.getPreviousContent();
+                eventNewContent = targetEvent.getNewContent();
                 eventIndex = targetEvent.getIndex();
                 break;
             default:

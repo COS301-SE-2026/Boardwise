@@ -1,7 +1,8 @@
 import logging
 
-from fastapi import APIRouter, BackgroundTasks, Request, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, status
 
+from app.dependencies import verify_internal_token
 from app.ingestion.vectoriser import background_vectorise_and_update
 from app.schemas import ReEmbedRequest
 
@@ -12,7 +13,10 @@ router = APIRouter(tags=["Internal Tasks"])
 
 @router.post("/chunks/re-embed", status_code=status.HTTP_202_ACCEPTED)
 async def trigger_re_embed(
-    payload: ReEmbedRequest, background_tasks: BackgroundTasks, request: Request
+    payload: ReEmbedRequest,
+    background_tasks: BackgroundTasks,
+    request: Request,
+    token: str = Depends(verify_internal_token),
 ):
     """
     Webhook triggered by Spring Boot when a chunk is inserted, deleted, updated, redone or undone.
