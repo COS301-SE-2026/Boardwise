@@ -2,6 +2,7 @@
     <v-container fluid class="auth-page d-flex align-center justify-center">
         <div class="auth-wrapper">
             <AuthForm
+                data-test="auth-form"
                 v-if="token"
                 title="Set a New Password"
                 buttonText="Reset Password"
@@ -14,6 +15,7 @@
             </v-alert>
 
             <v-alert 
+                data-test="v-alert"
                 v-if="localError || error"
                 type="error"
                 variant="tonal"

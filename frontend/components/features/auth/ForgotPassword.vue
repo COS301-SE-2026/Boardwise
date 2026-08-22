@@ -2,6 +2,7 @@
     <v-container fluid class="auth-page d-flex align-center justify-center">
         <div class="auth-wrapper">
             <AuthForm
+                data-test="auth-form"
                 v-if="!emailSent"
                 title="Forgot Your Password?"
                 subtitle="There is nothing to worry aboutm we'll send you a message to reset your password!"
