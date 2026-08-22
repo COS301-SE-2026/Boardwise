@@ -289,13 +289,13 @@ watch(searchQuery, ()=> {
 })
 
 
-const reconcileStaleState = async () => {
+const reconcileStaleState = async (silent = false) => {
     if (!props.rulebook?.id) return;
     try {
         const fresh = await getRulebookText(props.rulebook.id);
         if (fresh?.chunks)  localChunks.value = [...fresh.chunks];
         if (fresh?.version) currentVersion.value = fresh.version;
-        show('Your view was out of date and has been refreshed.', 'info');
+        if(!silent) show('Your view was out of date and has been refreshed.', 'info');
     } catch {
         show('Failed to refresh document state.', 'error');
     }
@@ -306,6 +306,7 @@ const handleUndo = async () => {
     try {
         const newVersion = await undoEdit(props.rulebook.id, '', currentVersion.value);
         currentVersion.value = newVersion;
+        await reconcileStaleState(true);
     } catch(err) {
         if (err?.status === 409) {
             show('Nothing left to undo.', 'info');
@@ -320,6 +321,7 @@ const handleRedo = async () => {
     try {
         const newVersion = await redoEdit(props.rulebook.id, '', currentVersion.value);
         currentVersion.value = newVersion;
+        await reconcileStaleState(true);
     } catch(err) {
         if (err?.status === 409) {
             show('Nothing left to redo.', 'info');
