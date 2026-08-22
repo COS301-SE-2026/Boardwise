@@ -58,9 +58,9 @@ public class RetailService {
         }
 
         // individual processes happening concurrently
-        CompletableFuture<List<RetailSourceItemDTO>> takealotFuture = CompletableFuture.supplyAsync(() -> safeScrape(ts::scrape, s, "Takealot"));
-        CompletableFuture<List<RetailSourceItemDTO>> bobShopFuture = CompletableFuture.supplyAsync(() -> safeScrape(bss::scrape, s, "BobShop"));
-        CompletableFuture<List<RetailSourceItemDTO>> toysRUsFuture = CompletableFuture.supplyAsync(() -> safeScrape(trus::scrape, s, "ToysRUs"));
+        CompletableFuture<List<RetailSourceItemDTO>> takealotFuture = CompletableFuture.supplyAsync(() -> safeScrape(ts::scrape, s));
+        CompletableFuture<List<RetailSourceItemDTO>> bobShopFuture = CompletableFuture.supplyAsync(() -> safeScrape(bss::scrape, s));
+        CompletableFuture<List<RetailSourceItemDTO>> toysRUsFuture = CompletableFuture.supplyAsync(() -> safeScrape(trus::scrape, s));
 
         CompletableFuture.allOf(takealotFuture, bobShopFuture, toysRUsFuture).join();
 
@@ -93,7 +93,7 @@ public class RetailService {
     }
 
     private List<RetailSourceItemDTO> safeScrape(Function<String, List<RetailSourceItemDTO>> scraper,
-            String query, String sourceName) {
+            String query) {
         try {
             List<RetailSourceItemDTO> result = scraper.apply(query);
             return result != null ? result : new ArrayList<>();
@@ -135,17 +135,17 @@ public class RetailService {
     }
 
     //RECCOMMENDATION ALGORITHM
-    //CURRENT APPROACH: fetch as many listings as possible 
+    //CURRENT APPROACH: fetch as many listings as possible based on 
     private final UserRepository userRepository;
     private final BoardGameRepository boardGameRepository;
      
     //number of Games to search for 
     private final int NUMOFGAMES = 3;
     @Scheduled(fixedDelayString = "${scrape.cache.refresh.interval.ms:3600000}")
-    protected void recommendedScraper(){
+    public void ScheduledRecommendedScraper(){
         //SHOULDDO: compute most popular first 
         //get first n games 
-        List<GameOwnershipCount> currGames = new ArrayList<>(userRepository.findMostOwnedGameIds(NUMOFGAMES));
+        List<GameOwnershipCount> currGames = new ArrayList<>(userRepository.findMostOwnedGameIds(NUMOFGAMES)); // mock
         //fall back 
         List<Boardgame> games = new ArrayList<>();
 
@@ -171,7 +171,7 @@ public class RetailService {
             }
         }
         //scrape based on current 
-
+        //TODO: scrape based on most popular games in User Inventory
         for(Boardgame bg : games){
             this.findWebListingsCached(bg.getTitle()+" Boardgame");
         }
