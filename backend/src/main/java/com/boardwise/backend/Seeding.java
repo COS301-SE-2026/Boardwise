@@ -20,18 +20,18 @@ import com.boardwise.backend.marketplace.enums.ListingStatus;
 import com.boardwise.backend.marketplace.model.Listing;
 import com.boardwise.backend.marketplace.model.RentalPeriod;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
+import com.boardwise.backend.user_service.enums.EventStatus;
+import com.boardwise.backend.user_service.enums.RSVPStatus;
+import com.boardwise.backend.user_service.enums.Visibility;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.models.Event;
 import com.boardwise.backend.user_service.models.EventAttendee;
-import com.boardwise.backend.user_service.models.EventStatus;
 import com.boardwise.backend.user_service.models.Group;
 import com.boardwise.backend.user_service.models.GroupMembership;
-import com.boardwise.backend.user_service.models.RSVPStatus;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.models.Visibility;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.EventAttendeeRepository;
-import com.boardwise.backend.user_service.repos.EventsRepository;
+import com.boardwise.backend.user_service.repos.EventRepository;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
@@ -68,7 +68,7 @@ public class Seeding {
         
     @Bean
     public CommandLineRunner seedDB(ListingRepository listingRepository, BoardGameRepository boardGameRepository, GroupMembershipRepository groupMembershipRepository,
-            GroupRepository groupRepository, UserRepository userRepository, EditEventRepository editEventRepository, EventsRepository eventsRepository, EventAttendeeRepository eaRepository,
+            GroupRepository groupRepository, UserRepository userRepository, EditEventRepository editEventRepository, EventRepository eventsRepository, EventAttendeeRepository eaRepository,
             IngestionJobRepository ingestionJobRepository, RulebookRepository rulebookRepository, RulebookTextRepository rulebookTextRepository, GeoApiContext geoApiContext) {
         return args -> {
             // User Repository

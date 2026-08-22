@@ -4,10 +4,10 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+import com.boardwise.backend.user_service.enums.EventStatus;
+import com.boardwise.backend.user_service.enums.RSVPStatus;
+import com.boardwise.backend.user_service.enums.Visibility;
 import com.boardwise.backend.user_service.models.Event;
-import com.boardwise.backend.user_service.models.EventStatus;
-import com.boardwise.backend.user_service.models.RSVPStatus;
-import com.boardwise.backend.user_service.models.Visibility;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 public record EventDTO(

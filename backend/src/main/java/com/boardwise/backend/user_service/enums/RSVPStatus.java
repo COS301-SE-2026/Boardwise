@@ -1,4 +1,4 @@
-package com.boardwise.backend.user_service.models;
+package com.boardwise.backend.user_service.enums;
 
 public enum RSVPStatus {
     INVITED,
