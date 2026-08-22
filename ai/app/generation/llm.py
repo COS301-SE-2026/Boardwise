@@ -12,16 +12,17 @@ logger = logging.getLogger(__name__)
 hf_client = InferenceClient(model="Qwen/Qwen2.5-7B-Instruct", token=settings.HF_TOKEN)
 
 
-def generate_answer(messages: list[dict], max_retries: int = 3) -> str:
+def generate_answer(messages: list[dict], ml_models: dict, max_retries: int = 3) -> str:
     """
-    Calls the Hugging Face Serverless API to generate an answer using the provided conversational context.
+    Calls the Hugging Face Serverless API to generate an answer using the provided context.
     Implements a backoff strategy to handle 503 (Cold Start) and 429 (Rate Limit) HTTP errors.
+    Trips a circuit breaker to a local model if retries are exhaused.
     """
     base_delay = 2.0
 
     for attempt in range(max_retries):
         try:
-            # Low temperature (0.1) is enforced to keep the LLM analytical and prevent hallucinations
+            # Low temperature (0.1) is enforced to keep the LLM analytical and reduce hallucinations
             response = hf_client.chat_completion(
                 messages=messages, max_tokens=500, temperature=0.1, stream=False
             )
@@ -46,24 +47,34 @@ def generate_answer(messages: list[dict], max_retries: int = 3) -> str:
                     continue
                 else:
                     logger.error(
-                        "Hugging Face API exhausted retries for status code %d.",
+                        "Hugging Face API exhausted retries for status code %d. Switching to local model.",
                         status_code,
                     )
-                    raise HTTPException(
-                        status_code=503,
-                        detail="The AI service is currently warming up or experiencing high traffic. Please try again in a few seconds.",
-                    )
+                    break  # Break loop to trigger local fallback model
 
             logger.exception("Unexpected HTTP error from Hugging Face Inference API.")
-            raise HTTPException(
-                status_code=500,
-                detail="An internal error occurred while communicating with the AI service.",
-            )
+            break
 
         except Exception:
             logger.exception("Critical error during LLM text generation.")
-            raise HTTPException(
-                status_code=500,
-                detail="An unexpected error occurred during answer generation.",
-            )
-    raise HTTPException(status_code=500, detail="Answer generation failed")
+            break
+
+    logger.warning("Executing local fallback model...")
+    try:
+        local_model = ml_models.get("local_llm")
+        if not local_model:
+            raise ValueError("Local LLM model missing from application state.")
+
+        response = local_model.create_chat_completion(
+            messages=messages, max_tokens=500, temperature=0.1
+        )
+
+        raw_content = response["choices"][0]["message"]["content"]
+        answer = (raw_content or "").strip()
+        logger.info("Successfully generated LLM response from local model.")
+        return answer
+    except Exception:
+        logger.exception("FATAL: Local fallback LLM also failed.")
+        raise HTTPException(
+            status_code=503, detail="The AI service is currently unavailable."
+        )

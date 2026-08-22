@@ -3,11 +3,12 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from init_vector_index import initialise_vector_index
+from llama_cpp import Llama
 from sentence_transformers import CrossEncoder, SentenceTransformer
 
 from app.routers import internal, job, rulebook
 from app.services import mongo_service, r2_service
+from app.utils.init_vector_index import initialise_vector_index
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -41,9 +42,18 @@ async def lifespan(app: FastAPI):
         logger.info("Nomic embedding model loaded successfully.")
 
         ml_models["reranker_model"] = CrossEncoder(
-            "cross-encoder/ms-marco-MiniLM-L6-v2", device="cpu"
+            "cross-encoder/ms-marco-MiniLM-L-6-v2", device="cpu"
         )
         logger.info("Cross-encoder re-ranker model loaded successfully.")
+
+        ml_models["local_llm"] = Llama(
+            model_path="/app/models/qwen3-0.6b-q4_k_m.gguf",
+            n_ctx=4096,
+            n_threads=1,
+            n_gpu_layers=0,
+            verbose=False,
+        )
+        logger.info("Local LLM model loaded successfully.")
 
         app.state.ml_models = ml_models
     except Exception:
@@ -54,6 +64,7 @@ async def lifespan(app: FastAPI):
 
     logger.info("Shutting down AI Gateway. Clearing memory footprint...")
     mongo_service.client.close()
+    del ml_models["local_llm"]
     ml_models.clear()
 
 

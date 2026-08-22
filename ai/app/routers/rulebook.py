@@ -157,7 +157,7 @@ async def upload_rulebook(
     return UploadResponse(
         message="Rulebook upload accepted. Ingestion has started.",
         rulebook_id=rulebook_id,
-        job_id=job_id,
+        job_id=job_id
     )
 
 
@@ -188,6 +188,15 @@ async def query_rulebook(
     Executes a RAG query against a specific rulebook.
     Retrieves vector context, scores relevance, and generates a grounded LLM answer.
     """
+    if not ObjectId.is_valid(rulebook_id):
+        logger.warning(
+            "Query rejected: malformed rulebook_id '%s'.",
+            sanitise_log_input(rulebook_id),
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid rulebook ID format.",
+        )
     try:
         query = payload.query
         ml_models = request.app.state.ml_models
@@ -205,7 +214,7 @@ async def query_rulebook(
             )
 
         messages = build_chat_messages(query, retrieved_chunks)
-        answer = generate_answer(messages)
+        answer = generate_answer(messages, ml_models)
 
         citations = [
             Citation(
