@@ -51,6 +51,8 @@
             @next="currentPage++"
             @save="handleSave"
             @cancel="handleCancel"
+            @delete="handleDelete"
+            @insert="handleInsert"
           />
         </v-col>
       </v-row>
@@ -95,7 +97,7 @@ const currentMatch = ref(0)
 const localChunks = ref([...props.chunks])
 const showHistory = ref(false)
 
-const { isEditing, isSaving, lockHeldBy, lockExpiresAt, lockError, canRedo, canUndo, currentVersion, startEditing, stopEditing, releaseAllLocks, commitDelta, undoEdit, redoEdit } = useEditLock()
+const { isEditing, isSaving, lockHeldBy, lockExpiresAt, lockError, canRedo, canUndo, currentVersion, startEditing, stopEditing, releaseAllLocks, commitDelta, undoEdit, redoEdit, insertChunk, deleteChunk } = useEditLock()
 const { editHistory, isLoadingHistory, historyError, fetchEditHistory } = useEditHistory()
 const { show } = useSnackBar()
 const { getRulebookText } = useLibrary()
@@ -104,6 +106,9 @@ const activeChunk = computed(() => localChunks.value[currentPage.value])
 
 watch(() => props.chunks, (val) => {
   localChunks.value = [...val]
+  if(currentPage.value >= localChunks.value.length) {
+    currentPage.value = Math.max(0, localChunks.value.length - 1)
+  }
 }, { immediate: true, deep: true })
 
 const handlePageChange = (index) => {
@@ -114,11 +119,68 @@ const handlePageChange = (index) => {
   currentPage.value = index
 }
 
+const handleDelete = async () => {
+  if(!props.rulebook?.id) return
+  isSaving.value = true;
+  const chunk = localChunks.value[currentPage.value]
+
+  try{
+    const newVersion = await deleteChunk(
+      props.rulebook.id,
+      chunk.chunkId,
+      currentVersion.value
+    )
+    currentVersion.value = newVersion;
+    show('Section deleted.', 'success')
+  } catch(err)
+  {
+    if(err?.status === 409 && err?.data?.error === 'VersionMismatchException')
+  {
+    await reconcileStaleState()
+  } else
+  {
+    show('Failed to delete section', 'error')
+  }
+  } finally {
+    await stopEditing(props.rulebook.id)
+    isSaving.value = false
+  }
+}
+
+const handleInsert = async () => {
+  if(!props.rulebook?.id) return;
+  isSaving.value = true
+  
+  const targetIndex = currentPage.value + 1;
+
+  try{
+    const newVersion = await insertChunk(
+      props.rulebook.id,
+      "New Section Content...",
+      targetIndex,
+      currentVersion.value
+    )
+
+    currentVersion.value = newVersion;
+    show('New section added.', 'success')
+    currentPage.value = targetIndex;
+  }catch (err) {
+    if(err?.status === 409 && err?.data?.error === 'VersionMismatchException') {
+      await reconcileStaleState();
+    } else {
+      show('Failed to add section.', 'error')
+    }
+  } finally {
+    await stopEditing(props.rulebook.id);
+    isSaving.value = false;
+  }
+}
+
 const handleEdit = async () => {
-  if (!props.rulebook?.id) return
-  await startEditing(props.rulebook.id)
+  if (!props.rulebook?.id) return;
+  await startEditing(props.rulebook.id);
   if (lockError.value) {
-    show(lockError.value, 'error')
+    show(lockError.value, 'error');
   }
 }
 
