@@ -14,7 +14,7 @@ public interface WebScraper {
     
     private int countMatchingChars(String x, String y){
         if(x.isBlank()|| y.isBlank()){
-            throw new RuntimeException("Cannot pass in empty strings");
+            throw new IllegalArgumentException("Cannot pass in empty strings");
         }
         int lenOfX = x.length();
         int lenOfY = y.length();
@@ -91,7 +91,7 @@ public interface WebScraper {
 
     private float JaroSimilarity(String a, String b){
         if(a.isBlank()|| b.isBlank()){
-            throw new RuntimeException("Cannot pass in empty strings");
+            throw new IllegalArgumentException("Cannot pass in empty strings");
         }
         int m = countMatchingChars(a,b);
         int t = countTranspositions(a,b);

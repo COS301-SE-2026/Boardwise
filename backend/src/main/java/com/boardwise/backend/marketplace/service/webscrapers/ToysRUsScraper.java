@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 import org.springframework.stereotype.Service;
 
@@ -19,8 +20,8 @@ public class ToysRUsScraper implements WebScraper {
 
     public ToysRUsScraper(){} 
 
-    private final int MAXNUMITEMS = 15;
-    private String searchSelector = "input[placeholder='The search for fun starts here...']";
+    private final static Logger logger = Logger.getLogger(ToysRUsScraper.class.getName());
+    private final int MAXNUMITEMS = 25;
     private final String site = "https://www.toysrus.co.za/";
     private final String RETAILERNAME="ToysRUs";
 
@@ -38,6 +39,7 @@ public class ToysRUsScraper implements WebScraper {
 
             //website
             page.navigate(site);
+            String searchSelector = "input[placeholder='The search for fun starts here...']";
             page.waitForSelector(searchSelector);
 
 
@@ -45,6 +47,7 @@ public class ToysRUsScraper implements WebScraper {
             Locator searchBar = page.getByPlaceholder("The search for fun starts here...");
 
             if(searchBar.count() == 0){
+                logger.info("Error while scraping Takealot");
                 throw new RuntimeException("Error while trying to find the search bar for Toys R US");
             }
 
@@ -101,10 +104,9 @@ public class ToysRUsScraper implements WebScraper {
             return retailSourceItemDTOs;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.info("Error while scraping ToysrUs");
+            throw new RuntimeException("Error while scraping ToysRUs ");
         }
-        //if you ever exit this... wow
-        throw new RuntimeException("somehow reached a place you shouldn't have ");
     }
 
 protected boolean noResultsFound(String pageContent) {
@@ -129,6 +131,7 @@ protected boolean noResultsFound(String pageContent) {
         try {
             return Double.parseDouble(priceRaw);
         } catch (NumberFormatException e) {
+            logger.info("Error while scraping ToysrUs Price");
             return null;
         }
     }

@@ -1,9 +1,11 @@
 package com.boardwise.backend.marketplace.service.webscrapers;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 import org.springframework.stereotype.Service;
 
@@ -17,17 +19,19 @@ import com.microsoft.playwright.Playwright;
 
 @Service
 public class BobShopScraper implements WebScraper {
+    private final static  Logger logger = Logger.getLogger(BobShopScraper.class.getName());
 
     public BobShopScraper() {
     }
 
     private final String RETAILERNAME = "Bobshop";
-    private final int MAXNUMITEMS = 15;
+    private final int MAXNUMITEMS = 25;
     private final String site = "https://www.bobshop.co.za";
 
     @Override
     public List<RetailSourceItemDTO> scrape(String toSearch) {
         if (toSearch == null || toSearch.isBlank()) {
+            logger.info(" BOBSHOP Crashed while trying to search blank... " .concat(LocalDate.now().toString()));
             return null;
         }
         try (Playwright playwright = Playwright.create()) {
@@ -43,6 +47,8 @@ public class BobShopScraper implements WebScraper {
             Locator searchBar = page.getByPlaceholder("Search for anything");
 
             if (searchBar.count() == 0) {
+                logger.info(" BOBSHOP Cannot find the search bar" .concat(LocalDate.now().toString()));
+
                 throw new RuntimeException("Error while trying to find the search bar on Bob Shop");
             }
 
@@ -57,6 +63,8 @@ public class BobShopScraper implements WebScraper {
             List<Locator> cards = page.locator("a.product-card-container").all();
             
             if (cards.isEmpty()) {
+                logger.info(" BOBSHOP Could not find any cards  " .concat(LocalDate.now().toString()));
+
                 return null;// for some reason?? should lowkey an exception because wow
             }
 
@@ -96,9 +104,9 @@ public class BobShopScraper implements WebScraper {
             return retailSourceItemDTOs;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.info("Error while scraping bobshop" .concat(e.getMessage()));
+            throw new RuntimeException(e.getMessage());
         }
-        return null;
     }
 
     protected boolean isSponsored(String classAttr){
@@ -116,6 +124,8 @@ public class BobShopScraper implements WebScraper {
         try {
             return Double.parseDouble(rands + "." + cents);
         } catch (NumberFormatException e) {
+            logger.info("Error while scraping bobshop price parsing error" .concat(e.getMessage()));
+
             return null;
         }
     }

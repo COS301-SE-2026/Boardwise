@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 import org.springframework.stereotype.Service;
 
@@ -19,14 +20,16 @@ public class TakealotScraper implements WebScraper {
 
     public TakealotScraper(){} 
     
-    private final int MAXNUMITEMS = 15;
+    private final static  Logger logger = Logger.getLogger(TakealotScraper.class.getName());
+    private final int MAXNUMITEMS = 25;
     private final String searchSelector = "input[placeholder='Search for products, brands...']";
     private final String site = "https://www.takealot.com";
     private final String RETAILERNAME = "Takealot";
 
     @Override
     public List<RetailSourceItemDTO> scrape(String toSearch) {
-        if(toSearch.isBlank()){
+        if(toSearch == null || toSearch.isBlank()){
+            logger.info("Error while scraping Takealot blank search bar");
             return null;
         }
         try(Playwright playwright = Playwright.create()){
@@ -44,6 +47,7 @@ public class TakealotScraper implements WebScraper {
             Locator searchBar = page.getByPlaceholder("Search for products, brands...");
 
             if(searchBar.count() == 0){
+                logger.info("Error while looking for a search bar on Takealot");
                 throw new RuntimeException("Error while trying to find the search bar on Takealot");
             }
 
@@ -90,6 +94,7 @@ public class TakealotScraper implements WebScraper {
             return retailSourceItemDTOs;
 
         } catch (Exception e) {
+            logger.info("Error while scraping Takealot");
             throw new RuntimeException(toSearch);
         }
     }
