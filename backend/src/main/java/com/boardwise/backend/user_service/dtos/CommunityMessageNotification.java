@@ -2,17 +2,20 @@ package com.boardwise.backend.user_service.dtos;
 
 import com.boardwise.backend.user_service.enums.NotificationType;
 
-public record FriendConfirmationNotification(
+public record CommunityMessageNotification(
     NotificationType type,
-    FriendDTO friend
+    String senderId,
+    String message
+
 ) implements NotificationDTO{
 
-    public FriendConfirmationNotification(FriendDTO friend){
-        this(NotificationType.FRIEND_CONFIRMATION, friend);
+    public CommunityMessageNotification(String senderId, String message){
+        this(NotificationType.COMMUNITY_CHAT, senderId, message);
     }
 
     @Override
     public NotificationType getType(){
         return type;
     }
-}
+
+}   

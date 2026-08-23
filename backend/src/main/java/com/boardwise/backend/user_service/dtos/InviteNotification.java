@@ -1,17 +1,19 @@
 package com.boardwise.backend.user_service.dtos;
 
+import com.boardwise.backend.user_service.enums.NotificationType;
+
 public record InviteNotification(
-    String type,
+    NotificationType type,
     EventHostInfo host,
     EventInviteInfo event
 ) implements NotificationDTO {
 
     public InviteNotification(EventHostInfo host, EventInviteInfo event){
-        this("EVENT_INVITE", host, event);
+        this(NotificationType.EVENT_INVITE, host, event);
     }
 
     @Override
-    public String getType() {
+    public NotificationType getType() {
         return type;
     }
 }

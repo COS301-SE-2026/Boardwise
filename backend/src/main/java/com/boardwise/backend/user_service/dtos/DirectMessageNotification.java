@@ -1,17 +1,19 @@
 package com.boardwise.backend.user_service.dtos;
 
+import com.boardwise.backend.user_service.enums.NotificationType;
+
 public record DirectMessageNotification(
-    String type,
+    NotificationType type,
     String senderId,
     String message
 ) implements NotificationDTO{
 
     public DirectMessageNotification(String senderId, String message){
-        this("DIRECT_MESSAGE", senderId, message);
+        this(NotificationType.DIRECT_MESSAGE, senderId, message);
     }
 
     @Override
-    public String getType(){
+    public NotificationType getType(){
         return type;
     }
 }

@@ -1,15 +1,17 @@
 package com.boardwise.backend.user_service.dtos;
 
+import com.boardwise.backend.user_service.enums.NotificationType;
+
 public record FriendRequestNotification(
-    String type,
+    NotificationType type,
     FriendRequestDTO request
 ) implements NotificationDTO {
     public FriendRequestNotification(FriendRequestDTO request){
-        this("FRIEND_REQUEST", request);
+        this(NotificationType.FRIEND_REQUEST, request);
     }
 
     @Override
-    public String getType() {
+    public NotificationType getType() {
         return type;
     }   
 }
