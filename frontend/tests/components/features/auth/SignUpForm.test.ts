@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import SignUpForm from '~/components/features/auth/SignUpForm.vue'
-import { error } from 'node:console'
 
 const push = vi.fn()
 const registerMock = vi.fn()

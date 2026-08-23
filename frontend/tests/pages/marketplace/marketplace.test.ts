@@ -3,7 +3,6 @@ import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 
 import MarketplacePage from '~/pages/marketplace/index.vue'
-import type { VProgressCircular } from 'vuetify/components'
 
 const fetchListings = vi.fn()
 const addListing = vi.fn()
