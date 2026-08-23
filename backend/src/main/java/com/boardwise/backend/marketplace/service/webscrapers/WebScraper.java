@@ -10,7 +10,7 @@ import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
 public interface WebScraper {
     
     public List<RetailSourceItemDTO> scrape(String toSearch);    
-    public final float STRINGMATCH = 0.49f; // >=49% string match gets Returned
+    public final float STRINGMATCH = 0.65f; // >=65% string match gets Returned
     
     private int countMatchingChars(String x, String y){
         if(x.isBlank()|| y.isBlank()){
