@@ -31,7 +31,7 @@ public class ChatController {
         DirectMessageDTO chatMessage = service.handleDirectMessage(principal, message);
         messagingTemplate.convertAndSendToUser(
             message.receiverId(),
-            "user/queue/chat",
+            "/queue/chat",
             chatMessage
         );
     }

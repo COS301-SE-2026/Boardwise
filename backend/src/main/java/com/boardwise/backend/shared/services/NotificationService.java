@@ -4,22 +4,15 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import com.boardwise.backend.user_service.dtos.NotificationDTO;
-import com.boardwise.backend.user_service.repository.EventAttendeeRepository;
 import com.boardwise.backend.user_service.repository.NotificationRepository;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class NotificationService {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final NotificationRepository notifRepo;
-
-    public NotificationService(
-        SimpMessagingTemplate messagingTemplate,
-        EventAttendeeRepository eaRepo
-    ){
-        this.messagingTemplate = messagingTemplate;
-        this.eaRepo = eaRepo;
-    }
 
     @Async
     public void notifyUser(String receiver, NotificationDTO notification){
