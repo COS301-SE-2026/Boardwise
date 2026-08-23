@@ -207,6 +207,11 @@ public class RetailService {
         return overall;
     }
 
+    public Page<RetailSourceItemDTO> getRetailListingsPage(String searchTerm, Integer pageNum) {
+        List<RetailSourceItemDTO> results = findWebListingsCached(searchTerm);
+        return paginate(results, pageNum);
+    }
+    
     //RECCOMMENDATION ALGORITHM
     //CURRENT APPROACH: fetch as many listings as possible based on 
     private final UserRepository userRepository;

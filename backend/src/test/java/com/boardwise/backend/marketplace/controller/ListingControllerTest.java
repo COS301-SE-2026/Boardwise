@@ -1,6 +1,7 @@
 package com.boardwise.backend.marketplace.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -419,43 +420,50 @@ public class ListingControllerTest{
         mockMvc.perform(get("/api/marketplace/listings/search")).andExpect(status().isInternalServerError());
     }
 
+    //RETAILER TESTS
     @Test
-    @WithMockUser
-    @DisplayName("POST External Retailer 200 OK With body")
-    public void getExternalRetailerListings_200WithBody() throws Exception{
-        //ARRANGE   
-        
-        RetailSourceItemDTO a = new RetailSourceItemDTO("Something cool, i guess","Takealot","somevalidurl",0.00,"imagineanimageHere.someformat",0.0f);
-        Page<RetailSourceItemDTO> fakeObjs= new PageImpl<>(List.of(a,a,a,a,a));
-        
-        when(retailService.getRetailListingsPage("wraps",0)).thenReturn(fakeObjs);
-        
-        //ACT & ASSERT
-        mockMvc.perform(post("/api/marketplace/listings/retail")).andExpect(status().isOk());
-        
-    }
-    
-    @DisplayName("POST External Retailer 204 No Content Without body")
-    public void getExternalRetailerListingsWithoutbody_204() throws Exception{
-        //ARRANGE   
-        Page<RetailSourceItemDTO> fakeObjs= null;
-        
-        when(retailService.getRetailListingsPage("wraps",0)).thenReturn(fakeObjs);
-        
-        //ACT & ASSERT
-        mockMvc.perform(post("/api/marketplace/listings/retail")).andExpect(status().isNoContent());
-    }
+@WithMockUser
+@DisplayName("GET External Retailer 200 OK with search term")
+public void getExternalRetailerListings_200WithBody() throws Exception{
+    //ARRANGE
+    RetailSourceItemDTO a = new RetailSourceItemDTO("Something cool, i guess","Takealot","somevalidurl",0.00,"imagineanimageHere.someformat",0.0f);
+    Page<RetailSourceItemDTO> fakeObjs = new PageImpl<>(List.of(a,a,a,a,a));
 
-    @DisplayName("POST External Retailer 500 InternalServerError with body")
-    public void getExternalRetailerListingswith_500() throws Exception{
-        //ARRANGE   
-        RetailSourceItemDTO a = new RetailSourceItemDTO("Something cool, i guess","Takealot","somevalidurl",0.00,"imagineanimageHere.someformat",0.0f);
-        Page<RetailSourceItemDTO> fakeObjs= new PageImpl<>(List.of(a,a,a,a,a));
+    when(retailService.getRetailListingsPage("wraps", 0)).thenReturn(fakeObjs);
 
-        when(retailService.getRetailListingsPage(null,0)).thenReturn(fakeObjs);
-        
-        //ACT & ASSERT
-        mockMvc.perform(post("/api/marketplace/listings/retail")).andExpect(status().isInternalServerError());
-    }
+    //ACT & ASSERT
+    mockMvc.perform(get("/api/marketplace/listings/retail").param("game", "wraps"))
+        .andExpect(status().isOk());
+}
+
+@Test
+@WithMockUser
+@DisplayName("GET Personalized Retail 200 OK with valid token")
+public void getPersonalizedRetailListings_200() throws Exception{
+    //ARRANGE
+    RetailSourceItemDTO a = new RetailSourceItemDTO("Something cool, i guess","Takealot","somevalidurl",0.00,"imagineanimageHere.someformat",0.0f);
+    Page<RetailSourceItemDTO> fakeObjs = new PageImpl<>(List.of(a,a,a,a,a));
+
+    when(retailService.getPersonalizedRetailListings("valid-test-token", 0)).thenReturn(fakeObjs);
+
+    //ACT & ASSERT
+    mockMvc.perform(get("/api/marketplace/listings/retail/personalized")
+            .header("Authorization", "Bearer valid-test-token"))
+        .andExpect(status().isOk());
+}
+
+@Test
+@WithMockUser
+@DisplayName("GET Personalized Retail 500 Internal Server Error")
+public void getPersonalizedRetailListings_500() throws Exception{
+    //ARRANGE
+    when(retailService.getPersonalizedRetailListings("valid-test-token", 0))
+        .thenThrow(new RuntimeException("boom"));
+
+    //ACT & ASSERT
+    mockMvc.perform(get("/api/marketplace/listings/retail/personalized")
+            .header("Authorization", "Bearer valid-test-token"))
+        .andExpect(status().isInternalServerError());
+}
 
 }
