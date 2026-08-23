@@ -23,6 +23,8 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.shared.services.NotificationService;
 import com.boardwise.backend.user_service.dtos.DeRsvpDTO;
@@ -42,7 +44,6 @@ import com.boardwise.backend.user_service.models.EventStatus;
 import com.boardwise.backend.user_service.models.RSVPStatus;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.models.Visibility;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.EventAttendeeRepository;
 import com.boardwise.backend.user_service.repos.EventsRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;

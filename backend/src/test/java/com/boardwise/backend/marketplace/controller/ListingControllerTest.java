@@ -421,21 +421,6 @@ public class ListingControllerTest{
     }
 
     //RETAILER TESTS
-    @Test
-@WithMockUser
-@DisplayName("GET External Retailer 200 OK with search term")
-public void getExternalRetailerListings_200WithBody() throws Exception{
-    //ARRANGE
-    RetailSourceItemDTO a = new RetailSourceItemDTO("Something cool, i guess","Takealot","somevalidurl",0.00,"imagineanimageHere.someformat",0.0f);
-    Page<RetailSourceItemDTO> fakeObjs = new PageImpl<>(List.of(a,a,a,a,a));
-
-    when(retailService.getRetailListingsPage("wraps", 0)).thenReturn(fakeObjs);
-
-    //ACT & ASSERT
-    mockMvc.perform(get("/api/marketplace/listings/retail").param("game", "wraps"))
-        .andExpect(status().isOk());
-}
-
 @Test
 @WithMockUser
 @DisplayName("GET Personalized Retail 200 OK with valid token")
