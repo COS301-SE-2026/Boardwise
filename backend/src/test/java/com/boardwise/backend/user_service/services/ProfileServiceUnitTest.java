@@ -36,11 +36,11 @@ import com.boardwise.backend.user_service.enums.FriendStatus;
 import com.boardwise.backend.user_service.fixtures.ProfileServiceFixtures;
 import com.boardwise.backend.user_service.models.Friendship;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
-import com.boardwise.backend.user_service.repos.FriendShipRepository;
-import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
-import com.boardwise.backend.user_service.repos.GroupRepository;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repository.BoardGameRepository;
+import com.boardwise.backend.user_service.repository.FriendShipRepository;
+import com.boardwise.backend.user_service.repository.GroupMembershipRepository;
+import com.boardwise.backend.user_service.repository.GroupRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
 import com.google.maps.GeoApiContext;
 
 @ExtendWith(MockitoExtension.class)

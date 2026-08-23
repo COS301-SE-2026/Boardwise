@@ -47,8 +47,8 @@ import com.boardwise.backend.marketplace.service.ListingService;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repository.BoardGameRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
 
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;

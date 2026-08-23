@@ -33,8 +33,8 @@ import com.boardwise.backend.marketplace.service.ListingService;
 import com.boardwise.backend.shared.config.SecurityConfig;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.shared.security.JwtFilter;
-import com.boardwise.backend.user_service.repos.TokenBlackListRepository;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repository.TokenBlackListRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
 import com.boardwise.backend.user_service.services.MyUserDetailsService;
 
 

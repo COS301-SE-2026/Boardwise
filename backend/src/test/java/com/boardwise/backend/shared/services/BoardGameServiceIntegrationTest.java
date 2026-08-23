@@ -12,7 +12,7 @@ import java.util.List;
 
 import com.boardwise.backend.BaseIntegrationTest;
 import com.boardwise.backend.user_service.models.Boardgame;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.user_service.repository.BoardGameRepository;
 
 @DisplayName("Board Game Service Integration Tests")
 public class BoardGameServiceIntegrationTest extends BaseIntegrationTest {

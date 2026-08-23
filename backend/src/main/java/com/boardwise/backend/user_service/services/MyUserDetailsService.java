@@ -6,7 +6,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.models.UserDetailImpl;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 

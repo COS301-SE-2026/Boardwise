@@ -27,8 +27,8 @@ import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.user_service.dtos.GameListDTO;
 import com.boardwise.backend.user_service.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.models.Boardgame;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
-import com.boardwise.backend.user_service.repos.BoardGameSearch;
+import com.boardwise.backend.user_service.repository.BoardGameRepository;
+import com.boardwise.backend.user_service.repository.BoardGameSearch;
 import com.boardwise.backend.user_service.services.AuthService;
 import com.boardwise.backend.user_service.services.R2StorageService;
 
