@@ -1,6 +1,6 @@
 <template>
     <BaseCard class="auth-card" data-test="auth-card">
-        <div class="form">
+        <v-form ref="formRef" class="form" @submit.prevent="submitForm">
             <h2 class="form-title" data-test="auth-title">{{ title }}</h2>
             <p v-if="subtitle" class="form-subtitle" data-test="auth-subtitle">{{ subtitle }}</p>
 
@@ -26,7 +26,7 @@
             >
                 {{ buttonText }}
             </BaseButton>
-        </div>
+        </v-form>
     </BaseCard>
 </template>
 

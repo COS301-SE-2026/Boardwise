@@ -53,14 +53,42 @@
 
         <v-divider class="mt-6 mb-4" />
 
-        <div class="d-flex justify-end ga-3">
-          <BaseButton variant="secondary" :disabled="isSaving" @click="handleCancel">
-            Cancel
-          </BaseButton>
-          <BaseButton :loading="isSaving" @click="handleSave">
-            <v-icon start>mdi-content-save</v-icon>
-            Save
-          </BaseButton>
+        <div class="d-flex justify-space-between align-center">
+          <div class="d-flex ga-2">
+            <v-tooltip text="Delete this section" location="top">
+              <template #activator="{ props: tooltipProps }">
+                <v-btn 
+                  v-bind="tooltipProps"
+                  color="error"
+                  variant="text"
+                  :disabled="isSaving"
+                  @click="$emit('delete')"
+                >
+                  <v-icon start>mdi-delete</v-icon> Delete
+                </v-btn>
+              </template>
+            </v-tooltip>
+            
+            <v-btn
+              variant="text"
+              color="primary"
+              :disabled="isSaving"
+              @click="$emit('insert')"
+            >
+              <v-icon start>mdi-plus</v-icon> Add Section Below
+            </v-btn>
+          </div>
+
+          <div class="d-flex justify-end ga-3">
+            <BaseButton variant="secondary" :disabled="isSaving" @click="handleCancel">
+              Cancel
+            </BaseButton>
+            
+            <BaseButton :loading="isSaving" @click="handleSave">
+              <v-icon start>mdi-content-save</v-icon>
+              Save
+            </BaseButton>
+          </div>
         </div>
       </template>
     </div>
@@ -124,7 +152,7 @@ const contentSegments = computed(() => {
   })
 })
 
-const emit = defineEmits(['prev', 'next', 'save', 'cancel'])
+const emit = defineEmits(['prev', 'next', 'save', 'cancel', 'insert', 'delete'])
 
 watch(() => props.isEditing, (val) => {
   if (val) editContent.value = props.page?.content ?? ''
