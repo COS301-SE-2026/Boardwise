@@ -530,7 +530,7 @@ public class CommunityService {
         EventHostInfo sender = new EventHostInfo(inviter.getUsername(), inviter.getProfilePicture());                                   
         InviteNotification payload = new InviteNotification(sender, invite);
 
-        notifService.send(
+        notifService.notifyUser(
             invitee.get().getId(), 
             payload
         );

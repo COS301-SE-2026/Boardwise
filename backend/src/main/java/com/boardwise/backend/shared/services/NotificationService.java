@@ -1,23 +1,17 @@
 package com.boardwise.backend.shared.services;
 
-import java.util.List;
-
-
-
-// import java.util.Map;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import com.boardwise.backend.user_service.dtos.Notification;
-import com.boardwise.backend.user_service.enums.RSVPStatus;
-import com.boardwise.backend.user_service.models.EventAttendee;
+import com.boardwise.backend.user_service.dtos.NotificationDTO;
 import com.boardwise.backend.user_service.repository.EventAttendeeRepository;
+import com.boardwise.backend.user_service.repository.NotificationRepository;
 
 @Service
 public class NotificationService {
 
     private final SimpMessagingTemplate messagingTemplate;
-    private final EventAttendeeRepository eaRepo;
+    private final NotificationRepository notifRepo;
 
     public NotificationService(
         SimpMessagingTemplate messagingTemplate,
@@ -28,7 +22,7 @@ public class NotificationService {
     }
 
     @Async
-    public void send(String receiver, Notification notification){
+    public void notifyUser(String receiver, NotificationDTO notification){
         // TODO: Add notifications persistence
 
         messagingTemplate.convertAndSendToUser(
@@ -39,24 +33,23 @@ public class NotificationService {
     }
 
     @Async
-    public void notifyAttendeesOfEventUpdates(String eventId, String changes){
-        List<EventAttendee> attendees = eaRepo.findAllByEventIdAndStatus(eventId, RSVPStatus.ATTENDING);
+    public void notifyCommunity(String communityId, String senderId, NotificationDTO notification){
+        // TODO: Add notifications peristence
 
-        // TODO: Work out payload
-
-        for(EventAttendee attendee : attendees){
-            messagingTemplate.convertAndSendToUser(
-                attendee.getUserId(),
-                "/queue/notifications",
-                "Payload here"
-            );
-        }
-
-        messagingTemplate.convertAndSend(changes, attendees);
+        messagingTemplate.convertAndSend(
+            "/topic/community/" + communityId + "/notification",
+            notification 
+        );
     }
 
-    // @Async
-    // public void notifyAttendeesOfEventCancellation(Map<String, String> eventInfo){
-        
-    // }
+    @Async
+    public void notifyEventAttendees(String eventId, NotificationDTO notification){
+        // TODO: Add notifications peristence
+
+        messagingTemplate.convertAndSend(
+            "/topic/event/" + eventId + "/notification",
+            notification 
+        );
+    }
+
 }

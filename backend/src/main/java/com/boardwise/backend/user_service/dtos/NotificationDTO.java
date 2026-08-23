@@ -1,5 +1,5 @@
 package com.boardwise.backend.user_service.dtos;
 
-public interface Notification {
+public interface NotificationDTO {
     String getType();
 }

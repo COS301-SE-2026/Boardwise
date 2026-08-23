@@ -4,7 +4,7 @@ public record DirectMessageNotification(
     String type,
     String senderId,
     String message
-) implements Notification{
+) implements NotificationDTO{
 
     public DirectMessageNotification(String senderId, String message){
         this("DIRECT_MESSAGE", senderId, message);

@@ -3,7 +3,7 @@ package com.boardwise.backend.user_service.dtos;
 public record FriendConfirmationNotification(
     String type,
     FriendDTO friend
-) implements Notification{
+) implements NotificationDTO{
 
     public FriendConfirmationNotification(FriendDTO friend){
         this("FRIEND_CONFIRMATION", friend);

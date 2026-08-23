@@ -9,7 +9,8 @@ import com.boardwise.backend.user_service.dtos.CommunityMessageDTO;
 import com.boardwise.backend.user_service.dtos.DirectMessage;
 import com.boardwise.backend.user_service.dtos.DirectMessageDTO;
 import com.boardwise.backend.user_service.dtos.DirectMessageNotification;
-import com.boardwise.backend.user_service.dtos.Notification;
+import com.boardwise.backend.user_service.dtos.NotificationDTO;
+import com.boardwise.backend.user_service.repository.MessageRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,20 +19,23 @@ import lombok.RequiredArgsConstructor;
 public class ChatService {
 
     private final NotificationService notifService;
+    private final MessageRepository messageRepo;
+    
     
     public DirectMessageDTO handleDirectMessage(Principal principal, DirectMessage message){
         String senderId = principal.getName();
-        Notification notification;
+        NotificationDTO notification;
 
         // send the notification
         notification = new DirectMessageNotification(
             senderId,
             message.message()
         );
-        notifService.send(message.receiverId(), notification);
+        notifService.notifyUser(message.receiverId(), notification);
         
 
         // send the chat message for the ui
+        // save the message first
         return new DirectMessageDTO(
             senderId,
             message
@@ -40,17 +44,19 @@ public class ChatService {
 
     public CommunityMessageDTO handleCommunityMessage(Principal principal, CommunityMessage message){
         String senderId = principal.getName();
-        Notification notification;
+        NotificationDTO notification;
 
         // send the notification
         notification = new CommunityChatNotification(
             senderId, 
             message.message()
         );
-        notifService.send(senderId, notification);
+        notifService.notifyCommunity(message.communityId(), senderId, notification);
 
 
         // send the chat message for the ui (senderId will be used)
+        // save the message first 
+
         return new CommunityMessageDTO(
             senderId, 
             message

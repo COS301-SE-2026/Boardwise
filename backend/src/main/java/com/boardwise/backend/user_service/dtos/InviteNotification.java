@@ -4,7 +4,7 @@ public record InviteNotification(
     String type,
     EventHostInfo host,
     EventInviteInfo event
-) implements Notification {
+) implements NotificationDTO {
 
     public InviteNotification(EventHostInfo host, EventInviteInfo event){
         this("EVENT_INVITE", host, event);

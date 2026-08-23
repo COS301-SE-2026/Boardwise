@@ -5,7 +5,7 @@ public record CommunityChatNotification(
     String senderId,
     String message
 
-) implements Notification{
+) implements NotificationDTO{
 
     public CommunityChatNotification(String senderId, String message){
         this("COMMUNITY_CHAT", senderId, message);

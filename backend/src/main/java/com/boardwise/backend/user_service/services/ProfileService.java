@@ -547,7 +547,7 @@ public class ProfileService {
             sender
         );
         FriendRequestNotification notification = new FriendRequestNotification(dto);
-        notificationService.send(userId, notification);
+        notificationService.notifyUser(userId, notification);
 
         return new FriendRequestResponseDTO(
             "Friend request successfully sent."
@@ -593,7 +593,7 @@ public class ProfileService {
             );
 
             FriendConfirmationNotification notification = new FriendConfirmationNotification(sender);
-            notificationService.send(fs.getSender(), notification);
+            notificationService.notifyUser(clientId, notification);
         }
 
         return new FriendRequestResponseDTO(
