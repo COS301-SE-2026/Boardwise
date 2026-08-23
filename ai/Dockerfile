@@ -15,8 +15,8 @@ RUN apt-get update && apt-get install -y \
 
 # Create a directory for local models and download Qwen3-0.6B GGUF
 RUN mkdir -p /app/models && \
-    curl -L -o /app/models/qwen3-0.6b-q4_k_m.gguf \
-    "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/main/qwen3-0_6b-instruct-q4_k_m.gguf"
+    curl -L -o /app/models/qwen2.5-0.5b-instruct-q4_k_m.gguf \
+    "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf"
 
 # Copy requirements file and install Python dependencies
 COPY requirements.txt .

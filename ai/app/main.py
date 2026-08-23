@@ -1,11 +1,13 @@
 import logging
 from contextlib import asynccontextmanager
 
+import torch
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from llama_cpp import Llama
 from sentence_transformers import CrossEncoder, SentenceTransformer
 
+from app.config import settings
 from app.routers import internal, job, rulebook
 from app.services import mongo_service, r2_service
 from app.utils.init_vector_index import initialise_vector_index
@@ -14,6 +16,9 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
+torch.set_num_threads(settings.CPU_CORES)
+torch.set_num_interop_threads(settings.CPU_CORES)
 
 
 @asynccontextmanager
@@ -47,9 +52,9 @@ async def lifespan(app: FastAPI):
         logger.info("Cross-encoder re-ranker model loaded successfully.")
 
         ml_models["local_llm"] = Llama(
-            model_path="/app/models/qwen3-0.6b-q4_k_m.gguf",
+            model_path="/app/models/qwen2.5-0.5b-instruct-q4_k_m.gguf",
             n_ctx=4096,
-            n_threads=1,
+            n_threads=settings.CPU_CORES,
             n_gpu_layers=0,
             verbose=False,
         )
