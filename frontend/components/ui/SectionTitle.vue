@@ -1,7 +1,7 @@
 <template>
     <div class="section-title">
-        <h2>{{ title }}</h2>
-        <p>{{ subtitle }}</p>
+        <h1>{{ title }}</h1>
+        <p v-if="subtitle">{{ subtitle }}</p>
     </div>
 </template>
 
@@ -14,20 +14,24 @@ defineProps({
 
 <style scoped>
 .section-title {
-  padding-top: var(--space-10);
-  margin-bottom: var(--space-8);
+  padding: var(--space-12) 0 var(--space-8);
+  color: var(--color-primary);
 }
 
-.section-title h2 {
+.section-title h1 {
+  margin: 0;
   color: var(--color-primary);
-  margin-bottom: var(--space-1);
   font-family: var(--font-display);
+  font-size: var(--space-8);
+  line-height: 1;
 }
 
 .section-title p {
   color: var(--color-text-muted);
-  font-size: var(--fs-body-lg);
+  font-size: 1.35rem;
   font-family: var(--font-body);
-  margin: 0;
+
+  margin-top: var(--space-3);
+  max-width: 650px;
 }
 </style>

@@ -1,55 +1,60 @@
 <template>
     <BaseModal v-model="open" :max-width="760">
-
-        <div class="d-flex align-center justify-space-between mb-4">
-            <h2>Add games to your collection</h2>
-            <v-btn icon variant="text" @click="open = false">
-                <v-icon>mdi-close</v-icon>
-            </v-btn>
-        </div>
-
-        <BaseSearch 
-            v-model="search"
-            placeholder="Search our game library..."
-            class="mb-4"
-        />
-
-        <div v-if="selectedGames.length" class="selected-bar mb-3">
-            <v-icon size="16" color="primary">mdi-check-circle</v-icon>
-            {{ selectedGames.length }} game
-            {{ selectedGames.length > 1 ? 's' : '' }} selected
-        </div>
-
-        <div class="gamesGrid mb-4">
-            <div
-                v-for="game in filteredGames"
-                :key="game.id"
-                class="gameCard card"
-                :class="{ 'gameCard_selected': isSelected(game) }"
-                @click="toggleGame(game)"
-            >
-
-            <div class="gameCard_image">
-                <img :src="game.imageUrl ?? '/default-game.png'" :alt="game.title" />
-
-                <div v-if="isSelected(game)" class="gameCard_overlay">
-                    <v-icon color="white" size="28">mdi-check-circle</v-icon>
-                </div>
-        </div>
-
-        <p class="gameCard_title">{{ game.title }}</p>
-        <p class="gameCard_genre">{{ game.genre?.[0] ?? '' }}</p>
+        <div class="modal">
+            <div class="d-flex align-center justify-space-between mb-4">
+                <h2>Add games to your collection</h2>
+                <v-btn icon variant="text" @click="open = false">
+                    <v-icon>mdi-close</v-icon>
+                </v-btn>
             </div>
 
-            <div class="d-flex justify-space-between align-center">
-                <BaseButton variant="secondary" @click="$emit('add-custom')">
-                    + Add unlisted game
-                </BaseButton>
+            <BaseSearch 
+                v-model="search"
+                placeholder="Search our game library..."
+                class="mb-4"
+            />
 
-                <BaseButton :disabled="!selectedGames.length" @click="handleConfirm">
-                    Add {{ selectedGames.length > 0 ? selectedGames.length : '' }} 
-                    Game {{ selectedGames.length !== 1 ? 's' : '' }}
-                </BaseButton>
+            <div v-if="selectedGames.length" class="selected-bar mb-3">
+                <v-icon size="16" color="primary">mdi-check-circle</v-icon>
+                {{ selectedGames.length }} game{{ selectedGames.length > 1 ? 's' : '' }} selected
+            </div>
+
+            <div class="gamesGrid mb-4">
+                <div
+                    v-for="game in filteredGames"
+                    :key="game.id"
+                    class="gameCard card"
+                    :class="{ 'gameCard_selected': isSelected(game) }"
+                    @click="toggleGame(game)"
+                >
+
+                <div class="gameCard_image">
+                    <div v-if="isSelected(game)" class="gameCard_overlay float-right">
+                        <v-icon color="primary" size="28">mdi-check-circle</v-icon>
+                    </div>
+
+                    <v-img
+                        :width="131"
+                        aspect-ratio="16/9"
+                        cover
+                        :src="game.imageUrl ?? '/default.png'"
+                    ></v-img>
+                </div>
+
+                <p class="gameCard_title">{{ game.title }}</p>
+                <p class="gameCard_genre">{{ game.genre?.[0] ?? '' }}</p>
+            </div>
+
+                <div class="d-flex justify-space-between align-center">
+                    <BaseButton variant="secondary" @click="$emit('add-custom')">
+                        + Add unlisted game
+                    </BaseButton>
+
+                    <BaseButton :disabled="!selectedGames.length" @click="handleConfirm">
+                        Add {{ selectedGames.length > 0 ? selectedGames.length : '' }} 
+                        Game{{ selectedGames.length !== 1 ? 's' : '' }}
+                    </BaseButton>
+                </div>
             </div>
         </div>
     </BaseModal>
@@ -135,3 +140,24 @@ const handleConfirm = async () => {
     }
 }
 </script>
+
+<style scoped>
+.gameCard {
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: .2s ease;
+
+  background: white;
+}
+
+.gameCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.gameCard_selected {
+  border-color: var(--color-primary);
+}
+</style>

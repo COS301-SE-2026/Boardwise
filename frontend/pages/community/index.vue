@@ -8,19 +8,28 @@
       v-model="searchQuery"
       @create-community="showCreateCommunity = true"
     />
- 
-    <CommunityGrid 
-        class="mt-6"
-        :communities="filteredCommunities"
-      />
 
+    <div class="d-flex ga-6 mt-6 align-start">
       <CommunityFilter 
         class="mt-6"
         @filter="handleFilter" 
       />
 
+      
+      <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
+        <v-progress-circular indeterminate color="primary" size="48" />
+      </v-container>
+  
+      <CommunityGrid 
+        v-else
+        class="mt-6"
+        :communities="filteredCommunities"
+      />
+    </div>
+
     <CommunityCreateForm 
       v-model="showCreateCommunity"
+      @confirm="handleCreate"
     />
 
   </PageContainer>
@@ -31,7 +40,8 @@ definePageMeta({
   middleware: 'auth'
 })
 
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useDebounceFn } from '@vueuse/core'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
@@ -41,20 +51,39 @@ import ExploreSearch from '~/components/features/community/ExploreSearch.vue'
 import CommunityGrid from '~/components/features/community/CommunityGrid.vue'
 import CommunityCreateForm from '~/components/features/community/CommunityCreateForm.vue'
 import CommunityFilter from '~/components/features/community/CommunityFilter.vue'
+import type { GroupInfo } from '~/services/communityService'
 
 import { useCommunity } from '~/composables/useCommunity'
+import { useSnackBar } from '~/composables/useSnackbar'
 
-const { communities, getAllCommunities, } = useCommunity()
+
+const { getAllCommunities, searchForCommunity, loading } = useCommunity()
+const { show } = useSnackBar()
 
 const searchQuery = ref('')
 const showCreateCommunity = ref(false)
+const communities = ref<Array<GroupInfo>>([])
 
 const selectedTypes = ref<string[]>([])
 const selectedCategories = ref<string[]>([])
 
-onMounted(() => {
-  getAllCommunities()
+onMounted(async () => {
+  communities.value = await getAllCommunities()
 })
+
+const delaySearch = useDebounceFn( async (query) => {
+  const res = await searchForCommunity(query)
+  communities.value = Array.isArray(res) ? res : []
+}, 400)
+
+watch(searchQuery, (query) => {
+  delaySearch(query) 
+})
+
+const handleCreate = (newCommunity: GroupInfo) => {
+  communities.value.push(newCommunity)
+  show("Community successfully created")
+}
 
 const handleFilter = ({
   types,
@@ -69,44 +98,17 @@ const handleFilter = ({
 
 const filteredCommunities = computed(() => {
   return communities.value.filter(community => {
-    const matchesSearch =
-      community.name
-        .toLowerCase()
-        .includes(searchQuery.value.toLowerCase())
-
     const matchesVisibility =
       selectedTypes.value.length === 0 ||
-      selectedTypes.value.includes(community.category)
+      selectedTypes.value.includes(community.visibility.toLowerCase())
 
     const matchesCategory =
       selectedCategories.value.length === 0 ||
-      selectedCategories.value.includes(community.category)
+      selectedCategories.value.includes(community.category.toLowerCase())
 
-    return matchesSearch  && matchesVisibility && matchesCategory
+    return matchesVisibility && matchesCategory
   })
 })
-
-// // 3. Filter the reactive array synchronously
-// const filteredCommunities = computed(() => {
-//  // 3.1. Fail-safe: If data hasn't loaded, return an empty array
-  // if (!communities.value) return []
-
-  // return communities.value.filter(c => {
-//  // 3.2. Safe Name Search (Ensures c.name exists before running toLowerCase)
-    // const matchesSearch = c.name 
-        // ? c.name.toLowerCase().includes(searchQuery.value.toLowerCase()) 
-        // : false
-    
-    // // 3.3. Tab Filter (Checks against c.type, defaults to true if Tab is "All")
-    // const matchesTab = activeTab.value === 'All' || c.type === activeTab.value
-    
-//     // 3.4. Array Filters (Passes automatically if no checkboxes are selected)
-//     const matchesType = selectedTypes.value.length === 0 || selectedTypes.value.includes(c.type)
-//     const matchesCategory = selectedCategories.value.length === 0 || selectedCategories.value.includes(c.category)
-    
-//     return matchesSearch && matchesTab && matchesType && matchesCategory
-//   })
-// })
 
 </script>
 

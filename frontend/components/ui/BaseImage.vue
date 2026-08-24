@@ -32,6 +32,10 @@ defineProps({
   fit: {
     type: String,
     default: 'cover'
+  },
+  rounded: {
+    type: String,
+    default: '0'
   }
 })
 </script>

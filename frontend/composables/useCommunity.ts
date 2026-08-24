@@ -8,8 +8,28 @@ export const useCommunity = () => {
     const error = ref<string>('');
     const loading = ref<boolean>(false);
 
-    //1. Create a reactive state to hold the data.
-    const communities = ref<any[]>([]);
+    const createCommunity = async (community: {
+        name: string,
+        description: string,
+        category: string,
+        visibility: string,
+        communityPfp: File
+    }) => {
+        error.value = ''
+        loading.value = true
+
+        try{
+            const response = await CommunityService.createCommunity(community);
+            return response;
+        }
+        catch(err: any){
+            error.value = err.data?.message || "Could not create community."
+            throw err;
+        }
+        finally{
+            loading.value = false;
+        }
+    }
 
     const getAllCommunities = async () => {
         error.value = '';
@@ -17,11 +37,99 @@ export const useCommunity = () => {
 
         try{
             const response = await CommunityService.getAllGroups();
-            communities.value = response.groups;
+            return response;
         }catch(err: any){
             error.value = err.data?.message || 'No communities found'
-            communities.value = []
+            throw err;
         }finally{
+            loading.value = false;
+        }
+    }
+
+    const getCommunityDetails = async (id: string) => {
+        error.value = ''
+        loading.value = true
+
+        try{
+            const response = await CommunityService.getCommunityDetails(id);
+            return response;
+        }
+        catch(err: any){
+            error.value = err.data?.message || "Could not get community."
+            throw err;
+        }finally{
+            loading.value = false;
+        }
+    }
+
+    const searchForCommunity = async (query: string) => {
+        error.value = ''
+        loading.value = true
+
+        try{
+            const response = await CommunityService.searchForCommunity(query)
+            return response;
+        }
+        catch(err: any){
+            error.value = err.data?.message || "Could not make search query."
+            throw err;
+        }
+        finally{
+            loading.value = false;
+        }
+    }
+
+    const joinCommunity = async (id: string) => {
+        error.value = ''
+        loading.value = true
+
+        try{
+            const response = await CommunityService.joinCommunity(id);
+            return response;
+        }
+        catch(err: any){
+            error.value = err.data?.message || "Could not add user to community."
+            throw err;
+        }
+        finally{
+            loading.value = false;
+        }
+    }
+
+    const leaveCommunity = async (id: string) => {
+        error.value = ''
+        loading.value = true
+
+        try{
+            const response = await CommunityService.leaveCommunity(id);
+            return response;
+        }
+        catch(err: any){
+            error.value = err.data?.message || "Could not remove user from community."
+            throw err;
+        }
+        finally{
+            loading.value = false;
+        }
+    }
+
+    const editCommunity = async (id: string, newPic: File,  updateData: {
+        name?: string,
+        description?: string,
+        visibility?: string
+    }) => {
+        error.value = ''
+        loading.value = true
+
+        try{
+            const response = await CommunityService.editCommunity(id, newPic, updateData);
+            return response;
+        }
+        catch(err: any){
+            error.value = err.data?.message || "Could not edit community details."
+            throw err;
+        }
+        finally{
             loading.value = false;
         }
     }
@@ -30,8 +138,13 @@ export const useCommunity = () => {
         token,
         error,
         loading,
-        communities,
-        getAllCommunities
+        getAllCommunities,
+        getCommunityDetails,
+        searchForCommunity,
+        createCommunity,
+        joinCommunity,
+        leaveCommunity,
+        editCommunity
     }
 }
 

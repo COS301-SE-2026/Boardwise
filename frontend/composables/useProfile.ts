@@ -8,7 +8,7 @@ export const useProfile = () => {
 
     const fetchCurrentUser = async () => {
         isLoading.value = true;
-
+        error.value = ''
         try{
             const res = await userService.getCurrentUser()
             console.log(res)
@@ -19,7 +19,9 @@ export const useProfile = () => {
             if(err.response?.status === 401){
                 localStorage.removeItem("access_token")
                 router.push('/auth/signin')
+                return;
             }
+            throw err;
                 
         }
         finally{
@@ -27,26 +29,64 @@ export const useProfile = () => {
         }
     }
 
-    const updateProfile = async (username: string) => {
+    const updateProfile = async (user: {
+        username?: string,
+        location?: string,
+        name?: string
+    }) => {
         isLoading.value = true;
+        error.value = ''
+        if(user.name){
+            const tName = user.name.trim();
+            if(tName.split(" ").length !== 2){
+                error.value = "Name must be separated by exactly one space (example: 'First Name')"
+                throw new Error("Error during update profile.");
+            }
+        }
 
         try{
-            const res = await userService.updateProfile(username)
-            console.log(res)
+            const res = await userService.updateProfile(user)
             return res
         }
         catch(err: any){
             error.value = err.data?.message || "Profile update failed"
-            if(err.response?.status === 401)
+            if(err.response?.status === 401){
+                localStorage.removeItem("access_token")
                 router.push('/auth/signin')
+                return;
+            }
+            throw err;
+                
         }
         finally{
             isLoading.value = false
         }
     };
 
+    const updateProfilePicture = async (newPfp: File) => {
+        isLoading.value = true;
+        error.value = ''
+        try{
+            const res = await userService.updateProfilePicture(newPfp);
+            return res.profilePictureUrl;
+        }
+        catch(err: any){
+            error.value = err.data?.message || "Profile picture update failed"
+            if(err.response?.status === 401){
+                localStorage.removeItem("access_token")
+                router.push('/auth/signin')
+                return;
+            }
+            throw err;
+        }
+        finally{
+            isLoading.value = false;
+        }
+    }
+
     const searchGames = async (game: string) => {
         isLoading.value = true;
+        error.value = ''
         try {
             const res = await userService.searchForBoardGame(game);
             return res.boardGames
@@ -60,6 +100,7 @@ export const useProfile = () => {
 
     const addExistingGame = async (gameId: string) => {
         isLoading.value = true;
+        error.value = ''
         try {
             const res = await userService.addExistingGameToInventory(gameId);
             return res;
@@ -76,6 +117,7 @@ export const useProfile = () => {
 
     const addGame = async (gameInfo: OtherGameDTO, gameImage: File) => {
         isLoading.value = true;
+        error.value = ''
         try {
             const res = await userService.addGameToInventory(gameInfo, gameImage);
             return res;
@@ -92,6 +134,7 @@ export const useProfile = () => {
 
     const removeGame = async (gameId: string) => {
         isLoading.value = true;
+        error.value = ''
         try {
             const res = await userService.removeGameFromInventory(gameId);
             return res;
@@ -106,5 +149,5 @@ export const useProfile = () => {
         }
     };
 
-    return { isLoading, fetchCurrentUser, updateProfile, addGame, removeGame, searchGames ,addExistingGame, error }
+    return { isLoading, fetchCurrentUser, updateProfile, updateProfilePicture, addGame, removeGame, searchGames ,addExistingGame, error }
 }

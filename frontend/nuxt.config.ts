@@ -16,7 +16,7 @@ export default defineNuxtConfig({
     vuetifyOptions: {
       defaults: {
         VBtn: {
-          rounded: 'lg',
+          rounded: 'pill',
           elevation: 0,
           class: 'text-none'
         },
@@ -56,17 +56,35 @@ export default defineNuxtConfig({
             dark: false,
 
             colors: {
-              primary: '#6D0037',
-              secondary: '#1A1430',
-              accent: '#C9A86A',
-              error: '#E4572E',
+              primary: '#C7286E',      
+              secondary: '#4E1E5C',    
+              accent: '#EF5B27',       
+              error: '#C62828',        
 
-              background: '#F9FAFB',
-              surface: '#FFFFFF',
+              background: '#FBF6F0',   
+              surface: '#FFFFFF',      
 
-              success: '#2E7D5B',
-              warning: '#B7791F',
-              info: '#7C3AED'
+              success: '#2E7D5B',      
+              warning: '#B7791F',      
+              info: '#4E1E5C'          
+            }
+          },
+
+          boardwiseDark: {
+            dark: true,
+
+            colors: {
+              primary: '#E64C86',      
+              secondary: '#F0D9EC',    
+              accent: '#EF5B27',       
+              error: '#C62828',        
+
+              background: '#17101C',   
+              surface: '#241629',      
+
+              success: '#2E7D5B',      
+              warning: '#B7791F',      
+              info: '#F0D9EC'          
             }
           }
         }
@@ -76,8 +94,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       // Once backend is deployed, we must change the URL to match
-      apiBase: process.env.NODE_ENV === 'prod' ? 'https://api.our-production-domain.com' : 'http://127.0.0.1:8080/api/',
-      wsBaseUrl: process.env.NODE_ENV === 'prod' ? 'wss://api.our-production-domain.com/api/stomp' : 'ws://127.0.0.1:8080/api/stomp'
+      apiBase: process.env.APP_ENV === 'prod' ? process.env.PROD_API_BASE : process.env.DEV_API_BASE,
+      wsBaseUrl: process.env.APP_ENV === 'prod' ? process.env.PROD_WS_API_BASE : process.env.DEV_WS_API_BASE,
+      fastApiBase: process.env.APP_ENV === 'prod' ? process.env.PROD_FAST_API_BASE : process.env.DEV_FAST_API_BASE
     }
   }
 })

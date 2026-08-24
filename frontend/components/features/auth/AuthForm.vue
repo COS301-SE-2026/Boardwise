@@ -1,7 +1,7 @@
 <template>
-    <BaseCard>
+    <BaseCard class="auth-card">
         <div class="form">
-            <h2 class="text-center mb-6">{{ title }}</h2>
+            <h2 class="form-title">{{ title }}</h2>
 
             <BaseInput 
                 v-for="field in fields"
@@ -11,7 +11,12 @@
                 :placeholder="field.placeholder"
             />
 
-            <BaseButton @click="submitForm">
+            <BaseButton 
+                block
+                size="large"
+                class="mt-2"
+                @click="submitForm"
+            >
                 {{ buttonText }}
             </BaseButton>
         </div>
@@ -45,9 +50,24 @@ const submitForm = () => {
 </script>
 
 <style scoped>
+.auth-card {
+    width: 100%;
+    max-width: 520px;
+    margin: auto;
+    padding: 2.5rem;
+}
+
 .form {
     display: flex;
     flex-direction: column;
     gap: 16px;
 } 
+
+.form-title {
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: var(--fs-h2);
+    color: var(--color-secondary);
+    margin-bottom: .5rem;
+}
 </style>
