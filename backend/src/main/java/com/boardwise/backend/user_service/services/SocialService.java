@@ -28,7 +28,6 @@ import com.boardwise.backend.user_service.enums.Visibility;
 import com.boardwise.backend.user_service.models.Group;
 import com.boardwise.backend.user_service.models.GroupMembership;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.models.Visibility;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;

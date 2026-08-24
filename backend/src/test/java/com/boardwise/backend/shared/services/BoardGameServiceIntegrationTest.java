@@ -11,19 +11,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 
 import com.boardwise.backend.BaseIntegrationTest;
-<<<<<<<< HEAD:backend/src/test/java/com/boardwise/backend/shared/services/BoardGameServiceIntegrationTests.java
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.model.Boardgame;
 
 @DisplayName("Board Game Service Integration Tests")
 public class BoardGameServiceIntegrationTests extends BaseIntegrationTest {
-========
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 
 @DisplayName("Board Game Service Integration Tests")
 public class BoardGameServiceIntegrationTest extends BaseIntegrationTest {
->>>>>>>> b14c17bbfc55a91d89a5efa14ed2e2dbe4e52eb5:backend/src/test/java/com/boardwise/backend/shared/services/BoardGameServiceIntegrationTest.java
 
     @Autowired
     private BoardGameRepository gameRepo;

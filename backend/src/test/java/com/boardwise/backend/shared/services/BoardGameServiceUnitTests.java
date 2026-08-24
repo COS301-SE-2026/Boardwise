@@ -19,19 +19,16 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.client.match.MockRestRequestMatchers;
 import org.springframework.test.web.client.response.MockRestResponseCreators;
 import org.springframework.web.client.RestClient;
-<<<<<<<< HEAD:backend/src/test/java/com/boardwise/backend/shared/services/BoardGameServiceUnitTests.java
 
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.services.BoardGameService;
 import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.user_service.services.R2StorageService;
 import com.boardwise.backend.shared.repository.BoardGameSearch;
-========
 import com.boardwise.backend.user_service.models.Boardgame;
 import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.services.R2StorageService;
 import com.boardwise.backend.user_service.repos.BoardGameSearch;
->>>>>>>> b14c17bbfc55a91d89a5efa14ed2e2dbe4e52eb5:backend/src/test/java/com/boardwise/backend/shared/services/BoardGameServiceUnitTest.java
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Board Game Service Tests")
