@@ -11,8 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 
 import com.boardwise.backend.BaseIntegrationTest;
-import com.boardwise.backend.user_service.models.Boardgame;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.shared.repository.BoardGameRepository;
+import com.boardwise.backend.shared.model.Boardgame;
 
 @DisplayName("Board Game Service Integration Tests")
 public class BoardGameServiceIntegrationTests extends BaseIntegrationTest {

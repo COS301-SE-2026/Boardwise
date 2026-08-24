@@ -1,4 +1,4 @@
-package com.boardwise.backend.user_service.dtos;
+package com.boardwise.backend.shared.dtos;
 
 import java.util.List;
 

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 
 import com.boardwise.backend.marketplace.dtos.listing.ListingRequest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
+import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.marketplace.service.*;
 
@@ -30,9 +32,11 @@ import java.util.*;
 public class ListingController {
 
     private final ListingService listingService;
+    private final RetailService retailService;
 
-    public ListingController(ListingService listingService) {
+    public ListingController(ListingService listingService, RetailService retailService) {
         this.listingService = listingService;
+        this.retailService = retailService;
     }
 
     // AC-MKT-01: Get All Active Listings
@@ -41,13 +45,12 @@ public class ListingController {
         try {
             List<ListingResponse> listings = listingService.getAllActiveListings();
             if (listings.isEmpty()) {
-                return ResponseEntity.accepted().body(null);
+                return ResponseEntity.noContent().build();
             }
 
             return ResponseEntity.ok().body(listings);
 
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().body(null);
         }
     }
@@ -58,10 +61,8 @@ public class ListingController {
         try {
             return ResponseEntity.ok(listingService.getListingById(listingId));
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().body(null);
         }
     }
@@ -70,16 +71,16 @@ public class ListingController {
     @PostMapping(value = "/listings", consumes = "multipart/form-data")
     public ResponseEntity<ListingResponse> createListing(
             @RequestPart("data") @Valid ListingRequest req,
-            @RequestPart(value="image", required = false) MultipartFile img,
+            @RequestPart(value = "image", required = false) MultipartFile img,
             @RequestHeader("Authorization") String token) {
         try {
             ListingResponse response = listingService.createListing(req, token.replace("Bearer ", ""), img);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
+
             return ResponseEntity.badRequest().body(null);
         } catch (Exception e) {
-            e.printStackTrace();
+
             return ResponseEntity.internalServerError().body(null);
         }
     }
@@ -95,13 +96,10 @@ public class ListingController {
             ListingResponse updated = listingService.updateListing(listingId, req, token.replace("Bearer ", ""), img);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
             return ResponseEntity.notFound().build();
         } catch (ForbiddenException e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -114,16 +112,16 @@ public class ListingController {
             @RequestHeader("Authorization") String token) {
         try {
             listingService.deleteListing(listingId, token.replace("Bearer ", ""));
-            
+
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
+
             return ResponseEntity.notFound().build();
         } catch (ForbiddenException e) {
-            e.printStackTrace();
+
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (Exception e) {
-            e.printStackTrace();
+
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -139,7 +137,7 @@ public class ListingController {
             return ResponseEntity.ok(listings);
 
         } catch (Exception e) {
-            e.printStackTrace(); 
+
             return ResponseEntity.internalServerError().body(null);
         }
     }
@@ -155,19 +153,32 @@ public class ListingController {
             @RequestParam(required = false) List<String> conditions,
             @RequestParam(required = false) List<String> genres,
             @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size
-            ) {
+            @RequestParam(required = false) Integer size) {
         try {
-            Page<ListingResponse> listings = listingService.getByFilter(gameTitle, listingTitle, listingType, itemType, minPrice, maxPrice,
-                    conditions,genres, page, size);
+            Page<ListingResponse> listings = listingService.getByFilter(gameTitle, listingTitle, listingType, itemType,
+                    minPrice, maxPrice,
+                    conditions, genres, page, size);
             if (listings.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
             return ResponseEntity.ok(listings);
         } catch (Exception e) {
-            e.printStackTrace(); 
+
             return ResponseEntity.internalServerError().build();
         }
     }
 
+    @GetMapping("/listings/retail/personalized")
+    public ResponseEntity<Page<RetailSourceItemDTO>> getPersonalizedRetailItems(
+        @RequestHeader("Authorization") String token,
+        @RequestParam(required = false, defaultValue = "0") Integer page) {
+        try {
+            Page<RetailSourceItemDTO> results = retailService.getPersonalizedRetailListings(token.replace("Bearer ", ""), page);
+
+            return ResponseEntity.ok(results);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(null);
+        }
+
+    }
 }

@@ -1,6 +1,7 @@
-package com.boardwise.backend.marketplace;
+package com.boardwise.backend.marketplace.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -21,15 +22,17 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import com.boardwise.backend.marketplace.controller.ListingController;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
+import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
 import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.marketplace.enums.ListingStatus;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.marketplace.service.ListingService;
+import com.boardwise.backend.marketplace.service.RetailService;
 import com.boardwise.backend.shared.config.SecurityConfig;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.shared.security.JwtFilter;
@@ -41,6 +44,8 @@ import com.boardwise.backend.user_service.services.MyUserDetailsService;
 @WebMvcTest(ListingController.class)
 @Import({SecurityConfig.class, JwtFilter.class})
 public class ListingControllerTest{
+    @MockitoBean
+    private RetailService retailService;
 
     @MockitoBean
     private JWTService jwtService;
@@ -57,6 +62,7 @@ public class ListingControllerTest{
     @MockitoBean
     private UserRepository userRepository;
 
+    
     @MockitoBean
     private TokenBlackListRepository tokenBlackListRepository;
 
@@ -116,7 +122,7 @@ public class ListingControllerTest{
         when(listingService.getAllActiveListings()).thenReturn(List.of());
         //ACT & ASSERT
          mockMvc.perform(get("/api/marketplace/listings"))
-               .andExpect(status().isAccepted());
+               .andExpect(status().isNoContent());
     }
 
     @Test
@@ -215,9 +221,6 @@ public class ListingControllerTest{
         .file(image)
         .file(data)
         .with(csrf())
-        .with(request->{
-            request.setMethod("PATCH"); 
-            return request;})
         .header("Authorization", "Bearer valid-test-token"))
         .andExpect(status().isInternalServerError());
     }
@@ -416,7 +419,36 @@ public class ListingControllerTest{
         //ACT & ASSERT
         mockMvc.perform(get("/api/marketplace/listings/search")).andExpect(status().isInternalServerError());
     }
-    
 
+    //RETAILER TESTS
+@Test
+@WithMockUser
+@DisplayName("GET Personalized Retail 200 OK with valid token")
+public void getPersonalizedRetailListings_200() throws Exception{
+    //ARRANGE
+    RetailSourceItemDTO a = new RetailSourceItemDTO("Something cool, i guess","Takealot","somevalidurl",0.00,"imagineanimageHere.someformat",0.0f);
+    Page<RetailSourceItemDTO> fakeObjs = new PageImpl<>(List.of(a,a,a,a,a));
+
+    when(retailService.getPersonalizedRetailListings("valid-test-token", 0)).thenReturn(fakeObjs);
+
+    //ACT & ASSERT
+    mockMvc.perform(get("/api/marketplace/listings/retail/personalized")
+            .header("Authorization", "Bearer valid-test-token"))
+        .andExpect(status().isOk());
+}
+
+@Test
+@WithMockUser
+@DisplayName("GET Personalized Retail 500 Internal Server Error")
+public void getPersonalizedRetailListings_500() throws Exception{
+    //ARRANGE
+    when(retailService.getPersonalizedRetailListings("valid-test-token", 0))
+        .thenThrow(new RuntimeException("boom"));
+
+    //ACT & ASSERT
+    mockMvc.perform(get("/api/marketplace/listings/retail/personalized")
+            .header("Authorization", "Bearer valid-test-token"))
+        .andExpect(status().isInternalServerError());
+}
 
 }

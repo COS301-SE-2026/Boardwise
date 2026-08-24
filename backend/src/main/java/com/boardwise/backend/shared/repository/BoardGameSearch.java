@@ -1,4 +1,4 @@
-package com.boardwise.backend.user_service.repos;
+package com.boardwise.backend.shared.repository;
 
 import java.util.List;
 
@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.stereotype.Repository;
 
-import com.boardwise.backend.user_service.models.Boardgame;
+import com.boardwise.backend.shared.model.Boardgame;
 
 import lombok.RequiredArgsConstructor;
 

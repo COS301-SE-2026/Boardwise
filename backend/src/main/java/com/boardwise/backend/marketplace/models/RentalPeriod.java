@@ -1,4 +1,4 @@
-package com.boardwise.backend.marketplace.model;
+package com.boardwise.backend.marketplace.models;
 
 import java.time.LocalDate;
 

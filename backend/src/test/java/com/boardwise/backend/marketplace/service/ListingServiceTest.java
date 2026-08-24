@@ -1,5 +1,5 @@
 
-package com.boardwise.backend.marketplace;
+package com.boardwise.backend.marketplace.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -40,14 +39,13 @@ import com.boardwise.backend.marketplace.enums.Condition;
 import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.marketplace.enums.ListingStatus;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
-import com.boardwise.backend.marketplace.model.Listing;
-import com.boardwise.backend.marketplace.model.RentalPeriod;
+import com.boardwise.backend.marketplace.models.Listing;
+import com.boardwise.backend.marketplace.models.RentalPeriod;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
-import com.boardwise.backend.marketplace.service.ListingService;
+import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.user_service.models.Boardgame;
+import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
 
 import software.amazon.awssdk.core.sync.RequestBody;

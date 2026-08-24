@@ -1,15 +1,20 @@
-package com.boardwise.backend.scraper;
-import com.boardwise.backend.scraper.dtos.*;
+package com.boardwise.backend.marketplace.service.webscrapers;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
+import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
+
 //Interface class 
-interface WebScraper {
-    public List<ScrapeResponse> scrape(String toSearch);    
-    public final float stringMatch = 0.49f; // >=49% string match gets Returned
+@Service
+public interface WebScraper {
+    
+    public List<RetailSourceItemDTO> scrape(String toSearch);    
+    public final float STRINGMATCH = 0.65f; // >=65% string match gets Returned
     
     private int countMatchingChars(String x, String y){
         if(x.isBlank()|| y.isBlank()){
-            throw new RuntimeException("Cannot pass in empty strings");
+            throw new IllegalArgumentException("Cannot pass in empty strings");
         }
         int lenOfX = x.length();
         int lenOfY = y.length();
@@ -86,7 +91,7 @@ interface WebScraper {
 
     private float JaroSimilarity(String a, String b){
         if(a.isBlank()|| b.isBlank()){
-            throw new RuntimeException("Cannot pass in empty strings");
+            throw new IllegalArgumentException("Cannot pass in empty strings");
         }
         int m = countMatchingChars(a,b);
         int t = countTranspositions(a,b);
