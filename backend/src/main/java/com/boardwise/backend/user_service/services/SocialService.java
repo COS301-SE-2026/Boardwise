@@ -24,6 +24,7 @@ import com.boardwise.backend.user_service.dtos.GroupInfo;
 import com.boardwise.backend.user_service.dtos.GroupMembershipResponseDTO;
 import com.boardwise.backend.user_service.dtos.GroupUpdateRequestDTO;
 import com.boardwise.backend.user_service.dtos.GroupUpdateResponseDTO;
+import com.boardwise.backend.user_service.enums.Visibility;
 import com.boardwise.backend.user_service.models.Group;
 import com.boardwise.backend.user_service.models.GroupMembership;
 import com.boardwise.backend.user_service.models.User;

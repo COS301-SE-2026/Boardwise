@@ -38,14 +38,14 @@ import com.boardwise.backend.user_service.dtos.EventUpdateDTO;
 import com.boardwise.backend.user_service.dtos.InviteDTO;
 import com.boardwise.backend.user_service.dtos.InviteNotification;
 import com.boardwise.backend.shared.model.Boardgame;
+import com.boardwise.backend.user_service.enums.EventStatus;
+import com.boardwise.backend.user_service.enums.RSVPStatus;
+import com.boardwise.backend.user_service.enums.Visibility;
 import com.boardwise.backend.user_service.models.Event;
 import com.boardwise.backend.user_service.models.EventAttendee;
-import com.boardwise.backend.user_service.models.EventStatus;
-import com.boardwise.backend.user_service.models.RSVPStatus;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.models.Visibility;
 import com.boardwise.backend.user_service.repos.EventAttendeeRepository;
-import com.boardwise.backend.user_service.repos.EventsRepository;
+import com.boardwise.backend.user_service.repos.EventRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
 import com.google.maps.GeoApiContext;
 import com.google.maps.GeocodingApi;
@@ -59,7 +59,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CommunityService {
 
-    private final EventsRepository eventRepo;
+    private final EventRepository eventRepo;
     private final UserRepository userRepo;
     private final BoardGameRepository gameRepo;
     private final JWTService jwtService;
@@ -521,15 +521,17 @@ public class CommunityService {
         );
         eaRepo.save(newAttendee);
 
-        String eventTitle = eventRepo.findById(inviteInfo.eventId())
-                                            .get().getName();
+        Event event = eventRepo.findById(inviteInfo.eventId()).get();        
+        EventInviteInfo invite = new EventInviteInfo(
+            event.getId(),
+            event.getName(),
+            event.getEventImg(),
+            event.getStartDateTime().toLocalDate()
+        ); 
+        EventHostInfo sender = new EventHostInfo(inviter.getUsername(), inviter.getProfilePicture());                                   
+        InviteNotification payload = new InviteNotification(sender, invite);
 
-        InviteNotification payload = new InviteNotification(
-            "NEW_INVITE",
-            inviter.getUsername() + " invited you to '" + eventTitle + "'"
-        );
-
-        notifService.sendInviteNotification(
+        notifService.send(
             invitee.get().getId(), 
             payload
         );

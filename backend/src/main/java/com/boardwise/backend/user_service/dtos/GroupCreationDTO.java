@@ -2,7 +2,7 @@ package com.boardwise.backend.user_service.dtos;
 
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
-import com.boardwise.backend.user_service.models.Visibility;
+import com.boardwise.backend.user_service.enums.Visibility;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
