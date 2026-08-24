@@ -16,7 +16,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.boardwise.backend.BaseIntegrationTest;
 import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
-import com.boardwise.backend.marketplace.model.ScrapeCache;
+import com.boardwise.backend.marketplace.models.ScrapeCache;
 import com.boardwise.backend.marketplace.repository.ScrapeCacheRepository;
 import com.boardwise.backend.marketplace.service.RetailService;
 import com.boardwise.backend.marketplace.service.webscrapers.BobShopScraper;

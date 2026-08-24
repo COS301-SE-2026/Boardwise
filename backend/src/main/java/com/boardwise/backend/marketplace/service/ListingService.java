@@ -1,6 +1,5 @@
 package com.boardwise.backend.marketplace.service;
 
-import com.boardwise.backend.marketplace.model.*;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -21,10 +20,11 @@ import com.boardwise.backend.marketplace.dtos.listing.ListingRequest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
 import com.boardwise.backend.marketplace.enums.*;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
+import com.boardwise.backend.marketplace.models.*;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.user_service.models.Boardgame;
+import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.user_service.repos.UserRepository;
 
 import org.bson.types.ObjectId;

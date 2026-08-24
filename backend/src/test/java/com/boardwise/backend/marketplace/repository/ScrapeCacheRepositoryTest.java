@@ -17,7 +17,7 @@ import org.springframework.boot.data.mongodb.test.autoconfigure.DataMongoTest;
 
 import com.boardwise.backend.SharedMongoContainer;
 import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
-import com.boardwise.backend.marketplace.model.ScrapeCache;
+import com.boardwise.backend.marketplace.models.ScrapeCache;
 
 @DisplayName("Scrape Cache Repository Tests")
 @DataMongoTest()

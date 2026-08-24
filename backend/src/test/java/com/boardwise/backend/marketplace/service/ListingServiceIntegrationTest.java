@@ -16,7 +16,7 @@ import com.boardwise.backend.marketplace.enums.Condition;
 import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.marketplace.enums.ItemType;
 import com.boardwise.backend.marketplace.enums.ListingStatus;
-import com.boardwise.backend.marketplace.model.Listing;
+import com.boardwise.backend.marketplace.models.Listing;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.marketplace.service.ListingService;
 

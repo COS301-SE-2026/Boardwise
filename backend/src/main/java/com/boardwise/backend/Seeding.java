@@ -17,11 +17,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.boardwise.backend.marketplace.enums.ListingStatus;
-import com.boardwise.backend.marketplace.model.Listing;
-import com.boardwise.backend.marketplace.model.RentalPeriod;
+import com.boardwise.backend.marketplace.models.Listing;
+import com.boardwise.backend.marketplace.models.RentalPeriod;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
-import com.boardwise.backend.user_service.models.Boardgame;
+import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.user_service.models.Event;
 import com.boardwise.backend.user_service.models.EventAttendee;
 import com.boardwise.backend.user_service.models.EventStatus;

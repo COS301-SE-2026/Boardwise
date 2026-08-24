@@ -26,7 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
-import com.boardwise.backend.marketplace.model.ScrapeCache;
+import com.boardwise.backend.marketplace.models.ScrapeCache;
 import com.boardwise.backend.marketplace.repository.ScrapeCacheRepository;
 import com.boardwise.backend.marketplace.service.webscrapers.BobShopScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.TakealotScraper;

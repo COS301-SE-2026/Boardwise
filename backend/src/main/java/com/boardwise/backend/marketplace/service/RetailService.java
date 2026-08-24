@@ -20,7 +20,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
-import com.boardwise.backend.marketplace.model.ScrapeCache;
+import com.boardwise.backend.marketplace.models.ScrapeCache;
 import com.boardwise.backend.marketplace.repository.ScrapeCacheRepository;
 import com.boardwise.backend.marketplace.service.webscrapers.BobShopScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.TakealotScraper;
@@ -29,7 +29,7 @@ import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.repos.UserRepository;
 import com.boardwise.backend.user_service.repos.UserRepository.GameOwnershipCount;
-import com.boardwise.backend.user_service.models.Boardgame;
+import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.user_service.models.User;
 
 
@@ -174,7 +174,6 @@ public class RetailService {
         }
         else{
             //no inventory probably a new user
-            System.out.println("User has no inventory so global best is being used");
             games = getGloballyPopularGames();
         }
 
@@ -191,7 +190,6 @@ public class RetailService {
     }
 
     private List<RetailSourceItemDTO> rescrapeAndCache(String s) {
-        System.out.println("Cache miss/stale, rescraping for s=[" + s + "]");
         List<RetailSourceItemDTO> overall = findWebListings(s); 
 
         ScrapeCache existing = scrapeCacheRepository.findBySearchTerm(s).orElse(null);
@@ -218,7 +216,7 @@ public class RetailService {
     private final BoardGameRepository boardGameRepository;
      
     //number of Games to search for 
-    private final int NUMOFGAMES = 3;
+    private final int NUMOFGAMES = 5;
     @Scheduled(fixedDelayString = "${scrape.cache.refresh.interval.ms:3600000}")
     public void ScheduledRecommendedScraper(){
         //SHOULDDO: compute most popular first 
@@ -227,7 +225,7 @@ public class RetailService {
         //fall back 
         List<Boardgame> games = new ArrayList<>();
 
-        if(currGames.size() < 3){
+        if(currGames.size() < 3){//3 to keep somewhat of a variety for games
            games = getGloballyPopularGames();
         } else{
             for(GameOwnershipCount x : currGames){
@@ -244,7 +242,6 @@ public class RetailService {
             }
         }
         //scrape based on current 
-        //TODO: scrape based on most popular games in User Inventory
         for(Boardgame bg : games){
             this.findWebListingsCached(bg.getTitle()+" Boardgame");
         }

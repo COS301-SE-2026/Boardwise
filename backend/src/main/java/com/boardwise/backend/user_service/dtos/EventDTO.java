@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+import com.boardwise.backend.shared.dtos.GameInventoryDTO;
 import com.boardwise.backend.user_service.models.Event;
 import com.boardwise.backend.user_service.models.EventStatus;
 import com.boardwise.backend.user_service.models.RSVPStatus;

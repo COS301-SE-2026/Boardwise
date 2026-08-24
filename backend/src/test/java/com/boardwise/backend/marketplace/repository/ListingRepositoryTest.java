@@ -20,8 +20,8 @@ import com.boardwise.backend.SharedMongoContainer;
 import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.marketplace.enums.ItemType;
 import com.boardwise.backend.marketplace.enums.ListingStatus;
-import com.boardwise.backend.marketplace.model.Listing;
-import com.boardwise.backend.marketplace.model.RentalPeriod;
+import com.boardwise.backend.marketplace.models.Listing;
+import com.boardwise.backend.marketplace.models.RentalPeriod;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 
 @DisplayName("Listing Repository Tests")

@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-import com.boardwise.backend.user_service.models.Boardgame;
+import com.boardwise.backend.shared.model.Boardgame;
 
 public interface BoardGameRepository extends MongoRepository<Boardgame, String>{
     Optional<Boardgame> findByTitle(String title);
