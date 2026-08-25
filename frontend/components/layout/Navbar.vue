@@ -25,6 +25,9 @@
         placeholder="Search games, users, rules..."
         prepend-inner-icon="mdi-magnify"
         class="search"
+        v-model="searchQuery"
+        hide-details
+        @keyup.enter="submitSearch(searchQuery)"
       />
 
       <v-btn 
@@ -75,6 +78,8 @@
             rounded="pill"
             hide-details
             autofocus
+            v-model="mobileSearchQuery"
+            @keyup.enter="submitSearch(mobileSearchQuery)"
           />
         </v-card>
       </v-menu>
@@ -117,12 +122,24 @@
 <script setup>
 import { ref } from 'vue'
 import { useDisplay } from 'vuetify'
+import { useRouter } from 'vue-router'
 
 // import LogOutButton from '~/components/features/auth/LogOutButton.vue'
 
 defineEmits(['ask-ai'])
 
 const drawer = ref(false)
+
+const router = useRouter()
+const searchQuery = ref('')
+const mobileSearchQuery = ref('')
+
+const submitSearch = (query) => {
+  const q = query.trim()
+  if(!q) return
+  router.push({ path: '/search', query:{ q } })
+}
+
 const { lgAndUp } = useDisplay()
 </script>
 
