@@ -1,6 +1,6 @@
 <template> 
     <div>
-        <SectionTitle :title="`Search results for &quot;${query}&quot`" />
+        <SectionTitle :title="`Search results for “${query}”.`" />
 
         <BaseTabs 
             :tabs="tabLabels"
@@ -19,17 +19,18 @@
                 <BaseEmptyState
                     v-if="!people.length"
                     title="No people found"
-                    :message="`No accounts matched &quot;${query}&quot;.`"
+                    :message="`No accounts matched “${query}”.`"
                 />
 
-                <div v-else class="stack">
+                <BaseGrid v-else cols="200px">
                     <PersonCard
                         v-for="person in visible(people)"
                         :key="person.id"
                         :person="person"
-                        @click="$emit('friend-action', person)"
+                        @click="$emit('open-profile', person)"
+                        @friend-action="$emit('friend-action', person)"
                     />
-                </div>
+                </BaseGrid>
             </template>
 
             <template v-if="activeTab === 'All' || activeTab === 'Rulebooks'">
@@ -42,7 +43,7 @@
                 <BaseEmptyState
                     v-if="!rulebooks.length"
                     title="No rulebooks found"
-                    :message="`No rulebooks matched &quot;${query}&quot;.`"
+                    :message="`No rulebooks matched “${query}”.`"
                 />
 
                 <BaseGrid v-else cols="200px">
@@ -55,7 +56,7 @@
                 </BaseGrid>            
             </template>
 
-            <template v-if="activeTab === 'All' || activeTab === Listings">
+            <template v-if="activeTab === 'All' || activeTab === 'Listings'">
                 <SectionHeader
                     title="Listings"
                     :show-see-all="activeTab === 'All'"
@@ -65,7 +66,7 @@
                 <BaseEmptyState
                     v-if="!listings.length"
                     title="No listings found"
-                    :message="`No marketplace listings matched &quot;${query}&quot;.`"
+                    :message="`No marketplace listings matched “${query}”.`"
                 />
 
                 <BaseGrid v-else cols="200px">
@@ -88,17 +89,16 @@
                 <BaseEmptyState
                     v-if="!communities.length"
                     title="No communities found"
-                    :message="`No communities matched &quot;${query}&quot;.`"
+                    :message="`No communities matched “${query}”.`"
                 />
 
-                <div v-else class="stack">
+                <BaseGrid v-else cols="200px">
                     <CommunityCard
                         v-for="community in visible(communities)"
                         :key="community.id"
                         :community="community"
-                        @join="$emit('join-community', community)"
                     />
-                </div>
+                </BaseGrid>
             </template>
         </div>
     </div>
@@ -112,21 +112,21 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue';
 import BaseGrid from '~/components/ui/BaseGrid.vue';
 import BaseTabs from '~/components/ui/BaseTabs.vue';
 
-import SectionHeader from '~/components/features/SectionHeader.vue';
+import SectionHeader from './SectionHeader.vue';
 import PersonCard from '~/components/features/people/PersonCard.vue';
 import RulebookCard from '~/components/features/library/RulebookCard.vue';
-import ListingCard from '~/marketplace/ListingCard.vue';
-import CommunityCard from '~/community/CommunityCard.vue';
+import ListingCard from '~/components/features/marketplace/ListingCard.vue';
+import CommunityCard from '~/components/features/community/CommunityCard.vue';
 
 defineProps({
     query: { type: String, default: ''},
     people: { type: Array, default: () => [] },
     rulebooks: { type: Array, default: () => [] },
     listings: { type: Array, default: () => [] },
-    communities: { type: Array, defaul: () => [] }
+    communities: { type: Array, default: () => [] }
 })
 
-defineEmits(['friend-action', 'open-rulebook', 'open-listing', 'join-community'])
+defineEmits(['friend-action','open-profile', 'open-rulebook', 'open-listing'])
 
 const tabLabels = [ 'All', 'People', 'Rulebooks', 'Listings', 'Communities']
 const activeTab = ref('All')

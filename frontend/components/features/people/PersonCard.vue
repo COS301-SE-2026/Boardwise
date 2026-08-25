@@ -10,7 +10,7 @@
             <h3 class="card-title">@{{  person.username }}</h3>
 
             <p class="card-meta">
-                {{  person.mutuaLabel }}
+                {{  person.mutualLabel }}
             </p>
 
             <BaseButton

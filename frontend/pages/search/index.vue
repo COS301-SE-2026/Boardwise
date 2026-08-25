@@ -1,84 +1,70 @@
 <template>
-    <v-container fluid class="fill-height" align-start>
-        <SearchResults
+    <PageContainer data-test="page-container">
+        <Navbar data-test="navbar" />
+
+        <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
+            <v-progress-circular data-test="loading-spinner" indeterminate color="primary" size="48" />
+        </v-container>
+
+       <v-container v-else-if="!query" class="d-flex flex-column align-center justify-center" style="min-height: 60vh">
+        <p class="text-medium-emphasis">Start typing to search games, users, and rules.</p>
+       </v-container>
+
+        <SearchResults 
+            v-else
+            data-test="search-results"
             :query="query"
             :people="people"
             :rulebooks="rulebooks"
             :listings="listings"
             :communities="communities"
+            @friend-action="handleFriendACtion"
+            @open-profile="handleOpenProfile"
+            @open-rulebook="handleOpenRulebook"
+            @open-listing="handleOpenListing"
         />
-    </v-container>
+        
+    </PageContainer>
 </template>
 
 <script setup>
+definePageMeta({
+  middleware: 'auth'
+})
+
 import SearchResults from '~/components/features/search/SearchResults.vue'
+import Navbar from '~/components/layout/Navbar.vue'
+import PageContainer from '~/components/layout/PageContainer.vue'
 
-import { LibraryService } from '~/services/libraryService'
-import { MarketplaceService } from '~/services/marketplaceService'
-import { CommunityService } from '~/services/communityService'
-// import { PersonService } from '~/services/PersonService'
+import { useRouter, useRoute } from 'vue-router'
+import { useDebounceFn } from '@vueuse/core'
+import { useSearch } from '~/composables/useSearch'
 
+const router = useRouter()
 const route = useRoute()
 const query = computed(() => route.query.q ?? '')
 
-const people = ref([])
-const rulebooks = ref([])
-const listings = ref([])
-const communities = ref([])
+const { people, rulebooks, listings, communities, loading, search } = useSearch()
 
-// Mock people 
-const mockPeople = [
-    {id: 1, username: 'catan_carla', mutualLable: '12 mutual games', isFriend: true, avatarUrl: null },
-    {id: 2, username: 'settlersfan88', mutualLable: '3 mutual games', isFriend: false, avatarUrl: null },
-]
+const delaySearch = useDebounceFn((q) => search(q), 400)
 
-async function runSearch(q) {
-    if(!q) {
-        people.value = []
-        rulebooks.value = []
-        listings.value = []
-        communities.value = []
-        return
-    }
+watch(query, (q) => delaySearch(q), { immediate: true })
 
-    people.value = mockPeople
-
-    const [rulebookResult, listingResult, communityResult] = await Promise.allSettled([
-        LibraryService.fetchAllRulebooks({ title: q }),
-        MarketplaceService.getListings({ search: q }),
-        CommunityService.searchForCommunity(q),
-    ])
-
-    rulebooks.value = rulebookResult.status === 'fulfilled'
-        ? (rulebookResult.value?.content ?? []).map(rb => ({
-            id: rb.id,
-            title: rb.title,
-            coverUrl: rb.coverUrl,
-            genre: rb.genres?.[0] ?? '',
-        })) 
-        : []
-    
-    listings.value = listingResult.status === 'fulfilled'
-        ? (listingResult.value?.content ?? listingResult.value ?? []).map(l => ({
-            id: l.listingId,
-            title: l.listingTitle,
-            price: l.price,
-            imageUrl: l.imageUrl ?? null,
-        }))
-        : []
-    
-    communities.value = communityResult.status === 'fulfilled'
-        ? communityResult.value.map(c => ({
-            id: c.id,
-            name: c.name,
-            description: c.description,
-            imageUrl: c.imageUrl,
-            visibility: c.visibility,
-            memberCount: c.memberCount,
-        }))
-        : []
+function handleOpenRulebook(rb) {
+    router.push(`/library/${rb.id}`)
 }
 
-watch(query, runSearch, { immediate: true })
+function handleOpenListing(listing) {
+    router.push(`/marketplace/${listing.id}`)
+}
+
+function handleOpenProfile(person) {
+    router.push(`/profile/${person.id}`)
+}
+
+function handleFriendAction(person) {
+    // TODO: wire to friend/social service once it exists
+  console.log('friend action', person)
+}
 
 </script>
