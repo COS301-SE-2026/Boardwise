@@ -63,7 +63,11 @@
       @update:model-value="showHistory = $event"
       :edits="editHistory"
       :is-loading="isLoadingHistory"
-      :error="historyError"/>
+      :error="historyError"
+    />
+
+    <AIFloatingButton @click="showRagPanel = true" />
+    <RagPanel v-model="showRagPanel" :rulebook="rulebook" />
 
   </div>
 </template>
@@ -78,6 +82,9 @@ import ReaderSidebar from './ReaderSidebar.vue'
 import ReaderPage from './ReaderPage.vue'
 import ReaderHistory from './ReaderHistory.vue'
 
+import AIFloatingButton from '~/components/layout/AIFloatingButton.vue'
+import RagPanel from '../rag/RagPanel.vue'
+
 import { useEditLock } from '~/composables/useEditLock'
 import { useEditHistory } from '~/composables/useEditHistory'
 import { useSnackBar }  from '~/composables/useSnackbar'
@@ -91,6 +98,7 @@ const props = defineProps({
 const currentPage = ref(0)
 const searchQuery = ref('')
 const currentMatch = ref(0)
+const showRagPanel = ref(false)
 
 // edit logic
 
@@ -239,7 +247,7 @@ const matchResults = computed(() => {
   const q = searchQuery.value.toLowerCase()
   const results = []
 
-   props.chunks.forEach((chunk, chunkIndex) => {
+   localChunks.value.forEach((chunk, chunkIndex) => {
     const content = chunk?.content?.toLowerCase() ?? ''
     let searchFrom = 0
     let occurrenceIndex = 0
