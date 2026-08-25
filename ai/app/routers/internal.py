@@ -1,4 +1,5 @@
 import logging
+from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, status
 
@@ -16,7 +17,7 @@ async def trigger_re_embed(
     payload: ReEmbedRequest,
     background_tasks: BackgroundTasks,
     request: Request,
-    token: str = Depends(verify_internal_token),
+    token: Annotated[str, Depends(verify_internal_token)],
 ):
     """
     Webhook triggered by Spring Boot when a chunk is inserted, deleted, updated, redone or undone.

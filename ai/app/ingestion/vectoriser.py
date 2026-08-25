@@ -47,7 +47,7 @@ def vectorise_chunks(
         return (False, [], "Internal error occurred during vectorisation.")
 
 
-async def background_vectorise_and_update(
+def background_vectorise_and_update(
     chunk_id: str, content: str, embedding_model: SentenceTransformer
 ):
     """

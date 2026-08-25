@@ -12,11 +12,9 @@ logger = logging.getLogger(__name__)
 hf_client = InferenceClient(model="Qwen/Qwen2.5-7B-Instruct", token=settings.HF_TOKEN)
 
 
-def generate_answer(messages: list[dict], ml_models: dict, max_retries: int = 3) -> str:
+def _call_remote_llm(messages: list[dict], max_retries: int) -> str | None:
     """
-    Calls the Hugging Face Serverless API to generate an answer using the provided context.
-    Implements a backoff strategy to handle 503 (Cold Start) and 429 (Rate Limit) HTTP errors.
-    Trips a circuit breaker to a local model if retries are exhaused.
+    Attempts to fetch a response from the Hugging Face Serverless API with exponential backoff
     """
     base_delay = 2.0
 
@@ -50,15 +48,21 @@ def generate_answer(messages: list[dict], ml_models: dict, max_retries: int = 3)
                         "Hugging Face API exhausted retries for status code %d. Switching to local model.",
                         status_code,
                     )
-                    break  # Break loop to trigger local fallback model
+                    return None  # To trigger local fallback model
 
             logger.exception("Unexpected HTTP error from Hugging Face Inference API.")
-            break
+            return None
 
         except Exception:
             logger.exception("Critical error during LLM text generation.")
-            break
+            return None
+    return None
 
+
+def _call_local_fallback(messages: list[dict], ml_models: dict) -> str:
+    """
+    Executes the local LLM when the remote one is unavailable.
+    """
     logger.warning("Executing local fallback model...")
     try:
         local_model = ml_models.get("local_llm")
@@ -78,3 +82,17 @@ def generate_answer(messages: list[dict], ml_models: dict, max_retries: int = 3)
         raise HTTPException(
             status_code=503, detail="The AI service is currently unavailable."
         )
+
+
+def generate_answer(messages: list[dict], ml_models: dict, max_retries: int = 3) -> str:
+    """
+    Calls the Hugging Face Serverless API to generate an answer using the provided context.
+    Implements a backoff strategy to handle 503 (Cold Start) and 429 (Rate Limit) HTTP errors.
+    Trips a circuit breaker to a local model if retries are exhaused.
+    """
+    answer = _call_remote_llm(messages, max_retries)
+
+    if answer is not None:
+        return answer
+
+    return _call_local_fallback(messages, ml_models)
