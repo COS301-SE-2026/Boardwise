@@ -1,5 +1,4 @@
 import { ref } from 'vue'
-import { de } from 'vuetify/locale'
 import {
     EventService, 
     type EventResponse,
@@ -179,7 +178,7 @@ export const useEvents = () => {
 
         try {
             await EventService.respondToInvite(eventId, status)
-            invites.value = invites.value.filter(i => i.event.eventId !== eventId)
+            invites.value = invites.value.filter(i => i.event.id !== eventId)
             inviteCount.value = invites.value.length
         }catch (err: any) {
             error.value = err.data?.message || 'Failed to respond to invite'
