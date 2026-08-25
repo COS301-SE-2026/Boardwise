@@ -1,29 +1,30 @@
 <template>
-    <v-navigation-drawer
-        :model-value="modelValue"
-        location="right"
-        temporary
-        :width="panelWidth"
-        @update:model-value="$emit('update:modelValue', $event)"
-    >
-        <div class="rag-panel">
-            <div class="rag-header d-flex justify-space-between align-center pa-4">
-                <h3 class="text-h6 mb-0">{{  rulebook?.title  }} - Ask AI</h3>
-                <v-btn icon="mdi-close" variant="text" size="small" @click="close" />
+    <v-scale-transition origin="bottom right">
+        <v-card 
+            v-if="modelValue"
+            class="rag-panel"
+            elevation="8"
+            rounded="lg"
+        >
+            <div class="rag-panel">
+                <div class="rag-header d-flex justify-space-between align-center pa-4">
+                    <h3 class="text-subtitle-1 font-weight-bold mb-0">{{  rulebook?.title  }} - Ask AI</h3>
+                    <v-btn icon="mdi-close" variant="text" size="small" @click="close" />
+                </div> 
 
                 <RagFeed :messages="messages" :is-loading="isLoading" />
                 <RagComposer :is-loading="isLoading" @send="handleSend" />
-            </div> 
-        </div>
-    </v-navigation-drawer>
+            </div>
+        </v-card>
+    </v-scale-transition>
 </template>
 
 <script setup lang="ts">
 import { computed, watch } from 'vue'
 import { useDisplay } from 'vuetify'
 
-import RagFeed from './RagComposer.vue'
-import RagComposer from './RagComposer.vue'
+import RagFeed from '~/components/features/rag/RagFeed.vue'
+import RagComposer from '~/components/features/rag/RagComposer.vue'
 
 import { useRag } from '~/composables/useRag.ts'
 
@@ -54,8 +55,27 @@ watch(() => props.rulebook?.id, () => clearConversation())
 
 <style scoped>
 .rag-panel {
+    position: fixed;
+    right: var(--space-6, 24px);
+    bottom: 96px; /* sits just above the floating button */
+    width: 380px;
+    height: 520px;
+    max-height: calc(100vh - 140px);
     display: flex;
     flex-direction: column;
-    height: 100%;
+    z-index: 1000;
+}
+
+.rag-header {
+    border-bottom: 1px solid var(--color-border, #eee);
+}
+
+@media (max-width: 600px) {
+    .rag-panel {
+        right: var(--space-4, 16px);
+        left: var(--space-4, 16px);
+        width: auto;
+        bottom: 88px;
+    }
 }
 </style>
