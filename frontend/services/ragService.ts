@@ -10,7 +10,7 @@ export interface QueryResponse {
     citations: Citation[];
 }
 
-export const ragService {
+export const ragService = {
     // TODO: Fix integration 
     queryRulebook(rulebookId: string, query: string) {
         const { $api } = useNuxtApp()
