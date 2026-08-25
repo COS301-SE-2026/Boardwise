@@ -55,7 +55,7 @@ watch(() => props.rulebook?.id, () => clearConversation())
 <style scoped>
 .rag-panel {
     display: flex;
-    flex-driection: column;
+    flex-direction: column;
     height: 100%;
 }
 </style>
