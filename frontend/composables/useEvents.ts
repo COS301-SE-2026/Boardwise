@@ -1,11 +1,15 @@
 import { ref } from 'vue'
+import { createSharedComposable } from '@vueuse/core'
+import { useSnackBar } from './useSnackbar'
 import {
     EventService, 
     type EventResponse,
     type InviteItem
 } from '~/services/eventService'
 
-export const useEvents = () => {
+const { show } = useSnackBar()
+
+const _useEvents = () => {
     const events = ref<EventResponse[]>([])
     const invites = ref<InviteItem[]>([])
     const inviteCount = ref<number>(0)
@@ -207,3 +211,4 @@ export const useEvents = () => {
         respondToInvite
     }
 }
+export const useEvents = createSharedComposable(_useEvents)
