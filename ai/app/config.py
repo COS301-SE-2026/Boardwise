@@ -20,6 +20,8 @@ class Settings:
     )
     MAX_FILE_SIZE_MB: int = 50
     HF_TOKEN: str | None = os.getenv("HF_TOKEN")
+    INTERNAL_WEBHOOK_SECRET: str | None = os.getenv("INTERNAL_SECRET")
+    CPU_CORES: int = int(os.getenv("CPU_CORES", "1"))
 
 
 settings = Settings()

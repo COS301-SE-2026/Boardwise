@@ -5,7 +5,10 @@ import fitz
 import pytesseract
 from PIL import Image
 
+from app.utils.text_cleaner import clean_extracted_text
+
 logger = logging.getLogger(__name__)
+
 
 def extract_text(file_bytes: bytes) -> tuple[bool, str, str]:
     """
@@ -40,7 +43,9 @@ def extract_text(file_bytes: bytes) -> tuple[bool, str, str]:
             if len(final_joined_text) == 0:
                 return (False, "", "No readable text or OCR data found in PDF.")
 
-            return (True, final_joined_text, "")
+            clean_text = clean_extracted_text(final_joined_text)
+
+            return (True, clean_text, "")
     except Exception:
         logger.exception("Extraction failed")
         return (False, "", "Internal error occurred during text extraction.")

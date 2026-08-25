@@ -19,8 +19,8 @@ from app.dependencies import verify_index_ready, verify_jwt
 from app.generation.llm import generate_answer
 from app.generation.prompt import build_chat_messages
 from app.ingestion.ingestion import run_ingestion_pipeline
-from app.models.schemas import Citation, QueryRequest, QueryResponse, UploadResponse
 from app.retrieval.retriever import retrieve_context
+from app.schemas import Citation, QueryRequest, QueryResponse, UploadResponse
 from app.services import mongo_service
 from app.utils.logging_utils import sanitise_log_input
 
@@ -157,7 +157,7 @@ async def upload_rulebook(
     return UploadResponse(
         message="Rulebook upload accepted. Ingestion has started.",
         rulebook_id=rulebook_id,
-        job_id=job_id,
+        job_id=job_id
     )
 
 
@@ -188,6 +188,15 @@ async def query_rulebook(
     Executes a RAG query against a specific rulebook.
     Retrieves vector context, scores relevance, and generates a grounded LLM answer.
     """
+    if not ObjectId.is_valid(rulebook_id):
+        logger.warning(
+            "Query rejected: malformed rulebook_id '%s'.",
+            sanitise_log_input(rulebook_id),
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid rulebook ID format.",
+        )
     try:
         query = payload.query
         ml_models = request.app.state.ml_models
@@ -205,14 +214,14 @@ async def query_rulebook(
             )
 
         messages = build_chat_messages(query, retrieved_chunks)
-        answer = generate_answer(messages)
+        answer = generate_answer(messages, ml_models)
 
         citations = [
             Citation(
-                chunkId=str(chunk.get("chunkId", "unknown")),
+                chunk_id=chunk.get("chunkId", "unknown"),
                 index=chunk.get("index", 0),
                 content=chunk.get("content", ""),
-                relevanceScore=chunk.get("relevanceScore", 0.0),
+                relevance_score=chunk.get("relevanceScore", 0.0),
             )
             for chunk in retrieved_chunks
         ]
