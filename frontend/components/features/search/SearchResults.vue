@@ -112,11 +112,11 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue';
 import BaseGrid from '~/components/ui/BaseGrid.vue';
 import BaseTabs from '~/components/ui/BaseTabs.vue';
 
-import SectionHeader from './SectionHeader.vue';
-import PersonCard from './people/PersonCard.vue';
-import RulebookCard from './library/RulebookCard.vue';
-import ListingCard from '../marketplace/ListingCard.vue';
-import CommunityCard from '../community/CommunityCard.vue';
+import SectionHeader from '~/components/features/SectionHeader.vue';
+import PersonCard from '~/components/features/people/PersonCard.vue';
+import RulebookCard from '~/components/features/library/RulebookCard.vue';
+import ListingCard from '~/marketplace/ListingCard.vue';
+import CommunityCard from '~/community/CommunityCard.vue';
 
 defineProps({
     query: { type: String, default: ''},
