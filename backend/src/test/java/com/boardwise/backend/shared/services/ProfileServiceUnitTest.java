@@ -1,4 +1,4 @@
-package com.boardwise.backend.user_service.services;
+package com.boardwise.backend.shared.services;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,7 +25,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Example;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.shared.services.NotificationService;
 import com.boardwise.backend.user_service.dtos.FriendConfirmationNotification;
 import com.boardwise.backend.user_service.dtos.FriendDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestNotification;
@@ -36,11 +35,13 @@ import com.boardwise.backend.user_service.enums.FriendStatus;
 import com.boardwise.backend.user_service.fixtures.ProfileServiceFixtures;
 import com.boardwise.backend.user_service.models.Friendship;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.FriendShipRepository;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.services.ProfileService;
+import com.boardwise.backend.user_service.services.R2StorageService;
 import com.google.maps.GeoApiContext;
 
 @ExtendWith(MockitoExtension.class)

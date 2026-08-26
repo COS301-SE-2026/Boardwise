@@ -36,7 +36,7 @@ import com.boardwise.backend.user_service.enums.FriendStatus;
 import com.boardwise.backend.user_service.fixtures.ProfileServiceFixtures;
 import com.boardwise.backend.user_service.models.Friendship;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.user_service.repos.FriendShipRepository;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repos.GroupRepository;
