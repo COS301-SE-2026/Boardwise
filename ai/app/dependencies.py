@@ -2,8 +2,8 @@ import logging
 from typing import Annotated
 
 import jwt
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Depends, HTTPException, Security, status
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 
 from app.config import settings
 from app.services import mongo_service
@@ -60,9 +60,10 @@ def verify_jwt(
 def verify_index_ready():
     """
     FastAPI dependency to ensure the vector index is queryable.
-    Returns True if ready, otherwise raises a 503 Service Unavailable.
+    Returns True if ready
+    Raises a 503 Service Unavailable if not ready.
     """
-    db = mongo_service.client.get_default_database()
+    db = mongo_service.get_db()
     collection = db["RULEBOOK_TEXT"]
 
     try:
@@ -92,3 +93,18 @@ def verify_index_ready():
         raise HTTPException(
             status_code=500, detail="Database connection error while verifying index."
         )
+
+def verify_internal_token():
+    """
+    FastAPI dependency that verifies the internal webhook token attached to the request.
+    Returns the token if it is valid
+    Raises a 403 Forbidden if the token is invalid
+    """
+    internal_key_header = APIKeyHeader(name="X-Internal-Token", auto_error=True)
+    header_value = Security(internal_key_header)
+    if header_value != settings.INTERNAL_WEBHOOK_SECRET:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid internal token",
+        )
+    return header_value

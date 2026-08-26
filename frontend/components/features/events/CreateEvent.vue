@@ -1,7 +1,7 @@
 <template>
     <BaseModal v-model="open" :max-width="600">
         <div class="d-flex align-center justify-space-between mb-5">
-            <h2>{{ isEditMode ? 'Edit event' : 'Create event' }}</h2>
+            <h2> Create Event</h2>
             <v-btn icon variant="text" @click="open = false">
                 <v-icon>mdi-close</v-icon>
             </v-btn>
@@ -17,13 +17,10 @@
                 hide-details
             />
 
-            <BaseInput
+            <BaseTextArea
                 v-model="form.description"
-                label="Description"
                 placeholder="What's the event about?"
-                variant="outlined"
-                density="compact"
-                hide-details
+                :rows="4"
             />
 
             <BaseInput
@@ -116,8 +113,8 @@
             </BaseButton>
 
             <BaseButton :disabled="!isValid" :loading="isSubmitting" @click="handleSubmit">
-                <v-icon start>{{ isEditMode ? 'mdi-content-save' : 'mdi-calendar-plus' }}</v-icon>
-                {{ isEditMode ? 'Save changes' : 'Create Event' }}
+                <v-icon start>mdi-calendar-plus</v-icon>
+                    Create Event
             </BaseButton>
         </div>
     </BaseModal>
@@ -129,21 +126,25 @@ import { ref, computed, watch,onMounted } from 'vue'
 import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
+import BaseTextArea from '~/components/ui/BaseTextArea.vue'
+
 import { useBoardGames } from '~/composables/useBoardGames'
+import { useSnackBar } from '~/composables/useSnackbar'
+
+const { show } = useSnackBar(3)
 
 const { games, isLoading: gamesLoading, searchGames } = useBoardGames()
 onMounted(() => searchGames())
 
 
 const open = defineModel()
+
 const props = defineProps({
-    initialData:{
-        type: Object,
-        default: null
+    onSubmit: {
+        type: Function,
+        required: true
     }
 });
-
-const isEditMode = computed(() => !!props.initialData)
 
 const emptyForm = ()=>(
     {
@@ -179,28 +180,7 @@ watch(open, (isOpen)=>{
         return;
     }
 
-    if (props.initialData) {
-        const d = props.initialData
-        form.value = {
-            name: d.name,
-            description: d.description,
-            date: toDateInput(d.startTime),
-            startTime: toTimeInput(d.startTime),
-            endTime: toTimeInput(d.endTime),
-            location: d.location,
-            visibility: d.visibility,
-            games: d.games?.map(g => g.id) ?? []
-        }
-
-        if (d.games?.length) {// fallback for games created through "user listings" or other means
-            const knownIds = new Set(games.value.map(g => g.id))
-            const missing = d.games.filter(g => !knownIds.has(g.id))
-            games.value = [...missing, ...games.value]
-        }
-    } 
-    else {
-        form.value = emptyForm();
-    }
+    form.value = emptyForm();
     fileName.value = '';
     imageFile.value = null;
 })
@@ -242,9 +222,19 @@ const handleSubmit = async () => {
             games: form.value.games                
         }
 
-        emit('created', { eventInfo: payload, image: imageFile.value })
+        const createdEvent = await props.onSubmit({
+            eventInfo:payload,
+            image:imageFile.value
+        });
+
+        emit('created', createdEvent);
         open.value = false
-    } finally {
+    }
+    catch(err){
+        show(err?.data?.message || 'Failed to create event. Please try again.', 'error');
+
+    }
+    finally {
         isSubmitting.value = false
     }
 }

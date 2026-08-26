@@ -1,12 +1,16 @@
 <template>
-  <BaseCard class="listing-card" @click="openListing" style="cursor: pointer"">
+  <BaseCard data-test="listing-card" class="listing-card" @click="openListing">
 
     <div class="image-container">
-      <img
+      <BaseImage
+        data-test="listing-image"
         :src="listing.imageUrl ?? '/default-listing.png'"
         :alt="listing.gameTitle"
+        height="200px"
       />
+
       <BaseBadge
+        data-test="listing-badge"
         class="badge"
         :variant="listing.listingType === 'rental' ? 'rent' : 'sale'"
       >
@@ -14,15 +18,32 @@
       </BaseBadge>
     </div>
 
-    <v-card-text class="d-flex flex-column ga-2 pa-4">
-      <h3>{{ listing.gameTitle }}</h3>
+    <v-card-text class="pa-4 d-flex flex-column ga-2">
 
-      <p
+      <h2 class="listing-title" data-test="listing-title">
+        {{ listing.listingTitle }}
+      </h2>
+
+      <h3 class="listing-game" data-test="listing-game">
+        {{ listing.gameTitle }}
+      </h3>
+
+      <p  
+        data-test="listing-price"
         class="price ma-0"
-        :style="{ color: listing.listingType === 'rental' ? 'var(--rent)' : 'var(--sale)' }"
+        :style="{ 
+          color: listing.listingType === 'rental' 
+          ? 'var(--rent)' 
+          : 'var(--sale)' 
+        }"
       >
-        R{{ listing.price }}
-        <span v-if="listing.listingType === 'rental'" class="period">
+        R{{ listing.price }} 
+        <br />
+
+        <span v-if="listing.listingType === 'rental'" 
+          class="period"
+          data-test="listing-period"
+        >
           {{
             listing.rentalPeriod
               ? `${listing.rentalPeriod.startDate} – ${listing.rentalPeriod.endDate}`
@@ -32,8 +53,12 @@
       </p>
 
       <div class="meta">
-        <span>@{{ listing.username ?? 'unknown' }}</span>
-        <span v-if="listing.location">📍 {{ listing.location }}</span>
+        <span data-test="listing-username">@{{ listing.username ?? 'unknown' }}</span>
+
+        <span v-if="listing.location" data-test="listing-location" class="d-flex align-center ga-1">
+          <v-icon size="16"> mdi-map-marker</v-icon> 
+          {{ listing.location }}
+        </span>
       </div>
     </v-card-text>
 
@@ -43,6 +68,7 @@
 <script setup>
 import BaseCard  from '~/components/ui/BaseCard.vue'
 import BaseBadge from '~/components/ui/BaseBadge.vue'
+import BaseImage from '~/components/ui/BaseImage.vue'
 
 const props = defineProps({
   listing: { type: Object, required: true }
@@ -57,9 +83,9 @@ const openListing = () => {
 
 <style scoped>
 .listing-card {
-  overflow: hidden;
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
+  cursor: pointer;
 }
+
 .listing-card:hover {
   transform:  translateY(-2px);
   box-shadow: var(--shadow-md) !important;
@@ -67,22 +93,20 @@ const openListing = () => {
 
 .image-container {
   position: relative;
-  height: 200px;
-  overflow: hidden;
 }
 
-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.listing-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-h4);
+  color: var(--color-primary);
+  line-height: 1.2;
+  margin: 0;
 }
 
-:deep(.badge) {
-  color: white;
-}
-h3 {
+.listing-game {
   margin: 0;
   font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
 }
 
 .price {

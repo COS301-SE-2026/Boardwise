@@ -24,21 +24,9 @@ const gridColumns = computed(() => `repeat(auto-fill, minmax(${props.cols}, 300p
 <style scoped>
 .base-grid {
   display: grid;
-  grid-template-columns: v-bind(gridColumns);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: v-bind(gap);
   align-items: stretch;
   width: 100%;
-}
-
-@media (max-width: 900px) {
-  .base-grid {
-    grid-template-columns: repeat(2, 300px);
-  }
-}
-
-@media (max-width: 600px) {
-  .base-grid {
-    grid-template-columns: 1fr;
-  }
 }
 </style>

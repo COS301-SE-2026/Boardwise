@@ -1,63 +1,23 @@
 <template>
-  <div class="header">
+  <div class="d-flex flex-column ga-5" data-test="marketplace-header">
 
     <SectionTitle
+      data-test="marketplace-title"
       title="Marketplace"
       subtitle="Buy, Rent and List board games with the community"
     />
 
-    <div class="search-row">
-      <v-text-field
-        :model-value="modelValue"
-        @update:model-value="$emit('update:modelValue', $event)"
-        class="search"
-        placeholder="Search for games..."
-        variant="outlined"
-        density="compact"
-        hide-details
-        rounded="lg"
-        clearable
-      />
-
-      <v-btn
-        color="primary"
-        prepend-icon="mdi-plus"
-        @click="$emit('create-listing')"
-      >
-        Create Listing
-      </v-btn>
-    </div>
-
+    <MarketplaceSearch
+      data-test="marketplace-search"
+     @search="$emit('search', $event)" 
+     @create-listing="$emit('create-listing')" 
+    />
   </div>
 </template>
 
 <script setup>
 import SectionTitle from '~/components/ui/SectionTitle.vue'
+import MarketplaceSearch from './MarketplaceSearch.vue';
 
-defineProps({ modelValue: String })
-defineEmits(['create-listing', 'update:modelValue'])
-
+defineEmits(['search', 'create-listing'])
 </script>
-
-<style scoped>
-.header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-}
-
-.search-row {
-  display: flex;
-  gap: var(--space-3);
-  align-items: center;
-}
-
-.search { flex: 1; }
-
-@media (max-width: 700px) {
-  .search-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-</style>

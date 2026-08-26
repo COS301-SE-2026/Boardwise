@@ -10,14 +10,12 @@ ai/__pycache__/
 __pycache__
 
 #files
-/backend/src/main/resources/application.properties
 *env*
 error.txt
 err.txt
 mongodb-errors.txt
-/backend/src/test/resources/application-test.properties
 *.cpython*
-
+test-results
 
 #ignore for backend
 # Temporary Igngore

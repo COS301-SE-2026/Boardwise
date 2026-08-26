@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.boardwise.backend.shared.dtos.OtherGameDTO;
 import com.boardwise.backend.shared.services.BoardGameService;
-import com.boardwise.backend.user_service.dtos.OtherGameDTO;
 
 import org.springframework.web.bind.annotation.PostMapping;
 

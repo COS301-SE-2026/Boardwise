@@ -1,17 +1,21 @@
 import { ref } from 'vue'
-import { de } from 'vuetify/locale'
+import { createSharedComposable } from '@vueuse/core'
+import { useSnackBar } from './useSnackbar'
 import {
     EventService, 
     type EventResponse,
     type InviteItem
 } from '~/services/eventService'
 
-export const useEvents = () => {
+const { show } = useSnackBar()
+
+const _useEvents = () => {
     const events = ref<EventResponse[]>([])
     const invites = ref<InviteItem[]>([])
     const inviteCount = ref<number>(0)
     const isLoading = ref<boolean>(false)
     const error = ref<string>('')
+    const page = ref<number>(1)
 
     //AC-EVT-01
     const fetchEvents = async (name?: string) => {
@@ -19,11 +23,27 @@ export const useEvents = () => {
         error.value = ''
 
         try {
-            const data = await EventService.getAllEvents(name)
+            const data = await EventService.getAllEvents(name, page.value)
             events.value = data.result
+            return events.value;
         }catch (err: any) {
             error.value = err.data?.message || 'Failed to load events'
             events.value = []
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+    const fetchEventbyId = async (id: string) => {
+        isLoading.value = true
+        error.value = ''
+
+        try {
+            const data = await EventService.getEvent(id);
+            return data.data;
+        }catch (err: any) {
+            error.value = err.data?.message || 'Failed to load events'
+            throw err
         } finally {
             isLoading.value = false
         }
@@ -133,7 +153,8 @@ export const useEvents = () => {
 
         try {
             const data = await EventService.getUserInvites()
-            invites.value = data.data
+            console.log('Raw invites response:', data) 
+            invites.value = data.invites;
             inviteCount.value = data.inviteCount
         }catch (err: any) {
             error.value = err.data?.message || 'Failed to load invites'
@@ -161,7 +182,7 @@ export const useEvents = () => {
 
         try {
             await EventService.respondToInvite(eventId, status)
-            invites.value = invites.value.filter(i => i.event.eventId !== eventId)
+            invites.value = invites.value.filter(i => i.event.id !== eventId)
             inviteCount.value = invites.value.length
         }catch (err: any) {
             error.value = err.data?.message || 'Failed to respond to invite'
@@ -176,8 +197,10 @@ export const useEvents = () => {
         invites, 
         inviteCount, 
         isLoading, 
+        page,
         error, 
         fetchEvents,
+        fetchEventbyId,
         createEvent,
         updateEvent,
         cancelEvent,
@@ -188,3 +211,4 @@ export const useEvents = () => {
         respondToInvite
     }
 }
+export const useEvents = createSharedComposable(_useEvents)

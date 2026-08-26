@@ -2,6 +2,8 @@ package com.boardwise.backend.user_service.dtos;
 
 import java.util.List;
 import java.util.Map;
+
+import com.boardwise.backend.shared.dtos.GameInventoryDTO;
 import com.boardwise.backend.user_service.models.Preferences;
 
 public record ProfileResponseDTO(

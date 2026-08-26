@@ -21,11 +21,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import com.boardwise.backend.shared.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestResponseDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestsDTO;
 import com.boardwise.backend.user_service.dtos.FriendsListDTO;
 import com.boardwise.backend.user_service.dtos.NotificationsDTO;
-import com.boardwise.backend.user_service.dtos.OtherGameDTO;
+import com.boardwise.backend.shared.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
 import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileResponseDTO;

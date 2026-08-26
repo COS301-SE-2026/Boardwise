@@ -51,6 +51,8 @@
             @next="currentPage++"
             @save="handleSave"
             @cancel="handleCancel"
+            @delete="handleDelete"
+            @insert="handleInsert"
           />
         </v-col>
       </v-row>
@@ -61,7 +63,11 @@
       @update:model-value="showHistory = $event"
       :edits="editHistory"
       :is-loading="isLoadingHistory"
-      :error="historyError"/>
+      :error="historyError"
+    />
+
+    <AIFloatingButton @click="showRagPanel = true" />
+    <RagPanel v-model="showRagPanel" :rulebook="rulebook" />
 
   </div>
 </template>
@@ -76,6 +82,9 @@ import ReaderSidebar from './ReaderSidebar.vue'
 import ReaderPage from './ReaderPage.vue'
 import ReaderHistory from './ReaderHistory.vue'
 
+import AIFloatingButton from '~/components/layout/AIFloatingButton.vue'
+import RagPanel from '../rag/RagPanel.vue'
+
 import { useEditLock } from '~/composables/useEditLock'
 import { useEditHistory } from '~/composables/useEditHistory'
 import { useSnackBar }  from '~/composables/useSnackbar'
@@ -89,13 +98,14 @@ const props = defineProps({
 const currentPage = ref(0)
 const searchQuery = ref('')
 const currentMatch = ref(0)
+const showRagPanel = ref(false)
 
 // edit logic
 
 const localChunks = ref([...props.chunks])
 const showHistory = ref(false)
 
-const { isEditing, isSaving, lockHeldBy, lockExpiresAt, lockError, canRedo, canUndo, currentVersion, startEditing, stopEditing, releaseAllLocks, commitDelta, undoEdit, redoEdit } = useEditLock()
+const { isEditing, isSaving, lockHeldBy, lockExpiresAt, lockError, canRedo, canUndo, currentVersion, startEditing, stopEditing, releaseAllLocks, commitDelta, undoEdit, redoEdit, insertChunk, deleteChunk } = useEditLock()
 const { editHistory, isLoadingHistory, historyError, fetchEditHistory } = useEditHistory()
 const { show } = useSnackBar()
 const { getRulebookText } = useLibrary()
@@ -104,6 +114,9 @@ const activeChunk = computed(() => localChunks.value[currentPage.value])
 
 watch(() => props.chunks, (val) => {
   localChunks.value = [...val]
+  if(currentPage.value >= localChunks.value.length) {
+    currentPage.value = Math.max(0, localChunks.value.length - 1)
+  }
 }, { immediate: true, deep: true })
 
 const handlePageChange = (index) => {
@@ -114,11 +127,68 @@ const handlePageChange = (index) => {
   currentPage.value = index
 }
 
+const handleDelete = async () => {
+  if(!props.rulebook?.id) return
+  isSaving.value = true;
+  const chunk = localChunks.value[currentPage.value]
+
+  try{
+    const newVersion = await deleteChunk(
+      props.rulebook.id,
+      chunk.chunkId,
+      currentVersion.value
+    )
+    currentVersion.value = newVersion;
+    show('Section deleted.', 'success')
+  } catch(err)
+  {
+    if(err?.status === 409 && err?.data?.error === 'VersionMismatchException')
+  {
+    await reconcileStaleState()
+  } else
+  {
+    show('Failed to delete section', 'error')
+  }
+  } finally {
+    await stopEditing(props.rulebook.id)
+    isSaving.value = false
+  }
+}
+
+const handleInsert = async () => {
+  if(!props.rulebook?.id) return;
+  isSaving.value = true
+  
+  const targetIndex = currentPage.value + 1;
+
+  try{
+    const newVersion = await insertChunk(
+      props.rulebook.id,
+      "New Section Content...",
+      targetIndex,
+      currentVersion.value
+    )
+
+    currentVersion.value = newVersion;
+    show('New section added.', 'success')
+    currentPage.value = targetIndex;
+  }catch (err) {
+    if(err?.status === 409 && err?.data?.error === 'VersionMismatchException') {
+      await reconcileStaleState();
+    } else {
+      show('Failed to add section.', 'error')
+    }
+  } finally {
+    await stopEditing(props.rulebook.id);
+    isSaving.value = false;
+  }
+}
+
 const handleEdit = async () => {
-  if (!props.rulebook?.id) return
-  await startEditing(props.rulebook.id)
+  if (!props.rulebook?.id) return;
+  await startEditing(props.rulebook.id);
   if (lockError.value) {
-    show(lockError.value, 'error')
+    show(lockError.value, 'error');
   }
 }
 
@@ -177,7 +247,7 @@ const matchResults = computed(() => {
   const q = searchQuery.value.toLowerCase()
   const results = []
 
-   props.chunks.forEach((chunk, chunkIndex) => {
+   localChunks.value.forEach((chunk, chunkIndex) => {
     const content = chunk?.content?.toLowerCase() ?? ''
     let searchFrom = 0
     let occurrenceIndex = 0
@@ -227,13 +297,13 @@ watch(searchQuery, ()=> {
 })
 
 
-const reconcileStaleState = async () => {
+const reconcileStaleState = async (silent = false) => {
     if (!props.rulebook?.id) return;
     try {
         const fresh = await getRulebookText(props.rulebook.id);
         if (fresh?.chunks)  localChunks.value = [...fresh.chunks];
         if (fresh?.version) currentVersion.value = fresh.version;
-        show('Your view was out of date and has been refreshed.', 'info');
+        if(!silent) show('Your view was out of date and has been refreshed.', 'info');
     } catch {
         show('Failed to refresh document state.', 'error');
     }
@@ -244,6 +314,7 @@ const handleUndo = async () => {
     try {
         const newVersion = await undoEdit(props.rulebook.id, '', currentVersion.value);
         currentVersion.value = newVersion;
+        await reconcileStaleState(true);
     } catch(err) {
         if (err?.status === 409) {
             show('Nothing left to undo.', 'info');
@@ -258,6 +329,7 @@ const handleRedo = async () => {
     try {
         const newVersion = await redoEdit(props.rulebook.id, '', currentVersion.value);
         currentVersion.value = newVersion;
+        await reconcileStaleState(true);
     } catch(err) {
         if (err?.status === 409) {
             show('Nothing left to redo.', 'info');

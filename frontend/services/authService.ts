@@ -1,9 +1,19 @@
+import type ForgotPassword from "~/components/features/auth/ForgotPassword.vue";
+
 interface AuthResponse{
   message: string;
   accessToken: string;
 }
 
 interface LogoutResponse{}
+
+interface ForgotPasswordResponse {
+  message: string;
+}
+
+interface ResetPasswordResponse {
+  message: string;
+}
 
 export const AuthService = {
   register(userData: any){
@@ -26,6 +36,22 @@ export const AuthService = {
     const { $api } = useNuxtApp();
     return $api<LogoutResponse>('auth/logout',{
       method: 'DELETE'
+    });
+  },
+
+  forgotPassword(emailAddress: string){
+    const { $api } = useNuxtApp();
+    return $api<ForgotPasswordResponse>('auth/forgotPassword', {
+      method: 'POST',
+      body: { emailAddress }
+    });
+  },
+
+  resetPasswprd(payload: { token: string | string[], password: string }){
+    const { $api } = useNuxtApp();
+    return $api<ResetPasswordResponse>('auth/resetPassword', {
+      method: 'POST',
+      body: payload
     });
   },
 }

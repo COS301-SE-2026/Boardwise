@@ -6,12 +6,14 @@ ENV PYTHONUNBUFFERED=1
 # Set the working directory inside the container
 WORKDIR /app
 
-# Install system-level dependencies
+# Install system-level dependencies, create a directory for local models and download Qwen model
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     tesseract-ocr-eng \
     curl \
     && rm -rf /var/lib/apt/lists/*
+
+ADD "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf" /app/models/qwen2.5-0.5b-instruct-q4_k_m.gguf
 
 # Copy requirements file and install Python dependencies
 COPY requirements.txt .

@@ -5,7 +5,7 @@ from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, Path, status
 
 from app.dependencies import verify_jwt
-from app.models.schemas import JobStatusResponse
+from app.schemas import JobStatusResponse
 from app.services import mongo_service
 
 logger = logging.getLogger(__name__)
