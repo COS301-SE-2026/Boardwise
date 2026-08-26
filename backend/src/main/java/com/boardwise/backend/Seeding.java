@@ -17,21 +17,19 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.boardwise.backend.marketplace.enums.ListingStatus;
-import com.boardwise.backend.marketplace.model.Listing;
-import com.boardwise.backend.marketplace.model.RentalPeriod;
+import com.boardwise.backend.marketplace.models.Listing;
+import com.boardwise.backend.marketplace.models.RentalPeriod;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
-import com.boardwise.backend.user_service.models.Boardgame;
+import com.boardwise.backend.shared.repository.BoardGameRepository;
+import com.boardwise.backend.shared.model.Boardgame;
+import com.boardwise.backend.user_service.enums.EventStatus;
+import com.boardwise.backend.user_service.enums.RSVPStatus;
+import com.boardwise.backend.user_service.enums.Visibility;
 import com.boardwise.backend.user_service.models.Event;
 import com.boardwise.backend.user_service.models.EventAttendee;
-import com.boardwise.backend.user_service.models.EventStatus;
 import com.boardwise.backend.user_service.models.Group;
 import com.boardwise.backend.user_service.models.GroupMembership;
-import com.boardwise.backend.user_service.models.RSVPStatus;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.models.Visibility;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
-import com.boardwise.backend.user_service.repos.EventAttendeeRepository;
-import com.boardwise.backend.user_service.repos.EventsRepository;
 import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repos.GroupRepository;
 import com.boardwise.backend.user_service.repos.UserRepository;
@@ -68,7 +66,7 @@ public class Seeding {
         
     @Bean
     public CommandLineRunner seedDB(ListingRepository listingRepository, BoardGameRepository boardGameRepository, GroupMembershipRepository groupMembershipRepository,
-            GroupRepository groupRepository, UserRepository userRepository, EditEventRepository editEventRepository, EventsRepository eventsRepository, EventAttendeeRepository eaRepository,
+            GroupRepository groupRepository, UserRepository userRepository, EditEventRepository editEventRepository, EventRepository eventsRepository, EventAttendeeRepository eaRepository,
             IngestionJobRepository ingestionJobRepository, RulebookRepository rulebookRepository, RulebookTextRepository rulebookTextRepository, GeoApiContext geoApiContext) {
         return args -> {
             // User Repository
@@ -237,11 +235,8 @@ public class Seeding {
                                 "Kingdom Builder base game. Complete, all tiles and tokens present. Minor box shelf wear.",
                                 "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/KingdomBuilder.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-                                List.of(Genres.STRATEGY.getValue(), Genres.TERRITORY_BUILDING.getValue()), null),
+                                List.of(Genres.STRATEGY.getValue(), Genres.TERRITORY_BUILDING.getValue()), null));
 
-                        new Listing(null, "zoe_tiles", getObjectIdFromUsername("zoe_tiles", userRepository),"merch","sale",650,"Braam",true,"Custom Monopoly hoodie", "fair","Monopoly","unknown",
-                                "2XL Monopoly man hoodie","https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/MonopolyManHoodie.jpg",ListingStatus.AVAILABLE,LocalDateTime.now(),LocalDateTime.now(), List.of(Genres.STRATEGY.getValue(),Genres.DICE.getValue()),null));
-                                
                 listingRepository.saveAll(listings);
                 System.out.println("Seeded " + listings.size() + " listings");
             } else {

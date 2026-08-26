@@ -1,6 +1,6 @@
 package com.boardwise.backend.user_service.dtos;
 
-import com.boardwise.backend.user_service.models.Visibility;
+import com.boardwise.backend.user_service.enums.Visibility;
 
 import jakarta.validation.constraints.Size;
 

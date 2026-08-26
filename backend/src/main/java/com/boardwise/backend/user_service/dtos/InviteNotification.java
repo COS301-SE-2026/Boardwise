@@ -2,5 +2,16 @@ package com.boardwise.backend.user_service.dtos;
 
 public record InviteNotification(
     String type,
-    String message
-) {}
+    EventHostInfo host,
+    EventInviteInfo event
+) implements Notification {
+
+    public InviteNotification(EventHostInfo host, EventInviteInfo event){
+        this("EVENT_INVITE", host, event);
+    }
+
+    @Override
+    public String getType() {
+        return type;
+    }
+}

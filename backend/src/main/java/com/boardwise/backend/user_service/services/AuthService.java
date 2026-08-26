@@ -15,19 +15,16 @@ import com.boardwise.backend.user_service.dtos.RegisterDTO;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repos.UserRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class AuthService {
     
     private final UserRepository userRepo;
     private final JWTService jwt;
     private final AuthenticationManager manager;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
-
-    AuthService(UserRepository userRepo, JWTService jwt, AuthenticationManager manager) {
-        this.userRepo = userRepo;
-        this.jwt = jwt;
-        this.manager = manager;
-    }
 
     // inserts user into database generates JWT
     public AuthResponseDTO register(RegisterDTO dto){

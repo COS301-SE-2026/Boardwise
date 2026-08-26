@@ -11,7 +11,7 @@ import java.util.stream.IntStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.springframework.data.domain.Limit;
-import org.springframework.scheduling.annotation.Scheduled;
+// import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,11 +24,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.boardwise.backend.marketplace.enums.Genres;
-import com.boardwise.backend.user_service.dtos.GameListDTO;
-import com.boardwise.backend.user_service.dtos.OtherGameDTO;
-import com.boardwise.backend.user_service.models.Boardgame;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
-import com.boardwise.backend.user_service.repos.BoardGameSearch;
+import com.boardwise.backend.shared.repository.BoardGameRepository;
+import com.boardwise.backend.shared.dtos.*;
+import com.boardwise.backend.shared.model.*;
+import com.boardwise.backend.shared.repository.BoardGameSearch;
 import com.boardwise.backend.user_service.services.AuthService;
 import com.boardwise.backend.user_service.services.R2StorageService;
 
@@ -45,7 +44,7 @@ public class BoardGameService {
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
 
 
-    @Scheduled(fixedDelay = 6 * 1000)
+    // @Scheduled(fixedDelay = 6 * 1000)
     public void populateDatabase(){
         int nextBggId = gameRepo.findTopByBggIdNotNullOrderByBggIdDesc()
                         .map(game -> game.getBggId() + 1)
