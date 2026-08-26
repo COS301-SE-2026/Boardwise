@@ -217,7 +217,7 @@ public class RetailService {
      
     //number of Games to search for 
     private final int NUMOFGAMES = 5;
-    @Scheduled(fixedDelayString = "${scrape.cache.refresh.interval.ms:3600000}")
+    @Scheduled(fixedDelayString = "${scrape.cache.refresh.interval.ms:3600000}" ,initialDelayString = "${scrape.cache.refresh.interval.ms:3600000}")
     public void ScheduledRecommendedScraper(){
         //SHOULDDO: compute most popular first 
         //get first n games 

@@ -55,6 +55,10 @@ RUN java -Dloader.main=com.microsoft.playwright.CLI \
     -cp app.jar org.springframework.boot.loader.launch.PropertiesLauncher \
     install chromium
 
+RUN java -Dloader.main=com.microsoft.playwright.CLI \
+    -cp app.jar org.springframework.boot.loader.launch.PropertiesLauncher \
+    install firefox webkit
+    
 RUN groupadd -r spring && useradd -r -g spring spring \
     && chown -R spring:spring /app
 
