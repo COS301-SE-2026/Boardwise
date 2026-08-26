@@ -45,10 +45,6 @@ const {
     respondToInvite
 } = useEvents()
 
-onMounted(async() => {
-    await fetchInvites()
-})
-
 const props = defineProps({
     conversation: {
         type: Object,
@@ -84,15 +80,19 @@ const handleSend = (text: any) => {
     })
 }
 
+const respondingId = ref<string | null>(null)
+
 const acceptInvite = async (eventId: string) => {
-try {
+    respondingId.value = eventId
+    try {
         await respondToInvite(eventId, 'accept')
         show('Invite accepted!', 'success')
     } catch {
         show('Failed to accept invite.', 'error')
+    } finally {
+        respondingId.value = null
     }
 }
-
 
 const declineInvite = async (eventId: string) => {
 try {

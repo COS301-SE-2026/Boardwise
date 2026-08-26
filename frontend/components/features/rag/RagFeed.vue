@@ -1,0 +1,35 @@
+<template>
+    <div class="rag-feed">
+        <RagMessage 
+            v-for="message in messages" 
+            :key="message.id" 
+            :message="message" 
+        />
+
+        <div v-if="isLoading" class="rag-message assistant">
+            <v-progress-circular indeterminate size="20" color="primary" />
+        </div>
+
+        <div v-if="!messages.length && !isLoading" class="text-body-2 text-medium-emphasis">
+            Ask a question about this rulebook - answers are grounded in its actual text.
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import RagMessage from './RagMessage.vue'
+import type { RagMessage as RagMessageType } from '~/composables/useRag'
+
+defineProps<{
+    messages: RagMessageType[]
+    isLoading?: boolean
+}>()
+</script>
+
+<style scoped>
+.rag-feed {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: var(--space-4, 16px);
+}
+</style>
