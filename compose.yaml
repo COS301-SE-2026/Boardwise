@@ -24,6 +24,8 @@ services:
     build: ./backend/
     restart: on-failure
     environment:
+      - DEV_FAST_API_BASE=${DEV_FAST_API_BASE}
+      - INTERNAL_SECRET={INTERNAL_SECRET}
       - DB_URL=${DB_URL}
       - PROD_DB_URL=${PROD_DB_URL}
       - JWT_SECRET=${JWT_SECRET}
