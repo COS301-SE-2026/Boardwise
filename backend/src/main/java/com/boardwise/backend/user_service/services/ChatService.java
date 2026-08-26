@@ -4,6 +4,9 @@ import java.security.Principal;
 import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -129,10 +132,16 @@ public class ChatService {
         List<?> messages;
         Query query;
         Criteria criteria;
+        int pageSize = 50;
+        Pageable pageable = PageRequest.of(
+            page == null ? 0 : page,
+            pageSize,
+            Sort.by(Sort.Direction.ASC, "sentAt")
+        );
 
         if(type == MessageType.DIRECT){
             criteria = Criteria.where("recipientUserId").is(userId).and("sentAt").gt(lastOnline);
-            query = Query.query(criteria).with(Sort.by(Sort.Direction.ASC, "sentAt"));
+            query = Query.query(criteria).with(pageable);
             messages = db.find(query, Message.class).stream()
                             .map((msg) -> new DirectMessageDTO(
                                 msg.getId(),
@@ -146,7 +155,7 @@ public class ChatService {
                 throw new IllegalArgumentException("'cId' field is required for requests of type: COMMUNITY");
 
             criteria = Criteria.where("communityId").is(cId).and("sentAt").gt(lastOnline);
-            query = Query.query(criteria).with(Sort.by(Sort.Direction.ASC, "sentAt"));
+            query = Query.query(criteria).with(pageable);
             messages = db.find(query, Message.class).stream()
                             .map((msg) -> new CommunityMessageDTO(
                                 msg.getId(),
