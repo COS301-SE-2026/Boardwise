@@ -1,6 +1,6 @@
 <template>
     <BaseModal 
-        :modal-value="modelValue"
+        :model-value="modelValue"
         :max-width="420"
         @update:model-value="$emit('update:modelValue', $event)"
     >
