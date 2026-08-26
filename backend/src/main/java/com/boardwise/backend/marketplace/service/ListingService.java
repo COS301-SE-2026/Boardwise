@@ -1,6 +1,5 @@
 package com.boardwise.backend.marketplace.service;
 
-import com.boardwise.backend.marketplace.model.*;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -21,13 +20,15 @@ import com.boardwise.backend.marketplace.dtos.listing.ListingRequest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
 import com.boardwise.backend.marketplace.enums.*;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
+import com.boardwise.backend.marketplace.models.*;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
+import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.user_service.models.Boardgame;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.user_service.repos.UserRepository;
 
 import org.bson.types.ObjectId;
+import org.owasp.encoder.Encode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -45,7 +46,7 @@ public class ListingService {
     @Value("${r2.bucket-listings}")
     private String listingsBucket;
 
-    @Value("${r2.listings.prod.endpoint}")
+    @Value("${r2.listings.endpoint}")
     private String publicUrl;
 
     private final ListingRepository listingRepository;
@@ -65,6 +66,26 @@ public class ListingService {
         this.mongoTemplate = mongoTemplate;
         this.userRepository = userRepository;
         this.boardGameRepository = boardGameRepository;
+    }
+
+        public static String sanitize(String input) {
+        if (input == null) return null;
+        
+        // trim whitespace
+        String sanitized = input.trim();
+        
+        // strip HTML tags
+        sanitized = sanitized.replaceAll("<[^>]*>", "");
+        
+        // encode any remaining special characters
+        sanitized = Encode.forHtml(sanitized);
+        
+        // block NoSQL injection operators
+        if (sanitized.contains("$") || sanitized.contains("{")) {
+            throw new IllegalArgumentException("Invalid characters in input");
+        }
+        
+        return sanitized;
     }
 
     private static String truncateAfterWords(String text, int wordLimit) {
@@ -133,18 +154,18 @@ public class ListingService {
         
         ObjectId userId = jwtService.extractUserId(token); // fails at filter level
 
-        String itemType = req.itemType().trim();
+        String itemType = sanitize(req.itemType().trim());
 
         // Sanity check
         ItemType.fromValue(itemType);
 
-        String listingType = req.listingType().trim();
+        String listingType =sanitize( req.listingType().trim());
 
         // Sanity check
         ListingType.fromValue(listingType);
 
         // Sanity check
-        String condition = req.condition();
+        String condition = sanitize(req.condition());
         Condition.fromValue(condition);
 
         double price = req.price();
@@ -155,7 +176,7 @@ public class ListingService {
         String description;
         if(!req.description().isBlank()){
 
-           description = truncateAfterWords(req.description().trim(), 500);
+           description = truncateAfterWords(sanitize(req.description()), 500);
         }
         else{
             throw new IllegalArgumentException();
@@ -163,7 +184,7 @@ public class ListingService {
 
         String imageUrl;
 
-        String listingTitle = req.listingTitle().trim();
+        String listingTitle = sanitize(req.listingTitle().trim());
 
         List<String> genres = req.genres();
 
@@ -171,7 +192,7 @@ public class ListingService {
         for (int i = 0; i < genres.size(); i++)
             Genres.fromValue(genres.get(i)).getValue();
 
-        String gameTitle = req.gameTitle();
+        String gameTitle =sanitize(req.gameTitle());
 
         //check if title is avaliable if not upload to db
 
@@ -180,7 +201,7 @@ public class ListingService {
         }
 
         if(boardGameRepository.findByTitle(gameTitle).isEmpty()){
-            Boardgame toBeInserted = new Boardgame(null, null, req.gameTitle(),null,null,1,2,3,null,null);
+            Boardgame toBeInserted = new Boardgame(null, null, sanitize(req.gameTitle()),null,null,1,2,3,null,null);
             boardGameRepository.insert(toBeInserted);
         }
 
@@ -224,9 +245,9 @@ public class ListingService {
 
         LocalDateTime now = LocalDateTime.now();
         ListingStatus status = ListingStatus.AVAILABLE;
-        String location = req.location();
+        String location = sanitize(req.location());
 
-        String version = req.version();
+        String version = sanitize(req.version());
 
         String username = userRepository.findById(jwtService.extractUserId(token).toString())
         .orElseThrow(() -> new IllegalArgumentException("User not found"))
@@ -241,7 +262,7 @@ public class ListingService {
         Listing saved = listingRepository.save(toSave);
 
         if (img != null && !img.isEmpty()) {
-            String imgAsString = img.getOriginalFilename().toLowerCase();
+            String imgAsString = sanitize(img.getOriginalFilename().toLowerCase());
             
             if (imgAsString == null) throw new IllegalArgumentException("Invalid image file");
 
@@ -255,7 +276,6 @@ public class ListingService {
                 saved.setImageUrl(imageUrl);
             } catch (IOException e) {
                 saved.setImageUrl(defaultImage);
-                e.printStackTrace();
             }
         }
         //failsafe
@@ -358,14 +378,11 @@ public class ListingService {
                 .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + listingId));
 
         if (!userId.equals(existing.getUserId())) {
-            
-            System.out.println("token userId: " + userId);
-            System.out.println("listing userId: " + existing.getUserId());
             throw new ForbiddenException("Cannot update " + listingId);
         }
 
         // sanity check
-        if (req != null && !req.itemType().equals(existing.getItemType())) {
+        if (!req.itemType().equals(existing.getItemType())) {
             ItemType.fromValue(req.itemType());
             existing.setItemType(req.itemType());
         }
@@ -380,7 +397,7 @@ public class ListingService {
         // sanity check
         if (!req.listingType().equals(existing.getListingType())) {
             ListingType.fromValue(req.listingType());
-            existing.setListingType(req.listingType());
+            existing.setListingType(sanitize(req.listingType()));
         }
 
         double priceToAdd = req.price();
@@ -392,24 +409,24 @@ public class ListingService {
         }
 
         if (!existing.getLocation().equals(req.location())) {
-            existing.setLocation(req.location());
+            existing.setLocation(sanitize(req.location()));
         }
 
         if(!existing.getListingTitle().equals(req.listingTitle())){
-            existing.setListingTitle(req.listingTitle());
+            existing.setListingTitle(sanitize(req.listingTitle()));
         }
 
-        if (!existing.getGameTitle().equals(req.gameTitle())) {
+        if (!existing.getGameTitle().equals(sanitize(req.gameTitle()))) {
 
             if(boardGameRepository.findByTitle(req.gameTitle()).isEmpty()){
                 Boardgame toBeInserted = new Boardgame(null, null, req.gameTitle(),null,null,1,2,3,null,null);
                 boardGameRepository.insert(toBeInserted);
             }
-            existing.setGameTitle(req.gameTitle());
+            existing.setGameTitle(sanitize(req.gameTitle()));
         }
 
         if (!req.description().isBlank() && !req.description().equals(existing.getDescription()))
-            existing.setDescription(truncateAfterWords(req.description(), 500));
+            existing.setDescription(sanitize(truncateAfterWords(req.description(), 500)));
 
         // sanity check
         if (!req.genres().equals(existing.getGenres())) {

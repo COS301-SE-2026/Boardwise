@@ -9,11 +9,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Service
+@RequiredArgsConstructor
 public class R2StorageService {
 
     private final S3Client s3Client;
@@ -21,12 +23,8 @@ public class R2StorageService {
     @Value("${r2.bucket-profiles}")
     private String bucketName;
     
-    @Value("${r2.prod-url}") // <-- for when we have domain [CHANGE ME DURING PROD.]
+    @Value("${r2.dev-url}") // <-- for when we have domain [CHANGE ME DURING PROD.]
     private String publicUrl;
-
-    public R2StorageService(S3Client s3Client) {
-        this.s3Client = s3Client;
-    }
 
     public String uploadFile(MultipartFile file, String folder) throws IOException {
         String encodedName = file.getOriginalFilename().replace(" ", "-");

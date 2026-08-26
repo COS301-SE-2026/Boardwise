@@ -9,7 +9,17 @@
                 buttonText="Sign In"
                 :fields="fields"
                 @submit="handleSignIn"
-            />
+            >
+            
+                <template #after-fields>
+                    <p class="text-end text-body-2 forgot-link">
+                        <NuxtLink to="/auth/forgotpassword" class="text-primary">
+                            Forgot Password?
+                        </NuxtLink>
+                    </p>
+                </template>
+
+            </AuthForm>
 
             <v-alert 
                 v-if="error"
@@ -38,8 +48,8 @@ const router = useRouter()
 const { login, error, loading} = useAuth()
 
 const fields = [
-    { key: 'username', placeholder: 'Username', type: 'text' },
-    { key: 'password', placeholder: 'Password', type: 'password' }
+    { key: 'username', label: 'Username', type: 'text', rules: [required()]},
+    { key: 'password', label: 'Password', type: 'password', rules: [required()] }
 ]
 
 const handleSignIn = async (data) => {
@@ -86,5 +96,9 @@ const handleSignIn = async (data) => {
 
 .auth-link a:hover{
     text-decoration: underline;
+}
+
+.forgot-link {
+    margin-top: -8px;
 }
 </style>

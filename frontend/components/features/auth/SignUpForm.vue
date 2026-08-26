@@ -38,12 +38,12 @@ const { register, error } = useAuth()
 const localError = ref('')
 
 const fields = [
-    { key: 'firstName', placeholder: 'First Name' },
-    { key: 'lastName', placeholder: 'Last Name' },
-    { key: 'username', placeholder: 'Username' },
-    { key: 'emailAddress', placeholder: 'Email', type: 'email'    },
-    { key: 'password', placeholder: 'Password', type: 'password' },
-    { key: 'confirmPassword', placeholder: 'Confirm Password', type: 'password' }
+    { key: 'firstName', label: 'First Name' , rules: [required()]},
+    { key: 'lastName', label: 'Last Name' , rules: [required()]},
+    { key: 'username', label: 'Username' , rules: [required(), minLength(3)]},
+    { key: 'emailAddress', label: 'Email', type: 'email' , rules: [required(), isEmail()]},
+    { key: 'password', label: 'Password', type: 'password' , rules: [required(), minLength(8)]},
+    { key: 'confirmPassword', label: 'Confirm Password', type: 'password' , rules: [required()]}
 ]
 const handleSignUp = async (data) => {
     console.log('SignUp:', data)

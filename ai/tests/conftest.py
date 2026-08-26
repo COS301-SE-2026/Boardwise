@@ -1,16 +1,32 @@
+from unittest.mock import MagicMock
+
 import pytest
-from fastapi.testclient import TestClient
-from app.main import app
 from app.dependencies import verify_jwt
+from app.main import app
+
+# ========== ML Mocks ==========
+
 
 @pytest.fixture
-def client():
-    """Provides a TestClient instance for router tests."""
-    return TestClient(app)
+def mock_embedder():
+    """Provides a mocked SentenceTransformer to prevent RAM OOM crashes in Fargate."""
+    embedder_mock = MagicMock()
+    embedder_mock.encode.return_value = [0.5] * 256
+    return embedder_mock
+
+
+@pytest.fixture
+def mock_reranker():
+    """Provides a mocked CrossEncoder to prevent RAM OOM crashes in Fargate."""
+    reranker_mock = MagicMock()
+    reranker_mock.predict.return_value = [0.95, 0.80, 0.20]
+    return reranker_mock
+
 
 @pytest.fixture
 def mock_auth():
     """Overrides the JWT dependency to simulate an authenticated user."""
+
     def override_verify_jwt():
         return {"sub": "609c12345678901234567890", "username": "TestUser"}
 
@@ -19,22 +35,27 @@ def mock_auth():
 
     app.dependency_overrides.clear()
 
+
 # ========== Sanitiser fixtures ==========
+
 
 @pytest.fixture
 def safe_pdf_bytes() -> bytes:
     """A standard, harmless PDF byte structure."""
     return b"%PDF-1.4\n1 0 obj\n<< /Type /Pages /Count 1 >>\nendobj\n%EOF"
 
+
 @pytest.fixture
 def unsafe_pdf_js() -> bytes:
     """PDF containing the dangerous /JavaScript tag."""
     return b"%PDF-1.4\n<< /JavaScript (alert('Exploit')) >>\n%EOF"
 
+
 @pytest.fixture
 def unsafe_pdf_launch() -> bytes:
     """PDF containing the dangerous /Launch tag."""
     return b"%PDF-1.4\n<< /Launch /Action >>\n%EOF"
+
 
 @pytest.fixture
 def safe_pdf_with_exceptions() -> bytes:
@@ -44,7 +65,21 @@ def safe_pdf_with_exceptions() -> bytes:
     """
     return b"%PDF-1.4\n<< /Type /Catalog ... /JavaScript >>\n%EOF"
 
+@pytest.fixture
+def minimal_pdf():
+    return (
+        b"%PDF-1.4\n"
+        b"1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
+        b"2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n"
+        b"2 0 obj\n<< /Type /Pages /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n"
+        b"xref\n0 3\n0000000000 65535 f \n0000000010 00000 n \n0000000060 00000 n \n0000000111 00000 n \n"
+        b"trailer\n<< /Size 4 /Root 1 0 R >>\n"
+        b"startxref\n110\n%%EOF\n"
+    )
+
+
 # ========== Extractor and Chunker fixtures ==========
+
 
 @pytest.fixture
 def standard_extracted_text() -> str:
@@ -55,21 +90,57 @@ def standard_extracted_text() -> str:
         "Phase 2: Play a card from your hand or pass to the next player."
     )
 
+
 @pytest.fixture
 def messy_extracted_text() -> str:
     """Text designed to test whitespace stripping and empty chunk dropping."""
-    return (
-        "    \n\n"
-        "    Setup: Start the game.    \n\n\n\n\n"
-        "Next turn tules."
-    )
+    return "    \n\n    Setup: Start the game.    \n\n\n\n\nNext turn tules."
+
 
 @pytest.fixture
 def empty_extracted_text() -> str:
     """String containing no valid semantic data."""
     return " \n\n  \n\n \n"
 
+
 @pytest.fixture
 def empty_pdf_bytes() -> bytes:
     """Empty PDF"""
     return b"%PDF-1.4\n<< >>\n%EOF"
+
+
+# ========== Vectoriser fixtures ==========
+
+
+@pytest.fixture
+def valid_chunk_list() -> list[dict]:
+    """A List of chunks"""
+    return [
+        {
+            "chunkId": "mock_id_1",
+            "index": 0,
+            "content": "Setup: Each player takes a player board.",
+            "charCount": 40,
+        },
+        {
+            "chunkId": "mock_id_1",
+            "index": 1,
+            "content": "Phase 1: Draw two cards.",
+            "charCount": 24,
+        },
+    ]
+
+
+@pytest.fixture
+def mock_nomic_embedder():
+    """
+    Mocks the SentenceTransformer specifically for the vectoriser tests.
+    Returns a 768-dimensional array for each input chunk to allow the numpy
+    [:,:256] truncation logic to be tested.
+    """
+    mock_model = MagicMock()
+
+    dummy_embeddings = [[0.1] * 768, [0.5] * 768]  # 2 x 768 array for 2 chunks
+
+    mock_model.encode.return_value = dummy_embeddings
+    return mock_model

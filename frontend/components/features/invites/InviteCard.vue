@@ -1,9 +1,10 @@
 <template>
-    <BaseCard class="pa-4">
+    <BaseCard data-test="base-card" class="pa-4">
 
         <div class="d-flex ga-4">
 
             <BaseImage
+                data-test="base-image"
                 :src="invite.event.image || '/images/default-listing.png'"
                 :alt="invite.event.name"
                 height="140px"
@@ -37,6 +38,7 @@
                 <div class="d-flex ga-2">
 
                     <v-btn
+                        data-test="accept-button"
                         color="primary"
                         @click="$emit('accept', invite.event.id)"
                     >
@@ -44,6 +46,7 @@
                     </v-btn>
 
                     <v-btn
+                        data-test="decline-button"
                         variant="outlined"
                         color="error"
                         @click="$emit('decline', invite.event.id)"

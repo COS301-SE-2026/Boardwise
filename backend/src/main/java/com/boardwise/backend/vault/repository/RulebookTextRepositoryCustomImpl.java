@@ -1,21 +1,15 @@
 package com.boardwise.backend.vault.repository;
 
 
-import java.util.List;
-
-import org.bson.Document;
+import java.time.Instant;
 import org.bson.types.ObjectId;
-import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.AggregationUpdate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
 import com.boardwise.backend.vault.model.RulebookText;
-import com.mongodb.client.result.UpdateResult;
-
 import lombok.RequiredArgsConstructor;
 
 @Repository
@@ -25,90 +19,78 @@ public class RulebookTextRepositoryCustomImpl implements RulebookTextRepositoryC
 
     @Override
     public void atomicUpdateChunk(ObjectId rulebookId, ObjectId chunkId, String newContent){
-        Query query = new Query(Criteria.where("rulebookId").is(rulebookId));
+        Criteria updateCriteria = new Criteria().andOperator(
+            Criteria.where("rulebookId").is(rulebookId),
+            Criteria.where("chunkId").is(chunkId)
+        );
+
+        Query query = new Query(updateCriteria);
 
         Update update = new Update()
-            .set("chunks.$[elem].content", newContent)
-            .filterArray(Criteria.where("elem.chunkId").is(chunkId));
+            .set("content", newContent)
+            .set("charCount", newContent.length())
+            .set("updatedAt", Instant.now());
 
         mongoTemplate.updateFirst(query, update, RulebookText.class);
     }
 
     @Override
-    public RulebookText atomicInsertChunk(ObjectId rulebookId, ObjectId chunkId, String content, int insertIndex){
-        Query query = new Query(Criteria.where("rulebookId").is(rulebookId));
+    public RulebookText atomicInsertChunk(ObjectId rulebookId, String content, int insertIndex){
+        // Fetch the total number of chunks so that the insertIndex is bounded within
+        long totalChunks = mongoTemplate.count(
+            new Query(Criteria.where("rulebookId").is(rulebookId)),
+                RulebookText.class
+        );
 
-        Document newChunk = new Document()
-                .append("chunkId", (chunkId != null) ? chunkId : new ObjectId())
-                .append("content", content);
+        int actualIndex = (insertIndex >= 0 && insertIndex <= totalChunks) ? insertIndex : (int)totalChunks;
+        
+        Criteria shiftCriteria = new Criteria().andOperator(
+            Criteria.where("rulebookId").is(rulebookId),
+            Criteria.where("index").gte(actualIndex)
+        );
+        Query query = new Query(shiftCriteria);
+        Update update = new Update().inc("index", 1);
 
-        Document arraySize = new Document("$size", new Document("$ifNull", List.of("$chunks", List.of())));
+        mongoTemplate.updateMulti(query, update, RulebookText.class);
 
-        Document safeIndex = new Document("$cond", List.of(
-            new Document("$or", List.of(
-                new Document("$lt", List.of(insertIndex, 0)),
-                new Document("$gt", List.of(insertIndex, arraySize))
-            )),
-            arraySize, // Fallback: Append to end
-            insertIndex // Default: Insert into requested index
-        ));
+        RulebookText newChunk = RulebookText.builder()
+            .rulebookId(rulebookId)
+            .chunkId(new ObjectId())
+            .index(actualIndex)
+            .content(content)
+            .embedding(null) // AI pipeline will fill this asynchronously later
+            .charCount(content.length())
+            .createdAt(Instant.now())
+            .updatedAt(Instant.now())
+            .build();
+        
+        mongoTemplate.insert(newChunk);
 
-        AggregationUpdate updatePipeline = AggregationUpdate.update()
-            .set("chunks").toValue( // Slice, insert and append
-                new Document("$let", new Document()
-                    .append("vars", new Document("safeIdx", safeIndex))
-                    .append("in", new Document("$concatArrays", List.of(
-                        new Document("$slice", List.of(
-                            new Document("$ifNull", List.of("$chunks", List.of())),
-                            0,
-                            "$$safeIdx"
-                        )),
-                        List.of(newChunk),
-                        new Document("$slice", List.of(
-                            new Document("$ifNull", List.of("$chunks", List.of())),
-                            "$$safeIdx",
-                            arraySize
-                        ))
-                    )))
-                )
-            )
-            .set("chunks").toValue(
-                new Document("$map", new Document()
-                    .append("input", new Document("$range", List.of(0, new Document("$size", "$chunks"))))
-                    .append("as", "idx")
-                    .append("in", new Document("$mergeObjects", List.of(
-                        new Document("$arrayElemAt", List.of("$chunks", "$$idx")),
-                        new Document("index", "$$idx")
-                    )))
-                )
-            );
-
-        FindAndModifyOptions options = FindAndModifyOptions.options().returnNew(true);
-
-        return mongoTemplate.findAndModify(query, updatePipeline, options,RulebookText.class);
+        return newChunk;
     }
 
     @Override
     public boolean atomicDeleteChunk(ObjectId rulebookId, ObjectId chunkId){
-        Query query = new Query(Criteria.where("rulebookId").is(rulebookId));
+        Criteria deleteCriteria = new Criteria().andOperator(
+            Criteria.where("rulebookId").is(rulebookId),
+            Criteria.where("chunkId").is(chunkId)
+        );
+        Query query = new Query(deleteCriteria);
 
-        AggregationUpdate updatePipeline = AggregationUpdate.update()
-            .set("chunks").toValue(
-                new Document("$filter", new Document("input", new Document("$ifNull", List.of("$chunks", List.of())))
-                    .append("as", "chunk")
-                    .append("cond", new Document("$ne", List.of("$$chunk.chunkId", chunkId)))
-                )
-            )
-            .set("chunks").toValue(
-                new Document("$map", new Document()
-                    .append("input", new Document("$range", List.of(0, new Document("$size", "$chunks"))))
-                    .append("as", "idx")
-                    .append("in", new Document("$mergeObjects", List.of(
-                        new Document("$arrayElemAt", List.of("$chunks", "$$idx")),
-                        new Document("index", "$$idx"))))));
+        RulebookText removedChunk = mongoTemplate.findAndRemove(query, RulebookText.class);
 
-        UpdateResult result = mongoTemplate.updateFirst(query, updatePipeline, RulebookText.class);
+        if(removedChunk == null){
+            return false;
+        }
 
-        return result.getModifiedCount() > 0;
+        Criteria shiftCriteria = new Criteria().andOperator(
+            Criteria.where("rulebookId").is(rulebookId),
+            Criteria.where("index").gt(removedChunk.getIndex()));
+        Query updateQuery = new Query(shiftCriteria);
+        Update update = new Update().inc("index", -1);
+
+        mongoTemplate.updateMulti(updateQuery, update, RulebookText.class);
+
+        return true;
     }
 }

@@ -13,7 +13,7 @@
         @click="drawer = !drawer"
       />
 
-      <NuxtLink to="/" class="logo ">
+      <NuxtLink data-test="nuxt-link" to="/" class="logo ">
           Boardwise
       </NuxtLink>
 
@@ -25,6 +25,9 @@
         placeholder="Search games, users, rules..."
         prepend-inner-icon="mdi-magnify"
         class="search"
+        v-model="searchQuery"
+        hide-details
+        @keyup.enter="submitSearch(searchQuery)"
       />
 
       <v-btn 
@@ -42,11 +45,11 @@
     <div v-if="lgAndUp" class="right">
         <NuxtLink to="/library" class="nav-link">Library</NuxtLink> 
         <NuxtLink to="/marketplace" class="nav-link">Marketplace</NuxtLink>
-        <!-- <NuxtLink to="/community" class="nav-link">Community</NuxtLink> -->
+        <NuxtLink to="/community" class="nav-link">Community</NuxtLink>
         <NuxtLink to="/events" class="nav-link">Events</NuxtLink>
         <NuxtLink to="/profile" class="nav-link">Profile</NuxtLink>
         <!-- <NuxtLink to="/chats" class="nav-link">Chat</NuxtLink> -->
-        <LogOutButton />
+        <!-- <LogOutButton /> -->
     </div>
 
     <!-- Mobile -->
@@ -75,6 +78,8 @@
             rounded="pill"
             hide-details
             autofocus
+            v-model="mobileSearchQuery"
+            @keyup.enter="submitSearch(mobileSearchQuery)"
           />
         </v-card>
       </v-menu>
@@ -99,17 +104,17 @@
   <v-list nav density="compact">
     <v-list-item prepend-icon="mdi-bookshelf" title="Library" to="/library" @click="drawer = false" />
     <v-list-item prepend-icon="mdi-store" title="Marketplace" to="/marketplace" @click="drawer = false" />
-    <!-- <v-list-item prepend-icon="mdi-account-group" title="Community" to="/community" @click="drawer = false" /> -->
+    <v-list-item prepend-icon="mdi-account-group" title="Community" to="/community" @click="drawer = false" />
     <v-list-item prepend-icon="mdi-calendar" title="Events" to="/events" @click="drawer = false" />
     <v-list-item prepend-icon="mdi-account" title="Profile" to="/profile" @click="drawer = false" />
     <!-- <v-list-item prepend-icon="mdi-message" title="Chat" to="/chats" @click="drawer = false" /> -->
   </v-list>
 
-    <template #append>
+    <!-- <template #append>
       <div class="pa-4">
         <LogOutButton block />
       </div>
-    </template>
+    </template> -->
 </v-navigation-drawer>
 
 </template>
@@ -117,12 +122,24 @@
 <script setup>
 import { ref } from 'vue'
 import { useDisplay } from 'vuetify'
+import { useRouter } from 'vue-router'
 
-import LogOutButton from '~/components/features/auth/LogOutButton.vue'
+// import LogOutButton from '~/components/features/auth/LogOutButton.vue'
 
 defineEmits(['ask-ai'])
 
 const drawer = ref(false)
+
+const router = useRouter()
+const searchQuery = ref('')
+const mobileSearchQuery = ref('')
+
+const submitSearch = (query) => {
+  const q = query.trim()
+  if(!q) return
+  router.push({ path: '/search', query:{ q } })
+}
+
 const { lgAndUp } = useDisplay()
 </script>
 
