@@ -221,7 +221,6 @@ async def query_rulebook(
                 chunk_id=chunk.get("chunkId", "unknown"),
                 index=chunk.get("index", 0),
                 content=chunk.get("content", ""),
-                relevance_score=chunk.get("relevanceScore", 0.0),
             )
             for chunk in retrieved_chunks
         ]

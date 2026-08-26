@@ -39,7 +39,6 @@ class Citation(BaseAPIModel):
     chunk_id: str
     index: int
     content: str
-    relevance_score: float
 
 
 class QueryResponse(BaseAPIModel):
