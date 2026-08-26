@@ -1,6 +1,7 @@
 <template>
   <v-avatar :size="sizeMap[size]">
-    <v-img :src="src"></v-img>
+    <v-img v-if="src" :src="src" :alt="alt ?? name" />
+    <span v-else class="avatar-intials">{{  initials }}</span>
   </v-avatar>
 </template>
 
@@ -26,3 +27,10 @@ const initials = computed(() => {
   return props.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
 })
 </script>
+
+<style scoped>
+.avatar-intials {
+  font-weight: var(--fw-bold);
+  color: var(--color-text-muted);
+}
+</style>
