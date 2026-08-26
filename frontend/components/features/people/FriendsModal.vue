@@ -69,15 +69,6 @@ const emit = defineEmits<{
     (e: 'remove', username: string): void
 }>()
 
-const label = computed(() => {
-    switch(props.status) {
-        case 'friends': return 'Friends'
-        case 'pendingSent' : return 'Request Sent'
-        case 'pendingReceived': return 'Respond'
-        default: return 'Add Friend'
-    }
-})
-
 const tabs = ['Friends', 'Mutuals']
 const activeTab = ref<'Friends' | 'Mutuals'>('Friends')
 const query = ref('')
