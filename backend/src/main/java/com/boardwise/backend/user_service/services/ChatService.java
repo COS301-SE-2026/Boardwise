@@ -132,7 +132,7 @@ public class ChatService {
         List<?> messages;
         Query query;
         Criteria criteria;
-        int pageSize = 50;
+        int pageSize = 75;
         Pageable pageable = PageRequest.of(
             page == null ? 0 : page,
             pageSize,
