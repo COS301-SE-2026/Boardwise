@@ -29,7 +29,7 @@
 
         <div v-else class="d-flex flex-column ga-2">
             <div v-for="person in visibleList" :key="person.id" class="d-flex align-center ga-3">
-                <BaseAvatar :src="person.profilePicture" :name="person.username" size="sm" />
+                <BaseAvatar :src="person.profilePicture ?? undefined" :name="person.username" size="sm" />
                 <span class="flex-grow-1">{{ person.username }}</span>
                 <FriendActionButton
                 :status="person.isMutual ? 'friends' : 'none'"
