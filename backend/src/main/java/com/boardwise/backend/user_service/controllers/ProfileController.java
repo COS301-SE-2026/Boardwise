@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import com.boardwise.backend.user_service.dtos.FriendRequestResponseDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestsDTO;
 import com.boardwise.backend.user_service.dtos.FriendsListDTO;
+import com.boardwise.backend.user_service.dtos.NotificationsDTO;
 import com.boardwise.backend.user_service.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
 import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
@@ -318,6 +319,16 @@ public class ProfileController {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
     }
+
+    @GetMapping("/notifications")
+    public ResponseEntity<?> getMissedNotifications(
+        HttpServletRequest req
+    ) {
+        String token = extractToken(req);
+        NotificationsDTO res = service.getMissedNotifications(token);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+    
 
     public static String extractToken(HttpServletRequest req){
         String header = req.getHeader("Authorization");
