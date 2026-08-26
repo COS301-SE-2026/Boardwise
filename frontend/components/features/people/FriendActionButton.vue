@@ -1,9 +1,17 @@
 <template>
-
+    <BaseButton
+        :variant="variantMap[status]"
+        size="small"
+        :disabled="status === 'pendingSent'"
+    @click="handleClick"
+    >
+    {{ label }}
+  </BaseButton>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
 import { type FriendStatus } from '~/services/friendService'
 
 const props = defineProps<{
@@ -24,7 +32,12 @@ const label = computed(() => {
     }
 })
 
-const variant = computed(() => props.status === 'none' ? 'primary': 'secondary')
+const variantMap: Record<FriendStatus, string> = {
+    none: 'primary',
+    friends: 'secondary',
+    pendingSent: 'ghost',
+    pendingReceived: 'accent'
+} 
 
 const handleClick = () => {
     if(props.status === 'friends') emit('remove')
