@@ -6,7 +6,7 @@ public record DirectMessageNotification(
     NotificationType type,
     String senderId,
     String message
-) implements NotificationDTO{
+) implements ChatNotification{
 
     public DirectMessageNotification(String senderId, String message){
         this(NotificationType.DIRECT_MESSAGE, senderId, message);
