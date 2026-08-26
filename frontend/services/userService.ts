@@ -75,7 +75,7 @@ interface ProfilePictureResponse{
     profilePictureUrl: string;
 }
 
-interface ProfileSearchResponse {
+export interface ProfileSearchResponse {
     id: string;
     username: string;
     fullName: string;

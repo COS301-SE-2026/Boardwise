@@ -1,0 +1,64 @@
+import { ref } from 'vue'
+
+export interface RetailResult {
+    retailerName: string
+    retailTitle: string
+    price?: number
+    imageUrl?: string
+    url?: string
+}
+
+export const useRetail = () => {
+    const retailResults = ref<RetailResult[]>([])
+    const retailLoading = ref(false)
+    const retailError = ref<string | null>(null)
+
+    const fetchRetail = async (query: string) => {
+        if(!query?.trim()) {
+            retailResults.value = []
+            return
+        }
+
+        retailLoading.value = true
+        retailError.value = null
+
+        try {
+            const config = useRuntimeConfig()
+            
+            const data = await $fetch<RetailResult[]>(`${config.public.apiBase}/marketplace/retail`, 
+                { 
+                    query: {
+                        query
+                    }
+                }
+            )
+
+            retailResults.value = data ?? []
+        }
+        catch (error: any) {
+            console.error('Failed to fetch retail results', error)
+
+            retailError.value = 'Failed to load retail results.'
+            retailResults.value = []
+        } 
+        finally {
+            retailLoading.value = false
+        }
+    }
+
+    const clearRetail = () => {
+        retailResults.value = []
+        retailError.value = null
+    }
+
+    return {
+        retailResults,
+        retailLoading,
+        retailError,
+        fetchRetail,
+        clearRetail
+    }
+}
+
+
+

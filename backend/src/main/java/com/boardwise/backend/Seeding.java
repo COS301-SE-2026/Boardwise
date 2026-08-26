@@ -48,7 +48,7 @@ import com.boardwise.backend.marketplace.enums.Genres;
 @Component
 @Profile("!test")
 public class Seeding {
-
+    // this is just for Git to see changes
     private ObjectId getObjectIdFromUsername(String username, UserRepository userRepository) {
             return new ObjectId(userRepository.findByUsername(username).get().getId());
     }
@@ -349,7 +349,7 @@ public class Seeding {
             } else {
                 System.out.println("Group memberships already seeded, skipping...");
             }
-            
+
             if(eventsRepository.count() == 0){
                 List<String> locations = List.of(
                     "Hatfield, Pretoria, South Africa",

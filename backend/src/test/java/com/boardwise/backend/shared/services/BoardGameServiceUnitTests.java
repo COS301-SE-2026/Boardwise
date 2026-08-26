@@ -120,7 +120,7 @@ public class BoardGameServiceUnitTests {
         assertEquals(argument.get(0).getTitle(), "1830: Railways & Robber Barons");
         assertTrue(argument.get(0).getDescription().contains("Extremely vicious"));
         assertEquals(argument.get(0).getImageURL(), "https://cf.geekdo-images.com/3EmD1SEI5fVpR4rbdkU0AA__original/img/pic882119.jpg");
-        assertEquals(argument.get(0).getGenres(), List.of("Economic"));
+        assertEquals(argument.get(0).getGenres(), List.of("economic"));
         assertTrue(argument.get(0).getMinPlayers() == 2);
         assertTrue(argument.get(0).getMaxPlayers() == 7);
         assertEquals(argument.get(0).getDuration(), 360);
@@ -205,7 +205,7 @@ public class BoardGameServiceUnitTests {
         assertEquals(argument.get(0).getTitle(), "1830: Railways & Robber Barons");
         assertTrue(argument.get(0).getDescription().contains("Extremely vicious"));
         assertEquals(argument.get(0).getImageURL(), "https://cf.geekdo-images.com/3EmD1SEI5fVpR4rbdkU0AA__original/img/pic882119.jpg");
-        assertEquals(argument.get(0).getGenres(), List.of("Economic"));
+        assertEquals(argument.get(0).getGenres(), List.of("economic"));
         assertTrue(argument.get(0).getMinPlayers() == 2);
         assertTrue(argument.get(0).getMaxPlayers() == 7);
         assertEquals(argument.get(0).getDuration(), 360);

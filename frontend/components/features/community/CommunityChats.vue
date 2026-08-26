@@ -11,8 +11,11 @@
         Join this community to participate in the discussion
       </p>
 
-    <BaseButton @click="$emit('join')">
-      Join community
+    <BaseButton 
+      :disabled="loading"
+      @click="$emit('join')"
+    >
+      {{ loading ? 'Joining...' : 'Join community' }}
     </BaseButton>
 
    </BaseCard>
@@ -29,6 +32,10 @@ import ChatFeed from './ChatFeed.vue'
 import ChatInput from './ChatInput.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+import { useCommunity } from '~/composables/useCommunity'
+const {
+  loading
+} = useCommunity()
 
 defineProps({
   community: { type: Object, required: true }

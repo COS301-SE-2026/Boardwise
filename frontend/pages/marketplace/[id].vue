@@ -1,9 +1,9 @@
 <template>
-  <PageContainer>
-    <Navbar />
-    <div v-if="loading">Loading...</div>
-    <ListingDetail v-else-if="listing" :listing="listing" />
-    <div v-else>Listing not found.</div>
+  <PageContainer data-test="page-container" >
+    <Navbar data-test="navbar" />
+    <div v-if="loading" data-test="listing-loading">Loading...</div>
+    <ListingDetail data-test="listing-detail" v-else-if="listing" :listing="listing" />
+    <div v-else data-test="listing-not-found">Listing not found.</div>
   </PageContainer>
 </template>
 

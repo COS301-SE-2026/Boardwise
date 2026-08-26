@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "nuxt dev",
+    "dev": "nuxt dev --dotenv ../.env",
     "build": "nuxt generate",
     "preview:static": "nuxt generate && npx serve -s .output/public",
     "test": "vitest"
@@ -21,14 +21,14 @@
     "vuetify-nuxt-module": "^0.19.5"
   },
   "devDependencies": {
-    "@nuxt/test-utils": "^4.0.0",
+    "@nuxt/test-utils": "^3.23.0",
     "@playwright/test": "^1.62.0",
     "@types/node": "^26.1.2",
     "@vitejs/plugin-vue": "^6.0.8",
-    "@vitest/coverage-v8": "^4.0.0",
+    "@vitest/coverage-v8": "^3.2.7",
     "@vue/test-utils": "^2.2.7",
     "happy-dom": "^20.9.0",
-    "vitest": "^4.1.10"
+    "vitest": "^3.2.7"
   },
   "allowScripts": {
     "@parcel/watcher@2.5.6": true,

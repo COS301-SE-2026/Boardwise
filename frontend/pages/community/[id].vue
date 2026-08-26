@@ -30,6 +30,10 @@
       />
     </div>
 
+    <v-container v-else-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
+      <v-progress-circular indeterminate color="primary" size="48" />
+    </v-container>
+
     <BaseEmptyState
       v-else
       title="Community not found"
@@ -60,7 +64,8 @@ const route = useRoute()
 const {
   getCommunityDetails,
   joinCommunity, 
-  error
+  error,
+  loading
 } = useCommunity()
 
 const {
