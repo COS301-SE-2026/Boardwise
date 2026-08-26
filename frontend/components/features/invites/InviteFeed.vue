@@ -1,7 +1,8 @@
 <template> 
-    <BaseCard class="d-flex flex-column ga-4 pa-4 h-100 overflow-y-auto">
+    <BaseCard data-test="base-card" class="d-flex flex-column ga-4 pa-4 h-100 overflow-y-auto">
         <div v-if="props.invites.length">
             <InviteCard
+                data-test="invite-card"
                 v-for="invite in props.invites"
                 :key="invite.event.id"
                 :invite="invite"
@@ -12,6 +13,7 @@
 
         <BaseEmptyState
             v-else
+            data-test="base-empty-state"
             title="No Invites"
             description="You don't have any pending event invites."
         />

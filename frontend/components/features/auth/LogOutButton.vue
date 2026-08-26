@@ -1,5 +1,5 @@
 <template> 
-    <BaseButton variant="secondary" @click="handleLogout">
+    <BaseButton variant="secondary" data-test="logout-button" @click="handleLogout">
         <v-icon start>
             mdi-logout
         </v-icon>
