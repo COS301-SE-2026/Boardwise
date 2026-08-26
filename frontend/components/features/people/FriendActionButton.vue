@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { friendService, type FriendStatus } from '~/services/friendService'
+import { type FriendStatus } from '~/services/friendService'
 
 const props = defineProps<{
     status: FriendStatus
