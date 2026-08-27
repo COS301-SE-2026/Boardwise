@@ -21,11 +21,9 @@ import org.springframework.test.web.client.response.MockRestResponseCreators;
 import org.springframework.web.client.RestClient;
 
 import com.boardwise.backend.shared.repository.BoardGameRepository;
-import com.boardwise.backend.shared.services.BoardGameService;
 import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.user_service.services.R2StorageService;
 import com.boardwise.backend.shared.repository.BoardGameSearch;
-import com.boardwise.backend.user_service.services.R2StorageService;
 
 
 @ExtendWith(MockitoExtension.class)

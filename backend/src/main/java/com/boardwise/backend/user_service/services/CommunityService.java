@@ -44,7 +44,6 @@ import com.boardwise.backend.user_service.enums.Visibility;
 import com.boardwise.backend.user_service.models.Event;
 import com.boardwise.backend.user_service.models.EventAttendee;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.user_service.repository.EventAttendeeRepository;
 import com.boardwise.backend.user_service.repository.EventRepository;
 import com.boardwise.backend.user_service.repository.UserRepository;

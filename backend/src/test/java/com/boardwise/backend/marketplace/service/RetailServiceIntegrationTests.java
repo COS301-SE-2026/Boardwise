@@ -18,7 +18,6 @@ import com.boardwise.backend.BaseIntegrationTest;
 import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
 import com.boardwise.backend.marketplace.models.ScrapeCache;
 import com.boardwise.backend.marketplace.repository.ScrapeCacheRepository;
-import com.boardwise.backend.marketplace.service.RetailService;
 import com.boardwise.backend.marketplace.service.webscrapers.BobShopScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.TakealotScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.ToysRUsScraper;

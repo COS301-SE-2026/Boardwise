@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:backend/src/main/java/com/boardwise/backend/user_service/repository/BoardGameRepository.java
-package com.boardwise.backend.user_service.repository;
-========
 package com.boardwise.backend.shared.repository;
->>>>>>>> 8f4054c6958c66fbb30aeb0c75014dee8a3cea30:backend/src/main/java/com/boardwise/backend/shared/repository/BoardGameRepository.java
 
 import java.util.List;
 import java.util.Optional;

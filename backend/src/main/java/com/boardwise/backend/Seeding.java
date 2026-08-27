@@ -32,7 +32,6 @@ import com.boardwise.backend.user_service.models.EventAttendee;
 import com.boardwise.backend.user_service.models.Group;
 import com.boardwise.backend.user_service.models.GroupMembership;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.repository.BoardGameRepository;
 import com.boardwise.backend.user_service.repository.EventAttendeeRepository;
 import com.boardwise.backend.user_service.repository.EventRepository;
 import com.boardwise.backend.user_service.repository.GroupMembershipRepository;

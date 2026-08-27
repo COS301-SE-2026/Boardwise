@@ -27,8 +27,8 @@ import com.boardwise.backend.marketplace.service.webscrapers.TakealotScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.ToysRUsScraper;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.user_service.repos.UserRepository;
-import com.boardwise.backend.user_service.repos.UserRepository.GameOwnershipCount;
+import com.boardwise.backend.user_service.repository.UserRepository;
+import com.boardwise.backend.user_service.repository.UserRepository.GameOwnershipCount;
 import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.user_service.models.User;
 
