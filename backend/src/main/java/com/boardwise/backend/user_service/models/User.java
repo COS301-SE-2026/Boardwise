@@ -37,6 +37,7 @@ public class User {
     private String profilePicture; // image url from cloud buckets
     private String location;
     private Preferences preferences;
+    private Instant lastOnlineAt;
     private Instant createdAt;
     private List<String> ownedGames;
 
@@ -49,6 +50,7 @@ public class User {
         this.preferences = new Preferences();
         this.emailAddress = email;
         this.ownedGames = new ArrayList<>();
+        this.lastOnlineAt = null;
         this.createdAt = Instant.now();
         this.profilePicture = null;
         this.location = null;

@@ -1,7 +1,6 @@
 package com.boardwise.backend.marketplace.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -36,8 +35,8 @@ import com.boardwise.backend.marketplace.service.RetailService;
 import com.boardwise.backend.shared.config.SecurityConfig;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.shared.security.JwtFilter;
-import com.boardwise.backend.user_service.repos.TokenBlackListRepository;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repository.TokenBlackListRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
 import com.boardwise.backend.user_service.services.MyUserDetailsService;
 
 

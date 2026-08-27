@@ -35,7 +35,7 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor // automatically generates a constructor for specific fields(Removes need for manual boilerplate code)

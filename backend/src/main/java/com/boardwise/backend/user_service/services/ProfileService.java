@@ -2,6 +2,7 @@ package com.boardwise.backend.user_service.services;
 
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -23,9 +24,11 @@ import org.springframework.web.multipart.MultipartFile;
 import com.boardwise.backend.shared.dtos.GameInventoryDTO;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.shared.dtos.GameListDTO;
 import com.boardwise.backend.shared.dtos.OtherGameDTO;
+import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.shared.services.NotificationService;
+import com.boardwise.backend.user_service.dtos.CommunityMessageNotification;
+import com.boardwise.backend.user_service.dtos.DirectMessageNotification;
 import com.boardwise.backend.user_service.dtos.FriendConfirmationNotification;
 import com.boardwise.backend.user_service.dtos.FriendDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestDTO;
@@ -33,18 +36,22 @@ import com.boardwise.backend.user_service.dtos.FriendRequestNotification;
 import com.boardwise.backend.user_service.dtos.FriendRequestResponseDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestsDTO;
 import com.boardwise.backend.user_service.dtos.FriendsListDTO;
+import com.boardwise.backend.user_service.dtos.InviteNotification;
+import com.boardwise.backend.user_service.dtos.NotificationDTO;
+import com.boardwise.backend.user_service.dtos.NotificationsDTO;
 import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
 import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileSearchResponse;
 import com.boardwise.backend.user_service.dtos.UpdateProfileDTO;
 import com.boardwise.backend.user_service.enums.FriendStatus;
+import com.boardwise.backend.user_service.enums.NotificationType;
 import com.boardwise.backend.user_service.models.*;
-import com.boardwise.backend.shared.model.Boardgame;
-import com.boardwise.backend.user_service.repos.FriendShipRepository;
-import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
-import com.boardwise.backend.user_service.repos.GroupRepository;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repository.FriendShipRepository;
+import com.boardwise.backend.user_service.repository.GroupMembershipRepository;
+import com.boardwise.backend.user_service.repository.GroupRepository;
+import com.boardwise.backend.user_service.repository.NotificationRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
 import com.google.maps.GeoApiContext;
 import com.google.maps.GeocodingApi;
 import com.google.maps.errors.ApiException;
@@ -66,6 +73,7 @@ public class ProfileService {
     private final GeoApiContext geoContext;
     private final MongoTemplate template;
     private final NotificationService notificationService;
+    private final NotificationRepository notifRepo;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
@@ -77,9 +85,8 @@ public class ProfileService {
 
     public ProfileResponseDTO getProfile(String userId) {
         // get user data from db
-        User user = userRepo.findById(userId).orElseThrow(
-            () -> new NoSuchElementException("User with id:" +  userId + "does not exist.")
-        );
+        User user = userRepo.findById(userId)
+                            .orElseThrow(() -> new NoSuchElementException("User with id:" +  userId + "does not exist."));
         
         // get the games from stored ids                                
         List<GameInventoryDTO> games = new ArrayList<>();
@@ -550,7 +557,7 @@ public class ProfileService {
             sender
         );
         FriendRequestNotification notification = new FriendRequestNotification(dto);
-        notificationService.send(userId, notification);
+        notificationService.notifyUser(userId, notification);
 
         return new FriendRequestResponseDTO(
             "Friend request successfully sent."
@@ -596,7 +603,7 @@ public class ProfileService {
             );
 
             FriendConfirmationNotification notification = new FriendConfirmationNotification(sender);
-            notificationService.send(fs.getSender(), notification);
+            notificationService.notifyUser(clientId, notification);
         }
 
         return new FriendRequestResponseDTO(
@@ -621,6 +628,37 @@ public class ProfileService {
 
         return new FriendRequestResponseDTO(
             "Unfriend user query successful."
+        );
+    }
+
+    public NotificationsDTO getMissedNotifications(String token) {
+        String userId = jwtService.extractUserId(token).toString();
+        User user = userRepo.findById(userId).get();
+        List<Notification> missed = notifRepo.findMissedNotifications(user.getId(), user.getLastOnlineAt());
+        List<NotificationDTO> notifications = new ArrayList<>();
+
+        for(Notification notif : missed){
+            NotificationDTO notification = switch (notif.getData()) {
+                case ChatMessageData d -> {
+                    if(notif.getType() == NotificationType.DIRECT_MESSAGE)
+                        yield new DirectMessageNotification(d.senderId(), d.message());
+                    else
+                        yield new CommunityMessageNotification(d.senderId(), d.message());
+                }
+                case EventInviteData d -> new InviteNotification(d.host(), d.event());
+                case FriendRequestData d -> new FriendRequestNotification(d.request());
+                case FriendConfirmationData d -> new FriendConfirmationNotification(d.friend());
+            };
+            notifications.add(notification);
+
+            notif.setDelivered(true);
+            notif.setDeliveredAt(Instant.now());
+        }
+        notifRepo.saveAll(missed);
+
+        return new NotificationsDTO(
+            "Missed user notifications retrieved",
+            notifications
         );
     }
 

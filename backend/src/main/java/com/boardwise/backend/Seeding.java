@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Random;
+
 import org.bson.types.ObjectId;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -30,11 +32,11 @@ import com.boardwise.backend.user_service.models.EventAttendee;
 import com.boardwise.backend.user_service.models.Group;
 import com.boardwise.backend.user_service.models.GroupMembership;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.repos.EventAttendeeRepository;
-import com.boardwise.backend.user_service.repos.EventRepository;
-import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
-import com.boardwise.backend.user_service.repos.GroupRepository;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repository.EventAttendeeRepository;
+import com.boardwise.backend.user_service.repository.EventRepository;
+import com.boardwise.backend.user_service.repository.GroupMembershipRepository;
+import com.boardwise.backend.user_service.repository.GroupRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
 import com.boardwise.backend.vault.repository.EditEventRepository;
 import com.boardwise.backend.vault.repository.IngestionJobRepository;
 import com.boardwise.backend.vault.repository.RulebookRepository;
@@ -90,7 +92,21 @@ public class Seeding {
                         new User("zoe_tiles", "Zoe", "Khumalo", "zoe.khumalo@gmail.com", encoder.encode("Z03T1l3s@22")),
                         new User("marco_strat", "Marco", "Ferreira", "marco.ferreira@sapo.pt", encoder.encode("M@rc0Fr3rr@!")),
                         new User("amber_quest", "Amber", "Jacobs", "amber.jacobs@yahoo.com", encoder.encode("@mb3rJ@c0bs#")),
-                        new User("sipho_board", "Sipho", "Dlamini", "sipho.dlamini@telkomsa.net", encoder.encode("S1ph0Dl@m1n!")));
+                        new User("sipho_board", "Sipho", "Dlamini", "sipho.dlamini@telkomsa.net", encoder.encode("S1ph0Dl@m1n!"))
+                    );
+                
+                Genres[] genres = Genres.values();
+                Random rng = new Random(50101014372L);
+                for(User user : users){
+                    List<String> userGenres = user.getPreferences().getGenres();
+                    for(int i = 0; i < 3; i++){
+                        int rndIdx = rng.nextInt(genres.length);
+                        String genre = genres[rndIdx].getValue();
+                        userGenres.add(genre);
+                    }
+                    user.getPreferences().setGenres(userGenres);
+                }
+
                 userRepository.saveAll(users);
                 System.out.println("Seeded " + users.size() + " users");
             } else {

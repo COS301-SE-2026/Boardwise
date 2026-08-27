@@ -1,6 +1,6 @@
 package com.boardwise.backend.marketplace.service;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
+
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,7 +18,6 @@ import com.boardwise.backend.marketplace.enums.ItemType;
 import com.boardwise.backend.marketplace.enums.ListingStatus;
 import com.boardwise.backend.marketplace.models.Listing;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
-import com.boardwise.backend.marketplace.service.ListingService;
 
 public class ListingServiceIntegrationTest extends BaseIntegrationTest {
 

@@ -28,7 +28,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
 import com.boardwise.backend.vault.dto.response.ChunkDto;
 import com.boardwise.backend.vault.dto.response.DownloadUrlResponseDto;
 import com.boardwise.backend.vault.dto.response.EditEventResponseDto;

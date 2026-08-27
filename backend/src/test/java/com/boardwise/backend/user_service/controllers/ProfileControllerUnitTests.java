@@ -28,11 +28,11 @@ import com.boardwise.backend.user_service.dtos.FriendsListDTO;
 import com.boardwise.backend.user_service.fixtures.ProfileServiceFixtures;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.models.UserDetailImpl;
+import com.boardwise.backend.user_service.repository.TokenBlackListRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
 import com.boardwise.backend.shared.config.SecurityConfig;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.shared.security.JwtFilter;
-import com.boardwise.backend.user_service.repos.TokenBlackListRepository;
-import com.boardwise.backend.user_service.repos.UserRepository;
 import com.boardwise.backend.user_service.services.MyUserDetailsService;
 import com.boardwise.backend.user_service.services.ProfileService;
 
