@@ -427,7 +427,7 @@ public class Seeding {
                     .build()
                 );
                 eventsRepository.saveAll(events);
-                System.out.println("Seeded " + events.size() + " group memberships");
+                System.out.println("Seeded " + events.size() + " events");
             }
             else{
                 System.out.println("Events already seeded, skipping...");
@@ -436,7 +436,7 @@ public class Seeding {
             if(eaRepository.count() == 0){
                 List<Event> events = List.of(
                     eventsRepository.findByName("Monopoly Marathon").get(),
-                    eventsRepository.findByName("Catan Catastrophe").get(),
+                    eventsRepository.findByName("Dune Dune Ddduunnnneeee").get(),
                     eventsRepository.findByName("Scrabble storm").get()
                 );
 
@@ -453,8 +453,10 @@ public class Seeding {
                     );
                     EAs.add(ea);
                 }
+
+                
                 eaRepository.saveAll(EAs);
-                System.out.println("Seeded " + EAs.size() + " group memberships");
+                System.out.println("Seeded " + EAs.size() + " eventAttendees");
             }
             else{
                 System.out.println("Event Attendees already seeded, skipping...");
