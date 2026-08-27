@@ -44,7 +44,7 @@ public class BoardGameService {
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
 
 
-    @Scheduled(fixedDelay = 4 * 1000)
+    @Scheduled(fixedDelay = 6 * 1000)
     public void populateDatabase(){
         int nextBggId = gameRepo.findTopByBggIdNotNullOrderByBggIdDesc()
                         .map(game -> game.getBggId() + 1)
