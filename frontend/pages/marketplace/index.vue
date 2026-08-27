@@ -99,7 +99,7 @@ const activeTab = ref('Community Listings')
 const showFilters = ref(false)
 const showCreateListing = ref(false)
 
-const {listings, loading, fetchListings, addListing, loadMore, hasMore} = useMarketplace();
+const {listings, loading, fetchListings, addListing, loadMore, hasMore, fetchPersonalisedListings} = useMarketplace();
 
 const {retailResults, retailLoading, fetchRetail } = useRetail()
 
@@ -108,6 +108,7 @@ onMounted(() => {
     router.push('/auth/signin');
   }
   fetchListings({}, true) 
+  
 })
 
 const handleAdd = async (data, image) => {

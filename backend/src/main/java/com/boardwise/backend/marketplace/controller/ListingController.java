@@ -167,7 +167,7 @@ public class ListingController {
         }
     }
 
-    @GetMapping("/listings/retail/personalized")
+    @GetMapping("/listings/personalised")
     public ResponseEntity<Page<RetailSourceItemDTO>> getPersonalizedRetailItems(
         @RequestHeader("Authorization") String token,
         @RequestParam(required = false, defaultValue = "0") Integer page) {

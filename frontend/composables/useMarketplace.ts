@@ -4,6 +4,7 @@ import { useSnackBar } from './useSnackbar'
 import { createSharedComposable } from '@vueuse/core'
 const { show } = useSnackBar()
 
+
 const _useMarketplace = () =>{
 
     //page paramters
@@ -21,6 +22,9 @@ const _useMarketplace = () =>{
     const error = ref(null);
 
     const activeFilters = ref({})
+
+    //page for personalised listings
+    const persPage = ref(0);
 
     const loadMore = () => {
         if (!loading.value && hasMore.value) fetchListings(activeFilters.value, false)
@@ -55,14 +59,10 @@ const _useMarketplace = () =>{
             listings.value = reset ? res.content : [...listings.value, ...res.content];
             hasMore.value = !res.last;
             page.value += 1;
-            show('Successfully got all listings');
         } catch(err) {
-            if(activeFilters.value)
-                show('No available listings!')
-            else{
-                show('Failed to find any listings!', 'error')
+            if(!activeFilters.value){
+                show('Failed to find any listings!', 'error');
             }
-            console.error('Failed to fetch', err); 
         } finally {
             loading.value = false;
         }
@@ -132,11 +132,9 @@ const removeListing = async (id: string) => {
 }
 
 const fetchListingById = async (id: string) => {
-  loading.value = true
   error.value = null
   try {
     const res = await MarketplaceService.getListingById(id)
-    show('Successfully fetched listing details');
     return res
   } catch (err: any) {
       error.value = err.data?.message ?? 'Failed to fetch listing'
@@ -147,7 +145,24 @@ const fetchListingById = async (id: string) => {
   }
 }
 
-return { listings, loading, error, fetchListings, fetchListingById, addListing, fetchUserListing, editListing, removeListing,page,loadMore,hasMore}
+const fetchPersonalisedListings =async ()=>{
+    loading.value = true;
+    error.value = null;
+    try{
+        const res = await MarketplaceService.getPersonalisedListings(persPage.value++);
+        return res;
+    }
+    catch(err:any){
+        error.value = err;
+        console.error(err);
+        show("couldn't fetch retail listings","error");
+    }
+    finally{
+        loading.value = false; 
+    }
+}
+
+return { listings, loading, error, fetchListings, fetchListingById, addListing, fetchUserListing, editListing, removeListing,page,loadMore,hasMore, fetchPersonalisedListings}
 }
 
 export const useMarketplace = createSharedComposable(_useMarketplace)
