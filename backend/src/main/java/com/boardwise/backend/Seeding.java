@@ -394,8 +394,8 @@ public class Seeding {
                     ))
                     .build(),
                     Event.builder()
-                    .name("Catan Catastrophe")
-                    .description("It's a CAT-astrophe (pun intended) when we play Catan and we'd like everyone to join.")
+                    .name("Dune Dune Ddduunnnneeee")
+                    .description("Did y'all catch the pun in the event name? No... Welp, doesn't matter cause we're playing DUNE tonight. Come join, all are welcome.")
                     .eventImg("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxK9bxTqFLwoD6FsdgHwKptKZP-C6FT1Zdbjm5ZFN9Yg&s=10")
                     .startDateTime(LocalDateTime.of(2026, 7, 29, 14, 15))
                     .endDateTime(LocalDateTime.of(2026, 7, 29, 19, 45))
@@ -406,7 +406,7 @@ public class Seeding {
                     .status(EventStatus.OPEN)
                     .createdAt(Instant.now())
                     .games(List.of(
-                        boardGameRepository.findByTitle("Catan").get().getId()
+                        boardGameRepository.findByTitle("Dune").get().getId()
                     ))
                     .build(),
                     Event.builder()
