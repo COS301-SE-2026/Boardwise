@@ -15,8 +15,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.boardwise.backend.user_service.models.TokenBlackList;
-import com.boardwise.backend.user_service.repos.TokenBlackListRepository;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repository.TokenBlackListRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

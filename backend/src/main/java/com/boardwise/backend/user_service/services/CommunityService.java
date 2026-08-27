@@ -44,9 +44,9 @@ import com.boardwise.backend.user_service.enums.Visibility;
 import com.boardwise.backend.user_service.models.Event;
 import com.boardwise.backend.user_service.models.EventAttendee;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.repos.EventAttendeeRepository;
-import com.boardwise.backend.user_service.repos.EventRepository;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repository.EventAttendeeRepository;
+import com.boardwise.backend.user_service.repository.EventRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
 import com.google.maps.GeoApiContext;
 import com.google.maps.GeocodingApi;
 import com.google.maps.errors.ApiException;
@@ -531,7 +531,7 @@ public class CommunityService {
         EventHostInfo sender = new EventHostInfo(inviter.getUsername(), inviter.getProfilePicture());                                   
         InviteNotification payload = new InviteNotification(sender, invite);
 
-        notifService.send(
+        notifService.notifyUser(
             invitee.get().getId(), 
             payload
         );

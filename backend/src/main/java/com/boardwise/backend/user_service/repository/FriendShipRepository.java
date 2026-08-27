@@ -1,4 +1,4 @@
-package com.boardwise.backend.user_service.repos;
+package com.boardwise.backend.user_service.repository;
 
 import java.util.List;
 import java.util.Optional;

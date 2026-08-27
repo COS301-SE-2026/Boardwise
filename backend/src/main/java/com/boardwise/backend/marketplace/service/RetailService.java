@@ -27,8 +27,8 @@ import com.boardwise.backend.marketplace.service.webscrapers.TakealotScraper;
 import com.boardwise.backend.marketplace.service.webscrapers.ToysRUsScraper;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.user_service.repos.UserRepository;
-import com.boardwise.backend.user_service.repos.UserRepository.GameOwnershipCount;
+import com.boardwise.backend.user_service.repository.UserRepository;
+import com.boardwise.backend.user_service.repository.UserRepository.GameOwnershipCount;
 import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.user_service.models.User;
 
@@ -217,7 +217,7 @@ public class RetailService {
      
     //number of Games to search for 
     private final int NUMOFGAMES = 5;
-    @Scheduled(fixedDelayString = "${scrape.cache.refresh.interval.ms:3600000}")
+    @Scheduled(fixedDelayString = "${scrape.cache.refresh.interval.ms:3600000}" ,initialDelayString = "${scrape.cache.refresh.interval.ms:3600000}")
     public void ScheduledRecommendedScraper(){
         //SHOULDDO: compute most popular first 
         //get first n games 

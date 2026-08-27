@@ -26,7 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.boardwise.backend.shared.config.SecurityConfig;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.shared.security.JwtFilter;
-import com.boardwise.backend.user_service.repos.TokenBlackListRepository;
+import com.boardwise.backend.user_service.repository.TokenBlackListRepository;
 import com.boardwise.backend.user_service.services.MyUserDetailsService;
 import com.boardwise.backend.vault.dto.response.DownloadUrlResponseDto;
 import com.boardwise.backend.vault.dto.response.EditHistoryResponseDto;

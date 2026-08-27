@@ -36,10 +36,10 @@ import com.boardwise.backend.user_service.fixtures.ProfileServiceFixtures;
 import com.boardwise.backend.user_service.models.Friendship;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
-import com.boardwise.backend.user_service.repos.FriendShipRepository;
-import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
-import com.boardwise.backend.user_service.repos.GroupRepository;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repository.FriendShipRepository;
+import com.boardwise.backend.user_service.repository.GroupMembershipRepository;
+import com.boardwise.backend.user_service.repository.GroupRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
 import com.boardwise.backend.user_service.services.ProfileService;
 import com.boardwise.backend.user_service.services.R2StorageService;
 import com.google.maps.GeoApiContext;
@@ -271,7 +271,7 @@ public class ProfileServiceUnitTest {
             verify(fsRepo, times(1)).findFriendShipBetweenUsers(friend3.getId(), friend.getId());
 
             ArgumentCaptor<FriendRequestNotification> frCaptor = ArgumentCaptor.forClass(FriendRequestNotification.class);
-            verify(notificationService, times(1)).send(eq(friend3.getId()), frCaptor.capture());
+            verify(notificationService, times(1)).notifyUser(eq(friend3.getId()), frCaptor.capture());
             FriendRequestNotification savedNotification = frCaptor.getValue();
             assertEquals("FRIEND_REQUEST", savedNotification.type());
             assertEquals("fs-006", savedNotification.request().id());
@@ -310,7 +310,7 @@ public class ProfileServiceUnitTest {
 
             // Arrange
             ArgumentCaptor<FriendRequestNotification> frCaptor = ArgumentCaptor.forClass(FriendRequestNotification.class);
-            verify(notificationService, times(1)).send(eq(friend3.getId()), frCaptor.capture());
+            verify(notificationService, times(1)).notifyUser(eq(friend3.getId()), frCaptor.capture());
             FriendRequestNotification savedNotification = frCaptor.getValue();
             assertEquals("FRIEND_REQUEST", savedNotification.type());
             assertEquals("fs-005", savedNotification.request().id());
@@ -478,7 +478,7 @@ public class ProfileServiceUnitTest {
             assertEquals("Friend request response successfully recorded.", result.message());
 
             ArgumentCaptor<FriendConfirmationNotification> notificationCaptor = ArgumentCaptor.forClass(FriendConfirmationNotification.class);
-            verify(notificationService, times(1)).send(eq(friend1.getId()), notificationCaptor.capture());
+            verify(notificationService, times(1)).notifyUser(eq(friend1.getId()), notificationCaptor.capture());
             FriendConfirmationNotification captured = notificationCaptor.getValue();
             assertEquals("FRIEND_CONFIRMATION", captured.type());
             assertEquals(ProfileServiceFixtures.FRIEND_ID2, captured.friend().id());
@@ -512,7 +512,7 @@ public class ProfileServiceUnitTest {
 
             // Assert
             assertEquals("Friend request response successfully recorded.", result.message());
-            verify(notificationService, times(0)).send(eq(friend1.getId()), any());
+            verify(notificationService, times(0)).notifyUser(eq(friend1.getId()), any());
             
         }
         
