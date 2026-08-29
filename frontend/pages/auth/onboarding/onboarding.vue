@@ -31,7 +31,7 @@ import PageContainer from '~/components/layout/PageContainer.vue';
 
 const router = useRouter()
 const { user } = useAuth()
-const step = ref(3)
+const step = ref(1)
 
 // Todo: replace with real fetch from game catalog
 const availableGames = ref([])

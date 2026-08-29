@@ -1,5 +1,5 @@
 <template>
-    <BaseCard class="onboarding-step_final">
+    <div class="onboarding-step_final">
         <BaseAvatar src="/images/Boarley.svg" alt="Boarley" size="xl" />
         <h2 class="onboardoing-step_title">All Done!</h2>
         <p>Start your journey through Boardwise!</p>
@@ -7,13 +7,12 @@
         <BaseButton variant="primary" size="lg" class="onboarding-step_cta" @click="$emit('finished')">
             Let's Go
         </BaseButton>
-    </BaseCard>
+    </div>
 </template>
 
 <script setup>
 import BaseAvatar from '~/components/ui/BaseAvatar.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
-import BaseCard from '~/components/ui/BaseCard.vue';
 
 defineEmits(['finished'])
 </script>

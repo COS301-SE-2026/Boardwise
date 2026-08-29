@@ -1,5 +1,5 @@
 <template>
-    <BaseCard class="onboarding-setup">
+    <div class="onboarding-setup">
         <img src="/images/main.svg" alt="Boardwise"  class="onboarding-step_logo" />
         <h1 class="onboardoing-step_title">Welcome {{  username  }} to Boardwise!</h1>
 
@@ -10,13 +10,12 @@
         <BaseButton variant="primary" class="onboarding-step_cta" @click="$emit('continue')">
             Continue
         </BaseButton>
-    </BaseCard>
+    </div>
 </template>
 
 <script setup>
 import BoarleyBubble from './BoarleyBubble.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
-import BaseCard from '~/components/ui/BaseCard.vue';
 
 defineProps({
     username: { 
@@ -35,7 +34,8 @@ defineEmits(['continue'])
     flex-direction: column;
     align-items: center;
     gap: var(--space-4);
-    max-width: 480px;
+    width: 100%;
+    max-width: 640px;
 }
 
 .onboarding-step_logo {

@@ -1,5 +1,5 @@
 <template>
-    <BaseCard class="onboarding-step">
+    <div class="onboarding-step">
         <BoarleyBubble>
             First, please select the games you own!
         </BoarleyBubble>
@@ -29,11 +29,10 @@
         >
             Continue
         </BaseButton> 
-    </BaseCard>
+    </div>
 </template>
 
 <script setup>
-import BaseCard from '~/components/ui/BaseCard.vue';
 import BoarleyBubble from './BoarleyBubble.vue';
 import BaseGrid from '~/components/ui/BaseGrid.vue';
 import BaseTag from '~/components/ui/BaseTag.vue';
@@ -70,6 +69,7 @@ function toggleGame(id) {
     align-items: center;
     gap: var(--space-4);
     max-width: 480px;
+    width: 100%;
 }
 
 .onboarding-step_hint {
