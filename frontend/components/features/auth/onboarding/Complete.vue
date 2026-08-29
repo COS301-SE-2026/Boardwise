@@ -1,6 +1,6 @@
 <template>
-    <BaseCard class="onboarding-setup onboarding-setp_final">
-        <BaseAvatar src="/images/Boarley.svg" alt="Boarley" size="96" />
+    <BaseCard class="onboarding-step_final">
+        <BaseAvatar src="/images/Boarley.svg" alt="Boarley" size="xl" />
         <h2 class="onboardoing-step_title">All Done!</h2>
         <p>Start your journey through Boardwise!</p>
 

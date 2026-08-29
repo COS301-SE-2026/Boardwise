@@ -29,7 +29,7 @@ defineEmits(['continue'])
 </script>
 
 <style scoped>
-.onboarding-step {
+.onboarding-setup {
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -39,7 +39,7 @@ defineEmits(['continue'])
 }
 
 .onboarding-step_logo {
-    width: clamp(px 30vw, 220px);
+    width: clamp(160px, 30vw, 220px);
 }
 .onboarding-step_cta {
     align-self: center;

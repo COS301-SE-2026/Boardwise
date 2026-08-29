@@ -52,7 +52,7 @@ const selected = ref([])
 
 function toggleGame(id) {
     const i = selected.value.indexOf(id)
-    if(i === 1) 
+    if(i === -1) 
     {
         selected.value.push(id)
     } else 
@@ -77,7 +77,7 @@ function toggleGame(id) {
     color: var(--color-text-muted);
 }
 
-.onboarding-step_game-grid {
+.onboarding-class_game-grid {
     max-height: 320px;
     overflow-y: auto;
 }

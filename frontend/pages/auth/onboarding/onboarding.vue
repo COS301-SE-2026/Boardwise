@@ -1,21 +1,23 @@
 <template>
-    <PageContainer class="onboarding-page d-flex align-center justify-center">
-        <Welcome
-            v-if="step === 1"
-            :username="user?.username"
-            @continue="step = 2"
-        />
+    <PageContainer>
+        <div class="onboarding-page">
+            <Welcome
+                v-if="step === 1"
+                :username="user?.username"
+                @continue="step = 2"
+            />
 
-        <OnBoardingGames
-            v-else-if="step === 2"
-            :games="availableGames"
-            @continue="handleGamesSelected"
-        />
+            <OnBoardingGames
+                v-else-if="step === 2"
+                :games="availableGames"
+                @continue="handleGamesSelected"
+            />
 
-        <Complete
-            v-else
-            @finished="routerKey.push('/library')"
-        />
+            <Complete
+                v-else
+                @finished="router.push('/library')"
+            />
+        </div>
     </PageContainer>
 </template>
 
@@ -29,7 +31,7 @@ import PageContainer from '~/components/layout/PageContainer.vue';
 
 const router = useRouter()
 const { user } = useAuth()
-const step = ref(1)
+const step = ref(3)
 
 // Todo: replace with real fetch from game catalog
 const availableGames = ref([])
@@ -42,6 +44,9 @@ async function handleGamesSelected(selectedIds) {
 
 <style scoped>
 .onboarding-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     min-height: calc(100vh - 80px);
     padding: 4rem 1.5rem
 }
