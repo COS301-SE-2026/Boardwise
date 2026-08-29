@@ -48,6 +48,7 @@ async function handleGamesSelected(selectedIds) {
     align-items: center;
     justify-content: center;
     min-height: calc(100vh - 80px);
-    padding: 4rem 1.5rem
+    padding: 4rem 1.5rem;
+    background: var(--color-surface);
 }
 </style>

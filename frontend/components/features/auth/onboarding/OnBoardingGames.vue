@@ -67,8 +67,8 @@ function toggleGame(id) {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--space-4);
-    max-width: 480px;
+    gap: var(--space-6);
+    max-width: 720px;
     width: 100%;
 }
 
