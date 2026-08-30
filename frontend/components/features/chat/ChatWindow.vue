@@ -5,6 +5,7 @@
 
             <InviteFeed 
                 :invites="invites"
+                :responding-id="respondingId"
                 @accept="acceptInvite"
                 @decline="declineInvite"
             />
@@ -44,6 +45,10 @@ const {
     fetchInvites,
     respondToInvite
 } = useEvents()
+
+onMounted(() => {
+    fetchInvites();
+});
 
 const props = defineProps({
     conversation: {
