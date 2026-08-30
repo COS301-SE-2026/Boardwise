@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -39,12 +40,13 @@ public class RetailService {
     //Logger
     private Logger logger = Logger.getLogger(RetailService.class.getName());
 
-    private static final int PAGE_SIZE = 20;
+    private static final int PAGESIZE = 20;
 
     private final TakealotScraper ts;
     private final BobShopScraper bss;
     private final ToysRUsScraper trus;
 
+    private final ConcurrentHashMap<String, ScrapeCache> cache = new ConcurrentHashMap<>();
     //AUTH
     private final JWTService jwtService;
 
@@ -89,11 +91,16 @@ public class RetailService {
             return new ArrayList<>();
         }
 
+        ScrapeCache cached = cache.get(s);
+        if (cached != null && isFresh(cached)) {
+            return cached.getResults();
+        }
+
         return scrapeCacheRepository.findBySearchTerm(s)
             .filter(this::isFresh)
-            .map(cache -> {
-                System.out.println("Cache hit for s=[" + s + "]");
-                return cache.getResults();
+            .map(c -> {
+                cache.put(s, c); // in-memory layer
+                return c.getResults();
             })
             .orElseGet(() -> rescrapeAndCache(s));
     }
@@ -116,7 +123,7 @@ public class RetailService {
 
     private Page<RetailSourceItemDTO> paginate(List<RetailSourceItemDTO> overall, Integer pageNum) {
         int page = (pageNum == null || pageNum < 0) ? 0 : pageNum;
-        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+        Pageable pageable = PageRequest.of(page, PAGESIZE);
  
         int start = (int) pageable.getOffset();
         if (start >= overall.size()) {
@@ -150,7 +157,7 @@ public class RetailService {
 
     private Page<RetailSourceItemDTO> emptyPage(Integer pageNum) {
         int page = (pageNum == null || pageNum < 0) ? 0 : pageNum;
-        return new PageImpl<>(new ArrayList<>(), PageRequest.of(page, PAGE_SIZE), 0);
+        return new PageImpl<>(new ArrayList<>(), PageRequest.of(page, PAGESIZE), 0);
     }
     
     public Page<RetailSourceItemDTO> getPersonalizedRetailListings(String token, Integer pageNum) {
@@ -201,7 +208,8 @@ public class RetailService {
         .lastScrapedAt(LocalDateTime.now())
         .build();
 
-        scrapeCacheRepository.save(toSave);
+        ScrapeCache saved =  scrapeCacheRepository.save(toSave);
+        cache.put(s, saved); // keep in-memory layer in sync
         return overall;
     }
 
