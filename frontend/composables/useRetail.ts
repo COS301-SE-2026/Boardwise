@@ -47,7 +47,7 @@ export const useRetail = () => {
             return res
         }
         catch (err: any) {
-            retailError.value = err
+            retailError.value = err?.message ?? 'Failed to fetch retail listings'
             console.error(err)
             show("couldn't fetch retail listings", "error")
         }

@@ -392,10 +392,8 @@ public class ListingService {
 
         if (conditions != null && !conditions.isEmpty())criteria.and("condition").in(conditions);
         
-        // if(conditions != null) criteria.and("condition").regex(conditions, "i");
-
         
-        PageRequest pageRequest = null;
+        PageRequest pageRequest;
         Query query = new Query(criteria);
         if(page != null && size != null){
             if(page < 0 ) page = 0;

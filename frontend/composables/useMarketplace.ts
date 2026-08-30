@@ -8,9 +8,9 @@ const { show } = useSnackBar()
 const _useMarketplace = () =>{
 
     //page paramters
-    const page = ref(1)
+    const page = ref(0)
     const hasMore = ref(true)
-    const pageSize = 15
+    const pageSize = 25
 
     //storing listings
     const listings = ref<Array<ListingResponse>>([]); //listings in db
@@ -19,7 +19,7 @@ const _useMarketplace = () =>{
     const loading = ref(false);
     
     //error checking 
-    const error = ref(null);
+    const error = ref<string | null>(null);
 
     const activeFilters = ref({})
 
@@ -44,7 +44,7 @@ const _useMarketplace = () =>{
     }, reset = false)=> {
         if(reset){
             activeFilters.value = filters ?? {}
-            page.value = 1;
+            page.value = 0;
             listings.value = [];
             hasMore.value = true;
         }
@@ -60,9 +60,7 @@ const _useMarketplace = () =>{
             hasMore.value = !res.last;
             page.value += 1;
         } catch(err) {
-            if(!activeFilters.value){
                 show('Failed to find any listings!', 'error');
-            }
         } finally {
             loading.value = false;
         }
@@ -89,8 +87,8 @@ const _useMarketplace = () =>{
         error.value = null;
         try {
             const res = await MarketplaceService.getUserListings();
-            listings.value = res ?? null;
-            if(listings.value)show('Successfully fetched your listings!');
+            listings.value = res ?? [];
+            if (listings.value.length > 0) show('Successfully fetched your listings!');
             else show('You have no listings to fetch!')
         } catch (err: any) {
             error.value = err.data?.message ?? 'Failed to fetch user listings';
