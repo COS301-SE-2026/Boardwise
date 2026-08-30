@@ -13,6 +13,7 @@ import com.boardwise.backend.user_service.dtos.AuthResponseDTO;
 import com.boardwise.backend.user_service.dtos.LoginDTO;
 import com.boardwise.backend.user_service.dtos.LogoutResponseDTO;
 import com.boardwise.backend.user_service.dtos.RegisterDTO;
+import com.boardwise.backend.user_service.dtos.request.ForgotPasswordDto;
 import com.boardwise.backend.user_service.services.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -53,4 +54,11 @@ public class AuthController {
         LogoutResponseDTO response = service.logout(token);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    @PostMapping("/forgotPassword")
+    public ResponseEntity<Void> forgotPassword(ForgotPasswordDto dto) {
+        service.forgotPassword(dto);
+        return ResponseEntity.ok().build();
+    }
+    
 }
