@@ -38,7 +38,7 @@ import com.boardwise.backend.user_service.models.User;
 public class RetailService {
 
     //Logger
-    private Logger logger = Logger.getLogger(RetailService.class.getName());
+    private static final Logger logger = Logger.getLogger(RetailService.class.getName());
 
     private static final int PAGESIZE = 20;
 
@@ -168,7 +168,7 @@ public class RetailService {
 
         if (user.isEmpty()){
             logger.info(() -> "Error while trying to find user for personalised listings: " + userId.toString());
-            return null;
+            return emptyPage(pageNum);
         }
 
         //Look at what games the user has 
@@ -176,7 +176,7 @@ public class RetailService {
         List<Boardgame> games; // games with the names
 
         if(ownedGameIds != null && !ownedGameIds.isEmpty()){
-            List<String> topNGames = ownedGameIds.stream().toList();
+            List<String> topNGames = ownedGameIds.stream().limit(NUMOFGAMES).toList();
             games = boardGameRepository.findAllById(topNGames);
         }
         else{
@@ -224,7 +224,8 @@ public class RetailService {
     private final BoardGameRepository boardGameRepository;
      
     //number of Games to search for 
-    private final int NUMOFGAMES = 5;
+    private final int NUMOFGAMES = 25;
+
     @Scheduled(fixedDelayString = "${scrape.cache.refresh.interval.ms:3600000}" ,initialDelayString = "${scrape.cache.refresh.interval.ms:3600000}")
     public void ScheduledRecommendedScraper(){
         //SHOULDDO: compute most popular first 
