@@ -20,7 +20,7 @@ public class EmailService {
 
     @Async
     public void sendPasswordResetEmail(String recipient, String resetToken){
-        String resetUrl = frontendBaseUrl + "auth/reset?token=" + resetToken;
+        String resetUrl = frontendBaseUrl + "auth/resetPassword?token=" + resetToken;
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("no-reply@boardwise.games");

@@ -10,5 +10,5 @@ public record ResetPasswordDto(
         regexp = "^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,}$",
         message = "Password must be at least 8 characters and contain at least one uppercase letter, number, and symbol"
     )
-    String newPassword
+    String password
 ){}

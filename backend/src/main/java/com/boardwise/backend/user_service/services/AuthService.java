@@ -3,7 +3,6 @@ package com.boardwise.backend.user_service.services;
 import java.time.Instant;
 
 import org.owasp.encoder.Encode;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -32,9 +31,6 @@ public class AuthService {
     private final JWTService jwt;
     private final AuthenticationManager manager;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
-
-    @Value("${frontend.base.url}")
-    private String frontendBaseUrl;
 
     private final EmailService emailService;
 
@@ -92,13 +88,12 @@ public class AuthService {
         user.setResetTokenExpiry(Instant.now().plusSeconds(60 * tokenExpiryMinutes));
         userRepo.save(user);
 
-        String resetLink = frontendBaseUrl + "auth/reset?token="+ resetToken;
-        emailService.sendPasswordResetEmail(user.getEmailAddress(), resetLink);
+        emailService.sendPasswordResetEmail(user.getEmailAddress(), resetToken);
     }
 
     public void resetPassword(ResetPasswordDto dto){
         String token = dto.token();
-        String password = passwordEncoder.encode(dto.newPassword());
+        String password = passwordEncoder.encode(dto.password());
 
         User user = userRepo.findByResetToken(PasswordResetTokenUtils.hashToken(token)).orElse(null);
         if(user == null){
