@@ -17,6 +17,7 @@ import com.boardwise.backend.user_service.dtos.LoginDTO;
 import com.boardwise.backend.user_service.dtos.LogoutResponseDTO;
 import com.boardwise.backend.user_service.dtos.RegisterDTO;
 import com.boardwise.backend.user_service.dtos.request.ForgotPasswordDto;
+import com.boardwise.backend.user_service.dtos.request.ResetPasswordDto;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repository.UserRepository;
 import com.boardwise.backend.user_service.utils.PasswordResetTokenUtils;
@@ -93,6 +94,25 @@ public class AuthService {
 
         String resetLink = frontendBaseUrl + "auth/reset?token="+ resetToken;
         emailService.sendPasswordResetEmail(user.getEmailAddress(), resetLink);
+    }
+
+    public void resetPassword(ResetPasswordDto dto){
+        String token = dto.token();
+        String password = passwordEncoder.encode(dto.newPassword());
+
+        User user = userRepo.findByResetToken(PasswordResetTokenUtils.hashToken(token)).orElse(null);
+        if(user == null){
+            throw new IllegalArgumentException("Invalid password reset token.");
+        }
+
+        if(user.getResetTokenExpiry().isBefore(Instant.now())){
+            throw new IllegalArgumentException("Password reset token expired");
+        }
+
+        user.setPassword(password);
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
+        userRepo.save(user);
     }
 
     public static String sanitize(String input) {

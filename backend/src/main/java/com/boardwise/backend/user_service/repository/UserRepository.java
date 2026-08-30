@@ -38,4 +38,6 @@ public interface UserRepository extends MongoRepository<User, String>{
     List<GameOwnershipCount> findMostOwnedGameIds(int limit);
 
     public Optional<User> findByEmailAddress(String emailAddress);
+
+    public Optional<User> findByResetToken(String token);
 }
