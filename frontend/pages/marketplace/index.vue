@@ -44,7 +44,7 @@
     <!-- External Retail -->
     <template v-else-if="activeTab === 'Web'">
       <v-container
-        v-if="retailLoading"
+        v-if="retailLoading && retailResults.length === 0"
         class="d-flex justify-center align-center"
         style="min-height: 60vh"
       >
@@ -57,8 +57,8 @@
       </v-container>
       
       <RetailerGrid 
+        v-else
         data-test="retailer-grid"
-        v-else 
         :retailers="retailResults"
       />
     </template>
@@ -99,9 +99,9 @@ const activeTab = ref('Community Listings')
 const showFilters = ref(false)
 const showCreateListing = ref(false)
 
-const {listings, loading, fetchListings, addListing, loadMore, hasMore, fetchPersonalisedListings} = useMarketplace();
+const {listings, loading, fetchListings, addListing, loadMore, hasMore} = useMarketplace();
 
-const {retailResults, retailLoading, fetchRetail } = useRetail()
+const {retailResults, retailLoading, hasMoreRetail, fetchPersonalisedListings} = useRetail()
 
 onMounted(() => {
   if(!localStorage.getItem('access_token')){
@@ -119,7 +119,14 @@ const handleAdd = async (data, image) => {
 
 const sentinel = ref(null)
 useIntersectionObserver(sentinel,([entry])=>{
-  if(entry.isIntersecting&& hasMore.value && !loading.value) loadMore()
+  if(!entry.isIntersecting) return
+
+  if(activeTab.value === 'Web'){
+    if(hasMoreRetail.value && !retailLoading.value) fetchPersonalisedListings()
+    return
+  }
+
+  if(hasMore.value && !loading.value) loadMore()
 })
 
 const searchQ = ref('');
@@ -128,7 +135,7 @@ const activeFilterState = ref({})
 
 const delaySearch = useDebounceFn((query) => {
   if(activeTab.value === 'Web'){
-    fetchRetail(query)
+    fetchPersonalisedListings(true);
     return
   }
 
@@ -136,8 +143,8 @@ const delaySearch = useDebounceFn((query) => {
 }, 400)
 
 watch(activeTab, (tab) => {
-  if(tab === 'Web') {
-    fetchRetail(searchQ.value)
+  if(tab === 'Web' && retailResults.value.length === 0) {
+    fetchPersonalisedListings(true);
   }
 })
 

@@ -145,24 +145,9 @@ const fetchListingById = async (id: string) => {
   }
 }
 
-const fetchPersonalisedListings =async ()=>{
-    loading.value = true;
-    error.value = null;
-    try{
-        const res = await MarketplaceService.getPersonalisedListings(persPage.value++);
-        return res;
-    }
-    catch(err:any){
-        error.value = err;
-        console.error(err);
-        show("couldn't fetch retail listings","error");
-    }
-    finally{
-        loading.value = false; 
-    }
-}
 
-return { listings, loading, error, fetchListings, fetchListingById, addListing, fetchUserListing, editListing, removeListing,page,loadMore,hasMore, fetchPersonalisedListings}
+
+return { listings, loading, error, fetchListings, fetchListingById, addListing, fetchUserListing, editListing, removeListing,page,loadMore,hasMore, }
 }
 
 export const useMarketplace = createSharedComposable(_useMarketplace)
