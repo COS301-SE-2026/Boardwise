@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.boardwise.backend.shared.security.JWTService;
+import com.boardwise.backend.shared.services.EmailService;
 import com.boardwise.backend.user_service.dtos.AuthResponseDTO;
 import com.boardwise.backend.user_service.dtos.LoginDTO;
 import com.boardwise.backend.user_service.dtos.LogoutResponseDTO;
@@ -33,6 +34,8 @@ public class AuthService {
 
     @Value("${frontend.base.url}")
     private String frontendBaseUrl;
+
+    private final EmailService emailService;
 
     // inserts user into database generates JWT
     public AuthResponseDTO register(RegisterDTO dto){
@@ -89,7 +92,7 @@ public class AuthService {
         userRepo.save(user);
 
         String resetLink = frontendBaseUrl + "auth/reset?token="+ resetToken;
-        // emailService.sendResetEmail(user.getEmailAddress(), resetLink);
+        emailService.sendPasswordResetEmail(user.getEmailAddress(), resetLink);
     }
 
     public static String sanitize(String input) {
