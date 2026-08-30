@@ -40,9 +40,9 @@ public class ListingController {
 
     // AC-MKT-01: Get All Active Listings
     @GetMapping("/listings")
-    public ResponseEntity<List<ListingResponse>> getAllListings() {
+    public ResponseEntity<List<ListingResponse>> getAllListings(@RequestHeader("Authorization") String token) {
         try {
-            List<ListingResponse> listings = listingService.getAllActiveListings();
+            List<ListingResponse> listings = listingService.getAllActiveListings(token.replace("Bearer ", ""));
             if (listings.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
@@ -53,7 +53,7 @@ public class ListingController {
             return ResponseEntity.internalServerError().body(null);
         }
     }
-
+        
     // AC-MKT-02: Get Listing by ID
     @GetMapping("/listing/{listingId}")
     public ResponseEntity<ListingResponse> getListingById(@PathVariable String listingId) {
@@ -152,11 +152,12 @@ public class ListingController {
             @RequestParam(required = false) List<String> conditions,
             @RequestParam(required = false) List<String> genres,
             @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size) {
+            @RequestParam(required = false) Integer size,
+            @RequestHeader(value = "Authorization", required = false) String token) {
         try {
+            String newToken = (token != null) ? token.replace("Bearer ", "") : null;
             Page<ListingResponse> listings = listingService.getByFilter(gameTitle, listingTitle, listingType, itemType,
-                    minPrice, maxPrice,
-                    conditions, genres, page, size);
+                    minPrice, maxPrice,conditions, genres, page, size, newToken);
             if (listings.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
