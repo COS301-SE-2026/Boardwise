@@ -363,8 +363,8 @@ public class ListingService {
         return mapToResponse(listingRepository.findById(listingId).orElseThrow( ()-> new IllegalArgumentException("Listing not found: " + listingId)));
     }
 
-    public Page<ListingResponse> getByFilter(String gameTitle, String listingTitle ,String listingType, String itemType, Double minPrice, Double maxPrice, List<String> conditions, List<String> genres, Integer page, Integer size, String token) {
-        
+    public Page<ListingResponse> getByFilter(String gameTitle, String listingTitle, String listingType,String itemType, Double minPrice, Double maxPrice, List<String> conditions, List<String> genres,
+        Integer page, Integer size, String token){        
         //Search for AVAILABLE Listings 
         Criteria criteria = Criteria.where("status").is(ListingStatus.AVAILABLE);
 

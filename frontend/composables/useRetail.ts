@@ -9,49 +9,14 @@ export const useRetail = () => {
     const retailLoading = ref(false)
     const retailError = ref<string | null>(null)
 
-    // Pagination state, driven off Spring's Page fields (no totalPages field on this type)
+    // Pagination
     const persPage = ref(0)
     const totalElements = ref(0)
     const isLastRetailPage = ref(false)
     const hasMoreRetail = computed(() => !isLastRetailPage.value)
 
-    // NOTE: this hits `/marketplace/personalised` with a free-text `query` param,
-    // a different endpoint from RetailService.getPersonalisedListings
-    // (`marketplace/listings/personalised`). Confirm whether this is legacy/dead
-    // code or an intentionally separate search feature before relying on it.
-    const fetchRetail = async (query: string) => {
-        if (!query?.trim()) {
-            retailResults.value = []
-            return
-        }
 
-        retailLoading.value = true
-        retailError.value = null
 
-        try {
-            const config = useRuntimeConfig()
-
-            const data = await $fetch<RetailResult[]>(`${config.public.apiBase}/marketplace/personalised`,
-                {
-                    query: {
-                        query
-                    }
-                }
-            )
-
-            retailResults.value = data ?? []
-        }
-        catch (error: any) {
-            console.error('Failed to fetch retail results', error)
-
-            retailError.value = 'Failed to load retail results.'
-            retailResults.value = []
-        }
-        finally {
-            retailLoading.value = false
-        }
-    }
-    
     const fetchPersonalisedListings = async (reset = false) => {
         if (reset) {
             persPage.value = 0
@@ -106,7 +71,6 @@ export const useRetail = () => {
         persPage,
         totalElements,
         hasMoreRetail,
-        fetchRetail,
         clearRetail,
         fetchPersonalisedListings
     }
