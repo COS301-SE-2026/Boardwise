@@ -10,6 +10,7 @@ export interface RagMessage {
     content: string
     citations?: Citation[]
     isError?: boolean
+    query?: string
 }
 
 export const useRag = () => {
@@ -24,7 +25,8 @@ export const useRag = () => {
         messages.value.push({
             id: crypto.randomUUID(),
             role: 'user',
-            content: trimmed
+            content: trimmed,
+            query: trimmed
         })
 
         isLoading.value = true
@@ -45,7 +47,8 @@ export const useRag = () => {
                 id: crypto.randomUUID(),
                 role: 'assistant',
                 content: message,
-                isError: true
+                isError: true,
+                query: trimmed
             })
 
             show(message, 'error')
