@@ -30,4 +30,9 @@ describe('RagCitation.vue', () => {
         const wrapper = mountCitation({ citation: { ...citation, index: 7}})
         expect(wrapper.find('[data-test="rag-citation"]').text()).toContain('chunk 7')
     })
+
+    it('does not render the raw chunk index as the visible text', () => {
+        const wrapper = mountCitation()
+        expect(wrapper.find('data-test="rag-citation-text"]').text()).not.toBe('3')
+    })
 })
