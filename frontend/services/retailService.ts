@@ -1,10 +1,10 @@
 export interface RetailListings {
     retailer: string
-    retailerTitle: string
+    retailTitle: string
     price: number
     imageUrl: string
     url: string
-    jaroWinklerScore: number
+    JaroWinklerSimilarityScore: number
 }
 
 export interface sortJsonStructure {

@@ -87,6 +87,7 @@ import MarketplaceTabs from '~/components/features/marketplace/MarketplaceTabs.v
 
 import FilterSidebar from '~/components/features/marketplace/FilterSidebar.vue'
 import ListingGrid from '~/components/features/marketplace/ListingGrid.vue'
+import RetailerGrid from '~/components/features/marketplace/RetailerGrid.vue'
 import AddListingModal from '~/components/features/profile/AddListingModal.vue'
 
 import { useRouter } from 'vue-router'
@@ -103,12 +104,12 @@ const {listings, loading, fetchListings, addListing, loadMore, hasMore} = useMar
 
 const {retailResults, retailLoading, hasMoreRetail, fetchPersonalisedListings} = useRetail()
 
-onMounted(() => {
+onMounted(async () => {
   if(!localStorage.getItem('access_token')){
     router.push('/auth/signin');
   }
-  fetchListings({}, true) 
-  
+  await fetchPersonalisedListings(true);
+  fetchListings({}, true)   
 })
 
 const handleAdd = async (data, image) => {
@@ -118,11 +119,12 @@ const handleAdd = async (data, image) => {
 }
 
 const sentinel = ref(null)
-useIntersectionObserver(sentinel,([entry])=>{
-  if(!entry.isIntersecting) return
+useIntersectionObserver(sentinel, async ([entry])=>  {
+  if(!entry.isIntersecting) return;
 
   if(activeTab.value === 'Web'){
-    if(hasMoreRetail.value && !retailLoading.value) fetchPersonalisedListings()
+    if(hasMoreRetail.value && !retailLoading.value) fetchPersonalisedListings();
+    console.log("CUrrent retail results: ", retailResults.value );
     return
   }
 
@@ -174,7 +176,6 @@ watch(searchQ,(query)=>{
     maxPrice: filters.maxPrice || null,
   }
 
-  console.log('active filters',activeFilterState.value);
 
   fetchListings({ ...activeFilterState.value, search: searchQ.value || null }, true);
 }
