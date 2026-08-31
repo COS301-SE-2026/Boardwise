@@ -6,13 +6,16 @@
         icon
         size="56"
         elevation="4"
+        aria-label="Ask Boarley about this rulebook"
         @click="$emit('click')"
     >
-        <v-icon size="28">mdi-robot</v-icon>
+       <BaseAvatar src="/images/Boarley_cute.svg" alt="Boarley" size="sm" />
     </v-btn>
 </template>
 
 <script setup>
+import BaseAvatar from '../ui/BaseAvatar.vue';
+
 defineEmits(['click'])
 </script>
 
