@@ -2,10 +2,56 @@
 export default defineNuxtConfig({
   ssr: false,
   
+  app: {
+    head: {
+      link: [
+        {
+          rel: 'manifest',
+          href: '/manifest.webmanifest'
+        }
+      ]
+    }
+  },
+
   css: ['~/assets/theme.css'],
 
-  modules: ['vuetify-nuxt-module'],
+  modules: ['vuetify-nuxt-module', '@vite-pwa/nuxt'],
 
+  pwa: {
+  registerType: 'autoUpdate',
+
+  manifest: {
+    id: '/',
+    name: 'Boardwise',
+    short_name: 'Boardwise',
+    description: 'A social platform for board game enthusiasts.',
+    theme_color: '#C7286E',
+    background_color: '#FBF6F0',
+    display: 'standalone',
+    start_url: '/',
+    scope: '/',
+    icons: [
+      {
+        src: '/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png'
+      },
+      {
+        src: '/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png'
+      }
+    ]
+  },
+
+  workbox: {
+    navigateFallback: '/'
+  },
+
+  devOptions: {
+    enabled: true
+  }
+},
   vuetify: {
     moduleOptions: {
       styles: {
@@ -99,4 +145,6 @@ export default defineNuxtConfig({
       fastApiBase: process.env.APP_ENV === 'prod' ? process.env.PROD_FAST_API_BASE : process.env.DEV_FAST_API_BASE
     }
   }
+
+  
 })
