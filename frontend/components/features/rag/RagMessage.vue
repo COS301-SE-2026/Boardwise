@@ -41,7 +41,9 @@ defineEmits<{ (e: 'retry', message: RagMessage ): void }>()
 
 .rag-bubble { 
     max-width: 80%; 
-    padding: var(--space-3, 12px) var(--space-4, 16px); }
+    padding: var(--space-3, 12px) var(--space-4, 16px); 
+    overflow-wrap: break-word;
+}
 
 .rag-bubble-error { 
     border: 1px solid rgb(var(--v-theme-error)); 

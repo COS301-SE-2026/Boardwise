@@ -14,17 +14,25 @@
         <div v-if="!messages.length && !isLoading" class="text-body-2 text-medium-emphasis">
             Ask a question about this rulebook - answers are grounded in its actual text.
         </div>
+
+        <div v-else-if="hasNoResult" class="text-body-2 text-medium-emphasis rag-no-result">
+            I could not find anything relevant to that in this rulebook. Try rephrasing, or check you've selected the right game.
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { emit } from 'node:cluster';
 import RagMessage from './RagMessage.vue'
 import type { RagMessage as RagMessageType } from '~/composables/useRag'
 
 defineProps<{
     messages: RagMessageType[]
     isLoading?: boolean
+    hasNoResult?: boolean
+}>()
+
+const emit = defineEmits<{
+    (e: 'retry', message: RagMessageType): void
 }>()
 </script>
 

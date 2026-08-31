@@ -13,7 +13,7 @@
                 </div> 
 
                 <RagFeed :messages="messages" :is-loading="isLoading" />
-                <RagComposer :is-loading="isLoading" @send="handleSend" />
+                <RagComposer :is-loading="isLoading" :has-no-result="false" @send="handleSend" />
             </div>
         </v-card>
     </v-scale-transition>
@@ -21,7 +21,6 @@
 
 <script setup lang="ts">
 import { watch } from 'vue'
-import { useDisplay } from 'vuetify'
 
 import RagFeed from '~/components/features/rag/RagFeed.vue'
 import RagComposer from '~/components/features/rag/RagComposer.vue'
@@ -36,8 +35,6 @@ const props = defineProps<{
 const emit = defineEmits<{
     (e: 'update:modelValue', value: boolean): void
 }> ()
-
-const { lgAndUp } = useDisplay()
 
 const { messages, isLoading, askQuestion, clearConversation } = useRag()
 
