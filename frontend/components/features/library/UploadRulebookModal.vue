@@ -6,18 +6,10 @@
 
       <div>
         <p class="text-caption font-weight-bold mb-2">Title</p>
-         <v-autocomplete
-            v-model="title"
-            :items="games"
-            :loading="gamesLoading"
-            item-title="title"
-            item-value="title"
-            placeholder="Board game title"
-            variant="outlined"
-            density="compact"
-            hide-details
-            @update:search="onTitleSearch"
-          />
+        <BaseButton variant="secondary" class="w-100 justify-space-between" @click="browserOpen = true">
+          <span>{{ title || 'Select a board game' }}</span>
+          <v-icon end>mdi-chevron-right</v-icon>
+        </BaseButton>
       </div>
 
       <div>
@@ -54,6 +46,13 @@
       </div>
 
     </div>
+
+    <AddGamesModal
+      v-model="browserOpen"
+      @confirm="onGameSelected"
+      @add-custom="$emit('add-custom')"
+    />
+
   </BaseModal>
 </template>
 
@@ -75,7 +74,7 @@ const props = defineProps({
 });
 
 const open = defineModel()
-const emit = defineEmits(['add'])
+const emit = defineEmits(['add','add-custom'])
 
 const title = ref('')
 const edition = ref('')
@@ -89,6 +88,13 @@ const triggerUpload = () => fileInput.value?.click()
 const isFormValid = computed(() => {
   return title.value && language.value && fileToUpload.value;
 });
+
+const onGameSelected = (selectedGames) => {
+  const game = selectedGames?.[0]
+  if (!game) return
+  title.value = game.title
+  selectedGameId.value = game.id
+}
 
 const handleFile = (e) => {
   const file = e.target.files[0]
