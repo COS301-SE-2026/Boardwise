@@ -2,10 +2,11 @@
 
 import json
 import pulumi
+import os
+from config import settings
 import pulumi_aws as aws
 import pulumi_cloudflare as cloudflare
-import pulumi_docker as docker
-
+import pulumi_awsx as awsx
 
 RESOURCE_PREFIX = "boardwise"
 
@@ -83,7 +84,6 @@ anomaly_subs = aws.costexplorer.AnomalySubscription(
     }
 )
 
-# --- SET UP REVERSE PROXY
 # set up Virtual Private Cloud (Basically private network, this will allow our EC2 Instances to communicate only amongst each other and others... )
 vpc = aws.ec2.Vpc(
     f"{RESOURCE_PREFIX}-vpc",
@@ -144,7 +144,7 @@ for i in range(2):
     )
     private_subnets.append(private_subnet)
 
-# Essential a "fire wall", define how what traffic is accepted and that (COS 332)
+# --- SET UP Security groups Essentially a "fire wall", define how what traffic is accepted and that (COS 332)
 caddy_sg = aws.ec2.SecurityGroup(
     f"{RESOURCE_PREFIX}-caddy-sg",
     description="Allow HTTP & HTTPS traffic",
@@ -192,45 +192,6 @@ caddy_egress_ipv6 = aws.vpc.SecurityGroupEgressRule(
     ip_protocol="-1"
 )
 
-# Set up ecs &-ec2 instance for caddy
-ami = aws.ssm.get_parameter(
-    name="/aws/service/ecs/optimized-ami/amazon-linux-2023/recommended/image_id"
-)
-
-setup_script = r"""#!bin/bash
-systemctl enable --now docker
-
-mkdir -p /etc/caddy
-cat << 'EOF' > /etc/caddy/Caddyfile
-:80 {
-    respond "Boardwise Caddy reverse proxy online" 200
-}
-EOF
-
-docker run -d \
-    --name caddy \
-    --restart always \
-    -p 80:80 \
-    -p 443:443 \
-    -v /etc/caddy/Caddyfile:/etc/caddy/Caddyfile \
-    -v caddy_data:/data \
-    -v caddy_config:/config \
-    caddy:2.11.4-alpine
-"""
-
-caddy_instance = aws.ec2.Instance(
-    "boardwise-reverse-proxy",
-    instance_type="t3.micro",
-    ami=ami.value,
-    vpc_security_group_ids=[caddy_sg.id],
-    subnet_id=public_subnets[0].id,
-    user_data=setup_script,
-    tags={"Name": "boardwise-reverse-proxy"}
-)
-
-# TODO: Possibly add an Elastic IP
-
-
 # set backend security groups
 spring_sg = aws.ec2.SecurityGroup(
     "boardwise-spring-sg",
@@ -252,7 +213,7 @@ spring_egress_ipv6 = aws.vpc.SecurityGroupEgressRule(
     "spring-sg-egress-ipv6",
     description="to allow spring backend to make requests to the outside [IPv6]",
     security_group_id=spring_sg.id,
-    cidr_ipv4="::/0",
+    cidr_ipv6="::/0",
     ip_protocol="-1"
 )
 
@@ -294,7 +255,7 @@ python_egress_ipv6 = aws.vpc.SecurityGroupEgressRule(
     "python-sg-egress-ipv6",
     description="to allow python backend to make requests to the outside [IPv6]",
     security_group_id=python_sg.id,
-    cidr_ipv4="::/0",
+    cidr_ipv6="::/0",
     ip_protocol="-1"
 )
 
@@ -306,10 +267,266 @@ python_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
     ip_protocol="-1"
 )
 
+# set up backend
+ami = aws.ssm.get_parameter(
+    name="/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
+)
 
+backend_role = aws.iam.Role(
+    f"{RESOURCE_PREFIX}-backend-role",
+    assume_role_policy=json.dumps({
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Action": "sts:AssumeRole",
+                "Effect": "Allow",
+                "Principal": {
+                    "Service": "ec2.amazonaws.com"
+                }
+            }
+        ]
+    })
+)
 
+rpa_ecr = aws.iam.RolePolicyAttachment(
+    f"{RESOURCE_PREFIX}-ecr-policy",
+    role=backend_role.name,
+    policy_arn="arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+)
+
+rpa_ssm = aws.iam.RolePolicyAttachment(
+    f"{RESOURCE_PREFIX}-ssm-policy",
+    role=backend_role.name,
+    policy_arn="arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+)
+
+backend_profile = aws.iam.InstanceProfile(
+    f"{RESOURCE_PREFIX}-backend-profile",
+    role=backend_role.name
+)
+
+python_repo = awsx.ecr.Repository(f"{RESOURCE_PREFIX}-python-repo", force_delete=True)
+
+python_image = awsx.ecr.Image(
+    f"{RESOURCE_PREFIX}-python-image",
+    repository_url=python_repo.url,
+    context="../ai",
+    platform="linux/amd64"
+)
+
+python_setup_script = r"""#!/bin/bash
+yum update -y
+yum install -y docker
+
+systemctl enable --now docker
+
+aws ecr get-login-password --region __REGION__ | docker login --username AWS --password-stdin __REGISTRY_URL__
+
+docker run -d \
+    --restart always \
+    --name ai-backend \
+    -p 8000:8000 \
+    -e PROD_DB_URL="__PROD_DB_URL__" \
+    -e DB_NAME="__DB_NAME__" \
+    -e JWT_SECRET="__JWT_SECRET__" \
+    -e JWT_ALGORITHM="__JWT_ALGORITHM__" \
+    -e R2_ACCOUNT_ID="__R2_ACCOUNT_ID__" \
+    -e R2_BUCKET_RULEBOOKS="__R2_BUCKET_RULEBOOKS__" \
+    -e R2_ACCESS_KEY="__R2_ACCESS_KEY__" \
+    -e R2_SECRET_KEY="__R2_SECRET_KEY__" \ 
+    -e HF_TOKEN="__HF_TOKEN__" \
+    -e INTERNAL_SECRET="__INTERNAL_SECRET__" \
+    -e CPU_CORES="__CPU_CORES__" \
+    __IMAGE_URI__
+"""
+python_user_data = python_image.image_uri.apply(
+    lambda image_uri : python_setup_script
+                        .replace("__IMAGE_URI__", image_uri)
+                        .replace("__CPU_CORES__", str(settings.CPU_CORES))
+                        .replace("__INTERNAL_SECRET__", settings.INTERNAL_WEBHOOK_SECRET)
+                        .replace("__HF_TOKEN__", settings.HF_TOKEN)
+                        .replace("__R2_SECRET_KEY__", settings.R2_SECRET_KEY)
+                        .replace("__R2_ACCESS_KEY__", settings.R2_ACCESS_KEY)
+                        .replace("__R2_BUCKET_RULEBOOKS__", settings.R2_BUCKET_RULEBOOKS)
+                        .replace("__R2_ACCOUNT_ID__", settings.R2_ACCOUNT_ID)
+                        .replace("__JWT_ALGORITHM__", settings.JWT_ALGORITHM)
+                        .replace("__JWT_SECRET__", settings.JWT_SECRET)
+                        .replace("__DB_NAME__", settings.MONGODB_DATABASE)
+                        .replace("__PROD_DB_URL__", settings.MONGODB_URL)
+                        .replace("__REGISTRY_URL__", image_uri.split('/')[0])
+                        .replace("__REGION__", aws.get_region().name)
+)
+
+python_instance = aws.ec2.Instance(
+    f"{RESOURCE_PREFIX}-python-backend",
+    instance_type="m7i-flex.large",
+    ami=ami.value,
+    subnet_id=public_subnets[0].id,
+    vpc_security_group_ids=[python_sg.id],
+    tags={"Name": f"{RESOURCE_PREFIX}-python-backend"},
+    user_data=python_user_data,
+    iam_instance_profile=backend_profile.name,
+    associate_public_ip_address=True
+)
+
+spring_repo = awsx.ecr.Repository(f"{RESOURCE_PREFIX}-spring-repo", force_delete=True)
+spring_image = awsx.ecr.Image(
+    f"{RESOURCE_PREFIX}-spring-image",
+    repository_url=spring_repo.url,
+    context="../backend",
+    platform="linux/amd64"
+)
+
+spring_setup_script = r"""#!/bin/bash
+yum update -y
+yum install -y docker
+
+systemctl enable --now docker
+
+aws ecr get-login-password --region __REGION__ | docker login --username AWS --password-stdin __REGISTRY_URL__
+
+docker run -d \
+    --restart always \
+    --name spring-backend \
+    -p 8080:8080 \
+    -e PROD_DB_URL="__PROD_DB_URL__" \
+    -e JWT_SECRET="__JWT_SECRET__" \
+    -e JWT_ALGORITHM="__JWT_ALGORITHM__" \
+    -e R2_ACCOUNT_ID="__R2_ACCOUNT_ID__" \
+    -e R2_BUCKET_RULEBOOKS="__R2_BUCKET_RULEBOOKS__" \
+    -e R2_ACCESS_KEY="__R2_ACCESS_KEY__" \
+    -e R2_SECRET_KEY="__R2_SECRET_KEY__" \ 
+    -e INTERNAL_SECRET="__INTERNAL_SECRET__" \
+    -e PROD_FAST_API_BASE="__PROD_FAST_API_BASE__" \
+    -e R2_BUCKET_PROFILES="__R2_BUCKET_PROFILES__" \
+    -e R2_BUCKET_LISTINGS="__R2_BUCKET_LISTINGS__" \
+    -e R2_RULEBOOKS_PUBLIC_PROD_URL="__R2_RULEBOOKS_PUBLIC_PROD_URL__" \
+    -e R2_LISTINGS_PROD_ENDPOINT="__R2_LISTINGS_PROD_ENDPOINT__" \
+    -e R2_PROD_URL="__R2_PROD_URL__" \
+    -e BGG_TOKEN="__BGG_TOKEN__" \
+    -e BGG_URL="__BGG_URL__" \
+    -e PROD_FRONTEND_BASE="__PROD_FRONTEND_BASE__" \
+    -e GOOGLE_MAP_API_KEY="__GOOGLE_MAP_API_KEY__" \
+    -e SMTP_HOST="__SMTP_HOST__" \
+    -e SMTP_USERNAME="__SMTP_USERNAME__" \
+    -e SMTP_PASSWORD="__SMTP_PASSWORD__" \
+    __IMAGE_URI__
+"""
+spring_user_data = spring_image.image_uri.apply(
+    lambda image_uri : spring_setup_script
+                        .replace("__IMAGE_URI__", image_uri)
+                        .replace("__SMTP_PASSWORD__", settings.SMTP_PASSWORD if settings.SMTP_PASSWORD != None else "")
+                        .replace("__SMTP_USERNAME__", settings.SMTP_USERNAME if settings.SMTP_USERNAME != None else "")
+                        .replace("__SMTP_HOST__", settings.SMTP_HOST if settings.SMTP_HOST != None else "")
+                        .replace("__GOOGLE_MAP_API_KEY__", settings.GOOGLE_MAP_API_KEY)
+                        .replace("__PROD_FRONTEND_BASE__", "https://boardwise.games/")
+                        .replace("__BGG_URL__", settings.BGG_URL)
+                        .replace("__BGG_TOKEN__", settings.BGG_TOKEN)
+                        .replace("__R2_PROD_URL__", settings.R2_PROD_URL)
+                        .replace("__R2_LISTINGS_PROD_ENDPOINT__", settings.R2_LISTINGS_PROD_URL)
+                        .replace("__R2_RULEBOOKS_PUBLIC_PROD_URL__", settings.R2_RULEBOOKS_PUBLIC_PROD_URL)
+                        .replace("__R2_BUCKET_LISTINGS__", settings.R2_BUCKET_LISTINGS)
+                        .replace("__R2_BUCKET_PROFILES__", settings.R2_BUCKET_PROFILES)
+                        .replace("__PROD_FAST_API_BASE__", f"http://{python_instance.private_ip}:8000/api/fa/")
+                        .replace("__INTERNAL_SECRET__", settings.INTERNAL_WEBHOOK_SECRET)
+                        .replace("__R2_SECRET_KEY__", settings.R2_SECRET_KEY)
+                        .replace("__R2_ACCESS_KEY__", settings.R2_ACCESS_KEY)
+                        .replace("__R2_BUCKET_RULEBOOKS__", settings.R2_BUCKET_RULEBOOKS)
+                        .replace("__R2_ACCOUNT_ID__", settings.R2_ACCOUNT_ID)
+                        .replace("__JWT_ALGORITHM__", settings.JWT_ALGORITHM)
+                        .replace("__JWT_SECRET__", settings.JWT_SECRET)
+                        .replace("__PROD_DB_URL__", settings.MONGODB_URL)
+                        .replace("__REGISTRY_URL__", image_uri.split('/')[0])
+                        .replace("__REGION__", aws.get_region().name)
+)
+
+spring_instance = aws.ec2.Instance(
+    f"{RESOURCE_PREFIX}-spring-backend",
+    instance_type="m7i-flex.large",
+    ami=ami.value,
+    subnet_id=public_subnets[0].id,
+    vpc_security_group_ids=[spring_sg.id],
+    tags={"Name": f"{RESOURCE_PREFIX}-spring-backend"},
+    user_data=spring_user_data,
+    iam_instance_profile=backend_profile.name,
+    associate_public_ip_address=True
+)
+
+# Set up ecs &-ec2 instance for caddy
+
+caddy_setup_script = r"""#!/bin/bash
+yum update -y
+yum install -y docker
+
+systemctl enable --now docker
+
+mkdir -p /etc/caddy
+cat << 'EOF' > /etc/caddy/Caddyfile
+:80 {
+    # Route requests to spring
+    handle /api/sb/* {
+        reverse_proxy __SPRING_IP__:8080
+    }
+
+    # Route requests to python
+    handle /api/fa/* {
+        reverse_proxy __PYTHON_IP__:8000
+    }
+}
+
+:443 {
+    # Route requests to spring
+    handle /api/sb/* {
+        reverse_proxy __SPRING_IP__:8080
+    }
+
+    # Route requests to python
+    handle /api/fa/* {
+        reverse_proxy __PYTHON_IP__:8000
+    }
+}
+EOF
+
+docker run -d \
+    --name caddy \
+    --restart always \
+    -p 80:80 \
+    -p 443:443 \
+    -v /etc/caddy/Caddyfile:/etc/caddy/Caddyfile \
+    -v caddy_data:/data \
+    -v caddy_config:/config \
+    caddy:2.11.4-alpine
+"""
+
+caddy_user_data = pulumi.Output.all(
+    spring_ip=spring_instance.private_ip,
+    python_ip=python_instance.private_ip
+).apply(
+    lambda ips: caddy_setup_script
+                .replace("__SPRING_IP__", ips["spring_ip"])
+                .replace("__PYTHON_IP__", ips["python_ip"])
+)
+
+caddy_instance = aws.ec2.Instance(
+    "boardwise-reverse-proxy",
+    instance_type="t3.micro",
+    ami=ami.value,
+    vpc_security_group_ids=[caddy_sg.id],
+    subnet_id=public_subnets[0].id,
+    user_data=caddy_user_data,
+    tags={"Name": "boardwise-reverse-proxy"},
+)
+
+caddy_eip = aws.ec2.Eip(
+    f"{RESOURCE_PREFIX}-caddy-eip",
+    instance=caddy_instance.id,
+    domain="vpc",
+    tags={"Name": f"{RESOURCE_PREFIX}-caddy-eip"}
+)
 
 
 
 pulumi.export("public_subnets",  [subnet.tags["Name"] for subnet in public_subnets])
 pulumi.export("private_subnets", [subnet.tags["Name"] for subnet in private_subnets])
+pulumi.export("caddy_public_id", caddy_eip.public_ip)
+pulumi.export("caddy_public_dns", caddy_eip.public_dns)
