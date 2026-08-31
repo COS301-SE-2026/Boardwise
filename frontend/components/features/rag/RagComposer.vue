@@ -6,6 +6,7 @@
                 class="flex-grow-1"
                 placeholder="Ask a question about this rulebook..."
                 :disabled="isLoading"
+                maxlength="500"
                 @keyup.enter="send"
             />
 
