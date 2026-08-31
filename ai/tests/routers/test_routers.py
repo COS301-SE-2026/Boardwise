@@ -11,7 +11,7 @@ def test_upload_rejects_non_pdf(client, mock_auth):
     files = {"file": ("malware.sh", b"echo 'hacked'", "application/x-sh")}
     data = {"title": "Hack", "language": "en"}
 
-    response = client.post("/api/vault/rulebooks/upload", data=data, files=files)
+    response = client.post("/api/fa/vault/rulebooks/upload", data=data, files=files)
 
     assert response.status_code == 415
     assert "Only PDF files" in response.json()["detail"]
@@ -30,7 +30,7 @@ def test_upload_success_mocked(mock_add_task, mock_mongo, client, mock_auth):
     data = {"title": "Catan", "language": "en"}
 
     # Act
-    response = client.post("/api/vault/rulebooks/upload", data=data, files=files)
+    response = client.post("/api/fa/vault/rulebooks/upload", data=data, files=files)
 
     # Assert
     assert response.status_code == 202
@@ -55,7 +55,7 @@ def test_get_job_status_success_for_valid_job_id(mock_mongo, client, mock_auth):
     }
 
     # Act
-    response = client.get(f"/api/vault/rulebooks/status/{mock_job_id}")
+    response = client.get(f"/api/fa/vault/rulebooks/status/{mock_job_id}")
 
     # Assert
     assert response.status_code == 200
@@ -73,7 +73,7 @@ def test_upload_rejects_pdf_too_large(client, mock_auth):
     data = {"title": "Dune", "language":"en"}
 
     # Act
-    response = client.post("/api/vault/rulebooks/upload", data=data, files=files)
+    response = client.post("/api/fa/vault/rulebooks/upload", data=data, files=files)
 
     # Assert
     assert response.status_code == 413
@@ -87,7 +87,7 @@ def test_upload_rejects_non_pdf_bytes(client, mock_auth):
     data = {"title": "Dune", "language":"en"}
 
     # Act
-    response = client.post("/api/vault/rulebooks/upload", data=data, files=files)
+    response = client.post("/api/fa/vault/rulebooks/upload", data=data, files=files)
 
     # Assert
     assert response.status_code == 422
@@ -109,7 +109,7 @@ def test_upload_rejects_token_missing_sub_claim(client):
 
         # Act
         response = client.post(
-            "/api/vault/rulebooks/upload",
+            "/api/fa/vault/rulebooks/upload",
             data=data,
             files=dummy_file,
             headers={"Authorization": "Bearer fake_token"}
@@ -133,7 +133,7 @@ def test_upload_throws_value_error(mock_mongo,client, mock_auth):
     data = {"title": "Catan", "language": "en"}
 
     # Act
-    response = client.post("/api/vault/rulebooks/upload", data=data, files=files)
+    response = client.post("/api/fa/vault/rulebooks/upload", data=data, files=files)
 
     # Assert
     assert response.status_code == 400
@@ -153,7 +153,7 @@ def test_upload_throws_error_for_unexpected_failure(mock_mongo,client, mock_auth
     data = {"title": "Catan", "language": "en"}
 
     # Act
-    response = client.post("/api/vault/rulebooks/upload", data=data, files=files)
+    response = client.post("/api/fa/vault/rulebooks/upload", data=data, files=files)
 
     # Assert
     assert response.status_code == 500
@@ -165,7 +165,7 @@ def test_get_job_status_fails_for_invalid_job_id(client, mock_auth):
     mock_job_id = "definitely_invalid"
 
     # Act
-    response = client.get(f"/api/vault/rulebooks/status/{mock_job_id}")
+    response = client.get(f"/api/fa/vault/rulebooks/status/{mock_job_id}")
 
     # Assert
     assert response.status_code == 400
@@ -179,7 +179,7 @@ def test_get_job_status_fails_for_job_id_that_does_not_exist(mock_mongo, client,
     mock_mongo.get_ingestion_job.return_value = None
 
     # Act
-    response = client.get(f"/api/vault/rulebooks/status/{mock_job_id}")
+    response = client.get(f"/api/fa/vault/rulebooks/status/{mock_job_id}")
 
     # Assert
     assert response.status_code == 404
