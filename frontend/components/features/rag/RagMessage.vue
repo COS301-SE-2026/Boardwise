@@ -37,7 +37,7 @@ defineProps<{message: RagMessage }>()
     max-width: 80%; 
     padding: var(--space-3, 12px) var(--space-4, 16px); }
 
-.rag-bubble--error { 
+.rag-bubble-error { 
     border: 1px solid rgb(var(--v-theme-error)); 
 }
 
