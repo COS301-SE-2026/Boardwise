@@ -42,7 +42,10 @@ async def lifespan(app: FastAPI):
         # device="cpu" is set to avoid searching for CUDA on Fargate
         # trust_remote_code=True is required for Nomic models via HuggingFace
         ml_models["embedding_model"] = SentenceTransformer(
-            "nomic-ai/nomic-embed-text-v1.5", device="cpu", trust_remote_code=True
+            "nomic-ai/nomic-embed-text-v1.5",
+            device="cpu",
+            revision="e9b6763023c676ca8431644204f50c2b100d9aab",
+            trust_remote_code=True,
         )
         logger.info("Nomic embedding model loaded successfully.")
 
