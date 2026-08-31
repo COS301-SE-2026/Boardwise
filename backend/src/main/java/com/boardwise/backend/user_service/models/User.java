@@ -9,17 +9,13 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Document(collection = "USER")
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
-@EqualsAndHashCode
 public class User {
     
     @Id
@@ -40,6 +36,8 @@ public class User {
     private Instant lastOnlineAt;
     private Instant createdAt;
     private List<String> ownedGames;
+    private String resetToken;
+    private Instant resetTokenExpiry;
 
     public User(String username, String firstName, String lastName, 
         String email, String password) {
@@ -54,6 +52,8 @@ public class User {
         this.createdAt = Instant.now();
         this.profilePicture = null;
         this.location = null;
+        this.resetToken = null;
+        this.resetTokenExpiry = null;
     }
 
 }
