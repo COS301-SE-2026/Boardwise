@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { watch } from 'vue'
 import { useDisplay } from 'vuetify'
 
 import RagFeed from '~/components/features/rag/RagFeed.vue'
