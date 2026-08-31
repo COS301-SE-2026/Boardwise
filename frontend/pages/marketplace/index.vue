@@ -162,15 +162,16 @@ watch(searchQ,(query)=>{
   const handleFilter = (filters)=>{
 
   const conditions = filters.conditions.length > 0 ? filters.conditions.map(c => c.toLowerCase()) : null
+  const genres = filters.genres?.length > 0 ? filters.genres : null
 
   const  lt= getListingType(filters.rent,filters.sale);
 
    activeFilterState.value = {
     listingType: lt,
-    genres: filters.genres,
-    conditions: conditions,
-    minPrice: filters.minPrice,
-    maxPrice: filters.maxPrice,
+    genres,
+    conditions,
+    minPrice: filters.minPrice || null,
+    maxPrice: filters.maxPrice || null,
   }
 
   console.log('active filters',activeFilterState.value);

@@ -13,29 +13,32 @@ import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
-import com.microsoft.playwright.Playwright;
 
 @Service
 public class ToysRUsScraper implements WebScraper {
 
-    public ToysRUsScraper(){} 
+    public ToysRUsScraper(BrowserManager browserManager){
+        this.browserManager = browserManager;
+    } 
 
     private final static Logger logger = Logger.getLogger(ToysRUsScraper.class.getName());
     private final int MAXNUMITEMS = 25;
     private final String site = "https://www.toysrus.co.za/";
     private final String RETAILERNAME="ToysRUs";
+    private final BrowserManager browserManager; // let spring hanfle it
 
     @Override
     public List<RetailSourceItemDTO> scrape(String toSearch) {
+                long start = System.currentTimeMillis();
+
+        System.out.println("TOYSRUS SCRAPER STARTED");
         if(toSearch== null || toSearch.isBlank()){
             return null;
         }
-        try(Playwright playwright = Playwright.create()){
-            //chromium
-            Browser chromium =  playwright.chromium().launch();
-            BrowserContext context = chromium.newContext();
+        Browser b = browserManager.getBrowser();
+        try(BrowserContext context = b.newContext()){
             Page page = context.newPage();
-            context.setDefaultTimeout(60000);
+            context.setDefaultTimeout(30000);
 
             //website
             page.navigate(site);
@@ -101,6 +104,9 @@ public class ToysRUsScraper implements WebScraper {
             page.close();
 
             sortBySimilarity(retailSourceItemDTOs); // sort in terms of float
+            System.out.println("TOYSRUS SCRAPER FINISHED AFTER:");
+
+            System.out.println((System.currentTimeMillis()-start)/1000 + "s")  ;
             return retailSourceItemDTOs;
 
         } catch (Exception e) {

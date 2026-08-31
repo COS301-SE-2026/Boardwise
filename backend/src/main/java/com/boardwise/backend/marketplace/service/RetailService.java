@@ -4,10 +4,15 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +35,9 @@ import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.repository.UserRepository;
 import com.boardwise.backend.user_service.repository.UserRepository.GameOwnershipCount;
+
+import jakarta.annotation.PreDestroy;
+
 import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.user_service.models.User;
 
@@ -50,6 +58,14 @@ public class RetailService {
     //AUTH
     private final JWTService jwtService;
 
+    private final UserRepository userRepository;
+    private final BoardGameRepository boardGameRepository;
+     
+    //number of Games to search for 
+    private final int NUMOFGAMES = 50;
+
+    private final ExecutorService scraperExecutor = Executors.newFixedThreadPool(3);
+
 
     private final ScrapeCacheRepository scrapeCacheRepository;
     
@@ -66,22 +82,36 @@ public class RetailService {
         this.jwtService = jwtService;
     }
 
+    private List<RetailSourceItemDTO> safeJoin(CompletableFuture<List<RetailSourceItemDTO>> future) {
+    if (future.isDone() && !future.isCompletedExceptionally()) {
+        return future.join();
+    }
+    future.cancel(true); // stops waitinhg
+    return new ArrayList<>();
+}
+
     protected List<RetailSourceItemDTO> findWebListings(String s) {
         if (!StringUtils.hasText(s)) {
             return new ArrayList<>();
         }
 
         // individual processes happening concurrently
-        CompletableFuture<List<RetailSourceItemDTO>> takealotFuture = CompletableFuture.supplyAsync(() -> safeScrape(ts::scrape, s));
-        CompletableFuture<List<RetailSourceItemDTO>> bobShopFuture = CompletableFuture.supplyAsync(() -> safeScrape(bss::scrape, s));
-        CompletableFuture<List<RetailSourceItemDTO>> toysRUsFuture = CompletableFuture.supplyAsync(() -> safeScrape(trus::scrape, s));
-
-        CompletableFuture.allOf(takealotFuture, bobShopFuture, toysRUsFuture).join();
-
+        CompletableFuture<List<RetailSourceItemDTO>> takealotFuture =  CompletableFuture.supplyAsync(() -> safeScrape(ts::scrape, s), scraperExecutor);
+        CompletableFuture<List<RetailSourceItemDTO>> bobShopFuture =CompletableFuture.supplyAsync(() -> safeScrape(bss::scrape, s), scraperExecutor);
+        CompletableFuture<List<RetailSourceItemDTO>> toysRUsFuture =CompletableFuture.supplyAsync(() -> safeScrape(trus::scrape, s), scraperExecutor);
+        
+        try {
+            CompletableFuture.allOf(takealotFuture, bobShopFuture, toysRUsFuture)
+                .orTimeout(40, TimeUnit.SECONDS)
+                .join();
+        } catch (Exception e) {
+            logger.warning("Scrape timed out or failed: " + e.getMessage());
+        }
         List<RetailSourceItemDTO> overall = new ArrayList<>();
-        overall.addAll(takealotFuture.join());
-        overall.addAll(bobShopFuture.join());
-        overall.addAll(toysRUsFuture.join());
+        overall.addAll(safeJoin(takealotFuture));
+        overall.addAll(safeJoin(bobShopFuture));
+        overall.addAll(safeJoin(toysRUsFuture));
+
 
         return overall;
     }
@@ -133,7 +163,7 @@ public class RetailService {
         return new PageImpl<>(overall.subList(start, end), pageable, overall.size());
     } 
     private List<Boardgame> getGloballyPopularGames() {
-        List<GameOwnershipCount> topOwned = userRepository.findMostOwnedGameIds(NUMOFGAMES);
+        List<GameOwnershipCount> topOwned = userRepository.findMostOwnedGameIds(5);
  
         List<Boardgame> games = new ArrayList<>();
         if (!topOwned.isEmpty()) {
@@ -151,7 +181,6 @@ public class RetailService {
                 .limit(shortfall)
                 .forEach(games::add);
         }
- 
         return games;
     }
 
@@ -161,39 +190,85 @@ public class RetailService {
     }
     
     public Page<RetailSourceItemDTO> getPersonalizedRetailListings(String token, Integer pageNum) {
-        //Extract userId
-        ObjectId userId = jwtService.extractUserId(token);
-        //Get the users details 
-        Optional<User> user = userRepository.findById(userId.toString());
+    ObjectId userId = jwtService.extractUserId(token);
+    Optional<User> user = userRepository.findById(userId.toString());
 
-        if (user.isEmpty()){
-            logger.info(() -> "Error while trying to find user for personalised listings: " + userId.toString());
-            return emptyPage(pageNum);
-        }
+    List<RetailSourceItemDTO> combined = new ArrayList<>();
 
-        //Look at what games the user has 
+    if (user.isPresent()) {
         List<String> ownedGameIds = user.get().getOwnedGames();
-        List<Boardgame> games; // games with the names
+        List<Boardgame> games;
 
-        if(ownedGameIds != null && !ownedGameIds.isEmpty()){
-            List<String> topNGames = ownedGameIds.stream().limit(NUMOFGAMES).toList();
+        if (ownedGameIds != null && !ownedGameIds.isEmpty()) {
+            List<String> topNGames = ownedGameIds.stream().limit(5).toList();
             games = boardGameRepository.findAllById(topNGames);
-        }
-        else{
-            //no inventory probably a new user
+        } else {
             games = getGloballyPopularGames();
         }
 
-        if(games.isEmpty()){
-            return emptyPage(pageNum);
-        }
-
-        List<RetailSourceItemDTO> combined = new ArrayList<>();
         for (Boardgame bg : games) {
             combined.addAll(findWebListingsCached(bg.getTitle() + " Boardgame"));
         }
+    } else {
+        logger.info(() -> "Error while trying to find user for personalised listings: " + userId.toString());
+    }
+    //padding for results
 
-        return paginate(combined, pageNum);
+    if (combined.size() < PAGESIZE) {
+        combined = padWithCachedFallback(combined);
+    }
+
+    if (combined.isEmpty()) {
+        return fallbackToAllCached(pageNum);
+    }
+
+    return paginate(combined, pageNum);
+}
+
+    private List<RetailSourceItemDTO> padWithCachedFallback(List<RetailSourceItemDTO> existing) {
+        int needed = PAGESIZE - existing.size();
+        if (needed <= 0) return existing;
+
+        Set<String> seenKeys = existing.stream()
+            .map(this::itemKey)
+            .collect(Collectors.toSet());
+
+        List<RetailSourceItemDTO> padded = new ArrayList<>(existing);
+        int added = 0;
+
+        List<ScrapeCache> recentCaches = scrapeCacheRepository
+            .findByLastScrapedAtAfterOrderByLastScrapedAtDesc(
+                LocalDateTime.now().minusMinutes(ttlMin), Limit.of(50));
+
+        for (ScrapeCache c : recentCaches) {
+            if (added >= needed) break;
+            for (RetailSourceItemDTO item : c.getResults()) {
+                if (added >= needed) break;
+                if (seenKeys.add(itemKey(item))) {
+                    padded.add(item);
+                    added++;
+                }
+            }
+        }
+
+        return padded;
+    }
+
+    private String itemKey(RetailSourceItemDTO item) {
+        return item.retailer() + "|" + item.url();
+    }
+        
+    private Page<RetailSourceItemDTO> fallbackToAllCached(Integer pageNum) {
+        List<RetailSourceItemDTO> allCached = scrapeCacheRepository.findAll().stream()
+            .limit(5)
+            .filter(this::isFresh)
+            .flatMap(c -> c.getResults().stream())
+            .toList();
+
+        if (allCached.isEmpty()) {
+            return emptyPage(pageNum);
+        }
+        return paginate(new ArrayList<>(allCached), pageNum);
     }
 
     private List<RetailSourceItemDTO> rescrapeAndCache(String s) {
@@ -220,21 +295,16 @@ public class RetailService {
     
     //RECCOMMENDATION ALGORITHM
     //CURRENT APPROACH: fetch as many listings as possible based on 
-    private final UserRepository userRepository;
-    private final BoardGameRepository boardGameRepository;
-     
-    //number of Games to search for 
-    private final int NUMOFGAMES = 25;
 
-    @Scheduled(fixedDelayString = "${scrape.cache.refresh.interval.ms:3600000}" ,initialDelayString = "${scrape.cache.refresh.interval.ms:3600000}")
+    @Scheduled(fixedDelayString = "${scrape.cache.refresh.interval.ms:3600000}", initialDelay = 3000)
     public void ScheduledRecommendedScraper(){
         //SHOULDDO: compute most popular first 
         //get first n games 
-        List<GameOwnershipCount> currGames = new ArrayList<>(userRepository.findMostOwnedGameIds(NUMOFGAMES)); // mock
+        List<GameOwnershipCount> currGames = new ArrayList<>(userRepository.findMostOwnedGameIds(NUMOFGAMES)); 
         //fall back 
         List<Boardgame> games = new ArrayList<>();
 
-        if(currGames.size() < 3){//3 to keep somewhat of a variety for games
+        if(currGames.size() <   5 ){//5 to keep somewhat of a variety for games
            games = getGloballyPopularGames();
         } else{
             for(GameOwnershipCount x : currGames){
@@ -252,7 +322,21 @@ public class RetailService {
         }
         //scrape based on current 
         for(Boardgame bg : games){
+            System.out.println("Scraping for: " + bg.getTitle() + " boardgames");
+            long s = System.currentTimeMillis();
             this.findWebListingsCached(bg.getTitle()+" Boardgame");
+            long e = System.currentTimeMillis();
+
+            long tot = e-s;
+
+            System.out.println("completed after: " );
+            System.out.println(tot+ " ms");
+            System.out.println(tot/1000+ " s");
         }
+    }
+    
+    @PreDestroy
+    public void shutdown() {
+        scraperExecutor.shutdown();
     }
 }

@@ -20,26 +20,31 @@ import com.microsoft.playwright.Playwright;
 @Service
 public class BobShopScraper implements WebScraper {
     private final static  Logger logger = Logger.getLogger(BobShopScraper.class.getName());
-
-    public BobShopScraper() {
+    public BobShopScraper(BrowserManager browserManager) {
+        this.browserManager = browserManager;
     }
 
     private final String RETAILERNAME = "Bobshop";
-    private final int MAXNUMITEMS = 25;
+    private final int MAXNUMITEMS = 40;
     private final String site = "https://www.bobshop.co.za";
+
+    private final BrowserManager browserManager;
 
     @Override
     public List<RetailSourceItemDTO> scrape(String toSearch) {
+        long start = System.currentTimeMillis();
+
+        System.out.println("BOBSHOP SCRAPER STARTED");
+
         if (toSearch == null || toSearch.isBlank()) {
             logger.info(" BOBSHOP Crashed while trying to search blank... " .concat(LocalDate.now().toString()));
             return null;
         }
-        try (Playwright playwright = Playwright.create()) {
+            Browser browser = browserManager.getBrowser();
+        try (BrowserContext context = browser.newContext() ) {
             // chromium
-            Browser chromium = playwright.chromium().launch();
-            BrowserContext context = chromium.newContext();
             Page page = context.newPage();
-            context.setDefaultTimeout(60000);
+            context.setDefaultTimeout(30000);
             // website
             page.navigate(site);
 
@@ -100,11 +105,12 @@ public class BobShopScraper implements WebScraper {
             page.close();
 
             sortBySimilarity(retailSourceItemDTOs); // sort in terms of float
-
+            System.out.println("BOBSHOP SCRAPER FINISHED AFTER:");
+            System.out.println((System.currentTimeMillis()-start)/1000 + "s");
             return retailSourceItemDTOs;
 
         } catch (Exception e) {
-            logger.info("Error while scraping bobshop" .concat(e.getMessage()));
+            logger.info("Error while scraping bobshop " + (e.getMessage()));
             throw new RuntimeException(e.getMessage());
         }
     }

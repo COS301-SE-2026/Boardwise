@@ -400,7 +400,7 @@ public class ListingService {
             if(size < 0) size = Integer.MAX_VALUE;
 
             //Pagination
-            pageRequest = PageRequest.of(page - 1 ,size); 
+            pageRequest = PageRequest.of(page ,size); 
             query.with(pageRequest);
         }
         List<Listing> allMatches = mongoTemplate.find(new Query(criteria), Listing.class);

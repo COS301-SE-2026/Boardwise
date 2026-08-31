@@ -23,9 +23,6 @@ const _useMarketplace = () =>{
 
     const activeFilters = ref({})
 
-    //page for personalised listings
-    const persPage = ref(0);
-
     const loadMore = () => {
         if (!loading.value && hasMore.value) fetchListings(activeFilters.value, false)
     }
@@ -51,11 +48,13 @@ const _useMarketplace = () =>{
         if (!hasMore.value) return
         loading.value = true;
         try {
+            console.log("Current filters", activeFilters);
             const res = await MarketplaceService.getListings({
                 ...activeFilters.value,
                 page: page.value,
                 size: pageSize
             });
+            console.log("res : " , res);
             listings.value = reset ? res.content : [...listings.value, ...res.content];
             hasMore.value = !res.last;
             page.value += 1;

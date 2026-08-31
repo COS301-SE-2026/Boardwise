@@ -24,12 +24,13 @@ import com.boardwise.backend.marketplace.service.*;
 import jakarta.validation.*;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/api/marketplace")
 
 public class ListingController {
-
+    private final Logger logger = Logger.getLogger("Listing Controller Logger");
     private final ListingService listingService;
     private final RetailService retailService;
 
@@ -50,6 +51,7 @@ public class ListingController {
             return ResponseEntity.ok().body(listings);
 
         } catch (Exception e) {
+            logger.info("getAllListings failed " +  e); 
             return ResponseEntity.internalServerError().body(null);
         }
     }
@@ -163,7 +165,7 @@ public class ListingController {
             }
             return ResponseEntity.ok(listings);
         } catch (Exception e) {
-
+            logger.info("getFilteredListings failed " +  e); 
             return ResponseEntity.internalServerError().build();
         }
     }
