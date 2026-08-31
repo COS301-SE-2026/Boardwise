@@ -1015,9 +1015,6 @@ li {
 :where(
   a,
   button,
-  input,
-  textarea,
-  select,
   summary,
   [role="button"],
   [role="link"],
@@ -1042,6 +1039,84 @@ li {
 /* -------------------------------------------------------------
    FORM FOCUS + ERRORS
    ------------------------------------------------------------- */
+
+   /* -------------------------------------------------------------
+   BASE INPUT
+   ------------------------------------------------------------- */
+
+.base-input {
+  width: 100%;
+}
+
+.base-input .v-field {
+  min-height: 54px;
+
+  background: var(--color-surface);
+
+  /* Boardwise curvy input */
+  border-radius: var(--radius-lg);
+
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.base-input .v-field__outline__start {
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+}
+
+.base-input .v-field__outline__end {
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+
+.base-input .v-field__input {
+  min-height: 54px;
+
+  padding-top: 14px;
+  padding-bottom: 10px;
+
+  font-family: var(--font-body);
+  font-size: 1rem;
+
+  color: var(--color-text);
+}
+
+.base-input .v-label {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: var(--fw-medium);
+
+  color: var(--color-text-muted);
+
+  opacity: 1;
+}
+
+.base-input:focus-within .v-field {
+  box-shadow: 0 0 0 3px rgba(199, 40, 110, 0.22);
+}
+
+.base-input:focus-within .v-field__outline {
+  color: var(--color-primary);
+  opacity: 1;
+}
+
+.base-input.v-input--error .v-field__outline {
+  color: var(--color-error);
+  opacity: 1;
+}
+
+.base-input .v-messages {
+  padding-top: var(--space-1);
+
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+}
+
+.base-input__password-toggle {
+  min-width: 44px;
+  min-height: 44px;
+}
 
 .input:focus-visible {
   outline: 3px solid var(--color-primary);
