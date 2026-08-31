@@ -7,10 +7,13 @@ import pulumi_cloudflare as cloudflare
 import pulumi_docker as docker
 
 
+RESOURCE_PREFIX = "boardwise"
+
 # --- Set up budget, budget alerts and cost anomaly
 # Budget to measure how much of our credits are being used
 budget = aws.budgets.Budget(
-    "boardwise-costs",
+    f"{RESOURCE_PREFIX}-costs",
+    name=f"{RESOURCE_PREFIX}-costs",
     budget_type="COST",
     limit_amount="200",
     limit_unit="USD",
@@ -57,14 +60,14 @@ budget = aws.budgets.Budget(
 
 # Anomaly monitor to catch potential spikes in our expenditure
 anomaly_monitor = aws.costexplorer.AnomalyMonitor(
-    "boardwise-anomalies",
+    f"{RESOURCE_PREFIX}-anomalies",
     monitor_type="DIMENSIONAL",
     monitor_dimension="SERVICE"
 )
 
 # Who to notify when anomalies occur
 anomaly_subs = aws.costexplorer.AnomalySubscription(
-    "boardwise-anomaly-alerts",
+    f"{RESOURCE_PREFIX}-anomaly-alerts",
     frequency="DAILY",
     monitor_arn_lists=[anomaly_monitor.arn],
     subscribers=[{
@@ -83,21 +86,21 @@ anomaly_subs = aws.costexplorer.AnomalySubscription(
 # --- SET UP REVERSE PROXY
 # set up Virtual Private Cloud (Basically private network, this will allow our EC2 Instances to communicate only amongst each other and others... )
 vpc = aws.ec2.Vpc(
-    "boardwise-vpc",
+    f"{RESOURCE_PREFIX}-vpc",
     cidr_block="10.0.0.0/16",
     enable_dns_hostnames=True,
     enable_dns_support=True,
-    tags={"Name": "boardwise-vpc"}
+    tags={"Name": f"{RESOURCE_PREFIX}-vpc"}
 )
 
 igw = aws.ec2.InternetGateway(
-    "boardwise-vpc-igw",
+    f"{RESOURCE_PREFIX}-vpc-igw",
     vpc_id=vpc.id,
-    tags={"Name": "boardwise-vpc-igw"}
+    tags={"Name": f"{RESOURCE_PREFIX}-vpc-igw"}
 )
 
 route_table = aws.ec2.RouteTable(
-    "boardwise-public-route-table",
+    f"{RESOURCE_PREFIX}-public-route-table",
     vpc_id=vpc.id,
     routes=[
         aws.ec2.RouteTableRouteArgs(
@@ -105,7 +108,7 @@ route_table = aws.ec2.RouteTable(
             gateway_id=igw.id
         )
     ],
-    tags={"Name": "boardwise-route-table"}
+    tags={"Name": f"{RESOURCE_PREFIX}-public-route-table"}
 )
 
 azs = aws.get_availability_zones(state="available")
@@ -143,7 +146,7 @@ for i in range(2):
 
 # Essential a "fire wall", define how what traffic is accepted and that (COS 332)
 caddy_sg = aws.ec2.SecurityGroup(
-    "caddy-sg",
+    f"{RESOURCE_PREFIX}-caddy-sg",
     description="Allow HTTP & HTTPS traffic",
     vpc_id=vpc.id,
 )
@@ -194,26 +197,26 @@ ami = aws.ssm.get_parameter(
     name="/aws/service/ecs/optimized-ami/amazon-linux-2023/recommended/image_id"
 )
 
-setup_script = """
-        #!bin/bash
-        systemctl enable --now docker
+setup_script = r"""#!bin/bash
+systemctl enable --now docker
 
-        mkdir -p /etc/caddy
-        cat << 'EOF' > /etc/caddy/Caddyfile
-        :80 {
-            respond "Boardwise Caddy reverse proxy online" 200
-        }
-        EOF
+mkdir -p /etc/caddy
+cat << 'EOF' > /etc/caddy/Caddyfile
+:80 {
+    respond "Boardwise Caddy reverse proxy online" 200
+}
+EOF
 
-        docker run -d \\
-            --name caddy \\
-            -p 80:80 \\
-            -p 443:443 \
-            -v /etc/caddy/Caddyfile: /etc/caddy/Caddyfile \\
-            -v caddy_data: /data \\
-            caddy:2.11.4-alpine
-            
-    """
+docker run -d \
+    --name caddy \
+    --restart always \
+    -p 80:80 \
+    -p 443:443 \
+    -v /etc/caddy/Caddyfile:/etc/caddy/Caddyfile \
+    -v caddy_data:/data \
+    -v caddy_config:/config \
+    caddy:2.11.4-alpine
+"""
 
 caddy_instance = aws.ec2.Instance(
     "boardwise-reverse-proxy",
@@ -223,6 +226,84 @@ caddy_instance = aws.ec2.Instance(
     subnet_id=public_subnets[0].id,
     user_data=setup_script,
     tags={"Name": "boardwise-reverse-proxy"}
+)
+
+# TODO: Possibly add an Elastic IP
+
+
+# set backend security groups
+spring_sg = aws.ec2.SecurityGroup(
+    "boardwise-spring-sg",
+    description="only permit traffic from Caddy instance and allow spring backend outgoing traffic",
+    vpc_id=vpc.id
+)
+
+caddy_to_spring = aws.vpc.SecurityGroupIngressRule(
+    "spring-sg-ingress",
+    description="Permit traffic from reverse proxy for spring backend",
+    security_group_id=spring_sg.id,
+    referenced_security_group_id=caddy_sg.id,
+    from_port=8080,
+    to_port=8080,
+    ip_protocol="tcp"
+)
+
+spring_egress_ipv6 = aws.vpc.SecurityGroupEgressRule(
+    "spring-sg-egress-ipv6",
+    description="to allow spring backend to make requests to the outside [IPv6]",
+    security_group_id=spring_sg.id,
+    cidr_ipv4="::/0",
+    ip_protocol="-1"
+)
+
+spring_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
+    "spring-sg-egress-ipv4",
+    description="to allow spring backend to make requests to the outside [IPv4]",
+    security_group_id=spring_sg.id,
+    cidr_ipv4="0.0.0.0/0",
+    ip_protocol="-1"
+)
+
+python_sg = aws.ec2.SecurityGroup(
+    "boardwise-python-sg",
+    description="Only permit traffic from Caddy instance and Spring boot",
+    vpc_id=vpc.id
+)
+
+caddy_to_python = aws.vpc.SecurityGroupIngressRule(
+    "python-sg-ingress-caddy",
+    description="Permit traffic from reverse proxy to python/fastapi backend",
+    security_group_id=python_sg.id,
+    referenced_security_group_id=caddy_sg.id,
+    from_port=8000,
+    to_port=8000,
+    ip_protocol="tcp"
+)
+
+spring_to_python = aws.vpc.SecurityGroupIngressRule(
+    "python-sg-ingress-spring",
+    description="Permit traffic from spring backend to python/fastapi backend",
+    security_group_id=python_sg.id,
+    referenced_security_group_id=spring_sg.id,
+    from_port=8000,
+    to_port=8000,
+    ip_protocol="tcp"
+)
+
+python_egress_ipv6 = aws.vpc.SecurityGroupEgressRule(
+    "python-sg-egress-ipv6",
+    description="to allow python backend to make requests to the outside [IPv6]",
+    security_group_id=python_sg.id,
+    cidr_ipv4="::/0",
+    ip_protocol="-1"
+)
+
+python_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
+    "python-sg-egress-ipv4",
+    description="to allow python backend to make requests to the outside [IPv4]",
+    security_group_id=python_sg.id,
+    cidr_ipv4="0.0.0.0/0",
+    ip_protocol="-1"
 )
 
 
