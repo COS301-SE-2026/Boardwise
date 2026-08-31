@@ -46,7 +46,6 @@ const fields = [
     { key: 'confirmPassword', label: 'Confirm Password', type: 'password' , rules: [required()]}
 ]
 const handleSignUp = async (data) => {
-    console.log('SignUp:', data)
     localError.value = ''
 
     if (data.password !== data.confirmPassword) {

@@ -2,6 +2,7 @@ package com.boardwise.backend.user_service.services;
 
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Example;
@@ -18,20 +20,38 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.boardwise.backend.shared.dtos.GameInventoryDTO;
+import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.user_service.dtos.GameInventoryDTO;
-import com.boardwise.backend.user_service.dtos.OtherGameDTO;
+import com.boardwise.backend.shared.dtos.OtherGameDTO;
+import com.boardwise.backend.shared.model.Boardgame;
+import com.boardwise.backend.shared.services.NotificationService;
+import com.boardwise.backend.user_service.dtos.CommunityMessageNotification;
+import com.boardwise.backend.user_service.dtos.DirectMessageNotification;
+import com.boardwise.backend.user_service.dtos.FriendConfirmationNotification;
+import com.boardwise.backend.user_service.dtos.FriendDTO;
+import com.boardwise.backend.user_service.dtos.FriendRequestDTO;
+import com.boardwise.backend.user_service.dtos.FriendRequestNotification;
+import com.boardwise.backend.user_service.dtos.FriendRequestResponseDTO;
+import com.boardwise.backend.user_service.dtos.FriendRequestsDTO;
+import com.boardwise.backend.user_service.dtos.FriendsListDTO;
+import com.boardwise.backend.user_service.dtos.InviteNotification;
+import com.boardwise.backend.user_service.dtos.NotificationDTO;
+import com.boardwise.backend.user_service.dtos.NotificationsDTO;
 import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
 import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileSearchResponse;
 import com.boardwise.backend.user_service.dtos.UpdateProfileDTO;
+import com.boardwise.backend.user_service.enums.FriendStatus;
+import com.boardwise.backend.user_service.enums.NotificationType;
 import com.boardwise.backend.user_service.models.*;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
-import com.boardwise.backend.user_service.repos.FriendShipRepository;
-import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
-import com.boardwise.backend.user_service.repos.GroupRepository;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repository.FriendShipRepository;
+import com.boardwise.backend.user_service.repository.GroupMembershipRepository;
+import com.boardwise.backend.user_service.repository.GroupRepository;
+import com.boardwise.backend.user_service.repository.NotificationRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
 import com.google.maps.GeoApiContext;
 import com.google.maps.GeocodingApi;
 import com.google.maps.errors.ApiException;
@@ -52,23 +72,21 @@ public class ProfileService {
     private final R2StorageService bucket;
     private final GeoApiContext geoContext;
     private final MongoTemplate template;
+    private final NotificationService notificationService;
+    private final NotificationRepository notifRepo;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     public ProfileResponseDTO getOwnProfile(String token) {
-        // get username from token
+        // get user id from token
         ObjectId userId = jwtService.extractUserId(token);
-        User extractedUser = userRepo.findById(userId.toString()).get();
-        return getProfile(null, extractedUser);
+        return getProfile(userId.toString());
     }
 
-    public ProfileResponseDTO getProfile(String username, User own) {
+    public ProfileResponseDTO getProfile(String userId) {
         // get user data from db
-        User user = own == null ? 
-                    userRepo.findByUsername(username)
-                                        .orElseThrow() :
-                    own;
-        
+        User user = userRepo.findById(userId)
+                            .orElseThrow(() -> new NoSuchElementException("User with id:" +  userId + "does not exist."));
         
         // get the games from stored ids                                
         List<GameInventoryDTO> games = new ArrayList<>();
@@ -92,22 +110,19 @@ public class ProfileService {
         int groupCount = gms.size();
         
         // Get community id, name and image
-        List<Map<String, String>> communities = null;
-        if(own != null){
-            communities = new ArrayList<>();
-            for(GroupMembership membership : gms){
-                Map<String, String> community = new HashMap<>();
-                Group group = groupRepo.findById(membership.getGroupId()).get();
-                community.put("id", group.getId());
-                community.put("name", group.getName());
-                community.put("image", group.getImageUrl());
+        List<Map<String, String>> communities = new ArrayList<>();
+        for(GroupMembership membership : gms){
+            Map<String, String> community = new HashMap<>();
+            Group group = groupRepo.findById(membership.getGroupId()).get();
+            community.put("id", group.getId());
+            community.put("name", group.getName());
+            community.put("image", group.getImageUrl());
 
-                communities.add(community);
-            }
+            communities.add(community);
         }
         
         // get friend count
-        int friendCount = (int) fsRepo.countByUserAIdOrUserBId(user.getId(), user.getId());
+        int friendCount = fsRepo.findByUserAndStatus(userId, FriendStatus.ACCEPTED).size();
 
         DateTimeFormatter formatter = DateTimeFormatter
                                         .ofPattern("dd-MM-yyyy")
@@ -243,7 +258,8 @@ public class ProfileService {
     }
 
     public Map<String, Object> updateOrSetPreferences(
-        String token, PreferencesRequestDTO prefData
+        String token, 
+        PreferencesRequestDTO prefData
     ){
         String userId = jwtService.extractUserId(token).toString();
         User user = userRepo.findById(userId).get();
@@ -385,6 +401,265 @@ public class ProfileService {
         result.put("games", games);
    
         return result;
+    }
+
+    public FriendsListDTO getOwnFriendsList(String token) {
+        String userId = jwtService.extractUserId(token).toString();
+        List<Friendship> friendships = fsRepo.findByUserAndStatus(userId, FriendStatus.ACCEPTED);
+        List<FriendDTO> friends = makeFriendsList(friendships, userId);
+
+        return new FriendsListDTO(
+            "User friends list successfully retrieved",
+            friends,
+            null
+        );
+    }
+
+    public FriendsListDTO getUserFriendsList(String token, String userId) throws NoSuchElementException{
+        // the person whose friend list is requested
+        if(!userRepo.existsById(userId))
+            throw new NoSuchElementException("User associated with id: " + userId + " does not exist.");
+
+        String clientId = jwtService.extractUserId(token).toString(); // requester
+
+
+        List<Friendship> friendships = fsRepo.findByUserAndStatus(userId, FriendStatus.ACCEPTED);
+        List<Friendship> clientFriendships = fsRepo.findByUserAndStatus(clientId, FriendStatus.ACCEPTED);
+
+        List<FriendDTO> friends = makeFriendsList(friendships, userId);
+        List<FriendDTO> clientFriends = makeFriendsList(clientFriendships, clientId);
+
+        List<FriendDTO> mutuals = new ArrayList<>();
+
+        for(FriendDTO clientFriend : clientFriends){
+            if(friends.contains(clientFriend)){
+                mutuals.add(clientFriend);
+            }
+        }
+
+        return new FriendsListDTO(
+            "User friends list successfully retrieved",
+            friends,
+            mutuals
+        );
+    }
+
+    private List<FriendDTO> makeFriendsList(List<Friendship> friendships, String listOwner){
+        List<FriendDTO> friends = new ArrayList<>();
+
+        for(Friendship fs : friendships){
+            String friendId = fs.getSender().equals(listOwner) ? fs.getReceiver() : fs.getSender();
+            Optional<User> friendOp = userRepo.findById(friendId);
+            
+            // TODO: Make it be known that something is up, instead of failing silently
+            if(friendOp.isEmpty()) // Just in case something happened with this user's account and their id isn't on our db
+                continue;
+
+            // make friend dto and add to friends array
+            User friend = friendOp.get();
+            FriendDTO dto = new FriendDTO(
+                friend.getId(),
+                friend.getUsername(),
+                (friend.getFirstName() + " " + friend.getLastName()),
+                friend.getProfilePicture()
+            );
+            friends.add(dto);
+        }
+
+        return friends;
+    }
+
+    public FriendRequestsDTO getFriendRequests(String token) {
+        String userId = jwtService.extractUserId(token).toString();
+
+        Friendship forExample = new Friendship();
+        forExample.setReceiver(userId);
+        forExample.setStatus(FriendStatus.REQUESTED);
+        Example<Friendship> example = Example.of(forExample);
+        List<Friendship> friendships = fsRepo.findAll(example);
+        List<FriendRequestDTO> requests = new ArrayList<>();
+
+        for(Friendship fs : friendships){
+            Optional<User> friendOp = userRepo.findById(fs.getSender());
+            
+            if(friendOp.isEmpty()) // Just in case something happened with this user's account and their id isn't on our db
+                continue;
+
+            // make friend dto and add to friends array
+            User friend = friendOp.get();
+            FriendDTO friendDTO = new FriendDTO(
+                friend.getId(),
+                friend.getUsername(),
+                (friend.getFirstName() + " " + friend.getLastName()),
+                friend.getProfilePicture()
+            );
+
+            FriendRequestDTO request = new FriendRequestDTO(
+                fs.getId(), 
+                friendDTO
+            );
+            requests.add(request);
+        }
+
+        return new FriendRequestsDTO(
+            "User friend request successfully retrieved",
+            requests
+        );
+    }
+
+    public FriendRequestResponseDTO sendFriendRequest(String token, String userId) throws IllegalAccessException, IllegalArgumentException, NoSuchElementException{
+        String clientId = jwtService.extractUserId(token).toString();
+        User client = userRepo.findById(clientId).get();
+        
+        if(!userRepo.existsById(userId))
+            throw new NoSuchElementException("User associated with id: " + userId + " does not exist.");
+
+        if(clientId.equals(userId))
+            throw new IllegalArgumentException("Users cannot send friend requests to themselves.");
+
+        // check that these two don't have a friendship record already
+        Optional<Friendship> existingfs = fsRepo.findFriendShipBetweenUsers(userId, clientId);
+        Friendship friendship;
+
+        if(existingfs.isPresent()){
+            friendship = existingfs.get();
+            if(friendship.getStatus() == FriendStatus.ACCEPTED)
+                throw new IllegalAccessException("User is already friends with user of id: " + userId + ".");
+            else if(friendship.getStatus() == FriendStatus.REQUESTED){
+                String message;
+                if(friendship.getSender().equals(clientId))
+                    message = "User already sent a request to user associated with id: " + userId + ".";
+                else
+                    message = "User has a request from user associated with id: " + userId + ".";
+
+                throw new IllegalAccessException(message);
+            }
+            else{
+                friendship.setSender(clientId);
+                friendship.setReceiver(userId);
+                friendship.setStatus(FriendStatus.REQUESTED);
+            }
+        }
+        else{
+            friendship = new Friendship(clientId, userId);
+        }
+
+        friendship = fsRepo.save(friendship);
+        // notify the receiver
+        FriendDTO sender = new FriendDTO(
+            client.getId(),
+            client.getUsername(),
+            client.getFirstName() + " " + client.getLastName(),
+            client.getProfilePicture()
+        );
+        FriendRequestDTO dto = new FriendRequestDTO(
+            friendship.getId(),
+            sender
+        );
+        FriendRequestNotification notification = new FriendRequestNotification(dto);
+        notificationService.notifyUser(userId, notification);
+
+        return new FriendRequestResponseDTO(
+            "Friend request successfully sent."
+        );
+    }
+
+    public FriendRequestResponseDTO respondToFriendRequest(String token, String requestId, String status) throws NoSuchElementException, IllegalArgumentException, IllegalAccessException{
+        // retrieve database objects
+        Optional<Friendship> pre = fsRepo.findById(requestId);
+        String clientId = jwtService.extractUserId(token).toString();
+        User client = userRepo.findById(clientId).get();
+        
+        status = status.toUpperCase();
+        
+        // validation fr
+        if(pre.isEmpty())
+            throw new NoSuchElementException("Friend request with id: " + requestId + " does not exist.");
+
+        if(!pre.get().getReceiver().equals(client.getId()))
+            throw new IllegalAccessException("Friend request with id: " + requestId + " was not sent to the requesting user (client).");
+
+        if(pre.get().getStatus() != FriendStatus.REQUESTED)
+            throw new IllegalAccessException("Friend request with id: " + requestId + " already has a response.");
+
+        FriendStatus newStatus = switch (status) {
+            case "ACCEPT" -> FriendStatus.ACCEPTED;
+            case "DECLINE" -> FriendStatus.DECLINED;
+            default -> throw new IllegalArgumentException("Friend Request response status must be either \"accept\" or \"decline\".");
+
+        };
+
+        Friendship fs = pre.get();
+        fs.setStatus(newStatus);
+        fs = fsRepo.save(fs);
+
+        // notify sender that these users are friends now (on acceptance)
+        if(newStatus.equals(FriendStatus.ACCEPTED)){
+            FriendDTO sender = new FriendDTO( // client = responder
+                clientId,
+                client.getUsername(),
+                client.getFirstName() + " " + client.getLastName(), 
+                client.getProfilePicture()
+            );
+
+            FriendConfirmationNotification notification = new FriendConfirmationNotification(sender);
+            notificationService.notifyUser(clientId, notification);
+        }
+
+        return new FriendRequestResponseDTO(
+            "Friend request response successfully recorded."
+        );
+    }
+
+    public FriendRequestResponseDTO unfriendUser(String token, String userId) throws NoSuchElementException, IllegalAccessException {
+        String clientId = jwtService.extractUserId(token).toString();
+        User client = userRepo.findById(clientId).get();
+
+        if(!userRepo.existsById(userId))
+            throw new NoSuchElementException("User with id: " + userId + " does not exist.");
+
+        Optional<Friendship> preFriendship = fsRepo.findFriendShipBetweenUsers(client.getId(), userId);
+        if(preFriendship.isEmpty() || preFriendship.get().getStatus() != FriendStatus.ACCEPTED)
+            throw new IllegalAccessException("Requesting user is a not friends with the user associated with id: " + userId + ".");
+
+        Friendship friendship = preFriendship.get();
+        friendship.setStatus(FriendStatus.DECLINED);
+        fsRepo.save(friendship);
+
+        return new FriendRequestResponseDTO(
+            "Unfriend user query successful."
+        );
+    }
+
+    public NotificationsDTO getMissedNotifications(String token) {
+        String userId = jwtService.extractUserId(token).toString();
+        User user = userRepo.findById(userId).get();
+        List<Notification> missed = notifRepo.findMissedNotifications(user.getId(), user.getLastOnlineAt());
+        List<NotificationDTO> notifications = new ArrayList<>();
+
+        for(Notification notif : missed){
+            NotificationDTO notification = switch (notif.getData()) {
+                case ChatMessageData d -> {
+                    if(notif.getType() == NotificationType.DIRECT_MESSAGE)
+                        yield new DirectMessageNotification(d.senderId(), d.message());
+                    else
+                        yield new CommunityMessageNotification(d.senderId(), d.message());
+                }
+                case EventInviteData d -> new InviteNotification(d.host(), d.event());
+                case FriendRequestData d -> new FriendRequestNotification(d.request());
+                case FriendConfirmationData d -> new FriendConfirmationNotification(d.friend());
+            };
+            notifications.add(notification);
+
+            notif.setDelivered(true);
+            notif.setDeliveredAt(Instant.now());
+        }
+        notifRepo.saveAll(missed);
+
+        return new NotificationsDTO(
+            "Missed user notifications retrieved",
+            notifications
+        );
     }
 
 }

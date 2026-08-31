@@ -2,7 +2,6 @@ export interface Citation {
     chunkId: string;
     index: number;
     content: string;
-    relevanceScore: number;
 }
 
 export interface QueryResponse {
@@ -11,10 +10,9 @@ export interface QueryResponse {
 }
 
 export const ragService = {
-    // TODO: Fix integration 
     queryRulebook(rulebookId: string, query: string) {
-        const { $api } = useNuxtApp()
-        return $api<QueryResponse>(`vault/rulebooks/${rulebookId}/query`, {
+        const { $fastApi } = useNuxtApp()
+        return $fastApi<QueryResponse>(`vault/rulebooks/${rulebookId}/query`, {
             method: 'POST',
             body: { query }
         })

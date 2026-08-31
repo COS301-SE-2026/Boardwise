@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Build the application
 # ==========================================
-FROM eclipse-temurin:21-jdk-alpine AS builder
+FROM eclipse-temurin:21-jdk-jammy AS builder
 WORKDIR /build
 
 # Copy the Maven wrapper and project configuration first
@@ -19,21 +19,55 @@ COPY src src
 RUN ./mvnw clean package -DskipTests
 
 # ==========================================
-# Stage 2: Create the optimized runtime image
+# Stage 2:(New) Runtime image, I'm sorry Karabo - bandilem-git
 # ==========================================
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jre-jammy
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    passwd \
+    libglib2.0-0 \
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libcairo2 \
+    libcairo-gobject2 \
+    libx11-6 \
+    libx11-xcb1 \
+    libxcursor1 \
+    libgtk-3-0 \
+    libgdk-pixbuf-2.0-0 \
+    libxext6 \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
-# Install curl so the Docker healthcheck in compose.yml functions correctly
-RUN apk add --no-cache curl
-
-# Security best practice: Create and run as a non-root user
-RUN addgroup -S spring && adduser -S spring -G spring
-USER spring:spring
-
-# Copy ONLY the built JAR from the builder stage
-# (The wildcard handles versions, e.g., backend-0.0.1-SNAPSHOT.jar -> app.jar)
 COPY --from=builder /build/target/*.jar app.jar
+
+ENV PLAYWRIGHT_BROWSERS_PATH=/app/playwright-browsers
+
+RUN java -Dloader.main=com.microsoft.playwright.CLI \
+    -cp app.jar org.springframework.boot.loader.launch.PropertiesLauncher \
+    install chromium
+
+RUN java -Dloader.main=com.microsoft.playwright.CLI \
+    -cp app.jar org.springframework.boot.loader.launch.PropertiesLauncher \
+    install firefox webkit
+    
+RUN groupadd -r spring && useradd -r -g spring spring \
+    && chown -R spring:spring /app
+
+USER spring
 
 # Document the port the app listens on
 EXPOSE 8080

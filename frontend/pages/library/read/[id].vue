@@ -62,14 +62,12 @@ const { connect: connectSocket } = useReaderSocket(
         lockHeldBy.value = lockedByUsername;
         lockExpiresAt.value = expiresAt;
         currentVersion.value = serverVersion;
-        console.log("Lock acquired by: ", lockedByUsername);
       },
       onLockReleased: () => {
         lockHeldBy.value = null;
         lockExpiresAt.value = null;
       },
       onDeltaCommitted: (payload) => {
-        console.log("STOMP Delta Received:", payload)
         currentVersion.value = payload.version;
 
         const chunk = rulebookText.value?.chunks.find(c => c.chunkId === payload.chunkId);

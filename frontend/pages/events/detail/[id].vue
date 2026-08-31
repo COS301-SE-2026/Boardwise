@@ -65,9 +65,7 @@ onMounted(async () => {
         router.push('/auth/signin')
         return
     }
-    console.log(route.params.id)
     const fetched = await fetchEventbyId(route.params.id);
-    console.log(fetched)
 
     event.value = fetched
 })

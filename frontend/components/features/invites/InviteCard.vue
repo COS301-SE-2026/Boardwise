@@ -40,6 +40,8 @@
                     <v-btn
                         data-test="accept-button"
                         color="primary"
+                        :loading="responding"
+                        :disabled="responding"
                         @click="$emit('accept', invite.event.id)"
                     >
                         Accept
@@ -49,11 +51,12 @@
                         data-test="decline-button"
                         variant="outlined"
                         color="error"
+                        :loading="responding"
+                        :disabled="responding"
                         @click="$emit('decline', invite.event.id)"
                     >
                         Decline
                     </v-btn>
-
                 </div>
             </div>
         </div>
@@ -67,7 +70,9 @@ import BaseImage from '~/components/ui/BaseImage.vue'
 import type { InviteItem } from '~/services/eventService'
 
 defineProps<{
-    invite: InviteItem
+    invite: InviteItem, 
+    responding?: boolean
+
 }>()
 
 defineEmits<{

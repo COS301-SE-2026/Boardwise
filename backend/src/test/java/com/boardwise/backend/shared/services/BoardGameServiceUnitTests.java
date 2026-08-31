@@ -12,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -19,11 +20,10 @@ import org.springframework.test.web.client.match.MockRestRequestMatchers;
 import org.springframework.test.web.client.response.MockRestResponseCreators;
 import org.springframework.web.client.RestClient;
 
-import com.boardwise.backend.shared.services.BoardGameService;
-import com.boardwise.backend.user_service.models.Boardgame;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
+import com.boardwise.backend.shared.repository.BoardGameRepository;
+import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.user_service.services.R2StorageService;
-import com.boardwise.backend.user_service.repos.BoardGameSearch;
+import com.boardwise.backend.shared.repository.BoardGameSearch;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Board Game Service Tests")
@@ -35,6 +35,9 @@ public class BoardGameServiceUnitTests {
     private MockRestServiceServer mockServer;
     private BoardGameService service;
     private String baseUrl = "https://boardgamegeek.com/xmlapi2";
+
+    @Captor
+    private ArgumentCaptor<List<Boardgame>> captor;
 
 
     @BeforeEach
@@ -112,7 +115,6 @@ public class BoardGameServiceUnitTests {
 
         // Assert
         mockServer.verify();
-        ArgumentCaptor<List<Boardgame>> captor = ArgumentCaptor.forClass(List.class);
         verify(gameRepo).saveAll(captor.capture());
         List<Boardgame> argument = captor.getValue();
         assertEquals(argument.size(), 2);
@@ -197,7 +199,6 @@ public class BoardGameServiceUnitTests {
 
         // Assert
         mockServer.verify();
-        ArgumentCaptor<List<Boardgame>> captor = ArgumentCaptor.forClass(List.class);
         verify(gameRepo).saveAll(captor.capture());
         List<Boardgame> argument = captor.getValue();
         assertEquals(argument.size(), 2);
