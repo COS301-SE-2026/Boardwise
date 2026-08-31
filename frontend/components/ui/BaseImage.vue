@@ -5,10 +5,11 @@
     :height="height"
     :width="width"
     :cover="fit === 'cover'"
+    :rounded="rounded"
     v-bind="$attrs"  
   >
     <template #error>
-      <div class="d-flex align-center justify-center fill-height bg-grey-lighten-3">
+      <div class="base-image__fallback d-flex align-center justify-center fill-height bg-grey-lighten-3">
         <span class="text-caption text-grey"> 
           {{  alt ?? 'Image' }}
         </span>
@@ -19,8 +20,14 @@
 
 <script setup>
 defineProps({
-  src: String,
-  alt: String,
+  src: {
+    type: String,
+    default: ' '
+  },
+  alt: {
+    type: String,
+    default: ' '
+  },
   height: {
     type: String,
     default: '200px'
