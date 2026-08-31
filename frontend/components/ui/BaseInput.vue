@@ -2,14 +2,25 @@
   <v-text-field 
     v-model="inputValue" 
     :label="label"
-    :type="isPassword && showPassword ? 'text' : type"
+    :type="resolvedType"
     :rules="rules"
     validate-on="input"
     hide-details="auto"
-    :append-inner-icon="isPassword ? (showPassword ? 'mdi-eye-off' : 'mdi-eye') : undefined"
-    @click:append-inner="showPassword =!showPassword"
     v-bind="$attrs" 
   />
+  <template
+    v-if="isPassword"
+    #append-inner
+  >
+  <v-btn
+        :icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+        variant="text"
+        density="compact"
+        :aria-label="showPassword ? 'Hide password' : 'Show password'"
+        :aria-pressed="showPassword ? 'true' : 'false'"
+        @click="showPassword = !showPassword"
+      />
+    </template>
 </template>
 
 <script setup>
@@ -28,11 +39,21 @@ const props = defineProps({
   },
   rules: {
     type: String,
-    default: ''
+    default: 
   }
 })
 
 const inputValue = defineModel()
 const showPassword = ref(false)
 const isPassword = computed(() => props.type === 'password')
+
+const resolvedType = computed(() => {
+  if (!isPassword.value) {
+    return props.type
+  }
+
+  return showPassword.value
+    ? 'text'
+    : 'password'
+})
 </script>
