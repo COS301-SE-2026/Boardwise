@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import RagMessage from '~/components/features/rag/RagMessage.vue'
-import { wrap } from 'node:module'
 
 describe('RagMessage.vue', () => {
     const baseMessage = {
