@@ -13,7 +13,7 @@
                 </div> 
 
                 <RagFeed data-test="rag-feed" :messages="messages" :is-loading="isLoading" :has-no-result="false" @retry="handleRetry" />
-                <RagComposer data-test="rag-composer" :is-loading="isLoading" :has-no-result="false" @send="handleSend" />
+                <RagComposer data-test="rag-composer" :is-loading="isLoading" @send="handleSend" />
             </div>
         </v-card>
     </v-scale-transition>
