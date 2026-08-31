@@ -1,7 +1,7 @@
 <template>
     <div class="rag-citation" data-test="rag-citation">
         <v-icon size="14" class="mr-1">mdi-book-open-variant</v-icon>
-        Source: chunk {{  citation.index }}
+        <span class="rag-citation-text">{{ citation.content  }}</span>
     </div>
 </template>
 

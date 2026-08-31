@@ -12,8 +12,8 @@
                     <v-btn icon="mdi-close" variant="text" size="small" @click="close" />
                 </div> 
 
-                <RagFeed :messages="messages" :is-loading="isLoading" />
-                <RagComposer :is-loading="isLoading" :has-no-result="false" @send="handleSend" />
+                <RagFeed data-test="rag-feed" :messages="messages" :is-loading="isLoading" :has-no-result="false" @retry="handleRetry" />
+                <RagComposer data-test="rag-composer" :is-loading="isLoading" :has-no-result="false" @send="handleSend" />
             </div>
         </v-card>
     </v-scale-transition>
@@ -21,6 +21,7 @@
 
 <script setup lang="ts">
 import { watch } from 'vue'
+import type { RagMessage as RagMessageType } from '~/composables/useRag'
 
 import RagFeed from '~/components/features/rag/RagFeed.vue'
 import RagComposer from '~/components/features/rag/RagComposer.vue'
@@ -39,6 +40,11 @@ const emit = defineEmits<{
 const { messages, isLoading, askQuestion, clearConversation } = useRag()
 
 const close = () => emit('update:modelValue', false)
+
+const handleRetry = (message: RagMessageType) => {
+    if(!props.rulebook?.id || !message.query) return
+    askQuestion(props.rulebook.id, message.query)
+}
 
 const handleSend = (query: string) => {
     if (!props.rulebook?.id) return
