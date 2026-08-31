@@ -25,7 +25,7 @@ import jakarta.validation.*;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api/marketplace")
+@RequestMapping("/api/sb/marketplace")
 
 public class ListingController {
 

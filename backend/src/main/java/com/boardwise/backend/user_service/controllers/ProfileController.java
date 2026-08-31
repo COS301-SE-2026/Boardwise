@@ -30,7 +30,7 @@ import com.boardwise.backend.user_service.services.ProfileService;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/sb/users")
 public class ProfileController {
 
     private final ProfileService service;

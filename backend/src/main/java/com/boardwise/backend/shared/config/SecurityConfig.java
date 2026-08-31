@@ -49,17 +49,17 @@ public class SecurityConfig {
                 request 
                     .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
                     .requestMatchers(
-                        "/api/auth/hello",
-                        "/api/auth/register", 
-                        "/api/auth/login",
-                        "/api/boardgames/",
-                        "/api/vault/rulebooks"
+                        "/api/sb/auth/hello",
+                        "/api/sb/auth/register", 
+                        "/api/sb/auth/login",
+                        "/api/sb/boardgames/",
+                        "/api/sb/vault/rulebooks"
                         
                     ).permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/vault/rulebooks/*/text").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/vault/rulebooks/*", "/api/vault/rulebooks/*").permitAll()
-                    .requestMatchers("/api/stomp","/api/stomp/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/boardgames/genres").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/sb/vault/rulebooks/*/text").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/sb/vault/rulebooks/*", "/api/sb/vault/rulebooks/*").permitAll()
+                    .requestMatchers("/api/sb/stomp","/api/sb/stomp/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/sb/boardgames/genres").permitAll()
                     .anyRequest()
                     .authenticated()
                 )
@@ -115,7 +115,7 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
         // Apply configuration to all API endpoints
-        source.registerCorsConfiguration("/api/**", configuration);
+        source.registerCorsConfiguration("/api/sb/**", configuration);
 
         return source;
     }

@@ -11,7 +11,7 @@ from bson import ObjectId
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/api/vault/rulebooks",
+    prefix="/api/fa/vault/rulebooks",
     tags=["rulebooks"]
 )
 
