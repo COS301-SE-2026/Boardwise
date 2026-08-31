@@ -1,10 +1,14 @@
 <template>
   <v-text-field
     v-model="inputValue"
+    class="base-input"
     :label="label"
+    :rules="normalizedRules"
     :aria-label="accessibleLabel"
     :type="resolvedType"
-    :rules="normalizedRules"
+    variant="outlined"
+    density="comfortable"
+    rounded="xl"
     validate-on="input"
     hide-details="auto"
     v-bind="$attrs"
@@ -12,6 +16,7 @@
     <template #append-inner>
       <v-btn
         v-if="isPassword"
+        class="base-input__password-toggle"
         :icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
         variant="text"
         density="compact"
@@ -36,6 +41,10 @@ const props = defineProps({
     default: ''
   },
 
+  rules: {
+    type: Array,
+    default: () => []
+  },
   ariaLabel: {
     type: String,
     default: ''
@@ -44,11 +53,6 @@ const props = defineProps({
   type: {
     type: String,
     default: 'text'
-  },
-
-  rules: {
-    type: Array,
-    default: () => []
   }
 })
 
