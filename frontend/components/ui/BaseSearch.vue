@@ -8,7 +8,7 @@
     variant="outlined"
     density="compact"
     hide-details
-    rounded="lg"
+    rounded="xl"
     autocomplete="off"
     class="base-search"
     @update:model-value="$emit('update:modelValue', $event)"
