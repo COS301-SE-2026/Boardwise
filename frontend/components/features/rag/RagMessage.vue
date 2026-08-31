@@ -60,7 +60,7 @@ defineEmits<{ (e: 'retry', message: RagMessage ): void }>()
 
 .rag-avatar {
     flex-shrink: 0;
-    margin-right: var(--sapce-2, 8px);
+    margin-right: var(--space-2, 8px);
 }
 
 </style>
