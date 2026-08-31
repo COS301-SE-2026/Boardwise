@@ -4,6 +4,7 @@
             v-for="message in messages" 
             :key="message.id" 
             :message="message" 
+            @retry="emit('retry', message)"
         />
 
         <div v-if="isLoading" class="rag-message assistant">
@@ -17,6 +18,7 @@
 </template>
 
 <script setup lang="ts">
+import { emit } from 'node:cluster';
 import RagMessage from './RagMessage.vue'
 import type { RagMessage as RagMessageType } from '~/composables/useRag'
 
