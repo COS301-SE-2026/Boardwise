@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.springframework.data.domain.Limit;
+import org.springframework.scheduling.annotation.Scheduled;
 // import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -44,7 +45,7 @@ public class BoardGameService {
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
 
 
-    // @Scheduled(fixedDelay = 6 * 1000)
+    @Scheduled(fixedDelay = 6 * 1000)
     public void populateDatabase(){
         int nextBggId = gameRepo.findTopByBggIdNotNullOrderByBggIdDesc()
                         .map(game -> game.getBggId() + 1)

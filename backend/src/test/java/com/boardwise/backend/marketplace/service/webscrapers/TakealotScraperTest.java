@@ -16,7 +16,7 @@ class TakealotScraperTest {
 
     @BeforeEach
     public void setUp() {
-        scraper = new TakealotScraper();
+        scraper = new TakealotScraper(new BrowserManager());
     }
 
     // noResultsFound

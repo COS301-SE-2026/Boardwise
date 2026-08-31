@@ -79,7 +79,6 @@ const props = defineProps({
 })
 
 const showEdit = ref(false)
-console.log(props.community.visibility)
 
 </script>
 

@@ -25,6 +25,7 @@ import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.shared.model.Boardgame;
+import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repository.UserRepository;
 
 import org.bson.types.ObjectId;
@@ -290,11 +291,56 @@ public class ListingService {
 
     }
 
-    public List<ListingResponse> getAllActiveListings() {
-        return listingRepository.findByStatus(ListingStatus.AVAILABLE)
-            .stream()
-            .map(this::mapToResponse)
-            .toList();
+    public List<ListingResponse> getAllActiveListings(String token) {
+        List<Listing> listings = listingRepository.findByStatus(ListingStatus.AVAILABLE);
+        listings = personalizeOrder(listings, token);
+        return listings.stream().map(this::mapToResponse).toList();
+    }
+
+    private List<Listing> personalizeOrder(List<Listing> listings, String token) {
+        List<String> ownedGames = Collections.emptyList();
+        List<String> preferredGenres = Collections.emptyList();
+
+        if (token != null && !token.isBlank()) {
+            try {
+                ObjectId userId = jwtService.extractUserId(token);
+                User user = userRepository.findById(userId.toString()).orElse(null);
+                if (user != null) {
+                    if (user.getOwnedGames() != null) ownedGames = user.getOwnedGames();
+                    if (user.getPreferences() != null && user.getPreferences().getGenres() != null) {
+                        preferredGenres = user.getPreferences().getGenres();
+                    }
+                }
+            } catch (Exception e) {
+                return listings;
+            }
+        }
+
+        if (ownedGames.isEmpty() && preferredGenres.isEmpty()) {
+            return listings;
+        }
+
+        // lambdas require effectively-final captures
+        final List<String> ownedGamesFinal = ownedGames;
+        final List<String> preferredGenresFinal = preferredGenres;
+
+        Comparator<Listing> personalizedOrder = Comparator
+            .comparing((Listing l) -> ownsGame(l, ownedGamesFinal) ? 0 : 1)
+            .thenComparing((Listing l) -> -genreOverlapCount(l, preferredGenresFinal));
+
+        return listings.stream().sorted(personalizedOrder).toList();
+    }
+    
+    private boolean ownsGame(Listing listing, List<String> ownedGames) {
+        if (listing.getGameTitle() == null) return false;
+        return ownedGames.stream().anyMatch(owned -> owned.equalsIgnoreCase(listing.getGameTitle()));
+    }
+
+    private long genreOverlapCount(Listing listing, List<String> preferredGenres) {
+        if (listing.getGenres() == null || listing.getGenres().isEmpty()) return 0;
+        return listing.getGenres().stream()
+            .filter(g -> preferredGenres.stream().anyMatch(p -> p.equalsIgnoreCase(g)))
+            .count();
     }
 
     public void deleteListing(String listingId, String token) {
@@ -317,8 +363,8 @@ public class ListingService {
         return mapToResponse(listingRepository.findById(listingId).orElseThrow( ()-> new IllegalArgumentException("Listing not found: " + listingId)));
     }
 
-    public Page<ListingResponse> getByFilter(String gameTitle, String listingTitle ,String listingType, String itemType, Double minPrice, Double maxPrice, List<String> conditions, List<String> genres, Integer page, Integer size) {
-        
+    public Page<ListingResponse> getByFilter(String gameTitle, String listingTitle, String listingType,String itemType, Double minPrice, Double maxPrice, List<String> conditions, List<String> genres,
+        Integer page, Integer size, String token){        
         //Search for AVAILABLE Listings 
         Criteria criteria = Criteria.where("status").is(ListingStatus.AVAILABLE);
 
@@ -346,29 +392,31 @@ public class ListingService {
 
         if (conditions != null && !conditions.isEmpty())criteria.and("condition").in(conditions);
         
-        // if(conditions != null) criteria.and("condition").regex(conditions, "i");
-
         
-        PageRequest pageRequest = null;
+        PageRequest pageRequest;
         Query query = new Query(criteria);
         if(page != null && size != null){
             if(page < 0 ) page = 0;
             if(size < 0) size = Integer.MAX_VALUE;
 
             //Pagination
-            pageRequest = PageRequest.of(page - 1 ,size); 
+            pageRequest = PageRequest.of(page ,size); 
             query.with(pageRequest);
         }
+        List<Listing> allMatches = mongoTemplate.find(new Query(criteria), Listing.class);
+            allMatches = personalizeOrder(allMatches, token);
 
-        if(pageRequest == null){
-            pageRequest = PageRequest.of(0, Integer.MAX_VALUE);
-        }
+        int pageNum = (page != null && page >= 0) ? page : 0;
+        int pageSize = (size != null && size > 0) ? size : Math.max(allMatches.size(), 1);
 
-        long total = mongoTemplate.count(new Query(criteria), Listing.class);
+        int fromIndex = Math.min(pageNum * pageSize, allMatches.size());
+        int toIndex = Math.min(fromIndex + pageSize, allMatches.size());
 
-        List<ListingResponse> res = mongoTemplate.find(query,Listing.class).stream().map(this::mapToResponse).toList();
+        List<ListingResponse> pageContent = allMatches.subList(fromIndex, toIndex).stream().map(this::mapToResponse).toList();
 
-        return  new PageImpl<>(res, pageRequest, total);
+        PageRequest pageReq= PageRequest.of(pageNum, pageSize);
+
+        return new PageImpl<>(pageContent, pageReq, allMatches.size());
     }
 
     public ListingResponse updateListing(String listingId, ListingRequest req, String token, MultipartFile img) {
