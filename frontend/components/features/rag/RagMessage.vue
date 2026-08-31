@@ -7,6 +7,10 @@
                 :key="citation.chunkId"
                 :citation="citation"
             />
+
+            <BaseButton v-if="message.isError" size="small" variant="ghost" class="mt-2" @click="$emit('retry', message)">
+                Retry
+            </BaseButton>
         </BaseCard>
     </div>
 </template>
@@ -17,6 +21,8 @@ import RagCitation from './RagCitation.vue'
 import type { RagMessage } from '~/composables/useRag'
 
 defineProps<{message: RagMessage }>()
+
+defineEmits<{ (e: 'retry', message: RagMessage ): void }>()
 </script>
 
 <style scoped>
