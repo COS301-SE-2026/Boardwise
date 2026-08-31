@@ -38,7 +38,6 @@ const emit = defineEmits<{
 }> ()
 
 const { lgAndUp } = useDisplay()
-const panelWidth = computed(() => lgAndUp.value ? 420 : '100%')
 
 const { messages, isLoading, askQuestion, clearConversation } = useRag()
 
