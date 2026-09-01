@@ -64,7 +64,7 @@ export const useAppearancePreferences = () => {
     )
   }
 
-  const loadPreferences = () => {
+  const loadPreferences = (apply = true) => {
     if (!import.meta.client || loaded.value) return
 
     const stored = localStorage.getItem(STORAGE_KEY)
@@ -81,7 +81,10 @@ export const useAppearancePreferences = () => {
     }
 
     loaded.value = true
-    applyPreferences()
+    
+    if (apply) {
+      applyPreferences()
+    }
   }
 
   const savePreferences = (
