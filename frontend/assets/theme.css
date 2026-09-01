@@ -946,3 +946,124 @@ html.reduce-motion *::after {
     width: 100%;
   }
 }
+
+/* ============================================================
+   LIBRARY VIEW PREFERENCES
+   ============================================================ */
+
+.rulebook-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.rulebook-list-item {
+  display: flex;
+  width: 100%;
+
+  align-items: center;
+  gap: var(--space-4);
+
+  padding: var(--space-3);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  font: inherit;
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.rulebook-list-item:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.rulebook-list-item:focus-visible {
+  outline:
+    var(--focus-ring-width)
+    solid
+    var(--focus-ring-color);
+
+  outline-offset: var(--focus-ring-offset);
+}
+
+.rulebook-list-item__cover {
+  width: 72px;
+  flex: 0 0 72px;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+}
+
+.rulebook-list-item__content {
+  min-width: 0;
+  flex: 1;
+}
+
+.rulebook-list-item__title {
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-size: 1rem;
+  font-weight: var(--fw-bold);
+}
+
+.rulebook-list-item__meta {
+  margin: 4px 0 0;
+
+  color: var(--color-primary);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+}
+
+.rulebook-list-item__description {
+  display: -webkit-box;
+  overflow: hidden;
+
+  margin: var(--space-2) 0 0;
+
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  line-height: 1.5;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.rulebook-list-item__arrow {
+  flex: 0 0 auto;
+  color: var(--color-text-muted);
+}
+
+html[data-density="compact"] .rulebook-list-item {
+  padding: var(--space-2) var(--space-3);
+}
+
+html[data-density="compact"] .rulebook-list {
+  gap: var(--space-2);
+}
+
+@media (max-width: 600px) {
+  .rulebook-list-item {
+    align-items: flex-start;
+  }
+
+  .rulebook-list-item__description {
+    display: none;
+  }
+
+  .rulebook-list-item__cover {
+    width: 56px;
+    flex-basis: 56px;
+  }
+}
