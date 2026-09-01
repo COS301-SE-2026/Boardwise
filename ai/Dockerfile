@@ -21,23 +21,26 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && mkdir -p /app/models /app/cache \
     && chown -R fast:fast /app
 
-ADD --chown=fast:fast "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf" /app/models/qwen2.5-0.5b-instruct-q4_k_m.gguf
+ADD --chown=fast:fast \
+    "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf" \
+    /app/models/qwen2.5-0.5b-instruct-q4_k_m.gguf
 
 # Copy requirements file and install Python dependencies
 COPY --chown=fast:fast requirements.txt .
-RUN pip install --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt \
-    && python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('nomic-ai/nomic-embed-text-v1.5', revision='${EMBED_MODEL_REVISION}', trust_remote_code=True)" \
-    && python -c "from sentence_transformers import CrossEncoder; CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')" \
+
+RUN pip install --upgrade --no-cache-dir pip \
+    && pip install --no-cache-dir --only-binary :all -r requirements.txt \
+    && python -c "from sentence_transformers import SentenceTransformer; \
+    SentenceTransformer('nomic-ai/nomic-embed-text-v1.5', \
+    revision='${EMBED_MODEL_REVISION}', trust_remote_code=True)" \
+    && python -c "from sentence_transformers import CrossEncoder; \
+    CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')" \
     && chown -R fast:fast /app/cache
 
 # Copy the rest of the application code
-COPY --chown=fast:fast . .
+COPY --chown=fast:fast app/ ./app/
 
 USER fast
-
-ENV HF_HUB_OFFLINE=1
-ENV TRANSFORMERS_OFFLINE=1
 
 # Expose the port Uvicorn runs on
 EXPOSE 8000
