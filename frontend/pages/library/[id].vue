@@ -33,7 +33,7 @@
 
 <script setup>
 import { computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useLibrary } from '~/composables/useLibrary'
 
 import Navbar from '~/components/layout/Navbar.vue'

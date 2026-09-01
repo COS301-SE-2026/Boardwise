@@ -8,7 +8,17 @@
 
 <script setup>
 defineProps({
-  title: String,
-  message: String
+  title: {
+    type: String,
+    default: 'Nothing here yet'
+  },
+  message: {
+    type: String,
+    default: ' '
+  },
+  icon: {
+    type: String,
+    default: 'mdi-inbox-outline'
+  }
 })
 </script>
