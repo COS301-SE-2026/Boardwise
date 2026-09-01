@@ -18,9 +18,6 @@
                 v-model="title"
                 label="Game Name"
                 placeholder="e.g. Wingspan"
-                variant="outlined"
-                density="compact"
-                hide-details
             />
 
             <v-autocomplete
@@ -28,9 +25,6 @@
                 v-model:search="genreSearch"
                 label="Game Genre "
                 :items="genreOptions"
-                variant="outlined"
-                density="compact"
-                hide-details
                 multiple
                 chips
                 closable-chips
@@ -42,9 +36,6 @@
                 v-model="description"
                 label="Description"
                 placeholder="Short description of the game"
-                variant="outlined"
-                density="compact"
-                hide-details
             />
 
             <div class="d-flex ga-3">
@@ -52,17 +43,11 @@
                     v-model.number="minPlayers"
                     label="Min Players"
                     type="number"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
                 />
                 <BaseInput
                     v-model.number="maxPlayers"
                     label="Max Players"
                     type="number"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
                 />                
             </div>
 
@@ -71,17 +56,11 @@
                     v-model.number="minAge"
                     label="Minimum Age"
                     type="number"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
                 />
                 <BaseInput
                     v-model.number="duration"
                     label="Duration (minutes)"
                     type="number"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
                 />
             </div>
 
@@ -114,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref,onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
