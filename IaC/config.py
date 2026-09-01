@@ -31,6 +31,8 @@ class Settings:
     SMTP_HOST: str | None = os.getenv("SMTP_HOST") 
     SMTP_USERNAME: str | None = os.getenv("SMTP_USERNAME") 
     SMTP_PASSWORD: str | None = os.getenv("SMTP_PASSWORD") 
+    CLOUDFLARE_ZONE_ID: str | None = os.getenv("CLOUDFLARE_ZONE_ID")
+    CLOUDFLARE_API_TOKEN: str | None = os.getenv("CLOUDFLARE_API_TOKEN")
 
 
 settings = Settings()
