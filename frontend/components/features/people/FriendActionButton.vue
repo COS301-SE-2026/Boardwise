@@ -3,7 +3,7 @@
         :variant="variantMap[status]"
         size="small"
         :disabled="status === 'pendingSent'"
-    @click="handleClick"
+        @click="handleClick"
     >
     {{ label }}
   </BaseButton>

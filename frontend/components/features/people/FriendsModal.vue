@@ -32,9 +32,9 @@
                 <BaseAvatar :src="person.profilePicture ?? undefined" :name="person.username" size="sm" />
                 <span class="flex-grow-1">{{ person.username }}</span>
                 <FriendActionButton
-                :status="person.isMutual ? 'friends' : 'none'"
-                @add="$emit('add', person.username)"
-                @remove="$emit('remove', person.username)"
+                    :status="person.isMutual ? 'friends' : 'none'"
+                    @add="$emit('add', person.username)"
+                    @remove="$emit('remove', person.username)"
                 />
             </div>
         </div>
