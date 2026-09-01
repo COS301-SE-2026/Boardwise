@@ -8,7 +8,6 @@
     variant="outlined"
     rounded="lg"
     :auto-grow="autoGrow"
-    auto-grow
     hide-details="auto"
     v-bind="$attrs"
   />
