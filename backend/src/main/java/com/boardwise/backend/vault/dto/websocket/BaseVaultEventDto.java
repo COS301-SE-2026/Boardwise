@@ -1,6 +1,7 @@
 package com.boardwise.backend.vault.dto.websocket;
 
 import java.time.Instant;
+import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,4 +19,5 @@ public class BaseVaultEventDto {
     private long version;
     private Instant timestamp;
     private String chunkId;
+    private Map<String, String> metadata;
 }
