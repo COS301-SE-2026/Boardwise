@@ -1,15 +1,50 @@
 
 <template>
     <PageContainer>
+        <!-- Loading -->
+         <template v-if="loading">
+            <v-container
+                class="d-flex justify-center align center"
+                style="min-height: 60vh"
+            >
+                <v-progress-circular
+                    indeterminate
+                    color="primary"
+                    size="48"
+                />
+            </v-container>
+        </template>
 
-        <template v-if="user">
+        <!-- Profile not found -->
+        <template v-else-if="notFound">
+            <v-container
+                class="d-flex justify-center align-center"
+                style="min-height: 60vh"
+            >
+                <BaseEmptyState
+                    title="Profile not found"
+                    description="The user you're looking for doesn't exist or is no longer available."
+                />
+            </v-container>
+        </template>
+
+        <!-- Profile -->
+        <template v-else-if="user">
             <Navbar />
 
             <div class="d-flex justify-space-between align-center mb-4">
                 <div class="d-flex align-center ga-4">
-                    <BaseAvatar :src="user.profilePicture ?? undefined" :name="user.username" size="lg" />
+                    <BaseAvatar 
+                        :src="user.profilePicture ?? undefined" 
+                        :name="user.username" 
+                        size="lg" 
+                    />
+
                     <div>
-                        <h2 class="text-h5 mb-1">@{{ user.username }}</h2>
+                        <h2 class="text-h5 mb-1"
+                            >@{{ user.username }}
+                        </h2>
+
                         <p v-if="user.bio" class="text-body-2 text-medium-emphasis mb-0">{{ user.bio }}</p>
                     </div>
                 </div>
@@ -22,7 +57,7 @@
             </div>
 
             <ProfileStats
-                :games="user.games.length"
+                :games="user.ownedGameCount"
                 :friends="user.friendCount"
                 :communities="user.groupCount"
                 @friends-click="openFriendsModal"
@@ -44,12 +79,6 @@
                     <ListingsSection :listings="listings" />
                 </v-window-item>
             </v-window>
-        </template>
-
-        <template v-else>
-            <v-container class="d-flex justify-center align-center" style="min-height: 60vh">
-                <v-progress-circular indeterminate color="primary" size="48" />
-            </v-container>
         </template>
 
         <FriendsModal
@@ -90,6 +119,8 @@ const { fetchUserByUsername } = useProfile()
 const { listings, fetchUserListing } = useMarketplace()
 const { friends, mutuals, loading: friendsLoading, fetchFriends, sendRequest, removeFriend } = useFriends()
 
+const loading = ref(true)
+const notFound = ref(false)
 
 const user = ref<ProfileResponse | null>(null)
 const activeTab = ref('Games Owned')
@@ -98,8 +129,27 @@ const showFriendsModal = ref(false)
 const games = computed(() => user.value?.games ?? [])
 
 const loadProfile = async (username: string) => {
-    user.value = await fetchUserByUsername(username) ?? null
-    await fetchUserListing(username)
+    loading.value = true
+    notFound.value = false
+    user.value = null
+
+    try {
+        const profile = await fetchUserByUsername(username)
+
+        if(!profile) {
+            notFound.value = true
+            return
+        }
+
+        user.value = profile
+        
+        await fetchUserListing(username)
+    } catch (err) {
+        console.error('Failed to load profile:', err)
+        notFound.value = true
+    } finally {
+        loading.value = false
+    }
 }
 
 const openFriendsModal = async () => {
@@ -132,16 +182,44 @@ const handleRemove = async () => {
 }
 
 const onModalAdd = async (username: string) => {
-    await sendRequest(username)
-    if (user.value) await fetchFriends(user.value.username)
+    try {
+        await sendRequest(username)
+
+        if(user.value) {
+            await fetchFriends(user.value.username)
+        }
+    } catch (err) {
+        console.error('Failed to send friend request:', err)
+    }
 }
 
 const onModalRemove = async (username: string) => {
-    await removeFriend(username)
-    if (user.value) await fetchFriends(user.value.username)
+    try {
+        await removeFriend(username)
+        if (user.value) await fetchFriends(user.value.username)
+    } catch(err) {
+        console.error('Failed to remove friend:', err)
+    }
 }
 
 onMounted(() => loadProfile(route.params.username as string))
 watch(() => route.params.username, (u) => u && loadProfile(u as string))
 
 </script>
+
+<style scoped>
+
+.profile-top {
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+@media (max-width: 600px) {
+
+    .profile-top {
+        align-items: flex-start !important;
+    }
+
+}
+
+</style>
