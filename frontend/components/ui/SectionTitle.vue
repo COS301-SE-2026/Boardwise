@@ -7,7 +7,10 @@
 
 <script setup> 
 defineProps({ 
-    title: String,
+    title: {
+      type: String,
+      required: true
+    },
     subtitle: String
 })
 </script>

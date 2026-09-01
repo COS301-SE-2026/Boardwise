@@ -42,14 +42,25 @@ const styleMap = {
 
 <style scoped>
 .base-button {
+  min-width: 44px;
+  min-height: 44px;
+
   font-family: var(--font-body) !important;
   font-weight: var(--fw-bold) !important;
   letter-spacing: normal !important;
   transition: transform var(--transition-fast), box-shadow var(--transition-base) !important;
 }
 
-.base-button:hover {
-  transform: translateY(-2px);
+.base-button:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px var(--color-surface) !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .base-button:hover {
+    transform: translateY(-2px);
+  }
 }
 
 .base-button:active {
@@ -58,5 +69,16 @@ const styleMap = {
 
 .btn--secondary {
   border: 2px solid var(--color-secondary) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .base-button {
+    transition: none !important;
+  }
+
+  .base-button:hover,
+  .base-button:active {
+    transform: none;
+  }
 }
 </style>

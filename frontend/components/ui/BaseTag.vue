@@ -1,6 +1,8 @@
 <template>
   <v-btn-toggle
     :model-value="activeTab"
+    :aria-label="ariaLabel"
+    class="base-tag-group"
     @update:model-value="$emit('change', $event)"
   >
     <v-btn
@@ -14,11 +16,19 @@
 </template>
 
 <script setup>
-import BaseButton from './BaseButton.vue'
-
 defineProps({
-  tabs: Array,
-  activeTab: String
+  tabs: {
+    type: Array,
+    default: () => []
+  },
+  activeTab: {
+    type: String,
+    default: ''
+  },
+  ariaLabel: {
+    type: String,
+    default: 'Options'
+  }
 })
 
 defineEmits(['change'])
