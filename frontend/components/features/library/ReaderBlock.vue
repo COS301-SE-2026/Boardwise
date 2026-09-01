@@ -74,6 +74,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import {marked} from 'marked'
+import DOMPurify from 'dompurify'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseTextArea from '~/components/ui/BaseTextArea.vue'
 
@@ -87,6 +88,11 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['save', 'cancel', 'insert-below', 'delete'])
+
+marked.use({
+    gfm: true,
+    breaks: true
+})
 
 const draftContent = ref(props.chunk?.content ?? '')
 
@@ -108,14 +114,25 @@ const handleCancel = () => {
 }
 
 const parsedContent = computed(() => {
-    let text = props.chunk?.content ?? ''
+    const text = props.chunk?.content ?? ''
+
+    const rawHtml = marked.parse(text)
+
+    let cleanHtml = DOMPurify.sanitize(rawHtml, {
+        ALLOWED_TAGS: [
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'ul', 'ol', 'li',
+            'strong', 'em', 'table', 'thead', 'tbody', 'tr', 'th', 'td',
+            'br', 'blockquote', 'a', 'img', 'mark'
+        ],
+        ALLOWED_ATTR: ['href', 'title', 'target', 'src', 'alt', 'class']
+    })
 
     if(props.searchQuery.trim()){
         const escaped = props.searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-        const regex = new RegExp(`(${escaped})`, 'gi')
+        const regex = new RegExp(`(?![^<]*>)(${escaped})`, 'gi')
         let matchCount = 0
 
-        text = text.replace(regex, (match) => {
+        cleanHtml = cleanHtml.replace(regex, (match) => {
             const isActive = matchCount === props.activeOccurrence
             matchCount++
             return isActive
@@ -124,7 +141,7 @@ const parsedContent = computed(() => {
         })
     }
 
-    return marked.parse(text)
+    return cleanHtml
 })
 </script>
 
