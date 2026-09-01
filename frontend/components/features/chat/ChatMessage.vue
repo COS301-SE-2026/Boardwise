@@ -1,23 +1,41 @@
 <template>
-    <div
-        class="d-flex ga-3 mb-5"
-        :class="{ 'justify-end': message.isOwn }"
+    <article
+        class="chat-message"
+        :class="{
+            'chat-message--own': message.isOwn
+        }"
+        :aria-label="messageLabel"
     >
         <BaseAvatar
             v-if="!message.isOwn"
             :src="message.avatar"
             :name="message.name"
             size="sm"
+            class="chat-message__avatar"
         />
 
-        <div class="bubble pa-3 rounded-lg"
-            :class="{ own: message.isOwn }">
-            <p class="mb-0">
-                {{ message.text }}
-            </p>
-            <span class="text-caption d-block mt-2 text-medium-emphasis">
-                {{  message.time }}
+        <div class="chat-message__content">
+            <span
+                v-if="!message.isOwn"
+                class="chat-message__sender"
+            >
+                {{ message.name }}
             </span>
+
+            <div
+                class="chat-message__bubble"
+                :class="{
+                    'chat-message__bubble--own': message.isOwn
+                }"
+            >
+                <p class="chat-message__text">
+                    {{ message.text }}
+                </p>
+
+                <span class="chat-message__time">
+                    {{ message.time }}
+                </span>
+            </div>
         </div>
 
         <BaseAvatar
@@ -25,30 +43,28 @@
             :src="message.avatar"
             :name="message.name"
             size="sm"
+            class="chat-message__avatar"
         />
-    </div>
-</template>   
+    </article>
+</template>
 
 <script setup>
-import BaseAvatar from '~/components/ui/BaseAvatar.vue';
+import { computed } from 'vue'
 
-defineProps({
+import BaseAvatar from '~/components/ui/BaseAvatar.vue'
+
+const props = defineProps({
     message: {
         type: Object,
         required: true
     }
 })
+
+const messageLabel = computed(() => {
+    const sender = props.message.isOwn
+        ? 'You'
+        : props.message.name
+
+    return `${sender}: ${props.message.text}, ${props.message.time}`
+})
 </script>
-
-<style scoped>
-.bubble{
-    max-width: 420px;
-    background: var(--color-surface);
-}
-
-.bubble.own{
-    background: var(--color-primary);
-    color: var(--color-text-inverse);
-}
-
-</style>
