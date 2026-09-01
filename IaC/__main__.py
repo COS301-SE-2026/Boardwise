@@ -90,9 +90,10 @@ anomaly_subs = aws.costexplorer.AnomalySubscription(
 )
 
 # set up Virtual Private Cloud (Basically private network, this will allow our EC2 Instances to communicate only amongst each other and others... )
+vpc_ip_range = "10.0.0.0/16"
 vpc = aws.ec2.Vpc(
     f"{RESOURCE_PREFIX}-vpc",
-    cidr_block="10.0.0.0/16",
+    cidr_block=vpc_ip_range,
     enable_dns_hostnames=True,
     enable_dns_support=True,
     tags={"Name": f"{RESOURCE_PREFIX}-vpc"}
