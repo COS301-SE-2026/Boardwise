@@ -148,5 +148,26 @@ export const useProfile = () => {
         }
     };
 
-    return { isLoading, fetchCurrentUser, updateProfile, updateProfilePicture, addGame, removeGame, searchGames ,addExistingGame, error }
+    const fetchUserByUsername = async (username: string) => {
+        isLoading.value = true;
+        error.value = ''
+        try{
+            const res = await userService.getUser(username)
+            return res
+        }
+        catch(err: any){
+            error.value = err.data?.message || "This user does not exist"
+            if(err.response?.status === 401){
+                localStorage.removeItem("access_token")
+                router.push('/auth/signin')
+                return;
+            }
+            throw err;
+        }
+        finally{
+            isLoading.value = false
+        }
+    };
+
+    return { fetchUserByUsername, isLoading, fetchCurrentUser, updateProfile, updateProfilePicture, addGame, removeGame, searchGames ,addExistingGame, error }
 }
