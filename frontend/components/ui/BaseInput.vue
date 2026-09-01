@@ -33,6 +33,6 @@ const props = defineProps({
 })
 
 const inputValue = defineModel()
-const showPassowrd = ref(false)
+const showPassword = ref(false)
 const isPassword = computed(() => props.type === 'password')
 </script>

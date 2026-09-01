@@ -222,7 +222,6 @@ const handleDownload = async () => {
 
     if(downloadUrl.value?.downloadUrl){
       show('Download ready - opening PDF...', 'success');
-      console.log('Download requested for:', props.rulebook.id);
       window.open(downloadUrl.value.downloadUrl, '_blank', 'noopener,noreferrer');
     }else{
       throw new Error("No URL returned from server");

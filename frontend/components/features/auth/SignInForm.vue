@@ -53,7 +53,6 @@ const fields = [
 ]
 
 const handleSignIn = async (data) => {
-    console.log('SignIn:', data)
 
     if (!data.username || !data.password) {
         error.value = 'Please fill in all fields.'

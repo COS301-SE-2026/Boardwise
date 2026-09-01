@@ -9,8 +9,9 @@
 </template>
 
 <script setup>
-import BaseGrid    from '~/components/ui/BaseGrid.vue'
+import BaseGrid from '~/components/ui/BaseGrid.vue'
 import RetailerCard from './RetailerCard.vue'
+
 
 defineProps({
   retailers: { type: Array, default: () => [] }
