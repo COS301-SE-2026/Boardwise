@@ -4,7 +4,7 @@
             <BaseInput
                 v-model="text"
                 aria-label="Ask a question about this rulebook"
-                class="flex-grow-1"
+                class="flex-grow-1 rag-input"
                 placeholder="Ask a question about this rulebook..."
                 :disabled="isLoading"
                 maxlength="500"
@@ -42,3 +42,10 @@ const send = () => {
     text.value = ''
 }
 </script>
+
+<style scoped>
+.rag-input :deep(input),
+.rag-input :deep(input::placeholder) {
+    font-size: var(--fs-body, 15px);
+}
+</style>

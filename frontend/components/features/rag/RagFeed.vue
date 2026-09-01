@@ -12,7 +12,7 @@
             <v-progress-circular data-test="v-progress-circular" size="20" color="primary" />
         </div>
 
-        <div v-if="!messages.length && !isLoading" class="text-body-2 text-medium-emphasis">
+        <div v-if="!messages.length && !isLoading" class="rag-empty-state">
             Ask a question about this rulebook - answers are grounded in its actual text.
         </div>
 
@@ -42,5 +42,11 @@ const emit = defineEmits<{
     flex-grow: 1;
     overflow-y: auto;
     padding: var(--space-4, 16px);
+}
+
+.rag-empty-state {
+    font-size: var(--fs-body, 15px);
+    color: var(--color-text-muted);
+    line-height: var(--lh-normal, 1.5);
 }
 </style>

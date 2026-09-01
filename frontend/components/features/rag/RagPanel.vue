@@ -80,10 +80,14 @@ watch(() => props.rulebook?.id, () => clearConversation())
 
 @media (max-width: 480px) {
     .rag-panel {
-        right: var(--space-4, 16px);
-        left: var(--space-4, 16px);
-        width: auto;
-        bottom: 88px;
+        inset: 0;
+        right: auto;
+        left: auto;
+        width: 100vw;
+        bottom: auto;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
     }
 }
 </style>

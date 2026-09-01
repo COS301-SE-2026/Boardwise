@@ -16,7 +16,7 @@
                 :citation="citation"
             />
 
-            <BaseButton v-if="message.isError" size="small" variant="ghost" class="mt-2" @click="$emit('retry', message)">
+            <BaseButton v-if="message.isError" size="small" variant="ghost" class="mt-2 rag-retry-btn" @click="$emit('retry', message)">
                 Retry
             </BaseButton>
         </BaseCard>
@@ -63,4 +63,7 @@ defineEmits<{ (e: 'retry', message: RagMessage ): void }>()
     margin-right: var(--space-2, 8px);
 }
 
+.rag-retry-btn {
+    color: var(--color-error);
+}
 </style>
