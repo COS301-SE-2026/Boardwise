@@ -47,6 +47,7 @@
             <v-btn 
               icon
               variant="text"
+              to="/profile"
               v-bind="menuProps"
               aria-label="Account menu"
             >
@@ -91,9 +92,9 @@
             icon
             variant="text" 
             v-bind="menuProps" 
-            aria-label="Account menu"
+            aria-label="Search"
           >
-            <v-icon size="26">mdi-account-circle</v-icon>
+            <v-icon size="26">mdi-magnify</v-icon>
           </v-btn>
         </template>
 
@@ -121,6 +122,7 @@
           <v-btn 
             icon
             variant="text"
+            to="/profile"
             v-bind="menuProps"
             aria-label="Account menu"
           >
@@ -129,16 +131,10 @@
         </template>
 
         <v-list nav density="compact" min-width="200">
-          <v-list-item
-            prepend-icon="mdi-account"
-            title="Profile"
-            to="/profile"
-          />
-
           <v-list-item 
             prepend-icon="mdi-chat-outline"
-            title="Chat"
-            to="/chat"
+            title="Chats"
+            to="/chats"
           />
 
           <v-list-item 
@@ -169,15 +165,7 @@
     <v-list-item prepend-icon="mdi-account-group" title="Community" to="/community" @click="drawer = false" />
     <v-list-item prepend-icon="mdi-calendar" title="Events" to="/events" @click="drawer = false" />
     <v-list-item prepend-icon="mdi-account" title="Profile" to="/profile" @click="drawer = false" />
-    <v-list-item prepend-icon="mdi-chat-outline" title="Chat" to="/chats" @click="drawer = false" />
-    <v-list-item prepend-icon="mdi-cog-outline" title="Settings" to="/settings" @click="drawer = false" />
   </v-list>
-
-    <template #append>
-      <div class="pa-4">
-        <LogOutButton block />
-      </div>
-    </template>
 </v-navigation-drawer>
 
 </template>
