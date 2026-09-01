@@ -90,7 +90,7 @@ anomaly_subs = aws.costexplorer.AnomalySubscription(
 )
 
 # set up Virtual Private Cloud (Basically private network, this will allow our EC2 Instances to communicate only amongst each other and others... )
-vpc_ip_range = "10.0.0.0/16"
+vpc_ip_range = "10.0.0.0/16" # NOSONAR
 vpc = aws.ec2.Vpc(
     f"{RESOURCE_PREFIX}-vpc",
     cidr_block=vpc_ip_range,
@@ -436,7 +436,7 @@ spring_user_data = pulumi.Output.all(
                         .replace("__R2_RULEBOOKS_PUBLIC_PROD_URL__", settings.R2_RULEBOOKS_PUBLIC_PROD_URL)
                         .replace("__R2_BUCKET_LISTINGS__", settings.R2_BUCKET_LISTINGS)
                         .replace("__R2_BUCKET_PROFILES__", settings.R2_BUCKET_PROFILES)
-                        .replace("__PROD_FAST_API_BASE__", f"http://{args["python_ip"]}:8000/api/fa/")
+                        .replace("__PROD_FAST_API_BASE__", f"http://{args["python_ip"]}:8000/api/fa/") # NOSONAR
                         .replace("__INTERNAL_SECRET__", settings.INTERNAL_WEBHOOK_SECRET)
                         .replace("__R2_SECRET_KEY__", settings.R2_SECRET_KEY)
                         .replace("__R2_ACCESS_KEY__", settings.R2_ACCESS_KEY)

@@ -35,8 +35,8 @@ jobs:
 
       - name: Install Pulumi Requirements
         working-directory: ./IaC
-        run: |
-          pip install -r requirements.txt --only-binary=:all:
+        run: | # line 39 below
+          pip install -r requirements.txt --only-binary=:all: 
 
       - name: Authenticate into AWS 
         uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c
