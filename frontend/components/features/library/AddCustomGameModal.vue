@@ -67,7 +67,7 @@
             </div>
             <div class="d-flex justify-end ga-3">
                 <v-btn variant="outlined" color="primary" @click="closeModal">Cancel</v-btn>
-                <v-btn color="primary" @click="handleConfirm" :loading="isLoading">Add Game</v-btn>
+                <v-btn color="primary" @click="handleConfirm" :loading="isLoading || isResolving">Add Game</v-btn>
             </div>
         </div>
     </BaseModal>
@@ -78,10 +78,12 @@ import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import { useProfile } from '@/composables/useProfile'
+import { useBoardGames } from '~/composables/useBoardGames'
 import { userService } from '~/services/userService'
 import { useDebounceFn } from '@vueuse/core'
 
 const { addGame, createGame, isLoading, error } = useProfile();
+const { games, searchGames } = useBoardGames();
 
 const props = defineProps({
     createOnly: {
@@ -104,6 +106,7 @@ const genres = ref([])
 const fileName = ref('');
 const fileInput = ref(null);
 const file = ref(null);
+const isResolving = ref(false);
 const genreOptions = ref([]);
 const genreSearch = ref('')
 const isSelecting = ref(false)
@@ -180,6 +183,37 @@ const closeModal = () => {
     file.value = null;
 }
 
+// Newly created games can take a moment to become searchable, so poll
+// for the game to actually exist before handing it back to the caller.
+const waitForCreatedGame = async (gameTitle) => {
+    const maxAttempts = 4
+    const delayMs = 500
+    const normalizedTitle = gameTitle.trim().toLowerCase()
+
+    try {
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            await searchGames(gameTitle)
+
+            const match = games.value.find(
+                g => g.title?.trim().toLowerCase() === normalizedTitle
+            )
+
+            if (match) {
+                return match
+            }
+
+            if (attempt < maxAttempts) {
+                await new Promise(resolve => setTimeout(resolve, delayMs))
+            }
+        }
+
+        console.error('Search returned no exact-title match for newly created game after retries:', gameTitle)
+        return null
+    } finally {
+        games.value = []
+    }
+}
+
 const handleConfirm = async () => {
     const { minPlayers, maxPlayers, minAge, duration } = numberFields;
     if (!title.value || !file.value || !description.value || !minPlayers || !maxPlayers || !minAge || !duration) return
@@ -200,10 +234,16 @@ const handleConfirm = async () => {
         const res = props.createOnly
             ? await createGame(gameData, file.value)
             : await addGame(gameData, file.value);
-        emit('confirm', res, gameData)
+
+        isResolving.value = true
+        const createdGame = await waitForCreatedGame(gameData.title)
+        isResolving.value = false
+
+        emit('confirm', createdGame ?? res, gameData)
         closeModal();
     }
     catch (err) {
+        isResolving.value = false
         console.error("error while adding game: ", err);
     }
 }
