@@ -81,7 +81,7 @@ import ProfileCommunities from '~/components/features/profile/ProfileCommunities
 import GamesOwnedSection from '~/components/features/profile/GamesOwnedSection.vue'
 import ListingsSection from '~/components/features/profile/ListingsSection.vue'
 import GameBrowserModal from '~/components/features/profile/GameBrowserModal.vue'
-import AddCustomGameModal from '~/components/features/profile/AddCustomGameModal.vue'
+import AddCustomGameModal from '~/components/features/shared/AddCustomGameModal.vue'
 import { useProfile } from '~/composables/useProfile'
 import { useSnackBar } from '~/composables/useSnackbar'
 import { useMarketplace } from '~/composables/useMarketplace'
