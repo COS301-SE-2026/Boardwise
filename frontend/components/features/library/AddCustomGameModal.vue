@@ -7,30 +7,23 @@
                     This game isn't in our library yet
                 </p>
             </div>
-
             <v-btn icon variant="text" @click="closeModal">
                 <v-icon>mdi-close</v-icon>
             </v-btn>
         </div>
-
         <div class="d-flex flex-column ga-4 mb-6">
             <BaseInput
                 v-model="title"
                 label="Game Name"
                 placeholder="e.g. Wingspan"
-                variant="outlined"
-                density="compact"
-                hide-details
+                v-bind="inputProps"
             />
-
             <v-autocomplete
                 v-model="genres"
                 v-model:search="genreSearch"
-                label="Game Genre "
+                label="Game Genre"
                 :items="genreOptions"
-                variant="outlined"
-                density="compact"
-                hide-details
+                v-bind="inputProps"
                 multiple
                 chips
                 closable-chips
@@ -38,64 +31,30 @@
                 attach
                 @update:search="fetchGenres"
             />
-
             <BaseInput
                 v-model="description"
                 label="Description"
                 placeholder="Short description of the game"
-                variant="outlined"
-                density="compact"
-                hide-details
+                v-bind="inputProps"
             />
-
-            <div class="d-flex ga-3">
+            <div v-for="row in numberFieldRows" :key="row[0].model" class="d-flex ga-3">
                 <BaseInput
-                    v-model.number="minPlayers"
-                    label="Min Players"
+                    v-for="field in row"
+                    :key="field.model"
+                    v-model.number="numberFields[field.model]"
+                    :label="field.label"
                     type="number"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                />
-                <BaseInput
-                    v-model.number="maxPlayers"
-                    label="Max Players"
-                    type="number"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                />                
-            </div>
-
-            <div class="d-flex ga-3">
-                <BaseInput
-                    v-model.number="minAge"
-                    label="Minimum Age"
-                    type="number"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                />
-                <BaseInput
-                    v-model.number="duration"
-                    label="Duration (minutes)"
-                    type="number"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
+                    v-bind="inputProps"
                 />
             </div>
-
             <div class="d-flex align-center ga-3">
                 <BaseButton variant="secondary" @click="triggerUpload">
                     <v-icon start>mdi-upload</v-icon>
                     Upload Cover
                 </BaseButton>
-
                 <span style="font-size: var(--fs-small); color: var(--color-text-muted)">
                     {{ fileName || 'No file chosen' }}
                 </span>
-
                 <label for="cover-upload" class="sr-only">Upload Game Cover</label>
                 <input
                     id="cover-upload"
@@ -113,9 +72,8 @@
         </div>
     </BaseModal>
 </template>
-
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
@@ -131,33 +89,50 @@ const props = defineProps({
         default: false
     }
 })
-
 const open = defineModel({ type: Boolean, default: false })
-
 const emit = defineEmits(['confirm', 'back'])
+
+// Shared attrs for every plain text/number field - single source of truth,
+// this is what was driving most of the duplicated-lines warning.
+const inputProps = {
+    variant: 'outlined',
+    density: 'compact',
+    hideDetails: true
+}
 
 const title = ref('');
 const description = ref('');
-const minPlayers = ref(null);
-const maxPlayers = ref(null);
 const genres = ref([])
-const minAge = ref(null);
-const duration = ref(null);
-
 const fileName = ref('');
 const fileInput = ref(null);
 const file = ref(null);
-
 const genreOptions = ref([]);
 const genreSearch = ref('')
 const isSelecting = ref(false)
 
-watch(genreSearch, (val, oldVal) => {
+// Number fields driven by config instead of four near-identical templates
+const numberFields = reactive({
+    minPlayers: null,
+    maxPlayers: null,
+    minAge: null,
+    duration: null
+})
+const numberFieldRows = [
+    [
+        { model: 'minPlayers', label: 'Min Players' },
+        { model: 'maxPlayers', label: 'Max Players' }
+    ],
+    [
+        { model: 'minAge', label: 'Minimum Age' },
+        { model: 'duration', label: 'Duration (minutes)' }
+    ]
+]
+
+watch(genreSearch, (val) => {
     if (isSelecting.value) {
         isSelecting.value = false;
         return;
     }
-
     if (val !== null && val !== undefined) {
         fetchGenres(val)
     }
@@ -169,7 +144,6 @@ const handleGenreSelect = () => {
 
 const fetchGenres = useDebounceFn(async (query) => {
     if (query === null || query === undefined) return; // ignore post-selection clear
-
     try {
         const res = await userService.getGenres(query);
         genreOptions.value = res.genres;
@@ -178,6 +152,7 @@ const fetchGenres = useDebounceFn(async (query) => {
         console.error('failed to load genres: ', err);
     }
 }, 300)
+
 onMounted(() => fetchGenres(''))
 
 const triggerUpload = () => fileInput.value?.click()
@@ -190,37 +165,39 @@ const handleFileChange = (e) => {
     }
 }
 
+const resetNumberFields = () => {
+    numberFields.minPlayers = null;
+    numberFields.maxPlayers = null;
+    numberFields.minAge = null;
+    numberFields.duration = null;
+}
+
 const closeModal = () => {
     open.value = false;
     title.value = '';
     description.value = '';
-    minPlayers.value = null;
-    maxPlayers.value = null;
-    minAge.value = null;
-    duration.value = null;
+    resetNumberFields();
     genres.value = [];
     fileName.value = '';
     file.value = null;
 }
 
 const handleConfirm = async () => {
-    if (!title.value || !file.value || !description.value || !minPlayers.value || !maxPlayers.value || !minAge.value || !duration.value) return
-
-    if (minPlayers.value >= maxPlayers.value) { // only cause it's in the backend
+    const { minPlayers, maxPlayers, minAge, duration } = numberFields;
+    if (!title.value || !file.value || !description.value || !minPlayers || !maxPlayers || !minAge || !duration) return
+    if (minPlayers >= maxPlayers) { // only cause it's in the backend
         console.error('minPlayers must be less than maxPlayers')
         return
     }
-
     const gameData = {
         title: title.value,
         description: description.value,
-        minPlayers: minPlayers.value,
-        maxPlayers: maxPlayers.value,
-        minAge: minAge.value,
-        duration: duration.value,
+        minPlayers,
+        maxPlayers,
+        minAge,
+        duration,
         genres: genres.value
     }
-
     try {
         const res = props.createOnly
             ? await createGame(gameData, file.value)
