@@ -153,7 +153,6 @@ const _useEvents = () => {
 
         try {
             const data = await EventService.getUserInvites()
-            console.log('Raw invites response:', data) 
             invites.value = data.invites;
             inviteCount.value = data.inviteCount
         }catch (err: any) {

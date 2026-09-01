@@ -1,6 +1,5 @@
 package com.boardwise.backend.marketplace.service;
 
-import com.boardwise.backend.marketplace.model.*;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -21,13 +20,16 @@ import com.boardwise.backend.marketplace.dtos.listing.ListingRequest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
 import com.boardwise.backend.marketplace.enums.*;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
+import com.boardwise.backend.marketplace.models.*;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
+import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.user_service.models.Boardgame;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.shared.model.Boardgame;
+import com.boardwise.backend.user_service.models.User;
+import com.boardwise.backend.user_service.repository.UserRepository;
 
 import org.bson.types.ObjectId;
+import org.owasp.encoder.Encode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -65,6 +67,26 @@ public class ListingService {
         this.mongoTemplate = mongoTemplate;
         this.userRepository = userRepository;
         this.boardGameRepository = boardGameRepository;
+    }
+
+        public static String sanitize(String input) {
+        if (input == null) return null;
+        
+        // trim whitespace
+        String sanitized = input.trim();
+        
+        // strip HTML tags
+        sanitized = sanitized.replaceAll("<[^>]*>", "");
+        
+        // encode any remaining special characters
+        sanitized = Encode.forHtml(sanitized);
+        
+        // block NoSQL injection operators
+        if (sanitized.contains("$") || sanitized.contains("{")) {
+            throw new IllegalArgumentException("Invalid characters in input");
+        }
+        
+        return sanitized;
     }
 
     private static String truncateAfterWords(String text, int wordLimit) {
@@ -133,18 +155,18 @@ public class ListingService {
         
         ObjectId userId = jwtService.extractUserId(token); // fails at filter level
 
-        String itemType = req.itemType().trim();
+        String itemType = sanitize(req.itemType().trim());
 
         // Sanity check
         ItemType.fromValue(itemType);
 
-        String listingType = req.listingType().trim();
+        String listingType =sanitize( req.listingType().trim());
 
         // Sanity check
         ListingType.fromValue(listingType);
 
         // Sanity check
-        String condition = req.condition();
+        String condition = sanitize(req.condition());
         Condition.fromValue(condition);
 
         double price = req.price();
@@ -155,7 +177,7 @@ public class ListingService {
         String description;
         if(!req.description().isBlank()){
 
-           description = truncateAfterWords(req.description().trim(), 500);
+           description = truncateAfterWords(sanitize(req.description()), 500);
         }
         else{
             throw new IllegalArgumentException();
@@ -163,7 +185,7 @@ public class ListingService {
 
         String imageUrl;
 
-        String listingTitle = req.listingTitle().trim();
+        String listingTitle = sanitize(req.listingTitle().trim());
 
         List<String> genres = req.genres();
 
@@ -171,7 +193,7 @@ public class ListingService {
         for (int i = 0; i < genres.size(); i++)
             Genres.fromValue(genres.get(i)).getValue();
 
-        String gameTitle = req.gameTitle();
+        String gameTitle =sanitize(req.gameTitle());
 
         //check if title is avaliable if not upload to db
 
@@ -180,7 +202,7 @@ public class ListingService {
         }
 
         if(boardGameRepository.findByTitle(gameTitle).isEmpty()){
-            Boardgame toBeInserted = new Boardgame(null, null, req.gameTitle(),null,null,1,2,3,null,null);
+            Boardgame toBeInserted = new Boardgame(null, null, sanitize(req.gameTitle()),null,null,1,2,3,null,null);
             boardGameRepository.insert(toBeInserted);
         }
 
@@ -224,9 +246,9 @@ public class ListingService {
 
         LocalDateTime now = LocalDateTime.now();
         ListingStatus status = ListingStatus.AVAILABLE;
-        String location = req.location();
+        String location = sanitize(req.location());
 
-        String version = req.version();
+        String version = sanitize(req.version());
 
         String username = userRepository.findById(jwtService.extractUserId(token).toString())
         .orElseThrow(() -> new IllegalArgumentException("User not found"))
@@ -241,7 +263,7 @@ public class ListingService {
         Listing saved = listingRepository.save(toSave);
 
         if (img != null && !img.isEmpty()) {
-            String imgAsString = img.getOriginalFilename().toLowerCase();
+            String imgAsString = sanitize(img.getOriginalFilename().toLowerCase());
             
             if (imgAsString == null) throw new IllegalArgumentException("Invalid image file");
 
@@ -255,7 +277,6 @@ public class ListingService {
                 saved.setImageUrl(imageUrl);
             } catch (IOException e) {
                 saved.setImageUrl(defaultImage);
-                e.printStackTrace();
             }
         }
         //failsafe
@@ -270,11 +291,56 @@ public class ListingService {
 
     }
 
-    public List<ListingResponse> getAllActiveListings() {
-        return listingRepository.findByStatus(ListingStatus.AVAILABLE)
-            .stream()
-            .map(this::mapToResponse)
-            .toList();
+    public List<ListingResponse> getAllActiveListings(String token) {
+        List<Listing> listings = listingRepository.findByStatus(ListingStatus.AVAILABLE);
+        listings = personalizeOrder(listings, token);
+        return listings.stream().map(this::mapToResponse).toList();
+    }
+
+    private List<Listing> personalizeOrder(List<Listing> listings, String token) {
+        List<String> ownedGames = Collections.emptyList();
+        List<String> preferredGenres = Collections.emptyList();
+
+        if (token != null && !token.isBlank()) {
+            try {
+                ObjectId userId = jwtService.extractUserId(token);
+                User user = userRepository.findById(userId.toString()).orElse(null);
+                if (user != null) {
+                    if (user.getOwnedGames() != null) ownedGames = user.getOwnedGames();
+                    if (user.getPreferences() != null && user.getPreferences().getGenres() != null) {
+                        preferredGenres = user.getPreferences().getGenres();
+                    }
+                }
+            } catch (Exception e) {
+                return listings;
+            }
+        }
+
+        if (ownedGames.isEmpty() && preferredGenres.isEmpty()) {
+            return listings;
+        }
+
+        // lambdas require effectively-final captures
+        final List<String> ownedGamesFinal = ownedGames;
+        final List<String> preferredGenresFinal = preferredGenres;
+
+        Comparator<Listing> personalizedOrder = Comparator
+            .comparing((Listing l) -> ownsGame(l, ownedGamesFinal) ? 0 : 1)
+            .thenComparing((Listing l) -> -genreOverlapCount(l, preferredGenresFinal));
+
+        return listings.stream().sorted(personalizedOrder).toList();
+    }
+    
+    private boolean ownsGame(Listing listing, List<String> ownedGames) {
+        if (listing.getGameTitle() == null) return false;
+        return ownedGames.stream().anyMatch(owned -> owned.equalsIgnoreCase(listing.getGameTitle()));
+    }
+
+    private long genreOverlapCount(Listing listing, List<String> preferredGenres) {
+        if (listing.getGenres() == null || listing.getGenres().isEmpty()) return 0;
+        return listing.getGenres().stream()
+            .filter(g -> preferredGenres.stream().anyMatch(p -> p.equalsIgnoreCase(g)))
+            .count();
     }
 
     public void deleteListing(String listingId, String token) {
@@ -297,8 +363,8 @@ public class ListingService {
         return mapToResponse(listingRepository.findById(listingId).orElseThrow( ()-> new IllegalArgumentException("Listing not found: " + listingId)));
     }
 
-    public Page<ListingResponse> getByFilter(String gameTitle, String listingTitle ,String listingType, String itemType, Double minPrice, Double maxPrice, List<String> conditions, List<String> genres, Integer page, Integer size) {
-        
+    public Page<ListingResponse> getByFilter(String gameTitle, String listingTitle, String listingType,String itemType, Double minPrice, Double maxPrice, List<String> conditions, List<String> genres,
+        Integer page, Integer size, String token){        
         //Search for AVAILABLE Listings 
         Criteria criteria = Criteria.where("status").is(ListingStatus.AVAILABLE);
 
@@ -326,29 +392,31 @@ public class ListingService {
 
         if (conditions != null && !conditions.isEmpty())criteria.and("condition").in(conditions);
         
-        // if(conditions != null) criteria.and("condition").regex(conditions, "i");
-
         
-        PageRequest pageRequest = null;
+        PageRequest pageRequest;
         Query query = new Query(criteria);
         if(page != null && size != null){
             if(page < 0 ) page = 0;
             if(size < 0) size = Integer.MAX_VALUE;
 
             //Pagination
-            pageRequest = PageRequest.of(page - 1 ,size); 
+            pageRequest = PageRequest.of(page ,size); 
             query.with(pageRequest);
         }
+        List<Listing> allMatches = mongoTemplate.find(new Query(criteria), Listing.class);
+            allMatches = personalizeOrder(allMatches, token);
 
-        if(pageRequest == null){
-            pageRequest = PageRequest.of(0, Integer.MAX_VALUE);
-        }
+        int pageNum = (page != null && page >= 0) ? page : 0;
+        int pageSize = (size != null && size > 0) ? size : Math.max(allMatches.size(), 1);
 
-        long total = mongoTemplate.count(new Query(criteria), Listing.class);
+        int fromIndex = Math.min(pageNum * pageSize, allMatches.size());
+        int toIndex = Math.min(fromIndex + pageSize, allMatches.size());
 
-        List<ListingResponse> res = mongoTemplate.find(query,Listing.class).stream().map(this::mapToResponse).toList();
+        List<ListingResponse> pageContent = allMatches.subList(fromIndex, toIndex).stream().map(this::mapToResponse).toList();
 
-        return  new PageImpl<>(res, pageRequest, total);
+        PageRequest pageReq= PageRequest.of(pageNum, pageSize);
+
+        return new PageImpl<>(pageContent, pageReq, allMatches.size());
     }
 
     public ListingResponse updateListing(String listingId, ListingRequest req, String token, MultipartFile img) {
@@ -358,14 +426,11 @@ public class ListingService {
                 .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + listingId));
 
         if (!userId.equals(existing.getUserId())) {
-            
-            System.out.println("token userId: " + userId);
-            System.out.println("listing userId: " + existing.getUserId());
             throw new ForbiddenException("Cannot update " + listingId);
         }
 
         // sanity check
-        if (req != null && !req.itemType().equals(existing.getItemType())) {
+        if (!req.itemType().equals(existing.getItemType())) {
             ItemType.fromValue(req.itemType());
             existing.setItemType(req.itemType());
         }
@@ -380,7 +445,7 @@ public class ListingService {
         // sanity check
         if (!req.listingType().equals(existing.getListingType())) {
             ListingType.fromValue(req.listingType());
-            existing.setListingType(req.listingType());
+            existing.setListingType(sanitize(req.listingType()));
         }
 
         double priceToAdd = req.price();
@@ -392,24 +457,24 @@ public class ListingService {
         }
 
         if (!existing.getLocation().equals(req.location())) {
-            existing.setLocation(req.location());
+            existing.setLocation(sanitize(req.location()));
         }
 
         if(!existing.getListingTitle().equals(req.listingTitle())){
-            existing.setListingTitle(req.listingTitle());
+            existing.setListingTitle(sanitize(req.listingTitle()));
         }
 
-        if (!existing.getGameTitle().equals(req.gameTitle())) {
+        if (!existing.getGameTitle().equals(sanitize(req.gameTitle()))) {
 
             if(boardGameRepository.findByTitle(req.gameTitle()).isEmpty()){
                 Boardgame toBeInserted = new Boardgame(null, null, req.gameTitle(),null,null,1,2,3,null,null);
                 boardGameRepository.insert(toBeInserted);
             }
-            existing.setGameTitle(req.gameTitle());
+            existing.setGameTitle(sanitize(req.gameTitle()));
         }
 
         if (!req.description().isBlank() && !req.description().equals(existing.getDescription()))
-            existing.setDescription(truncateAfterWords(req.description(), 500));
+            existing.setDescription(sanitize(truncateAfterWords(req.description(), 500)));
 
         // sanity check
         if (!req.genres().equals(existing.getGenres())) {

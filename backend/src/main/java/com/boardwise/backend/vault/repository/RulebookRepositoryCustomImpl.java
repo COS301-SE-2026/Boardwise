@@ -29,13 +29,11 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
     public Rulebook atomicAcquireWriteLock(ObjectId rulebookId, ObjectId userId, Instant newExpiry){
         Instant now = Instant.now();
 
-        // Construct query criteria
         Criteria lockAvailablCriteria = new Criteria().orOperator(
             Criteria.where("lockHeldBy").isNull(),
             Criteria.where("lockExpiresAt").lt(now)
         );
 
-        // Construct the query
         Query query = new Query(
             new Criteria().andOperator(
                 Criteria.where("_id").is(rulebookId),
@@ -43,15 +41,12 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
             )
         );
 
-        // Construct the update definition
         Update update = new Update()
             .set("lockHeldBy", userId)
             .set("lockExpiresAt", newExpiry);
 
-        // Get the updated document
         FindAndModifyOptions options = new FindAndModifyOptions().returnNew(true);
 
-        // Execute atomic command
         return mongoTemplate.findAndModify(query, update, options, Rulebook.class);
     }
 
@@ -180,10 +175,10 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
                         new Document("$ifNull", List.of("$undoStack", List.of())),
                         List.of(newVersion)
                     )),
-                    -50 // Dynamically keep only the last 50 elements
+                    -50 // Dynamically keep only the last 50 elements to limit how many undo actions one can do.
                 ))
             )
-            .set("redoStack").toValue(List.of()); // clear redo stack
+            .set("redoStack").toValue(List.of());
 
         mongoTemplate.updateFirst(query, updatePipeline, Rulebook.class);
     }
@@ -200,7 +195,7 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
             }
 
             if (genre != null && !genre.equalsIgnoreCase("All") && !genre.trim().isEmpty()) {
-                query.addCriteria(Criteria.where("genres").regex(Pattern.quote(genre), "i")); // account for case sensitivity
+                query.addCriteria(Criteria.where("genres").regex(Pattern.quote(genre), "i"));
             }
             
             if(languages != null && !languages.isEmpty()){

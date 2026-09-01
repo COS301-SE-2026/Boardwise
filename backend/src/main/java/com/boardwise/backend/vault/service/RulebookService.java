@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.boardwise.backend.vault.dto.response.ChunkDto;
 import com.boardwise.backend.vault.dto.response.DownloadUrlResponseDto;
 import com.boardwise.backend.vault.dto.response.EditEventResponseDto;
 import com.boardwise.backend.vault.dto.response.EditHistoryResponseDto;
@@ -34,7 +35,7 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor // automatically generates a constructor for specific fields(Removes need for manual boilerplate code)
@@ -110,22 +111,32 @@ public class RulebookService {
     public RulebookTextResponseDto getRulebookText(ObjectId id){
         Rulebook rulebook = findRulebookOrThrow(id);
 
-        RulebookText text = rulebookTextRepository
-            .findByRulebookId(id)
-            .orElseThrow(() -> new RulebookNotFoundException("Text content not found for rulebook: " + id));
+        List<RulebookText> textChunks = rulebookTextRepository.findByRulebookIdOrderByIndexAsc(id);
 
-            String username = "";
-            if(rulebook.getLockHeldBy() != null){
+        List<ChunkDto> chunkDtos = textChunks.stream()
+            .map(chunk -> ChunkDto.builder()
+                .chunkId(chunk.getChunkId().toHexString())
+                .index(chunk.getIndex())
+                .content(chunk.getContent())
+                .build())
+            .toList();
+
+        String username = "";
+        if(rulebook.getLockHeldBy() != null){
+            try {
                 User user = findUserOrThrow(rulebook.getLockHeldBy());
                 username = user.getUsername();
+            } catch (IllegalArgumentException e) {
+                username = "Deleted User";
             }
+        }
 
         return RulebookTextResponseDto.builder()
             .rulebookId(id.toHexString())
-            .chunks(text.getChunks())
+            .chunks(chunkDtos)
             .version(rulebook.getVersion())
             .lockHeldBy(username)
-            .updatedAt(text.getUpdatedAt())
+            .updatedAt(rulebook.getUpdatedAt())
             .build();
     }
 

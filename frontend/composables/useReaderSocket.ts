@@ -83,7 +83,6 @@ export const useReaderSocket = (rulebookId: string, handlers: SocketHandlers) =>
                 isConnected.value = true;
 
                 if(hasConnectedOnce.value){
-                    console.log("STOMP reconnected. Fetching missed updates...");
                     handlers.onReconnect();
                 }else{
                     hasConnectedOnce.value = true;

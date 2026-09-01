@@ -50,7 +50,6 @@ export function useUserLocation() {
             if (!res.ok) throw new Error('Geocoding request failed');
 
             const data: NominatimResponse = await res.json();
-            console.log('Nominatim address:', data.address);
             const address = data.address;
 
 
