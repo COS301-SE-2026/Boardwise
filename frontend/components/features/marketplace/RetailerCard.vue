@@ -13,11 +13,11 @@
     <v-card-text class="pa-4 d-flex flex-column ga-2">
 
       <h2 class="retail-title" data-test="retailer-title">
-        {{ retail.retailerTitle }}
+        {{ retail.retailTitle }}
       </h2>
 
       <h3 class="retail-name" data-test="retailer-name">
-        {{ retail.retailerName }}
+        {{ retail.retailer }}
       </h3>
 
       <p

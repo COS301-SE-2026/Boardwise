@@ -86,7 +86,6 @@ const handleSearch = async(query)=>{
     isSearching.value = true;
     try{
         const res = await userService.searchForBoardGame(query);
-        console.log(res);
         games.value = res.boardGames;
     }
     catch(err){

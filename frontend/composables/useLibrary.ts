@@ -40,7 +40,6 @@ export const useLibrary = () => {
             rulebooks.value = reset ? newContent : [...rulebooks.value, ...newContent];
             hasMore.value = response? !response.last : false;
             page.value += 1;
-            // console.log('fetched', response.content);
         } catch(err: any) {
             error.value = err.data?.message || 'No rulebooks found'
             if (reset) rulebooks.value = []

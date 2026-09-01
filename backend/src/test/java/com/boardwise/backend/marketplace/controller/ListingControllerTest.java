@@ -1,6 +1,7 @@
 package com.boardwise.backend.marketplace.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -107,7 +108,7 @@ public class ListingControllerTest{
     @WithMockUser
     public void getAllActiveListingsReturns_200() throws Exception{
         //ARRANGE
-        when(listingService.getAllActiveListings()).thenReturn(List.of(buildDefaultResponse()));
+        when(listingService.getAllActiveListings("abc")).thenReturn(List.of(buildDefaultResponse()));
         //ACT & ASSERT
          mockMvc.perform(get("/api/marketplace/listings"))
                .andExpect(status().isOk());
@@ -118,7 +119,7 @@ public class ListingControllerTest{
     @WithMockUser
     public void getAllActiveListingsReturns_204() throws Exception{
         //ARRANGE
-        when(listingService.getAllActiveListings()).thenReturn(List.of());
+        when(listingService.getAllActiveListings("abc")).thenReturn(List.of());
         //ACT & ASSERT
          mockMvc.perform(get("/api/marketplace/listings"))
                .andExpect(status().isNoContent());
@@ -129,7 +130,7 @@ public class ListingControllerTest{
     @WithMockUser
     public void getAllActiveListingsReturns_500() throws Exception{
         //ARRANGE
-        when(listingService.getAllActiveListings()).thenThrow(new RuntimeException("boom"));
+        when(listingService.getAllActiveListings("abc")).thenThrow(new RuntimeException("boom"));
         //ACT & ASSERT
          mockMvc.perform(get("/api/marketplace/listings"))
                .andExpect(status().is5xxServerError());
@@ -385,7 +386,7 @@ public class ListingControllerTest{
         Page<ListingResponse> page = new PageImpl<>(List.of(buildDefaultResponse()));
 
         when(listingService.getByFilter(any(), any(), any(), any(), any(),
-            any(),any(), any(),any(), any())).thenReturn(page);
+            any(),any(), any(),any(), any(),anyString())).thenReturn(page);
         
         //ACT & ASSERT
 
@@ -400,7 +401,7 @@ public class ListingControllerTest{
         Page<ListingResponse> page = new PageImpl<>(List.of());
 
         when(listingService.getByFilter(any(), any(), any(), any(), any(),
-            any(),any(), any(),any(), any())).thenReturn(page);
+            any(),any(), any(),any(), any(),anyString())).thenReturn(page);
         
         //ACT & ASSERT
 
@@ -413,7 +414,7 @@ public class ListingControllerTest{
     public void getFilteredListingsReturns_500() throws Exception{
         //ARRANGE   
         when(listingService.getByFilter(any(), any(), any(), any(), any(),
-            any(),any(), any(),any(), any())).thenThrow(new RuntimeException());
+            any(),any(), any(),any(), any(),anyString())).thenThrow(new RuntimeException());
         
         //ACT & ASSERT
         mockMvc.perform(get("/api/marketplace/listings/search")).andExpect(status().isInternalServerError());

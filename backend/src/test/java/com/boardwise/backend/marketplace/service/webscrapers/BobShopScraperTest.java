@@ -17,7 +17,7 @@ class BobShopScraperTest {
 
     @BeforeEach
     public void setUp() {
-        scraper = new BobShopScraper();
+        scraper = new BobShopScraper(new BrowserManager());
     }
 
     // parsePrice

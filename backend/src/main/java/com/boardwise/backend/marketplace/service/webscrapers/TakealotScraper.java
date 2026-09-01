@@ -13,31 +13,35 @@ import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
-import com.microsoft.playwright.Playwright;
 
 @Service
 public class TakealotScraper implements WebScraper {
 
-    public TakealotScraper(){} 
-    
+    public TakealotScraper(BrowserManager browserManager){
+        this.browserManager = browserManager;
+    } 
     private final static  Logger logger = Logger.getLogger(TakealotScraper.class.getName());
-    private final int MAXNUMITEMS = 25;
+    private final int MAXNUMITEMS = 45;
     private final String searchSelector = "input[placeholder='Search for products, brands...']";
     private final String site = "https://www.takealot.com";
     private final String RETAILERNAME = "Takealot";
+    private final BrowserManager browserManager;
 
     @Override
     public List<RetailSourceItemDTO> scrape(String toSearch) {
+        long start = System.currentTimeMillis();
+
+        System.out.println("TAKEALOT SCRAPER STARTED");
+
         if(toSearch == null || toSearch.isBlank()){
             logger.info("Error while scraping Takealot blank search bar");
             return null;
         }
-        try(Playwright playwright = Playwright.create()){
+        Browser b = browserManager.getBrowser();
+        try(BrowserContext context = b.newContext()){
             //chromium
-            Browser chromium =  playwright.chromium().launch();
-            BrowserContext context = chromium.newContext();
             Page page = context.newPage();
-            context.setDefaultTimeout(60000);
+            context.setDefaultTimeout(30000);
 
             //website
             page.navigate(site);
@@ -91,6 +95,9 @@ public class TakealotScraper implements WebScraper {
             page.close();
 
             sortBySimilarity(retailSourceItemDTOs); // sort in terms of float
+            System.out.println("TAKEALOT SCRAPER FINISHED AFTER:");
+
+            System.out.println((System.currentTimeMillis()-start)/1000 + "s");
             return retailSourceItemDTOs;
 
         } catch (Exception e) {

@@ -50,6 +50,8 @@ def initialise_vector_index():
 
     try:
         logger.info("Creating vector index")
+        if "RULEBOOK_TEXT" not in db.list_collection_names():
+            db.create_collection("RULEBOOK_TEXT")
         collection.create_search_index(model=search_index_model)
         logger.info("Vector index 'vector_index' created successfully.")
     except OperationFailure:
