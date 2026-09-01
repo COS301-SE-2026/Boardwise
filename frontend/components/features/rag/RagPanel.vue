@@ -66,8 +66,8 @@ watch(() => props.rulebook?.id, () => clearConversation())
     position: fixed;
     right: var(--space-6, 24px);
     bottom: 96px; /* sits just above the floating button */
-    width: 380px;
-    height: 520px;
+    width: min(380px, calc(100vw - 32px));
+    height: min(520px, calc(100vw - 120px));
     max-height: calc(100vh - 140px);
     display: flex;
     flex-direction: column;

@@ -1,10 +1,10 @@
 <template>
-    <BaseCard class="pa-4">
-        <div class="d-flex ga-3">
+    <BaseCard class="pa-4 rag-composer">
+        <div class="rag-composer-row">
             <BaseInput
                 v-model="text"
                 aria-label="Ask a question about this rulebook"
-                class="flex-grow-1 rag-input"
+                class="rag-input"
                 placeholder="Ask a question about this rulebook..."
                 :disabled="isLoading"
                 maxlength="500"
@@ -44,8 +44,27 @@ const send = () => {
 </script>
 
 <style scoped>
-.rag-input :deep(input),
-.rag-input :deep(input::placeholder) {
-    font-size: var(--fs-body, 15px);
+.rag-composer {
+    width: 100%;
+}
+
+.rag-composer-row {
+    display: flex;
+    gap: var(--space-3, 12px);
+}
+
+.rag-input {
+    min-width: 0;
+    flex: 1;
+}
+
+@media (max-width: 480px) {
+    .rag-composer-row {
+        gap: 8px;
+    }
+
+    .rag-input {
+        min-width: 0;
+    }
 }
 </style>
