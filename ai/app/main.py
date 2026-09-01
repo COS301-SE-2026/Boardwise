@@ -55,7 +55,7 @@ app.add_middleware(
 
 app.include_router(rulebook.router)
 
-@app.get("/health", tags=["System"])
+@app.get("/api/fa/health", tags=["System"])
 async def health_check():
     """A lightweight endpoint for health checks"""
     return{"status": "healthy", "service": "ai-gateway"}
