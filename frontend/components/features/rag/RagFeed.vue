@@ -1,5 +1,5 @@
 <template>
-    <div class="rag-feed">
+    <div class="rag-feed" role="log" aria-live="polite" aria-label="Conversation with Boarley">
         <RagMessage 
             data-test="rag-message"
             v-for="message in messages" 

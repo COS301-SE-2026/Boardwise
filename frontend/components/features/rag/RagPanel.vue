@@ -9,7 +9,7 @@
             <div class="rag-panel">
                 <div class="rag-header d-flex justify-space-between align-center pa-4">
                     <h3 class="text-subtitle-1 font-weight-bold mb-0">{{  rulebook?.title  }} - Ask AI</h3>
-                    <v-btn icon="mdi-close" variant="text" size="small" @click="close" />
+                    <v-btn icon="mdi-close" variant="text" size="small" aria-label="Close Ask AI panel" @click="close" />
                 </div> 
 
                 <RagFeed data-test="rag-feed" :messages="messages" :is-loading="isLoading" :has-no-result="false" @retry="handleRetry" />
@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue'
+import { watch, onMounted, onUnmounted } from 'vue'
 import type { RagMessage as RagMessageType } from '~/composables/useRag'
 
 import RagFeed from '~/components/features/rag/RagFeed.vue'
@@ -51,6 +51,12 @@ const handleSend = (query: string) => {
     askQuestion(props.rulebook.id, query)
 }
 
+function onKeydown(e: KeyboardEvent) {
+    if(e.key === 'Escape' && props.modelValue) close()
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 watch(() => props.rulebook?.id, () => clearConversation())
 </script>
