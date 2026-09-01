@@ -413,10 +413,12 @@ public class CommunityService {
         if(event == null)
             throw new NoSuchElementException("Event with ID: " + eventId + " does not exist.");
 
-        EventAttendee newAttendee = new EventAttendee(
-            user.getId(), eventId, RSVPStatus.ATTENDING
-        );
-        
+
+        Optional<EventAttendee> existing = eaRepo.findByUserIdAndEventId(user.getId(), eventId);
+        EventAttendee newAttendee = existing
+            .map(ea -> { ea.setStatus(RSVPStatus.ATTENDING); return ea; })
+            .orElseGet(() -> new EventAttendee(user.getId(), eventId, RSVPStatus.ATTENDING));
+
         newAttendee = eaRepo.save(newAttendee);
         EventAttendee forExample = new EventAttendee();
         forExample.setEventId(eventId);
