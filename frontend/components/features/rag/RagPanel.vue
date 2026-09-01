@@ -78,7 +78,7 @@ watch(() => props.rulebook?.id, () => clearConversation())
     border-bottom: 1px solid var(--color-border, #eee);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 480px) {
     .rag-panel {
         right: var(--space-4, 16px);
         left: var(--space-4, 16px);

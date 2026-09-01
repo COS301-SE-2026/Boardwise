@@ -27,7 +27,7 @@ defineEmits(['click'])
     z-index: 1000;
 }
 
-@media (max-width: 970px) {
+@media (max-width: 480px) {
     .ai-fab {
         right: var(--space-4, 16px);
         bottom: var(--space-4, 16px);
