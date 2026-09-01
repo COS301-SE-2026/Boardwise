@@ -11,7 +11,6 @@ export const useProfile = () => {
         error.value = ''
         try{
             const res = await userService.getCurrentUser()
-            console.log(res)
             return res
         }
         catch(err: any){

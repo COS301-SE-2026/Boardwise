@@ -4,12 +4,13 @@ import { useSnackBar } from './useSnackbar'
 import { createSharedComposable } from '@vueuse/core'
 const { show } = useSnackBar()
 
+
 const _useMarketplace = () =>{
 
     //page paramters
-    const page = ref(1)
+    const page = ref(0)
     const hasMore = ref(true)
-    const pageSize = 15
+    const pageSize = 25
 
     //storing listings
     const listings = ref<Array<ListingResponse>>([]); //listings in db
@@ -18,7 +19,7 @@ const _useMarketplace = () =>{
     const loading = ref(false);
     
     //error checking 
-    const error = ref(null);
+    const error = ref<string | null>(null);
 
     const activeFilters = ref({})
 
@@ -40,7 +41,7 @@ const _useMarketplace = () =>{
     }, reset = false)=> {
         if(reset){
             activeFilters.value = filters ?? {}
-            page.value = 1;
+            page.value = 0;
             listings.value = [];
             hasMore.value = true;
         }
@@ -55,14 +56,8 @@ const _useMarketplace = () =>{
             listings.value = reset ? res.content : [...listings.value, ...res.content];
             hasMore.value = !res.last;
             page.value += 1;
-            show('Successfully got all listings');
         } catch(err) {
-            if(activeFilters.value)
-                show('No available listings!')
-            else{
-                show('Failed to find any listings!', 'error')
-            }
-            console.error('Failed to fetch', err); 
+                show('Failed to find any listings!', 'error');
         } finally {
             loading.value = false;
         }
@@ -131,11 +126,9 @@ const removeListing = async (id: string) => {
 }
 
 const fetchListingById = async (id: string) => {
-  loading.value = true
   error.value = null
   try {
     const res = await MarketplaceService.getListingById(id)
-    show('Successfully fetched listing details');
     return res
   } catch (err: any) {
       error.value = err.data?.message ?? 'Failed to fetch listing'
@@ -146,7 +139,9 @@ const fetchListingById = async (id: string) => {
   }
 }
 
-return { listings, loading, error, fetchListings, fetchListingById, addListing, fetchUserListing, editListing, removeListing,page,loadMore,hasMore}
+
+
+return { listings, loading, error, fetchListings, fetchListingById, addListing, fetchUserListing, editListing, removeListing,page,loadMore,hasMore, }
 }
 
 export const useMarketplace = createSharedComposable(_useMarketplace)

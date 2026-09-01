@@ -23,7 +23,7 @@
 
             <p class="text-center text-body-2 mt-4 text-medium-emphasis">
                 Already have an account?
-                <NuxtLink to="/auth/signin" class="text-primary font-weight-bold ml-1">
+                <NuxtLink to="/auth/onboarding" class="text-primary font-weight-bold ml-1">
                     Sign In
                 </NuxtLink>
             </p>
@@ -46,7 +46,6 @@ const fields = [
     { key: 'confirmPassword', label: 'Confirm Password', type: 'password' , rules: [required()]}
 ]
 const handleSignUp = async (data) => {
-    console.log('SignUp:', data)
     localError.value = ''
 
     if (data.password !== data.confirmPassword) {

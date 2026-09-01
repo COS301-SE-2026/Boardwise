@@ -6,6 +6,7 @@
                 v-for="invite in props.invites"
                 :key="invite.event.id"
                 :invite="invite"
+                :responding="respondingId === invite.event.id"
                 @accept="$emit('accept', $event)"
                 @decline="$emit('decline', $event)"
             />
@@ -29,7 +30,8 @@ import type { InviteItem } from '~/services/eventService';
 
 const props = withDefaults(
     defineProps<{
-        invites?: InviteItem[]
+        invites?: InviteItem[],
+        respondingId?: string | null
     }>(),
     {
         invites: () => []

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.bson.Document;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
+@Profile("!test") 
 public class SearchIndexInitializer implements CommandLineRunner{
 
     private final MongoTemplate template;

@@ -21,6 +21,8 @@ export interface ListingResponse {
     status: string;
 }
 
+
+
 export const MarketplaceService = {
     //GET ALL LISTINGS
     getListings(filters:{
@@ -92,12 +94,12 @@ export const MarketplaceService = {
     //DELETE LISTING 
     deleteListing(id: string){
         const { $api } = useNuxtApp();
-        return $api(`marketplace/listing/${id}`,{method: 'DELETE'})
+        return $api(`marketplace/listing/${id}`,{method: 'DELETE'});
     },
 
     //GET LISTING BY ID
     getListingById(id: string){ 
         const { $api } = useNuxtApp();
-        return $api<ListingResponse>(`marketplace/listing/${id}`)
+        return $api<ListingResponse>(`marketplace/listing/${id}`);
     }
 }

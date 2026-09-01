@@ -143,7 +143,6 @@ const handleSave = async () => {
         visibility: form.visibility
       }
     )
-    console.log(response.data)
     emit('save', response.data)
   }
   catch(err){

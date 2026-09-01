@@ -223,10 +223,10 @@ public class GlobalExceptionHandlerTest {
     @Test
     void handleConcurrentModificationAnomalyReturns500WithMessage(){
         // Act
-        var response = handler.handleConcurrentModificationAnomaly(new ConcurrentModificationAnomalyException("error occured"));
+        var response = handler.handleConcurrentModificationAnomaly(new ConcurrentModificationAnomalyException("error occurred"));
 
         // Assert
-        assertStatusCodeAndMessage(response, HttpStatus.INTERNAL_SERVER_ERROR, "error occured");
+        assertStatusCodeAndMessage(response, HttpStatus.INTERNAL_SERVER_ERROR, "error occurred");
     }
     
     @Test
