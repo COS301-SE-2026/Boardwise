@@ -1,5 +1,9 @@
 <template> 
-    <v-row class="mt-8">
+  <div class="mt-8">
+    <v-row 
+      v-if="gameView === 'grid'"
+      class="rulebook-grid"
+      >
     <v-col
       v-for="rulebook in rulebooks"
       :key="rulebook.id"
@@ -11,11 +15,26 @@
       />
     </v-col>
   </v-row>
+
+  <div  
+    v-else
+    class="rulebook-list"
+    >
+      <RulebookListItem
+        v-for="rulebook in rulebooks"
+        :key="rulebook.id"
+        :rulebook="rulebook"
+        @click="$emit('select', $event)"
+      />
+  </div>
+  </div>
 </template>
 
 <script setup>
+import { computed, onMounted } from 'vue'
 import RulebookCard from './RulebookCard.vue'
-
+import RulebookListItem from './RulebookListItem.vue'
+import { useAppearancePreferences } from '~/composables/useAppearancePreferences.ts';
 defineProps({
   rulebooks: {
     type: Array,
@@ -24,4 +43,15 @@ defineProps({
 })
 
 defineEmits(['select'])
+
+const {
+  preferences,
+  loadPreferences
+} = useAppearancePreferences()
+
+const gameView = computed(() => preferences.value.gameView)
+
+onMounted(() => {
+  loadPreferences(false)
+})
 </script>
