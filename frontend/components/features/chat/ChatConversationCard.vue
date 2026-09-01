@@ -1,4 +1,5 @@
 <template>
+    <li class="chat-conversation-list__item">
     <button
         type="button"
         class="chat-conversation-button"
@@ -8,7 +9,6 @@
         }"
         :aria-pressed="active"
         :aria-label="conversationLabel"
-        role="listitem"
         @click="$emit('select', conversation.id)"
     >
         <BaseCard class="chat-conversation-card pa-3">
@@ -62,6 +62,7 @@
             </div>
         </BaseCard>
     </button>
+    </li>
 </template>
 
 <script setup>
@@ -91,7 +92,7 @@ const conversationLabel = computed(() => {
 
     const status = props.conversation.online
         ? ', online'
-        : ''
+        : ', offline'
 
     return `${props.conversation.name}${status}${unread}`
 })
