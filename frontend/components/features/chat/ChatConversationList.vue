@@ -1,5 +1,6 @@
 <template>
-    <div class="d-flex flex-column ga-3">
+    <div class="d-flex flex-column ga-3"
+    >
         <ChatConversationCard
             v-for="conversation in conversations"
             :key="conversation.id"
@@ -20,7 +21,7 @@ const props = defineProps({
         default: () => []
     },
     selected: {
-        type: Number,
+        type: [String, Number],
         default:null
     }
 })
