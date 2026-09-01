@@ -11,7 +11,6 @@
 
 <script setup>
 import GamesGrid from './GamesGrid.vue'
-import SectionTitle from '~/components/ui/SectionTitle.vue'
 
 defineProps({
   games: Array
@@ -19,3 +18,9 @@ defineProps({
 
 defineEmits(['add-game','remove-game'])
 </script>
+
+<style scoped>
+.games-owned-section {
+  width: 100%;
+}
+</style>
