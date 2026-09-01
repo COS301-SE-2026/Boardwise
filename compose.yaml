@@ -80,6 +80,13 @@ services:
       retries: 3
       start_period: 20s
 
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    restart: unless-stopped
 
 volumes:
   db:

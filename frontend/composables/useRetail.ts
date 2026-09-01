@@ -1,46 +1,53 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { RetailService, type RetailListings, type PageImplRetailPage } from '~/services/retailService'
 
-export interface RetailResult {
-    retailerName: string
-    retailTitle: string
-    price?: number
-    imageUrl?: string
-    url?: string
-}
+// Re-export so components can keep importing RetailResult from useRetail
+export type RetailResult = RetailListings
 
 export const useRetail = () => {
     const retailResults = ref<RetailResult[]>([])
     const retailLoading = ref(false)
     const retailError = ref<string | null>(null)
 
-    const fetchRetail = async (query: string) => {
-        if(!query?.trim()) {
+    // Pagination
+    const persPage = ref(0)
+    const totalElements = ref(0)
+    const isLastRetailPage = ref(false)
+    const hasMoreRetail = computed(() => !isLastRetailPage.value)
+
+
+
+    const fetchPersonalisedListings = async (reset = false) => {
+        if (reset) {
+            persPage.value = 0
             retailResults.value = []
+            isLastRetailPage.value = false
+        }
+
+        // Don't request beyond the last page
+        if (isLastRetailPage.value) {
             return
         }
 
         retailLoading.value = true
         retailError.value = null
+        const { show } = useSnackBar()
 
         try {
-            const config = useRuntimeConfig()
+            const res: PageImplRetailPage = await RetailService.getPersonalisedListings(persPage.value);
             
-            const data = await $fetch<RetailResult[]>(`${config.public.apiBase}/marketplace/retail`, 
-                { 
-                    query: {
-                        query
-                    }
-                }
-            )
-
-            retailResults.value = data ?? []
+            retailResults.value = reset ? (res?.content ?? []): [...retailResults.value, ...(res?.content ?? [])]
+            totalElements.value = res?.totalElements ?? 0
+            isLastRetailPage.value = res?.last ?? true
+            persPage.value = (res?.number ?? persPage.value) + 1
+            console.log(retailResults);
+            return res
         }
-        catch (error: any) {
-            console.error('Failed to fetch retail results', error)
-
-            retailError.value = 'Failed to load retail results.'
-            retailResults.value = []
-        } 
+        catch (err: any) {
+            retailError.value = err?.message ?? 'Failed to fetch retail listings'
+            console.error(err)
+            show("couldn't fetch retail listings", "error")
+        }
         finally {
             retailLoading.value = false
         }
@@ -49,16 +56,19 @@ export const useRetail = () => {
     const clearRetail = () => {
         retailResults.value = []
         retailError.value = null
+        persPage.value = 0
+        totalElements.value = 0
+        isLastRetailPage.value = false
     }
 
     return {
         retailResults,
         retailLoading,
         retailError,
-        fetchRetail,
-        clearRetail
+        persPage,
+        totalElements,
+        hasMoreRetail,
+        clearRetail,
+        fetchPersonalisedListings
     }
 }
-
-
-

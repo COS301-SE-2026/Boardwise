@@ -24,12 +24,13 @@ import com.boardwise.backend.marketplace.service.*;
 import jakarta.validation.*;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/api/marketplace")
 
 public class ListingController {
-
+    private final Logger logger = Logger.getLogger("Listing Controller Logger");
     private final ListingService listingService;
     private final RetailService retailService;
 
@@ -40,9 +41,9 @@ public class ListingController {
 
     // AC-MKT-01: Get All Active Listings
     @GetMapping("/listings")
-    public ResponseEntity<List<ListingResponse>> getAllListings() {
+    public ResponseEntity<List<ListingResponse>> getAllListings(@RequestHeader("Authorization") String token) {
         try {
-            List<ListingResponse> listings = listingService.getAllActiveListings();
+            List<ListingResponse> listings = listingService.getAllActiveListings(token.replace("Bearer ", ""));
             if (listings.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
@@ -50,10 +51,11 @@ public class ListingController {
             return ResponseEntity.ok().body(listings);
 
         } catch (Exception e) {
+            logger.info("getAllListings failed " +  e); 
             return ResponseEntity.internalServerError().body(null);
         }
     }
-
+        
     // AC-MKT-02: Get Listing by ID
     @GetMapping("/listing/{listingId}")
     public ResponseEntity<ListingResponse> getListingById(@PathVariable String listingId) {
@@ -152,22 +154,23 @@ public class ListingController {
             @RequestParam(required = false) List<String> conditions,
             @RequestParam(required = false) List<String> genres,
             @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size) {
+            @RequestParam(required = false) Integer size,
+            @RequestHeader(value = "Authorization", required = false) String token) {
         try {
+            String newToken = (token != null) ? token.replace("Bearer ", "") : null;
             Page<ListingResponse> listings = listingService.getByFilter(gameTitle, listingTitle, listingType, itemType,
-                    minPrice, maxPrice,
-                    conditions, genres, page, size);
+                    minPrice, maxPrice,conditions, genres, page, size, newToken);
             if (listings.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
             return ResponseEntity.ok(listings);
         } catch (Exception e) {
-
+            logger.info("getFilteredListings failed " +  e); 
             return ResponseEntity.internalServerError().build();
         }
     }
 
-    @GetMapping("/listings/retail/personalized")
+    @GetMapping("/listings/personalised")
     public ResponseEntity<Page<RetailSourceItemDTO>> getPersonalizedRetailItems(
         @RequestHeader("Authorization") String token,
         @RequestParam(required = false, defaultValue = "0") Integer page) {

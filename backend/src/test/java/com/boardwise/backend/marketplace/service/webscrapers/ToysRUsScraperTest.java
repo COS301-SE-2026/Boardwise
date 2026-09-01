@@ -16,7 +16,7 @@ class ToysRUsScraperTest {
 
     @BeforeEach
     public void setUp() {
-        scraper = new ToysRUsScraper();
+        scraper = new ToysRUsScraper(new BrowserManager());
     }
 
     // noResultsFound

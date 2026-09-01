@@ -1,4 +1,3 @@
-
 package com.boardwise.backend.marketplace.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -943,11 +942,10 @@ class ListingServiceTest {
         LocalDateTime.now(), LocalDateTime.now(),
         List.of("adventure", "strategy"), null);
         
-        when(mongoTemplate.count(any(Query.class), eq(Listing.class))).thenReturn(1L);
         when(mongoTemplate.find(any(Query.class),eq(Listing.class))).thenReturn(List.of(fakeListing));
 
         //ACT
-        Page<ListingResponse> res = listingService.getByFilter("Monopoly", null, null, null, null, null, null, null, null, null);
+        Page<ListingResponse> res = listingService.getByFilter("Monopoly", null, null, null, null, null, null, null, null, null, null);
 
         //ASSERT
         assertNotNull(res);
@@ -965,11 +963,10 @@ class ListingServiceTest {
         LocalDateTime.now(), LocalDateTime.now(),
         List.of("adventure", "strategy"), null);
         
-        when(mongoTemplate.count(any(Query.class), eq(Listing.class))).thenReturn(1L);
         when(mongoTemplate.find(any(Query.class),eq(Listing.class))).thenReturn(List.of(fakeListing));
 
         //ACT
-        Page<ListingResponse> res = listingService.getByFilter(null, "fake", null, null, null, null, null, null, null, null);
+        Page<ListingResponse> res = listingService.getByFilter(null, "fake", null, null, null, null, null, null, null, null, null);
 
         //ASSERT
         assertNotNull(res);
@@ -1003,11 +1000,10 @@ class ListingServiceTest {
         LocalDateTime.now(), LocalDateTime.now(),
         List.of("adventure", "strategy"), null);
         
-        when(mongoTemplate.count(any(Query.class), eq(Listing.class))).thenReturn(3L);
         when(mongoTemplate.find(any(Query.class),eq(Listing.class))).thenReturn(List.of(fakeListing,fakeListing_1, fakeListing_2));
 
         //ACT
-        Page<ListingResponse> res = listingService.getByFilter(null,null, null, null, null, null,  List.of("fair","like new") ,null, null, null);
+        Page<ListingResponse> res = listingService.getByFilter(null,null, null, null, null, null,  List.of("fair","like new") ,null, null, null, null);
 
         //ASSERT
         assertNotNull(res);
@@ -1023,11 +1019,10 @@ class ListingServiceTest {
         LocalDateTime.now(), LocalDateTime.now(),
         List.of("adventure", "strategy"), null);
 
-        when(mongoTemplate.count(any(Query.class), eq(Listing.class))).thenReturn(1L);
         when(mongoTemplate.find(any(Query.class), eq(Listing.class))).thenReturn(List.of(fakeListing));
         
         //ACT
-        Page<ListingResponse> res = listingService.getByFilter(null, null, null, null, 100.0, 200.0, null, null, null, null);
+        Page<ListingResponse> res = listingService.getByFilter(null, null, null, null, 100.0, 200.0, null, null, null, null, null);
 
         //ASSERT
         assertNotNull(res);
@@ -1045,11 +1040,10 @@ class ListingServiceTest {
         LocalDateTime.now(), LocalDateTime.now(),
         List.of("adventure", "strategy"), null);
 
-        when(mongoTemplate.count(any(Query.class), eq(Listing.class))).thenReturn(1L);
         when(mongoTemplate.find(any(Query.class), eq(Listing.class))).thenReturn(List.of(fakeListing));
 
         //ACT
-        Page<ListingResponse> res = listingService.getByFilter(null, null, null, null, 300.0, null, null, null, null, null);
+        Page<ListingResponse> res = listingService.getByFilter(null, null, null, null, 300.0, null, null, null, null, null, null);
 
         //ASSERT
         assertNotNull(res);
@@ -1057,6 +1051,7 @@ class ListingServiceTest {
         assertTrue(res.getContent().get(0).price() >= 300.0);
     }
 
+    @Test
     @DisplayName("Filter should return listings filtered by maxPrice only")
     void shouldReturnListingsFilteredByMaxPrice(){
         //ARRANGE
@@ -1066,11 +1061,10 @@ class ListingServiceTest {
         LocalDateTime.now(), LocalDateTime.now(),
         List.of("adventure", "strategy"), null);
 
-        when(mongoTemplate.count(any(Query.class), eq(Listing.class))).thenReturn(1L);
         when(mongoTemplate.find(any(Query.class), eq(Listing.class))).thenReturn(List.of(fakeListing));
 
         //ACT
-        Page<ListingResponse> res = listingService.getByFilter(null, null, null, null, null ,500.0, null, null, null, null);
+        Page<ListingResponse> res = listingService.getByFilter(null, null, null, null, null ,500.0, null, null, null, null, null);
 
         //ASSERT
         assertNotNull(res);
@@ -1092,11 +1086,10 @@ class ListingServiceTest {
         "desc", defaultIMG, ListingStatus.AVAILABLE,
         LocalDateTime.now(), LocalDateTime.now(), List.of(Genres.ADVENTURE.getValue()), null);
 
-        when(mongoTemplate.count(any(Query.class), eq(Listing.class))).thenReturn(2L);
         when(mongoTemplate.find(any(Query.class), eq(Listing.class))).thenReturn(List.of(l1, l2));
         
         //ACT
-        Page<ListingResponse> res = listingService.getByFilter(null, null, null, null, null, null, null, null, 1, 2);
+        Page<ListingResponse> res = listingService.getByFilter(null, null, null, null, null, null, null, null, 0, 2, null);
 
         //ASSERT
         assertNotNull(res);
@@ -1108,11 +1101,10 @@ class ListingServiceTest {
     @DisplayName("Filter should return empty page when no listings match filter")
     void shouldReturnEmptyPageWithNoMatch(){
         //ARRANGE
-        when(mongoTemplate.count(any(Query.class), eq(Listing.class))).thenReturn(0L);
         when(mongoTemplate.find(any(Query.class), eq(Listing.class))).thenReturn(List.of());
 
         //ACT
-        Page<ListingResponse> res = listingService.getByFilter("NonExistentGame", null, null, null, null, null, null, null, null, null);
+        Page<ListingResponse> res = listingService.getByFilter("NonExistentGame", null, null, null, null, null, null, null, null, null, null);
 
         //ASSERT
         assertNotNull(res);
@@ -1144,9 +1136,8 @@ class ListingServiceTest {
 
         when(listingRepository.findByStatus(ListingStatus.AVAILABLE)).thenReturn(List.of(fakeListing, fakeListing_1, fakeListing_2));
 
-
         // ACT
-        List<ListingResponse> res = listingService.getAllActiveListings();
+        List<ListingResponse> res = listingService.getAllActiveListings(null);
 
         // ASSERT
         assertNotNull(res);

@@ -27,7 +27,6 @@ export const useBoardGames = () => {
 
         try {
             const data = await BoardGameService.getGenres(query)
-            console.log('genres API response:', data) // ← add this
 
             genres.value = data.genres??[]
         } catch (err: any) {

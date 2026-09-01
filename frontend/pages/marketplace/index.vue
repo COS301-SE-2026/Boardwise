@@ -44,7 +44,7 @@
     <!-- External Retail -->
     <template v-else-if="activeTab === 'Web'">
       <v-container
-        v-if="retailLoading"
+        v-if="retailLoading && retailResults.length === 0"
         class="d-flex justify-center align-center"
         style="min-height: 60vh"
       >
@@ -57,8 +57,8 @@
       </v-container>
       
       <RetailerGrid 
+        v-else
         data-test="retailer-grid"
-        v-else 
         :retailers="retailResults"
       />
     </template>
@@ -87,6 +87,7 @@ import MarketplaceTabs from '~/components/features/marketplace/MarketplaceTabs.v
 
 import FilterSidebar from '~/components/features/marketplace/FilterSidebar.vue'
 import ListingGrid from '~/components/features/marketplace/ListingGrid.vue'
+import RetailerGrid from '~/components/features/marketplace/RetailerGrid.vue'
 import AddListingModal from '~/components/features/profile/AddListingModal.vue'
 
 import { useRouter } from 'vue-router'
@@ -101,13 +102,14 @@ const showCreateListing = ref(false)
 
 const {listings, loading, fetchListings, addListing, loadMore, hasMore} = useMarketplace();
 
-const {retailResults, retailLoading, fetchRetail } = useRetail()
+const {retailResults, retailLoading, hasMoreRetail, fetchPersonalisedListings} = useRetail()
 
-onMounted(() => {
+onMounted(async () => {
   if(!localStorage.getItem('access_token')){
     router.push('/auth/signin');
   }
-  fetchListings({}, true) 
+  await fetchPersonalisedListings(true);
+  fetchListings({}, true)   
 })
 
 const handleAdd = async (data, image) => {
@@ -117,8 +119,16 @@ const handleAdd = async (data, image) => {
 }
 
 const sentinel = ref(null)
-useIntersectionObserver(sentinel,([entry])=>{
-  if(entry.isIntersecting&& hasMore.value && !loading.value) loadMore()
+useIntersectionObserver(sentinel, async ([entry])=>  {
+  if(!entry.isIntersecting) return;
+
+  if(activeTab.value === 'Web'){
+    if(hasMoreRetail.value && !retailLoading.value) fetchPersonalisedListings();
+    console.log("CUrrent retail results: ", retailResults.value );
+    return
+  }
+
+  if(hasMore.value && !loading.value) loadMore()
 })
 
 const searchQ = ref('');
@@ -127,7 +137,7 @@ const activeFilterState = ref({})
 
 const delaySearch = useDebounceFn((query) => {
   if(activeTab.value === 'Web'){
-    fetchRetail(query)
+    fetchPersonalisedListings(true);
     return
   }
 
@@ -135,8 +145,8 @@ const delaySearch = useDebounceFn((query) => {
 }, 400)
 
 watch(activeTab, (tab) => {
-  if(tab === 'Web') {
-    fetchRetail(searchQ.value)
+  if(tab === 'Web' && retailResults.value.length === 0) {
+    fetchPersonalisedListings(true);
   }
 })
 
@@ -154,18 +164,18 @@ watch(searchQ,(query)=>{
   const handleFilter = (filters)=>{
 
   const conditions = filters.conditions.length > 0 ? filters.conditions.map(c => c.toLowerCase()) : null
+  const genres = filters.genres?.length > 0 ? filters.genres : null
 
   const  lt= getListingType(filters.rent,filters.sale);
 
    activeFilterState.value = {
     listingType: lt,
-    genres: filters.genres,
-    conditions: conditions,
-    minPrice: filters.minPrice,
-    maxPrice: filters.maxPrice,
+    genres,
+    conditions,
+    minPrice: filters.minPrice || null,
+    maxPrice: filters.maxPrice || null,
   }
 
-  console.log('active filters',activeFilterState.value);
 
   fetchListings({ ...activeFilterState.value, search: searchQ.value || null }, true);
 }
