@@ -1,0 +1,18 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+--extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+
+fastapi==0.141.1
+uvicorn==0.30.6
+python-multipart==0.0.32
+pymongo==4.8.0
+pyjwt==2.13.0
+boto3==1.35.0
+pypdf==6.15.0
+python-dotenv==1.0.1
+PyMuPDF==1.28.2
+pymupdf4llm==1.28.2
+langchain-text-splitters==1.1.2
+sentence-transformers==3.0.1
+einops==0.8.0
+torch==2.13.0
+llama-cpp-python==0.3.35

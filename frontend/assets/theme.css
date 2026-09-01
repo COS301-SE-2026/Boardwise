@@ -736,3 +736,556 @@ li {
       color: white ;
   }
 }
+
+/* =============================================================
+   ACCESSIBILITY — SHARED COMPONENTS
+   WCAG 2.2 AA accessibility foundation
+   ============================================================= */
+
+/* -------------------------------------------------------------
+   BASE BUTTON
+   ------------------------------------------------------------- */
+
+.base-button {
+  min-width: 44px;
+  min-height: 44px;
+
+  font-family: var(--font-body) !important;
+  font-weight: var(--fw-bold) !important;
+  letter-spacing: normal !important;
+
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-base) !important;
+}
+
+.base-button:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.btn--secondary {
+  border: 2px solid var(--color-secondary) !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .base-button:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.base-button:active {
+  transform: translateY(1px);
+}
+
+
+/* -------------------------------------------------------------
+   BASE AVATAR
+   ------------------------------------------------------------- */
+
+.base-avatar__fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+
+  font-family: var(--font-body);
+  font-weight: var(--fw-bold);
+
+  color: var(--color-text);
+  background: var(--color-surface-alt);
+}
+
+
+/* -------------------------------------------------------------
+   BASE BADGE
+   ------------------------------------------------------------- */
+
+.base-badge {
+  width: fit-content;
+  align-self: flex-start;
+
+  font-family: var(--font-body) !important;
+  font-weight: var(--fw-bold) !important;
+  letter-spacing: normal !important;
+
+  box-shadow: var(--shadow-sm);
+
+  transition:
+    transform var(--transition-fast) !important;
+}
+
+.badge--absolute {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: 2;
+}
+
+.badge--fire {
+  transform: rotate(2deg);
+}
+
+.badge--copper {
+  transform: rotate(-3deg);
+}
+
+.badge--obsidian {
+  transform: rotate(-1deg);
+}
+
+
+/* -------------------------------------------------------------
+   BASE CARD
+   ------------------------------------------------------------- */
+
+.base-card {
+  overflow: hidden;
+
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .base-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md) !important;
+  }
+}
+
+
+/* -------------------------------------------------------------
+   DROPDOWN
+   ------------------------------------------------------------- */
+
+.base-dropdown__trigger:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+
+/* -------------------------------------------------------------
+   FILTER SIDEBAR
+   ------------------------------------------------------------- */
+
+.base-filter-sidebar {
+  flex-shrink: 0;
+}
+
+.base-filter-sidebar__heading {
+  margin: 0;
+
+  font-family: var(--font-body);
+  font-weight: var(--fw-bold);
+}
+
+
+/* -------------------------------------------------------------
+   GRID
+   ------------------------------------------------------------- */
+
+.base-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fill,
+      minmax(var(--base-grid-min, 280px), 1fr)
+    );
+
+  gap: var(--base-grid-gap, 20px);
+
+  align-items: stretch;
+
+  width: 100%;
+}
+
+
+/* -------------------------------------------------------------
+   IMAGE FALLBACK
+   ------------------------------------------------------------- */
+
+.base-image__fallback {
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+}
+
+
+/* -------------------------------------------------------------
+   SEARCH
+   ------------------------------------------------------------- */
+
+.base-search:focus-within {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+
+
+/* -------------------------------------------------------------
+   MODAL
+   ------------------------------------------------------------- */
+
+.base-modal__title {
+  font-family: var(--font-display);
+  color: var(--color-secondary);
+}
+
+
+/* -------------------------------------------------------------
+   TABS
+   ------------------------------------------------------------- */
+
+.base-tabs {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.base-tabs .v-tab {
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+
+  color: var(--color-text-muted);
+
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.base-tabs .v-tab:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: -3px;
+}
+
+.base-tabs .v-tab--selected {
+  color: var(--color-primary);
+}
+
+.base-tabs .v-slide-group__content {
+  gap: var(--space-4);
+}
+
+.base-tabs .v-tabs-slider {
+  background: var(--color-primary) !important;
+  color: var(--color-primary) !important;
+}
+
+
+/* -------------------------------------------------------------
+   SECTION TITLE
+   ------------------------------------------------------------- */
+
+.section-title {
+  padding:
+    var(--space-12)
+    0
+    var(--space-8);
+
+  color: var(--color-primary);
+}
+
+.section-title__heading {
+  margin: 0;
+
+  color: var(--color-primary);
+
+  font-family: var(--font-display);
+  font-size: var(--space-8);
+
+  line-height: 1;
+}
+
+.section-title__subtitle {
+  max-width: 650px;
+
+  margin-top: var(--space-3);
+
+  color: var(--color-text-muted);
+
+  font-family: var(--font-body);
+  font-size: 1.35rem;
+}
+
+
+/* -------------------------------------------------------------
+   GLOBAL KEYBOARD FOCUS
+   ------------------------------------------------------------- */
+
+:where(
+  a,
+  button,
+  summary,
+  [role="button"],
+  [role="link"],
+  [role="tab"],
+  [role="menuitem"],
+  [tabindex]:not([tabindex="-1"])
+):focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+/*
+ * Overrides the older Rosewood focus style.
+ */
+.btn:focus-visible,
+.focus-ring:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+
+/* -------------------------------------------------------------
+   FORM FOCUS + ERRORS
+   ------------------------------------------------------------- */
+
+   /* -------------------------------------------------------------
+   BASE INPUT
+   ------------------------------------------------------------- */
+
+.base-input {
+  width: 100%;
+}
+
+.base-input .v-field {
+  min-height: 54px;
+
+  background: var(--color-surface);
+
+  /* Boardwise curvy input */
+  border-radius: var(--radius-lg);
+
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.base-input .v-field__outline__start {
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+}
+
+.base-input .v-field__outline__end {
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+
+.base-input .v-field__input {
+  min-height: 54px;
+
+  padding-top: 14px;
+  padding-bottom: 10px;
+
+  font-family: var(--font-body);
+  font-size: 1rem;
+
+  color: var(--color-text);
+}
+
+.base-input .v-label {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: var(--fw-medium);
+
+  color: var(--color-text-muted);
+
+  opacity: 1;
+}
+
+.base-input:focus-within .v-field {
+  box-shadow: 0 0 0 3px rgba(199, 40, 110, 0.22);
+}
+
+.base-input:focus-within .v-field__outline {
+  color: var(--color-primary);
+  opacity: 1;
+}
+
+.base-input.v-input--error .v-field__outline {
+  color: var(--color-error);
+  opacity: 1;
+}
+
+.base-input .v-messages {
+  padding-top: var(--space-1);
+
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+}
+
+.base-input__password-toggle {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.input:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+  border-color: var(--color-primary);
+}
+
+.input--error {
+  border: 2px solid var(--color-error);
+}
+
+.input-error-text {
+  margin-top: var(--space-1);
+
+  color: var(--color-error);
+
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+}
+
+
+/* -------------------------------------------------------------
+   LINKS
+   Do not communicate links using colour alone.
+   ------------------------------------------------------------- */
+
+main a:not(.btn):not(.v-btn):not(.logo-wrapper) {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+main a:not(.btn):not(.v-btn):not(.logo-wrapper):hover,
+main a:not(.btn):not(.v-btn):not(.logo-wrapper):focus-visible {
+  text-decoration-thickness: 2px;
+}
+
+
+/* -------------------------------------------------------------
+   COLOUR CONTRAST
+   Copper + white is too weak for normal text.
+   ------------------------------------------------------------- */
+
+.btn--accent {
+  color: var(--color-text) !important;
+}
+
+
+/* -------------------------------------------------------------
+   DISABLED CONTROLS
+   ------------------------------------------------------------- */
+
+button:disabled,
+[aria-disabled="true"],
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+
+/* -------------------------------------------------------------
+   SCREEN READER HELPERS
+   ------------------------------------------------------------- */
+
+.sr-only {
+  position: absolute !important;
+
+  width: 1px !important;
+  height: 1px !important;
+
+  padding: 0 !important;
+  margin: -1px !important;
+
+  overflow: hidden !important;
+
+  clip: rect(0, 0, 0, 0) !important;
+
+  white-space: nowrap !important;
+
+  border: 0 !important;
+}
+
+.sr-only-focusable:not(:focus):not(:focus-within) {
+  position: absolute !important;
+
+  width: 1px !important;
+  height: 1px !important;
+
+  padding: 0 !important;
+  margin: -1px !important;
+
+  overflow: hidden !important;
+
+  clip: rect(0, 0, 0, 0) !important;
+
+  white-space: nowrap !important;
+
+  border: 0 !important;
+}
+
+
+/* -------------------------------------------------------------
+   REDUCED MOTION
+   ------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+
+    transition-duration: 0.01ms !important;
+
+    scroll-behavior: auto !important;
+  }
+
+  .marquee,
+  .marquee-left,
+  .marquee-right,
+  .skeleton {
+    animation: none !important;
+  }
+
+  .base-button:hover,
+  .base-button:active,
+  .base-card:hover,
+  .btn:hover,
+  .btn:active,
+  .card:hover,
+  .game-card:hover,
+  .scale-card {
+    transform: none !important;
+  }
+}
+
+
+/* -------------------------------------------------------------
+   MOBILE / SMALL SCREENS
+   ------------------------------------------------------------- */
+
+@media (max-width: 600px) {
+  .base-filter-sidebar {
+    width: 100% !important;
+  }
+
+  .base-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-title {
+    padding:
+      var(--space-8)
+      0
+      var(--space-6);
+  }
+
+  .section-title__heading {
+    font-size: var(--fs-h2);
+    line-height: var(--lh-tight);
+  }
+
+  .section-title__subtitle {
+    font-size: var(--fs-body);
+  }
+}

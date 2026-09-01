@@ -1,5 +1,5 @@
 <template>
-  <div class="base-grid">
+  <div class="base-grid" :style="gridVariables">
     <slot />
   </div>
 </template>
@@ -18,6 +18,10 @@ const props = defineProps({
   }
 })
 
+const gridVariables = computed(() => ({
+  '--base-grid-min': props.cols,
+  '--base-grid-gap': props.gap
+}))
 const gridColumns = computed(() => `repeat(auto-fill, minmax(${props.cols}, 300px))`)
 </script>
 
