@@ -128,7 +128,7 @@ const parsedContent = computed(() => {
     })
 
     if(props.searchQuery.trim()){
-        const escaped = props.searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        const escaped = props.searchQuery.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)
         const regex = new RegExp(`(?![^<]*>)(${escaped})`, 'gi')
         let matchCount = 0
 

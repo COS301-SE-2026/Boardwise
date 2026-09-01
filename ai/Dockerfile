@@ -28,8 +28,8 @@ ADD --chown=fast:fast \
 # Copy requirements file and install Python dependencies
 COPY --chown=fast:fast requirements.txt .
 
-RUN pip install --upgrade --no-cache-dir pip \
-    && pip install --no-cache-dir --only-binary :all -r requirements.txt \
+RUN pip install --upgrade --no-cache-dir --only-binary :all: pip==26.2 \
+    && pip install --no-cache-dir --only-binary :all: --require-hashes -r requirements.txt \
     && python -c "from sentence_transformers import SentenceTransformer; \
     SentenceTransformer('nomic-ai/nomic-embed-text-v1.5', \
     revision='${EMBED_MODEL_REVISION}', trust_remote_code=True)" \
