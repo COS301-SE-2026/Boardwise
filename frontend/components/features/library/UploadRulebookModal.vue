@@ -110,7 +110,7 @@ import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseSearch from '~/components/ui/BaseSearch.vue'
-import AddCustomGameModal from '~/components/features/library/AddCustomGameModal.vue'
+import AddCustomGameModal from '~/components/features/shared/AddCustomGameModal.vue'
 import { useBoardGames } from '~/composables/useBoardGames'
 import { useDebounceFn } from '@vueuse/core'
 
@@ -148,31 +148,15 @@ const clearSelection = () => {
   search.value = ''
 }
 
-const onCustomGameAdded = async (res, submittedGame) => {
-  const maxAttempts = 4
-  const delayMs = 500
-
-  try {
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      await searchGames(submittedGame.title)
-
-      if (games.value.length) {
-        selectedGame.value = games.value[0]
-        return
-      }
-
-      if (attempt < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, delayMs))
-      }
-    }
-
-    console.error('Search returned no results for newly created game after retries:', submittedGame.title)
+// AddCustomGameModal (create-only mode) already resolves the created game
+// via its own search-retry before emitting — if resolution failed there, it
+// falls back to the raw { message } response, which has no id/title.
+const onCustomGameAdded = (game, submittedGame) => {
+  if (game?.id) {
+    selectedGame.value = game
+  } else {
+    console.error('Custom game could not be resolved after creation:', submittedGame?.title)
     selectedGame.value = null
-  } catch (err) {
-    console.error('Failed to look up newly created game', err)
-    selectedGame.value = null
-  } finally {
-    games.value = []
   }
 }
 

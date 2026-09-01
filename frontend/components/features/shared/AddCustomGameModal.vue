@@ -73,6 +73,18 @@
     </BaseModal>
 </template>
 <script setup>
+// Shared modal for adding a custom (not-yet-catalogued) board game.
+//
+// Two usages:
+// - Profile / "Games Owned" flow (createOnly=false, default): calls addGame,
+//   which creates the game AND adds it to the user's inventory in one call.
+//   The caller (profile page) expects the raw InventoryUpdateResponse shape
+//   ({ message, ownedGamesCount, games: [...] }) back on @confirm, exactly
+//   as addGame returns it — no extra resolution needed here.
+// - Library / rulebook-upload flow (createOnly=true): calls createGame,
+//   which only creates the catalog entry and does NOT touch inventory. Its
+//   response has no usable id/title, so we poll search for the newly
+//   created game and emit that resolved object instead.
 import { ref, reactive, onMounted, watch } from 'vue'
 import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
@@ -185,6 +197,7 @@ const closeModal = () => {
 
 // Newly created games can take a moment to become searchable, so poll
 // for the game to actually exist before handing it back to the caller.
+// Only used on the createOnly path — see note above.
 const waitForCreatedGame = async (gameTitle) => {
     const maxAttempts = 4
     const delayMs = 500
@@ -231,15 +244,19 @@ const handleConfirm = async () => {
         genres: genres.value
     }
     try {
-        const res = props.createOnly
-            ? await createGame(gameData, file.value)
-            : await addGame(gameData, file.value);
+        if (props.createOnly) {
+            const res = await createGame(gameData, file.value)
 
-        isResolving.value = true
-        const createdGame = await waitForCreatedGame(gameData.title)
-        isResolving.value = false
+            isResolving.value = true
+            const createdGame = await waitForCreatedGame(gameData.title)
+            isResolving.value = false
 
-        emit('confirm', createdGame ?? res, gameData)
+            emit('confirm', createdGame ?? res, gameData)
+        } else {
+            const res = await addGame(gameData, file.value)
+            emit('confirm', res, gameData)
+        }
+
         closeModal();
     }
     catch (err) {
