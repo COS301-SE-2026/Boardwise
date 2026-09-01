@@ -5,7 +5,7 @@
     v-model="model"
     variant="outlined"
     rounded="lg"
-    auto-grow
+    :auto-grow="autoGrow"
   />
 </template>
 
@@ -18,6 +18,10 @@ defineProps({
   rows: {
     type: Number,
     default: 5
+  },
+  autoGrow:{
+    type: Boolean,
+    default: true
   }
 })
 

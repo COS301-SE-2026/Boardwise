@@ -6,20 +6,15 @@
         rounded="lg"
     >
     <!-- Read view -->
-        <div v-if="!isEditing" class="text-body-1 text-medium-emphasis" style="line-height: 1.9;">
-            <template v-for="(segment, i) in contentSegments" :key="`${i}-${segment.text.length}`">
-                <mark v-if="segment.active" class="search-highlight search-highlight--active">{{ segment.text }}</mark>
-                <mark v-else-if="segment.highlight" class="search-highlight">{{ segment.text }}</mark>
-                <span v-else>{{ segment.text }}</span>
-            </template>
-        </div>
+        <div v-if="!isEditing" class="text-body-1 text-medium-emphasis" style="line-height: 1.9;" v-html="parsedContent"></div>
 
     <!-- Edit View -->
-        <div v-else class="d-flex flex-c">
+        <div v-else class="d-flex flex-column ga-3">
             <BaseTextArea
             v-model="draftContent"
             placeholder="Edit section content..."
-            :rows="2"
+            :rows="5"
+            :auto-grow="false"
             density="comfortable"
             hide-details
             maxlength="1000"
@@ -65,7 +60,7 @@
                         size="small"
                         prepend-icon="mdi-content-save"
                         :loading="isSaving"
-                        :disabled="isDirty"
+                        :disabled="!isDirty"
                         @click="handleSave"
                     >
                         Save
@@ -78,6 +73,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import {marked} from 'marked'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseTextArea from '~/components/ui/BaseTextArea.vue'
 
@@ -111,21 +107,24 @@ const handleCancel = () => {
     emit('cancel')
 }
 
-const contentSegments = computed(() => {
-  const text = props.page?.content ?? ''
-  if (!props.searchQuery.trim()) return [{ text, highlight: false, active: false }]
+const parsedContent = computed(() => {
+    let text = props.chunk?.content ?? ''
 
-  const escaped = props.searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const regex   = new RegExp(`(${escaped})`, 'gi')
-  const parts   = text.split(regex)
+    if(props.searchQuery.trim()){
+        const escaped = props.searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        const regex = new RegExp(`(${escaped})`, 'gi')
+        let matchCount = 0
 
-  let matchCount = 0
-  return parts.map(part => {
-    const isMatch = new RegExp(`^${escaped}$`, 'i').test(part)
-    const isActive = isMatch && matchCount === props.activeOccurrence
-    if (isMatch) matchCount++
-    return { text: part, highlight: isMatch, active: isActive }
-  })
+        text = text.replace(regex, (match) => {
+            const isActive = matchCount === props.activeOccurrence
+            matchCount++
+            return isActive
+            ? `<mark class="search-highlight search-highlight--active">${match}</mark>`
+            : `<mark class="search-highlight">${match}</mark>`
+        })
+    }
+
+    return marked.parse(text)
 })
 </script>
 

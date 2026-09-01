@@ -38,22 +38,6 @@
         </v-col>
 
         <v-col cols="12" md="9">
-          <!-- <ReaderPage
-            :rulebook="rulebook"
-            :page="activeChunk"
-            :is-first="currentPage === 0"
-            :is-last="currentPage === localChunks.length - 1"
-            :search-query="searchQuery"
-            :active-occurrence="activeOccurrenceIndex"
-            :is-editing="isEditing"
-            :is-saving="isSaving"
-            @prev="currentPage--"
-            @next="currentPage++"
-            @save="handleSave"
-            @cancel="handleCancel"
-            @delete="handleDelete"
-            @insert="handleInsert"
-          /> -->
           <v-card rounded="xl" elevation="1" class="pb-10">
             <!-- Document Header -->
             <BaseImage :src="rulebook?.coverUrl" :alt="rulebook?.title" height="280px" fit="cover" />
@@ -121,7 +105,7 @@ import { onBeforeRouteLeave } from 'vue-router'
 import ReaderToolbar from './ReaderToolbar.vue'
 import ReaderProgress from './ReaderProgress.vue'
 import ReaderSidebar from './ReaderSidebar.vue'
-import ReaderPage from './ReaderPage.vue'
+import ReaderBlock from './ReaderBlock.vue'
 import ReaderHistory from './ReaderHistory.vue'
 
 import BaseImage from '~/components/ui/BaseImage.vue'
@@ -139,7 +123,6 @@ const props = defineProps({
   chunks: { type: Array, default: () => [] }
 })
 
-// const currentPage = ref(0)
 const activeChunkIndex = ref(0)
 const blockRefs = ref([])
 const searchQuery = ref('')
@@ -164,12 +147,11 @@ const { editHistory, isLoadingHistory, historyError, fetchEditHistory } = useEdi
 const { show } = useSnackBar()
 const { getRulebookText } = useLibrary()
 
-const activeChunk = computed(() => localChunks.value[currentPage.value])
 
 watch(() => props.chunks, (val) => {
   localChunks.value = [...val]
-  if(currentPage.value >= localChunks.value.length) {
-    currentPage.value = Math.max(0, localChunks.value.length - 1)
+  if(activeChunkIndex.value >= localChunks.value.length) {
+    activeChunkIndex.value = Math.max(0, localChunks.value.length - 1)
   }
 }, { immediate: true, deep: true })
 
@@ -178,7 +160,6 @@ const handlePageChange = (index) => {
     show('Save or cancel your edits before switching sections.', 'info')
     return
   }
-  // currentPage.value = index
   const targetBlock = blockRefs.value[index];
   if(targetBlock){
     targetBlock.scrollIntoView({behavior: 'smooth', block: 'center'});
@@ -188,17 +169,19 @@ const handlePageChange = (index) => {
 const handleDelete = async (chunkId) => {
   if(!props.rulebook?.id) return
   isSaving.value = true;
-  // const chunk = localChunks.value[currentPage.value]
 
   try{
     const newVersion = await deleteChunk(
       props.rulebook.id,
-      // chunk.chunkId,
       chunkId,
       currentVersion.value
     )
     currentVersion.value = newVersion;
     show('Section deleted.', 'success')
+
+    if(document.activeElement instanceof HTMLElement){
+      document.activeElement.blur();
+    }
   } catch(err){
     if(err?.status === 409 && err?.data?.error === 'VersionMismatchException'){
     await reconcileStaleState()
@@ -214,8 +197,6 @@ const handleDelete = async (chunkId) => {
 const handleInsert = async (targetIndex) => {
   if(!props.rulebook?.id) return;
   isSaving.value = true
-  
-  // const targetIndex = currentPage.value + 1;
 
   try{
     const newVersion = await insertChunk(
@@ -227,8 +208,16 @@ const handleInsert = async (targetIndex) => {
 
     currentVersion.value = newVersion;
     show('New section added.', 'success')
-    // currentPage.value = targetIndex;
-    setTimeout(() => handlePageChange(targetIndex), 100);
+
+    await nextTick();
+    const targetBlock = blockRefs.value[targetIndex];
+    if(targetBlock){
+      const textarea = targetBlock.querySelector('textarea');
+      if(textarea){
+        textarea.focus();
+      }
+      targetBlock.scrollIntoView({behavior: 'smooth', block:'center'});
+    }
   }catch (err) {
     if(err?.status === 409 && err?.data?.error === 'VersionMismatchException') {
       await reconcileStaleState();
@@ -253,7 +242,7 @@ const handleSave = async ({chunkId, content}) => {
     if (!props.rulebook?.id) return;
     isSaving.value = true;
 
-    // const chunk = localChunks.value[currentPage.value];
+  ;
     const chunk = localChunks.value.find(c => c.chunkId === chunkId);
     const previousContent = chunk?.content;
     if(chunk) chunk.content = content;
@@ -261,7 +250,6 @@ const handleSave = async ({chunkId, content}) => {
     try {
         const newVersion = await commitDelta(
             props.rulebook.id,
-            // chunk?.chunkId ?? '',
             chunkId,
             content,
             currentVersion.value
@@ -332,7 +320,6 @@ const nextMatch = () => {
   if(!matchResults.value.length) return
   currentMatch.value = (currentMatch.value + 1) % matchResults.value.length
   
-  // currentPage.value = matchResults.value[currentMatch.value].chunkIndex
   const targetIndex = matchResults.value[currentMatch.value].chunkIndex;
   handlePageChange(targetIndex);
 }
@@ -341,7 +328,6 @@ const prevMatch = () => {
   if (!matchResults.value.length) return 
   currentMatch.value = (currentMatch.value - 1 + matchResults.value.length) % matchResults.value.length
   
-  // currentPage.value = matchResults.value[currentMatch.value].chunkIndex
   const targetIndex = matchResults.value[currentMatch.value].chunkIndex;
   handlePageChange(targetIndex);
 }
@@ -354,7 +340,6 @@ const clearSearch = () => {
 watch(searchQuery, ()=> {
   currentMatch.value = 0
   if (matchResults.value.length) {
-    // currentPage.value = matchResults.value[0].chunkIndex
     handlePageChange(matchResults.value[0].chunkIndex);
   }
 })
