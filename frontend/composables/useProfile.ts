@@ -148,5 +148,22 @@ export const useProfile = () => {
         }
     };
 
-    return { isLoading, fetchCurrentUser, updateProfile, updateProfilePicture, addGame, removeGame, searchGames ,addExistingGame, error }
+    const createGame = async (gameInfo: OtherGameDTO, gameImage: File) => {
+        isLoading.value = true;
+        error.value = ''
+        try {
+            const res = await userService.createBoardgame(gameInfo, gameImage);
+            return res;
+        } catch (err: any) {
+            error.value = "Failed to add game";
+            if (err.response?.status === 401) {
+                router.push('/auth/signin');
+            }
+            throw err;
+        } finally {
+            isLoading.value = false;
+        }
+    };
+
+    return { isLoading, fetchCurrentUser, updateProfile, updateProfilePicture, addGame, removeGame, searchGames ,addExistingGame, createGame, error }
 }

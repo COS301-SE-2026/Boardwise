@@ -86,6 +86,9 @@ interface GenresResponse {
     message: string;
     genres: string[];
 }
+interface CreateBoardgameResponse {
+    message: string;
+}
 
 export const userService = {
     getCurrentUser(){
@@ -187,6 +190,18 @@ export const userService = {
                 search: query
             }
         });
-    }
+    },
+    createBoardgame(gameInfo: OtherGameDTO, gameImage: File){
+        const { $api } = useNuxtApp();
+        const formData = new FormData();
+
+        formData.append('gameInfo', new Blob([JSON.stringify(gameInfo)], { type: 'application/json' }));
+        formData.append('gameImage', gameImage);
+
+        return $api<CreateBoardgameResponse>('/boardgames/', {
+            method: 'POST',
+            body: formData
+        });
+    },
 
 }
