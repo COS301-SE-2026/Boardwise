@@ -92,8 +92,6 @@ const props = defineProps({
 const open = defineModel({ type: Boolean, default: false })
 const emit = defineEmits(['confirm', 'back'])
 
-// Shared attrs for every plain text/number field - single source of truth,
-// this is what was driving most of the duplicated-lines warning.
 const inputProps = {
     variant: 'outlined',
     density: 'compact',
@@ -110,13 +108,13 @@ const genreOptions = ref([]);
 const genreSearch = ref('')
 const isSelecting = ref(false)
 
-// Number fields driven by config instead of four near-identical templates
 const numberFields = reactive({
     minPlayers: null,
     maxPlayers: null,
     minAge: null,
     duration: null
 })
+
 const numberFieldRows = [
     [
         { model: 'minPlayers', label: 'Min Players' },
