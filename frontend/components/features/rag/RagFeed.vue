@@ -1,6 +1,7 @@
 <template>
     <div class="rag-feed">
         <RagMessage 
+            data-test="rag-message"
             v-for="message in messages" 
             :key="message.id" 
             :message="message" 
@@ -8,14 +9,14 @@
         />
 
         <div v-if="isLoading" class="rag-message assistant">
-            <v-progress-circular indeterminate size="20" color="primary" />
+            <v-progress-circular data-test="v-progress-circular" size="20" color="primary" />
         </div>
 
         <div v-if="!messages.length && !isLoading" class="text-body-2 text-medium-emphasis">
             Ask a question about this rulebook - answers are grounded in its actual text.
         </div>
 
-        <div v-else-if="hasNoResult" class="text-body-2 text-medium-emphasis rag-no-result">
+        <div v-else-if="hasNoResult" data-test="rag-no-result" class="text-body-2 text-medium-emphasis rag-no-result">
             I could not find anything relevant to that in this rulebook. Try rephrasing, or check you've selected the right game.
         </div>
     </div>
