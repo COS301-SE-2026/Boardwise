@@ -112,10 +112,9 @@ import BaseSearch from '~/components/ui/BaseSearch.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
-import { ref, computed, watch } from 'vue'
+import { ref } from 'vue'
 import { useProfile } from '~/composables/useProfile'
 import { userService } from '~/services/userService'
-import { useDebounceFn } from '@vueuse/core'
 
 const props = defineProps({
     modelValue: {
