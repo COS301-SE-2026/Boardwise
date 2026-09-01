@@ -7,6 +7,7 @@
     :aria-label="label || ariaLabel"
     variant="outlined"
     rounded="lg"
+    :auto-grow="autoGrow"
     auto-grow
     hide-details="auto"
     v-bind="$attrs"
@@ -33,6 +34,10 @@ defineProps({
   rows: {
     type: Number,
     default: 5
+  },
+  autoGrow:{
+    type: Boolean,
+    default: true
   }
 })
 
