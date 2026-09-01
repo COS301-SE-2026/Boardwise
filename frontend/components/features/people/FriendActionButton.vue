@@ -21,6 +21,7 @@ const props = defineProps<{
 const emit = defineEmits<{
     (e: 'add'): void
     (e: 'remove'): void
+    (e: 'respond'): void
 }>()
 
 const label = computed(() => {
@@ -42,7 +43,6 @@ const variantMap: Record<FriendStatus, string> = {
 const handleClick = () => {
     if(props.status === 'friends') emit('remove')
     else if (props.status === 'none') emit('add')
-
-    //pendingReceived 
+    else if (props.status === 'pendingReceived') emit('respond')
 }
 </script>
