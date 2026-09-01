@@ -83,3 +83,46 @@ export const tutorials = [
         button: 'View Events'
     }
 ]
+
+export const popularGuides = [
+    {
+        id: 'join-community',
+        title: 'Join a community',
+        description: 'Find a community and connect with other board game players.',
+        icon: 'mdi-account-group-outline',
+        route: '/community',
+        topic: 'communities'
+    },
+    {
+        id: 'find-rulebook',
+        title: 'Find a rulebook',
+        description: 'Search the Library and open the rules for a game.',
+        icon: 'mdi-book-open-page-variant-outline',
+        route: '/library',
+        topic: 'library'
+    },
+    {
+        id: 'discover-event',
+        title: 'Find a game night',
+        description: 'Browse upcoming events and find something to join.',
+        icon: 'mdi-calendar-outline',
+        route: '/events',
+        topic: 'events'
+    },
+    {
+        id: 'marketplace',
+        title: 'Use the Marketplace',
+        description: 'Browse board games being sold by the Boardwise community.',
+        icon: 'mdi-storefront-outline',
+        route: '/marketplace',
+        topic: 'marketplace'
+    },
+    {
+        id: 'privacy',
+        title: 'Manage your privacy',
+        description: 'Control who can see your Boardwise profile and activity.',
+        icon: 'mdi-shield-account-outline',
+        route: '/settings',
+        topic: 'account'
+    }
+]
