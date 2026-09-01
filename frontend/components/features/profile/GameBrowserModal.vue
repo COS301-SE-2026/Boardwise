@@ -113,102 +113,111 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
 import { ref, computed, watch } from 'vue'
+import { useProfile } from '~/composables/useProfile'
 import { userService } from '~/services/userService'
 import { useDebounceFn } from '@vueuse/core'
 
 const props = defineProps({
+    modelValue: {
+        type: Boolean,
+        default: false
+    },
     games: { 
         type: Array,
         default: () => []
     }
 })
 
-const emit = defineEmits(['confirm', 'add-custom'])
+const emit = defineEmits(['update:modelValue', 'confirm', 'add-custom'])
 
-const open = defineModel()
+const { searchGames, addExistingGameToInventory } = useProfile()
+
 const search = ref('')
+const searchResults = ref([])
 const selectedGames = ref([])
-const games = ref([]);
-const isSearching = ref(false);
-const isSubmitting = ref(false)
-
-const handleSearch = async(query) => {
-     if (!query || !query.trim()) {
-        games.value = []
-        return
-    }
-
-    isSearching.value = true
-
-    try{
-        const res = await userService.searchForBoardGame(query);
-        console.log(res);
-        games.value = res.boardGames;
-    }
-    catch(err){
-        console.error("search failed: ", err);
-        games.value = [];
-    }
-    finally{
-        isSearching.value = false;
-    }
-}
-
-const debouncedSearch = useDebounceFn(handleSearch, 300)
-
-watch(search, (val) => {
-    debouncedSearch(val)
-}, { immediate: true });// empty query = null
+const searching = ref(false)
+const adding = ref(false)
 
 const isOwned = (game) => {
     return props.games.some(ownedGame => ownedGame.id === game.id)
 }
 
-const isSelected = (game) => selectedGames.value.some(g => g.id === game.id)
-
-const handleGameClick = (game) => {
-    if(isOwned(game)) {
+async function handleSearch() {
+     if (!query || !query.trim()) {
+        games.value = []
         return
     }
 
-    toggleGame(game)
+    searching.value = true
+
+    try{
+        const res = await userService.searchForBoardGame(query.value.trim());
+        console.log(res);
+        searchResults.value = res?.boardGames ?? []
+    }
+    catch(err){
+        console.error("search failed: ", err);
+        searchResults.value = [];
+    }
+    finally{
+        searching.value = false;
+    }
 }
 
 const toggleGame = (game) => {
-    if (isSelected(game)) {
-        selectedGames.value = selectedGames.value.filter(g => g.id !== game.id)
-    } else {
+    // No Dups allowed
+    if(isOwned(game)) {
+        return 
+    }
+    const index = selectedGames.value.findIndex(selected => selected.id === game.id)
+
+    if (index === -1) {
         selectedGames.value.push(game)
+    } else {
+        selectedGames.value.splice(index, 1)
     }
 }
 
-const filteredGames = computed(() => games.value)
+const isSelected = (game) => selectedGames.value.some(g => g.id === game.id)
 
 const handleConfirm = async () => {
-    if(!selectedGames.value.length) {
+    if(selectedGames.value.length === 0) {
         return
     }
 
-    isSubmitting.value = true
+    adding.value = true
 
     try {
-        const results = await Promise.allSettled(
-            selectedGames.value.map(game => userService.addExistingGameToInventory(game.id))
+        const gamesToAdd = selectedGames.value.filter(
+            games => !isOwned(game)
         )
 
-        const failed = results.filter(r => r.status === 'rejected')
-        if (failed.length) {
-            console.error(`${failed.length} game(s) failed to add`, failed)
-        }
+        await Promise.all(gamesToAdd.map(game => addExistingGameToInventory(game.id)))
 
-        emit('confirm', selectedGames.value)
+        emit('confirm')
+
         selectedGames.value = []
-        open.value = false
+        search.value = ''
+        searchResults.value = []
+
+        emit('update:modelValue', false)
+    } catch (err)
+    {
+        console.error('Failed to add games', err)
     }
     finally {
-        isSubmitting.value = false
+        adding.value = false
     }
 }
+
+function closeModa() {
+    selectedGames.value = []
+    search.value = ''
+    searchResults.value = []
+
+    emit('update:modelValue', false)
+}
+
 </script>
 
 <style scoped>
