@@ -10,6 +10,9 @@ import pulumi_cloudflare as cloudflare
 import pulumi_awsx as awsx
 
 RESOURCE_PREFIX = "boardwise"
+BOARDWISE_WWW_DOMAIN = "www.boardwise.games"
+BOARDWISE_BASE_DOMAIN = "boardwise.games"
+ALLOW_ALL_IP = "0.0.0.0/0"
 
 # --- Set up budget, budget alerts and cost anomaly
 # Budget to measure how much of our credits are being used
@@ -105,7 +108,7 @@ route_table = aws.ec2.RouteTable(
     vpc_id=vpc.id,
     routes=[
         aws.ec2.RouteTableRouteArgs(
-            cidr_block="0.0.0.0/0",
+            cidr_block=ALLOW_ALL_IP,
             gateway_id=igw.id
         )
     ],
@@ -113,8 +116,8 @@ route_table = aws.ec2.RouteTable(
 )
 
 azs = aws.get_availability_zones(state="available")
-public_subnets = list()
-private_subnets = list()
+public_subnets = []
+private_subnets = []
 
 for i in range(2):
     az = azs.names[i]
@@ -155,7 +158,7 @@ caddy_sg = aws.ec2.SecurityGroup(
 caddy_ingress_http = aws.vpc.SecurityGroupIngressRule(
     "caddy-ingress-http",
     security_group_id=caddy_sg.id,
-    cidr_ipv4="0.0.0.0/0",
+    cidr_ipv4=ALLOW_ALL_IP,
     from_port=80,
     to_port=80,
     ip_protocol="tcp"
@@ -164,7 +167,7 @@ caddy_ingress_http = aws.vpc.SecurityGroupIngressRule(
 caddy_ingress_icmp = aws.vpc.SecurityGroupIngressRule(
     "caddy-ingress-icmp",
     security_group_id=caddy_sg.id,
-    cidr_ipv4="0.0.0.0/0",
+    cidr_ipv4=ALLOW_ALL_IP,
     from_port=8,
     to_port=0,
     ip_protocol="icmp"
@@ -173,7 +176,7 @@ caddy_ingress_icmp = aws.vpc.SecurityGroupIngressRule(
 caddy_ingress_https = aws.vpc.SecurityGroupIngressRule(
     "caddy-ingress-https",
     security_group_id=caddy_sg.id,
-    cidr_ipv4="0.0.0.0/0",
+    cidr_ipv4=ALLOW_ALL_IP,
     from_port=443,
     to_port=443,
     ip_protocol="tcp"
@@ -182,7 +185,7 @@ caddy_ingress_https = aws.vpc.SecurityGroupIngressRule(
 caddy_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
     "caddy-egress-ipv4",
     security_group_id=caddy_sg.id,
-    cidr_ipv4="0.0.0.0/0",
+    cidr_ipv4=ALLOW_ALL_IP,
     ip_protocol="-1"
 )
 
@@ -222,7 +225,7 @@ spring_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
     "spring-sg-egress-ipv4",
     description="to allow spring backend to make requests to the outside [IPv4]",
     security_group_id=spring_sg.id,
-    cidr_ipv4="0.0.0.0/0",
+    cidr_ipv4=ALLOW_ALL_IP,
     ip_protocol="-1"
 )
 
@@ -264,7 +267,7 @@ python_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
     "python-sg-egress-ipv4",
     description="to allow python backend to make requests to the outside [IPv4]",
     security_group_id=python_sg.id,
-    cidr_ipv4="0.0.0.0/0",
+    cidr_ipv4=ALLOW_ALL_IP,
     ip_protocol="-1"
 )
 
@@ -423,7 +426,7 @@ spring_user_data = pulumi.Output.all(
                         .replace("__SMTP_USERNAME__", settings.SMTP_USERNAME if settings.SMTP_USERNAME is not None else "")
                         .replace("__SMTP_HOST__", settings.SMTP_HOST if settings.SMTP_HOST is not None else "")
                         .replace("__GOOGLE_MAP_API_KEY__", settings.GOOGLE_MAP_API_KEY)
-                        .replace("__PROD_FRONTEND_BASE__", "https://boardwise.games/")
+                        .replace("__PROD_FRONTEND_BASE__", f"https://{BOARDWISE_BASE_DOMAIN}")
                         .replace("__BGG_URL__", settings.BGG_URL)
                         .replace("__BGG_TOKEN__", settings.BGG_TOKEN)
                         .replace("__R2_PROD_URL__", settings.R2_PROD_URL)
@@ -556,8 +559,8 @@ for root, dirs, files in os.walk(frontend_build_dir):
 us_east_1 = aws.Provider("us-east-1-provider", region="us-east-1")
 frontend_cert = aws.acm.Certificate(
     f"{RESOURCE_PREFIX}-frontend-certificate",
-    domain_name="boardwise.games",
-    subject_alternative_names=["www.boardwise.games"],
+    domain_name=BOARDWISE_BASE_DOMAIN,
+    subject_alternative_names=[BOARDWISE_WWW_DOMAIN],
     validation_method="DNS",
     opts=pulumi.ResourceOptions(provider=us_east_1)
 )
@@ -603,7 +606,7 @@ frontend_distro = aws.cloudfront.Distribution(
     enabled=True,
     is_ipv6_enabled=True,
     default_root_object="index.html",
-    aliases=["boardwise.games", "www.boardwise.games"],
+    aliases=[BOARDWISE_BASE_DOMAIN, BOARDWISE_WWW_DOMAIN],
     origins=[
         aws.cloudfront.DistributionOriginArgs(
             domain_name=bucket.bucket_regional_domain_name,
@@ -668,7 +671,7 @@ bucket_policy = aws.s3.BucketPolicy(
 base_dns_record = cloudflare.DnsRecord(
     f"{RESOURCE_PREFIX}-base-dns-record",
     zone_id=settings.CLOUDFLARE_ZONE_ID,
-    name="boardwise.games",
+    name=BOARDWISE_BASE_DOMAIN,
     type="CNAME",
     content=frontend_distro.domain_name,
     proxied=False,
@@ -678,12 +681,12 @@ base_dns_record = cloudflare.DnsRecord(
 www_dns_record = cloudflare.DnsRecord(
     f"{RESOURCE_PREFIX}-www-record",
     zone_id=settings.CLOUDFLARE_ZONE_ID,
-    name="www.boardwise.games",
+    name=BOARDWISE_WWW_DOMAIN,
     type="CNAME",
     content=frontend_distro.domain_name,
     proxied=False,
     ttl=1
 )
 
-pulumi.export("frontend_url", "https://boardwise.games")
+pulumi.export("frontend_url", f"https://{BOARDWISE_BASE_DOMAIN}")
 pulumi.export("cloudfront_distro_id", frontend_distro.id)

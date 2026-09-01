@@ -23,7 +23,7 @@ jobs:
       - name: Build Frontend
         working-directory: ./frontend
         run: |
-          npm ci
+          npm ci --ignore-scripts
           npm run build 
 
       - name: Setup Python
@@ -35,7 +35,8 @@ jobs:
 
       - name: Install Pulumi Requirements
         working-directory: ./IaC
-        run: pip install -r requirements.txt
+        run: |
+          pip install -r requirements.txt --only-binary=:all:
 
       - name: Authenticate into AWS 
         uses: aws-actions/configure-aws-credentials@v4
