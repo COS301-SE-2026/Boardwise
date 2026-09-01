@@ -13,6 +13,7 @@ RESOURCE_PREFIX = "boardwise"
 BOARDWISE_WWW_DOMAIN = "www.boardwise.games"
 BOARDWISE_BASE_DOMAIN = "boardwise.games"
 ALLOW_ALL_IP = "0.0.0.0/0"
+WOMM_EMAIL = "worksonmymachine67@gmail.com"
 
 # --- Set up budget, budget alerts and cost anomaly
 # Budget to measure how much of our credits are being used
@@ -30,7 +31,7 @@ budget = aws.budgets.Budget(
             "threshold_type": "PERCENTAGE",
             "notification_type": "ACTUAL",
             "subscriber_email_addresses": [
-                "worksonmymachine67@gmail.com"
+                WOMM_EMAIL
             ]
         },
         { # 75 %
@@ -39,7 +40,7 @@ budget = aws.budgets.Budget(
             "threshold_type": "PERCENTAGE",
             "notification_type": "ACTUAL",
             "subscriber_email_addresses": [
-                "worksonmymachine67@gmail.com"
+                WOMM_EMAIL
             ]
         },
         { # 90 %
@@ -48,7 +49,7 @@ budget = aws.budgets.Budget(
             "threshold_type": "PERCENTAGE",
             "notification_type": "FORECASTED",
             "subscriber_email_addresses": [
-                "worksonmymachine67@gmail.com"
+                WOMM_EMAIL
             ]
         },
         { # 100 % (when depleted)
@@ -57,7 +58,7 @@ budget = aws.budgets.Budget(
             "threshold_type": "PERCENTAGE",
             "notification_type": "ACTUAL",
             "subscriber_email_addresses": [
-                "worksonmymachine67@gmail.com"
+                WOMM_EMAIL
             ]
         }
     ]
@@ -77,7 +78,7 @@ anomaly_subs = aws.costexplorer.AnomalySubscription(
     monitor_arn_lists=[anomaly_monitor.arn],
     subscribers=[{
         "type": "EMAIL",
-        "address": "worksonmymachine67@gmail.com"
+        "address": WOMM_EMAIL
     }],
     threshold_expression={
         "dimension": {
