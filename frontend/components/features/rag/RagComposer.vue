@@ -3,6 +3,7 @@
         <div class="d-flex ga-3">
             <BaseInput
                 v-model="text"
+                aria-label="Ask a question about this rulebook"
                 class="flex-grow-1"
                 placeholder="Ask a question about this rulebook..."
                 :disabled="isLoading"
