@@ -20,29 +20,32 @@
          
           <p class="profile-username ma-0">@{{ user.username }}</p>
           
-          <div
-            v-if="user.preferences?.visibility === 'public' && user.preferences.genres?.length > 0"
-            class="d-flex flex-wrap ga-1"
-          >
-            <v-chip
-              v-for="genre in user.preferences.genres"
-              :key="genre"
-              size="small"
-              class="genre-chip"
+          <div class="profile-preferences">
+
+            <span class="preference-label">Preferences</span>
+            <div
+              v-if="user.preferences?.visibility === 'public' && user.preferences.genres?.length > 0"
+              class="d-flex flex-wrap ga-1"
             >
-              {{ genre }}
-            </v-chip>
+              <v-chip
+                v-for="genre in user.preferences.genres"
+                :key="genre"
+                size="small"
+                class="genre-chip"
+              >
+                {{ genre }}
+              </v-chip>
+              
+            </div>
             
-          </div>
-          
-          <div v-else-if="user.preferences?.visibility === 'private'">
-            <p class = "no-pref">user genre preferences are private</p>
-          </div>
+            <div v-else-if="user.preferences?.visibility === 'private'">
+              <p class = "no-pref">user genre preferences are private</p>
+            </div>
 
-          <div v-else>
-            <p class = "no-pref">no preferences</p>
+            <div v-else>
+              <p class = "no-pref">no preferences</p>
+            </div>
           </div>
-
         </div>
 
       </div>
@@ -147,5 +150,25 @@ const showPfpModal = ref(false)
 
 :deep(.v-btn:hover) {
   background: var(--color-primary-hover) !important;
+}
+.profile-preferences {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.preference-label {
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  color: var(--color-text-muted);
+}
+
+.no-pref {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+  font-style: italic;
 }
 </style>
