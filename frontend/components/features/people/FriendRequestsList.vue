@@ -15,7 +15,7 @@
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseAvatar from '~/components/ui/BaseAvatar.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
-import { type FriendRequestSummary } from '~/services/friendService'
+import type {  FriendRequestSummary } from '~/services/friendService'
 
 defineProps<{ requests: FriendRequestSummary[] }>()
 const emit = defineEmits<{ (e: 'respond', requestId: string, action:'accept'| 'reject'): void}>()

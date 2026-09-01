@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { friendService, type FriendSummary, type FriendRequestSummary, type FriendStatus } from '~/services/friendService'
+import { friendService, type FriendSummary, type FriendRequestSummary } from '~/services/friendService'
 import { useSnackBar } from './useSnackbar'
 
 const { show } = useSnackBar()
@@ -32,6 +32,9 @@ export const useFriends = () => {
             pendingRequests.value = await friendService.getPendingRequests()
         } catch (err: any) {
             error.value = err.data?.message || 'Failed to load friend requests'
+            show(error.value, 'error')
+        } finally {
+            loading.value = false
         }
     }
 
