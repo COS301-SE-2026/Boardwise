@@ -419,9 +419,9 @@ spring_user_data = pulumi.Output.all(
 ).apply(
     lambda args : spring_setup_script
                         .replace("__IMAGE_URI__", args["image_uri"])
-                        .replace("__SMTP_PASSWORD__", settings.SMTP_PASSWORD if settings.SMTP_PASSWORD != None else "")
-                        .replace("__SMTP_USERNAME__", settings.SMTP_USERNAME if settings.SMTP_USERNAME != None else "")
-                        .replace("__SMTP_HOST__", settings.SMTP_HOST if settings.SMTP_HOST != None else "")
+                        .replace("__SMTP_PASSWORD__", settings.SMTP_PASSWORD if settings.SMTP_PASSWORD is not None else "")
+                        .replace("__SMTP_USERNAME__", settings.SMTP_USERNAME if settings.SMTP_USERNAME is not None else "")
+                        .replace("__SMTP_HOST__", settings.SMTP_HOST if settings.SMTP_HOST is not None else "")
                         .replace("__GOOGLE_MAP_API_KEY__", settings.GOOGLE_MAP_API_KEY)
                         .replace("__PROD_FRONTEND_BASE__", "https://boardwise.games/")
                         .replace("__BGG_URL__", settings.BGG_URL)
