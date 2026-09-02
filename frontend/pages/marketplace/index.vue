@@ -3,7 +3,7 @@
 
     <Navbar data-test="navbar" />
 
-    <MarketplaceHeader data-test="marketplace-header" v-model="searchQ" @create-listing="showCreateListing = true" />
+    <MarketplaceHeader data-test="marketplace-header" @search ="searchQ = $event" @create-listing="showCreateListing = true" />
 
     <MarketplaceTabs data-test="marketplace-tabs" v-model="activeTab" />
 
@@ -108,7 +108,6 @@ onMounted(async () => {
   if(!localStorage.getItem('access_token')){
     router.push('/auth/signin');
   }
-  await fetchPersonalisedListings(true);
   fetchListings({}, true)   
 })
 

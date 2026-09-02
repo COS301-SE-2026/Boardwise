@@ -3,6 +3,7 @@
       v-model="openPanels"
       variant="accordion"
       flat
+      class="base-filter-group"
     >
       <v-expansion-panel>
         <v-expansion-panel-title class="text-body-2 font-weight-bold">
@@ -19,7 +20,10 @@
 import { ref } from 'vue'
 
 const props = defineProps({
-    title: String, 
+    title: {
+      type: String,
+      default: 'Filter options'
+    }, 
     defaultOpen: {
         type: Boolean,
         default: true

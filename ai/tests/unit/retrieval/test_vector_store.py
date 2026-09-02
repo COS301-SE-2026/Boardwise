@@ -17,7 +17,7 @@ def test_fetch_candidate_chunks_valid_query_returns_results(mock_mongo_service):
 
     mock_collection.aggregate.return_value = expected_results
     mock_db.__getitem__.return_value = mock_collection
-    mock_mongo_service.client.get_default_database.return_value = mock_db
+    mock_mongo_service.get_db.return_value = mock_db
 
     # Act
     results = fetch_candidate_chunks(rulebook_id, query_vector, expected_limit)
