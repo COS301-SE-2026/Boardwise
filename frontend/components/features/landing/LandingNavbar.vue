@@ -1,12 +1,15 @@
 <template>
-    <v-app-bar flat>
-        <v-container class="d-flex align-center">
-            <h1>
+    <v-app-bar flat class="landing-navbar">
+        <v-container class="landing-navbar__inner">
+            <NuxtLink
+                to="/"
+                class="landing-navbar__brand"
+                aria-label="Boardwise home"
+            >
                 Boardwise
-            </h1>
-
-            <v-spacer/>
-
+            </NuxtLink>
+           
+            <div class="landing-navbar__actions">
                 <BaseButton
                     variant="secondary"
                     @click="router.push('/auth/signin')"
@@ -20,6 +23,7 @@
                 >
                     Sign Up
                 </BaseButton>
+            </div>
         </v-container>
     </v-app-bar>
 </template>
