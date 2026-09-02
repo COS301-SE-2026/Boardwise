@@ -1,6 +1,7 @@
 package com.boardwise.backend.user_service.controllers;
 
 import java.security.Principal;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -47,6 +48,13 @@ public class ChatController {
             "/queue/chat",
             chatMessage
         );
+
+        // server echo to sync with indexedDB
+        messagingTemplate.convertAndSendToUser(
+            principal.getName(),
+            "/queue/chat",
+            chatMessage
+        );
     }
 
     @MessageMapping("/chat/community")
@@ -66,11 +74,12 @@ public class ChatController {
         @RequestHeader("Authorization") String bearer,
         @RequestParam MessageType type, // DIRECT | COMMUNITY
         @RequestParam String targetId,
-        @RequestParam(required = false) Integer page
+        @RequestParam(required = false) Integer page,
+        @RequestParam(required = false) Instant since
     ){
         try{
             String token = bearer.substring(7);
-            MessagesDTO res = service.retrieveMessages(token, type, targetId, page);
+            MessagesDTO res = service.retrieveMessages(token, type, targetId, page, since);
             return ResponseEntity.ok().body(res);
         }
         catch(IllegalArgumentException e){
