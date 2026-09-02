@@ -1,4 +1,4 @@
-import { ref, onUnmounted } from 'vue';
+import { onUnmounted } from 'vue';
 import { useStomp } from '~/composables/useStomp';
 
 interface LockAcquiredEvent{
