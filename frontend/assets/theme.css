@@ -42,6 +42,7 @@
   --color-text:           var(--shadowink);
   --color-text-muted:     var(--ashquill);
   --color-text-inverse:   #FFFFFF;
+  --color-cta-heading:    #F8DDEA;
 
   --color-bg:             var(--scrollpaper);   /* App background (Surface) */
   --color-surface:        var(--alabaster);   /* Cards, modals */
@@ -883,6 +884,16 @@ a:hover { text-decoration: underline; }
 
   color: var(--color-primary);
 }
+.cta-title {
+    margin: 0;
+
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4vw, 3.25rem);
+    font-weight: 700;
+    line-height: 1.1;
+
+    color: var(--color-cta-heading);
+  }
 .hero-badges {
   display: flex;
   justify-content: flex-start;
@@ -1101,10 +1112,10 @@ li {
     font-size: 1.4rem;
   }
 
-  .cta-title {
-      color: white ;
-  }
+  
+
 }
+
 
 /* ============================================================
    SETTINGS — APPEARANCE & VIEW
