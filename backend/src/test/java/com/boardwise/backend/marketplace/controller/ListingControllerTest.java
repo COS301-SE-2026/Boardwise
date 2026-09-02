@@ -2,6 +2,7 @@ package com.boardwise.backend.marketplace.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -108,9 +109,10 @@ public class ListingControllerTest{
     @WithMockUser
     public void getAllActiveListingsReturns_200() throws Exception{
         //ARRANGE
-        when(listingService.getAllActiveListings("abc")).thenReturn(List.of(buildDefaultResponse()));
+        when(listingService.getAllActiveListings(anyString())).thenReturn(List.of(buildDefaultResponse()));
         //ACT & ASSERT
-         mockMvc.perform(get("/api/marketplace/listings"))
+         mockMvc.perform(get("/api/marketplace/listings")
+                .header("Authorization", "valid-token"))
                .andExpect(status().isOk());
     }
 
@@ -119,9 +121,10 @@ public class ListingControllerTest{
     @WithMockUser
     public void getAllActiveListingsReturns_204() throws Exception{
         //ARRANGE
-        when(listingService.getAllActiveListings("abc")).thenReturn(List.of());
+        when(listingService.getAllActiveListings(anyString())).thenReturn(List.of());
         //ACT & ASSERT
-         mockMvc.perform(get("/api/marketplace/listings"))
+         mockMvc.perform(get("/api/marketplace/listings")
+            .header("Authorization", "valid-token"))
                .andExpect(status().isNoContent());
     }
 
@@ -386,7 +389,7 @@ public class ListingControllerTest{
         Page<ListingResponse> page = new PageImpl<>(List.of(buildDefaultResponse()));
 
         when(listingService.getByFilter(any(), any(), any(), any(), any(),
-            any(),any(), any(),any(), any(),anyString())).thenReturn(page);
+            any(),any(), any(),any(), any(),any())).thenReturn(page);
         
         //ACT & ASSERT
 
@@ -401,7 +404,7 @@ public class ListingControllerTest{
         Page<ListingResponse> page = new PageImpl<>(List.of());
 
         when(listingService.getByFilter(any(), any(), any(), any(), any(),
-            any(),any(), any(),any(), any(),anyString())).thenReturn(page);
+            any(),any(), any(),any(), any(),any())).thenReturn(page);
         
         //ACT & ASSERT
 
@@ -432,7 +435,7 @@ public void getPersonalizedRetailListings_200() throws Exception{
     when(retailService.getPersonalizedRetailListings("valid-test-token", 0)).thenReturn(fakeObjs);
 
     //ACT & ASSERT
-    mockMvc.perform(get("/api/marketplace/listings/retail/personalized")
+    mockMvc.perform(get("/api/marketplace/listings/personalised")
             .header("Authorization", "Bearer valid-test-token"))
         .andExpect(status().isOk());
 }
@@ -446,7 +449,7 @@ public void getPersonalizedRetailListings_500() throws Exception{
         .thenThrow(new RuntimeException("boom"));
 
     //ACT & ASSERT
-    mockMvc.perform(get("/api/marketplace/listings/retail/personalized")
+    mockMvc.perform(get("/api/marketplace/listings/personalised")
             .header("Authorization", "Bearer valid-test-token"))
         .andExpect(status().isInternalServerError());
 }
