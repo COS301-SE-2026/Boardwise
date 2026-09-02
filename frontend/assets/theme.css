@@ -448,26 +448,34 @@ a:hover { text-decoration: underline; }
 /* =============================================================
    LANDING GAME STRIP
    ============================================================= */
+.landing-game-showcase {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+
+  width: 100%;
+  overflow: hidden;
+
+  padding-block: var(--space-6);
+}
 
 .game-strip {
   display: flex;
   gap: var(--space-3);
+
   width: max-content;
 }
 
 .game-card {
   width: 110px;
-  flex-shrink: 0;
-  cursor: pointer;
-  overflow: hidden;
-  transition:
-    transform var(--transition-base),
-    box-shadow var(--transition-base);
-}
 
-.game-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+  flex: 0 0 110px;
+
+  overflow: hidden;
+
+  cursor: default;
+
+  pointer-events: none;
 }
 
 .marquee-left {
@@ -476,11 +484,6 @@ a:hover { text-decoration: underline; }
 
 .marquee-right {
   animation: marquee-right 45s linear infinite;
-}
-
-.marquee-left:hover,
-.marquee-right:hover {
-  animation-play-state: paused;
 }
 
 @keyframes marquee-left {
@@ -503,28 +506,27 @@ a:hover { text-decoration: underline; }
   }
 }
 
-.marquee{
-    width:max-content;
-    animation:scroll 45s linear infinite;
+@media (max-width: 600px) {
+  .landing-game-showcase {
+    gap: var(--space-2);
+    padding-block: var(--space-4);
+  }
+
+  .game-strip {
+    gap: var(--space-2);
+  }
+
+  .game-card {
+    width: 92px;
+    flex-basis: 92px;
+  }
 }
 
-.marquee:hover{
-    animation-play-state:paused;
-}
-
-.scale-card{
-    transform:scale(1.05);
-    transition:transform var(--transition-base);
-}
-
-@keyframes scroll{
-    from{
-        transform:translateX(0);
-    }
-
-    to{
-        transform:translateX(-33.333%);
-    }
+@media (prefers-reduced-motion: reduce) {
+  .marquee-left,
+  .marquee-right {
+    animation: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -799,6 +801,60 @@ a:hover { text-decoration: underline; }
   }
 }
 
+.landing-navbar {
+  padding-block: 0.35rem;
+}
+
+.landing-navbar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+
+  width: min(100% - 32px, var(--container-max));
+  margin-inline: auto;
+}
+
+.landing-navbar__brand {
+  flex-shrink: 0;
+
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+  font-weight: 700;
+  line-height: 1;
+
+  color: var(--color-secondary);
+  text-decoration: none;
+}
+
+.landing-navbar__brand:focus-visible {
+  outline: 3px solid var(--rosewood);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.landing-navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+@media (max-width: 599px) {
+  .landing-navbar {
+    padding-block: 0.5rem;
+  }
+
+  .landing-navbar__inner {
+    width: calc(100% - 24px);
+  }
+
+  .landing-navbar__brand {
+    font-size: 1.8rem;
+  }
+  .landing-navbar__actions {
+    display: none;
+  }}
 .section-border {
     border-top:1px solid var(--color-border);
 }
