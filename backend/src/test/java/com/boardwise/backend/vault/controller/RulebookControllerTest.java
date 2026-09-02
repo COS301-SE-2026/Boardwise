@@ -79,7 +79,7 @@ public class RulebookControllerTest {
         @WithMockUser
         void listRulebooksReturns200WithResults() throws Exception{
             // Arrange
-            when(rulebookService.searchRulebooks(any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
+                when(rulebookService.searchRulebooks(any(), any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(new PageImpl<>(List.of(sampleSummaryDto())));
             
             // Act and Assert
@@ -92,7 +92,7 @@ public class RulebookControllerTest {
         @WithMockUser
         void listRulebooksReturns204WhenEmpty() throws Exception{
             // Arrange
-            when(rulebookService.searchRulebooks(any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
+            when(rulebookService.searchRulebooks(any() ,any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(Page.empty());
             
             // Act and Assert
@@ -104,19 +104,19 @@ public class RulebookControllerTest {
         @WithMockUser
         void listRulebooksAppliesDefaultPageAndLimit() throws Exception{
             // Arrange
-            when(rulebookService.searchRulebooks(any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
+            when(rulebookService.searchRulebooks(any() ,any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(Page.empty());
             // Act and Assert
             mockMvc.perform(get("/api/vault/rulebooks"))
                 .andExpect(status().isNoContent());
-            verify(rulebookService).searchRulebooks(isNull(),isNull(),isNull(),isNull(), isNull(), isNull(),eq(1), eq(20));
+            verify(rulebookService).searchRulebooks(isNull(),isNull(),isNull(),isNull(),isNull(), isNull(), isNull(),eq(1), eq(20));
         }
         
         @Test
         @WithMockUser
         void listRulebooksBindsAllQueryParams() throws Exception{
             // Arrange
-            when(rulebookService.searchRulebooks(any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
+            when(rulebookService.searchRulebooks(any() ,any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(Page.empty());
             // Act and Assert
             mockMvc.perform(get("/api/vault/rulebooks")
@@ -130,7 +130,7 @@ public class RulebookControllerTest {
                 .param("limit", "50"))
                 .andExpect(status().isNoContent());
             verify(rulebookService).searchRulebooks(
-                eq("catan"), eq("strategy"), eq(List.of("English", "French")),
+                eq("abc"), eq("catan"), eq("strategy"), eq(List.of("English", "French")),
                 eq(4), eq(90), eq(10), eq(2), eq(50));
         }
     }
