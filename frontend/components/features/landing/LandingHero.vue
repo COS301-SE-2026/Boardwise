@@ -1,31 +1,33 @@
 <template>
-    <v-container class="py-16"
+    <section
+        class="landing-hero"
+        aria-labelledby="landing-hero-title"
+        >
+    <v-container class="landing-hero__container"
     >
-        <v-row align="center" >
+        <v-row align="center" class="landing-hero__layout" >
 
-            <v-col cols="12" md="12" class="text-start">
-                    <div class="hero-heading">
-                        <img
-                            src="/images/BoarleySide.svg"
-                            alt="Boarley"
-                            class="hero-heading-mascot"
-                        />
-                    <h1>
-                        Play more. Learn faster.<br> 
-                        For people who love the table.
-                    </h1>
-                    </div>
-                    <div class="hero-badges">
+            <v-col cols="12" md="7"   lg=7 >
+
+                    <div class="landing-hero__content" aria-label="Boardwise experiences">
+                        <div class="hero-badges">
                         <span class="hero-badge hero-badge--connect">Connect</span>
                         <span class="hero-badge hero-badge--share">Share</span>
                         <span class="hero-badge hero-badge--play">Play</span> 
                     </div>
-                    <p class="mt-6 mb-8">
+                       
+                    <h1>
+                        Play more. Learn faster.<br> 
+                    </h1>
+                    <p class="landing-hero__tagline">
+                        For people who love the table.
+                    </p>
+                    <p class="landing-hero__description">
                         Access a library of your favourite board games,
                         discover new games, connect with other players,
                         trade or sell games, all in one place.</p>
 
-                    <div class="d-flex flex-wrap">
+                    <div class="landing-hero__actions">
                         <BaseButton
                             variant="secondary"
                             @click="router.push('/library')"
@@ -35,16 +37,35 @@
 
                         
                         <BaseButton 
-                            class="ml-3"
                             @click="router.push('/auth/signup')">
                             Get started 
                         </BaseButton>
-
                     </div>
+                </div>
             </v-col>
-           
+           <v-col
+                    cols="12"
+                    md="5"
+                    lg="5"
+                >
+                    <div class="landing-hero__mascot">
+                        <div class="landing-hero__speech">
+                            <span>
+                                Ready for your next game night?
+                            </span>
+                        </div>
+
+                        <img
+                            src="/images/BoarleySide.svg"
+                            alt=""
+                            aria-hidden="true"
+                            class="landing-hero__mascot-image"
+                        >
+                    </div>
+                </v-col>
         </v-row>
     </v-container>
+</section>
 </template>
 
 <script setup>
