@@ -9,30 +9,24 @@
     />
 
     <div class="game-card__content">
-    <h3 class="game-card__title">
-      {{ decodedTitle }}
-    </h3>
+      <h3 class="game-card__title">
+        {{ decodedTitle }}
+      </h3>
 
-    <p class="game-card__category">
-      {{ decodedCategory }}
-    </p>
-  </div>
+      <p class="game-card__category">
+        {{ decodedCategory }}
+      </p>
+    </div>
 
-    <!--TEMPORARY METHOD OF DELETING-->
     <RemoveGameModal v-model="openDelete" @confirm="handleRemove()" ></RemoveGameModal>
-    <!-- <RulebookDetail
-      v-model="showDetail"
-      :game="{ title, category, image }"
-    /> -->
-
   </BaseCard>
 </template>
 
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
-import RemoveGameModal from './RemoveGameModal.vue';
-import { computed } from 'vue';
-// import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
+import RemoveGameModal from './RemoveGameModal.vue'
+
+import { computed, ref } from 'vue'
 
 const props = defineProps({
   id: { type: String, required: true },
@@ -41,18 +35,15 @@ const props = defineProps({
   image: String,
 })
 
-const showDetail = ref(false)
+const emit = defineEmits(['remove'])
+
 const openDelete = ref(false);
+
 const decodedTitle = computed(() => decodeEntity(props.title));
 const decodedCategory = computed(() => decodeEntity(props.category));
 
-async function handleRemove(){
-  try{
-    emit('remove');
-  }
-  catch{
-    console.error('Failed to remove game', err)
-  }
+function handleRemove(){
+  emit('remove');
 }
 
 function decodeEntity(entity) {
@@ -63,9 +54,6 @@ function decodeEntity(entity) {
               .replaceAll(/&lt;/g, '<')
               .replaceAll(/&gt;/g, '>')
 }
-
-const emit = defineEmits(['remove'])
-
 </script>
 
 <style scoped>

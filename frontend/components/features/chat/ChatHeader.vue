@@ -1,42 +1,87 @@
 <template>
-    <BaseCard class="pa-4">
-        <div class="d-flex align-center justify-space-between">
-            <div class="d-flex align-center ga-3">
+    <BaseCard class="chat-header pa-4">
+        <div class="d-flex align-center ga-3">
+            <BaseButton
+                v-if="showBack"
+                variant="secondary"
+                class="chat-header__back"
+                aria-label="Back to conversations"
+                @click="$emit('back')"
+            >
+                <v-icon
+                    icon="mdi-arrow-left"
+                    class="me-1"
+                    aria-hidden="true"
+                />
 
+                Back
+            </BaseButton>
+
+                <button
+                type="button"
+                class="chat-header__identity"
+                :aria-label="`View details about ${conversation.name}`"
+                @click="$emit('show-details')"
+            >
+            <div class="chat-header__avatar">
                 <BaseAvatar
-                    :src="props.conversation.avatar"
-                    :name="props.conversation.name"
+                    :src="conversation.avatar"
+                    :name="conversation.name"
                     size="lg"
                 />
 
-                <div>
-                    <h3  class="text-h6 mb-1">
-                        {{ props.conversation.name }}
-                    </h3>
+                <span
+                    v-if="conversation.online"
+                    class="chat-online-indicator"
+                    aria-hidden="true"
+                />
+            </div>
 
-                    <span class="text-body-2 text-medium-emphasis">
-                        {{ props.conversation.online ? 'Online' : 'Offline' }}
+            <div class="flex-grow-1 overflow-hidden">
+                <h2 class="chat-header__name">
+                    {{ conversation.name }}
+                </h2>
+
+                <div class="chat-header__status">
+                    <span
+                        class="chat-status-dot"
+                        :class="{
+                            'chat-status-dot--online': conversation.online
+                        }"
+                        aria-hidden="true"
+                    />
+
+                    <span>
+                        {{ conversation.online ? 'Online' : 'Offline' }}
                     </span>
                 </div>
             </div>
 
-            <BaseButton variant="secondary">
-                About
-            </BaseButton>
+            <v-icon
+                    icon="mdi-chevron-right"
+                    class="chat-header__details-icon"
+                    aria-hidden="true"
+                /></button>
         </div>
     </BaseCard>
 </template>
 
 <script setup>
-import BaseAvatar from '~/components/ui/BaseAvatar.vue';
-import BaseCard from '~/components/ui/BaseCard.vue';
-import BaseButton from '~/components/ui/BaseButton.vue';
+import BaseAvatar from '~/components/ui/BaseAvatar.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
 
-const props = defineProps({
+defineProps({
     conversation: {
         type: Object,
         required: true
+    },
+
+    showBack: {
+        type: Boolean,
+        default: false
     }
 })
 
+defineEmits(['back', 'show-details'])
 </script>
