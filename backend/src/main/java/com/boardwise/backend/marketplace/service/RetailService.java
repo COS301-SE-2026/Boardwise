@@ -303,7 +303,7 @@ public class RetailService {
     private Page<RetailSourceItemDTO> fallbackToAllCached(Integer pageNum) {
         List<ScrapeCache> recentCaches = scrapeCacheRepository
             .findByLastScrapedAtAfterOrderByLastScrapedAtDesc(
-                LocalDateTime.now().minusMinutes(ttlMin), Limit.of(5));
+                LocalDateTime.now().minusMinutes(ttlSeconds), Limit.of(5));
 
         List<RetailSourceItemDTO> allCached = recentCaches.stream()
             .filter(this::isFresh)
