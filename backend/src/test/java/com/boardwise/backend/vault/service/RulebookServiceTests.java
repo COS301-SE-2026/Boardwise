@@ -476,15 +476,14 @@ public class RulebookServiceTests {
         }
         
         @Test
-        public void testGetRulebookTextThrowsWhenTextContentNotFound(){
+        public void testGetRulebookTextReturnsEmptyListWhenTextContentNotFound(){
             // Arrange
             when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
             when(rulebookTextRepository.findByRulebookIdOrderByIndexAsc(rulebookId)).thenReturn(List.of());
 
             // Act and Assert
-            Assertions.assertThatThrownBy(() -> rulebookService.getRulebookText(rulebookId))
-                .isInstanceOf(RulebookNotFoundException.class)
-                .hasMessageContaining("Text content not found");
+            RulebookTextResponseDto result = rulebookService.getRulebookText(rulebookId);
+            Assertions.assertThat(result.getChunks().isEmpty()).isTrue();
         }
         
         @Test
@@ -530,7 +529,7 @@ public class RulebookServiceTests {
         }
         
         @Test
-        public void testGetRulebookTextThrowsWhenLockHolderUserMissing(){
+        public void testGetRulebookTextResolvesToDeletedUserWhenLockHolderUserMissing(){
             // Arrange
             ObjectId lockHolderId = new ObjectId();
             rb.setLockHeldBy(lockHolderId);
@@ -541,9 +540,8 @@ public class RulebookServiceTests {
             when(userRepository.findById(lockHolderId.toHexString())).thenReturn(Optional.empty());
 
             // Act and Assert
-            Assertions.assertThatThrownBy(() -> rulebookService.getRulebookText(rulebookId))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("User does not exist.");
+            RulebookTextResponseDto result = rulebookService.getRulebookText(rulebookId);
+            Assertions.assertThat(result.getLockHeldBy()).isEqualTo("Deleted User");
         }
         
         @Test
@@ -561,10 +559,10 @@ public class RulebookServiceTests {
 
             // Assert
             Assertions.assertThat(dto.getChunks()).hasSize(2);
-            Assertions.assertThat(dto.getChunks().get(0).getChunkId()).isEqualTo(text.get(0).getChunkId());
+            Assertions.assertThat(dto.getChunks().get(0).getChunkId()).isEqualTo(text.get(0).getChunkId().toHexString());
             Assertions.assertThat(dto.getChunks().get(0).getIndex()).isEqualTo(text.get(0).getIndex());
             Assertions.assertThat(dto.getChunks().get(0).getContent()).isEqualTo(text.get(0).getContent());
-            Assertions.assertThat(dto.getChunks().get(1).getChunkId()).isEqualTo(text.get(1).getChunkId());
+            Assertions.assertThat(dto.getChunks().get(1).getChunkId()).isEqualTo(text.get(1).getChunkId().toHexString());
             Assertions.assertThat(dto.getChunks().get(1).getIndex()).isEqualTo(text.get(1).getIndex());
             Assertions.assertThat(dto.getChunks().get(1).getContent()).isEqualTo(text.get(1).getContent());
             Assertions.assertThat(dto.getChunks()).extracting(ChunkDto::getIndex).containsExactly(0, 1);

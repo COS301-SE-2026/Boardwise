@@ -31,6 +31,7 @@ jobs:
           R2_SECRET_ACCESS_KEY: "dummy_secret"
           R2_BUCKET_RULEBOOKS: "dummy_bucket"
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          INTERNAL_WEBHOOK_SECRET: ${{ secrets.INTERNAL_SECRET }}
 
         defaults:
             run:
@@ -55,7 +56,7 @@ jobs:
             
             - name: Initialise MongoDB Replica Set
               run: |
-                mongosh --host localhost:27017 --eval 'rs.initiate({_id: "rs0", members: [{_id: 0, host: "localhost:27017"}]})'
+                docker run --network host mongo:latest mongosh --host localhost:27017 --eval 'rs.initiate({_id: "rs0", members: [{_id: 0, host: "localhost:27017"}]})'
                 sleep 5
 
             - name: Run Tests

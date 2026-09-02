@@ -88,8 +88,8 @@ public class RetailService {
 
     private final ScrapeCacheRepository scrapeCacheRepository;
     
-    @Value("${scrape.cache.ttl.minutes:60}")
-    private long ttlMin;
+    @Value("${scrape.cache.ttl.seconds:3600}")
+    private long ttlSeconds;
 
     public RetailService(ScrapeCacheRepository scrapeCacheRepository,TakealotScraper ts, BobShopScraper bss, ToysRUsScraper trus, UserRepository userRepository, BoardGameRepository boardGameRepository, JWTService jwtService) {
         this.ts = ts;
@@ -176,8 +176,8 @@ public class RetailService {
 
     private boolean isFresh(ScrapeCache cache) {
         if (cache.getLastScrapedAt() == null) return false;
-        long ageMinutes = java.time.Duration.between(cache.getLastScrapedAt(), java.time.LocalDateTime.now()).toMinutes();
-        return ageMinutes < ttlMin;
+        long ageSeconds = java.time.Duration.between(cache.getLastScrapedAt(), java.time.LocalDateTime.now()).getSeconds();
+        return ageSeconds < ttlSeconds;
     }
 
     private List<RetailSourceItemDTO> safeScrape(Function<String, List<RetailSourceItemDTO>> scraper,
@@ -280,7 +280,7 @@ public class RetailService {
 
         List<ScrapeCache> recentCaches = scrapeCacheRepository
             .findByLastScrapedAtAfterOrderByLastScrapedAtDesc(
-                LocalDateTime.now().minusMinutes(ttlMin), Limit.of(50));
+                LocalDateTime.now().minusSeconds(ttlSeconds), Limit.of(50));
 
         for (ScrapeCache c : recentCaches) {
             if (added >= needed) break;
