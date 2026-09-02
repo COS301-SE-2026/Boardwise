@@ -18,7 +18,7 @@ export interface FriendRequestResponse {
 }
 
 export interface FriendRequestItem {
-    id: string       // friendship id — pass this back as requestId to respondToFriendRequest
+    id: string // reqested id for db 
     sender: Friend
 }
 

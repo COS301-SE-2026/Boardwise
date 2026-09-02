@@ -163,7 +163,13 @@ export const useProfile = () => {
         } finally {
             isLoading.value = false;
         }
+
+
     };
 
-    return { isLoading, fetchCurrentUser, updateProfile, updateProfilePicture, addGame, removeGame, searchGames ,addExistingGame, createGame, error }
+    const friendInvite = async () =>{
+        
+    }
+
+    return { isLoading, fetchCurrentUser, updateProfile, updateProfilePicture, addGame, removeGame, searchGames ,addExistingGame, createGame,friendInvite, error }
 }
