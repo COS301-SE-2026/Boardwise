@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.boardwise.backend.user_service.dtos.CommunityMessage;
 import com.boardwise.backend.user_service.dtos.CommunityMessageDTO;
+import com.boardwise.backend.user_service.dtos.ConversationsResponseDTO;
 import com.boardwise.backend.user_service.dtos.DirectMessage;
 import com.boardwise.backend.user_service.dtos.DirectMessageDTO;
 import com.boardwise.backend.user_service.dtos.ErrorMessage;
@@ -64,12 +65,12 @@ public class ChatController {
     public ResponseEntity<?> getMessages(
         @RequestHeader("Authorization") String bearer,
         @RequestParam MessageType type, // DIRECT | COMMUNITY
-        @RequestParam(required = false) String cId, // set ONLY if type is community
+        @RequestParam String targetId,
         @RequestParam(required = false) Integer page
     ){
         try{
             String token = bearer.substring(7);
-            MessagesDTO res = service.retrieveMessages(token, type, cId, page);
+            MessagesDTO res = service.retrieveMessages(token, type, targetId, page);
             return ResponseEntity.ok().body(res);
         }
         catch(IllegalArgumentException e){
@@ -82,6 +83,15 @@ public class ChatController {
             res.put("message", e.getMessage());
             return ResponseEntity.internalServerError().body(res);
         }
+    }
+
+    @GetMapping("/conversations")
+    public ResponseEntity<?> getConversation(
+        @RequestHeader("Authorization") String bearer
+    ){
+        String token = bearer.substring(7);
+        ConversationsResponseDTO res = service.retrieveConversations(token);
+        return ResponseEntity.ok().body(res);
     }
 
     @MessageExceptionHandler(NoSuchElementException.class)

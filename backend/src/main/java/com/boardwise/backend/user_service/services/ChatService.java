@@ -2,6 +2,7 @@ package com.boardwise.backend.user_service.services;
 
 import java.security.Principal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -13,17 +14,22 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.shared.services.NotificationService;
+// import com.boardwise.backend.shared.services.NotificationService;
 import com.boardwise.backend.user_service.dtos.CommunityMessage;
 import com.boardwise.backend.user_service.dtos.CommunityMessageDTO;
-import com.boardwise.backend.user_service.dtos.CommunityMessageNotification;
+import com.boardwise.backend.user_service.dtos.ConversationDTO;
+import com.boardwise.backend.user_service.dtos.ConversationsResponseDTO;
+// import com.boardwise.backend.user_service.dtos.CommunityMessageNotification;
 import com.boardwise.backend.user_service.dtos.DirectMessage;
 import com.boardwise.backend.user_service.dtos.DirectMessageDTO;
-import com.boardwise.backend.user_service.dtos.DirectMessageNotification;
+// import com.boardwise.backend.user_service.dtos.DirectMessageNotification;
 import com.boardwise.backend.user_service.dtos.MessagesDTO;
-import com.boardwise.backend.user_service.dtos.NotificationDTO;
+// import com.boardwise.backend.user_service.dtos.NotificationDTO;
 import com.boardwise.backend.user_service.enums.MessageType;
+import com.boardwise.backend.user_service.models.Conversation;
 import com.boardwise.backend.user_service.models.Message;
+import com.boardwise.backend.user_service.models.User;
+import com.boardwise.backend.user_service.repository.ConversationRepository;
 import com.boardwise.backend.user_service.repository.GroupRepository;
 import com.boardwise.backend.user_service.repository.MessageRepository;
 import com.boardwise.backend.user_service.repository.UserRepository;
@@ -34,8 +40,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ChatService {
 
-    private final NotificationService notifService;
+    // private final NotificationService notifService;
     private final MessageRepository messageRepo;
+    private final ConversationRepository convoRepo;
     private final UserRepository userRepo;
     private final GroupRepository groupRepo;
     private final JWTService jwtService;
@@ -51,16 +58,7 @@ public class ChatService {
         
         // send the chat message for the ui
         // save the message first
-        Message toStore = new Message(
-            message.id(),
-            MessageType.DIRECT,
-            senderId,
-            message.receiverId(),
-            null,
-            message.message(),
-            false,
-            Instant.now()
-        );
+        Message toStore = new Message();
 
         try{
             messageRepo.save(toStore);
@@ -72,11 +70,11 @@ public class ChatService {
             );
         }
 
-        NotificationDTO notification = new DirectMessageNotification(
-            senderId,
-            message.message()
-        );
-        notifService.notifyUser(message.receiverId(), notification);
+        // NotificationDTO notification = new DirectMessageNotification(
+        //     senderId,
+        //     message.message()
+        // );
+        // notifService.notifyUser(message.receiverId(), notification);
         
         return new DirectMessageDTO(
             senderId,
@@ -92,16 +90,7 @@ public class ChatService {
 
         // send the chat message for the ui (senderId will be used)
         // save the message first 
-        Message toStore = new Message(
-            message.id(),
-            MessageType.COMMUNITY,
-            senderId,
-            null,
-            message.communityId(),
-            message.message(),
-            false,
-            Instant.now()
-        );
+        Message toStore = new Message();
         try{
             messageRepo.save(toStore);
         }
@@ -112,11 +101,11 @@ public class ChatService {
             );
         }
 
-        NotificationDTO notification = new CommunityMessageNotification(
-            senderId, 
-            message.message()
-        );
-        notifService.notifyCommunity(message.communityId(), notification);
+        // NotificationDTO notification = new CommunityMessageNotification(
+        //     senderId, 
+        //     message.message()
+        // );
+        // notifService.notifyCommunity(message.communityId(), notification);
 
         return new CommunityMessageDTO(
             senderId, 
@@ -124,7 +113,7 @@ public class ChatService {
         );
     }
 
-    public MessagesDTO retrieveMessages(String token, MessageType type, String cId, Integer page) {
+    public MessagesDTO retrieveMessages(String token, MessageType type, String targetId, Integer page) {
         String userId = jwtService.extractUserId(token).toString();
         Instant lastOnline = userRepo.findById(userId)
                                     .map(user -> user.getLastOnlineAt())
@@ -132,35 +121,38 @@ public class ChatService {
         List<?> messages;
         Query query;
         Criteria criteria;
-        int pageSize = 75;
+        int pageSize = 50;
         Pageable pageable = PageRequest.of(
-            page == null ? 0 : page,
+            page == null ? 0 : page - 1,
             pageSize,
             Sort.by(Sort.Direction.ASC, "sentAt")
         );
 
         if(type == MessageType.DIRECT){
-            criteria = Criteria.where("recipientUserId").is(userId).and("sentAt").gt(lastOnline);
+            criteria = Criteria.where("targetId").is(targetId).and("sentAt").gt(lastOnline);
             query = Query.query(criteria).with(pageable);
+
+
             messages = db.find(query, Message.class).stream()
-                            .map((msg) -> new DirectMessageDTO(
-                                msg.getId(),
-                                msg.getSenderId(),
-                                msg.getRecipientUserId(),
-                                msg.getMessage()
-                            )).toList();
+                            .map((msg) -> {
+                                String[] userIds = targetId.split("_");
+                                String recipient = userIds[0].equals(userId) ? userIds[1] : userIds[0];
+                                return new DirectMessageDTO(
+                                    msg.getId(),
+                                    msg.getSenderId(),
+                                    recipient,
+                                    msg.getMessage()
+                                );
+                            }).toList();
         }
         else if(type == MessageType.COMMUNITY){
-            if(cId == null)
-                throw new IllegalArgumentException("'cId' field is required for requests of type: COMMUNITY");
-
-            criteria = Criteria.where("communityId").is(cId).and("sentAt").gt(lastOnline);
+            criteria = Criteria.where("targetId").is(targetId).and("sentAt").gt(lastOnline);
             query = Query.query(criteria).with(pageable);
             messages = db.find(query, Message.class).stream()
                             .map((msg) -> new CommunityMessageDTO(
                                 msg.getId(),
                                 msg.getSenderId(),
-                                msg.getCommunityId(),
+                                targetId,
                                 msg.getMessage()
                             )).toList();
             
@@ -170,6 +162,43 @@ public class ChatService {
         return new MessagesDTO(
             "User messages retrieved successfully",
             messages
+        );
+    }
+
+    public ConversationsResponseDTO retrieveConversations(String token) {
+        String clientId = jwtService.extractUserId(token).toString();
+        List<Conversation> dbResults = convoRepo.participantIdsContainsUserId(clientId);
+        List<ConversationDTO> conversations = new ArrayList<>();
+
+        for(Conversation convo : dbResults){
+            try{
+                int idx = convo.getParticipantIds().indexOf(clientId) == 0 ? 1 : 0;
+                String userId = convo.getParticipantIds().get(idx);
+                User user = userRepo.findById(userId).orElseThrow();
+                ConversationDTO dto = new ConversationDTO(
+                    convo.getId(),
+                    user.getUsername(),
+                    user.getProfilePicture(),
+                    convo.getLastMessage(),
+                    convo.getLastMessageAt()
+                );
+                conversations.add(dto);
+            }
+            catch(NoSuchElementException e){
+                ConversationDTO dto = new ConversationDTO(
+                    convo.getId(),
+                    "deleted user",
+                    null,
+                    convo.getLastMessage(),
+                    convo.getLastMessageAt()
+                );
+                conversations.add(dto);
+            }
+        }
+
+        return new ConversationsResponseDTO(
+            "User conversations successfully retrieved",
+            conversations
         );
     }
 }
