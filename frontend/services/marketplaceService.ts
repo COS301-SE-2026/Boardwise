@@ -68,9 +68,11 @@ export const MarketplaceService = {
     },
 
     //GET USER LISTINGS 
-    getUserListings(){
+    getUserListings(username: string) {
         const { $api } = useNuxtApp();
-        return $api<Array<ListingResponse>>('marketplace/listings/user');
+        return $api<Array<ListingResponse>>(
+            `marketplace/listings/user/${username}`
+        );
     },
 
     // UPDATE LISTING BY ID

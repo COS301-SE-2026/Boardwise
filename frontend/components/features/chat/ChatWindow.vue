@@ -1,9 +1,34 @@
 <template>
-    <div class="d-flex flex-column ga-4 h-100">
+    <div class="chat-window">
+        <template v-if="conversation.isInvite">
+            <div class="chat-invite-header">
+                <BaseButton
+                    v-if="showBack"
+                    variant="secondary"
+                    aria-label="Back to conversations"
+                    @click="$emit('back')"
+                >
+                    <v-icon
+                        icon="mdi-arrow-left"
+                        class="me-1"
+                        aria-hidden="true"
+                    />
 
-        <template v-if="props.conversation.isInvite">
+                    Back
+                </BaseButton>
 
-            <InviteFeed 
+                <div>
+                    <h2 class="text-h5 font-weight-bold mb-1">
+                        Invites
+                    </h2>
+
+                    <p class="text-body-2 text-medium-emphasis mb-0">
+                        Review your pending Boardwise event invitations.
+                    </p>
+                </div>
+            </div>
+
+            <InviteFeed
                 :invites="invites"
                 :responding-id="respondingId"
                 @accept="acceptInvite"
@@ -13,7 +38,10 @@
 
         <template v-else>
             <ChatHeader
-                :conversation="props.conversation"
+                :conversation="conversation"
+                :show-back="showBack"
+                @back="$emit('back')"
+                @show-details="showUserDetails = true"
             />
 
             <ChatFeed
@@ -24,60 +52,92 @@
             <ChatComposer
                 @send="handleSend"
             />
+
+            
+        <ChatUserDetails
+            v-if="!conversation.isInvite"
+            v-model="showUserDetails"
+            :conversation="conversation"
+                />
         </template>
+
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import {
+    onMounted,
+    ref,
+    watch
+} from 'vue'
 
-import ChatHeader from './ChatHeader.vue';
-import ChatFeed from './ChatFeed.vue';
-import ChatComposer from './ChatComposer.vue';
-import InviteFeed from '../invites/InviteFeed.vue';
-import { useSnackBar } from '#imports';
-import { getMessages } from '~/services/chatService.js';
-import { useEvents } from '~/composables/useEvents';
+import BaseButton from '~/components/ui/BaseButton.vue'
+import ChatUserDetails from './ChatUserDetails.vue'
+import ChatComposer from './ChatComposer.vue'
+import ChatFeed from './ChatFeed.vue'
+import ChatHeader from './ChatHeader.vue'
 
-const {show} = useSnackBar();
+import InviteFeed from '../invites/InviteFeed.vue'
+
+import { getMessages } from '~/services/chatService.js'
+import { useEvents } from '~/composables/useEvents'
+import { useSnackBar } from '#imports'
+
+const props = defineProps({
+    conversation: {
+        type: Object,
+        required: true
+    },
+
+    showBack: {
+        type: Boolean,
+        default: false
+    }
+})
+
+defineEmits(['back'])
+
+const showUserDetails = ref(false)
+
+const { show } = useSnackBar()
+
 const {
     invites,
     fetchInvites,
     respondToInvite
 } = useEvents()
 
-onMounted(() => {
-    fetchInvites();
-});
-
-const props = defineProps({
-    conversation: {
-        type: Object,
-        required: true
-    }
-})
-
 const messages = ref<any[]>([])
+const respondingId = ref<string | null>(null)
+
+onMounted(() => {
+    fetchInvites()
+})
 
 watch(
     () => props.conversation.id,
     (id: any) => {
-        if (!props.conversation.isInvite) {
-            messages.value = [...getMessages(id)]
+        if (props.conversation.isInvite) {
+            messages.value = []
+            return
         }
+
+        messages.value = [
+            ...getMessages(id)
+        ]
     },
     {
         immediate: true
     }
 )
 
-const handleSend = (text: any) => {
+const handleSend = (text: string) => {
     messages.value.push({
         id: Date.now(),
         name: 'You',
         avatar: '/images/avatar.jpg',
         text,
-        time: new Date().toLocaleTimeString([],{
+        time: new Date().toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit'
         }),
@@ -85,26 +145,36 @@ const handleSend = (text: any) => {
     })
 }
 
-const respondingId = ref<string | null>(null)
-
-const acceptInvite = async (eventId: string) => {
+const respondToEventInvite = async (
+    eventId: string,
+    response: 'accept' | 'decline'
+) => {
     respondingId.value = eventId
+
     try {
-        await respondToInvite(eventId, 'accept')
-        show('Invite accepted!', 'success')
+        await respondToInvite(
+            eventId,
+            response
+        )
+
+        if (response === 'accept') {
+            show('Invite accepted!', 'success')
+        } else {
+            show('Invite declined.', 'info')
+        }
     } catch {
-        show('Failed to accept invite.', 'error')
+        show(
+            `Failed to ${response} invite.`,
+            'error'
+        )
     } finally {
         respondingId.value = null
     }
 }
 
-const declineInvite = async (eventId: string) => {
-try {
-        await respondToInvite(eventId, 'decline')
-        show('Invite declined', 'info')
-    } catch {
-        show('Failed to decline invite.', 'error')
-    }
-}
+const acceptInvite = (eventId: string) =>
+    respondToEventInvite(eventId, 'accept')
+
+const declineInvite = (eventId: string) =>
+    respondToEventInvite(eventId, 'decline')
 </script>

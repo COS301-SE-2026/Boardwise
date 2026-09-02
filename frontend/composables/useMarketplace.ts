@@ -80,14 +80,13 @@ const _useMarketplace = () =>{
         }
     }
 
-    const fetchUserListing = async () => {
+    const fetchUserListing = async (username: string) => {
         loading.value = true;
         error.value = null;
+
         try {
-            const res = await MarketplaceService.getUserListings();
+            const res = await MarketplaceService.getUserListings(username);
             listings.value = res ?? [];
-            if (listings.value.length > 0) show('Successfully fetched your listings!');
-            else show('You have no listings to fetch!')
         } catch (err: any) {
             error.value = err.data?.message ?? 'Failed to fetch user listings';
             show('Failed to fetch user listings', 'error');
