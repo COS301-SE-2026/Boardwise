@@ -31,6 +31,7 @@ jobs:
           R2_SECRET_ACCESS_KEY: "dummy_secret"
           R2_BUCKET_RULEBOOKS: "dummy_bucket"
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          INTERNAL_WEBHOOK_SECRET: ${{ secrets.INTERNAL_SECRET }}
 
         defaults:
             run:
