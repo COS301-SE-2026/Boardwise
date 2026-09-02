@@ -22,7 +22,8 @@
                 :key="feature.id"
                 cols="12" 
                 sm="6" 
-                md="4"
+                md="6"
+                lg="3"
             >
                 <LandingFeatureCard :feature="feature"/>
             </v-col>
