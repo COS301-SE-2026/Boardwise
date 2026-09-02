@@ -62,7 +62,7 @@
 
         <div class="chat-sidebar__results">
             <ChatConversationList
-                v-if="filteredConversations.length"
+                v-else-if="filteredConversations.length"
                 :conversations="filteredConversations"
                 :selected="selectedId"
                 @select="emit('select', $event)"

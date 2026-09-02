@@ -8,5 +8,6 @@ public record ConversationDTO(
     String username,
     String profilePicture,
     String lastMessage,
-    Instant lastMessageAt
+    Instant lastMessageAt,
+    boolean isOnline
 ) {}

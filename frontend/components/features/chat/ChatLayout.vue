@@ -46,6 +46,7 @@ const mobileConversationOpen = ref(false)
 
 onMounted(async () => {
     await fetchInvites()
+    await getChats()
 })
 
 const conversations = computed(() => {
@@ -64,7 +65,7 @@ const conversations = computed(() => {
             isInvite: true
         },
 
-        ...getChats()
+        ...chats.value
     ]
 })
 

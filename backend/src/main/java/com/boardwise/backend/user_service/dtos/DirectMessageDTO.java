@@ -5,7 +5,7 @@ import java.time.Instant;
 public record DirectMessageDTO(
     String id,
     String senderId,
-    String recipientId,
+    String receiverId,
     String message,
     Instant sentAt
 ) {

@@ -216,7 +216,8 @@ public class ChatService {
                     user.getUsername(),
                     user.getProfilePicture(),
                     convo.getLastMessage(),
-                    convo.getLastMessageAt()
+                    convo.getLastMessageAt(),
+                    notifService.isOnline(userId)
                 );
                 conversations.add(dto);
             }
@@ -227,7 +228,8 @@ public class ChatService {
                     "Boardwise user",
                     null,
                     convo.getLastMessage(),
-                    convo.getLastMessageAt()
+                    convo.getLastMessageAt(),
+                    false
                 );
                 conversations.add(dto);
             }

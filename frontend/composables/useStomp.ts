@@ -1,5 +1,5 @@
 import { Client, type IMessage } from "@stomp/stompjs";
-import { ms } from "vuetify/iconsets/ms";
+import { type DirectMessage } from "~/composables/usePrivateChat";
 
 // how to deal with received messages
 type MessageHandler = (payload: any) => void;
@@ -14,6 +14,7 @@ let client: Client | null = null;
 const subscriptions = new Map<string, Subscription>(); // track all subscriptions to an endpoint
 const isConnected = useState('socket-connected', () => false);
 const connectedBefore = useState('socket-connected-before', () => false);
+const reconnectHooks: Array<() => void> = [];
 
 function reSubToAll(){
     if(!client?.connected) return;
@@ -44,16 +45,19 @@ export function useStomp(){
 
         client.onConnect = () => {
             isConnected.value = true;
-            if(connectedBefore.value)
+            if(connectedBefore.value){
                 reSubToAll();
+                reconnectHooks.forEach(hook => hook())
+            }
+                
 
             connectedBefore.value = true;
-        }
+        };
 
         client.onDisconnect = () => isConnected.value = false;
         client.onStompError = (frame) => console.error("Stomp reported error: ", frame.headers['message'], frame.body);
         client.activate();
-    }
+    };
 
     function disconnect(){
         client?.deactivate();
@@ -61,7 +65,7 @@ export function useStomp(){
         subscriptions.clear();
         isConnected.value = false;
         connectedBefore.value = false;
-    }
+    };
 
     function subscribe(dest: string, callback: MessageHandler){
         const exists = subscriptions.get(dest);
@@ -82,7 +86,7 @@ export function useStomp(){
                 callback(JSON.parse(msg.body));
             });
         }
-    }
+    };
 
     function unsubscribe(dest: string){
         const sub = subscriptions.get(dest);
@@ -93,6 +97,24 @@ export function useStomp(){
             sub.stompSub?.unsubscribe();
             subscriptions.delete(dest);
         }
+    };
+
+    function onReconnectHook(func: () => void){
+        reconnectHooks.push(func);
+        onUnmounted(() => {
+            const index = reconnectHooks.indexOf(func);
+            if(index !== -1)
+                reconnectHooks.splice(index, 1);
+        })
+    }
+
+    function sendPrivateMessage(message: DirectMessage){
+        if(isConnected.value && client?.connected){
+            client.publish({
+                destination: '/app/chat/direct',
+                body: JSON.stringify(message)
+            })
+        }
     }
 
     return {
@@ -100,6 +122,8 @@ export function useStomp(){
         connect,
         disconnect,
         subscribe,
-        unsubscribe
+        unsubscribe,
+        sendPrivateMessage,
+        onReconnectHook
     };
 }
