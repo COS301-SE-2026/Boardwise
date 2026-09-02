@@ -55,10 +55,27 @@ public class ChatService {
         
         // send the notification
         String senderId = principal.getName();
-        
+        String convoId = generateConversationId(senderId, message.receiverId());
+        Instant messageTime = Instant.now();
         // send the chat message for the ui
         // save the message first
-        Message toStore = new Message();
+        Conversation conversation = new Conversation(
+            convoId,
+            List.of(senderId, message.receiverId()),
+            message.message(),
+            messageTime
+        );
+        convoRepo.save(conversation);
+
+        Message toStore = new Message(
+            message.id(),
+            MessageType.DIRECT,
+            convoId,
+            senderId,
+            message.message(),
+            false,
+            messageTime
+        );
 
         try{
             messageRepo.save(toStore);
@@ -66,7 +83,8 @@ public class ChatService {
         catch(DuplicateKeyException e){
             return new DirectMessageDTO(
                 senderId, 
-                message
+                message,
+                messageTime
             );
         }
 
@@ -78,7 +96,8 @@ public class ChatService {
         
         return new DirectMessageDTO(
             senderId,
-            message
+            message,
+            messageTime
         );
     }
 
@@ -87,17 +106,28 @@ public class ChatService {
             throw new NoSuchElementException("Community associated with id: " + message.communityId() + " does not exist.");
         
         String senderId = principal.getName();
+        Instant sentAt = Instant.now();
 
         // send the chat message for the ui (senderId will be used)
         // save the message first 
-        Message toStore = new Message();
+        Message toStore = new Message(
+            message.id(),
+            MessageType.COMMUNITY,
+            message.communityId(),
+            senderId,
+            message.message(),
+            false,
+            sentAt
+        );
+
         try{
             messageRepo.save(toStore);
         }
         catch(DuplicateKeyException e){
             return new CommunityMessageDTO(
                 senderId, 
-                message
+                message,
+                sentAt
             );
         }
 
@@ -109,7 +139,8 @@ public class ChatService {
 
         return new CommunityMessageDTO(
             senderId, 
-            message
+            message,
+            sentAt
         );
     }
 
@@ -141,7 +172,8 @@ public class ChatService {
                                     msg.getId(),
                                     msg.getSenderId(),
                                     recipient,
-                                    msg.getMessage()
+                                    msg.getMessage(),
+                                    msg.getSentAt()
                                 );
                             }).toList();
         }
@@ -153,7 +185,8 @@ public class ChatService {
                                 msg.getId(),
                                 msg.getSenderId(),
                                 targetId,
-                                msg.getMessage()
+                                msg.getMessage(),
+                                msg.getSentAt()
                             )).toList();
             
         }
@@ -174,9 +207,12 @@ public class ChatService {
             try{
                 int idx = convo.getParticipantIds().indexOf(clientId) == 0 ? 1 : 0;
                 String userId = convo.getParticipantIds().get(idx);
-                User user = userRepo.findById(userId).orElseThrow();
+                User user = userRepo.findById(userId).orElseThrow(
+                    () -> new NoSuchElementException(userId)
+                );
                 ConversationDTO dto = new ConversationDTO(
                     convo.getId(),
+                    userId,
                     user.getUsername(),
                     user.getProfilePicture(),
                     convo.getLastMessage(),
@@ -187,7 +223,8 @@ public class ChatService {
             catch(NoSuchElementException e){
                 ConversationDTO dto = new ConversationDTO(
                     convo.getId(),
-                    "deleted user",
+                    e.getMessage(),
+                    "Boardwise user",
                     null,
                     convo.getLastMessage(),
                     convo.getLastMessageAt()
@@ -200,5 +237,15 @@ public class ChatService {
             "User conversations successfully retrieved",
             conversations
         );
+    }
+
+    public static String generateConversationId(String userA, String userB){
+        if(userA == null || userB == null)
+            throw new IllegalArgumentException("Both User IDs cannot be null");
+
+        if(userA.compareTo(userB) < 0)
+            return userA + "_" + userB;
+        
+        return userB + "_" + userA;
     }
 }
