@@ -147,15 +147,16 @@ public class ChatService {
     public MessagesDTO retrieveMessages(String token, MessageType type, String targetId, Integer page, Instant since) {
         String userId = jwtService.extractUserId(token).toString();
         Instant lastOnline = (since != null) ? since : Instant.EPOCH;
-        
+        Sort.Direction sortDir = (since == null) ? Sort.Direction.DESC : Sort.Direction.ASC;
+
         List<?> messages;
         Query query;
         Criteria criteria;
         int pageSize = 50;
         Pageable pageable = PageRequest.of(
-            page == null ? 0 : (page - 1 < 0 ? 0 : page - 1),
+            page == null ? 0 : Math.max(0, page - 1),
             pageSize,
-            Sort.by(Sort.Direction.ASC, "sentAt")
+            Sort.by(sortDir, "sentAt")
         );
 
         if(type == MessageType.DIRECT){
