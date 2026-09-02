@@ -50,8 +50,10 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
                     .requestMatchers(
                         "/api/auth/hello",
-                        "/api/auth/register", 
+                        "/api/auth/register",
                         "/api/auth/login",
+                        "/api/auth/resetPassword",
+                        "/api/auth/forgotPassword",
                         "/api/boardgames/",
                         "/api/vault/rulebooks"
                         
