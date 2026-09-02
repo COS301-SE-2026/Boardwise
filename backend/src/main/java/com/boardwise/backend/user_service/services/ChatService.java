@@ -14,17 +14,17 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import com.boardwise.backend.shared.security.JWTService;
-// import com.boardwise.backend.shared.services.NotificationService;
+import com.boardwise.backend.shared.services.NotificationService;
 import com.boardwise.backend.user_service.dtos.CommunityMessage;
 import com.boardwise.backend.user_service.dtos.CommunityMessageDTO;
 import com.boardwise.backend.user_service.dtos.ConversationDTO;
 import com.boardwise.backend.user_service.dtos.ConversationsResponseDTO;
-// import com.boardwise.backend.user_service.dtos.CommunityMessageNotification;
+import com.boardwise.backend.user_service.dtos.CommunityMessageNotification;
 import com.boardwise.backend.user_service.dtos.DirectMessage;
 import com.boardwise.backend.user_service.dtos.DirectMessageDTO;
-// import com.boardwise.backend.user_service.dtos.DirectMessageNotification;
+import com.boardwise.backend.user_service.dtos.DirectMessageNotification;
 import com.boardwise.backend.user_service.dtos.MessagesDTO;
-// import com.boardwise.backend.user_service.dtos.NotificationDTO;
+import com.boardwise.backend.user_service.dtos.NotificationDTO;
 import com.boardwise.backend.user_service.enums.MessageType;
 import com.boardwise.backend.user_service.models.Conversation;
 import com.boardwise.backend.user_service.models.Message;
@@ -40,7 +40,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ChatService {
 
-    // private final NotificationService notifService;
+    private final NotificationService notifService;
     private final MessageRepository messageRepo;
     private final ConversationRepository convoRepo;
     private final UserRepository userRepo;
@@ -88,11 +88,11 @@ public class ChatService {
             );
         }
 
-        // NotificationDTO notification = new DirectMessageNotification(
-        //     senderId,
-        //     message.message()
-        // );
-        // notifService.notifyUser(message.receiverId(), notification);
+        NotificationDTO notification = new DirectMessageNotification(
+            senderId,
+            message.message()
+        );
+        notifService.notifyUser(message.receiverId(), notification);
         
         return new DirectMessageDTO(
             senderId,
@@ -131,11 +131,11 @@ public class ChatService {
             );
         }
 
-        // NotificationDTO notification = new CommunityMessageNotification(
-        //     senderId, 
-        //     message.message()
-        // );
-        // notifService.notifyCommunity(message.communityId(), notification);
+        NotificationDTO notification = new CommunityMessageNotification(
+            senderId, 
+            message.message()
+        );
+        notifService.notifyCommunity(message.communityId(), notification);
 
         return new CommunityMessageDTO(
             senderId, 

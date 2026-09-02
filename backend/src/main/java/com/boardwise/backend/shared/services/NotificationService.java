@@ -52,7 +52,7 @@ public class NotificationService {
                 false,
                 null
             );
-            notifRepo.save(notif);
+            // notifRepo.save(notif);
         }
     }
 
@@ -73,7 +73,7 @@ public class NotificationService {
                                                         null
                                                     )).toList();
         
-        if(!notifications.isEmpty()) notifRepo.saveAll(notifications);
+        // if(!notifications.isEmpty()) notifRepo.saveAll(notifications);
 
         messagingTemplate.convertAndSend(
             "/topic/community/" + communityId + "/notification",
