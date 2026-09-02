@@ -13,10 +13,11 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class OfflineEventListener {
+public class AsyncEventListener {
 
     private final UserRepository userRepo;
 
+    @Async
     @EventListener
     public void handleDisconnect(SessionDisconnectEvent event){
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
