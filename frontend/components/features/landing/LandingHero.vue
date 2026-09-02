@@ -16,7 +16,10 @@
                         <span class="hero-badge hero-badge--play">Play</span> 
                     </div>
                        
-                    <h1>
+                    <h1
+                        id="landing-hero-title"
+                        class="landing-hero__title"
+                    >
                         Play more. Learn faster.<br> 
                     </h1>
                     <p class="landing-hero__tagline">
