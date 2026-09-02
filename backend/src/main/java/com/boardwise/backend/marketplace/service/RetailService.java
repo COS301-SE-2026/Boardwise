@@ -79,13 +79,11 @@ public class RetailService {
     private final BoardGameRepository boardGameRepository;
      
     //number of Games to search for 
-    private final int NUMOFGAMES = 300;
+    private final int NUMOFGAMES = 50;
 
-    private final ExecutorService scraperExecutor = Executors.newFixedThreadPool(3);
-    private final ExecutorService scheduledScraperExecutor = Executors.newFixedThreadPool(2);
-    // separate single-thread executor for the outer scheduled/startup job so it never
-    // occupies a slot in the pool that the inner per-game scrape tasks also run on
-    private final ExecutorService recommendedScraperRunnerExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService scraperExecutor = Executors.newFixedThreadPool(3); // to execute the 3 scrapers 
+    private final ExecutorService scheduledScraperExecutor = Executors.newFixedThreadPool(2); // execute scheduled process
+    private final ExecutorService recommendedScraperRunnerExecutor = Executors.newSingleThreadExecutor(); //once game gets added 
 
 
     private final ScrapeCacheRepository scrapeCacheRepository;
@@ -122,8 +120,8 @@ public class RetailService {
 
         // individual processes happening concurrently
         CompletableFuture<List<RetailSourceItemDTO>> takealotFuture =  CompletableFuture.supplyAsync(() -> safeScrape(ts::scrape, s), executor);
-        CompletableFuture<List<RetailSourceItemDTO>> bobShopFuture =CompletableFuture.supplyAsync(() -> safeScrape(bss::scrape, s), executor);
-        CompletableFuture<List<RetailSourceItemDTO>> toysRUsFuture =CompletableFuture.supplyAsync(() -> safeScrape(trus::scrape, s), executor);
+        CompletableFuture<List<RetailSourceItemDTO>> bobShopFuture = CompletableFuture.supplyAsync(() -> safeScrape(bss::scrape, s), executor);
+        CompletableFuture<List<RetailSourceItemDTO>> toysRUsFuture = CompletableFuture.supplyAsync(() -> safeScrape(trus::scrape, s), executor);
         
         try {
             CompletableFuture.allOf(takealotFuture, bobShopFuture, toysRUsFuture)
@@ -340,7 +338,6 @@ public class RetailService {
         return paginate(results, pageNum);
     }
 
-    // fire-and-forget: warms the cache for a game's listings without blocking the caller.
     // call this from wherever a game gets added to a user's library so the personalized
     // tab isn't stuck doing a synchronous scrape the first time it's requested.
     public void prewarmListings(String gameTitle) {
