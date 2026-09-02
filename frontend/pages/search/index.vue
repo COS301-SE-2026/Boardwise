@@ -1,3 +1,4 @@
+
 <template>
     <PageContainer data-test="page-container">
         <Navbar data-test="navbar" />
@@ -40,11 +41,13 @@ import { useRouter, useRoute } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import { useSearch } from '~/composables/useSearch'
 
+
 const router = useRouter()
 const route = useRoute()
 const query = computed(() => route.query.q ?? '')
 
 const { people, rulebooks, listings, communities, loading, search } = useSearch()
+
 
 const delaySearch = useDebounceFn((q) => search(q), 400)
 
@@ -59,12 +62,12 @@ function handleOpenListing(listing) {
 }
 
 function handleOpenProfile(person) {
-    router.push(`/profile/${person.id}`)
+    router.push(`/profile/${person.username}`)
 }
 
 function handleFriendAction(person) {
     // TODO: wire to friend/social service once it exists
-  console.log('friend action', person)
+    router.push(`/profile/${person.username}`);
 }
 
 </script>
