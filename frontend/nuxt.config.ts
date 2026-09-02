@@ -15,6 +15,12 @@ export default defineNuxtConfig({
 
     vuetifyOptions: {
       defaults: {
+        VAutocomplete: {
+          variant: 'outlined',
+          density: 'compact',
+          hideDetails: true,
+          rounded: 'lg',
+        },
         VBtn: {
           rounded: 'pill',
           elevation: 0,

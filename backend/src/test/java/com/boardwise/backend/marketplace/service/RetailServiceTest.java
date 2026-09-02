@@ -1,5 +1,6 @@
 package com.boardwise.backend.marketplace.service;
 
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -54,7 +55,7 @@ public class RetailServiceTest {
 
     @BeforeEach
     void setUp(){
-        ReflectionTestUtils.setField(retailService, "ttlMin", 60L);
+        ReflectionTestUtils.setField(retailService, "ttlSeconds", 3600L);
     }
 
 
@@ -197,6 +198,7 @@ public class RetailServiceTest {
         when(ts.scrape(toSearch)).thenReturn(new ArrayList<>());
         when(bss.scrape(toSearch)).thenReturn(freshResults);
         when(trus.scrape(toSearch)).thenReturn(new ArrayList<>());
+        when(scrapeCacheRepository.save(any(ScrapeCache.class))).thenAnswer(i -> i.getArgument(0));
 
         // ACT
         List<RetailSourceItemDTO> result = retailService.findWebListingsCached(toSearch);
@@ -226,6 +228,7 @@ public class RetailServiceTest {
         when(ts.scrape(toSearch)).thenReturn(new ArrayList<>());
         when(bss.scrape(toSearch)).thenReturn(new ArrayList<>());
         when(trus.scrape(toSearch)).thenReturn(freshResults);
+        when(scrapeCacheRepository.save(any(ScrapeCache.class))).thenAnswer(i -> i.getArgument(0));
 
         // ACT
         List<RetailSourceItemDTO> result = retailService.findWebListingsCached(toSearch);

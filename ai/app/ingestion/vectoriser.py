@@ -14,15 +14,25 @@ def vectorise_chunks(
     chunks: list[dict], model: SentenceTransformer
 ) -> tuple[bool, list[dict], str]:
     """
-    Vectorises chunk content using the Nomic embedding model.
+    Vectorises chunk content using the Nomic embedding model, including Markdown header metadata.
     Truncates to 256 dimensions to prepare for MongoDB Binary Quantization.
     """
     try:
         if not chunks:
             return (False, [], "No chunks provided for vectorisation.")
 
-        # Nomic v1.5 requires the 'search_document: ' prefix for documents stored in a DB
-        texts = [f"search_document: {chunk['content']}" for chunk in chunks]
+        texts = []
+        for chunk in chunks:
+            metadata = chunk.get("metadata", {})
+            
+            if metadata:
+                meta_to_embed = " > ".join(metadata.values())
+                combined_text = f"Section: {meta_to_embed}\n{chunk['content']}"
+            else:
+                combined_text = chunk["content"]
+            
+            # Nomic v1.5 requires the 'search_document: ' prefix for documents stored in a DB
+            texts.append(f"search_document: {combined_text}")
 
         embeddings = np.asarray(
             model.encode(texts, normalize_embeddings=True, convert_to_numpy=True)
@@ -48,13 +58,13 @@ def vectorise_chunks(
 
 
 def background_vectorise_and_update(
-    chunk_id: str, content: str, embedding_model: SentenceTransformer
+    chunk_id: str, content: str, metadata: dict, embedding_model: SentenceTransformer
 ):
     """
-    Generates a 256d vector for the updated content.
+    Generates a 256d vector for the updated content, preserving metadata from the DB/Frontend.
     """
     try:
-        payload = [{"content": content}]
+        payload = [{"content": content, "metadata": metadata}]
         success, chunks, reason = vectorise_chunks(payload, embedding_model)
 
         if not success:

@@ -1,7 +1,8 @@
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 from app.dependencies import verify_jwt
 from app.main import app
+from bson import ObjectId
 
 
 class TestUploadRulebook:
@@ -171,7 +172,7 @@ class TestQueryRulebook:
     ):
 
         # Arrange
-        rulebook_id = "rulebook_123"
+        rulebook_id = str(ObjectId())
         query_text = "How many cards do I draw?"
         payload = {"query": query_text}
 
@@ -196,6 +197,6 @@ class TestQueryRulebook:
         assert response_data["answer"] == expected_answer
         assert response_data["citations"][0]["chunkId"] == "1"
 
-        mock_retrieve_context.assert_called_once()
+        mock_retrieve_context.assert_called_once_with(query_text, rulebook_id, ANY)
         mock_build_chat_messages.assert_called_once_with(query_text, mock_chunks)
-        mock_generate_answer.assert_called_once_with(mock_messages)
+        mock_generate_answer.assert_called_once_with(mock_messages, ANY)
