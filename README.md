@@ -49,7 +49,7 @@ The system is built around three core domains, each owned by a dedicated backend
 |---|---|
 | Software Requirements Specification (SRS) | [View SRS](./docs/Demo2/srs.md) |
 | (SAS) | [View.SAS](./docs/Demo2/sas.md)|
-| GitHub Project Board | [Open Board](#https://github.com/orgs/COS301-SE-2026/projects/46) |
+| GitHub Project Board | [Open Board](https://github.com/orgs/COS301-SE-2026/projects/46) |
 | UI Wireframes & Designs | [Open Designs](./docs/design) |
 | Brand Style Guide | [View Guide](./docs/design/brandStyleGuide.pdf) |
 | Coding Standards | [View Standards](./docs/design/codingStandards.pdf) |
@@ -129,11 +129,11 @@ Boardwise is developed by a multidisciplinary team of University of Pretoria Com
 
 | Team Member | Role | Focus Area | LinkedIn |
 |---|---|---|---|
-| **Hayley Booysen** *(Team Lead)* | Project Manager · UI Engineer | Project coordination, frontend architecture, UI/UX direction | [LinkedIn](https://www.linkedin.com/in/hayley-booysen-9372a9252/) |
+| **Hayley Booysen**  | UI/UX Engineer & Design · Integration Engineer | Project coordination, frontend architecture, UI/UX design & interface, Design Engineer | [LinkedIn](https://www.linkedin.com/in/hayley-booysen-9372a9252/) |
 | **Karabo Nkomo** | Services Engineer · Systems Architect | Backend services, system architecture, deployment | [LinkedIn](https://www.linkedin.com/in/karabo-nkomo-37b5b5319/) |
 | **Njabulo Mathonsi** | DevOps Engineer · Services Engineer | CI/CD, backend services, data flow & authentication | [LinkedIn](https://www.linkedin.com/in/njabulo-mathonsi-5126983aa/) |
-| **Palesa Nkosi** | UI/UX Designer · UI Engineer | Responsive UI, accessibility, interface & experience design | [LinkedIn](https://www.linkedin.com/in/bridget-nkosi-03734834b) |
-| **Bandile Mnyandu** | Services Engineer · Integration Engineer | Backend validation, integration, testing strategy | [LinkedIn](https://www.linkedin.com/in/bandile-mnyandu-900b96303/) |
+| **Palesa Nkosi** | UI Engineer | Responsive UI, accessibility, interface & experience design | [LinkedIn](https://www.linkedin.com/in/bridget-nkosi-03734834b) |
+| **Bandile Mnyandu** *(Team Lead)* | Project Manager · Services Engineer · Integration Engineer | Backend validation, integration, testing strategy | [LinkedIn](https://www.linkedin.com/in/bandile-mnyandu-900b96303/) |
 
 ---
 
