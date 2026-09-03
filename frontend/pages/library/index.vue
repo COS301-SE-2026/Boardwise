@@ -68,10 +68,10 @@
   <!-- Results: desktop + mobile -->
   <div class="library-catalog-layout__results">
 
-    <div
+    <output
       v-if="isLoading"
       class="library-results-loading"
-      role="status"
+      aria-live="polite"
       aria-label="Loading rulebooks"
     >
       <v-progress-circular
@@ -79,7 +79,7 @@
         color="primary"
         size="48"
       />
-    </div>
+    </output>
 
     <RulebookGrid
       v-else
