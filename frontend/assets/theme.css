@@ -176,7 +176,7 @@
 /* =============================================================
    DARK MODE - will be a toggle with data-theme="dark"
    ============================================================= */
-   /* html[data-theme="dark"] {
+    html[data-theme="dark"] {
     --scrollpaper: #17101C; 
     --alabaster:   #241629;  
     --feltboard:   #33223A;  
@@ -197,7 +197,7 @@
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.5);
     --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
-   } */
+   } 
 
 /* =============================================================
    BASE RESETS
@@ -3147,26 +3147,26 @@ button:disabled,
 
 .boardwise-snackbar--success
 .boardwise-snackbar__icon {
-  background: rgb(199 40 110 / 10%);
-  color: #c7286e;
+  background: #f9e8f0;
+  color: #8e1b4e;
 }
 
 .boardwise-snackbar--info
 .boardwise-snackbar__icon {
-  background: rgb(78 30 92 / 10%);
+  background:#eee8f0;
   color: #4e1e5c;
 }
 
 .boardwise-snackbar--warning
 .boardwise-snackbar__icon {
-  background: rgb(239 91 39 / 12%);
-  color: #ef5b27;
+  background: #fff0e8;
+  color: #8a2d0c;
 }
 
 .boardwise-snackbar--error
 .boardwise-snackbar__icon {
-  background: rgb(142 27 78 / 10%);
-  color: #8e1b4e;
+  background: #f4e5eb;
+  color: #7a1744;
 }
 
 .boardwise-snackbar .v-btn {
