@@ -17,15 +17,79 @@
   </v-container>
   <RecommendedBooks v-else :rulebooks="recommended" @select ="openRulebook"/>
 
-  <SectionTitle title="All Rulebooks" class="mt-8" />
+  <SectionTitle
+  title="All Rulebooks"
+  class="mt-8"
+/>
 
-  <div class="d-flex ga-6 align-start">
-    <RulebookFilterSidebar @filter="handleFilter" />
-    <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
-      <v-progress-circular indeterminate color="primary" size="48" />
-    </v-container>
-    <RulebookGrid v-else :rulebooks="rulebooks" @select="openRulebook" class="flex-1-1" />
+<!-- Mobile filter trigger -->
+<div class="d-flex d-md-none mt-4 mb-4">
+  <v-chip
+    color="secondary"
+    prepend-icon="mdi-filter-variant"
+    size="large"
+    :aria-expanded="showFilters"
+    aria-controls="rulebook-mobile-filters"
+    @click="showFilters = true"
+  >
+    Filters
+  </v-chip>
+
+  <v-navigation-drawer
+    v-model="showFilters"
+    temporary
+    location="left"
+    width="300"
+  >
+    <div
+      id="rulebook-mobile-filters"
+      class="pa-4"
+    >
+      <RulebookFilterSidebar
+        @filter="handleFilter"
+      />
+    </div>
+  </v-navigation-drawer>
+</div>
+
+<!-- Shared catalogue -->
+<div class="library-catalog-layout">
+
+  <!-- Desktop filters -->
+  <aside
+    class="library-catalog-layout__filters d-none d-md-block"
+    aria-label="Rulebook filters"
+  >
+    <RulebookFilterSidebar
+      @filter="handleFilter"
+    />
+  </aside>
+
+  <!-- Results: desktop + mobile -->
+  <div class="library-catalog-layout__results">
+
+    <output
+      v-if="isLoading"
+      class="library-results-loading"
+      aria-live="polite"
+      aria-label="Loading rulebooks"
+    >
+      <v-progress-circular
+        indeterminate
+        color="primary"
+        size="48"
+      />
+    </output>
+
+    <RulebookGrid
+      v-else
+      :rulebooks="rulebooks"
+      @select="openRulebook"
+    />
+
   </div>
+
+</div>
 
   <div ref="sentinel" style="height:1px" />
 
