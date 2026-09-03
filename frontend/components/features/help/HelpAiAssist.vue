@@ -4,21 +4,13 @@
     aria-labelledby="help-ai-heading"
   >
     <v-container class="py-10 py-md-14">
-      <v-sheet
-        rounded="xl"
+      <BaseCard
         color="primary"
-        class="pa-8 pa-md-14 overflow-hidden position-relative hero-cta"
+        class="pa-8 pa-md-14"
       >
-        <v-row justify="center">
-          <v-col
-            cols="12"
-            md="10"
-            lg="8"
-            class="text-center"
-          >
-            <div class="d-flex align-center flex-wrap ga-2 mb-2">
+        <div class="text-center mx-auto">
                  <p  class="cta-title text-h3 font-weight-bold mb-8 " >
-                     Stuck on a rule?
+                    Stuck on a rule?
                     Ask Boarley.
                 </p>
             </div>
@@ -45,9 +37,7 @@
                 Browse Rulebooks
               </BaseButton>
             </div>
-          </v-col>
-        </v-row>
-      </v-sheet>
+          </BaseCard>
     </v-container>
   </section>
 </template>
@@ -57,16 +47,4 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 
 const router = useRouter()
 
-const openRulebookHelp = (question = '') => {
-    router.push({
-        path: '/rag',
-        query: question
-            ? {
-                ask: question
-            }
-            : {
-                ask: 'true'
-            }
-    })
-}
 </script>
