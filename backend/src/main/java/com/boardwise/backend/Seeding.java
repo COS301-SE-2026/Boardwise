@@ -25,18 +25,24 @@ import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.user_service.enums.EventStatus;
+import com.boardwise.backend.user_service.enums.MessageType;
 import com.boardwise.backend.user_service.enums.RSVPStatus;
 import com.boardwise.backend.user_service.enums.Visibility;
+import com.boardwise.backend.user_service.models.Conversation;
 import com.boardwise.backend.user_service.models.Event;
 import com.boardwise.backend.user_service.models.EventAttendee;
 import com.boardwise.backend.user_service.models.Group;
 import com.boardwise.backend.user_service.models.GroupMembership;
+import com.boardwise.backend.user_service.models.Message;
 import com.boardwise.backend.user_service.models.User;
+import com.boardwise.backend.user_service.repository.ConversationRepository;
 import com.boardwise.backend.user_service.repository.EventAttendeeRepository;
 import com.boardwise.backend.user_service.repository.EventRepository;
 import com.boardwise.backend.user_service.repository.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repository.GroupRepository;
+import com.boardwise.backend.user_service.repository.MessageRepository;
 import com.boardwise.backend.user_service.repository.UserRepository;
+import com.boardwise.backend.user_service.services.ChatService;
 import com.boardwise.backend.vault.repository.EditEventRepository;
 import com.boardwise.backend.vault.repository.IngestionJobRepository;
 import com.boardwise.backend.vault.repository.RulebookRepository;
@@ -50,6 +56,10 @@ import com.boardwise.backend.marketplace.enums.Genres;
 @Component
 @Profile("!test")
 public class Seeding {
+
+    private static final String LASTMESSAGEID = "dc0ccdb0-2f58-4328-ac16-4074f36eb91b";
+    private static final Instant LASTMESSAGEAT = Instant.parse("2026-09-03T00:41:30.764Z");
+
     // this is just for Git to see changes
     private ObjectId getObjectIdFromUsername(String username, UserRepository userRepository) {
             return new ObjectId(userRepository.findByUsername(username).get().getId());
@@ -71,7 +81,9 @@ public class Seeding {
     @Bean
     public CommandLineRunner seedDB(ListingRepository listingRepository, BoardGameRepository boardGameRepository, GroupMembershipRepository groupMembershipRepository,
             GroupRepository groupRepository, UserRepository userRepository, EditEventRepository editEventRepository, EventRepository eventsRepository, EventAttendeeRepository eaRepository,
-            IngestionJobRepository ingestionJobRepository, RulebookRepository rulebookRepository, RulebookTextRepository rulebookTextRepository, GeoApiContext geoApiContext) {
+            IngestionJobRepository ingestionJobRepository, RulebookRepository rulebookRepository, RulebookTextRepository rulebookTextRepository, GeoApiContext geoApiContext,
+            ConversationRepository conversationRepository, MessageRepository messageRepository
+        ) {
         return args -> {
             // User Repository
             if (userRepository.count() == 0) {
@@ -460,6 +472,46 @@ public class Seeding {
             }
             else{
                 System.out.println("Event Attendees already seeded, skipping...");
+            }
+
+            String lastMessage = "Hello Sarah. Do you happen to partake in dev?";
+            List<User> participants = List.of(
+                userRepository.findByUsername("sarah_dev").get(),
+                userRepository.findByUsername("IAmR3al").get()
+            );
+            String convoId = ChatService.generateConversationId(
+                participants.get(0).getId(),
+                participants.get(1).getId()
+            );
+
+            if(conversationRepository.count() == 0){
+                Conversation convo = new Conversation(
+                    convoId,
+                    participants.stream().map((p) -> p.getId()).toList(),
+                    lastMessage,
+                    LASTMESSAGEAT
+                );
+                conversationRepository.save(convo);
+
+            }
+            else{
+                System.out.println("Conversations already seeded, skipping...");
+            }
+
+            if(messageRepository.count() == 0){
+                Message message = new Message(
+                    LASTMESSAGEID,
+                    MessageType.DIRECT,
+                    convoId,
+                    participants.get(1).getId(),
+                    lastMessage,
+                    false,
+                    LASTMESSAGEAT
+                );
+                messageRepository.save(message);
+            }
+            else{
+                System.out.println("Messages already seeded, skipping...");
             }
         };
     }
