@@ -1,7 +1,4 @@
 <template>
-  <v-avatar :size="sizeMap[size]">
-    <v-img v-if="src" :src="src" :alt="alt ?? name" />
-    <span v-else class="avatar-intials">{{  initials }}</span>
   <v-avatar :size="sizeMap[size] || sizeMap.md" clas="base-avatar">
     <v-img 
       v-if="src && !imageError"

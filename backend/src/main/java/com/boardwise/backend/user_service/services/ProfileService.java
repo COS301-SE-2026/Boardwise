@@ -44,6 +44,8 @@ import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileSearchResponse;
 import com.boardwise.backend.user_service.dtos.UpdateProfileDTO;
+import com.boardwise.backend.user_service.dtos.request.BoardgameCollectionBulkAddDto;
+import com.boardwise.backend.user_service.dtos.response.BulkAddResponseDTO;
 import com.boardwise.backend.user_service.enums.FriendStatus;
 import com.boardwise.backend.user_service.enums.NotificationType;
 import com.boardwise.backend.user_service.models.*;
@@ -372,6 +374,30 @@ public class ProfileService {
         return result;
     }
 
+    public BulkAddResponseDTO bulkAddGameToInventory(String token, BoardgameCollectionBulkAddDto dto) throws IllegalArgumentException, IOException {
+        String userId = jwtService.extractUserId(token).toString();
+        User user = userRepo.findById(userId).orElseThrow(
+            () -> new IllegalArgumentException("User not found"));
+
+        if (dto.knownGameIds() == null || dto.knownGameIds().isEmpty()){
+            throw new IllegalArgumentException("No board games have selected.");
+        }
+        
+        List<Boardgame> existingBoardgames = (List<Boardgame>) gameRepo.findAllById(dto.knownGameIds());
+
+        for (Boardgame game : existingBoardgames) {
+            user.getOwnedGames().add(game.getId());
+        }
+
+        user = userRepo.save(user);
+
+        return new BulkAddResponseDTO(
+            "Starter collection saved successfully.",
+            user.getOwnedGames().size(),
+            new ArrayList<>()
+        );
+    }
+    
     public Map<String, Object> removeGameFromInventory(String token, String gameId) {
         Map<String, Object> result = new HashMap<>();
         String userId = jwtService.extractUserId(token).toString();
