@@ -4,6 +4,18 @@ export default defineNuxtConfig({
   
   css: ['~/assets/theme.css'],
 
+  app: {
+    head: {
+      link: [
+        {
+          rel: 'icon',
+          type: 'image/svg+xml',
+          href: '/favicon-boarley.svg'
+        }
+      ]
+    }
+  },
+
   modules: ['vuetify-nuxt-module'],
 
   vuetify: {
