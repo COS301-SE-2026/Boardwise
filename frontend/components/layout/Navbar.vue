@@ -70,6 +70,7 @@
                     title="Settings"
                     to="/settings"
                 />
+                
                 <v-divider class="my-1" />
                 <v-list-item class="px-2">
                     <LogOutButton block />

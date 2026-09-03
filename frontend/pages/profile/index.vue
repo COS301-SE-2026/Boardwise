@@ -171,7 +171,7 @@ const handleProfileUpdate = (newValues) => {
     ...user.value,
     ...newValues
   }
-  show("Profile details successfully updated");
+  show("Your profile changes are locked in.");
 }
 
 const handlePfpChange = (newPfp) => {
@@ -179,7 +179,7 @@ const handlePfpChange = (newPfp) => {
     return;
 
   user.value.profilePicture = newPfp.profilePictureUrl;
-  show("Profile picture successfully updated");
+  show("Looking good! Your profile picture is updated.");
 }
 
 const onRespond = async (id, action) => {
