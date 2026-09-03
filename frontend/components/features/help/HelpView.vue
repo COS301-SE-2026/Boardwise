@@ -4,12 +4,12 @@
         <HelpHero />
         <HelpTutorials/>
         
-        <HelpAiAssist/>
         <HelpPopularGuides
                 :search="search"
                 :topic="activeTopic"
             />
-
+        
+        <HelpAiAssist/>
         <HelpFAQ />
         <HelpContact />
     </PageContainer>
