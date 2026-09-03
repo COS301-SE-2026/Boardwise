@@ -3481,3 +3481,20 @@ button:disabled,
   outline: 3px solid var(--color-primary);
   outline-offset: 3px;
 }
+
+.community-chat-header__details-trigger {
+  padding: 0;
+
+  color: inherit;
+  text-align: left;
+
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.community-chat-header__details-trigger:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}

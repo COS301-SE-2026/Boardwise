@@ -1,6 +1,11 @@
 <template>
-<header class="community-chat-header">
-    <div class="community-chat-header__identity">
+<header class="community-chat-header__actions">
+    <button
+      type="button"
+      class="community-chat-header__identity community-chat-header__details-trigger"
+      :aria-label="`View details for ${community.name}`"
+      @click="$emit('details')"
+    >
       <BaseImage
         :src="community.imageUrl"
         :alt="community.name"
@@ -31,7 +36,7 @@
         </p>
       </div>
     </div>
-
+</button>
     <div class="community-chat-header__actions">
       <BaseButton
         variant="secondary"
