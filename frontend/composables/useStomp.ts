@@ -44,17 +44,20 @@ export function useStomp(){
         });
 
         client.onConnect = () => {
+            console.log("STOMP sockets connected...")
             isConnected.value = true;
+            reSubToAll();
+
             if(connectedBefore.value){
-                reSubToAll();
                 reconnectHooks.forEach(hook => hook())
             }
-                
-
             connectedBefore.value = true;
         };
 
-        client.onDisconnect = () => isConnected.value = false;
+        client.onDisconnect = () => { 
+            console.log("STOMP sockets disconnected...")
+            isConnected.value = false;
+        }
         client.onStompError = (frame) => console.error("Stomp reported error: ", frame.headers['message'], frame.body);
         client.activate();
     };

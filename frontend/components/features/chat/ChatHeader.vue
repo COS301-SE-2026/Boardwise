@@ -29,12 +29,6 @@
                         :name="conversation.username + ' profile picture'"
                         size="lg"
                     />
-
-                    <!-- <span
-                        v-if="conversation.isOnline"
-                        class="chat-online-indicator"
-                        aria-hidden="true"
-                    /> -->
                 </div>
 
                 <div class="flex-grow-1 overflow-hidden">
@@ -46,13 +40,13 @@
                         <span
                             class="chat-status-dot"
                             :class="{
-                                'chat-status-dot--online': conversation.online
+                                'chat-status-dot--online': conversation.isOnline
                             }"
                             aria-hidden="true"
                         />
 
                         <span>
-                            {{ conversation.online ? 'Online' : 'Offline' }}
+                            {{ conversation.isOnline ? 'Online' : 'Offline' }}
                         </span>
                     </div>
                 </div>

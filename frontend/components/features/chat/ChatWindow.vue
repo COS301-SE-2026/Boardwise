@@ -1,5 +1,6 @@
 <template>
     <div class="chat-window">
+
         <template v-if="conversation.isInvite">
             
             <BaseCard class="chat-header pa-4">
@@ -49,6 +50,8 @@
 
             <ChatFeed
                 :messages="messages"
+                :conversation="conversation"
+                :token="token"
                 class="flex-grow-1"
             />
 
@@ -82,7 +85,7 @@ import ChatHeader from './ChatHeader.vue'
 
 import InviteFeed from '../invites/InviteFeed.vue'
 
-import { getMessages, type DirectMessageDTO } from '~/services/chatService.js'
+import { type DirectMessageDTO } from '~/services/chatService.ts'
 import { useEvents } from '~/composables/useEvents'
 import { usePrivateChat } from '#imports'
 import { useSnackBar } from '#imports'
@@ -113,7 +116,7 @@ const showUserDetails = ref(false)
 const {
     invites,
     fetchInvites,
-    respondToInvite
+    respondToInvite,
 } = useEvents();
 const { show } = useSnackBar();
 const { 

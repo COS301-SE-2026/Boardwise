@@ -52,7 +52,7 @@ interface ConversationsResponseDTO{
 
 export const ChatService = {
 
-    async getMissedPrivateMessage(targetId: string, since: string){
+    async getMissedPrivateMessage(targetId: string, since: string | null | undefined){
         const { $api } = useNuxtApp();
         const response = await $api<DirectMessagesDTO>('messages/',{
             query: {

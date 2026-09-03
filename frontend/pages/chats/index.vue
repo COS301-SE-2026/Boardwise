@@ -19,8 +19,9 @@ const token = ref("")
 onMounted(() => {
     if(!localStorage.getItem("access_token"))
         router.push("/auth/signin")
-    else
+    else{
         token.value = localStorage.getItem("access_token")
+    }
 })
 
 </script>

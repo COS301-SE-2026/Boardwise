@@ -8,11 +8,17 @@
             aria-live="polite"
             aria-relevant="additions text"
         >
-            <template v-if="messages.length">
+            <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
+                <v-progress-circular indeterminate color="primary" size="48" />
+            </v-container>
+
+            <template v-else-if="messages.length">
                 <ChatMessage
                     v-for="message in messages"
                     :key="message.id"
                     :message="message"
+                    :conversation="conversation"
+                    :user="user"
                 />
             </template>
 
@@ -34,20 +40,29 @@ import {
     ref,
     watch
 } from 'vue'
+import { useProfile } from '~/composables/useProfile'
+import { useStomp } from '~/composables/useStomp'
 
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
-
 import ChatMessage from './ChatMessage.vue'
 
+
+const { fetchCurrentUser, isLoading } = useProfile()
+const { connect } = useStomp()
 const props = defineProps({
     messages: {
         type: Array,
         default: () => []
+    },
+    conversation: {
+        type: Object,
+        required: true
     }
 })
 
 const feedRef = ref(null)
+const user = ref(null)
 
 const scrollToBottom = async () => {
     await nextTick()
@@ -63,5 +78,9 @@ watch(
     scrollToBottom
 )
 
-onMounted(scrollToBottom)
+onMounted(async () => {
+    scrollToBottom()
+    user.value = await fetchCurrentUser();
+    connect()
+})
 </script>
