@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+
 import org.assertj.core.api.Assertions;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +28,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.boardwise.backend.shared.repository.BoardGameRepository;
+import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repository.UserRepository;
 import com.boardwise.backend.vault.dto.response.ChunkDto;
@@ -62,6 +64,9 @@ public class RulebookServiceTests {
 
     @Mock
     private EditEventRepository editEventRepository;
+
+    @Mock 
+    private JWTService jwtService;
 
     @Mock
     private BoardGameRepository boardgameRepository;
@@ -130,10 +135,9 @@ public class RulebookServiceTests {
         public void testSearchRulebooksBuildsZeroIndexedPageableSortedByUpdatedAtDesc(){
             // Arrange
             Page<Rulebook> emptyPage = new PageImpl<>(List.of());
-            when(rulebookRepository.searchWithFilters(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(Pageable.class))).thenReturn(emptyPage);
-
+            when(rulebookRepository.searchWithFilters(Mockito.any(),Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(emptyPage);
             // Act
-            rulebookService.searchRulebooks("catan", "strategy", List.of("English"), 4, 90, 10, 2, 20);
+            rulebookService.searchRulebooks(null,"catan", "strategy", List.of("English"), 4, 90, 10, 2, 20);
 
             // Assert
             ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
@@ -154,7 +158,7 @@ public class RulebookServiceTests {
             when(rulebookRepository.searchWithFilters(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(Pageable.class))).thenReturn(emptyPage);
             
             // Act
-            rulebookService.searchRulebooks( null, null, null, null, null, null, 1, 500);
+            rulebookService.searchRulebooks(null,null, null, null, null, null, null, 1, 500);
 
             // Assert
             ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
@@ -171,7 +175,7 @@ public class RulebookServiceTests {
             when(rulebookRepository.searchWithFilters(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(Pageable.class))).thenReturn(page);
             
             // Act
-            Page<RulebookSummaryResponseDto> result = rulebookService.searchRulebooks(null, null, null, null, null, null, 1, 20);
+            Page<RulebookSummaryResponseDto> result = rulebookService.searchRulebooks(null, null, null, null, null, null, null, 1, 20);
 
             // Assert
             Assertions.assertThat(result.getContent()).hasSize(1);
@@ -191,7 +195,7 @@ public class RulebookServiceTests {
 
         @Test
         public void testSearchRulebooksPageZeroThrowsIllegalArgumentException(){
-            Assertions.assertThatThrownBy(() -> rulebookService.searchRulebooks(null, null, null, null, null, null, 0, 20))
+        Assertions.assertThatThrownBy(() -> rulebookService.searchRulebooks(null, null, null, null, null, null, null, 0, 20))
                 .isInstanceOf(IllegalArgumentException.class);
         }
     }

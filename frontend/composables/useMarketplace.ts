@@ -36,7 +36,8 @@ const _useMarketplace = () =>{
         maxPrice?: number | null,
         page?: number,
         size?: number,
-        search?: string | null
+        gameTitle?: string | null,
+        listingTitle?: string| null
 
     }, reset = false)=> {
         if(reset){
