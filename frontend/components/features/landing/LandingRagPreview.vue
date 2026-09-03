@@ -102,9 +102,6 @@
                 Try Boarley
             </BaseButton>
 
-            <p class="landing-rag__trial-note">
-                Get 5 free Boarley questions when you sign up.
-            </p>
         </BaseCard>
 
                 </div>
