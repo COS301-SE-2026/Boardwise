@@ -1,3 +1,5 @@
+import { type FriendStatus } from "./friendService";
+
 interface Boardgame{
     id: string;
     title: string;
@@ -50,10 +52,11 @@ interface Preferences{
     genres : Array<string>;
 }
 
-interface ProfileResponse{
+export interface ProfileResponse{
     fullName: string;
     username: string;
     location: string;
+    bio?: string;
     profilePicture: string;
     friendCount: number;
     groupCount: number;
@@ -62,6 +65,7 @@ interface ProfileResponse{
     communities: Array<Community>;
     preferences: Preferences;
     createdAt: string;
+    FriendStatus: FriendStatus;
 }
 
 interface ProfileUpdateResponse{
