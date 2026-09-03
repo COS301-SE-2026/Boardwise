@@ -296,11 +296,26 @@ const requiredRules = [
   value => Boolean(value?.toString().trim()) || 'This field is required'
 ]
 
+const isValidEmail = value => {
+  const email = value?.trim()
+
+  if (!email || email.includes(' ')) return false
+
+  const atIndex = email.indexOf('@')
+  const lastAtIndex = email.lastIndexOf('@')
+  const dotIndex = email.indexOf('.', atIndex + 2)
+
+  return (
+    atIndex > 0 &&
+    atIndex === lastAtIndex &&
+    dotIndex > atIndex + 1 &&
+    dotIndex < email.length - 1
+  )
+}
+
 const emailRules = [
   value => Boolean(value?.trim()) || 'Email address is required',
-  value =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ||
-    'Enter a valid email address'
+  value => isValidEmail(value) || 'Enter a valid email address'
 ]
 
 const messageRules = [
@@ -342,7 +357,10 @@ const createReferenceNumber = () => {
     .slice(0, 10)
     .replaceAll('-', '')
 
-  const randomNumber = Math.floor(1000 + Math.random() * 9000)
+  const randomValues = new Uint32Array(1)
+  crypto.getRandomValues(randomValues)
+
+  const randomNumber = 1000 + (randomValues[0] % 9000)
 
   return `BW-${date}-${randomNumber}`
 }
