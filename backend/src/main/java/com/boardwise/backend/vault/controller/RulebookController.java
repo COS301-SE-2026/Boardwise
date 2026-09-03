@@ -40,8 +40,11 @@ public class RulebookController {
         @RequestParam(defaultValue = "20") int limit,
         @RequestHeader(value = "Authorization", required = false) String token){
 
-            if(!token.isBlank()) token = token.substring(7);
-            else token = null;
+            if(token!=null && !token.isBlank()){
+                token = token.substring(7);
+            } else {
+                token = null;
+            }
 
             Page<RulebookSummaryResponseDto> rulebooks = rulebookService.searchRulebooks(
                 token, search, genre, languages, playerCount, duration, minAge, page, limit
