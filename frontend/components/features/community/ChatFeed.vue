@@ -32,7 +32,6 @@
     />
 
 </div>
-  </BaseCard>
 </template>
 
 <script setup>
@@ -41,7 +40,6 @@ import { useCommunityChat } from '~/composables/useCommunityChat'
 import { useStomp } from '~/composables/useStomp'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import ChatMessage from './ChatMessage.vue'
-import BaseCard from '~/components/ui/BaseCard.vue'
 
 const { connect } = useStomp()
 const { isLoading } = useCommunityChat()

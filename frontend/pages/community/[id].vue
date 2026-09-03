@@ -23,6 +23,7 @@
         :token="token"
         @join="handleJoin"
       />
+    </section>
 
       <CommunityMoreDetails
         v-model="showDetails"
