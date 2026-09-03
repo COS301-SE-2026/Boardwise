@@ -41,15 +41,13 @@ import { useDebounceFn } from '@vueuse/core'
 import { useSearch } from '~/composables/useSearch'
 import { useFriends } from '~/composables/useFriends'
 
-const {sendFriendRequest,userFriendList, wasFriendRequestSent, isLoading} = useFriends();
+const { sendFriendRequest } = useFriends();
 
 
 
 const router = useRouter()
 const route = useRoute()
 const query = computed(() => route.query.q ?? '')
-
-const {} = useFriends
 
 const { people, rulebooks, listings, communities, loading, search } = useSearch()
 

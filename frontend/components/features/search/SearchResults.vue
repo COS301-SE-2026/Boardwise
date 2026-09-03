@@ -136,7 +136,7 @@ const  {userSearchResult, searchForUser } = useUserService();
 
 onMounted( async () =>{
     await searchForUser();
-    let people = userSearchResult;
+  
 });
 
 
