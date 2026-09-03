@@ -24,8 +24,6 @@ const _useFriends=()=>{
         }
     }
 
-
-
     const getFriendRequests = async () =>{
 
         isLoading.value = true;
@@ -42,7 +40,6 @@ const _useFriends=()=>{
         }
     };
 
-    
     const sendFriendRequest = async (userId: string) =>{
         isLoading.value = true;
         try{
@@ -52,6 +49,7 @@ const _useFriends=()=>{
         catch(err){
             console.log(err);
             show("Error while sending friend request", "error");
+            throw err;
         }
         finally{
             isLoading.value = false; 
@@ -75,7 +73,7 @@ const _useFriends=()=>{
 
     const otherFriendList = ref<FriendListDTO|null>();
     const getOtherUserFriendList = async (userId: string) =>{
-         isLoading.value = true
+        isLoading.value = true
         try{
             otherFriendList.value = await  FriendService.getOtherUserFriendsList(userId);
             show("Successfully Fetched account", "success");
@@ -109,7 +107,7 @@ const _useFriends=()=>{
     }
 
     const unfriendUser = async(id:string) =>{
-         isLoading.value = true
+        isLoading.value = true
         try{
             const v = await FriendService.unfriendUser(id);
             show("You have successfully unfriended them", "success");
@@ -124,7 +122,37 @@ const _useFriends=()=>{
             isLoading.value = false;
         }
     }
-    return {unfriendUser, getOwnFriendsList, getFriendRequests, sendFriendRequest, getOtherUserProfile, getOtherUserFriendList, getUserFriendsList , isLoading, otherFriendList, profile};
+
+    const respondToFriendRequest = async (id: string, action: "accept" | "decline") => {
+        isLoading.value = true;
+        try{
+            const sendResp  = (await FriendService.respondToFriendRequest(id, action)).message; 
+            show(sendResp, "success");            
+        }
+        catch(err){
+            console.log(err);
+            show("Error while sending friend request", "error");
+            throw err;
+        }
+        finally{
+            isLoading.value = false; 
+        }
+    }
+
+    return {
+        unfriendUser, 
+        getOwnFriendsList, 
+        getFriendRequests, 
+        sendFriendRequest, 
+        getOtherUserProfile, 
+        getOtherUserFriendList, 
+        getUserFriendsList , 
+        isLoading, 
+        otherFriendList, 
+        profile,
+        userFriendList,
+        respondToFriendRequest
+    };
 }
 
 export const useFriends = createSharedComposable(_useFriends);

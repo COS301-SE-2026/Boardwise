@@ -99,6 +99,7 @@ export interface ProfileResponseDTO{
     ownedGameCount:number
     games:GameInventoryDTO[]
     communities: Map<string,string>[]
+    status: FriendStatus
     preferences: Preferences
     createdAt: string
 }

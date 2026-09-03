@@ -4,7 +4,7 @@
             <BaseAvatar :src="req.sender.profilePicture ?? undefined" :name="req.sender.fullname" size="sm" />
             <span class="flex-grow-1">{{  req.sender.fullname }}</span>
             <BaseButton variant="primary" size="small" @click="respond(req.id, 'accept')">Accept</BaseButton>
-            <BaseButton variant="ghost" size="small" @click="respond(req.id, 'reject')">Reject</BaseButton>
+            <BaseButton variant="ghost" size="small" @click="respond(req.id, 'decline')">Reject</BaseButton>
         </div>
     </div>
 
@@ -16,13 +16,10 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseAvatar from '~/components/ui/BaseAvatar.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
-import { useFriends } from '~/composables/useFriends';
-
 import { type FriendRequestsDTO } from "~/services/friendService";
 
-const {getFriendRequests } = useFriends();
 defineProps<{ requests: FriendRequestsDTO }>()
-const emit = defineEmits<{ (e: 'respond', requestId: string, action:'accept'| 'reject'): void}>()
+const emit = defineEmits<{ (e: 'respond', requestId: string, action:'accept'| 'decline'): void}>()
 
-const respond = (id: string, action: 'accept' | 'reject') => emit('respond', id, action)
+const respond = (id: string, action: 'accept' | 'decline') => emit('respond', id, action)
 </script>

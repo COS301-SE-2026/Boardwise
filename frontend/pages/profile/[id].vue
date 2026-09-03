@@ -1,8 +1,7 @@
-
 <template>
     <PageContainer>
         <!-- Loading -->
-         <template v-if="loading">
+        <template v-if="loading">
             <v-container
                 class="d-flex justify-center align center"
                 style="min-height: 60vh"
@@ -35,7 +34,7 @@
             <div class="d-flex justify-space-between align-center mb-4">
                 <div class="d-flex align-center ga-4">
                     <BaseAvatar 
-                        :src="user.profilePicture ?? undefined" 
+                        :src="user.profilePicture ?? '/images/avatar.jpg'" 
                         :name="user.username" 
                         size="lg" 
                     />
@@ -50,7 +49,7 @@
                 </div>
 
                 <FriendActionButton
-                    :status="user.FriendStatus"
+                    :status="user.status"
                     @add="handleAdd"
                     @remove="handleRemove"
                 />
@@ -60,7 +59,7 @@
                 :games="user.ownedGameCount"
                 :friends="user.friendCount"
                 :communities="user.groupCount"
-                @friends-click="openFriendsModal"
+                @open="openFriendsModal"
             />
 
             <ProfileCommunities :communities="user.communities" />
@@ -84,10 +83,7 @@
         <FriendsModal
             v-model="showFriendsModal"
             :username="user?.username ?? ''"
-            :friends="friends"
-            :mutuals="mutuals"
-            :loading="friendsLoading"
-            @add="onModalAdd"
+            :loading="isLoading"
             @remove="onModalRemove"
         />
     </PageContainer>
@@ -112,12 +108,17 @@ import FriendActionButton from '~/components/features/people/FriendActionButton.
 import { useProfile } from '~/composables/useProfile'
 import { useFriends } from '~/composables/useFriends'
 import { useMarketplace } from '~/composables/useMarketplace'
+import { FriendStatus } from '~/services/userService';
 import type { ProfileResponse } from '~/services/userService'
 
 const route = useRoute()
-const { fetchUserByUsername } = useProfile()
+const { fetchUserById } = useProfile()
 const { listings, fetchUserListing } = useMarketplace()
-const { friends, mutuals, loading: friendsLoading, fetchFriends, sendRequest, removeFriend } = useFriends()
+const {  
+    isLoading, 
+    sendFriendRequest, 
+    unfriendUser
+} = useFriends()
 
 const loading = ref(true)
 const notFound = ref(false)
@@ -128,13 +129,13 @@ const showFriendsModal = ref(false)
 
 const games = computed(() => user.value?.games ?? [])
 
-const loadProfile = async (username: string) => {
-    loading.value = true
+const loadProfile = async (id: string) => {
+    isLoading.value = true
     notFound.value = false
     user.value = null
 
     try {
-        const profile = await fetchUserByUsername(username)
+        const profile = await fetchUserById(id);
 
         if(!profile) {
             notFound.value = true
@@ -142,8 +143,7 @@ const loadProfile = async (username: string) => {
         }
 
         user.value = profile
-        
-        await fetchUserListing(username)
+        await fetchUserListing();
     } catch (err) {
         console.error('Failed to load profile:', err)
         notFound.value = true
@@ -156,15 +156,14 @@ const openFriendsModal = async () => {
     if (!user.value) return
 
     showFriendsModal.value = true
-    await fetchFriends(user.value.username)
 }
 
 const handleAdd = async () => {
     if (!user.value) return
 
     try {
-        await sendRequest(user.value.username)
-        user.value.FriendStatus = 'pendingSent'
+        await sendFriendRequest(user.value.id)
+        user.value.status = FriendStatus.REQUESTED
     } catch (err) {
         console.error('Failed to send friend request:', err)
     }
@@ -174,36 +173,28 @@ const handleRemove = async () => {
     if (!user.value) return
 
     try {
-        await removeFriend(user.value.username)
-        user.value.FriendStatus = 'none'
-    } catch (err) {
-        console.error('Failed to remove friend:', err)
-  }
-}
-
-const onModalAdd = async (username: string) => {
-    try {
-        await sendRequest(username)
-
-        if(user.value) {
-            await fetchFriends(user.value.username)
-        }
+        await unfriendUser(user.value.id)
+        user.value.status = FriendStatus.DECLINED
     } catch (err) {
         console.error('Failed to send friend request:', err)
     }
 }
 
-const onModalRemove = async (username: string) => {
+const onModalRemove = async (id: string) => {
     try {
-        await removeFriend(username)
-        if (user.value) await fetchFriends(user.value.username)
+        await unfriendUser(id)
+        if (user.value) {
+            const res = await fetchUserById(user.value.id)
+            user.value = res ?? user.value
+        }
+            
     } catch(err) {
         console.error('Failed to remove friend:', err)
     }
 }
 
-onMounted(() => loadProfile(route.params.username as string))
-watch(() => route.params.username, (u) => u && loadProfile(u as string))
+onMounted(() => loadProfile(route.params.id as string))
+watch(() => route.params.id, (u) => u && loadProfile(u as string))
 
 </script>
 

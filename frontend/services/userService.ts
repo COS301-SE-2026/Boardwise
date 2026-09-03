@@ -58,6 +58,7 @@ export enum FriendStatus{
     DECLINED 
 }
 export interface ProfileResponse{
+    id: string
     fullName: string;
     username: string;
     location: string;
@@ -70,7 +71,7 @@ export interface ProfileResponse{
     communities: Array<Community>;
     preferences: Preferences;
     createdAt: string;
-    FriendStatus: FriendStatus;
+    status: FriendStatus;
 }
 
 interface ProfileUpdateResponse{
