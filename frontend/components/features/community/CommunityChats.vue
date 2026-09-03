@@ -18,6 +18,33 @@
           <p class="text-body-2 text-medium-emphasis mb-0">
             Join this community to send messages.
           </p>
+          <
+            <BaseButton
+              :disabled="loading"
+              @click="$emit('join')"
+            >
+              {{ loading ? 'Joining...' : 'Join community' }}
+            </BaseButton>
+        </div>
+
+        <div
+        v-if="!community.isMember"
+        class="community-chat-join"
+      >
+        <div>
+          <p class="text-body-2 text-medium-emphasis mb-0">
+            You're a member of this community.</p>
+          <BaseButton
+            variant="error"
+            @click="$emit('leave')"
+          >
+            <v-icon
+              icon="mdi-exit-to-app"
+              class="me-2"
+              aria-hidden="true"
+            />
+            Leave community
+          </BaseButton>
         </div>
 
         <BaseButton
@@ -50,7 +77,7 @@ defineProps({
   community: { type: Object, required: true }
 })
 
-defineEmits(['join'])
+defineEmits(['join','leave'])
 
 const messages = ref([
   {
