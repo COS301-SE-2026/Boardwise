@@ -1,7 +1,4 @@
 <template>
-  <v-avatar :size="sizeMap[size]">
-    <v-img v-if="src" :src="src" :alt="alt ?? name" />
-    <span v-else class="avatar-intials">{{  initials }}</span>
   <v-avatar :size="sizeMap[size] || sizeMap.md" class="base-avatar">
     <v-img 
       v-if="src && !imageError"
@@ -19,7 +16,7 @@
     >
       {{ initials }}
     </span>
-  </v-avatar></v-avatar>
+  </v-avatar>
 </template>
 
 <script setup>
@@ -73,10 +70,3 @@ const fallbackLabel = computed(() => {
     : 'User profile picture'
 })
 </script>
-
-<style scoped>
-.avatar-intials {
-  font-weight: var(--fw-bold);
-  color: var(--color-text-muted);
-}
-</style>
