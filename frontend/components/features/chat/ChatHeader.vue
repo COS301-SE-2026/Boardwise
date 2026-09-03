@@ -44,7 +44,6 @@
 
                 <div class="chat-header__status">
                     <span
-                        class="chat-status-dot"
                         :class="{
                             'chat-status-dot--online': conversation.online
                         }"
