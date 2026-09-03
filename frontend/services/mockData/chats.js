@@ -1,20 +1,20 @@
 export const chats = [
     {
     id: 1,
-    name: 'Thabo M.',
-    avatar: '/images/avatar.jpg',
+    username: 'Thabo M.',
+    profilePicture: '/images/avatar.jpg',
     lastMessage: 'See you tonight!',
-    time: '09:32',
-    online: true,
-    unread: 2
+    sentAt: '09:32',
+    isOnline: true,
+    unread: 1
   },
   {
     id: 2,
-    name: 'Breezy',
-    avatar: '/images/avatar.jpg',
+    username: 'Breezy',
+    profilePicture: '/images/avatar.jpg',
     lastMessage: 'Thanks',
-    time: 'Yesterday',
-    online: false,
+    sentAt: 'Yesterday',
+    isOnline: false,
     unread: 0
   }
 ]

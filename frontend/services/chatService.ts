@@ -1,3 +1,14 @@
+import { chats } from './mockData/chats'
+import { messages } from './mockData/messages'
+
+export const getChats = () => chats
+
+export const getMessages = (chatId: number) => {
+    return (
+        messages.find(chat => chat.chatId === chatId)?.messages ?? []
+    )
+}
+
 export interface DirectMessageDTO{
     id: string,
     senderId: string,
@@ -21,7 +32,7 @@ export interface ConversationDTO{
     profilePicture: string,
     lastMessage: string,
     lastMessageAt: string,
-    isOnline: string
+    isOnline: boolean
 }
 
 interface CommunityMessagesDTO{

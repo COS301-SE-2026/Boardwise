@@ -18,13 +18,14 @@
                 v-if="selectedConversation"
                 :conversation="selectedConversation"
                 :show-back="mobileConversationOpen"
+                :token="token"
                 @back="mobileConversationOpen = false"
             />
         </div>
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
     computed,
     onMounted,
@@ -34,15 +35,28 @@ import {
 import ChatSidebar from './ChatSidebar.vue'
 import ChatWindow from './ChatWindow.vue'
 
-import { getChats } from '~/services/chatService.js'
 import { useEvents } from '~/composables/useEvents'
+import { usePrivateChat } from '~/composables/usePrivateChat'
+
 
 const {
     inviteCount,
     fetchInvites
 } = useEvents()
 
+const {
+    chats,
+    getChats
+} = usePrivateChat()
+
 const mobileConversationOpen = ref(false)
+
+const props = defineProps({
+    token: {
+        type: String,
+        required: true
+    }
+})
 
 onMounted(async () => {
     await fetchInvites()
@@ -56,12 +70,12 @@ const conversations = computed(() => {
 
     return [
         {
-            id: 'invites',
-            name: 'Invites',
-            avatar: '/images/default-listing.png',
+            id: "boardwise-invites",
+            username: 'Invites',
+            profilePicture: '/images/default-listing.png',
             lastMessage,
             unread: inviteCount.value,
-            online: false,
+            isOnline: inviteCount.value > 0,
             isInvite: true
         },
 
@@ -73,13 +87,17 @@ const selectedConversation = ref(
     conversations.value[0] ?? null
 )
 
-const selectConversation = (id) => {
-    const conversation =
-        conversations.value.find(
+const selectConversation = (id: string) => {
+    const convoIndex =
+        conversations.value.findIndex(
             (item) => item.id === id
         )
 
+    const conversation = conversations.value[convoIndex];
+
     if (!conversation) return
+
+    conversation.isOnline = !( conversation.username === 'Invites' && inviteCount.value > 0 )
 
     selectedConversation.value = conversation
     mobileConversationOpen.value = true

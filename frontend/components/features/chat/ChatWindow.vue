@@ -1,32 +1,35 @@
 <template>
     <div class="chat-window">
         <template v-if="conversation.isInvite">
-            <div class="chat-invite-header">
-                <BaseButton
-                    v-if="showBack"
-                    variant="secondary"
-                    aria-label="Back to conversations"
-                    @click="$emit('back')"
-                >
-                    <v-icon
-                        icon="mdi-arrow-left"
-                        class="me-1"
-                        aria-hidden="true"
-                    />
+            
+            <BaseCard class="chat-header pa-4">
+                <div class="chat-invite-header">
+                    <BaseButton
+                        v-if="showBack"
+                        variant="secondary"
+                        aria-label="Back to conversations"
+                        @click="$emit('back')"
+                    >
+                        <v-icon
+                            icon="mdi-arrow-left"
+                            class="me-1"
+                            aria-hidden="true"
+                        />
 
-                    Back
-                </BaseButton>
+                        Back
+                    </BaseButton>
 
-                <div>
-                    <h2 class="text-h5 font-weight-bold mb-1">
-                        Invites
-                    </h2>
+                    <div>
+                        <h2 class="text-h5 font-weight-bold mb-1">
+                            Invites
+                        </h2>
 
-                    <p class="text-body-2 text-medium-emphasis mb-0">
-                        Review your pending Boardwise event invitations.
-                    </p>
+                        <p class="text-body-2 text-medium-emphasis mb-0">
+                            Review your pending Boardwise event invitations.
+                        </p>
+                    </div>
                 </div>
-            </div>
+            </BaseCard>
 
             <InviteFeed
                 :invites="invites"
@@ -53,12 +56,12 @@
                 @send="handleSend"
             />
 
-            
-        <ChatUserDetails
-            v-if="!conversation.isInvite"
-            v-model="showUserDetails"
-            :conversation="conversation"
-                />
+            <!-- Make this re-direct to their profile for now... -->
+            <ChatUserDetails
+                v-if="!conversation.isInvite"
+                v-model="showUserDetails"
+                :conversation="conversation"
+            />
         </template>
 
     </div>
@@ -79,9 +82,12 @@ import ChatHeader from './ChatHeader.vue'
 
 import InviteFeed from '../invites/InviteFeed.vue'
 
-import { getMessages } from '~/services/chatService.js'
+import { getMessages, type DirectMessageDTO } from '~/services/chatService.js'
 import { useEvents } from '~/composables/useEvents'
+import { usePrivateChat } from '#imports'
 import { useSnackBar } from '#imports'
+import { jwtDecode } from 'jwt-decode'
+import BaseCard from '~/components/ui/BaseCard.vue'
 
 const props = defineProps({
     conversation: {
@@ -94,37 +100,40 @@ const props = defineProps({
         default: false
     }
 })
-
 defineEmits(['back'])
 
 const showUserDetails = ref(false)
-
-const { show } = useSnackBar()
+const token = ref<string>("");
 
 const {
     invites,
     fetchInvites,
     respondToInvite
-} = useEvents()
+} = useEvents();
+const { show } = useSnackBar();
+const { 
+    getMissedMessages,
+    sendMessage,
+    messages
+ } = usePrivateChat();
 
-const messages = ref<any[]>([])
+
 const respondingId = ref<string | null>(null)
 
 onMounted(() => {
     fetchInvites()
+    token.value = localStorage.getItem("access_token") ?? "";
 })
 
 watch(
     () => props.conversation.id,
-    (id: any) => {
+    async (id: any) => {
         if (props.conversation.isInvite) {
             messages.value = []
             return
         }
 
-        messages.value = [
-            ...getMessages(id)
-        ]
+        await getMissedMessages(id);
     },
     {
         immediate: true
@@ -132,17 +141,22 @@ watch(
 )
 
 const handleSend = (text: string) => {
-    messages.value.push({
-        id: Date.now(),
-        name: 'You',
-        avatar: '/images/avatar.jpg',
-        text,
-        time: new Date().toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit'
-        }),
-        isOwn: true
-    })
+    const senderId: string = jwtDecode(token.value).sub ?? "";
+    const id = crypto.randomUUID();
+    const convoId: string = props.conversation.id;
+    const ids: string[] = convoId.split('_');
+    const receiverId: string = (ids[0] === senderId ? ids[1] : ids[0]) ?? "";
+    const sentAt: string = new Date().toISOString();
+
+    const newMessage: DirectMessageDTO = {
+        id,
+        senderId,
+        receiverId,
+        message: text,
+        sentAt
+    }
+
+    sendMessage(newMessage);
 }
 
 const respondToEventInvite = async (

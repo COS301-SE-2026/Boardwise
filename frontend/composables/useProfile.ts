@@ -28,6 +28,28 @@ export const useProfile = () => {
         }
     }
 
+    const fetchUserById = async (userId: string) => {
+        isLoading.value = true;
+        error.value = ''
+        try{
+            const res = await userService.getUser(userId);
+            return res
+        }
+        catch(err: any){
+            error.value = err.data?.message || "This user does not exist"
+            if(err.response?.status === 401){
+                localStorage.removeItem("access_token")
+                router.push('/auth/signin')
+                return;
+            }
+            throw err;
+                
+        }
+        finally{
+            isLoading.value = false
+        }
+    }
+
     const updateProfile = async (user: {
         username?: string,
         location?: string,
@@ -165,5 +187,5 @@ export const useProfile = () => {
         }
     };
 
-    return { isLoading, fetchCurrentUser, updateProfile, updateProfilePicture, addGame, removeGame, searchGames ,addExistingGame, createGame, error }
+    return { isLoading, fetchCurrentUser, fetchUserById, updateProfile, updateProfilePicture, addGame, removeGame, searchGames ,addExistingGame, createGame, error }
 }
