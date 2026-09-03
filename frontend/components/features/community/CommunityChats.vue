@@ -17,12 +17,17 @@
 
           <p class="text-body-2 text-medium-emphasis mb-0">
             Join this community to send messages.
-          </p>
+          </p></div>
           <
             <BaseButton
               :disabled="loading"
               @click="$emit('join')"
             >
+              <v-icon
+            icon="mdi-account-plus-outline"
+            class="me-2"
+            aria-hidden="true"
+          />
               {{ loading ? 'Joining...' : 'Join community' }}
             </BaseButton>
         </div>
