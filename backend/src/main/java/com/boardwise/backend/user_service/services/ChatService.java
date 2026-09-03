@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -27,9 +28,11 @@ import com.boardwise.backend.user_service.dtos.MessagesDTO;
 import com.boardwise.backend.user_service.dtos.NotificationDTO;
 import com.boardwise.backend.user_service.enums.MessageType;
 import com.boardwise.backend.user_service.models.Conversation;
+import com.boardwise.backend.user_service.models.GroupMembership;
 import com.boardwise.backend.user_service.models.Message;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repository.ConversationRepository;
+import com.boardwise.backend.user_service.repository.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repository.GroupRepository;
 import com.boardwise.backend.user_service.repository.MessageRepository;
 import com.boardwise.backend.user_service.repository.UserRepository;
@@ -45,6 +48,7 @@ public class ChatService {
     private final ConversationRepository convoRepo;
     private final UserRepository userRepo;
     private final GroupRepository groupRepo;
+    private final GroupMembershipRepository gmRepo;
     private final JWTService jwtService;
     private final MongoTemplate db;
     
@@ -101,11 +105,22 @@ public class ChatService {
         );
     }
 
-    public CommunityMessageDTO handleCommunityMessage(Principal principal, CommunityMessage message){
+    public CommunityMessageDTO handleCommunityMessage(Principal principal, CommunityMessage message) throws IllegalAccessException, NoSuchElementException{
         if(!groupRepo.existsById(message.communityId())) 
             throw new NoSuchElementException("Community associated with id: " + message.communityId() + " does not exist.");
         
         String senderId = principal.getName();
+        GroupMembership gm = new GroupMembership();
+        gm.setUserId(senderId);
+        gm.setGroupId(message.communityId());
+        Example<GroupMembership> example = Example.of(gm);
+        if(!gmRepo.exists(example))
+            throw new IllegalAccessException(
+                "User associated with id: " + senderId + " is not a member of this community."
+            );
+       
+
+        
         Instant sentAt = Instant.now();
 
         // send the chat message for the ui (senderId will be used)

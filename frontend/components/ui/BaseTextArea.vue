@@ -27,7 +27,7 @@ defineProps({
     default: ''
   },
   ariaLabel: {
-    type: Sring,
+    type: String,
     default: 'Text input'
   },
   rows: {

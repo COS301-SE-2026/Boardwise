@@ -61,7 +61,8 @@ public class ChatController {
     public void processCommunityMessage(
         @Payload CommunityMessage message,
         Principal principal
-    ){  
+    ) throws IllegalAccessException{  
+        
         CommunityMessageDTO chatMessage = service.handleCommunityMessage(principal, message);
         messagingTemplate.convertAndSend(
             "/topic/community/" + message.communityId() + "/chat",
@@ -108,6 +109,12 @@ public class ChatController {
     public ErrorMessage handleNoSuchElementException(NoSuchElementException e){
         String type = e.getMessage().contains("User") ? "USER_NOT_FOUND" : "COMMUNITY_NOT_FOUND";
         return new ErrorMessage(type, e.getMessage());
+    }
+
+    @MessageExceptionHandler(IllegalAccessException.class)
+    @SendToUser("/queue/errors")
+    public ErrorMessage handleIllegalAccessException(IllegalAccessException e){
+        return new ErrorMessage("NOT_COMMUNITY_MEMBER", e.getMessage());
     }
 
     @MessageExceptionHandler(Exception.class)

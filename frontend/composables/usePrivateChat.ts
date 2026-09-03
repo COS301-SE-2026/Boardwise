@@ -27,7 +27,6 @@ const isLoading = ref<boolean>(false);
 const chats = ref<Array<Conversation>>([]);
 const currentChat = ref<Conversation | null | undefined>(null);
 const messages = ref<Array<DirectMessageDTO>>([]);
-let isListening = false;
 
 export const usePrivateChat = () => {
     const { isConnected, subscribe, unsubscribe, sendPrivateMessage } = useStomp();
@@ -113,7 +112,6 @@ export const usePrivateChat = () => {
     const listenForMessages = () => {
         if(!token) return;
 
-        isListening = true;
         subscribe(dest, async (message: DirectMessageDTO) => {            
             console.log("Message received!!\n", message);
 

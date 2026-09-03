@@ -55,6 +55,19 @@ interface Groups{
     groups: Array<GroupInfo>
 }
 
+export interface GroupMessageDTO{
+    id: string,
+    senderId: string,
+    communityId: string,
+    message: string,
+    sentAt: string
+}
+
+interface GroupMessagesDTO{
+    message: string,
+    data: Array<GroupMessageDTO>
+}
+
 
 export const CommunityService = {
     createCommunity(community: {
@@ -133,5 +146,17 @@ export const CommunityService = {
             method: 'PATCH',
             body: formData
         })
-    }
+    },
+
+    async getMissedCommunityMessage(targetId: string, since: string | null | undefined){
+        const { $api } = useNuxtApp();
+        const response = await $api<GroupMessagesDTO>('messages/',{
+            query: {
+                type: "COMMUNITY",
+                targetId,
+                since
+            }
+        });
+        return response.data;
+    },
 }

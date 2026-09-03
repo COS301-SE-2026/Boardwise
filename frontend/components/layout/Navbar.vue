@@ -47,7 +47,6 @@
             <v-btn 
               icon
               variant="text"
-              to="/profile"
               v-bind="menuProps"
               aria-label="Account menu"
             >
@@ -122,7 +121,6 @@
           <v-btn 
             icon
             variant="text"
-            to="/profile"
             v-bind="menuProps"
             aria-label="Account menu"
           >
@@ -131,6 +129,12 @@
         </template>
 
         <v-list nav density="compact" min-width="200">
+          <v-list-item 
+            prepend-icon="mdi-chat-outline"
+            title="Profile"
+            to="/profile"
+          />
+          
           <v-list-item 
             prepend-icon="mdi-chat-outline"
             title="Chats"

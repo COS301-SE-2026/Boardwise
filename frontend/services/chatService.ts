@@ -1,26 +1,7 @@
-import { chats } from './mockData/chats'
-import { messages } from './mockData/messages'
-
-export const getChats = () => chats
-
-export const getMessages = (chatId: number) => {
-    return (
-        messages.find(chat => chat.chatId === chatId)?.messages ?? []
-    )
-}
-
 export interface DirectMessageDTO{
     id: string,
     senderId: string,
     receiverId: string,
-    message: string,
-    sentAt: string
-}
-
-export interface CommunityMessageDTO{
-    id: string,
-    senderId: string,
-    communityId: string,
     message: string,
     sentAt: string
 }
@@ -33,11 +14,6 @@ export interface ConversationDTO{
     lastMessage: string,
     lastMessageAt: string,
     isOnline: boolean
-}
-
-interface CommunityMessagesDTO{
-    message: string,
-    data: Array<CommunityMessageDTO>
 }
 
 interface DirectMessagesDTO{
@@ -57,18 +33,6 @@ export const ChatService = {
         const response = await $api<DirectMessagesDTO>('messages/',{
             query: {
                 type: "DIRECT",
-                targetId,
-                since
-            }
-        });
-        return response.data;
-    },
-
-    async getMissedCommunityMessage(targetId: string, since: string | null | undefined){
-        const { $api } = useNuxtApp();
-        const response = await $api<CommunityMessagesDTO>('messages/',{
-            query: {
-                type: "COMMUNITY",
                 targetId,
                 since
             }
