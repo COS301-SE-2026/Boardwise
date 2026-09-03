@@ -15,13 +15,6 @@
         />
 
         <div class="chat-message__content">
-            <span
-                v-if="!isOwn"
-                class="chat-message__sender"
-            >
-                {{ conversation.username }}
-            </span>
-
             <div
                 class="chat-message__bubble"
                 :class="{
