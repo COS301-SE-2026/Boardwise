@@ -217,7 +217,7 @@ export const userService = {
     addGamesToInventory(payload: { knownGameIds: string[] }){
         const { $api } = useNuxtApp();
 
-        return $api<BulkAddResponse>('/gameInventory/bulk', {
+        return $api<BulkAddResponse>('users/gameInventory/bulk', {
             method: 'POST',
             body: payload
         });
