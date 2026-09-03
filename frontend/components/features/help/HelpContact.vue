@@ -1,5 +1,5 @@
 <template>
-  <section class="help-contact py-12" aria-labelledby="support-heading">
+  <section class="help-contact py-8" aria-labelledby="support-heading">
     <v-container>
       <div class="text-center mb-8">
         <h2 id="support-heading">Additional help</h2>
@@ -46,7 +46,7 @@
 
       <p class="text-center text-medium-emphasis mt-6">
         Prefer email?
-        <a href="mailto:support@boardwise.co.za">
+        <a href="worksonmymachine67@gmail.com">
           support@boardwise.co.za
         </a>
       </p>
