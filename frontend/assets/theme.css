@@ -3498,3 +3498,12 @@ button:disabled,
   outline: 3px solid var(--color-primary);
   outline-offset: 3px;
 }
+
+.community-chat-header__details-trigger:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.community-chat-header__chevron {
+  flex-shrink: 0;
+  margin-left: auto;
+}

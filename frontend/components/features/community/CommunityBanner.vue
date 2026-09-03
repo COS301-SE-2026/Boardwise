@@ -35,24 +35,16 @@
           {{ community.memberCount }} members
         </p>
       </div>
-    </div>
+      <v-icon
+        icon="mdi-chevron-right"
+        class="community-chat-header__chevron"
+        aria-hidden="true"
+      />
 </button>
-    <div class="community-chat-header__actions">
+
+      <div v-if="community.isOwner" class="community-chat-header__actions">
       <BaseButton
         variant="secondary"
-        @click="$emit('details')"
-      >
-        <v-icon
-          icon="mdi-information-outline"
-          class="me-2"
-          aria-hidden="true"
-        />
-
-        Details
-      </BaseButton>
-
-      <BaseButton
-        v-if="community.isOwner"
         @click="showEdit = true"
       >
         <v-icon
@@ -63,7 +55,7 @@
 
         Edit
       </BaseButton>
-    </div>
+      </div>
 
     <CommunityEditModal
       v-model="showEdit"
@@ -86,7 +78,7 @@ const emit = defineEmits([
   'updated'
 ])
 
-const props = defineProps({
+defineProps({
   community: { type: Object, required: true }
 })
 
