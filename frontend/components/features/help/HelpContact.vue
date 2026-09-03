@@ -9,45 +9,40 @@
         </p>
       </div>
 
-      <v-row justify="center">
-        <v-col
+      <BaseGrid
+        cols="260px"
+        gap="24px"
+      >
+        <BaseCard
           v-for="option in requestOptions"
           :key="option.type"
-          cols="12"
-          sm="6"
-          md="4"
+          class="pa-6 d-flex flex-column"
         >
-          <v-card
-            class="request-card pa-6 d-flex flex-column"
-            rounded="xl"
-            variant="outlined"
-            height="100%"
+          <v-icon
+            :icon="option.icon"
+            :color="option.color"
+            size="38"
+            class="mb-4"
+          />
+
+          <h3 class="text-h6">
+            {{ option.title }}
+          </h3>
+
+          <p class="text-medium-emphasis mt-2 mb-6">
+            {{ option.description }}
+          </p>
+
+          <BaseButton
+            class="mt-auto"
+            :variant="option.buttonVariant"
+            block
+            @click="openForm(option.type)"
           >
-            <v-icon
-              :icon="option.icon"
-              :color="option.color"
-              size="38"
-              class="mb-4"
-            />
-
-            <h3 class="text-h6">{{ option.title }}</h3>
-
-            <p class="text-medium-emphasis mt-2 mb-6">
-              {{ option.description }}
-            </p>
-
-            <v-btn
-              class="mt-auto"
-              :color="option.color"
-              variant="tonal"
-              block
-              @click="openForm(option.type)"
-            >
-              {{ option.buttonText }}
-            </v-btn>
-          </v-card>
-        </v-col>
-      </v-row>
+            {{ option.buttonText }}
+          </BaseButton>
+        </BaseCard>
+      </BaseGrid>
 
       <p class="text-center text-medium-emphasis mt-6">
         Prefer email?
@@ -57,33 +52,17 @@
       </p>
     </v-container>
 
-    <v-dialog v-model="showForm" max-width="720">
-      <v-card rounded="xl">
-        <v-card-title class="d-flex align-center pa-6 pb-2">
-          <v-icon
-            :icon="currentRequest.icon"
-            :color="currentRequest.color"
-            class="mr-3"
-          />
-
-          <span>{{ currentRequest.title }}</span>
-
-          <v-spacer />
-
-          <v-btn
-            icon="mdi-close"
-            variant="text"
-            aria-label="Close support form"
-            @click="closeForm"
-          />
-        </v-card-title>
-
-        <v-card-text class="pa-6">
+    <BaseModal
+          v-model="showForm"
+          :title="currentRequest.title"
+          :max-width="720"
+          closable
+        >
           <p class="text-medium-emphasis mb-6">
             {{ currentRequest.formDescription }}
           </p>
 
-          <v-form ref="formRef" @submit.prevent="submitRequest">
+  <v-form ref="formRef" @submit.prevent="submitRequest">
             <v-text-field
               v-model.trim="form.name"
               label="Your name"
@@ -159,67 +138,77 @@
               density="compact"
               class="mb-5"
             >
-              An confirmation email will be sent to you shortly.
+               Your request will be recorded after submission.
             </v-alert>
 
             <div class="d-flex flex-wrap justify-end ga-3">
-              <v-btn variant="text" @click="closeForm">
+              <BaseButton
+                variant="text"
+                @click="closeForm"
+              >
                 Cancel
-              </v-btn>
+              </BaseButton>
 
-              <v-btn
+              <BaseButton
                 type="submit"
-                color="primary"
+                variant="primary"
                 :loading="isSubmitting"
               >
                 Submit request
-              </v-btn>
+              </BaseButton>
             </div>
           </v-form>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+          </BaseModal>
 
-    <v-dialog v-model="showSuccess" max-width="500">
-      <v-card class="pa-7 text-center" rounded="xl">
-        <v-icon
-          icon="mdi-check-circle"
-          color="success"
-          size="64"
-          class="mb-4"
-        />
+    <BaseModal
+        v-model="showSuccess"
+        title="Request received"
+        :max-width="500"
+      >
+        <div class="text-center">
+          <v-icon
+            icon="mdi-check-circle"
+            color="success"
+            size="64"
+            class="mb-4"
+          />
 
-        <h2>Request received</h2>
+          <p class="text-medium-emphasis mt-3">
+            Your request has been recorded. Keep this reference number for
+            follow-up:
+          </p>
 
-        <p class="text-medium-emphasis mt-3">
-          Your request has been recorded. Keep this reference number for
-          follow-up:
-        </p>
+          <v-chip
+            color="primary"
+            variant="tonal"
+            size="large"
+            class="my-5"
+          >
+            {{ referenceNumber }}
+          </v-chip>
 
-        <v-chip
-          color="primary"
-          variant="tonal"
-          size="large"
-          class="my-5"
-        >
-          {{ referenceNumber }}
-        </v-chip>
+          <p class="text-caption text-medium-emphasis mb-5">
+            Keep your reference number if you need to follow up with the Boardwise team.
+          </p>
 
-        <p class="text-caption text-medium-emphasis mb-5">
-          A real confirmation email will be added when the backend email
-          service is connected.
-        </p>
-
-        <v-btn color="primary" block @click="showSuccess = false">
-          Done
-        </v-btn>
-      </v-card>
-    </v-dialog>
+          <BaseButton
+            variant="primary"
+            block
+            @click="showSuccess = false"
+          >
+            Done
+          </BaseButton>
+        </div>
+      </BaseModal>
   </section>
 </template>
 
 <script setup>
 import { computed, reactive, ref } from 'vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseGrid from '~/components/ui/BaseGrid.vue'
+import BaseModal from '~/components/ui/BaseModal.vue'
 
 const showForm = ref(false)
 const showSuccess = ref(false)
@@ -244,7 +233,8 @@ const requestOptions = [
       'Rulebooks and library',
       'Marketplace',
       'Other'
-    ]
+    ],
+    buttonVariant: 'primary'
   },
   {
     type: 'complaint',
@@ -260,7 +250,8 @@ const requestOptions = [
       'Privacy concern',
       'Accessibility concern',
       'Other'
-    ]
+    ],
+    buttonVariant: 'secondary'
   },
   {
     type: 'report',
@@ -278,7 +269,8 @@ const requestOptions = [
       'Spam or scam',
       'Copyright concern',
       'Other'
-    ]
+    ],
+    buttonVariant: 'error'
   }
 ]
 
