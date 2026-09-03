@@ -12,6 +12,8 @@
       <v-chip 
         color="secondary"
         prepend-icon="mdi-filter-variant"
+        :aria-expanded="showFilters"
+        aria-controls="event-mobile-filters"
         size="large"
         @click="showFilters = true"
       >
@@ -42,6 +44,7 @@
         <v-progress-circular indeterminate color="primary" size="48" />
       </v-container>
 
+      
       <EventGrid 
         v-else
         :events="filteredEvents" 
@@ -183,7 +186,7 @@ const handleRsvp = async (eventId) => {
   try {
     const updated = await rsvpToEvent(eventId)
     selectedEvent.value = updated
-    show('RSVP successful!', 'success')
+    show('Your seat is saved for game night.', 'success')
   } catch {
     show('Failed to RSVP. Please try again.', 'error')
   }
@@ -193,7 +196,7 @@ const handleDeRsvp = async (eventId) => {
   try {
     const updated = await deRsvpFromEvent(eventId)
     selectedEvent.value = updated
-    show('RSVP cancelled', 'info')
+    show('Your seat has been opened up.', 'info')
   } catch {
     show('Failed to cancel RSVP.', 'error')
   }
@@ -203,7 +206,7 @@ const handleCancelEvent = async (eventId) => {
   try {
     await cancelEvent(eventId)
     showDetail.value = false
-    show('Event cancelled', 'success')
+    show('The event has been packed away.', 'success')
   } catch {
     show('Failed to cancel event.', 'error')
   }
@@ -211,7 +214,7 @@ const handleCancelEvent = async (eventId) => {
 
 const handleCreateEvent = async ({ eventInfo, image }) => {
   const event = await createEvent(eventInfo, image)
-  show('Event created!', 'success')
+  show('Your event is ready. Game on!', 'success')
   createdEvent.value = event      
   showCreateEvent.value = false   
   showInviteModal.value = true   
@@ -235,7 +238,7 @@ const handleEventUpdated = async () => {
 
 
 
-  show('Event updated!', 'success')
+  show('Your event changes are locked in.', 'success')
 
   showEditEvent.value = false
   showDetail.value = true

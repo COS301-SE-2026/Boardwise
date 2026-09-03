@@ -64,18 +64,9 @@
 
                 <v-col cols="12" md="4">
                     
-                    <a
-                        href="https://boardgamegeek.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="d-inline-block mt-4"
-                    >
-                        <v-img
-                            src="/images/powered-by-bgg-rgb.svg"
-                            alt="Powered by BoardGameGeek"
-                            style="width:180px; display:block;"
-                        />
-                    </a>
+                    <p>
+                        © {{ currentYear }} Boardwise. By WOMM.
+                    </p>
 
                 </v-col>
             </v-row>
@@ -83,3 +74,7 @@
         </v-container>
     </v-footer>
 </template>
+
+<script setup>
+const currentYear = new Date().getFullYear()
+</script>
