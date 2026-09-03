@@ -3468,3 +3468,16 @@ button:disabled,
 .help-ai-cta-shell .base-card {
   border-radius: 40px !important;
 }
+.community-member-link {
+  display: block;
+
+  color: inherit;
+  text-decoration: none;
+
+  border-radius: var(--radius-lg);
+}
+
+.community-member-link:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
