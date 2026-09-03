@@ -55,10 +55,10 @@
   <!-- One results area for desktop + mobile -->
   <div class="community-results-layout__content">
 
-    <div
+    <output
       v-if="loading"
       class="community-results-loading"
-      role="status"
+      aria-live="polite"
       aria-label="Loading communities"
     >
       <v-progress-circular
@@ -66,7 +66,7 @@
         color="primary"
         size="48"
       />
-    </div>
+    </output>
 
     <CommunityGrid
       v-else
