@@ -124,64 +124,64 @@ export const tutorials = [
 
 export const popularGuides = [
     createGuide(
-  'join-community',
-  'Join a community',
-  'Find communities and meet other players.',
-  'mdi-account-group-outline',
-  '/community',
-  'communities'
-),
+    'user-guide',
+    'User guide',
+    'Open the Boardwise user manual for step-by-step guidance.',
+    'mdi-file-document-outline',
+    '/docs/Boardwise-User-Manual.pdf',
+    'general'
+    ),
+        createGuide(
+    'join-community',
+    'Join a community',
+    'Find communities and meet other players.',
+    'mdi-account-group-outline',
+    '/community',
+    'communities'
+    ),
 
-createGuide(
-  'chats',
-  'Chat with players',
-  'Message friends and communities.',
-  'mdi-message-text-outline',
-  '/chats',
-  'social'
-),
+    createGuide(
+    'chats',
+    'Chat with players',
+    'Message friends and communities.',
+    'mdi-message-text-outline',
+    '/chats',
+    'social'
+    ),
 
-createGuide(
-  'invite-friends',
-  'Find & invite friends',
-  'Find players and send friend invites.',
-  'mdi-account-plus-outline',
-  '/search',
-  'social'
-),
+    createGuide(
+    'invite-friends',
+    'Find & invite friends',
+    'Find players and send friend invites.',
+    'mdi-account-plus-outline',
+    '/search',
+    'social'
+    ),
 
-createGuide(
-  'find-rulebook',
-  'Find a rulebook',
-  'Search and read game rules.',
-  'mdi-book-open-page-variant-outline',
-  '/library',
-  'library'
-),
+    createGuide(
+    'find-rulebook',
+    'Find a rulebook',
+    'Search and read game rules.',
+    'mdi-book-open-page-variant-outline',
+    '/library',
+    'library'
+    ),
 
-createGuide(
-  'discover-event',
-  'Find a game night',
-  'Discover upcoming game nights.',
-  'mdi-calendar-outline',
-  '/events',
-  'events'
-),
+    createGuide(
+    'discover-event',
+    'Find a game night',
+    'Discover upcoming game nights.',
+    'mdi-calendar-outline',
+    '/events',
+    'events'
+    ),
 
-createGuide(
-  'marketplace',
-  'Marketplace',
-  'Browse games listed by players.',
-  'mdi-storefront-outline',
-  '/marketplace',
-  'marketplace'
-),
-createGuide(
-  'user-guide',
-  'User guide',
-  'Open the Boardwise user manual for step-by-step guidance.',
-  'mdi-file-document-outline',
-  '/docs/Boardwise-User-Manual.pdf',
-  'general'
-)
+    createGuide(
+    'marketplace',
+    'Marketplace',
+    'Browse games listed by players.',
+    'mdi-storefront-outline',
+    '/marketplace',
+    'marketplace'
+    )
 ]
