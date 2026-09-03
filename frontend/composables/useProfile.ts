@@ -185,6 +185,8 @@ export const useProfile = () => {
         } finally {
             isLoading.value = false;
         }
+
+
     };
 
     return { isLoading, fetchCurrentUser, fetchUserById, updateProfile, updateProfilePicture, addGame, removeGame, searchGames ,addExistingGame, createGame, error }
