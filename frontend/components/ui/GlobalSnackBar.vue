@@ -13,14 +13,14 @@
     >
       <div class="boardwise-snackbar__icon">
         <v-icon
-          :icon="notification.icon"
+          :icon="response.icon"
           size="22"
         />
       </div>
 
       <div class="boardwise-snackbar__copy">
         <span class="boardwise-snackbar__title">
-          {{ notification.title }}
+          {{ response.title }}
         </span>
 
         <span class="boardwise-snackbar__message">
@@ -34,7 +34,7 @@
         icon="mdi-close"
         variant="text"
         size="small"
-        aria-label="Dismiss notification"
+        aria-label="Dismiss response"
         @click="visible = false"
       />
     </template>
@@ -51,7 +51,7 @@ const {
   color
 } = useSnackBar()
 
-const notification = computed(() => {
+const response = computed(() => {
   const states = {
     success: {
       title: 'Nice move!',
