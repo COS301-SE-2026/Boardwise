@@ -100,15 +100,44 @@
                   </div>
 
                   <div class="mt-6">
-                    <h3 class="text-subtitle-1 font-weight-bold mb-2">
-                      Community rules
-                    </h3>
+                  <h3 class="text-subtitle-1 font-weight-bold mb-2">
+                    Community rules
+                  </h3>
 
-                    <p class="text-body-2 text-medium-emphasis mb-0">
-                      Be respectful, stay on topic and help keep the
-                      community welcoming for everyone.
-                    </p>
-                  </div>
+                  <p class="text-body-2 text-medium-emphasis mb-0">
+                    Be respectful, stay on topic and help keep the
+                    community welcoming for everyone.
+                  </p>
+                </div>
+
+                <div
+                  v-if="community.isMember && !community.isOwner"
+                  class="mt-8"
+                >
+                  <v-divider class="mb-5" />
+
+                  <h3 class="text-subtitle-1 font-weight-bold mb-2">
+                    Membership
+                  </h3>
+
+                  <p class="text-body-2 text-medium-emphasis mb-4">
+                    You can leave this community at any time.
+                  </p>
+
+                  <BaseButton
+                    variant="error"
+                    :loading="loading"
+                    @click="handleLeave"
+                  >
+                    <v-icon
+                      icon="mdi-exit-to-app"
+                      class="me-2"
+                      aria-hidden="true"
+                    />
+
+                    Leave community
+                  </BaseButton>
+                </div>
                 </div>
               </v-window-item>
 
@@ -169,6 +198,7 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
 import { useCommunity } from '~/composables/useCommunity'
 import { useSnackBar } from '~/composables/useSnackbar'
+import BaseButton from '~/components/ui/BaseButton.vue'
 
 const route = useRoute()
 
