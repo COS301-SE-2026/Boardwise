@@ -14,7 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Document(collection = "Notification")
+@Document(collection = "NOTIFICATIONS")
 @CompoundIndex(def = "{'userId': 1, 'sentAt': -1}")
 @Data
 @NoArgsConstructor

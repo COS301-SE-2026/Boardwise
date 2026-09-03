@@ -16,6 +16,7 @@
  
       <CommunityChats 
         :community="community" 
+        :token="token"
         @join="handleJoin"
       />
 
@@ -44,7 +45,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
@@ -59,7 +60,9 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import { useCommunity } from '~/composables/useCommunity'
 import { useSnackBar } from '~/composables/useSnackbar'
 
+
 const route = useRoute()
+const router = useRouter()
 
 const {
   getCommunityDetails,
@@ -75,9 +78,17 @@ const {
 const showMembers = ref(false)
 const showEvents = ref(false)
 const community = ref(null)
+const token = ref('')
 
 onMounted(async () => {
-  community.value = await getCommunityDetails(route.params.id)
+  const rawToken = localStorage.getItem("access_token")
+  if(!rawToken)
+      router.push("/auth/signin")
+  else{
+      token.value = rawToken;
+      community.value = await getCommunityDetails(route.params.id)
+  }
+ 
 })
 
 const handleJoin = async () => {

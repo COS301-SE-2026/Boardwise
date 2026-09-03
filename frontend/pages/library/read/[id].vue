@@ -27,6 +27,7 @@
 import { useLibrary } from '~/composables/useLibrary'
 import { useEditLock }     from '~/composables/useEditLock'
 import { useReaderSocket } from '~/composables/useReaderSocket'
+import { useStomp } from '~/composables/useStomp'
 
 import ReaderLayout from '~/components/features/library/ReaderLayout.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
@@ -37,6 +38,8 @@ const readerLayoutRef = ref(null);
 
 const route = useRoute()
 const router = useRouter()
+
+const { onReconnectHook } = useStomp()
 
 const {
   currentRulebook,
@@ -55,7 +58,7 @@ const {
 } = useEditLock()
 
 // Websocket
-const { connect: connectSocket } = useReaderSocket(
+const { isConnected } = useReaderSocket(
     String(route.params.id),
     {
       onLockAcquired: ({lockedByUsername, expiresAt, currentVersion: serverVersion}) => {
@@ -92,18 +95,29 @@ const { connect: connectSocket } = useReaderSocket(
           }
         }
       },
-      onReconnect: async () => {
-        if(isEditing.value){
-          show('Connection restored, but you may have missed updates. Save carefully.', 'warning');
-          return;
-        }
+      // onReconnect: async () => {
+      //   if(isEditing.value){
+      //     show('Connection restored, but you may have missed updates. Save carefully.', 'warning');
+      //     return;
+      //   }
 
-        if(readerLayoutRef.value){
-          await readerLayoutRef.value.reconcileStaleState();
-        }
-      }
+      //   if(readerLayoutRef.value){
+      //     await readerLayoutRef.value.reconcileStaleState();
+      //   }
+      // }
     }
 )
+
+onReconnectHook(async () => {
+  if(isEditing.value){
+    show('Connection restored, but you may have missed updates. Save carefully.', 'warning');
+    return;
+  }
+
+  if(readerLayoutRef.value){
+    await readerLayoutRef.value.reconcileStaleState();
+  }
+})
 
 onMounted(async () => {
   await getRulebookById(route.params.id)
@@ -118,10 +132,10 @@ onMounted(async () => {
     lockExpiresAt.value = currentRulebook.value.lockExpiresAt;
   }
 
-  try {
-    connectSocket()
-  }catch(err) {
-    console.warn('Websocket connection failed - lock events unavailable', err);
-  }
+  // try {
+  //   connectSocket()
+  // }catch(err) {
+  //   console.warn('Websocket connection failed - lock events unavailable', err);
+  // }
 })
 </script>

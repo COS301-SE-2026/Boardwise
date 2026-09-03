@@ -17,51 +17,46 @@
                 Back
             </BaseButton>
 
-                <button
+            <button
                 type="button"
                 class="chat-header__identity"
-                :aria-label="`View details about ${conversation.name}`"
+                :aria-label="`View details about ${conversation.username}`"
                 @click="$emit('show-details')"
             >
-            <div class="chat-header__avatar">
-                <BaseAvatar
-                    :src="conversation.avatar"
-                    :name="conversation.name"
-                    size="lg"
-                />
-
-                <span
-                    v-if="conversation.online"
-                    class="chat-online-indicator"
-                    aria-hidden="true"
-                />
-            </div>
-
-            <div class="flex-grow-1 overflow-hidden">
-                <h2 class="chat-header__name">
-                    {{ conversation.name }}
-                </h2>
-
-                <div class="chat-header__status">
-                    <span
-                        class="chat-status-dot"
-                        :class="{
-                            'chat-status-dot--online': conversation.online
-                        }"
-                        aria-hidden="true"
+                <div class="chat-header__avatar">
+                    <BaseAvatar
+                        :src="conversation.profilePicture "
+                        :name="conversation.username + ' profile picture'"
+                        size="lg"
                     />
-
-                    <span>
-                        {{ conversation.online ? 'Online' : 'Offline' }}
-                    </span>
                 </div>
-            </div>
 
-            <v-icon
+                <div class="flex-grow-1 overflow-hidden">
+                    <h2 class="chat-header__name">
+                        {{ conversation.username }}
+                    </h2>
+
+                    <div class="chat-header__status">
+                        <span
+                            class="chat-status-dot"
+                            :class="{
+                                'chat-status-dot--online': conversation.isOnline
+                            }"
+                            aria-hidden="true"
+                        />
+
+                        <span>
+                            {{ conversation.isOnline ? 'Online' : 'Offline' }}
+                        </span>
+                    </div>
+                </div>
+
+                <v-icon
                     icon="mdi-chevron-right"
                     class="chat-header__details-icon"
                     aria-hidden="true"
-                /></button>
+                />
+            </button>
         </div>
     </BaseCard>
 </template>

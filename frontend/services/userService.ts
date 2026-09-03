@@ -105,9 +105,9 @@ export const userService = {
         return $api<ProfileResponse>("/users/");
     },
 
-    getUser(username: string){
+    getUser(id: string){
         const { $api } = useNuxtApp();
-        return $api<ProfileResponse>("/users/" + username);
+        return $api<ProfileResponse>("/users/" + id);
     },
     
     updateProfile(user: {
