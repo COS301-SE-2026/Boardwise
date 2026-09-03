@@ -4,6 +4,7 @@
     <ChatFeed 
       :messages="messages" 
       :community="community"
+      :token="token"
     />
 
     <BaseCard 

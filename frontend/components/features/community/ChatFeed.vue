@@ -4,7 +4,7 @@
     class="d-flex flex-column ga-4 pa-4"
     style="height:420px; overflow-y:auto;"
   >
-    <v-container v-if="isLoading || !user" class="d-flex justify-center align-center" style="min-height: 60vh">
+    <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
         <v-progress-circular indeterminate color="primary" size="48" />
     </v-container>
 
@@ -14,7 +14,7 @@
         v-for="message in messages"
         :key="message.id"
         :message="message"
-        :user="user",
+        :token="token",
         :community="community"
       />
     </template>
@@ -30,14 +30,14 @@
 
 <script setup>
 import { ref, watch, nextTick, onMounted } from 'vue'
-import { useProfile } from '~/composables/useProfile'
+import { useCommunityChat } from '~/composables/useCommunityChat'
 import { useStomp } from '~/composables/useStomp'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import ChatMessage from './ChatMessage.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
 
 const { connect } = useStomp()
-const { fetchCurrentUser, isLoading } = useProfile()
+const { isLoading } = useCommunityChat()
 
 const props = defineProps({
   messages: {
@@ -47,31 +47,31 @@ const props = defineProps({
   community: {
     type: Object,
     required: true
+  },
+  token: { 
+    type: String, 
+    required: true 
   }
 })
 
 const feedEl = ref(null)
-const user = ref(null)
+// const user = ref(null)
 
 const scrollToBottom = async () => {
   await nextTick()
 
-  if(!feedEl.value.$el) return
+  if(!feedEl.value) return
 
-  const el = feedEl.value.$el;
-  el.scrollTo = ({ 
-    top: el.scrollHeight,
-    behavior: 'smooth' 
-  })
+  feedEl.value.scrollTop = feedEl.value.scrollHeight
 }
 
 watch(
   () => props.messages.length,
-  scrollToBottom
+  () => scrollToBottom(),
+  {flush: 'post'}
 )
 
 onMounted(async () => {
-  user.value = await fetchCurrentUser()
   connect()
   scrollToBottom()
 })

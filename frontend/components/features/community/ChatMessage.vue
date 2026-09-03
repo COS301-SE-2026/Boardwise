@@ -44,17 +44,17 @@
 
 <script setup>
 import BaseAvatar from '~/components/ui/BaseAvatar.vue'
-// import { useProfile } from '~/composables/useProfile'
 import { ref, computed, watch } from "vue"
+import { jwtDecode } from 'jwt-decode'
 
 const props = defineProps({
   message: {
     type: Object,
     required: true
   },
-  user: {
-    type: Object,
-    required: true
+  token: { 
+    type: String, 
+    required: true 
   },
   community: {
     type: Object,
@@ -62,18 +62,19 @@ const props = defineProps({
   }
 })
 
-const sender = ref(null);
+const sender = ref(null)
+const myUserId = ref(jwtDecode(props.token).sub);
 
 const isOwn = computed(() => {
-    return props.message?.senderId === props.user?.id 
+    return props.message?.senderId === myUserId.value
 })
 
 watch(
   () => props.message.senderId,
-  async (id) => {
-    if(isOwn.value){
-      sender.value = props.user
-    }
+  (id) => {
+    // if(isOwn.value){
+    //   sender.value = props.user
+    // }
     sender.value = props.community.members.find((el) => el.id === id);
   },
   { immediate: true }
