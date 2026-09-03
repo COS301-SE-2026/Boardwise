@@ -3182,3 +3182,50 @@ button:disabled,
     margin: 12px;
   }
 }
+
+
+.help-contact {
+  background: rgba(199, 40, 110, 0.05);
+  border-radius: 24px;
+}
+
+.request-card {
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.request-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(46, 20, 48, 0.12);
+}
+
+.request-card:focus-within {
+  outline: 3px solid #e58bb4;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .request-card {
+    transition: none;
+  }
+
+  .request-card:hover {
+    transform: none;
+  }
+}
+
+.support-card--contact .v-btn {
+  background: #f6d9e5 !important;
+  color: #8e1b4e !important;
+}
+
+.support-card--complaint .v-btn {
+  background: #e9dce7 !important;
+  color: #4e1e5c !important;
+}
+
+.support-card--report .v-btn {
+  background: #fadada !important;
+  color: #9b1c1c !important;
+}
