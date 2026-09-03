@@ -2195,6 +2195,9 @@ html[data-density="compact"] .rulebook-list {
     padding-inline: var(--space-2);
 
     font-size: 0.75rem;
+    }
+  }
+
 /* =============================================================
    ACCESSIBILITY — SHARED COMPONENTS
    WCAG 2.2 AA accessibility foundation
