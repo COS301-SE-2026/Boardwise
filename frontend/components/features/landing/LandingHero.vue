@@ -9,13 +9,7 @@
 
             <v-col cols="12" md="7"   lg=7 >
 
-                    <div class="landing-hero__content" aria-label="Boardwise experiences">
-                        <div class="hero-badges">
-                        <span class="hero-badge hero-badge--connect">Connect</span>
-                        <span class="hero-badge hero-badge--share">Share</span>
-                        <span class="hero-badge hero-badge--play">Play</span> 
-                    </div>
-                       
+                   
                     <h1
                         id="landing-hero-title"
                         class="landing-hero__title"
@@ -25,6 +19,14 @@
                     <p class="landing-hero__tagline">
                         For people who love the table.
                     </p>
+
+                     <div class="landing-hero__content" aria-label="Boardwise experiences">
+                        <div class="hero-badges">
+                        <span class="hero-badge hero-badge--connect">Connect</span>
+                        <span class="hero-badge hero-badge--share">Share</span>
+                        <span class="hero-badge hero-badge--play">Play</span> 
+                    </div>
+                       
                     <p class="landing-hero__description">
                         Access a library of your favourite board games,
                         discover new games, connect with other players,
