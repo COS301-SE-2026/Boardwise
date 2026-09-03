@@ -29,6 +29,9 @@
         >
           <NuxtLink
             :to="guide.route"
+            :external="guide.route.endsWith('.pdf')"
+            :target="guide.route.endsWith('.pdf') ? '_blank' : undefined"
+            :rel="guide.route.endsWith('.pdf') ? 'noopener noreferrer' : undefined"
             class="help-guide-link d-block h-100"
           >
             <BaseCard

@@ -175,5 +175,13 @@ createGuide(
   'mdi-storefront-outline',
   '/marketplace',
   'marketplace'
+),
+createGuide(
+  'user-guide',
+  'User guide',
+  'Open the Boardwise user manual for step-by-step guidance.',
+  'mdi-file-document-outline',
+  '/docs/Boardwise-User-Manual.pdf',
+  'general'
 )
 ]
