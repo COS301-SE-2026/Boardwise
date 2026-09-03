@@ -1,5 +1,6 @@
 import { Client, type IMessage } from "@stomp/stompjs";
 import { type DirectMessage } from "~/composables/usePrivateChat";
+import { type CommunityMessage } from "~/composables/useCommunityChat";
 
 // how to deal with received messages
 type MessageHandler = (payload: any) => void;
@@ -71,9 +72,16 @@ export function useStomp(){
     };
 
     function subscribe(dest: string, callback: MessageHandler){
+        console.log(
+            "[STOMP] subscribing to: ", 
+            dest, 
+            "\nreference count will be: ", 
+            (subscriptions.get(dest) ?.referenceCount ?? 0) + 1
+        );
         const exists = subscriptions.get(dest);
         if(exists){ // already subscribed
             exists.referenceCount++;
+            exists.callback = callback;
             return;
         }
 
@@ -120,6 +128,15 @@ export function useStomp(){
         }
     }
 
+    function sendCommunityMessage(message: CommunityMessage){
+        if(isConnected.value && client?.connected){
+            client.publish({
+                destination: '/app/chat/community',
+                body: JSON.stringify(message)
+            })
+        }
+    }
+
     return {
         isConnected,
         connect,
@@ -127,6 +144,7 @@ export function useStomp(){
         subscribe,
         unsubscribe,
         sendPrivateMessage,
+        sendCommunityMessage,
         onReconnectHook
     };
 }

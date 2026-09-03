@@ -4,45 +4,76 @@
     class="d-flex flex-column ga-4 pa-4"
     style="height:420px; overflow-y:auto;"
   >
+    <v-container v-if="isLoading || !user" class="d-flex justify-center align-center" style="min-height: 60vh">
+        <v-progress-circular indeterminate color="primary" size="48" />
+    </v-container>
+
+
+    <template v-else-if="messages.length">
+      <ChatMessage
+        v-for="message in messages"
+        :key="message.id"
+        :message="message"
+        :user="user",
+        :community="community"
+      />
+    </template>
 
     <BaseEmptyState
-      v-if="messages.length === 0"
+      v-else
       title="No messages yet"
       message="Be the first to say something!"
-    />
-
-    <ChatMessage
-      v-for="message in messages"
-      :key="message.id"
-      :message="message"
     />
 
   </BaseCard>
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, onMounted } from 'vue'
+import { useProfile } from '~/composables/useProfile'
+import { useStomp } from '~/composables/useStomp'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import ChatMessage from './ChatMessage.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
+
+const { connect } = useStomp()
+const { fetchCurrentUser, isLoading } = useProfile()
 
 const props = defineProps({
   messages: {
     type: Array,
     default: () => []
+  },
+  community: {
+    type: Object,
+    required: true
   }
 })
 
 const feedEl = ref(null)
+const user = ref(null)
+
+const scrollToBottom = async () => {
+  await nextTick()
+
+  if(!feedEl.value.$el) return
+
+  const el = feedEl.value.$el;
+  el.scrollTo = ({ 
+    top: el.scrollHeight,
+    behavior: 'smooth' 
+  })
+}
 
 watch(
   () => props.messages.length,
-  async () => {
-    await nextTick()
-    feedEl.value?.scrollTo({ 
-      top: feedEl.value.scrollHeight,
-      behavior: 'smooth' })
-  }
+  scrollToBottom
 )
+
+onMounted(async () => {
+  user.value = await fetchCurrentUser()
+  connect()
+  scrollToBottom()
+})
 </script>
 

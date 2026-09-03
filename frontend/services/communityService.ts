@@ -10,6 +10,7 @@ export interface GroupInfo{
 }
 
 interface Member{
+    id: string
     username: string;
     profilePicture: string;
 }
@@ -55,7 +56,7 @@ interface Groups{
     groups: Array<GroupInfo>
 }
 
-export interface GroupMessageDTO{
+export interface CommunityMessageDTO{
     id: string,
     senderId: string,
     communityId: string,
@@ -63,9 +64,9 @@ export interface GroupMessageDTO{
     sentAt: string
 }
 
-interface GroupMessagesDTO{
+interface CommunityMessagesDTO{
     message: string,
-    data: Array<GroupMessageDTO>
+    data: Array<CommunityMessageDTO>
 }
 
 
@@ -150,7 +151,7 @@ export const CommunityService = {
 
     async getMissedCommunityMessage(targetId: string, since: string | null | undefined){
         const { $api } = useNuxtApp();
-        const response = await $api<GroupMessagesDTO>('messages/',{
+        const response = await $api<CommunityMessagesDTO>('messages/',{
             query: {
                 type: "COMMUNITY",
                 targetId,

@@ -88,7 +88,7 @@ export const usePrivateChat = () => {
 
         try{
             const response = await ChatService.getConversations();
-            chats.value = response.map((el, i, arr) => {
+            chats.value = response.map((el) => {
                 const unread = true;
                 
                 const newChat: Conversation = {
@@ -113,8 +113,6 @@ export const usePrivateChat = () => {
         if(!token) return;
 
         subscribe(dest, async (message: DirectMessageDTO) => {            
-            console.log("Message received!!\n", message);
-
             // check for that we have this chat open and that is a server echo or not
             const myUserId = jwtDecode<{sub: string}>(token).sub;
             const fromPartner = message.senderId == currentChat.value?.userId;
@@ -179,7 +177,7 @@ export const usePrivateChat = () => {
         });
     }
 
-    const sendMessage = (msg: DirectMessageDTO) => {
+    const sendDirectMessage = (msg: DirectMessageDTO) => {
         if(!token) return;
 
         messages.value.push(msg);
@@ -212,7 +210,7 @@ export const usePrivateChat = () => {
 
     return { 
         isConnected, 
-        sendMessage, 
+        sendDirectMessage, 
         getMissedMessages, 
         getChats, 
         isLoading, 

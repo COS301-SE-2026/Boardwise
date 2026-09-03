@@ -79,8 +79,8 @@ watch(
 )
 
 onMounted(async () => {
-    scrollToBottom()
     user.value = await fetchCurrentUser();
     connect()
+    scrollToBottom()
 })
 </script>

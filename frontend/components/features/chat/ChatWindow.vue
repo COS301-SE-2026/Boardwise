@@ -92,7 +92,6 @@ import { useSnackBar } from '#imports'
 import { jwtDecode } from 'jwt-decode'
 import BaseCard from '~/components/ui/BaseCard.vue'
 
-
 const props = defineProps({
     conversation: {
         type: Object,
@@ -118,19 +117,25 @@ const {
     fetchInvites,
     respondToInvite,
 } = useEvents();
+
 const { show } = useSnackBar();
+
 const { 
     getMissedMessages,
-    sendMessage,
+    sendDirectMessage,
     messages
- } = usePrivateChat();
+} = usePrivateChat();
 
+const { 
+  onReconnectHook,
+} = useStomp();
 
 const respondingId = ref<string | null>(null);
 
 onMounted(() => {
     fetchInvites();
     getMissedMessages(props.conversation.id);
+    onReconnectHook(() => getMissedMessages(props.conversation.id))
 })
 
 watch(
@@ -164,7 +169,7 @@ const handleSend = (text: string) => {
         sentAt
     }
 
-    sendMessage(newMessage);
+    sendDirectMessage(newMessage);
 }
 
 const respondToEventInvite = async (

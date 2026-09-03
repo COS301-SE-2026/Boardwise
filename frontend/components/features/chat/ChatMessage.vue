@@ -8,7 +8,7 @@
     >
         <BaseAvatar
             v-if="!isOwn"
-            :src="conversation.profilePicture"
+            :src="conversation.profilePicture ?? '/images/avatar.jpg'"
             :name="conversation.username"
             size="sm"
             class="chat-message__avatar"
@@ -26,14 +26,14 @@
                 </p>
 
                 <span class="chat-message__time">
-                    {{ message.sentAt }}
+                    {{ formatSentAt(message.sentAt) }}
                 </span>
             </div>
         </div>
 
         <BaseAvatar
             v-if="isOwn"
-            :src="user.profilePicture"
+            :src="user.profilePicture ?? '/images/avatar.jpg'"
             :name="user.username"
             size="sm"
             class="chat-message__avatar"
@@ -67,6 +67,17 @@ const isOwn = computed(() => {
     return props.message?.senderId === props.user?.id 
     && props.message.senderId === props.user.id;
 })
+
+const formatSentAt = (sentAt) => {
+    const date = new Date(sentAt);
+    const hours = date.getHours();
+    const formattedhours = hours < 10 ? `0${hours}` : hours;
+
+    const minutes = date.getMinutes();
+    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+    
+    return `${formattedhours}:${formattedMinutes}`
+}
 
 const messageLabel = computed(() => {
     const sender = isOwn.value
