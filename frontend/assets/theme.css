@@ -285,13 +285,13 @@ a:hover { text-decoration: underline; }
 .btn--secondary { 
   background: transparent; 
   color: var(--color-secondary); 
-  border: 2px solid var(--color-secondary); 
+  border: 2px solid var(--color-secondary) !important; 
 }
 .btn--secondary:hover { background: var(--color-surface-alt); }
 
 .btn--accent    { 
   background: var(--color-accent); 
-  color: var(--color-text-inverse); 
+  color: var(--color-text-inverse) !important; 
   box-shadow: var(--shadow-sm);
 }
 .btn--accent:hover { opacity: 0.9; box-shadow: var(--shadow-md); }
@@ -336,12 +336,13 @@ a:hover { text-decoration: underline; }
 
 /* Input with error state */
 .input--error {
-  border-color: var(--color-error);
+  border-color: 2px solid var(--color-error);
 }
 
 .input-error-text {
   color: var(--color-error);
   font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
   margin-top: var(--space-1);
 }
 
@@ -380,8 +381,16 @@ a:hover { text-decoration: underline; }
 /* Accessibility helper — visually hidden but screen-reader available */
 .sr-only {
   position: absolute; width: 1px; height: 1px;
-  padding: 0; margin: -1px; overflow: hidden;
-  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  padding: 0 !important;
+  margin: -1px !important;
+
+  overflow: hidden !important;
+
+  clip: rect(0, 0, 0, 0) !important;
+
+  white-space: nowrap !important;
+
+  border: 0 !important;
 }
 
 /* Add Game Card */
@@ -2225,10 +2234,6 @@ html[data-density="compact"] .rulebook-list {
   outline-offset: 3px;
 }
 
-.btn--secondary {
-  border: 2px solid var(--color-secondary) !important;
-}
-
 @media (hover: hover) and (pointer: fine) {
   .base-button:hover {
     transform: translateY(-2px);
@@ -2285,17 +2290,6 @@ html[data-density="compact"] .rulebook-list {
   z-index: 2;
 }
 
-.badge--fire {
-  transform: rotate(2deg);
-}
-
-.badge--copper {
-  transform: rotate(-3deg);
-}
-
-.badge--obsidian {
-  transform: rotate(-1deg);
-}
 
 
 /* -------------------------------------------------------------
@@ -2580,25 +2574,6 @@ html[data-density="compact"] .rulebook-list {
   min-height: 44px;
 }
 
-.input:focus-visible {
-  outline: 3px solid var(--color-primary);
-  outline-offset: 2px;
-  border-color: var(--color-primary);
-}
-
-.input--error {
-  border: 2px solid var(--color-error);
-}
-
-.input-error-text {
-  margin-top: var(--space-1);
-
-  color: var(--color-error);
-
-  font-size: var(--fs-small);
-  font-weight: var(--fw-medium);
-}
-
 
 /* -------------------------------------------------------------
    LINKS
@@ -2616,15 +2591,6 @@ main a:not(.btn):not(.v-btn):not(.logo-wrapper):focus-visible {
   text-decoration-thickness: 2px;
 }
 
-
-/* -------------------------------------------------------------
-   COLOUR CONTRAST
-   Copper + white is too weak for normal text.
-   ------------------------------------------------------------- */
-
-.btn--accent {
-  color: var(--color-text) !important;
-}
 
 
 /* -------------------------------------------------------------
@@ -2644,23 +2610,6 @@ button:disabled,
    SCREEN READER HELPERS
    ------------------------------------------------------------- */
 
-.sr-only {
-  position: absolute !important;
-
-  width: 1px !important;
-  height: 1px !important;
-
-  padding: 0 !important;
-  margin: -1px !important;
-
-  overflow: hidden !important;
-
-  clip: rect(0, 0, 0, 0) !important;
-
-  white-space: nowrap !important;
-
-  border: 0 !important;
-}
 
 .sr-only-focusable:not(:focus):not(:focus-within) {
   position: absolute !important;
