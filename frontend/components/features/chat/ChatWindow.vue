@@ -89,6 +89,7 @@ import { useSnackBar } from '#imports'
 import { jwtDecode } from 'jwt-decode'
 import BaseCard from '~/components/ui/BaseCard.vue'
 
+
 const props = defineProps({
     conversation: {
         type: Object,
@@ -98,12 +99,16 @@ const props = defineProps({
     showBack: {
         type: Boolean,
         default: false
+    },
+
+    token: {
+        type: String,
+        required: true
     }
 })
 defineEmits(['back'])
 
 const showUserDetails = ref(false)
-const token = ref<string>("");
 
 const {
     invites,
@@ -118,11 +123,11 @@ const {
  } = usePrivateChat();
 
 
-const respondingId = ref<string | null>(null)
+const respondingId = ref<string | null>(null);
 
 onMounted(() => {
-    fetchInvites()
-    token.value = localStorage.getItem("access_token") ?? "";
+    fetchInvites();
+    getMissedMessages(props.conversation.id);
 })
 
 watch(
@@ -141,7 +146,7 @@ watch(
 )
 
 const handleSend = (text: string) => {
-    const senderId: string = jwtDecode(token.value).sub ?? "";
+    const senderId: string = jwtDecode(props.token).sub ?? "";
     const id = crypto.randomUUID();
     const convoId: string = props.conversation.id;
     const ids: string[] = convoId.split('_');
