@@ -1,86 +1,87 @@
 <template>
-    <section
-        class="help-section"
-        aria-labelledby="popular-guides-heading"
-    >
-        <v-container>
-            <div class="help-section__header">
-                <div>
-                    <h2
-                        id="popular-guides-heading"
-                        class="help-section__title"
-                    >
-                        Popular features
-                    </h2>
+  <section
+    class="help-section"
+    aria-labelledby="popular-guides-heading"
+  >
+    <v-container>
+      <div class="help-section__header mb-5">
+        <div>
+          <h2
+            id="popular-guides-heading"
+            class="help-section__title"
+          >
+            Popular features
+          </h2>
 
-                    <p class="help-section__description">
-                        Quick answers for common things people do on Boardwise.
-                    </p>
-                </div>
-            </div>
+          <p class="help-section__description">
+            Quick ways to explore Boardwise.
+          </p>
+        </div>
+      </div>
 
-            <div
-                v-if="visibleGuides.length"
-                class="help-guide-grid"
+      <v-row v-if="visibleGuides.length">
+        <v-col
+          v-for="guide in visibleGuides"
+          :key="guide.id"
+          cols="12"
+          sm="6"
+          lg="3"
+        >
+          <NuxtLink
+            :to="guide.route"
+            class="help-guide-link d-block h-100"
+          >
+            <BaseCard
+              class="help-guide-card d-flex align-center ga-4 pa-4 h-100"
             >
-                <NuxtLink
-                    v-for="guide in visibleGuides"
-                    :key="guide.id"
-                    :to="guide.route"
-                    class="help-guide-link"
-                >
-                    <BaseCard class="help-guide-card pa-5 h-100">
-                        <div class="help-guide-card__icon">
-                            <v-icon
-                                :icon="guide.icon"
-                                size="26"
-                                aria-hidden="true"
-                            />
-                        </div>
+              <div class="help-guide-card__icon flex-shrink-0">
+                <v-icon
+                  :icon="guide.icon"
+                  size="24"
+                  aria-hidden="true"
+                />
+              </div>
 
-                        <div class="help-guide-card__content">
-                            <div class="d-flex align-center ga-2">
-                                <h3 class="help-guide-card__title">
-                                    {{ guide.title }}
-                                </h3>
+              <div class="help-guide-card__content flex-grow-1">
+                <div class="d-flex align-center flex-wrap ga-2">
+                  <h3 class="help-guide-card__title">
+                    {{ guide.title }}
+                  </h3>
 
-                                <v-chip
-                                    v-if="guide.ai"
-                                    size="x-small"
-                                    color="primary"
-                                    variant="tonal"
-                                >
-                                    AI
-                                </v-chip>
-                            </div>
+                  <v-chip
+                    v-if="guide.ai"
+                    size="x-small"
+                    color="primary"
+                    variant="tonal"
+                  >
+                    AI
+                  </v-chip>
+                </div>
 
-                            <p class="help-guide-card__description">
-                                {{ guide.description }}
-                            </p>
+                <p class="help-guide-card__description mb-0 mt-1">
+                  {{ guide.description }}
+                </p>
+              </div>
 
-                            <span class="help-guide-card__action">
-                                View section
+              <v-icon
+                icon="mdi-chevron-right"
+                size="22"
+                class="help-guide-card__arrow flex-shrink-0"
+                aria-hidden="true"
+              />
+            </BaseCard>
+          </NuxtLink>
+        </v-col>
+      </v-row>
 
-                                <v-icon
-                                    icon="mdi-arrow-right"
-                                    size="18"
-                                    aria-hidden="true"
-                                />
-                            </span>
-                        </div>
-                    </BaseCard>
-                </NuxtLink>
-            </div>
-
-            <BaseEmptyState
-                v-else
-                title="No guides found"
-                description="Try another search or select a different help topic."
-            />
-        </v-container>
-    </section>
+      <BaseEmptyState
+        v-else
+        title="No guides found"
+        message="Try another search or select a different help topic."
+      />
+    </v-container>
+  </section>
 </template>
-
 <script setup>
 import { computed } from 'vue'
 
