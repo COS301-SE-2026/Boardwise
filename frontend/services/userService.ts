@@ -1,4 +1,4 @@
-import { type FriendStatus } from "./friendService";
+// import { type FriendStatus } from "./friendService"; 
 
 interface Boardgame{
     id: string;
@@ -52,6 +52,11 @@ interface Preferences{
     genres : Array<string>;
 }
 
+export enum FriendStatus{
+    REQUESTED,
+    ACCEPTED,
+    DECLINED 
+}
 export interface ProfileResponse{
     fullName: string;
     username: string;

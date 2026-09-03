@@ -1,16 +1,18 @@
 // Friends
 
-export interface Friend {
+import type { FriendStatus } from "./userService"
+
+export interface FriendDTO {
     id: string
     username: string
     fullname: string
     profilePicture: string
 }
 
-export interface friendList {
-    message: string
-    friends: Friend[]
-    mutuals: Friend[] | null   // null when called via getOwnFriendsList (mutuals not computed for own list)
+export interface FriendListDTO{
+    message:string 
+    friends: FriendDTO[]
+    mutuals: FriendDTO[] | null
 }
 
 export interface FriendRequestResponse {
@@ -19,7 +21,7 @@ export interface FriendRequestResponse {
 
 export interface FriendRequestItem {
     id: string // reqested id for db 
-    sender: Friend
+    sender: FriendDTO
 }
 
 export interface FriendRequestsDTO {
@@ -60,7 +62,7 @@ export interface FriendRequestNotification {
 
 export interface FriendConfirmationNotification {
     type: NotificationType.FRIEND_CONFIRMATION
-    friend: Friend
+    friend: FriendDTO
 }
 
 export type NotificationItem =
@@ -73,12 +75,47 @@ export interface NotificationsDTO {
     notifications: NotificationItem[]
 }
 
+export interface GameInventoryDTO{
+    id:string 
+    title: string
+    description:string
+    imageUrl: string
+    genres: string[]
+}
+
+export interface Preferences{
+    visibility: string
+    genres:string[]
+}
+
+export interface ProfileResponseDTO{
+    id:string
+    fullName:string
+    username:string
+    location:string
+    profilePicture:string
+    friendCount:number
+    groupCount:number
+    ownedGameCount:number
+    games:GameInventoryDTO[]
+    communities: Map<string,string>[]
+    preferences: Preferences
+    createdAt: string
+}
+
+export interface FriendShip{
+    id:string
+    sender:string
+    status: FriendStatus
+    createdAt:string
+}
+
 export const FriendService = {
 
     // GET /api/users/friends
     getOwnFriendsList() {
         const { $api } = useNuxtApp()
-        return $api<friendList>('users/friends', {
+        return $api<FriendListDTO>('users/friends', {
             method: 'GET'
         })
     },
@@ -86,7 +123,7 @@ export const FriendService = {
     // GET /api/users/{userId}/friends
     getUserFriendsList(userId: string) {
         const { $api } = useNuxtApp()
-        return $api<friendList>(`users/${userId}/friends`, {
+        return $api<FriendListDTO>(`users/${userId}/friends`, {
             method: 'GET'
         })
     },
@@ -130,5 +167,21 @@ export const FriendService = {
         return $api<NotificationsDTO>('users/notifications', {
             method: 'GET'
         })
+    },
+
+    //GET /api/{userId}
+    getOtherUserProfile(userId: string){
+        const{ $api } = useNuxtApp();
+        return $api<ProfileResponseDTO>(`/${userId}`,{
+            method: 'GET'
+        });
+    },
+
+    getOtherUserFriendsList(userId:string){
+        const { $api } = useNuxtApp();
+        return $api<FriendListDTO>(`/${userId}/friends`, {
+            method: 'GET'
+        });
     }
+    
 }
