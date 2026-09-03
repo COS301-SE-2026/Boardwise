@@ -1,5 +1,5 @@
 import { createSharedComposable } from "@vueuse/core";
-import { FriendService, type FriendListDTO, type FriendRequestResponse, type FriendRequestsDTO, type ProfileResponseDTO} from "~/services/friendService";
+import { FriendService, type FriendListDTO, type FriendRequestsDTO, type ProfileResponseDTO} from "~/services/friendService";
 const { show } = useSnackBar()
 
 
@@ -30,7 +30,8 @@ const _useFriends=()=>{
 
         isLoading.value = true;
         try{
-            return userFriendRequests.value = await  FriendService.getFriendRequests();
+            userFriendRequests.value = await  FriendService.getFriendRequests();
+            return userFriendRequests.value;
         }
         catch(err){
             console.log(err);

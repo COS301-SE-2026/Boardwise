@@ -18,7 +18,7 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
 import { useFriends } from '~/composables/useFriends';
 
-import {type FriendRequestResponse, type FriendRequestsDTO, type Friend } from "~/services/friendService";
+import { type FriendRequestsDTO } from "~/services/friendService";
 
 const {getFriendRequests } = useFriends();
 defineProps<{ requests: FriendRequestsDTO }>()
