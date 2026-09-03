@@ -25,139 +25,12 @@
         </div>
       </section>
 
-      <v-dialog
+      <CommunityMoreDetails
         v-model="showDetails"
-        max-width="860"
-        scrollable
-      >
-        <v-card rounded="xl">
-          <v-card-title class="d-flex align-center pa-5">
-            <div>
-              <p class="text-h6 font-weight-bold mb-0">
-                {{ community.name }}
-              </p>
-
-              <p class="text-body-2 text-medium-emphasis mb-0">
-                Community details
-              </p>
-            </div>
-
-            <v-spacer />
-
-            <v-btn
-              icon="mdi-close"
-              variant="text"
-              aria-label="Close community details"
-              @click="showDetails = false"
-            />
-          </v-card-title>
-
-          <v-divider />
-
-          <v-tabs
-            v-model="detailsTab"
-            color="primary"
-            class="community-details-tabs"
-          >
-            <v-tab value="about">
-              About
-            </v-tab>
-
-            <v-tab value="members">
-              Members ({{ community.memberCount }})
-            </v-tab>
-
-            <v-tab value="events">
-              Events
-            </v-tab>
-          </v-tabs>
-
-          <v-divider />
-
-          <v-card-text class="pa-5">
-            <v-window v-model="detailsTab">
-              <v-window-item value="about">
-                <div class="community-details-about">
-                  <h3 class="text-subtitle-1 font-weight-bold mb-2">
-                    About this community
-                  </h3>
-
-                  <p class="text-body-2 text-medium-emphasis">
-                    {{ community.description }}
-                  </p>
-
-                  <div class="d-flex flex-wrap ga-2 mt-5">
-                    <BaseBadge :variant="community.visibility">
-                      {{ community.visibility }}
-                    </BaseBadge>
-
-                    <v-chip
-                      prepend-icon="mdi-account-group-outline"
-                      variant="tonal"
-                    >
-                      {{ community.memberCount }} members
-                    </v-chip>
-                  </div>
-
-                  <div class="mt-6">
-                  <h3 class="text-subtitle-1 font-weight-bold mb-2">
-                    Community rules
-                  </h3>
-
-                  <p class="text-body-2 text-medium-emphasis mb-0">
-                    Be respectful, stay on topic and help keep the
-                    community welcoming for everyone.
-                  </p>
-                </div>
-
-                <div
-                  v-if="community.isMember && !community.isOwner"
-                  class="mt-8"
-                >
-                  <v-divider class="mb-5" />
-
-                  <h3 class="text-subtitle-1 font-weight-bold mb-2">
-                    Membership
-                  </h3>
-
-                  <p class="text-body-2 text-medium-emphasis mb-4">
-                    You can leave this community at any time.
-                  </p>
-
-                  <BaseButton
-                    variant="error"
-                    :loading="loading"
-                    @click="handleLeave"
-                  >
-                    <v-icon
-                      icon="mdi-exit-to-app"
-                      class="me-2"
-                      aria-hidden="true"
-                    />
-
-                    Leave community
-                  </BaseButton>
-                </div>
-                </div>
-              </v-window-item>
-
-              <v-window-item value="members">
-                <MemberList
-                  :model-value="true"
-                  :community="community"
-                />
-              </v-window-item>
-
-              <v-window-item value="events">
-                <CommunityEvents
-                  :model-value="true"
-                  :community="community"
-                />
-              </v-window-item>
-            </v-window>
-          </v-card-text>
-        </v-card>
-      </v-dialog>
+        :community="community"
+        :loading="loading"
+        @leave="handleLeave"
+      />
     </v-container>
 
     <output
@@ -190,15 +63,12 @@ import PageContainer from '~/components/layout/PageContainer.vue'
 
 import CommunityBanner from '~/components/features/community/CommunityBanner.vue'
 import CommunityChats from '~/components/features/community/CommunityChats.vue'
-import CommunityEvents from '~/components/features/community/CommunityEvents.vue'
-import MemberList from '~/components/features/community/MemberList.vue'
 
-import BaseBadge from '~/components/ui/BaseBadge.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
 import { useCommunity } from '~/composables/useCommunity'
 import { useSnackBar } from '~/composables/useSnackbar'
-import BaseButton from '~/components/ui/BaseButton.vue'
+import CommunityMoreDetails from '~/components/features/community/CommunityMoreDetails.vue'
 
 const route = useRoute()
 
@@ -244,6 +114,7 @@ const handleLeave  = async () => {
     community.value.isMember = response.data.isMember
 
     show('You left the community.', 'success')
+    showDetails.value = false
   } catch (err) {
     console.error('Failed to leave the community.', err)
     show(error.value || 'Could not leave the community.', 'error')
