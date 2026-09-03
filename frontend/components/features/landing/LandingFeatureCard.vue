@@ -3,7 +3,8 @@
         :to="feature.route"
         class="landing-feature-link"
     >
-    <BaseCard class="landing-feature-card pa-6 h-100" >
+    <div class="landing-feature-card h-100">
+  <BaseCard class="pa-6 h-100">
         <div>
         <v-icon
             :icon="feature.icon"
@@ -48,6 +49,7 @@
              />
         </div>
     </BaseCard>
+    </div>
 </NuxtLink>
 </template>
 
