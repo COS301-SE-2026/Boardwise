@@ -102,7 +102,6 @@ import { useMarketplace } from '~/composables/useMarketplace'
 import { useFriends } from '~/composables/useFriends'
 
 import { useRouter } from 'vue-router'
-import { fa } from 'vuetify/locale'
 
 const { fetchCurrentUser, removeGame } = useProfile();
 const { listings, fetchUserListing, loading } = useMarketplace();
