@@ -20,6 +20,7 @@
           <CommunityChats
             :community="community"
             @join="handleJoin"
+            @leave="handleLeave"
           />
         </div>
       </section>
@@ -174,6 +175,7 @@ const route = useRoute()
 const {
   getCommunityDetails,
   joinCommunity,
+  leaveCommunity,
   error,
   loading
 } = useCommunity()
@@ -200,6 +202,21 @@ const handleJoin = async () => {
   } catch (err) {
     console.error('Failed to join community.', err)
     show(error.value, 'error')
+  }
+}
+
+const handleLeave  = async () => {
+  try {
+    const response = await leaveCommunity(route.params.id)
+
+    community.value.members = response.data.members
+    community.value.memberCount = response.data.memberCount
+    community.value.isMember = response.data.isMember
+
+    show('You left the community.', 'success')
+  } catch (err) {
+    console.error('Failed to leave the community.', err)
+    show(error.value || 'Could not leave the community.', 'error')
   }
 }
 
