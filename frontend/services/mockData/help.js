@@ -1,128 +1,179 @@
+const createFaq = (question, answer) => ({
+    question,
+    answer
+})
+
+const createTutorial = (
+    title,
+    description,
+    steps,
+    route,
+    button
+) => ({
+    title,
+    description,
+    steps,
+    route,
+    button
+})
+
+const createGuide = (
+    id,
+    title,
+    description,
+    icon,
+    route,
+    topic
+) => ({
+    id,
+    title,
+    description,
+    icon,
+    route,
+    topic
+})
+
 export const faqs = [
-    {
-        question: 'How do I create an account?',
-        answer: 'Select Sign Up from the navigation bar and complete the registration form.'
-    },
-    {
-        question: 'How do I access rulebooks?',
-        answer: 'Open the Library to browse, search and read available board game rulebooks.'
-    },
-    {
-        question: 'How do I join a community?',
-        answer: 'Navigate to the Community page, choose a community and click Join.'
-    },
-    {
-        question: 'How do I create a marketplace listing?',
-        answer: 'Open the Marketplace and select Create Listing to sell or trade a board game.'
-    },
-    {
-        question: 'How do I create an event?',
-        answer: 'Go to the Events page and select Create Event.'
-    },
-    {
-        question: 'How do I discover  events?',
-        answer: 'Browse the Events page to find upcoming board game events near you.'
-    },
-    {
-        question: 'How do I manage my game library?',
-        answer: 'Search for board games and add them to your personal collection from their game pages.'
-    },
-    {
-    question: 'Where can I report a problem or request support?',
-    answer: 'If you need additional assistance, use the Contact Support section at the bottom of this page.'
-    }   
+    createFaq(
+        'How do I create an account?',
+        'Select Sign Up from the navigation bar and complete the registration form.'
+    ),
+    createFaq(
+        'How do I access rulebooks?',
+        'Open the Library to browse, search and read available board game rulebooks.'
+    ),
+    createFaq(
+        'How do I join a community?',
+        'Navigate to the Community page, choose a community and click Join.'
+    ),
+    createFaq(
+        'How do I create a marketplace listing?',
+        'Open the Marketplace and select Create Listing to sell or trade a board game.'
+    ),
+    createFaq(
+        'How do I create an event?',
+        'Go to the Events page and select Create Event.'
+    ),
+    createFaq(
+        'How do I discover events?',
+        'Browse the Events page to find upcoming board game events near you.'
+    ),
+    createFaq(
+        'How do I manage my game library?',
+        'Search for board games and add them to your personal collection from their game pages.'
+    ),
+    createFaq(
+        'Where can I report a problem or request support?',
+        'If you need additional assistance, use the Contact Support section at the bottom of this page.'
+    )
 ]
 
 export const tutorials = [
-    {
-        title: 'Browse Rulebooks',
-        description: 'Find and read board game rulebooks in the library.',
-        steps: [
+    createTutorial(
+        'Browse Rulebooks',
+        'Find and read board game rulebooks in the library.',
+        [
             'Open the Library.',
             'Search for a board game.',
             'Select a game from the results.',
             'Open and read the rulebook.'
         ],
-        route: '/library',
-        button: 'Open Library'
-    },
-    {
-        title: 'Join a Community',
-        description: 'Connect with other players and participate in discussions.',
-        steps: [
+        '/library',
+        'Open Library'
+    ),
+
+    createTutorial(
+        'Join a Community',
+        'Connect with other players and participate in discussions.',
+        [
             'Open the Community page.',
             'Browse available communities.',
             'Select a community that interests you.',
             'Click Join to become a member.'
         ],
-        route: '/community',
-        button: 'Explore Communities'
-    },
-    {
-        title: 'Game marketplace',
-        description: 'Create listings or browse games available from other players.',
-        steps: [
+        '/community',
+        'Explore Communities'
+    ),
+
+    createTutorial(
+        'Game marketplace',
+        'Create listings or browse games available from other players.',
+        [
             'Open the Marketplace.',
             'Browse listings or search for a game.',
             'Create your own listing or contact a seller.',
             'Complete your transaction.'
         ],
-        route: '/marketplace',
-        button: 'Open Marketplace'
-    },
-    {
-        title: 'Discover Events',
-        description: 'Find and create board game events in your community.',
-        steps: [
+        '/marketplace',
+        'Open Marketplace'
+    ),
+
+    createTutorial(
+        'Discover Events',
+        'Find and create board game events in your community.',
+        [
             'Open the Events page.',
             'Browse upcoming events.',
             'Join an event or create your own.',
             'Track your attendance.'
         ],
-        route: '/events',
-        button: 'View Events'
-    }
+        '/events',
+        'View Events'
+    )
 ]
 
 export const popularGuides = [
-    {
-        id: 'join-community',
-        title: 'Join a community',
-        description: 'Find a community and connect with other board game players.',
-        icon: 'mdi-account-group-outline',
-        route: '/community',
-        topic: 'communities'
-    },
-    {
-        id: 'find-rulebook',
-        title: 'Find a rulebook',
-        description: 'Search the Library and open the rules for a game.',
-        icon: 'mdi-book-open-page-variant-outline',
-        route: '/library',
-        topic: 'library'
-    },
-    {
-        id: 'discover-event',
-        title: 'Find a game night',
-        description: 'Browse upcoming events and find something to join.',
-        icon: 'mdi-calendar-outline',
-        route: '/events',
-        topic: 'events'
-    },
-    {
-        id: 'marketplace',
-        title: 'Use the Marketplace',
-        description: 'Browse board games being sold by the Boardwise community.',
-        icon: 'mdi-storefront-outline',
-        route: '/marketplace',
-        topic: 'marketplace'
-    },
-    {
-        id: 'privacy',
-        title: 'Manage your privacy',
-        description: 'Control who can see your Boardwise profile and activity.',
-        icon: 'mdi-shield-account-outline',
-        route: '/settings',
-        topic: 'account'
-    }
+    createGuide(
+  'join-community',
+  'Join a community',
+  'Find communities and meet other players.',
+  'mdi-account-group-outline',
+  '/community',
+  'communities'
+),
+
+createGuide(
+  'chats',
+  'Chat with players',
+  'Message friends and communities.',
+  'mdi-message-text-outline',
+  '/chats',
+  'social'
+),
+
+createGuide(
+  'invite-friends',
+  'Find & invite friends',
+  'Find players and send friend invites.',
+  'mdi-account-plus-outline',
+  '/search',
+  'social'
+),
+
+createGuide(
+  'find-rulebook',
+  'Find a rulebook',
+  'Search and read game rules.',
+  'mdi-book-open-page-variant-outline',
+  '/library',
+  'library'
+),
+
+createGuide(
+  'discover-event',
+  'Find a game night',
+  'Discover upcoming game nights.',
+  'mdi-calendar-outline',
+  '/events',
+  'events'
+),
+
+createGuide(
+  'marketplace',
+  'Marketplace',
+  'Browse games listed by players.',
+  'mdi-storefront-outline',
+  '/marketplace',
+  'marketplace'
+)
 ]
