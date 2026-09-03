@@ -1,28 +1,38 @@
 <template>
-  <div class="d-flex flex-column ga-4">
+  <div class="community-chat-content">
+    <ChatFeed
+      :messages="messages"
+      class="community-chat-content__feed"
+    />
 
-    <ChatFeed :messages="messages" />
+    <div class="community-chat-content__composer">
+      <div
+        v-if="!community.isMember"
+        class="community-chat-join"
+      >
+        <div>
+          <p class="font-weight-bold mb-1">
+            Join the conversation
+          </p>
 
-    <BaseCard 
-      v-if="!community.isMember"
-      class="pa-4">
+          <p class="text-body-2 text-medium-emphasis mb-0">
+            Join this community to send messages.
+          </p>
+        </div>
 
-      <p class="text-body-2 text-medium-emphasis mb-4">
-        Join this community to participate in the discussion
-      </p>
+        <BaseButton
+          :disabled="loading"
+          @click="$emit('join')"
+        >
+          {{ loading ? 'Joining...' : 'Join community' }}
+        </BaseButton>
+      </div>
 
-    <BaseButton 
-      :disabled="loading"
-      @click="$emit('join')"
-    >
-      {{ loading ? 'Joining...' : 'Join community' }}
-    </BaseButton>
-
-   </BaseCard>
-      
-    <ChatInput 
-      v-else @send="handleSend"/>
-
+      <ChatInput
+        v-else
+        @send="handleSend"
+      />
+    </div>
   </div>
 </template>
 
@@ -30,7 +40,6 @@
 import { ref } from 'vue'
 import ChatFeed from './ChatFeed.vue'
 import ChatInput from './ChatInput.vue'
-import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import { useCommunity } from '~/composables/useCommunity'
 const {
