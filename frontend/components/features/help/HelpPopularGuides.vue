@@ -41,6 +41,7 @@
                 <v-icon
                   :icon="guide.icon"
                   size="24"
+                  color="primary"
                   aria-hidden="true"
                 />
               </div>
