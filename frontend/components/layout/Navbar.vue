@@ -130,7 +130,7 @@
 
         <v-list nav density="compact" min-width="200">
           <v-list-item 
-            prepend-icon="mdi-chat-outline"
+            prepend-icon="mdi-account-outline"
             title="Profile"
             to="/profile"
           />
