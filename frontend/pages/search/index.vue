@@ -64,7 +64,7 @@ function handleOpenListing(listing) {
 }
 
 function handleOpenProfile(person) {
-    router.push(`/profile/${person.username}`)
+    router.push(`/profile/${person.id}`)
 }
 
 const handleFriendAction =  async (person) => {
