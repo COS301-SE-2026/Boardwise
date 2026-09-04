@@ -22,7 +22,7 @@ import com.boardwise.backend.vault.service.RulebookService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/vault/rulebooks")
+@RequestMapping("/api/sb/vault/rulebooks")
 @RequiredArgsConstructor
 public class RulebookController {
     private final RulebookService rulebookService;
