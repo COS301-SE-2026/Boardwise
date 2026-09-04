@@ -16,7 +16,7 @@ University of Pretoria · Client: EPI-USE Labs
 [Overview](#overview) · [Features](#core-features) · [Technology](#technology-stack) · [Architecture](#architecture) · [Getting Started](#getting-started) · [Documentation](#documentation) · [Team](#team)
 
 [![Open the Boardwise project board](https://img.shields.io/badge/Explore-Project%20Board-C7286E?style=for-the-badge&logo=github&logoColor=white)](https://github.com/orgs/COS301-SE-2026/projects/46)
-[![Read the Boardwise documentation](https://img.shields.io/badge/Read-Documentation-4E1E5C?style=for-the-badge&logo=readthedocs&logoColor=white)](./docs/Demo2/srs.md)
+[![Read the Boardwise documentation](https://img.shields.io/badge/Read-Documentation-4E1E5C?style=for-the-badge&logo=readthedocs&logoColor=white)](./docs/Demo3/srs.md)
 [![Get started with Boardwise](https://img.shields.io/badge/Build-Get%20Started-EF5B27?style=for-the-badge&logo=rocket&logoColor=white)](#getting-started)
 
 ---
@@ -44,11 +44,12 @@ The platform is organised around three primary domains:
 | Resource | Description | Link |
 |---|---|---|
 | Software Requirements Specification | Requirements, use cases and service contracts | [View SRS](./docs/Demo2/srs.md) |
-| Software Architecture Specification | Architecture and system design | [View SAS](./docs/Demo2/sas.md) |
+| Software Architecture Specification | Architecture and system design | [View SAS](./docs/Demo3/sas.md) |
 | Project Board | Issues, sprint work and delivery progress | [Open board](https://github.com/orgs/COS301-SE-2026/projects/46) |
 | UI designs | Wireframes and interface references | [Open designs](./docs/design) |
 | Brand style guide | Colour, typography, components and accessibility | [View guide](./docs/design/brandStyleGuide%20(version%202).pdf) |
 | Coding standards | Shared implementation conventions | [View standards](./docs/design/codingStandards.pdf) |
+| Testing Policy Document | Shared implementation conventions | [View standards](./docs/demo3/TESTING%20POLICY%20DOCUMENT%20.pdf) |
 
 ---
 
@@ -99,12 +100,13 @@ The technologies behind Boardwise, grouped by where they contribute to the platf
 
 | Document | Contents |
 |---|---|
-| [SRS](./docs/Demo2/srs.md) | Requirements, use cases, domain model, API contracts and traceability |
-| [SAS](./docs/Demo2/sas.md) | Architecture decisions, services and deployment design |
+| [SRS](./docs/Demo3/srs.md) | Requirements, use cases, domain model, API contracts and traceability |
+| [SAS](./docs/Demo3/sas.md) | Architecture decisions, services and deployment design |
 | [Brand Style Guide](./docs/design/brandStyleGuide%20(version%202).pdf) | Brand colours, typography, components and accessibility rules |
 | [Wireframes](./docs/design) | Interface designs and navigation flows |
 | [Design Tokens](./frontend/assets/theme.css) | Shared colour, type, spacing and interaction tokens |
 | [Coding Standards](./docs/design/codingStandards.pdf) | Team-wide coding and review conventions |
+| [Testing Policy Document](./docs/.pdf) | Team-wide coding and review conventions |
 
 ---
 ## Architecture
@@ -130,7 +132,7 @@ flowchart TB
 
 The Vault processes uploads asynchronously through sequential sanitisation and extraction stages. WebSocket communication supports real-time features, while MRSW - Multi-Reader, Single-Writer - locking protects collaborative rulebook editing.
 
-See the [Software Requirements Specification](./docs/Demo2/srs.md) for detailed component diagrams, service contracts and the traceability matrix.
+See the [Software Requirements Specification](./docs/Demo3/srs.md) for detailed component diagrams, service contracts and the traceability matrix.
 
 ---
 
