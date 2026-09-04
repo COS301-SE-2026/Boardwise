@@ -71,7 +71,7 @@ public class ListingControllerTest{
         return new ListingResponse("someListingId",
         "some listingTitle",
         "testBuddy",
-        new ObjectId(),
+        "",
         "Monopoly",
         "partial boardgame",
         "sale", 

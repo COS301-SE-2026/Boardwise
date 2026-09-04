@@ -19,7 +19,8 @@ export interface Conversation{
     lastMessage: string,
     lastMessageAt: string,
     isOnline: boolean,
-    unread: boolean
+    unread: boolean;
+    isInvite?: boolean
 }
 
 const error = ref<string>('');
@@ -88,16 +89,21 @@ export const usePrivateChat = () => {
 
         try{
             const response = await ChatService.getConversations();
-            chats.value = response.map((el) => {
-                const unread = true;
-                
+            const fetchedChats = response.map((el) => {                
                 const newChat: Conversation = {
                     ...el,
-                    unread
+                    unread: false
                 }
-
                 return newChat;
             })
+
+            const unsavedChats = chats.value.filter( el => 
+                !fetchedChats.some((fetched) => fetched.id === el.id) &&
+                (!el.lastMessage || el.lastMessage === "")
+            )
+
+            chats.value = [...unsavedChats, ...fetchedChats]
+            
         }
         catch(err: any){
             error.value = err.data?.message || "Could not retrieve chats."
@@ -194,6 +200,41 @@ export const usePrivateChat = () => {
         sendPrivateMessage(toWire);
     }
 
+    const startNewConversation = async (receiverId: string) => {
+        const senderId = jwtDecode(token!).sub;
+        if(!senderId) return;
+
+        const convoId = generateConversationId(senderId, receiverId);
+        let chat = chats.value.find((el) => {
+            return el.id === convoId;
+        })  
+
+        if(chat){
+            chats.value = chats.value.filter((el) => el.id !== convoId)
+            chats.value.unshift(chat)
+        }
+        else{
+            const { fetchUserById } = useProfile();
+            const sender: ProfileResponse | undefined = await fetchUserById(receiverId);
+
+            if(!sender) return;
+
+            chat = {
+                id: convoId,
+                userId: receiverId,
+                username: sender.username,
+                profilePicture: sender.profilePicture,
+                isOnline: true,
+                lastMessage: "",
+                lastMessageAt: new Date().toISOString(),
+                unread: false
+            }
+            chats.value.unshift(chat);
+        }
+        currentChat.value = chat;
+        messages.value = [];
+    }
+
     if(isConnected.value){
         listenForMessages();
     }
@@ -217,6 +258,8 @@ export const usePrivateChat = () => {
         error,
         chats,
         messages,
-        generateConversationId 
+        generateConversationId,
+        startNewConversation,
+        currentChat 
     };
 }

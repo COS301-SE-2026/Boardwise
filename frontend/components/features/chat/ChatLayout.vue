@@ -37,6 +37,7 @@ import ChatWindow from './ChatWindow.vue'
 
 import { useEvents } from '~/composables/useEvents'
 import { usePrivateChat } from '~/composables/usePrivateChat'
+import { useRoute, useRouter } from 'vue-router'
 
 
 const {
@@ -46,8 +47,13 @@ const {
 
 const {
     chats,
-    getChats
+    currentChat,
+    getChats,
+    startNewConversation
 } = usePrivateChat()
+
+const router = useRouter()
+const route = useRoute()
 
 const mobileConversationOpen = ref(false)
 
@@ -61,6 +67,17 @@ const props = defineProps({
 onMounted(async () => {
     await fetchInvites()
     await getChats()
+
+    if(route.query.newChat){
+        await startNewConversation(route.query.newChat as string)
+        router.replace({ query: {} })
+    }
+
+    if(currentChat.value){
+        selectConversation(currentChat.value.id)
+    }
+    else if(conversations.value.length > 0 && conversations.value[0])
+        selectConversation(conversations.value[0].id)
 })
 
 const conversations = computed(() => {
@@ -71,35 +88,32 @@ const conversations = computed(() => {
     return [
         {
             id: "boardwise-invites",
+            userId: 'invites',
             username: 'Invites',
             profilePicture: '/images/default-listing.png',
             lastMessage,
-            unread: inviteCount.value,
+            unread: Boolean(inviteCount.value),
             isOnline: inviteCount.value > 0,
-            isInvite: true
+            isInvite: true,
+            lastMessageAt: new Date().toISOString()
         },
 
         ...chats.value
     ]
 })
 
-const selectedConversation = ref(
-    conversations.value[0] ?? null
+const selectedId = ref<string | null>(null)
+const selectedConversation = computed(() =>
+    conversations.value.find((c) => c.id === selectedId.value) ?? null
 )
 
 const selectConversation = (id: string) => {
-    const convoIndex =
-        conversations.value.findIndex(
-            (item) => item.id === id
-        )
+    const convo = conversations.value.find((el) => el.id === id)
+    if(!convo) return
 
-    const conversation = conversations.value[convoIndex];
-
-    if (!conversation) return
-
-    conversation.isOnline = !( conversation.username === 'Invites' && inviteCount.value > 0 )
-
-    selectedConversation.value = conversation
+    convo.isOnline = !(convo.username === 'Invites' && inviteCount.value > 0)
+    selectedId.value = id
     mobileConversationOpen.value = true
+    currentChat.value = convo.isInvite ? null : convo
 }
 </script>
