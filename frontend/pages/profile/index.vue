@@ -11,6 +11,7 @@
         :games="user.ownedGamesCount"
         :friends="user.friendCount"
         :communities="user.groupCount"
+        @open="openFriendsModal"
       />
 
       <ProfileCommunities :communities="user.communities" />
@@ -66,6 +67,13 @@
       @back="showCustom = false; showBrowser = true"
     />
 
+    <FriendsModal
+        v-model="showFriendsModal"
+        :username="user?.username ?? ''"
+        :loading="isLoading"
+        @respond="onRespond"
+        @remove="handleRemove"
+    />
   </PageContainer>
 </template>
 
@@ -82,6 +90,7 @@ import PageContainer from '~/components/layout/PageContainer.vue'
 import ProfileHeader from '~/components/features/profile/ProfileHeader.vue'
 import ProfileStats from '~/components/features/profile/ProfileStats.vue'
 import ProfileCommunities from '~/components/features/profile/ProfileCommunities.vue'
+import FriendsModal from '~/components/features/people/FriendsModal.vue';
 
 import GamesOwnedSection from '~/components/features/profile/GamesOwnedSection.vue'
 import ListingsSection from '~/components/features/profile/ListingsSection.vue'
@@ -90,11 +99,13 @@ import AddCustomGameModal from '~/components/features/shared/AddCustomGameModal.
 import { useProfile } from '~/composables/useProfile'
 import { useSnackBar } from '~/composables/useSnackbar'
 import { useMarketplace } from '~/composables/useMarketplace'
+import { useFriends } from '~/composables/useFriends'
 
 import { useRouter } from 'vue-router'
 
 const { fetchCurrentUser, removeGame } = useProfile();
-const { listings, fetchUserListing, loading, error } = useMarketplace();
+const { listings, fetchUserListing, loading } = useMarketplace();
+const {  isLoading, respondToFriendRequest, unfriendUser } = useFriends()
 const { show } = useSnackBar();
 const router = useRouter();
 const activeTab = ref('Games Owned');
@@ -102,6 +113,7 @@ const user = ref(null);
 const showBrowser = ref(false);
 const showCustom = ref(false);
 const numGames = ref(0);
+const showFriendsModal = ref(false);
 
 const games = computed(()=> user.value?.games??[] );
 
@@ -118,6 +130,11 @@ const handleGamesAdded = async () => {
 const openCustomModal = () => {
   showBrowser.value = false
   showCustom.value = true
+}
+
+const openFriendsModal = async () => {
+    if (!user.value) return
+    showFriendsModal.value = true
 }
 
 const handleRemoveGame = async(gameId)=>{
@@ -162,6 +179,31 @@ const handlePfpChange = (newPfp) => {
 
   user.value.profilePicture = newPfp.profilePictureUrl;
   show("Looking good! Your profile picture is updated.");
+}
+
+const onRespond = async (id, action) => {
+    console.log("respond event emitted and caught")
+    try {
+        await respondToFriendRequest(id, action)
+        await refreshUser()
+        await fetchUserListing()
+        showFriendsModal.value = false
+
+    } catch (err) {
+        console.error('Failed to respond to friend request:', err)
+    }
+}
+
+const handleRemove = async (id) => {
+    if (!user.value) return
+    try {
+        await unfriendUser(id)
+        await refreshUser()
+        await fetchUserListing()
+        showFriendsModal.value = false
+    } catch (err) {
+        console.error('Failed to send friend request:', err)
+    }
 }
 
 onMounted(async () => {

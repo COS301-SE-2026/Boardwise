@@ -18,13 +18,14 @@
                 v-if="selectedConversation"
                 :conversation="selectedConversation"
                 :show-back="mobileConversationOpen"
+                :token="token"
                 @back="mobileConversationOpen = false"
             />
         </div>
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
     computed,
     onMounted,
@@ -34,18 +35,49 @@ import {
 import ChatSidebar from './ChatSidebar.vue'
 import ChatWindow from './ChatWindow.vue'
 
-import { getChats } from '~/services/chatService.js'
 import { useEvents } from '~/composables/useEvents'
+import { usePrivateChat } from '~/composables/usePrivateChat'
+import { useRoute, useRouter } from 'vue-router'
+
 
 const {
     inviteCount,
     fetchInvites
 } = useEvents()
 
+const {
+    chats,
+    currentChat,
+    getChats,
+    startNewConversation
+} = usePrivateChat()
+
+const router = useRouter()
+const route = useRoute()
+
 const mobileConversationOpen = ref(false)
+
+const props = defineProps({
+    token: {
+        type: String,
+        required: true
+    }
+})
 
 onMounted(async () => {
     await fetchInvites()
+    await getChats()
+
+    if(route.query.newChat){
+        await startNewConversation(route.query.newChat as string)
+        router.replace({ query: {} })
+    }
+
+    if(currentChat.value){
+        selectConversation(currentChat.value.id)
+    }
+    else if(conversations.value.length > 0 && conversations.value[0])
+        selectConversation(conversations.value[0].id)
 })
 
 const conversations = computed(() => {
@@ -55,32 +87,33 @@ const conversations = computed(() => {
 
     return [
         {
-            id: 'invites',
-            name: 'Invites',
-            avatar: '/images/default-listing.png',
+            id: "boardwise-invites",
+            userId: 'invites',
+            username: 'Invites',
+            profilePicture: '/images/default-listing.png',
             lastMessage,
-            unread: inviteCount.value,
-            online: false,
-            isInvite: true
+            unread: Boolean(inviteCount.value),
+            isOnline: inviteCount.value > 0,
+            isInvite: true,
+            lastMessageAt: new Date().toISOString()
         },
 
-        ...getChats()
+        ...chats.value
     ]
 })
 
-const selectedConversation = ref(
-    conversations.value[0] ?? null
+const selectedId = ref<string | null>(null)
+const selectedConversation = computed(() =>
+    conversations.value.find((c) => c.id === selectedId.value) ?? null
 )
 
-const selectConversation = (id) => {
-    const conversation =
-        conversations.value.find(
-            (item) => item.id === id
-        )
+const selectConversation = (id: string) => {
+    const convo = conversations.value.find((el) => el.id === id)
+    if(!convo) return
 
-    if (!conversation) return
-
-    selectedConversation.value = conversation
+    convo.isOnline = !(convo.username === 'Invites' && inviteCount.value > 0)
+    selectedId.value = id
     mobileConversationOpen.value = true
+    currentChat.value = convo.isInvite ? null : convo
 }
 </script>

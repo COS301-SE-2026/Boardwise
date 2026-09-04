@@ -82,11 +82,12 @@ public class ProfileService {
     public ProfileResponseDTO getOwnProfile(String token) {
         // get user id from token
         ObjectId userId = jwtService.extractUserId(token);
-        return getProfile(userId.toString());
+        return getProfile(userId.toString(), null);
     }
 
-    public ProfileResponseDTO getProfile(String userId) {
+    public ProfileResponseDTO getProfile(String userId, String token) {
         // get user data from db
+        String clientId = token != null ? jwtService.extractUserId(token).toString() : null;
         User user = userRepo.findById(userId)
                             .orElseThrow(() -> new NoSuchElementException("User with id:" +  userId + "does not exist."));
         
@@ -125,6 +126,16 @@ public class ProfileService {
         
         // get friend count
         int friendCount = fsRepo.findByUserAndStatus(userId, FriendStatus.ACCEPTED).size();
+        FriendStatus status;
+        if(clientId != null){
+            Optional<Friendship> optional = fsRepo.findFriendShipBetweenUsers(userId, clientId);
+            if(optional.isEmpty())
+                status = null;
+            else
+                status = optional.get().getStatus();
+        }    
+        else
+            status = null;
 
         DateTimeFormatter formatter = DateTimeFormatter
                                         .ofPattern("dd-MM-yyyy")
@@ -144,6 +155,7 @@ public class ProfileService {
             games,
             communities,
             userPref,
+            status,
             formatter.format(user.getCreatedAt())
         );
     }

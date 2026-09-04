@@ -23,7 +23,10 @@ RUN ./mvnw clean package -DskipTests
 # ==========================================
 FROM eclipse-temurin:21-jre-jammy
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Add this right before your existing RUN apt-get update...
+RUN sed -i 's|http://archive.ubuntu.com/ubuntu/|https://mirrors.edge.kernel.org/ubuntu/|g' /etc/apt/sources.list && \
+    sed -i 's|http://security.ubuntu.com/ubuntu/|https://mirrors.edge.kernel.org/ubuntu/|g' /etc/apt/sources.list && \
+    apt-get update && apt-get install -y --no-install-recommends --fix-missing \
     passwd \
     libglib2.0-0 \
     libnss3 \

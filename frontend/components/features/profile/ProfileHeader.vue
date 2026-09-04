@@ -103,6 +103,7 @@ const showPfpModal = ref(false)
 
 .profile-info {
   min-width: 0;
+  height: auto;
 }
 
 .profile-details {

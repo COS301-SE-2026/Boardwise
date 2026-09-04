@@ -55,7 +55,10 @@ public class SecurityConfig {
                         "/api/auth/resetPassword",
                         "/api/auth/forgotPassword",
                         "/api/boardgames/",
-                        "/api/vault/rulebooks"
+                        "/api/vault/rulebooks",
+                         "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html"
                         
                     ).permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/vault/rulebooks/*/text").permitAll()

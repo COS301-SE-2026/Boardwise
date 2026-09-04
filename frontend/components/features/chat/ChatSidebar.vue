@@ -61,8 +61,21 @@
         <v-divider class="my-4" />
 
         <div class="chat-sidebar__results">
+
+            <v-container
+                v-if="isLoading"
+                class="d-flex justify-center align center"
+                style="min-height: 60vh"
+            >
+                <v-progress-circular
+                    indeterminate
+                    color="primary"
+                    size="48"
+                />
+            </v-container>
+
             <ChatConversationList
-                v-if="filteredConversations.length"
+                v-else-if="filteredConversations.length"
                 :conversations="filteredConversations"
                 :selected="selectedId"
                 @select="emit('select', $event)"
@@ -80,6 +93,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import { usePrivateChat } from '#imports'
 
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
@@ -103,6 +117,7 @@ const emit = defineEmits(['select'])
 
 const search = ref('')
 const activeFilter = ref('all')
+const { isLoading } = usePrivateChat()
 
 const filteredConversations = computed(() => {
     const query = search.value

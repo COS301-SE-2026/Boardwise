@@ -9,10 +9,10 @@
 
       <v-divider vertical class="status-header_divider d-none d-sm-flex" />
 
-      <div class="status-header_stat">
+      <button @click="$emit('open')" class="status-header_stat">
         <span class="status-header_value">{{ friends }}</span>
         <span class="status-header_label">Friends</span>
-      </div>
+      </button>
 
       <v-divider vertical class="status-header_divider d-none d-sm-flex" />
 
@@ -26,19 +26,22 @@
 </template>
 
 <script setup>
+
 defineProps({
   games: { type: Number, default: 0 },
   friends: { type: Number, default: 0 },
   communities: { type: Number, default: 0 },
   reviews: { type: Number, default: 0 },
 })
+
+defineEmits(['open'])
 </script>
 
 <style scoped>
 .status-header {
   border-radius:  var(--radius-lg) !important;
   margin-inline:  var(--space-12);
-  margin-top: -50px;
+  margin-top: -32px;
   max-height: fit-content;
   min-height: auto;
 }
@@ -76,5 +79,10 @@ defineProps({
 .status-header_divider {
   height:      60px;
   align-self:  center;
+}
+
+button {
+  border: none;
+  background-color: var(--color-alabaster);
 }
 </style>

@@ -1,118 +1,105 @@
 <template>
-  <div class="community-chat-content">
-    <ChatFeed
-      :messages="messages"
-      class="community-chat-content__feed"
+  <div class="d-flex flex-column ga-4">
+
+    <ChatFeed 
+      :messages="messages" 
+      :community="community"
+      :token="token"
     />
 
-    <div class="community-chat-content__composer">
-      <div
-        v-if="!community.isMember"
-        class="community-chat-join"
+    <BaseCard 
+      v-if="!community.isMember"
+      class="pa-4"
+    >
+
+      <p class="text-body-2 text-medium-emphasis mb-4">
+        Join this community to participate in the discussion
+      </p>
+
+      <BaseButton 
+        :disabled="loading"
+        @click="$emit('join')"
       >
-        <div>
-          <p class="font-weight-bold mb-1">
-            Join the conversation
-          </p>
+        {{ loading ? 'Joining...' : 'Join community' }}
+      </BaseButton>
 
-          <p class="text-body-2 text-medium-emphasis mb-0">
-            Join this community to send messages.
-          </p></div>
-          <
-            <BaseButton
-              :disabled="loading"
-              @click="$emit('join')"
-            >
-              <v-icon
-            icon="mdi-account-plus-outline"
-            class="me-2"
-            aria-hidden="true"
-          />
-              {{ loading ? 'Joining...' : 'Join community' }}
-            </BaseButton>
-        </div>
+    </BaseCard>
+      
+    <ChatInput 
+      v-else 
+      @send="handleSend"
+    />
 
-        <div
-        v-if="!community.isMember"
-        class="community-chat-join"
-      >
-        <div>
-          <p class="text-body-2 text-medium-emphasis mb-0">
-            You're a member of this community.</p>
-          <BaseButton
-            variant="error"
-            @click="$emit('leave')"
-          >
-            <v-icon
-              icon="mdi-exit-to-app"
-              class="me-2"
-              aria-hidden="true"
-            />
-            Leave community
-          </BaseButton>
-        </div>
-
-        <BaseButton
-          :disabled="loading"
-          @click="$emit('join')"
-        >
-          {{ loading ? 'Joining...' : 'Join community' }}
-        </BaseButton>
-      </div>
-
-      <ChatInput
-        v-else
-        @send="handleSend"
-      />
-    </div>
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-import ChatFeed from './ChatFeed.vue'
-import ChatInput from './ChatInput.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
-import { useCommunity } from '~/composables/useCommunity'
+<script setup lang="ts">
+import { onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import ChatFeed from './ChatFeed.vue';
+import ChatInput from './ChatInput.vue';
+import BaseCard from '~/components/ui/BaseCard.vue';
+import BaseButton from '~/components/ui/BaseButton.vue';
+import { useCommunity } from '~/composables/useCommunity.ts';
+import { useStomp } from '~/composables/useStomp.ts';
+import { useCommunityChat } from '~/composables/useCommunityChat.ts';
+import { jwtDecode } from 'jwt-decode';
+import { type CommunityMessageDTO } from '~/services/communityService.ts'
+
 const {
   loading
-} = useCommunity()
+} = useCommunity();
 
-defineProps({
-  community: { type: Object, required: true }
+const {
+  getMissedCommunityMessages,
+  sendGroupMessage,
+  messages
+} = useCommunityChat();
+
+const { 
+  onReconnectHook
+} = useStomp();
+
+const route = useRoute();
+
+const props = defineProps({
+  community: { type: Object, required: true },
+  token: { type: String, required: true }
+});
+
+defineEmits(['join'])
+
+onMounted(() => {
+  const paramId = route.params.id;
+    if(!paramId) return;
+
+    const communityId: string | undefined = Array.isArray(paramId) ? paramId[0] : paramId;
+    
+    if(communityId){
+      getMissedCommunityMessages(communityId);
+      onReconnectHook(() => getMissedCommunityMessages(communityId))
+    }
 })
 
-defineEmits(['join','leave'])
+const handleSend = (text: string) => {
+    const paramId = route.params.id;
+    if(!paramId) return;
 
-const messages = ref([
-  {
-    id: 1,
-    name: 'Thabo M.',
-    avatar: '/images/avatar.jpg',
-    text: 'Hey everyone! Anyone up for a game this weekend?',
-    time: '10:12',
-    isOwn: false
-  },
-  {
-    id: 2,
-    name: 'You',
-    avatar: '/images/avatar.jpg',
-    text: "I am! Let's do Catan.",
-    time: '10:15',
-    isOwn: true
-  }
-])
+    const communityId: string | undefined = Array.isArray(paramId) ? paramId[0] : paramId;
+    if(!communityId) return;
 
-const handleSend = (text) => {
-  messages.value.push({
-    id: Date.now(),
-    name: 'You',
-    avatar: '/images/avatar.jpg',
-    text,
-    time: new Date().toLocaleTimeString([], {
-      hour: '2-digit', 
-      minute: '2-digit' }),
-    isOwn: true
-  })
+    const senderId: string = jwtDecode(props.token).sub ?? "";
+    const id = crypto.randomUUID();
+    const sentAt: string = new Date().toISOString();
+
+    const newMessage: CommunityMessageDTO = {
+        id,
+        senderId,
+        communityId,
+        message: text,
+        sentAt
+    }
+
+    sendGroupMessage(newMessage);
 }
 </script>

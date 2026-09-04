@@ -18,7 +18,7 @@
             :rulebooks="rulebooks"
             :listings="listings"
             :communities="communities"
-            @friend-action="handleFriendACtion"
+            @friend-action="handleFriendAction"
             @open-profile="handleOpenProfile"
             @open-rulebook="handleOpenRulebook"
             @open-listing="handleOpenListing"
@@ -39,6 +39,11 @@ import PageContainer from '~/components/layout/PageContainer.vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import { useSearch } from '~/composables/useSearch'
+import { useFriends } from '~/composables/useFriends'
+
+const { sendFriendRequest } = useFriends();
+
+
 
 const router = useRouter()
 const route = useRoute()
@@ -62,9 +67,11 @@ function handleOpenProfile(person) {
     router.push(`/profile/${person.id}`)
 }
 
-function handleFriendAction(person) {
+const handleFriendAction =  async (person) => {
     // TODO: wire to friend/social service once it exists
-  console.log('friend action', person)
+    console.log("Sent log to: ", person.username);
+    console.log(person.id);
+    return await sendFriendRequest(person.id);
 }
 
 </script>

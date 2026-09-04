@@ -68,10 +68,10 @@ export const MarketplaceService = {
     },
 
     //GET USER LISTINGS 
-    getUserListings(username: string) {
+    getUserListings() {
         const { $api } = useNuxtApp();
         return $api<Array<ListingResponse>>(
-            `marketplace/listings/user/${username}`
+            `marketplace/listings/user`
         );
     },
 
