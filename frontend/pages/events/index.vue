@@ -88,7 +88,6 @@ import { useDebounceFn } from '@vueuse/core'
 import { useRouter } from 'vue-router'
 import EditEventModal from '~/components/features/events/EditEventModal.vue'
 import InviteModal from '~/components/features/community/InviteModal.vue'
-import { query } from 'happy-dom/lib/PropertySymbol'
 import EventHeader from '~/components/features/events/EventHeader.vue'
 
 const showFilters = ref(false)
