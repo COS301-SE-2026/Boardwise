@@ -57,20 +57,15 @@
 
           <v-list nav density="compact" min-width="200">
                 <v-list-item
-                    prepend-icon="mdi-account"
-                    title="Profile"
-                    to="/profile"
-                />
-                <v-list-item
                     prepend-icon="mdi-chat-outline"
                     title="Chats"
                     to="/chats"
                 />
-                <v-list-item
+                <!-- <v-list-item
                     prepend-icon="mdi-cog-outline"
                     title="Settings"
                     to="/settings"
-                />
+                /> -->
                 <v-divider class="my-1" />
                 <v-list-item class="px-2">
                     <LogOutButton block />
