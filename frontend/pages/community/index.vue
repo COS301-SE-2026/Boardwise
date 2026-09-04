@@ -44,7 +44,7 @@
 
   <!-- Desktop filters -->
   <aside
-    class="community-results-layout__filters d-none d-md-block"
+    class="community-results-layout__filters d-flex d-md-block"
     aria-label="Community filters"
   >
     <CommunityFilter

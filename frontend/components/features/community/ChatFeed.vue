@@ -78,3 +78,12 @@ onMounted(async () => {
 })
 </script>
 
+.community-chat-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 16px;
+}
