@@ -47,6 +47,7 @@
             <v-btn 
               icon
               variant="text"
+              to="/profile"
               v-bind="menuProps"
               aria-label="Account menu"
             >
@@ -70,7 +71,6 @@
                     title="Settings"
                     to="/settings"
                 />
-                
                 <v-divider class="my-1" />
                 <v-list-item class="px-2">
                     <LogOutButton block />
@@ -122,6 +122,7 @@
           <v-btn 
             icon
             variant="text"
+            to="/profile"
             v-bind="menuProps"
             aria-label="Account menu"
           >
@@ -130,12 +131,6 @@
         </template>
 
         <v-list nav density="compact" min-width="200">
-          <v-list-item 
-            prepend-icon="mdi-account-outline"
-            title="Profile"
-            to="/profile"
-          />
-          
           <v-list-item 
             prepend-icon="mdi-chat-outline"
             title="Chats"
