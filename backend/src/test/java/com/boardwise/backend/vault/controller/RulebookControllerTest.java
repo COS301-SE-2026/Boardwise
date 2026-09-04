@@ -15,18 +15,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.boardwise.backend.shared.config.SecurityConfig;
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.shared.security.JwtFilter;
-import com.boardwise.backend.user_service.repos.TokenBlackListRepository;
+import com.boardwise.backend.user_service.repository.TokenBlackListRepository;
 import com.boardwise.backend.user_service.services.MyUserDetailsService;
 import com.boardwise.backend.vault.dto.response.DownloadUrlResponseDto;
 import com.boardwise.backend.vault.dto.response.EditHistoryResponseDto;
@@ -38,7 +36,8 @@ import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.service.RulebookService;
 
 @WebMvcTest(RulebookController.class)
-@Import({SecurityConfig.class, JwtFilter.class})
+// @Import({SecurityConfig.class, JwtFilter.class})
+@AutoConfigureMockMvc(addFilters = false)
 public class RulebookControllerTest {
     @Autowired
     MockMvc mockMvc;
@@ -79,11 +78,11 @@ public class RulebookControllerTest {
         @WithMockUser
         void listRulebooksReturns200WithResults() throws Exception{
             // Arrange
-            when(rulebookService.searchRulebooks(any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
+                when(rulebookService.searchRulebooks(any(), any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(new PageImpl<>(List.of(sampleSummaryDto())));
             
             // Act and Assert
-            mockMvc.perform(get("/api/vault/rulebooks"))
+            mockMvc.perform(get("/api/sb/vault/rulebooks"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].title").value("Catan"));
         }
@@ -92,11 +91,11 @@ public class RulebookControllerTest {
         @WithMockUser
         void listRulebooksReturns204WhenEmpty() throws Exception{
             // Arrange
-            when(rulebookService.searchRulebooks(any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
+            when(rulebookService.searchRulebooks(any() ,any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(Page.empty());
             
             // Act and Assert
-            mockMvc.perform(get("/api/vault/rulebooks"))
+            mockMvc.perform(get("/api/sb/vault/rulebooks"))
                 .andExpect(status().isNoContent());
         }
         
@@ -104,22 +103,22 @@ public class RulebookControllerTest {
         @WithMockUser
         void listRulebooksAppliesDefaultPageAndLimit() throws Exception{
             // Arrange
-            when(rulebookService.searchRulebooks(any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
+            when(rulebookService.searchRulebooks(any() ,any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(Page.empty());
             // Act and Assert
-            mockMvc.perform(get("/api/vault/rulebooks"))
+            mockMvc.perform(get("/api/sb/vault/rulebooks"))
                 .andExpect(status().isNoContent());
-            verify(rulebookService).searchRulebooks(isNull(),isNull(),isNull(),isNull(), isNull(), isNull(),eq(1), eq(20));
+            verify(rulebookService).searchRulebooks(eq("abc"),isNull(),isNull(),isNull(),isNull(), isNull(), isNull(),eq(1), eq(20));
         }
         
         @Test
         @WithMockUser
         void listRulebooksBindsAllQueryParams() throws Exception{
             // Arrange
-            when(rulebookService.searchRulebooks(any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
+            when(rulebookService.searchRulebooks(any() ,any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(Page.empty());
             // Act and Assert
-            mockMvc.perform(get("/api/vault/rulebooks")
+            mockMvc.perform(get("/api/sb/vault/rulebooks")
                 .param("search", "catan")
                 .param("genre", "strategy")
                 .param("languages", "English", "French")
@@ -130,7 +129,7 @@ public class RulebookControllerTest {
                 .param("limit", "50"))
                 .andExpect(status().isNoContent());
             verify(rulebookService).searchRulebooks(
-                eq("catan"), eq("strategy"), eq(List.of("English", "French")),
+                eq("abc"), eq("catan"), eq("strategy"), eq(List.of("English", "French")),
                 eq(4), eq(90), eq(10), eq(2), eq(50));
         }
     }
@@ -141,7 +140,7 @@ public class RulebookControllerTest {
         // Arrange
         when(rulebookService.getRulebookById(validId)).thenReturn(RulebookResponseDto.builder().title("Catan").build());
         // Act and Assert
-        mockMvc.perform(get("/api/vault/rulebooks/{id}", validId.toHexString()))
+        mockMvc.perform(get("/api/sb/vault/rulebooks/{id}", validId.toHexString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.title").value("Catan"));
     }
@@ -153,7 +152,7 @@ public class RulebookControllerTest {
         when(rulebookService.getDownloadUrl(validId)).thenReturn(DownloadUrlResponseDto.builder()
             .downloadUrl("https://r2.mock.com/signed").expiresAt(Instant.now().plusSeconds(300)).build());
         // Act and Assert
-        mockMvc.perform(get("/api/vault/rulebooks/{id}/download", validId.toHexString()))
+        mockMvc.perform(get("/api/sb/vault/rulebooks/{id}/download", validId.toHexString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.downloadUrl").value("https://r2.mock.com/signed"));
     }
@@ -165,7 +164,7 @@ public class RulebookControllerTest {
         when(rulebookService.getRulebookText(validId)).thenReturn(RulebookTextResponseDto.builder()
             .rulebookId(validId.toHexString()).chunks(List.of()).version(1L).lockHeldBy("").build());
         // Act and Assert
-        mockMvc.perform(get("/api/vault/rulebooks/{id}/text", validId.toHexString()))
+        mockMvc.perform(get("/api/sb/vault/rulebooks/{id}/text", validId.toHexString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.rulebookId").value(validId.toHexString()));
     }
@@ -177,7 +176,7 @@ public class RulebookControllerTest {
         when(rulebookService.getEditHistory(validId)).thenReturn(EditHistoryResponseDto.builder()
         .rulebookId(validId.toHexString()).totalEdits(0).edits(List.of()).build());
         // Act and Assert
-        mockMvc.perform(get("/api/vault/rulebooks/{id}/history", validId.toHexString()))
+        mockMvc.perform(get("/api/sb/vault/rulebooks/{id}/history", validId.toHexString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalEdits").value(0));
     }
@@ -186,10 +185,10 @@ public class RulebookControllerTest {
     @ParameterizedTest
     @WithMockUser
     @ValueSource(strings = {
-        "/api/vault/rulebooks/{id}",
-        "/api/vault/rulebooks/{id}/download",
-        "/api/vault/rulebooks/{id}/text",
-        "/api/vault/rulebooks/{id}/history"
+        "/api/sb/vault/rulebooks/{id}",
+        "/api/sb/vault/rulebooks/{id}/download",
+        "/api/sb/vault/rulebooks/{id}/text",
+        "/api/sb/vault/rulebooks/{id}/history"
     })
     void malformedObjectIdReturns400OnAllIdRoutes(String urlTemplate) throws Exception{
         mockMvc.perform(get(urlTemplate, "not-a-valid-id"))
@@ -203,7 +202,7 @@ public class RulebookControllerTest {
         when(rulebookService.getRulebookById(validId))
             .thenThrow(new RulebookNotFoundException(validId));
         // Act and assert
-        mockMvc.perform(get("/api/vault/rulebooks/{id}", validId.toHexString()))
+        mockMvc.perform(get("/api/sb/vault/rulebooks/{id}", validId.toHexString()))
             .andDo(print())
             .andExpect(status().isNotFound());
     }
@@ -215,7 +214,7 @@ public class RulebookControllerTest {
         when(rulebookService.getDownloadUrl(validId))
             .thenThrow(new R2PresignException("upstream failure"));
         // Act and assert
-        mockMvc.perform(get("/api/vault/rulebooks/{id}/download", validId.toHexString()))
+        mockMvc.perform(get("/api/sb/vault/rulebooks/{id}/download", validId.toHexString()))
             .andExpect(status().isBadGateway());
     }
 }

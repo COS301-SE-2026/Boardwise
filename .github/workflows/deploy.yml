@@ -4,115 +4,92 @@ on:
   push:
     branches:
       - main
-
-permissions:
-  id-token: write
-  contents: read
-
-env:
-  AWS_REGION: eu-north-1
-  AWS_ROLE_ARN: arn:aws:iam::406658519992:role/github-actions-deploy-role
-  ECR_REGISTRY: 406658519992.dkr.ecr.eu-north-1.amazonaws.com
-  ECS_CLUSTER: boardwise-cluster
-  S3_BUCKET: boardwise-frontend
-  CLOUDFRONT_DISTRIBUTION_ID: E2W87L0QGRA613
+  workflow_dispatch:
 
 jobs:
-  backend-deployment: # handles deployment of Java backend
+  deploy:
+    name: Build and deploy application
     runs-on: ubuntu-latest
+
     steps:
-        - uses: actions/checkout@v4 # checks code out onto VM
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-        - name: Set AWS details
-          uses: aws-actions/configure-aws-credentials@v4
-          with:
-            role-to-assume: ${{ env.AWS_ROLE_ARN }}
-            aws-region: ${{ env.AWS_REGION }}
-        
-        - name: Login to ECR
-          uses: aws-actions/amazon-ecr-login@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
 
-        - name: Build and push backend image
-          working-directory: backend
-          run: |
-            docker build -t ${{ env.ECR_REGISTRY }}/boardwise:${{ github.sha }} -t ${{ env.ECR_REGISTRY }}/boardwise:latest .
-            docker push ${{ env.ECR_REGISTRY }}/boardwise:${{ github.sha }}
-            docker push ${{ env.ECR_REGISTRY }}/boardwise:latest
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: |
+          npm ci --ignore-scripts
+          npm run build 
 
-        - name: Trigger new ECS deployment with recently pushed image
-          run: |
-            aws ecs update-service \
-                --cluster ${{ env.ECS_CLUSTER }} \
-                --service boardwise-backend-service \
-                --force-new-deployment
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: './IaC/requirements.txt'
 
-  ai-deployment: # handles deployment of Python/AI backend
-    runs-on: ubuntu-latest
-    steps:
-        - uses: actions/checkout@v4
+      - name: Install Pulumi Requirements
+        working-directory: ./IaC
+        run: | 
+          pip install -r requirements.txt --only-binary=:all: # NOSONAR
 
-        - name: Set AWS details fr
-          uses: aws-actions/configure-aws-credentials@v4
-          with:
-            role-to-assume: ${{ env.AWS_ROLE_ARN }}
-            aws-region: ${{ env.AWS_REGION }}
-        
-        - name: Login to ECR
-          uses: aws-actions/amazon-ecr-login@v2
+      - name: Authenticate into AWS 
+        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c
+        with:
+          aws-region: eu-north-1
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-        - name: Build and push backend image
-          working-directory: ai
-          run: |
-            docker build -t ${{ env.ECR_REGISTRY }}/boardwise-python:${{ github.sha }} -t ${{ env.ECR_REGISTRY }}/boardwise-python:latest .
-            docker push ${{ env.ECR_REGISTRY }}/boardwise-python:${{ github.sha }}
-            docker push ${{ env.ECR_REGISTRY }}/boardwise-python:latest
+      - name: Run Pulumi Script
+        uses: pulumi/actions@8e5e406f4007fca908480587cb9893c07090f58d
+        with: 
+          command: up
+          stack-name: dev
+          work-dir: ./IaC
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          PROD_DB_URL: ${{ secrets.DB_URL }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_ALGORITHM: ${{ secrets.JWT_ALGORITHM }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY: ${{ secrets.R2_ACCESS_KEY }}
+          R2_SECRET_KEY: ${{ secrets.R2_SECRET_KEY }}
+          R2_BUCKET_RULEBOOKS: ${{ secrets.R2_BUCKET_RULEBOOKS }}
+          R2_BUCKET_PROFILES: ${{ secrets.R2_BUCKET_PROFILES }}
+          R2_BUCKET_LISTINGS: ${{ secrets.R2_BUCKET_LISTINGS }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          INTERNAL_SECRET: ${{ secrets.INTERNAL_SECRET }}
+          CPU_CORES: ${{ secrets.CPU_CORES }}
+          R2_LISTINGS_PROD_ENDPOINT: ${{ secrets.R2_LISTINGS_ENDPOINT}}
+          R2_RULEBOOKS_PUBLIC_PROD_URL: ${{ secrets.R2_RULEBOOKS_PUBLIC_URL }}
+          R2_PROD_URL: ${{ secrets.R2_PROD_URL }}
+          BGG_TOKEN: ${{ secrets.BGG_TOKEN }}
+          BGG_URL: ${{ secrets.BGG_URL }}
+          GOOGLE_MAP_API_KEY: ${{ secrets.GOOGLE_MAP_API_KEY }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+    
+      - name: Get CloudFront Distro ID
+        id: get_distro
+        working-directory: ./IaC
+        run: |
+          DISTRO_ID=$(pulumi stack output cloudfront_distro_id -s dev)
+          echo "DISTRO_ID=$DISTRO_ID" >> $GITHUB_ENV
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
-        - name: Trigger new ECS deployment with recently pushed image
-          run: |
-            aws ecs update-service \
-                --cluster ${{ env.ECS_CLUSTER }} \
-                --service boardwise-python-service \
-                --force-new-deployment
-
-  frontend-deployment:
-    runs-on: ubuntu-latest
-    steps:
-        - uses: actions/checkout@v4
-
-        - name: Setup Node
-          uses: actions/setup-node@v4
-          with:
-            node-version: '24'
-
-        - name: Install deps
-          working-directory: frontend
-          run: npm ci
-
-        - name: Build frontend
-          working-directory: frontend
-          env:
-            APP_ENV: prod
-            PROD_API_BASE: https://api.boardwise.games/api/
-            PROD_WS_API_BASE: wss://api.boardwise.games/api/stomp
-            PROD_FAST_API_BASE: https://library.boardwise.games/api/
-          run:
-            npm run build
-        
-        - name: Set AWS details fr
-          uses: aws-actions/configure-aws-credentials@v4
-          with:
-            role-to-assume: ${{ env.AWS_ROLE_ARN }}
-            aws-region: ${{ env.AWS_REGION }}
-            
-        - name: Put frontend on S3
-          working-directory: frontend
-          run: |
-            aws s3 sync .output/public/ s3://${{ env.S3_BUCKET }} --delete
-
-        - name: Clear CloudFront cache
-          run: |
-            aws cloudfront create-invalidation \
-              --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} \
-              --paths "/*"
-
-
+      - name: Invalidate CloudFront Cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ env.DISTRO_ID }} \
+            --paths "/*"
+           

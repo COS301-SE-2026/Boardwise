@@ -1,3 +1,5 @@
+// import { type FriendStatus } from "./friendService"; 
+
 interface Boardgame{
     id: string;
     title: string;
@@ -21,13 +23,13 @@ export interface OtherGameDTO {
     genres: Array<string>;
 }
 
-// interface GameInventory {
-//     id: string;
-//     title: string;
-//     description: string;
-//     imageURL: string;
-//     genres: Array<string>;
-// }
+interface GameInventory {
+    id: string;
+    title: string;
+    description: string;
+    imageURL: string;
+    genres: Array<string>;
+}
 
 interface InventoryUpdateResponse {
     message: string;
@@ -50,10 +52,17 @@ interface Preferences{
     genres : Array<string>;
 }
 
-interface ProfileResponse{
+export enum FriendStatus{
+    REQUESTED,
+    ACCEPTED,
+    DECLINED 
+}
+export interface ProfileResponse{
+    id: string
     fullName: string;
     username: string;
     location: string;
+    bio?: string;
     profilePicture: string;
     friendCount: number;
     groupCount: number;
@@ -62,6 +71,7 @@ interface ProfileResponse{
     communities: Array<Community>;
     preferences: Preferences;
     createdAt: string;
+    status: FriendStatus;
 }
 
 interface ProfileUpdateResponse{
@@ -75,7 +85,7 @@ interface ProfilePictureResponse{
     profilePictureUrl: string;
 }
 
-interface ProfileSearchResponse {
+export interface ProfileSearchResponse {
     id: string;
     username: string;
     fullName: string;
@@ -86,6 +96,14 @@ interface GenresResponse {
     message: string;
     genres: string[];
 }
+interface CreateBoardgameResponse {
+    message: string;
+}
+interface BulkAddResponse {
+    message: string;
+    ownedGamesCount: number;
+    games: GameInventory[];
+}
 
 export const userService = {
     getCurrentUser(){
@@ -93,9 +111,9 @@ export const userService = {
         return $api<ProfileResponse>("/users/");
     },
 
-    getUser(username: string){
+    getUser(id: string){
         const { $api } = useNuxtApp();
-        return $api<ProfileResponse>("/users/" + username);
+        return $api<ProfileResponse>("/users/" + id);
     },
     
     updateProfile(user: {
@@ -187,6 +205,27 @@ export const userService = {
                 search: query
             }
         });
-    }
+    },
 
+    createBoardgame(gameInfo: OtherGameDTO, gameImage: File){
+        const { $api } = useNuxtApp();
+        const formData = new FormData();
+
+        formData.append('gameInfo', new Blob([JSON.stringify(gameInfo)], { type: 'application/json' }));
+        formData.append('gameImage', gameImage);
+
+        return $api<CreateBoardgameResponse>('/boardgames/', {
+            method: 'POST',
+            body: formData
+        });
+    },
+
+    addGamesToInventory(payload: { knownGameIds: string[] }){
+        const { $api } = useNuxtApp();
+
+        return $api<BulkAddResponse>('users/gameInventory/bulk', {
+            method: 'POST',
+            body: payload
+        });
+    }
 }

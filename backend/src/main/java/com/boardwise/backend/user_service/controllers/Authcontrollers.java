@@ -13,21 +13,22 @@ import com.boardwise.backend.user_service.dtos.AuthResponseDTO;
 import com.boardwise.backend.user_service.dtos.LoginDTO;
 import com.boardwise.backend.user_service.dtos.LogoutResponseDTO;
 import com.boardwise.backend.user_service.dtos.RegisterDTO;
+import com.boardwise.backend.user_service.dtos.request.ForgotPasswordDto;
+import com.boardwise.backend.user_service.dtos.request.ResetPasswordDto;
 import com.boardwise.backend.user_service.services.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/sb/auth")
+@RequiredArgsConstructor 
 public class Authcontrollers {
 
     private final AuthService service;
 
-    Authcontrollers(AuthService service) {
-        this.service = service;
-    }
 
     @GetMapping("/hello")
     public ResponseEntity<String> hello(){
@@ -53,4 +54,17 @@ public class Authcontrollers {
         LogoutResponseDTO response = service.logout(token);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    @PostMapping("/forgotPassword")
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordDto dto) {
+        service.forgotPassword(dto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/resetPassword")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordDto dto){
+        service.resetPassword(dto);
+        return ResponseEntity.ok().body("Password successfully reset");
+    }
+    
 }

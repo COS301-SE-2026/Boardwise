@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,7 +22,7 @@ import com.boardwise.backend.vault.service.RulebookService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/vault/rulebooks")
+@RequestMapping("/api/sb/vault/rulebooks")
 @RequiredArgsConstructor
 public class RulebookController {
     private final RulebookService rulebookService;
@@ -36,9 +37,17 @@ public class RulebookController {
         @RequestParam(required = false) Integer duration,
         @RequestParam(required = false) Integer minAge,
         @RequestParam(defaultValue = "1") int page,
-        @RequestParam(defaultValue = "20") int limit){
+        @RequestParam(defaultValue = "20") int limit,
+        @RequestHeader(value = "Authorization", required = false) String token){
+
+            if(token!=null && !token.isBlank()){
+                token = token.substring(7);
+            } else {
+                token = null;
+            }
+
             Page<RulebookSummaryResponseDto> rulebooks = rulebookService.searchRulebooks(
-                search, genre, languages, playerCount, duration, minAge, page, limit
+                token, search, genre, languages, playerCount, duration, minAge, page, limit
             );
             
             if(rulebooks.isEmpty()){

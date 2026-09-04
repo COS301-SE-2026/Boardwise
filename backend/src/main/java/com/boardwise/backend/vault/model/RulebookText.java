@@ -1,7 +1,7 @@
 package com.boardwise.backend.vault.model;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.Map;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -9,6 +9,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import lombok.*;
+import tools.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.ser.std.ToStringSerializer;
 
 @Document(collection = "RULEBOOK_TEXT")
 @Data
@@ -18,16 +20,29 @@ import lombok.*;
 public class RulebookText {
 
     @Id
-    private ObjectId id;
+    @JsonSerialize(using = ToStringSerializer.class)
+    private ObjectId chunkId;
 
     @Field("rulebookId")
     private ObjectId rulebookId;
 
-    @Field("version")
-    private long version;
+    @Field("index")
+    private Integer index;
 
-    @Field("chunks")
-    private List<Chunk> chunks;
+    @Field("content")
+    private String content;
+
+    @Field("embedding")
+    private Double[] embedding;
+
+    @Field("charCount")
+    private int charCount;
+
+    @Field("metadata")
+    private Map<String, String> metadata;
+    
+    @Field("createdAt")
+    private Instant createdAt;
 
     @Field("updatedAt")
     private Instant updatedAt;

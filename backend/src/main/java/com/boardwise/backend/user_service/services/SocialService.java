@@ -24,13 +24,13 @@ import com.boardwise.backend.user_service.dtos.GroupInfo;
 import com.boardwise.backend.user_service.dtos.GroupMembershipResponseDTO;
 import com.boardwise.backend.user_service.dtos.GroupUpdateRequestDTO;
 import com.boardwise.backend.user_service.dtos.GroupUpdateResponseDTO;
+import com.boardwise.backend.user_service.enums.Visibility;
 import com.boardwise.backend.user_service.models.Group;
 import com.boardwise.backend.user_service.models.GroupMembership;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.models.Visibility;
-import com.boardwise.backend.user_service.repos.GroupMembershipRepository;
-import com.boardwise.backend.user_service.repos.GroupRepository;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repository.GroupMembershipRepository;
+import com.boardwise.backend.user_service.repository.GroupRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -162,6 +162,7 @@ public class SocialService {
                 isMember = true;
 
             Map<String, String> userData = new HashMap<>();
+            userData.put("id", member.getId());
             userData.put("username", member.getUsername());
             userData.put("profilePicture", member.getProfilePicture());
             members.add(userData);

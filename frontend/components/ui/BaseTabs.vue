@@ -1,6 +1,8 @@
 <template>
     <v-tabs
         :model-value="activeTab"
+        :aria-label="ariaLabel"
+        class="base-tabs"
         @update:model-value="$emit('change', $event)"
     >
         <v-tab
@@ -15,8 +17,18 @@
 
 <script setup>
 defineProps({
-    tabs: Array,
-    activeTab: String
+    tabs: {
+      type: Array,
+      default: ''
+    },
+    activeTab: {
+    type: String,
+    default: ''
+  },
+  ariaLabel: {
+    type: String,
+    default: 'Page sections'
+  }
 })
 
 defineEmits(['change'])
@@ -34,6 +46,11 @@ defineEmits(['change'])
   color: var(--color-text-muted);
   text-transform: none;
   letter-spacing: 0;
+}
+
+:deep(.v-tab:focus-visible) {
+  outline: 3px solid var(--color-primary);
+  outline-offset: -3px;
 }
 
 :deep(.v-tab--selected) {

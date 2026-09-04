@@ -1,59 +1,82 @@
 <template>
-    <BaseCard
-        class="pa-3 cursor-pointer"
-        :class="{ 'border border-primary': active }"
-        @click="$emit('select', props.conversation.id)"
-    >
+    <li class="chat-conversation-list__item">
+        <button
+            type="button"
+            class="chat-conversation-button"
+            :class="{
+                'chat-conversation-button--active': active,
+                'chat-conversation-button--unread': conversation.unread > 0
+            }"
+            :aria-pressed="active"
+            :aria-label="conversationLabel"
+            @click="$emit('select', conversation.id)"
+        >
+            <BaseCard class="chat-conversation-card pa-3">
+                <div class="d-flex align-center ga-3">
+                    <div class="chat-conversation-card__avatar">
+                        <BaseAvatar
+                            :src="conversation.profilePicture"
+                            :name="conversation.username"
+                            size="lg"
+                        />
 
-        <div class="d-flex align-center ga-3">
-            <div class="position-relative">
-                <BaseAvatar
-                    :src="props.conversation.avatar"
-                    :name="props.conversation.name"
-                    size="lg"
-                />
+                        <span
+                            v-if="conversation.isOnline"
+                            class="chat-online-indicator"
+                            aria-hidden="true"
+                        />
 
-                <span
-                    v-if="props.conversation.online"
-                    class="online-indicator rounded-circle"
-                />
-            </div>
+                        <span class="sr-only">
+                            {{ conversation.isOnline ? 'Online' : 'Offline' }}
+                        </span>
+                    </div>
 
-            <div class="flex-grow-1 overflow-hidden">
-                <div class="d-flex justify-space-between align-center">
-                    <h4 class="text-body-1 mb-0">
-                        {{ props.conversation.name }}
-                    </h4>
+                    <div class="chat-conversation-card__content">
+                        <div class="d-flex justify-space-between align-center ga-3">
+                            <span class="chat-conversation-card__name">
+                                {{ conversation.username }}
+                            </span>
 
-                    <span class="text-caption text-medium-emphasis">
-                        {{ props.conversation.time }}
-                    </span>
+                            <span
+                                v-if="conversation.sentAt"
+                                class="text-caption text-medium-emphasis"
+                            >
+                                {{ conversation.sentAt }}
+                            </span>
+                        </div>
+
+                        <div class="d-flex align-center ga-2 mt-1">
+                            <p class="chat-conversation-card__preview">
+                                {{ conversation.lastMessage }}
+                            </p>
+
+                            <span
+                                v-if="conversation.unread"
+                                class="chat-unread-count"
+                                :aria-label="`${conversation.unread ? 'unread' : 'read'} message`"
+                            >
+                                <!-- {{ conversation.unread }} -->
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <p class="text-body-2 text-medium-emphasis text-truncate mb-0">
-                    {{ props.conversation.lastMessage }}
-                </p>
-            </div>
-
-            <v-badge
-                v-if="props.conversation.unread"
-                :content="props.conversation.unread"
-                color="primary"
-                inline
-            />
-        </div>
-    </BaseCard>
+            </BaseCard>
+        </button>
+    </li>
 </template>
 
 <script setup>
-import BaseAvatar from '~/components/ui/BaseAvatar.vue';
-import BaseCard from '~/components/ui/BaseCard.vue';
+import { computed } from 'vue'
 
+import BaseAvatar from '~/components/ui/BaseAvatar.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
 
 const props = defineProps({
     conversation: {
         type: Object,
         required: true
     },
+
     active: {
         type: Boolean,
         default: false
@@ -62,16 +85,15 @@ const props = defineProps({
 
 defineEmits(['select'])
 
-</script>
+const conversationLabel = computed(() => {
+    // const unread = props.conversation.unread
+    //     ? `, ${props.conversation.unread} unread`
+    //     : ''
 
-<style scoped>
-.online-indicator{
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 12px;
-    height: 12px;
-    background: var(--color-success);
-    border: 2px solid var(--color-surface);
-}
-</style>
+    const status = props.conversation.isOnline
+        ? ', online'
+        : ', offline'
+
+    return `${props.conversation.username}${status}`
+})
+</script>

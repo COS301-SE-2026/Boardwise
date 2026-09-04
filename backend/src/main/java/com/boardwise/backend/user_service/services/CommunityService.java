@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -23,6 +24,9 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.boardwise.backend.shared.dtos.GameInventoryDTO;
+import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.shared.services.NotificationService;
 import com.boardwise.backend.user_service.dtos.DeRsvpDTO;
@@ -32,20 +36,18 @@ import com.boardwise.backend.user_service.dtos.EventInfoDTO;
 import com.boardwise.backend.user_service.dtos.EventInviteDTO;
 import com.boardwise.backend.user_service.dtos.EventInviteInfo;
 import com.boardwise.backend.user_service.dtos.EventUpdateDTO;
-import com.boardwise.backend.user_service.dtos.GameInventoryDTO;
 import com.boardwise.backend.user_service.dtos.InviteDTO;
 import com.boardwise.backend.user_service.dtos.InviteNotification;
-import com.boardwise.backend.user_service.models.Boardgame;
+import com.boardwise.backend.shared.model.Boardgame;
+import com.boardwise.backend.user_service.enums.EventStatus;
+import com.boardwise.backend.user_service.enums.RSVPStatus;
+import com.boardwise.backend.user_service.enums.Visibility;
 import com.boardwise.backend.user_service.models.Event;
 import com.boardwise.backend.user_service.models.EventAttendee;
-import com.boardwise.backend.user_service.models.EventStatus;
-import com.boardwise.backend.user_service.models.RSVPStatus;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.models.Visibility;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
-import com.boardwise.backend.user_service.repos.EventAttendeeRepository;
-import com.boardwise.backend.user_service.repos.EventsRepository;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repository.EventAttendeeRepository;
+import com.boardwise.backend.user_service.repository.EventRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
 import com.google.maps.GeoApiContext;
 import com.google.maps.GeocodingApi;
 import com.google.maps.errors.ApiException;
@@ -58,7 +60,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CommunityService {
 
-    private final EventsRepository eventRepo;
+    private final EventRepository eventRepo;
     private final UserRepository userRepo;
     private final BoardGameRepository gameRepo;
     private final JWTService jwtService;
@@ -75,7 +77,10 @@ public class CommunityService {
         List<Event> dbEvents;
         List<EventDTO> events = new ArrayList<>();
         String message;
-        
+
+        //RECC
+        Set<String> userInventory = user.getOwnedGames() == null ? Collections.emptySet() : new HashSet<>(user.getOwnedGames()); // for boardgame check
+
         if(name == null){
             int pageIdx = pageNumber == null ? 0 : (pageNumber - 1);
             page = PageRequest.of(pageIdx, 10);
@@ -91,6 +96,8 @@ public class CommunityService {
             dbEvents = template.find(query, Event.class);
             message = "Queried event(s) successfully retrieved.";
         }
+
+        List<Map.Entry<EventDTO, Double>> scored = new ArrayList<>(); // for ordering
 
         for(Event event : dbEvents){
             List<Boardgame> eventGames = gameRepo.findAllById(event.getGames());
@@ -127,15 +134,34 @@ public class CommunityService {
                                     RSVPStatus.ATTENDING : 
                                     RSVPStatus.NOT_ATTENDING;
 
-                events.add(EventDTO.fromEntity(
-                    event, attendeeCount, status, hostInfo, isHost, games
-                ));
+            EventDTO dto = EventDTO.fromEntity(event, attendeeCount, status, hostInfo, isHost, games);
+            double score = computeSimilarity(userInventory, event.getGames());
+            scored.add(Map.entry(dto, score));
             }
-
+        }
+        if (!userInventory.isEmpty()) {
+            scored.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+        }
+        for (Map.Entry<EventDTO, Double> entry : scored) {
+            events.add(entry.getKey());
         }
         result.put("message", message);
         result.put("result", events);
         return result;
+    }
+
+    private double computeSimilarity(Set<String> userInventory, List<String> eventGameIds) {
+        if (userInventory.isEmpty() || eventGameIds == null || eventGameIds.isEmpty()) return 0.0;
+
+        long overlap = eventGameIds.stream()
+            .filter(userInventory::contains)
+            .count();
+
+        // Jaccard similarity (set similarity)
+        Set<String> union = new HashSet<>(userInventory);
+        union.addAll(eventGameIds);
+
+        return union.isEmpty() ? 0.0 : (double) overlap / union.size();
     }
 
     public Map<String, Object> createEvent(String token, EventInfoDTO eventInfo, MultipartFile eventImg) throws ApiException, InterruptedException, NoSuchElementException, IOException {
@@ -412,10 +438,12 @@ public class CommunityService {
         if(event == null)
             throw new NoSuchElementException("Event with ID: " + eventId + " does not exist.");
 
-        EventAttendee newAttendee = new EventAttendee(
-            user.getId(), eventId, RSVPStatus.ATTENDING
-        );
-        
+
+        Optional<EventAttendee> existing = eaRepo.findByUserIdAndEventId(user.getId(), eventId);
+        EventAttendee newAttendee = existing
+            .map(ea -> { ea.setStatus(RSVPStatus.ATTENDING); return ea; })
+            .orElseGet(() -> new EventAttendee(user.getId(), eventId, RSVPStatus.ATTENDING));
+
         newAttendee = eaRepo.save(newAttendee);
         EventAttendee forExample = new EventAttendee();
         forExample.setEventId(eventId);
@@ -520,15 +548,17 @@ public class CommunityService {
         );
         eaRepo.save(newAttendee);
 
-        String eventTitle = eventRepo.findById(inviteInfo.eventId())
-                                            .get().getName();
+        Event event = eventRepo.findById(inviteInfo.eventId()).get();        
+        EventInviteInfo invite = new EventInviteInfo(
+            event.getId(),
+            event.getName(),
+            event.getEventImg(),
+            event.getStartDateTime().toLocalDate()
+        ); 
+        EventHostInfo sender = new EventHostInfo(inviter.getUsername(), inviter.getProfilePicture());                                   
+        InviteNotification payload = new InviteNotification(sender, invite);
 
-        InviteNotification payload = new InviteNotification(
-            "NEW_INVITE",
-            inviter.getUsername() + " invited you to '" + eventTitle + "'"
-        );
-
-        notifService.sendInviteNotification(
+        notifService.notifyUser(
             invitee.get().getId(), 
             payload
         );

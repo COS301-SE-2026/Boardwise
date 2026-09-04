@@ -54,17 +54,34 @@ export const platformFeatures = [
         
     },
     {
-        id: 3,
-        title: 'Community',
-        description: "Join discussions and connect with fellow board gamers.",
-        icon: "mdi-account-group-outline",
-        route: "/community"
-    },
-    {
         id: 4,
         title: 'Events',
         description: "Share invites and local board game events.",
         icon: "mdi-calendar-star",
         route: "/events"
-  }
+  },
+  {
+        id: 2,
+        title: 'Communities',
+        description: 'Find board game communities, join discussions and meet players who share your interests.',
+        icon: 'mdi-account-group-outline',
+        route: '/community',
+        
+    },
+    {
+        id: 6,
+        title: 'Chats',
+        description: 'Keep game-night conversations together through direct and community chats.',
+        icon: 'mdi-chat-outline',
+        route: '/chats',
+       
+    },
+    {
+        id: 5,
+        title: 'Find & Invite Friends',
+        description: 'Find other players and invite them to communities, events and your next game night.',
+        icon: 'mdi-account-multiple-plus-outline',
+        route: '/community',
+        
+    }
 ]

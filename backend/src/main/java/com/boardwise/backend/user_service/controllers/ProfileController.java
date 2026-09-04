@@ -21,16 +21,22 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
-import com.boardwise.backend.user_service.dtos.OtherGameDTO;
+import com.boardwise.backend.shared.dtos.OtherGameDTO;
+import com.boardwise.backend.user_service.dtos.FriendRequestResponseDTO;
+import com.boardwise.backend.user_service.dtos.FriendRequestsDTO;
+import com.boardwise.backend.user_service.dtos.FriendsListDTO;
+import com.boardwise.backend.user_service.dtos.NotificationsDTO;
 import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
 import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileResponseDTO;
 import com.boardwise.backend.user_service.dtos.UpdateProfileDTO;
+import com.boardwise.backend.user_service.dtos.request.BoardgameCollectionBulkAddDto;
+import com.boardwise.backend.user_service.dtos.response.BulkAddResponseDTO;
 import com.boardwise.backend.user_service.services.ProfileService;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/sb/users")
 public class ProfileController {
 
     private final ProfileService service;
@@ -40,14 +46,18 @@ public class ProfileController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<?> getOtherUserProfile(@PathVariable String userId){
+    public ResponseEntity<?> getOtherUserProfile(
+        @PathVariable String userId,
+        HttpServletRequest req
+    ){
         try{
-            ProfileResponseDTO res = service.getProfile(userId, null);
+            String token = extractToken(req);
+            ProfileResponseDTO res = service.getProfile(userId, token);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(NoSuchElementException e){
             Map<String, Object> res = new HashMap<>();
-            res.put("message", "User with that username does not exist.");
+            res.put("message", e.getMessage());
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
         catch(Exception e){
@@ -207,6 +217,140 @@ public class ProfileController {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
     }
+
+    @PostMapping("/gameInventory/bulk")
+    public ResponseEntity<?> addGamesToInventory(
+        @RequestBody BoardgameCollectionBulkAddDto dto,
+        HttpServletRequest req
+    ){
+        String token = extractToken(req);
+        try {
+            BulkAddResponseDTO res = service.bulkAddGameToInventory(token, dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(res);
+        } catch (Exception e) {
+            Map<String, Object> res = new HashMap<>();
+            res.put("message", "Something went wrong while adding game to inventory.");
+            return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // own friends list
+    @GetMapping("/friends")
+    public ResponseEntity<?> getOwnFriendsList(
+        HttpServletRequest req
+    ){
+        String token = extractToken(req);
+        FriendsListDTO friends = service.getOwnFriendsList(token);
+        return new ResponseEntity<>(friends, HttpStatus.OK);
+    }
+
+    // get another user's friends list
+    @GetMapping("/{userId}/friends")
+    public ResponseEntity<?> getOtherUserFriendsList(
+        @PathVariable String userId,
+        HttpServletRequest req
+    ) {
+        try{
+            String token = extractToken(req);
+            FriendsListDTO friends = service.getUserFriendsList(token, userId);
+            return new ResponseEntity<>(friends, HttpStatus.OK);
+        }
+        catch(NoSuchElementException e){
+            Map<String, String> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+    }
+    
+    // get friends requests
+    @GetMapping("/friendRequests")
+    public ResponseEntity<?> getFriendRequests(
+        HttpServletRequest req
+    ) {
+        String token = extractToken(req);
+        FriendRequestsDTO res = service.getFriendRequests(token);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+    
+    // send friend request to a user (userId)
+    @PostMapping("/{userId}/friendRequests")
+    public ResponseEntity<?> sendFriendRequest(
+        @PathVariable String userId,
+        HttpServletRequest req
+    ) {
+        try{
+            String token = extractToken(req);
+            FriendRequestResponseDTO res = service.sendFriendRequest(token, userId);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(NoSuchElementException e){
+            Map<String, String> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        catch(IllegalAccessException e){
+            Map<String, String> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // respond to friend request (requestId)
+    @PatchMapping("/friendRequests/{requestId}")
+    public ResponseEntity<?> respondToFriendRequest(
+        @PathVariable String requestId,
+        @RequestParam String status,
+        HttpServletRequest req
+    ) {
+        try{
+            String token = extractToken(req);
+            FriendRequestResponseDTO res = service.respondToFriendRequest(token, requestId, status);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(NoSuchElementException e){
+            Map<String, String> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        catch(IllegalAccessException e){
+            Map<String, String> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // unfriend a user
+    @DeleteMapping("/friends/{userId}")
+    public ResponseEntity<?> unfriendUser(
+        @PathVariable String userId,
+        HttpServletRequest req
+    ) {
+        try{
+            String token = extractToken(req);
+            FriendRequestResponseDTO res = service.unfriendUser(token, userId);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(NoSuchElementException e){
+            Map<String, String> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        catch(IllegalAccessException e){
+            Map<String, String> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/notifications")
+    public ResponseEntity<?> getMissedNotifications(
+        HttpServletRequest req
+    ) {
+        String token = extractToken(req);
+        NotificationsDTO res = service.getMissedNotifications(token);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+    
 
     public static String extractToken(HttpServletRequest req){
         String header = req.getHeader("Authorization");

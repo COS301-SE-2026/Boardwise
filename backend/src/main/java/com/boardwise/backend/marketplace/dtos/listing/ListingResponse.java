@@ -1,17 +1,14 @@
 package com.boardwise.backend.marketplace.dtos.listing;
 
 import java.util.List;
-
-import org.bson.types.ObjectId;
-
 import com.boardwise.backend.marketplace.enums.ListingStatus;
-import com.boardwise.backend.marketplace.model.RentalPeriod;
+import com.boardwise.backend.marketplace.models.RentalPeriod;
 
 public record ListingResponse(
         String listingId,
         String listingTitle,
         String username,
-        ObjectId userId,
+        String userId,
         String gameTitle,
         String itemType,
         String listingType,

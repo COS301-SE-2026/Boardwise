@@ -2,7 +2,6 @@ package com.boardwise.backend.vault.controller;
 
 import org.bson.types.ObjectId;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 
 @RestController
-@RequestMapping("/api/vault/rulebooks")
+@RequestMapping("/api/sb/vault/rulebooks")
 @RequiredArgsConstructor
 public class WriteLockController {
     private final WriteLockService writeLockService;

@@ -14,7 +14,7 @@
       v-for="community in communities"
       :key="community.id"
       :community="community"
-      @join="$emit('join-request', community.id)"
+      @join="$emit(community.id)"
     />
     
   </BaseGrid>
@@ -24,10 +24,6 @@
 import BaseGrid from '~/components/ui/BaseGrid.vue';
 import CommunityCard from './CommunityCard.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
-
-defineEmits([
-  'join-request'
-])
 
 defineProps({
     communities: {
