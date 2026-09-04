@@ -3,6 +3,13 @@
         <Navbar/>
         <HelpHero />
         <HelpTutorials/>
+        
+        <HelpPopularGuides
+                :search="search"
+                :topic="activeTopic"
+            />
+        
+        <HelpAiAssist/>
         <HelpFAQ />
         <HelpContact />
     </PageContainer>
@@ -15,4 +22,6 @@ import HelpFAQ from './HelpFAQ.vue'
 import HelpContact from './HelpContact.vue'
 import Navbar from '~/components/layout/Navbar.vue'
 import HelpTutorials from './HelpTutorials.vue'
+import HelpPopularGuides from './HelpPopularGuides.vue'
+import HelpAiAssist from './HelpAiAssist.vue'
 </script>

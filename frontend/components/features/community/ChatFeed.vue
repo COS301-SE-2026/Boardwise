@@ -1,8 +1,8 @@
 <template>
-  <BaseCard 
+  <div 
     ref="feedEl"
-    class="d-flex flex-column ga-4 pa-4"
-    style="height:420px; overflow-y:auto;"
+    class="community-chat-feed"
+
   >
     <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
         <v-progress-circular indeterminate color="primary" size="48" />
@@ -25,7 +25,13 @@
       message="Be the first to say something!"
     />
 
-  </BaseCard>
+    <ChatMessage
+      v-for="message in messages"
+      :key="message.id"
+      :message="message"
+    />
+
+</div>
 </template>
 
 <script setup>
@@ -34,7 +40,6 @@ import { useCommunityChat } from '~/composables/useCommunityChat'
 import { useStomp } from '~/composables/useStomp'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import ChatMessage from './ChatMessage.vue'
-import BaseCard from '~/components/ui/BaseCard.vue'
 
 const { connect } = useStomp()
 const { isLoading } = useCommunityChat()

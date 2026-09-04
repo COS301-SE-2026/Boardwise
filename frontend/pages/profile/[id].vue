@@ -31,29 +31,29 @@
         <template v-else-if="user">
             <Navbar />
 
-            <div class="d-flex justify-space-between align-center mb-4">
-                <div class="d-flex align-center ga-4">
-                    <BaseAvatar 
-                        :src="user.profilePicture ?? '/images/avatar.jpg'" 
-                        :name="user.username" 
-                        size="lg" 
-                    />
+            <v-card flat class="profile-header pa-10 w-100 mb-6">
+                <div class="d-flex justify-space-between align-center flex-wrap ga-6">
+                    <div class="d-flex align-center ga-6 flex-wrap profle-info">
+                        <BaseAvatar 
+                            :src="user.profilePicture ?? '/images/avatar.jpg'" 
+                            :name="user.username" 
+                            size="lg" 
+                        />
 
-                    <div>
-                        <h2 class="text-h5 mb-1"
-                            >@{{ user.username }}
-                        </h2>
-
-                        <p v-if="user.bio" class="text-body-2 text-medium-emphasis mb-0">{{ user.bio }}</p>
+                        <div>
+                            <h1 class="profile-name ma-0">{{ user.fullName || user.username }}</h1>
+                            <p class="profile-username ma-0">@{{ user.username }}</p>
+                            
+                            <p v-if="user.bio" class="profile-bio ma-0">{{ user.bio }}</p>
+                        </div>
                     </div>
                 </div>
-
                 <FriendActionButton
                     :status="user.status"
                     @add="handleAdd"
                     @remove="handleRemove"
                 />
-            </div>
+            </v-card>
 
             <ProfileStats
                 :games="user.ownedGameCount"
@@ -199,18 +199,65 @@ watch(() => route.params.id, (u) => u && loadProfile(u as string))
 </script>
 
 <style scoped>
+.profile-header {
+    background:    var(--color-surface-alt) !important;
+    border-radius: var(--radius-lg) !important;
+    border:        1px solid var(--color-border);
+    box-shadow:    var(--shadow-sm) !important;
+    min-height:    197px; 
+}
 
-.profile-top {
-    flex-wrap: wrap;
-    gap: var(--space-4);
+.profile-avatar {
+    border: 3px solid var(--color-border-strong);
+    flex-shrink: 0;
+}
+
+.profile-info {
+    min-width: 0;
+    height: auto;
+}
+
+.profile-details {
+    min-width: 0;
+}
+
+.profile-name {
+    font-family:  var(--font-display);
+    font-size:    var(--fs-h2);
+    font-weight:  var(--fw-regular);
+    color:        var(--color-secondary);
+    line-height:  var(--lh-tight);
+}
+
+.profile-username {
+    font-family: var(--font-body);
+    font-size:   var(--fs-body);
+    font-weight: var(--fw-bold);
+    color:       var(--color-primary);
+}
+
+.profile-bio {
+    font-family: var(--font-body);
+    font-size:   var(--fs-body);
+    color:       var(--color-text-muted);
 }
 
 @media (max-width: 600px) {
+    .profile-header {
+        padding: var(--space-5) !important;
+    }
 
-    .profile-top {
+    .profile-info {
+        width: 100%;
         align-items: flex-start !important;
     }
 
-}
+    .profile-details {
+        flex: 1;
+    }
 
+    .profile-name {
+        font-size: var(--fs-h3);
+    }
+}
 </style>

@@ -9,10 +9,11 @@
                 class="text-center"
             >
                 <h2>
-                    Everything Boardwise Offers
+                    Game night is better together.
                 </h2>
                 <p class="mt-4">
-                    Everything you need to discover, collect and enjoy board games.
+                    Find your community, keep the conversation going 
+                    and bring more players to the table.
                 </p>
             </v-col>
         </v-row>
@@ -22,7 +23,8 @@
                 :key="feature.id"
                 cols="12" 
                 sm="6" 
-                md="4"
+                md="6"
+                lg="3"
             >
                 <LandingFeatureCard :feature="feature"/>
             </v-col>

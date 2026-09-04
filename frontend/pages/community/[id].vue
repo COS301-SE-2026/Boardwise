@@ -1,10 +1,14 @@
 <template>
-   <PageContainer>
+  <PageContainer>
     <Navbar />
- 
-    <div 
-      v-if="community" 
-      class="d-flex flex-column ga-6 mt-6"
+
+    <v-container
+      v-if="community"
+      class="community-detail-page"
+    >
+      <section
+        class="community-chat-window"
+        :aria-label="`${community.name} community chat`"
       >
  
       <CommunityBanner 
@@ -19,27 +23,34 @@
         :token="token"
         @join="handleJoin"
       />
+    </section>
 
-      <MemberList
-        v-model="showMembers"
+      <CommunityMoreDetails
+        v-model="showDetails"
         :community="community"
+        :loading="loading"
+        @leave="handleLeave"
       />
-
-      <CommunityEvents
-        v-model="showEvents"
-        :community="community"
-      />
-    </div>
-
-    <v-container v-else-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
-      <v-progress-circular indeterminate color="primary" size="48" />
     </v-container>
 
-    <BaseEmptyState
-      v-else
-      title="Community not found"
-    />
+    <output
+      v-if="!community && loading"
+      class="community-detail-loading"
+      aria-live="polite"
+      aria-label="Loading community"
+    >
+      <v-progress-circular
+        indeterminate
+        color="primary"
+        size="48"
+      />
+    </output>
 
+    <BaseEmptyState
+      v-if="!community && !loading"
+      title="Community not found"
+      message="This community may no longer be available."
+    />
   </PageContainer>
 </template>
 
@@ -49,11 +60,9 @@ import { useRoute, useRouter } from 'vue-router'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
- 
+
 import CommunityBanner from '~/components/features/community/CommunityBanner.vue'
 import CommunityChats from '~/components/features/community/CommunityChats.vue'
-import MemberList from '~/components/features/community/MemberList.vue'
-import CommunityEvents from '~/components/features/community/CommunityEvents.vue'
 
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
@@ -66,17 +75,14 @@ const router = useRouter()
 
 const {
   getCommunityDetails,
-  joinCommunity, 
+  joinCommunity,
+  leaveCommunity,
   error,
   loading
 } = useCommunity()
 
-const {
-  show
-} = useSnackBar()
+const { show } = useSnackBar()
 
-const showMembers = ref(false)
-const showEvents = ref(false)
 const community = ref(null)
 const token = ref('')
 
@@ -92,37 +98,44 @@ onMounted(async () => {
 })
 
 const handleJoin = async () => {
-  try{
+  try {
     const response = await joinCommunity(route.params.id)
+
     community.value.members = response.data.members
     community.value.memberCount = response.data.memberCount
     community.value.isMember = response.data.isMember
 
-    show("Successfully joined community")
-  }
-  catch(err){
-    console.error("Failed to join community.", err)
+    show('Nice move! You joined the community.', 'success')
+  } catch (err) {
+    console.error('Failed to join community.', err)
     show(error.value, 'error')
   }
 }
 
-const handleUpdate = (newData) => {
-  if(!newData) return
+const handleLeave  = async () => {
+  try {
+    const response = await leaveCommunity(route.params.id)
 
-  if(community.value.name != newData.name)
-    community.value.name = newData.name
+    community.value.members = response.data.members
+    community.value.memberCount = response.data.memberCount
+    community.value.isMember = response.data.isMember
 
-  if(community.value.description !== newData.description)
-    community.value.description = newData.description
-
-  if(community.value.visibility !== newData.visibility)
-    community.value.visibility = newData.visibility
-
-  if(community.value.imageUrl !== newData.imageUrl)
-    community.value.imageUrl = newData.imageUrl
-
-  show("Community details successfully updated")
+    show('You left the community.', 'success')
+    showDetails.value = false
+  } catch (err) {
+    console.error('Failed to leave the community.', err)
+    show(error.value || 'Could not leave the community.', 'error')
+  }
 }
 
+const handleUpdate = (newData) => {
+  if (!newData || !community.value) return
 
+  community.value.name = newData.name
+  community.value.description = newData.description
+  community.value.visibility = newData.visibility
+  community.value.imageUrl = newData.imageUrl
+
+  show('Nice move! Community details updated.', 'success')
+}
 </script>

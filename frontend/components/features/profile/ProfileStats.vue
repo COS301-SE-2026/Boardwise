@@ -41,7 +41,7 @@ defineEmits(['open'])
 .status-header {
   border-radius:  var(--radius-lg) !important;
   margin-inline:  var(--space-12);
-  margin-top: -50px;
+  margin-top: -32px;
   max-height: fit-content;
   min-height: auto;
 }

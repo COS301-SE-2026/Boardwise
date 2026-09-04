@@ -102,7 +102,6 @@ import { useMarketplace } from '~/composables/useMarketplace'
 import { useFriends } from '~/composables/useFriends'
 
 import { useRouter } from 'vue-router'
-import { fa } from 'vuetify/locale'
 
 const { fetchCurrentUser, removeGame } = useProfile();
 const { listings, fetchUserListing, loading } = useMarketplace();
@@ -171,7 +170,7 @@ const handleProfileUpdate = (newValues) => {
     ...user.value,
     ...newValues
   }
-  show("Profile details successfully updated");
+  show("Your profile changes are locked in.");
 }
 
 const handlePfpChange = (newPfp) => {
@@ -179,7 +178,7 @@ const handlePfpChange = (newPfp) => {
     return;
 
   user.value.profilePicture = newPfp.profilePictureUrl;
-  show("Profile picture successfully updated");
+  show("Looking good! Your profile picture is updated.");
 }
 
 const onRespond = async (id, action) => {

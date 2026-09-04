@@ -73,10 +73,3 @@ const fallbackLabel = computed(() => {
     : 'User profile picture'
 })
 </script>
-
-<style scoped>
-.avatar-intials {
-  font-weight: var(--fw-bold);
-  color: var(--color-text-muted);
-}
-</style>
