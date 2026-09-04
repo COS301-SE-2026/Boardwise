@@ -162,16 +162,37 @@ const filteredCommunities = computed(() => {
 </script>
 
 <style scoped>
-.community-layout {
+.community-results-layout {
   display: flex;
   gap: 24px;
-  margin-top: 24px;
   align-items: flex-start;
+  margin-top: 24px;
+}
+
+.community-results-layout__filters {
+  flex: 0 0 260px;
+  width: 260px;
+}
+
+.community-results-layout__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.community-results-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
 }
 
 @media (max-width: 900px) {
-  .community-layout {
+  .community-results-layout {
     flex-direction: column;
+  }
+
+  .community-results-layout__filters {
+    display: none; /* desktop-only aside; mobile uses the drawer */
   }
 }
 </style>
