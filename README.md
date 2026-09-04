@@ -43,7 +43,7 @@ The platform is organised around three primary domains:
 
 | Resource | Description | Link |
 |---|---|---|
-| Software Requirements Specification | Requirements, use cases and service contracts | [View SRS](./docs/Demo2/srs.md) |
+| Software Requirements Specification | Requirements, use cases and service contracts | [View SRS](./docs/Demo3/srs.md) |
 | Software Architecture Specification | Architecture and system design | [View SAS](./docs/Demo3/sas.md) |
 | Project Board | Issues, sprint work and delivery progress | [Open board](https://github.com/orgs/COS301-SE-2026/projects/46) |
 | UI designs | Wireframes and interface references | [Open designs](./docs/design) |
