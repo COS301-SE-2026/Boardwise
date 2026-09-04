@@ -19,17 +19,16 @@ import com.boardwise.backend.user_service.services.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 
 @RestController
 @RequestMapping("/api/sb/auth")
+@RequiredArgsConstructor 
 public class Authcontrollers {
 
     private final AuthService service;
 
-    AuthController(AuthService service) {
-        this.service = service;
-    }
 
     @GetMapping("/hello")
     public ResponseEntity<String> hello(){
