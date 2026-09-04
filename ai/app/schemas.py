@@ -48,3 +48,4 @@ class QueryResponse(BaseAPIModel):
 class ReEmbedRequest(BaseAPIModel):
     chunk_id: str = Field(..., description="The string representatio of the Mongo ObjectId")
     content: str = Field(..., description="The updated or newly inserted 1000-character max string")
+    metadata: dict

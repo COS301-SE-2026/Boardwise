@@ -28,6 +28,7 @@ async def trigger_re_embed(
         chunk_id=payload.chunk_id,
         content=payload.content,
         embedding_model=embedding_model,
+        metadata=payload.metadata,
     )
 
     return {"status": "accepted", "message": "Re-embedding queued successfully."}
