@@ -48,8 +48,8 @@ The platform is organised around three primary domains:
 | Project Board | Issues, sprint work and delivery progress | [Open board](https://github.com/orgs/COS301-SE-2026/projects/46) |
 | UI designs | Wireframes and interface references | [Open designs](./docs/design) |
 | Brand style guide | Colour, typography, components and accessibility | [View guide](./docs/design/brandStyleGuide%20(version%202).pdf) |
-| Coding standards | Shared implementation conventions | [View standards](./docs/design/codingStandards.pdf) |
-| Testing Policy Document | Shared implementation conventions | [View standards](./docs/demo3/TESTING%20POLICY%20DOCUMENT%20.pdf) |
+| Coding standards | Shared implementation conventions | [View standards](./docs/Demo3/Coding_Standards.md) |
+| Testing Policy Document | Shared implementation conventions | [View standards](./docs/demo3/TESTING_POLICY_DOCUMENT_.pdf) |
 
 ---
 
