@@ -15,18 +15,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.boardwise.backend.shared.config.SecurityConfig;
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.shared.security.JwtFilter;
-import com.boardwise.backend.user_service.repos.TokenBlackListRepository;
+import com.boardwise.backend.user_service.repository.TokenBlackListRepository;
 import com.boardwise.backend.user_service.services.MyUserDetailsService;
 import com.boardwise.backend.vault.dto.response.DownloadUrlResponseDto;
 import com.boardwise.backend.vault.dto.response.EditHistoryResponseDto;
@@ -38,7 +36,8 @@ import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.service.RulebookService;
 
 @WebMvcTest(RulebookController.class)
-@Import({SecurityConfig.class, JwtFilter.class})
+// @Import({SecurityConfig.class, JwtFilter.class})
+@AutoConfigureMockMvc(addFilters = false)
 public class RulebookControllerTest {
     @Autowired
     MockMvc mockMvc;
@@ -79,7 +78,7 @@ public class RulebookControllerTest {
         @WithMockUser
         void listRulebooksReturns200WithResults() throws Exception{
             // Arrange
-            when(rulebookService.searchRulebooks(any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
+                when(rulebookService.searchRulebooks(any(), any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(new PageImpl<>(List.of(sampleSummaryDto())));
             
             // Act and Assert
@@ -92,7 +91,7 @@ public class RulebookControllerTest {
         @WithMockUser
         void listRulebooksReturns204WhenEmpty() throws Exception{
             // Arrange
-            when(rulebookService.searchRulebooks(any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
+            when(rulebookService.searchRulebooks(any() ,any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(Page.empty());
             
             // Act and Assert
@@ -104,19 +103,19 @@ public class RulebookControllerTest {
         @WithMockUser
         void listRulebooksAppliesDefaultPageAndLimit() throws Exception{
             // Arrange
-            when(rulebookService.searchRulebooks(any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
+            when(rulebookService.searchRulebooks(any() ,any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(Page.empty());
             // Act and Assert
             mockMvc.perform(get("/api/sb/vault/rulebooks"))
                 .andExpect(status().isNoContent());
-            verify(rulebookService).searchRulebooks(isNull(),isNull(),isNull(),isNull(), isNull(), isNull(),eq(1), eq(20));
+            verify(rulebookService).searchRulebooks(eq("abc"),isNull(),isNull(),isNull(),isNull(), isNull(), isNull(),eq(1), eq(20));
         }
         
         @Test
         @WithMockUser
         void listRulebooksBindsAllQueryParams() throws Exception{
             // Arrange
-            when(rulebookService.searchRulebooks(any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
+            when(rulebookService.searchRulebooks(any() ,any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(Page.empty());
             // Act and Assert
             mockMvc.perform(get("/api/sb/vault/rulebooks")
@@ -130,7 +129,7 @@ public class RulebookControllerTest {
                 .param("limit", "50"))
                 .andExpect(status().isNoContent());
             verify(rulebookService).searchRulebooks(
-                eq("catan"), eq("strategy"), eq(List.of("English", "French")),
+                eq("abc"), eq("catan"), eq("strategy"), eq(List.of("English", "French")),
                 eq(4), eq(90), eq(10), eq(2), eq(50));
         }
     }

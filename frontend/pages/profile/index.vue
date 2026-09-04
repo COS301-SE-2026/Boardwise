@@ -1,15 +1,17 @@
 <template>
   <PageContainer>
 
+    <!-- Profile loaded -->
     <template v-if="user">
       <Navbar />
 
       <ProfileHeader :user="user" @saved="handleProfileUpdate" @pfp-change="handlePfpChange"/>
 
       <ProfileStats
-        :games="user.games.length"
+        :games="user.ownedGamesCount"
         :friends="user.friendCount"
         :communities="user.groupCount"
+        @open="openFriendsModal"
       />
 
       <ProfileCommunities :communities="user.communities" />
@@ -54,6 +56,7 @@
 
     <GameBrowserModal
       v-model="showBrowser"
+      :games="games"
       @confirm="handleGamesAdded"
       @add-custom="openCustomModal"
     />
@@ -64,6 +67,13 @@
       @back="showCustom = false; showBrowser = true"
     />
 
+    <FriendsModal
+        v-model="showFriendsModal"
+        :username="user?.username ?? ''"
+        :loading="isLoading"
+        @respond="onRespond"
+        @remove="handleRemove"
+    />
   </PageContainer>
 </template>
 
@@ -73,22 +83,29 @@ definePageMeta({
 })
 
 import { ref, onMounted, computed } from 'vue'
+
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
+
 import ProfileHeader from '~/components/features/profile/ProfileHeader.vue'
 import ProfileStats from '~/components/features/profile/ProfileStats.vue'
 import ProfileCommunities from '~/components/features/profile/ProfileCommunities.vue'
+import FriendsModal from '~/components/features/people/FriendsModal.vue';
+
 import GamesOwnedSection from '~/components/features/profile/GamesOwnedSection.vue'
 import ListingsSection from '~/components/features/profile/ListingsSection.vue'
 import GameBrowserModal from '~/components/features/profile/GameBrowserModal.vue'
-import AddCustomGameModal from '~/components/features/profile/AddCustomGameModal.vue'
+import AddCustomGameModal from '~/components/features/shared/AddCustomGameModal.vue'
 import { useProfile } from '~/composables/useProfile'
 import { useSnackBar } from '~/composables/useSnackbar'
 import { useMarketplace } from '~/composables/useMarketplace'
+import { useFriends } from '~/composables/useFriends'
+
 import { useRouter } from 'vue-router'
 
 const { fetchCurrentUser, removeGame } = useProfile();
-const { listings, fetchUserListing, loading, error } = useMarketplace();
+const { listings, fetchUserListing, loading } = useMarketplace();
+const {  isLoading, respondToFriendRequest, unfriendUser } = useFriends()
 const { show } = useSnackBar();
 const router = useRouter();
 const activeTab = ref('Games Owned');
@@ -96,6 +113,7 @@ const user = ref(null);
 const showBrowser = ref(false);
 const showCustom = ref(false);
 const numGames = ref(0);
+const showFriendsModal = ref(false);
 
 const games = computed(()=> user.value?.games??[] );
 
@@ -112,6 +130,11 @@ const handleGamesAdded = async () => {
 const openCustomModal = () => {
   showBrowser.value = false
   showCustom.value = true
+}
+
+const openFriendsModal = async () => {
+    if (!user.value) return
+    showFriendsModal.value = true
 }
 
 const handleRemoveGame = async(gameId)=>{
@@ -147,7 +170,7 @@ const handleProfileUpdate = (newValues) => {
     ...user.value,
     ...newValues
   }
-  show("Profile details successfully updated");
+  show("Your profile changes are locked in.");
 }
 
 const handlePfpChange = (newPfp) => {
@@ -155,7 +178,32 @@ const handlePfpChange = (newPfp) => {
     return;
 
   user.value.profilePicture = newPfp.profilePictureUrl;
-  show("Profile picture successfully updated");
+  show("Looking good! Your profile picture is updated.");
+}
+
+const onRespond = async (id, action) => {
+    console.log("respond event emitted and caught")
+    try {
+        await respondToFriendRequest(id, action)
+        await refreshUser()
+        await fetchUserListing()
+        showFriendsModal.value = false
+
+    } catch (err) {
+        console.error('Failed to respond to friend request:', err)
+    }
+}
+
+const handleRemove = async (id) => {
+    if (!user.value) return
+    try {
+        await unfriendUser(id)
+        await refreshUser()
+        await fetchUserListing()
+        showFriendsModal.value = false
+    } catch (err) {
+        console.error('Failed to send friend request:', err)
+    }
 }
 
 onMounted(async () => {

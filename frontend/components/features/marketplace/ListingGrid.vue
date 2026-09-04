@@ -1,6 +1,7 @@
 <template>
   <BaseGrid>
     <ListingCard
+      data-test="listing-grid"
       v-for="listing in listings"
       :key="listing.listingId"
       :listing="listing"

@@ -1,39 +1,81 @@
 <template>
-    <BaseCard class="pa-4 h-100">
-            <SectionTitle
-                title="Chats"
-                subtitle="Stay connected"
-            />
+    <BaseCard class="chat-sidebar pa-4">
+        <header class="chat-sidebar__header">
+            <div>
+                <h1 class="chat-sidebar__title">
+                    Chats
+                </h1>
 
-            <BaseSearch
-                v-model="search"
-                class="mt-4"
-                placeholder="Search chats..."
-            />
+                <p class="text-body-2 text-medium-emphasis mb-0">
+                    Stay connected with your Boardwise community.
+                </p>
+            </div>
+        </header>
 
-            <BaseFilterGroup title="Filter chats" class="mt-4">
-                <v-chip-group
-                    v-model="activeFilter"
-                    mandatory
-                    column
+        <BaseSearch
+            v-model="search"
+            class="mt-5"
+            placeholder="Search conversations"
+            aria-label="Search conversations"
+        />
+
+        <div class="chat-sidebar__filters mt-4">
+            <span
+                id="chat-filter-label"
+                class="text-body-2 font-weight-medium"
+            >
+                Show
+            </span>
+
+            <v-chip-group
+                v-model="activeFilter"
+                mandatory
+                aria-labelledby="chat-filter-label"
+            >
+                <v-chip
+                    value="all"
+                    filter
+                    variant="tonal"
                 >
-
-                <v-chip value="all">
                     All
                 </v-chip>
 
-                 <v-chip value="online">
+                <v-chip
+                    value="online"
+                    filter
+                    variant="tonal"
+                >
                     Online
                 </v-chip>
 
-                 <v-chip value="unread">
+                <v-chip
+                    value="unread"
+                    filter
+                    variant="tonal"
+                >
                     Unread
                 </v-chip>
-                </v-chip-group>
-            </BaseFilterGroup>
+            </v-chip-group>
+        </div>
+
+        <v-divider class="my-4" />
+
+        <div class="chat-sidebar__results">
+
+            <v-container
+                v-if="isLoading"
+                class="d-flex justify-center align center"
+                style="min-height: 60vh"
+            >
+                <v-progress-circular
+                    indeterminate
+                    color="primary"
+                    size="48"
+                />
+            </v-container>
 
             <ChatConversationList
-                v-if="filteredConversations.length"
+                v-else-if="filteredConversations.length"
                 :conversations="filteredConversations"
                 :selected="selectedId"
                 @select="emit('select', $event)"
@@ -41,62 +83,102 @@
 
             <BaseEmptyState
                 v-else
-                class="mt-10"
-                title="No conversations"
-                description="Start chatting with your community."
-            /> 
+                class="mt-8"
+                title="No conversations found"
+                :description="emptyDescription"
+            />
+        </div>
     </BaseCard>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
+import { usePrivateChat } from '#imports'
 
-import BaseCard from '~/components/ui/BaseCard.vue';
-import BaseEmptyState from '~/components/ui/BaseEmptyState.vue';
-import BaseSearch from '~/components/ui/BaseSearch.vue';
-import SectionTitle from '~/components/ui/SectionTitle.vue';
-import ChatConversationList from './ChatConversationList.vue';
-import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue';
+import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
+import BaseSearch from '~/components/ui/BaseSearch.vue'
 
-const search = ref('')
+import ChatConversationList from './ChatConversationList.vue'
 
 const props = defineProps({
     conversations: {
         type: Array,
         default: () => []
     },
+
     selectedId: {
-        type: Number,
+        type: [String, Number],
         default: null
     }
 })
 
 const emit = defineEmits(['select'])
 
+const search = ref('')
 const activeFilter = ref('all')
+const { isLoading } = usePrivateChat()
 
 const filteredConversations = computed(() => {
+    const query = search.value
+        .trim()
+        .toLowerCase()
 
     let list = [...props.conversations]
 
-    if(search.value) {
-        list = list.filter(conversation => 
+    if (query) {
+        list = list.filter((conversation) =>
             conversation.name
-            .toLowerCase()
-            .includes(search.value.toLowerCase())
+                ?.toLowerCase()
+                .includes(query)
         )
     }
 
-    switch (activeFilter.value) {
-        case 'unread':
-            list= list.filter(conversation => conversation.unread > 0)
-            break
-        case 'online':
-            list = list.filter(conversation => conversation.online)
-            break
+    if (activeFilter.value === 'unread') {
+        list = list.filter(
+            (conversation) => Number(conversation.unread) > 0
+        )
     }
-            return list
 
+    if (activeFilter.value === 'online') {
+        list = list.filter(
+            (conversation) => conversation.online
+        )
+    }
+
+    return list
 })
 
+const emptyDescription = computed(() => {
+    if (search.value.trim()) {
+        return `No conversations match "${search.value.trim()}".`
+    }
+
+    if (activeFilter.value === 'online') {
+        return 'None of your conversations are currently online.'
+    }
+
+    if (activeFilter.value === 'unread') {
+        return 'You have no unread conversations.'
+    }
+
+    return 'Your conversations will appear here.'
+})
 </script>
+
+<style scoped>
+.chat-sidebar :deep(.base-search) {
+  height: 48px;
+}
+
+.chat-sidebar :deep(.v-field) {
+  min-height: 48px !important;
+  height: 48px !important;
+}
+
+.chat-sidebar :deep(.v-field__input) {
+  min-height: 48px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+</style>

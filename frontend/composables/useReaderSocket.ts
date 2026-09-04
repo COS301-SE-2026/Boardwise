@@ -1,5 +1,5 @@
-import { ref, onUnmounted } from 'vue';
-import { Client, type IMessage } from '@stomp/stompjs';
+import { onUnmounted } from 'vue';
+import { useStomp } from '~/composables/useStomp';
 
 interface LockAcquiredEvent{
     rulebookId: string;
@@ -57,86 +57,43 @@ interface SocketHandlers{
 }
 
 export const useReaderSocket = (rulebookId: string, handlers: SocketHandlers) => {
-    const isConnected = ref<boolean>(false);
-    const hasConnectedOnce = ref<boolean>(false);
+    const { isConnected, subscribe, unsubscribe } = useStomp();
 
-    let stompClient: Client | null = null;
-
-    const connect = () => {
-        try {
-            const token = import.meta.client ? localStorage.getItem('access_token') : null;
-            const brokerURL = useRuntimeConfig().public.wsBaseUrl;
-            
-            stompClient = new Client({
-                brokerURL,
-                connectHeaders:{
-                    Authorization: `Bearer ${token}`
-                },
-                reconnectDelay: 5000,
-                heartbeatIncoming: 4000,
-                heartbeatOutgoing: 4000,
-            });
-
-            stompClient.onConnect = (frame: any) => {
-                if(!stompClient) return;
-
-                isConnected.value = true;
-
-                if(hasConnectedOnce.value){
-                    console.log("STOMP reconnected. Fetching missed updates...");
-                    handlers.onReconnect();
-                }else{
-                    hasConnectedOnce.value = true;
-                }
-
-                // Subscribe to Lock Acquisition events
-                stompClient.subscribe(`/topic/vault/rulebooks/${rulebookId}/lock/acquired`, (message: IMessage) => {
-                    const payload: LockAcquiredEvent = JSON.parse(message.body);
-                    handlers.onLockAcquired(payload);
-                });
-
-                // Subscribe to Lock Release events
-                stompClient.subscribe(`/topic/vault/rulebooks/${rulebookId}/lock/released`, (message: IMessage) => {
-                    const payload: LockReleasedEvent = JSON.parse(message.body);
-                    handlers.onLockReleased(payload);
-                });
-
-                // Subscribe to Delta Commit events
-                stompClient.subscribe(`/topic/vault/rulebooks/${rulebookId}/delta`, (message: IMessage) => {
-                    const payload: DeltaCommittedEvent = JSON.parse(message.body);
-                    handlers.onDeltaCommitted(payload);
-                });
-                // Subscribe to Chunk Insertion events
-                stompClient.subscribe(`/topic/vault/rulebooks/${rulebookId}/chunk/inserted`, (message: IMessage) => {
-                    const payload: ChunkInsertedEvent = JSON.parse(message.body);
-                    handlers.onChunkInserted(payload);
-                });
-                // Subscribe to Chunk Deletion events
-                stompClient.subscribe(`/topic/vault/rulebooks/${rulebookId}/chunk/deleted`, (message: IMessage) => {
-                    const payload: ChunkDeletedEvent = JSON.parse(message.body);
-                    handlers.onChunkDeleted(payload);
-                });
-            }
-
-            stompClient.onStompError = (frame: any) => {
-                console.error('Broker reported error: ' + frame.headers['message']);
-                console.error('Additional details: ' + frame.body);
-            }
-
-            stompClient.activate();
-        } catch (err) {
-            console.error('Failed to connect to WebSocket:', err);
-        }
+    const rulebookDests = {
+        lockAcquired: `/topic/vault/rulebooks/${rulebookId}/lock/acquired`,
+        lockReleased: `/topic/vault/rulebooks/${rulebookId}/lock/released`,
+        deltaCommited: `/topic/vault/rulebooks/${rulebookId}/delta`,
+        chunkInserted: `/topic/vault/rulebooks/${rulebookId}/chunk/inserted`,
+        chunkDeleted: `/topic/vault/rulebooks/${rulebookId}/chunk/deleted`
     };
 
-    const disconnect = () => {
-        if (stompClient?.active) {
-            stompClient.deactivate();
-            isConnected.value = false;
-        }
+    const subToAll = () => {
+        subscribe(rulebookDests.lockAcquired, handlers.onLockAcquired);
+        subscribe(rulebookDests.lockReleased, handlers.onLockReleased);
+        subscribe(rulebookDests.deltaCommited, handlers.onDeltaCommitted);
+        subscribe(rulebookDests.chunkInserted, handlers.onChunkInserted);
+        subscribe(rulebookDests.chunkDeleted, handlers.onChunkDeleted);
     };
 
-    onUnmounted(() => disconnect());
+    const unSubToAll = () => {
+        unsubscribe(rulebookDests.lockAcquired);
+        unsubscribe(rulebookDests.lockReleased);
+        unsubscribe(rulebookDests.deltaCommited);
+        unsubscribe(rulebookDests.chunkInserted);
+        unsubscribe(rulebookDests.chunkDeleted);
+    };
 
-    return { isConnected, connect, disconnect };
+    if(isConnected.value)
+        subToAll();
+    else{
+        const stop = watch(isConnected, (connected) => {
+            if(connected){
+                subToAll();
+                stop();
+            }
+        })
+    }
+    
+    onUnmounted(() => unSubToAll());
+    return { isConnected };
 }

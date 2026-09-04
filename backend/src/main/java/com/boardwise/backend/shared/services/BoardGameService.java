@@ -24,11 +24,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.boardwise.backend.marketplace.enums.Genres;
-import com.boardwise.backend.user_service.dtos.GameListDTO;
-import com.boardwise.backend.user_service.dtos.OtherGameDTO;
-import com.boardwise.backend.user_service.models.Boardgame;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
-import com.boardwise.backend.user_service.repos.BoardGameSearch;
+import com.boardwise.backend.shared.repository.BoardGameRepository;
+import com.boardwise.backend.shared.dtos.*;
+import com.boardwise.backend.shared.model.*;
+import com.boardwise.backend.shared.repository.BoardGameSearch;
 import com.boardwise.backend.user_service.services.AuthService;
 import com.boardwise.backend.user_service.services.R2StorageService;
 

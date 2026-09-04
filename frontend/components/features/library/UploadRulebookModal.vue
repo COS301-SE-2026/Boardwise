@@ -1,23 +1,65 @@
 <template>
   <BaseModal v-model="open">
     <div class="d-flex flex-column ga-5">
-
       <h2 class="text-h5 font-weight-bold">Upload a Rulebook</h2>
 
       <div>
         <p class="text-caption font-weight-bold mb-2">Title</p>
-         <v-autocomplete
-            v-model="title"
-            :items="games"
-            :loading="gamesLoading"
-            item-title="title"
-            item-value="title"
+
+        <template v-if="!selectedGame">
+          <BaseSearch
+            v-model="search"
             placeholder="Board game title"
-            variant="outlined"
-            density="compact"
-            hide-details
-            @update:search="onTitleSearch"
           />
+
+          <BaseButton variant="secondary" class="mt-2" @click="customModalOpen = true">
+            + Add new game
+          </BaseButton>
+
+          <div v-if="search.trim()" class="titleResults mt-2">
+            <div v-if="gamesLoading" class="text-caption text-medium-emphasis pa-2">
+              Searching...
+            </div>
+
+            <template v-else>
+              <div
+                v-for="game in games"
+                :key="game.id"
+                class="titleResult"
+                @click="selectGame(game)"
+              >
+                <div class="titleResult_thumb">
+                  <v-img
+                    width="48"
+                    height="48"
+                    cover
+                    :src="game.imageUrl ?? '/default.png'"
+                  ></v-img>
+                </div>
+                <div class="titleResult_info">
+                  <p class="text-body-2 mb-0">{{ game.title }}</p>
+                  <p class="text-caption mb-0" style="color: var(--color-text-muted)">
+                    {{ game.genre?.[0] ?? '' }}
+                  </p>
+                </div>
+              </div>
+            </template>
+          </div>
+        </template>
+
+        <div v-else class="selectedGameCard">
+          <v-img
+            width="40"
+            height="40"
+            cover
+            :src="selectedGame.imageUrl ?? '/default.png'"
+            class="selectedGameCard_thumb"
+          ></v-img>
+          <span class="text-body-2 flex-1-1">{{ selectedGame.title }}</span>
+          <BaseButton variant="secondary" size="small" @click="clearSelection">
+            Clear selection
+          </BaseButton>
+        </div>
       </div>
 
       <div>
@@ -52,32 +94,72 @@
         <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
         <BaseButton :disabled="!isFormValid" :loading="loading" @click="handleAdd">Add</BaseButton>
       </div>
-
     </div>
+
+    <AddCustomGameModal
+      v-model="customModalOpen"
+      create-only
+      @confirm="onCustomGameAdded"
+    />
   </BaseModal>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
-import { useBoardGames } from '~/composables/useBoardGames';
+import BaseSearch from '~/components/ui/BaseSearch.vue'
+import AddCustomGameModal from '~/components/features/shared/AddCustomGameModal.vue'
+import { useBoardGames } from '~/composables/useBoardGames'
+import { useDebounceFn } from '@vueuse/core'
 
-const { games, isLoading: gamesLoading, searchGames } = useBoardGames();
-onMounted(() => searchGames());
+const { games, isLoading: gamesLoading, searchGames } = useBoardGames()
 
 const props = defineProps({
   loading: {
     type: Boolean,
     default: false
   }
-});
+})
 
 const open = defineModel()
 const emit = defineEmits(['add'])
 
-const title = ref('')
+const search = ref('')
+const selectedGame = ref(null)
+const customModalOpen = ref(false)
+
+const debouncedSearch = useDebounceFn((query) => searchGames(query), 400)
+
+watch(search, (val) => {
+  if (selectedGame.value) selectedGame.value = null
+  if (val && val.trim()) {
+    debouncedSearch(val)
+  }
+})
+
+const selectGame = (game) => {
+  selectedGame.value = game
+}
+
+const clearSelection = () => {
+  selectedGame.value = null
+  search.value = ''
+}
+
+// AddCustomGameModal (create-only mode) already resolves the created game
+// via its own search-retry before emitting — if resolution failed there, it
+// falls back to the raw { message } response, which has no id/title.
+const onCustomGameAdded = (game, submittedGame) => {
+  if (game?.id) {
+    selectedGame.value = game
+  } else {
+    console.error('Custom game could not be resolved after creation:', submittedGame?.title)
+    selectedGame.value = null
+  }
+}
+
 const edition = ref('')
 const language = ref('')
 const fileName = ref('')
@@ -87,47 +169,95 @@ const fileToUpload = ref(null)
 const triggerUpload = () => fileInput.value?.click()
 
 const isFormValid = computed(() => {
-  return title.value && language.value && fileToUpload.value;
-});
+  return selectedGame.value && language.value && fileToUpload.value
+})
 
 const handleFile = (e) => {
   const file = e.target.files[0]
   if (file) {
-    fileName.value = file.name;
-    fileToUpload.value = file;
+    fileName.value = file.name
+    fileToUpload.value = file
   }
 }
 
 const resetForm = () => {
-  title.value = '';
-  edition.value = '';
-  language.value = '';
-  fileName.value = '';
-  fileToUpload.value = null;
-  if(fileInput.value){
-    fileInput.value.value = '';
+  search.value = ''
+  selectedGame.value = null
+  edition.value = ''
+  language.value = ''
+  fileName.value = ''
+  fileToUpload.value = null
+  if (fileInput.value) {
+    fileInput.value.value = ''
   }
 }
 
 watch(open, (isOpen) => {
-  if(!isOpen){
-    resetForm();
+  if (!isOpen) {
+    resetForm()
   }
-});
+})
 
 const handleAdd = () => {
   if (!isFormValid.value) return
   emit('add', {
-    title: title.value,
+    title: selectedGame.value.title,
+    gameId: selectedGame.value.id,
     edition: edition.value,
     language: language.value,
     file: fileToUpload.value
   })
 }
-
-let searchTimeout;
-const onTitleSearch = (query) => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => searchGames(query), 400);
-}
 </script>
+
+<style scoped>
+.titleResults {
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: var(--radius-md, 8px);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.titleResult {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.titleResult:hover {
+  background: var(--color-surface-hover, #f5f5f5);
+}
+
+.titleResult_thumb {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm, 6px);
+  overflow: hidden;
+}
+
+.titleResult_info {
+  flex: 1;
+  min-width: 0;
+}
+
+.titleResult_info p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.selectedGameCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.selectedGameCard_thumb {
+  flex: 0 0 40px;
+  border-radius: var(--radius-sm, 6px);
+  overflow: hidden;
+}
+</style>

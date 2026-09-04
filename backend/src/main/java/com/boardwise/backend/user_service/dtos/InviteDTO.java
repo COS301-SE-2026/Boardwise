@@ -1,6 +1,6 @@
 package com.boardwise.backend.user_service.dtos;
 
-import com.boardwise.backend.user_service.models.RSVPStatus;
+import com.boardwise.backend.user_service.enums.RSVPStatus;
 
 public record InviteDTO(
     RSVPStatus status,

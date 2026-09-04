@@ -49,11 +49,16 @@ public class SecurityConfig {
                 request 
                     .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
                     .requestMatchers(
-                        "/api/sb/auth/hello",
-                        "/api/sb/auth/register", 
-                        "/api/sb/auth/login",
-                        "/api/sb/boardgames/",
-                        "/api/sb/vault/rulebooks"
+                        "/api/auth/hello",
+                        "/api/auth/register",
+                        "/api/auth/login",
+                        "/api/auth/resetPassword",
+                        "/api/auth/forgotPassword",
+                        "/api/boardgames/",
+                        "/api/vault/rulebooks",
+                         "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html"
                         
                     ).permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/sb/vault/rulebooks/*/text").permitAll()

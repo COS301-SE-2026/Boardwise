@@ -1,254 +1,279 @@
-<div align="center">
+![Boardwise logo](./docs/assets/boardwise-logo.svg)
 
-<img src="./docs/assets/boardwise-logo.svg" alt="Boardwise" width="420"/>
+![Play more. Learn faster. For people who love the table.](./docs/assets/slogan.svg)
 
-<img src="./docs/assets/slogan.svg" alt="Boardwise" width="420"/>
+# Boardwise
 
+**Discover, collect, trade and share board games in one connected platform.**
 
-## Team
+![COS 301 Capstone](https://img.shields.io/badge/COS%20301-Capstone-C7286E?style=flat-square)
+![University of Pretoria 2026](https://img.shields.io/badge/University%20of%20Pretoria-2026-4E1E5C?style=flat-square)
+![WCAG 2.2 AA target](https://img.shields.io/badge/WCAG%202.2-AA%20Target-8E1B4E?style=flat-square)
 
-Boardwise is a comprehensive digital ecosystem for board game enthusiasts that consolidates collection management, a peer-to-peer marketplace, community events, and a collaboratively maintained shared rulebook library into a single platform.
+**Works On My Machine™** · A COS 301 Capstone Project
+University of Pretoria · Client: EPI-USE Labs
 
----
+[Overview](#overview) · [Features](#core-features) · [Technology](#technology-stack) · [Architecture](#architecture) · [Getting Started](#getting-started) · [Documentation](#documentation) · [Team](#team)
 
-![Vue](https://img.shields.io/badge/Vue.js-Frontend-42b883?style=for-the-badge&logo=vue.js&logoColor=white)
-![Nuxt](https://img.shields.io/badge/Nuxt-BFF-00DC82?style=for-the-badge&logo=nuxt.js&logoColor=white)
-![SpringBoot](https://img.shields.io/badge/Spring_Boot-Services-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-AI_Gateway-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB_Atlas-Database-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
-
----
-
-## Project Badges
-
-![Build](https://img.shields.io/badge/build-passing-brightgreen?style=flat-square&logo=githubactions&logoColor=white)
-![Coverage](https://img.shields.io/badge/coverage-80%25-success?style=flat-square&logo=codecov&logoColor=white)
-![Requirements](https://img.shields.io/badge/requirements-SRS_v4-blue?style=flat-square&logo=readme&logoColor=white)
-![Issues](https://img.shields.io/badge/issues-tracked-blueviolet?style=flat-square&logo=github&logoColor=white)
-![Monitoring](https://img.shields.io/badge/uptime-monitored-orange?style=flat-square&logo=uptimerobot&logoColor=white)
-![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square&logo=opensourceinitiative&logoColor=white)
+[![Open the Boardwise project board](https://img.shields.io/badge/Explore-Project%20Board-C7286E?style=for-the-badge&logo=github&logoColor=white)](https://github.com/orgs/COS301-SE-2026/projects/46)
+[![Read the Boardwise documentation](https://img.shields.io/badge/Read-Documentation-4E1E5C?style=for-the-badge&logo=readthedocs&logoColor=white)](./docs/Demo3/srs.md)
+[![Get started with Boardwise](https://img.shields.io/badge/Build-Get%20Started-EF5B27?style=for-the-badge&logo=rocket&logoColor=white)](#getting-started)
 
 ---
 
-# SHARED LIBRARY • MARKETPLACE • COMMUNITY
+## Overview
 
-*A COS 301 Capstone Project — University of Pretoria*
-*Team: Works On My Machine™ · Client: EPI-USE Labs*
+Boardwise is a digital ecosystem for South Africa's tabletop gaming community. It brings together board-game discovery, collection management, peer-to-peer listings, community events and a collaboratively maintained rulebook library in one store-agnostic platform.
 
-</div>
+The platform is organised around three primary domains:
 
----
+- **User and Community** - profiles, friends, groups, chats and events.
+- **Marketplace** - peer-to-peer rental and sale listings, plus external retail discovery.
+- **The Vault** - uploaded rulebooks, collaborative maintenance and AI-assisted ingestion.
 
-# Project Overview
+### The Boardwise Experience
 
-Boardwise digitises and expands the tabletop gaming experience for the South African board gaming community, which remains largely offline and fragmented. The platform is a store-agnostic ecosystem where enthusiasts can connect, rent and sell games peer-to-peer, organise events, and collaboratively maintain a shared library of digitised rulebooks.
+- **The Vault** - Keep rulebooks searchable, accessible and collaboratively maintained.
+- **Game Discovery** - Find games, explore recommendations and grow a personal collection.
+- **Community** - Meet local players, join groups and organise tabletop events.
+- **Marketplace** - List, discover, rent and buy games through peer-to-peer listings.
+- **AI Assistance** - Ask contextual questions grounded in available rulebook content.
 
-The system is built around three core domains, each owned by a dedicated backend service: a **User & Community Service**, a **Marketplace Service**, and a **Shared Library (The Vault)** with an AI ingestion pipeline.
+### Project Resources
 
-| Resource | Link |
-|---|---|
-| Software Requirements Specification (SRS) | [View SRS](./docs/Demo2/srs.md) |
-| (SAS) | [View.SAS](./docs/Demo2/sas.md)|
-| GitHub Project Board | [Open Board](#https://github.com/orgs/COS301-SE-2026/projects/46) |
-| UI Wireframes & Designs | [Open Designs](./docs/design) |
-| Brand Style Guide | [View Guide](./docs/design/brandStyleGuide.pdf) |
-| Coding Standards | [View Standards](./docs/design/codingStandards.pdf) |
----
-
-# Core Features
-
-| Feature | What it does | Built with |
+| Resource | Description | Link |
 |---|---|---|
-| **Shared Rulebook Library (The Vault)** | Upload, browse, read and collaboratively edit digitised rulebooks with version history | Spring Boot · FastAPI · MongoDB · Cloudflare R2 |
-| **Marketplace** | Create, browse and manage peer-to-peer rental and sale listings; discover external retail sources | Spring Boot · MongoDB · Cloudflare R2 |
-| **Community & Events** | Schedule public, friends-only and private events; RSVP and manage attendees | Spring Boot · MongoDB |
-| **User Profiles & Social** | Manage profiles, game inventory, preferences, friends and groups | Spring Boot · Spring Security · JWT |
+| Software Requirements Specification | Requirements, use cases and service contracts | [View SRS](./docs/Demo3/srs.md) |
+| Software Architecture Specification | Architecture and system design | [View SAS](./docs/Demo3/sas.md) |
+| Project Board | Issues, sprint work and delivery progress | [Open board](https://github.com/orgs/COS301-SE-2026/projects/46) |
+| UI designs | Wireframes and interface references | [Open designs](./docs/design) |
+| Brand style guide | Colour, typography, components and accessibility | [View guide](./docs/design/brandStyleGuide%20(version%202).pdf) |
+| Coding standards | Shared implementation conventions | [View standards](./docs/design/codingStandards.pdf) |
+| Testing Policy Document | Shared implementation conventions | [View standards](./docs/demo3/TESTING%20POLICY%20DOCUMENT%20.pdf) |
 
 ---
 
-# Technology Stack
+## Core Features
 
-## Frontend & UI
-![Vue](https://img.shields.io/badge/Vue.js-Framework-42b883?style=flat-square&logo=vue.js&logoColor=white)
-![Nuxt](https://img.shields.io/badge/Nuxt-BFF-00DC82?style=flat-square&logo=nuxt.js&logoColor=white)
-![ScopedCSS](https://img.shields.io/badge/Scoped_CSS-Styling-264de4?style=flat-square&logo=css3&logoColor=white)
+| Feature | What it provides | Main technologies |
+|---|---|---|
+| **Shared Rulebook Library - The Vault** | Uploading, browsing, reading and collaboratively maintaining digitised rulebooks with version history | Spring Boot · FastAPI · MongoDB Atlas · Cloudflare R2 |
+| **Marketplace** | Peer-to-peer rental and sale listings, listing management and external retail discovery | Spring Boot · MongoDB Atlas · Cloudflare R2 |
+| **Community and Events** | Communities, invitations, public or private events, RSVPs and attendee management | Spring Boot · MongoDB Atlas |
+| **Profiles and Social Features** | Profiles, game collections, preferences, friends, direct messages and groups | Spring Security · JWT · WebSockets |
+| **AI Rulebook Assistance** | Rulebook ingestion and contextual answers grounded in available rulebook content | Python · FastAPI |
 
-## Backend & Core
-![SpringBoot](https://img.shields.io/badge/Spring_Boot-Services-6DB33F?style=flat-square&logo=springboot&logoColor=white)
-![NodeJS](https://img.shields.io/badge/Node.js-BFF-339933?style=flat-square&logo=node.js&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB_Atlas-Database-47A248?style=flat-square&logo=mongodb&logoColor=white)
-![R2](https://img.shields.io/badge/Cloudflare_R2-Object_Storage-F38020?style=flat-square&logo=cloudflare&logoColor=white)
-
-## AI & Ingestion
-![Python](https://img.shields.io/badge/Python-AI_Gateway-3776AB?style=flat-square&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-Async_Pipeline-009688?style=flat-square&logo=fastapi&logoColor=white)
-
-## Infrastructure & DevOps
-![Docker](https://img.shields.io/badge/Docker-Containers-2496ED?style=flat-square&logo=docker&logoColor=white)
-![GitHubActions](https://img.shields.io/badge/GitHub_Actions-CI/CD-2088FF?style=flat-square&logo=githubactions&logoColor=white)
-![Render](https://img.shields.io/badge/Render_/_Railway-Hosting-46E3B7?style=flat-square&logo=render&logoColor=white)
 
 ---
 
-# Architecture at a Glance
+## Technology Stack
 
-Boardwise follows a **Client–Server** architecture using **Service-Oriented Architecture (SOA)** as the overarching style, with **Component-Based** and **Domain-Driven** design as client-mandated requirements. Each backend service is a bounded context with a **Layered (Controller → Service → Repository)** internal structure.
+The technologies behind Boardwise, grouped by where they contribute to the platform.
 
-The AI ingestion pipeline in The Vault processes uploads asynchronously through sequential stages (Sanitise → Extract) via FastAPI.
+### Frontend Experience
 
-```text
-                    ┌──────────────────────────┐
-                    │   Vue.js SPA (Browser)    │
-                    └────────────┬─────────────┘
-                                 │ HTTPS / REST + WebSocket
-                    ┌────────────▼─────────────┐
-                    │   Nuxt / Node.js BFF      │  ← Auth Guard, route splitting
-                    └──┬──────────┬─────────┬───┘
-          REST         │          │         │   REST (direct-to-service)
-        ┌──────────────▼┐  ┌──────▼──────┐  ┌▼───────────────┐
-        │ User Service  │  │ Marketplace │  │  The Vault      │
-        │ (Spring Boot) │  │ (Spring Boot)│ │ Spring Boot +   │
-        │ Auth · Social │  │ Listings    │  │ FastAPI Gateway │
-        └───────┬───────┘  └──────┬──────┘  └───────┬─────────┘
-                │                 │                 │
-        ┌───────▼─────────────────▼─────────────────▼─────────┐
-        │      MongoDB Atlas  ·  Cloudflare R2 (PDFs/images)   │
-        └──────────────────────────────────────────────────────┘
+| Vue.js | Nuxt | Vuetify | TypeScript | Sass |
+|:---:|:---:|:---:|:---:|:---:|
+| ![Vue.js](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vuejs/vuejs-original.svg) | ![Nuxt](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nuxtjs/nuxtjs-original.svg) | ![Vuetify](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vuetify/vuetify-original.svg) | ![TypeScript](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/typescript/typescript-original.svg) | ![Sass](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/sass/sass-original.svg) |
+
+### Services and Data
+
+| Java | Spring Boot | Node.js | MongoDB | Cloudflare R2 |
+|:---:|:---:|:---:|:---:|:---:|
+| ![Java](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original.svg) | ![Spring Boot](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/spring/spring-original.svg) | ![Node.js](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nodejs/nodejs-original.svg) | ![MongoDB](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/mongodb/mongodb-original.svg) | ![Cloudflare R2](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/cloudflare/cloudflare-original.svg) |
+
+### AI and Rulebook Ingestion
+
+| Python | FastAPI |
+|:---:|:---:|
+| ![Python](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg) | ![FastAPI](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/fastapi/fastapi-original.svg) |
+
+### Delivery and Quality
+
+| Docker | GitHub Actions | Vitest | Playwright | Git |
+|:---:|:---:|:---:|:---:|:---:|
+| ![Docker](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/docker/docker-original.svg) | ![GitHub Actions](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/githubactions/githubactions-original.svg) | ![Vitest](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vitest/vitest-original.svg) | ![Playwright](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/playwright/playwright-original.svg) | ![Git](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg) |
+
+---
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| [SRS](./docs/Demo3/srs.md) | Requirements, use cases, domain model, API contracts and traceability |
+| [SAS](./docs/Demo3/sas.md) | Architecture decisions, services and deployment design |
+| [Brand Style Guide](./docs/design/brandStyleGuide%20(version%202).pdf) | Brand colours, typography, components and accessibility rules |
+| [Wireframes](./docs/design) | Interface designs and navigation flows |
+| [Design Tokens](./frontend/assets/theme.css) | Shared colour, type, spacing and interaction tokens |
+| [Coding Standards](./docs/design/codingStandards.pdf) | Team-wide coding and review conventions |
+| [Testing Policy Document](./docs/.pdf) | Team-wide coding and review conventions |
+
+---
+## Architecture
+
+Boardwise uses a **client–server architecture** with **Service-Oriented Architecture (SOA)** as its overarching style. Component-based and domain-driven design separate the platform into bounded contexts, while each backend service follows a layered **Controller → Service → Repository** structure.
+
+```mermaid
+flowchart TB
+    UI["Vue + Nuxt SPA"] -->|HTTPS / REST + WebSocket| BFF["Nuxt / Node.js BFF"]
+
+    BFF --> USERS["User & Community Service"]
+    BFF --> MARKET["Marketplace Service"]
+    BFF --> VAULT["The Vault"]
+
+    VAULT --> AI["FastAPI AI Gateway"]
+
+    USERS --> DB[("MongoDB Atlas")]
+    MARKET --> DB
+    VAULT --> DB
+    MARKET --> R2[("Cloudflare R2")]
+    VAULT --> R2
 ```
 
-- **Event Sourcing** records every rulebook edit as an immutable event for full auditability.
-- **WebSocket push** powers real-time collaborative editing with MRSW (Multi-Reader Single-Writer) locking.
+The Vault processes uploads asynchronously through sequential sanitisation and extraction stages. WebSocket communication supports real-time features, while MRSW - Multi-Reader, Single-Writer - locking protects collaborative rulebook editing.
 
-See the full [SRS](./docs/Demo2/srs.md) for component diagrams, API service contracts and the traceability matrix.
-
----
-
-# Team
-
-Boardwise is developed by a multidisciplinary team of University of Pretoria Computer Science students.
-
-| Team Member | Role | Focus Area | LinkedIn |
-|---|---|---|---|
-| **Hayley Booysen** *(Team Lead)* | Project Manager · UI Engineer | Project coordination, frontend architecture, UI/UX direction | [LinkedIn](https://www.linkedin.com/in/hayley-booysen-9372a9252/) |
-| **Karabo Nkomo** | Services Engineer · Systems Architect | Backend services, system architecture, deployment | [LinkedIn](https://www.linkedin.com/in/karabo-nkomo-37b5b5319/) |
-| **Njabulo Mathonsi** | DevOps Engineer · Services Engineer | CI/CD, backend services, data flow & authentication | [LinkedIn](https://www.linkedin.com/in/njabulo-mathonsi-5126983aa/) |
-| **Palesa Nkosi** | UI/UX Designer · UI Engineer | Responsive UI, accessibility, interface & experience design | [LinkedIn](https://www.linkedin.com/in/bridget-nkosi-03734834b) |
-| **Bandile Mnyandu** | Services Engineer · Integration Engineer | Backend validation, integration, testing strategy | [LinkedIn](https://www.linkedin.com/in/bandile-mnyandu-900b96303/) |
+See the [Software Requirements Specification](./docs/Demo3/srs.md) for detailed component diagrams, service contracts and the traceability matrix.
 
 ---
 
-# Repository Structure
+## Repository Structure
 
-Boardwise follows a modular monorepo focused on scalability, maintainability, and separation of concerns.
-
-```bash
-boardwise/
-├── .github/                # GitHub workflows and CI/CD
-├── ai/                     # FastAPI AI Gateway (PDF ingestion pipeline)
+```text
+Boardwise/
+├── .github/                 # Workflows and CI/CD configuration
+├── ai/                      # FastAPI AI gateway and ingestion pipeline
 │   ├── app/
 │   │   ├── models/
-│   │   ├── pipeline/       # Sanitise → Extract
+│   │   ├── pipeline/        # Sanitise → Extract
 │   │   ├── routers/
 │   │   └── services/
 │   ├── tests/
 │   └── main.py
-│
-├── backend/                # Spring Boot services
+├── backend/                 # Spring Boot services
 │   └── src/main/java/com/boardwise/backend/
-│       ├── user_service/   # Auth, profiles, social, events
-│       ├── marketplace/    # Listings CRUD
-│       ├── vault/          # Collaborative library + MRSW locking
+│       ├── user_service/    # Authentication, profiles, social and events
+│       ├── marketplace/     # Marketplace listings
+│       ├── vault/           # Rulebooks and collaborative editing
 │       ├── databaseimages/
 │       └── shared/
-│
-├── frontend/               # Vue / Nuxt application
-│   ├── components/         # Reusable UI + feature components
-│   │   ├── features/       # auth, chat, community, library, marketplace, profile
+├── frontend/                # Vue and Nuxt application
+│   ├── components/
+│   │   ├── features/
 │   │   ├── layout/
-│   │   └── ui/             # Base components (BaseButton, BaseSearch, …)
+│   │   └── ui/
 │   ├── composables/
-│   ├── pages/              # auth, community, events, library, marketplace, profile
-│   ├── services/           # API clients (authService, libraryService, …)
+│   ├── pages/
+│   ├── services/
 │   ├── public/
 │   └── tests/
-│
-├── docs/                   # SRS, brand guide, wireframes, design tokens
+├── docs/                    # Requirements, architecture and design documents
 └── README.md
 ```
 
 ---
 
-# Branching Strategy
+## Getting Started
 
-Boardwise follows a structured multi-development-branch workflow.
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/COS301-SE-2026/Boardwise.git
+cd Boardwise
+```
+
+### 2. Start the Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### 3. Start the Backend
+
+From the repository root:
+
+```bash
+cd backend
+./mvnw spring-boot:run
+```
+
+### 4. Start the AI Gateway
+
+From the repository root:
+
+```bash
+cd ai
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+> [!NOTE]
+> Local environment variables and external service credentials must be configured before running every integrated feature. Consult the project documentation for the current configuration requirements.
+
+---
+
+## Branching Strategy
 
 ```text
 main
 └── dev
     ├── frontend-dev
-    │   └── feature/*
+    │   └── fe/feature/* or fe/task/*
     ├── backend-dev
-    │   └── feature/*
-    └── integration
-        └── feature/*
+    │   └── be/feature/* or be/task/*
+    └── integration branches
 ```
 
-- **`main`** — stable, production-ready; only tested and reviewed code is merged here.
-- **`dev`** — central development branch; integrates all streams before promotion to `main`.
-- **`frontend-dev`** — primary frontend development branch.
-- **`backend-dev`** — primary backend development branch.
-- **`integration`** — system-wide integration and combined testing.
-- **`feature/*`** — individual features branch from their respective parent branch, merged via pull request.
-
-Every pull request requires **peer review**, **passing tests**, and **clean integration** into the target branch.
-
----
-
-# Getting Started
-
-```bash
-# Clone the repository
-git clone https://github.com/your-org/boardwise.git
-cd boardwise
-
-# Frontend
-cd frontend && npm install && npm run dev
-
-# Backend (Spring Boot services)
-cd backend && ./mvnw spring-boot:run
-
-# AI Gateway
-cd ai && pip install -r requirements.txt && uvicorn main:app --reload
-```
-
----
-
-# Documentation
-
-| Document | Description |
+| Branch | Purpose |
 |---|---|
-| [SRS](./docs/Demo2/srs.md)  | Functional & non-functional requirements, use cases, domain model, API contracts, architecture |
-| [Brand Style Guide](./docs/design/brandStyleGuide%20(version%202).pdf) | Colour palette, typography, components, accessibility |
-| [Wireframes](./docs/design) | UI/UX designs and navigation flows |
-| [Design Tokens](./frontend/assets/theme.css) | Global styling variables for frontend consistency |
+| `main` | Stable, production-ready code |
+| `dev` | Central integration before promotion to `main` |
+| `frontend-dev` | Shared frontend development |
+| `backend-dev` | Shared backend development |
+| Feature and task branches | Isolated implementation work merged through pull requests |
+
+Pull requests require peer review, relevant passing tests and clean integration into the target branch.
 
 ---
 
-# Project Goals
+## Quality and Testing
 
-- Digitise the South African tabletop gaming experience
-- Strengthen local gaming communities through events and groups
-- Improve rulebook accessibility via a collaborative shared library
-- Enable peer-to-peer rentals and sales without retailer lock-in
-- Build a maintainable, scalable, free-tier-hosted, open-source platform
+Boardwise combines multiple levels of verification:
+
+- Component and service tests for frontend and backend behaviour.
+- Playwright end-to-end tests for critical user journeys and responsive layouts.
+- CI checks through GitHub Actions.
+- Keyboard, focus, contrast and reduced-motion checks toward WCAG 2.2 Level AA.
+- PWA manifest, icons, service-worker and installation checks.
+- Manual desktop and mobile testing before production releases.
 
 ---
 
-<div align="center">
+## Team
 
-Built for the **COS 301 Capstone Project 2026**
-University of Pretoria · in partnership with EPI-USE Labs
+Boardwise is developed by University of Pretoria Computer Science students in partnership with EPI-USE Labs.
 
-**Works On My Machine™**
+| Team Member | Roles | Primary Focus | LinkedIn |
+|---|---|---|---|
+| **Hayley Booysen** | UI/UX Engineer · Design Engineer · Integration Engineer | Coordination, frontend architecture and interface design | [Profile](https://www.linkedin.com/in/hayley-booysen-9372a9252/) |
+|  **Karabo Nkomo** | Services Engineer · Systems Architect | Backend services, system architecture and deployment | [Profile](https://www.linkedin.com/in/karabo-nkomo-37b5b5319/) |
+| **Njabulo Mathonsi** | DevOps Engineer · Services Engineer | CI/CD, backend services, authentication and data flow | [Profile](https://www.linkedin.com/in/njabulo-mathonsi-5126983aa/) |
+|  **Palesa Nkosi** | UI Engineer | Responsive UI, accessibility and interface design | [Profile](https://www.linkedin.com/in/bridget-nkosi-03734834b) |
+| **Bandile Mnyandu** - Team Lead | Project Manager · Services Engineer · Integration Engineer | Validation, integration and testing strategy | [Profile](https://www.linkedin.com/in/bandile-mnyandu-900b96303/) |
 
-</div>
+---
+
+## Project Goals
+
+- Digitise and expand South Africa's tabletop gaming experience.
+- Strengthen local gaming communities through events and groups.
+- Improve rulebook accessibility through a collaborative shared library.
+- Enable peer-to-peer rentals and sales without retailer lock-in.
+- Deliver a maintainable, scalable and accessible open-source platform.
+
+---
+
+
+
+**Play more. Learn faster. For people who love the table.**

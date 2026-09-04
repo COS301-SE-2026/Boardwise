@@ -1,45 +1,75 @@
 <template>
-  <PageContainer>
+  <PageContainer data-test="page-container">
 
-    <Navbar />
+    <Navbar data-test="navbar" />
 
-    <MarketplaceHeader v-model="searchQ" @create-listing="showCreateListing = true" />
+    <MarketplaceHeader data-test="marketplace-header" @search ="searchQ = $event" @create-listing="showCreateListing = true" />
 
-    <MarketplaceTabs v-model="activeTab" />
+    <MarketplaceTabs data-test="marketplace-tabs" v-model="activeTab" />
 
-    <!-- Mobile -->
-    <div class="d-flex d-md-none mt-6 mb-4">
-      <v-chip
-        color="secondary"
-        prepend-icon="mdi-filter-variant"
-        size="large"
-        @click="showFilters = true"
-      >
-        Filters
-      </v-chip>
+    <!-- Community Listings -->
+    <template v-if="activeTab === 'Community Listings'">
+      <!-- Mobile -->
+      <div class="d-flex d-md-none mt-6 mb-4">
+        <v-chip
+          color="secondary"
+          prepend-icon="mdi-filter-variant"
+          size="large"
+          @click="showFilters = true"
+        >
+          Filters
+        </v-chip>
 
-      <v-navigation-drawer
-        v-model="showFilters"
-        temporary
-        location="left"
-        width="300"
-      >
-        <FilterSidebar @filter="handleFilter" />
-      </v-navigation-drawer>
-    </div>
+        <v-navigation-drawer
+          v-model="showFilters"
+          temporary
+          location="left"
+          width="300"
+        >
+          <FilterSidebar data-test="filter-sidebar" @filter="handleFilter" />
+        </v-navigation-drawer>
+      </div>
 
-    <!-- Desktop -->
-    <div class="d-none d-md-flex ga-6 mt-6 align-start">
-      <FilterSidebar @filter="handleFilter"/>
-      <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
-        <v-progress-circular indeterminate color="primary" size="48" />
-      </v-container>
-      <ListingGrid  v-else :listings="listings" />
-    </div>
+      <!-- Desktop -->
+      <div class="d-flex d-md-flex ga-6 mt-6 align-start">
+        <div class="d-none d-md-block">
+          <FilterSidebar data-test="filter-sidebar" @filter="handleFilter"/>
+        </div>
+          
+        <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
+          <v-progress-circular data-test="loading-spinner" indeterminate color="primary" size="48" />
+        </v-container>
+        <ListingGrid data-test="listing-grid" v-else :listings="listings" />
+      </div>
+      
+    </template>
     
+    <!-- External Retail -->
+    <template v-else-if="activeTab === 'Web'">
+      <v-container
+        v-if="retailLoading && retailResults.length === 0"
+        class="d-flex justify-center align-center"
+        style="min-height: 60vh"
+      >
+        <v-progress-circular 
+          data-test="loading-spinner"
+          indeterminate
+          color="primary"
+          size="48"
+        />
+      </v-container>
+      
+      <RetailerGrid 
+        v-else
+        data-test="retailer-grid"
+        :retailers="retailResults"
+      />
+    </template>
+
     <div ref="sentinel" style="height:1px" />
 
     <AddListingModal
+      data-test="add-listing-modal"
       v-model="showCreateListing" 
       @confirm="handleAdd"
     />
@@ -51,6 +81,7 @@
 definePageMeta({
   middleware: 'auth'
 })
+
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 
@@ -59,23 +90,28 @@ import MarketplaceTabs from '~/components/features/marketplace/MarketplaceTabs.v
 
 import FilterSidebar from '~/components/features/marketplace/FilterSidebar.vue'
 import ListingGrid from '~/components/features/marketplace/ListingGrid.vue'
+import RetailerGrid from '~/components/features/marketplace/RetailerGrid.vue'
 import AddListingModal from '~/components/features/profile/AddListingModal.vue'
+
 import { useRouter } from 'vue-router'
 import { useMarketplace } from '~/composables/useMarketplace'
 import { useIntersectionObserver, useDebounceFn  } from '@vueuse/core'
+import { useRetail } from '~/composables/useRetail'
 
 const router = useRouter();
-const activeTab = ref('Community')
+const activeTab = ref('Community Listings')
 const showFilters = ref(false)
 const showCreateListing = ref(false)
 
 const {listings, loading, fetchListings, addListing, loadMore, hasMore} = useMarketplace();
 
-onMounted(() => {
+const {retailResults, retailLoading, hasMoreRetail, fetchPersonalisedListings} = useRetail()
+
+onMounted(async () => {
   if(!localStorage.getItem('access_token')){
     router.push('/auth/signin');
   }
-  fetchListings({}, true) 
+  fetchListings({}, true)   
 })
 
 const handleAdd = async (data, image) => {
@@ -85,8 +121,16 @@ const handleAdd = async (data, image) => {
 }
 
 const sentinel = ref(null)
-useIntersectionObserver(sentinel,([entry])=>{
-  if(entry.isIntersecting&& hasMore.value && !loading.value) loadMore()
+useIntersectionObserver(sentinel, async ([entry])=>  {
+  if(!entry.isIntersecting) return;
+
+  if(activeTab.value === 'Web'){
+    if(hasMoreRetail.value && !retailLoading.value) fetchPersonalisedListings();
+    console.log("CUrrent retail results: ", retailResults.value );
+    return
+  }
+
+  if(hasMore.value && !loading.value) loadMore()
 })
 
 const searchQ = ref('');
@@ -94,8 +138,19 @@ const activeFilterState = ref({})
 
 
 const delaySearch = useDebounceFn((query) => {
+  if(activeTab.value === 'Web'){
+    fetchPersonalisedListings(true);
+    return
+  }
+
   fetchListings({ ...activeFilterState.value, search: query || null }, true)
 }, 400)
+
+watch(activeTab, (tab) => {
+  if(tab === 'Web' && retailResults.value.length === 0) {
+    fetchPersonalisedListings(true);
+  }
+})
 
 watch(searchQ,(query)=>{
   delaySearch(query);
@@ -111,18 +166,18 @@ watch(searchQ,(query)=>{
   const handleFilter = (filters)=>{
 
   const conditions = filters.conditions.length > 0 ? filters.conditions.map(c => c.toLowerCase()) : null
+  const genres = filters.genres?.length > 0 ? filters.genres : null
 
   const  lt= getListingType(filters.rent,filters.sale);
 
    activeFilterState.value = {
     listingType: lt,
-    genres: filters.genres,
-    conditions: conditions,
-    minPrice: filters.minPrice,
-    maxPrice: filters.maxPrice,
+    genres,
+    conditions,
+    minPrice: filters.minPrice || null,
+    maxPrice: filters.maxPrice || null,
   }
 
-  console.log('active filters',activeFilterState.value);
 
   fetchListings({ ...activeFilterState.value, search: searchQ.value || null }, true);
 }

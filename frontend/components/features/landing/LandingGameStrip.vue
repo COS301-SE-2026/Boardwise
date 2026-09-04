@@ -1,13 +1,16 @@
 <template>
-    <div class="overflow-hidden py-6">
-        <div class="game-strip ga-3 marquee-right">
-            <NuxtLink
-                v-for="(game, index) in topRow"
-                :key="`top-${game.id}-${index}`"
-                :to="`/library`"
-                class="text-decoration-none"
-            >
-                <BaseCard class="game-card pa-0" > 
+    <section 
+        class="landing-game-showcase" 
+        aria-label="Featured board games"
+        >
+        <div 
+            class="game-strip marquee-right" 
+            aria-hidden="true">
+                <BaseCard
+                    v-for="(game, index) in topRow"
+                    :key="`top-${game.id}-${index}`" 
+                    class="game-card pa-0" 
+                    > 
                     <BaseImage
                         :src="game.image"
                         :alt="game.title"
@@ -15,17 +18,15 @@
                         cover
                     />
                 </BaseCard>
-            </NuxtLink>
         </div>
 
-        <div class="game-strip ga-3 marquee-left">
-            <NuxtLink
-                v-for="(game, index) in middleRow"
-                :key="`middle-${game.id}-${index}`"
-                :to="`/library/${game.id}`"
-                class="text-decoration-none"
-            >
-                <BaseCard class="game-card pa-0" > 
+        <div 
+            class="game-strip marquee-left" 
+            aria-hidden="true">
+                <BaseCard 
+                    v-for="(game, index) in secondRow"
+                    :key="`top-${game.id}-${index}`" 
+                    class="game-card pa-0" > 
                     <BaseImage
                         :src="game.image"
                         :alt="game.title"
@@ -33,28 +34,8 @@
                         cover
                     />
                 </BaseCard>
-            </NuxtLink>
-        </div>
-
-        <div class="game-strip ga-3 marquee-right">
-            <NuxtLink
-                v-for="(game, index) in bottomRow"
-                :key="`bottom-${game.id}-${index}`"
-                :to="`/library`"
-                class="text-decoration-none"
-            >
-                <BaseCard class="game-card pa-0"  > 
-                    <BaseImage
-                        :src="game.image"
-                        height="160px" 
-                        cover
-                    />
-                </BaseCard>
-            </NuxtLink>
-        </div>
-
-        
     </div>
+</section>
 </template>
 
 <script setup>
@@ -65,31 +46,16 @@ import { getLandingGames } from '~/services/landingService'
 
 const games = getLandingGames()
 
-const duplicate = (arr) => [...arr, ...arr]
+const duplicate = (items) => [
+    ...items, 
+    ...items
+]
 
 const topRow = computed(() => duplicate(games))
 
-const middleRow = computed (() => duplicate([...games]).reverse())
-
-const bottomRow = computed(() =>
-    duplicate([
-        ...games.slice(6),
-        ...games.slice(0,6)
-    ])
+const secondRow = computed(() =>
+    duplicate([...games].reverse()
+    )
 )
 
-const repeatedGames = computed(() => [
-    ...games,
-    ...games,
-])
-
-// const topRow = computed(() =>
-//     repeatedGames.value.filter((_, index) => index % 3 === 0)
-// )
-// const middleRow = computed(() =>
-//     repeatedGames.value.filter((_, index) => index % 3 === 1)
-// )
-// const bottomRow = computed(() =>
-//     repeatedGames.value.filter((_, index) => index % 3 === 2)
-// )
 </script>

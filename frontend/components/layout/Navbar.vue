@@ -13,7 +13,7 @@
         @click="drawer = !drawer"
       />
 
-      <NuxtLink to="/" class="logo ">
+      <NuxtLink data-test="nuxt-link" to="/" class="logo ">
           Boardwise
       </NuxtLink>
 
@@ -25,28 +25,53 @@
         placeholder="Search games, users, rules..."
         prepend-inner-icon="mdi-magnify"
         class="search"
+        v-model="searchQuery"
+        hide-details
+        @keyup.enter="submitSearch(searchQuery)"
       />
-
-      <v-btn 
-       color="primary" 
-       rounded="pill" 
-       height="40"
-       @click="$emit('ask-ai')"
-      >
-        <v-icon start>mdi-robot</v-icon>
-        Ask AI
-      </v-btn>
     </div>
 
     <!-- Desktop Navigation -->
     <div v-if="lgAndUp" class="right">
         <NuxtLink to="/library" class="nav-link">Library</NuxtLink> 
         <NuxtLink to="/marketplace" class="nav-link">Marketplace</NuxtLink>
-        <!-- <NuxtLink to="/community" class="nav-link">Community</NuxtLink> -->
+        <NuxtLink to="/community" class="nav-link">Community</NuxtLink>
         <NuxtLink to="/events" class="nav-link">Events</NuxtLink>
-        <NuxtLink to="/profile" class="nav-link">Profile</NuxtLink>
-        <!-- <NuxtLink to="/chats" class="nav-link">Chat</NuxtLink> -->
-        <LogOutButton />
+        <v-menu 
+          open-on-hover
+          :close-on-content-click="false"
+          location="bottom end"
+          offset="8"
+        >
+          <template #activator="{ props: menuProps }">
+            <v-btn 
+              icon
+              variant="text"
+              to="/profile"
+              v-bind="menuProps"
+              aria-label="Account menu"
+            >
+              <v-icon size="28">mdi-account-circle</v-icon>
+            </v-btn>
+          </template>
+
+          <v-list nav density="compact" min-width="200">
+                <v-list-item
+                    prepend-icon="mdi-chat-outline"
+                    title="Chats"
+                    to="/chats"
+                />
+                <!-- <v-list-item
+                    prepend-icon="mdi-cog-outline"
+                    title="Settings"
+                    to="/settings"
+                /> -->
+                <v-divider class="my-1" />
+                <v-list-item class="px-2">
+                    <LogOutButton block />
+                </v-list-item>
+              </v-list>
+        </v-menu> 
     </div>
 
     <!-- Mobile -->
@@ -57,12 +82,15 @@
         location="bottom end" 
       >
 
-        <template #activator="{ props }">
+        <template #activator="{ props: menuProps }">
           <v-btn 
-            icon="mdi-magnify" 
-            v-bind="props" 
+            icon
             variant="text" 
-          />
+            v-bind="menuProps" 
+            aria-label="Search"
+          >
+            <v-icon size="26">mdi-magnify</v-icon>
+          </v-btn>
         </template>
 
         <!-- Search (Mobile) -->
@@ -75,17 +103,47 @@
             rounded="pill"
             hide-details
             autofocus
+            v-model="mobileSearchQuery"
+            @keyup.enter="submitSearch(mobileSearchQuery)"
           />
         </v-card>
       </v-menu>
 
-      <v-btn 
-        icon 
-        color="primary" 
-        @click="$emit('ask-ai')"
+      <v-menu
+        :close-on-content-click="false"
+        location="bottom end"
       >
-        <v-icon>mdi-robot</v-icon>
-      </v-btn>
+        <template #activator="{ props: menuProps }">
+          <v-btn 
+            icon
+            variant="text"
+            to="/profile"
+            v-bind="menuProps"
+            aria-label="Account menu"
+          >
+            <v-icon size="26">mdi-account-circle</v-icon>
+          </v-btn>
+        </template>
+
+        <v-list nav density="compact" min-width="200">
+          <v-list-item 
+            prepend-icon="mdi-chat-outline"
+            title="Chats"
+            to="/chats"
+          />
+
+          <!-- <v-list-item 
+            prepend-icon="mdi-cog-outline"
+            title="Settings"
+            to="/settings"
+          /> -->
+
+          <v-divider class="my-1" />
+            <v-list-item class="px-2">
+              <LogOutButton block />
+            </v-list-item>
+        </v-list>
+      </v-menu>
     </div>
   </div>
 </v-app-bar>
@@ -99,17 +157,9 @@
   <v-list nav density="compact">
     <v-list-item prepend-icon="mdi-bookshelf" title="Library" to="/library" @click="drawer = false" />
     <v-list-item prepend-icon="mdi-store" title="Marketplace" to="/marketplace" @click="drawer = false" />
-    <!-- <v-list-item prepend-icon="mdi-account-group" title="Community" to="/community" @click="drawer = false" /> -->
+    <v-list-item prepend-icon="mdi-account-group" title="Community" to="/community" @click="drawer = false" />
     <v-list-item prepend-icon="mdi-calendar" title="Events" to="/events" @click="drawer = false" />
-    <v-list-item prepend-icon="mdi-account" title="Profile" to="/profile" @click="drawer = false" />
-    <!-- <v-list-item prepend-icon="mdi-message" title="Chat" to="/chats" @click="drawer = false" /> -->
   </v-list>
-
-    <template #append>
-      <div class="pa-4">
-        <LogOutButton block />
-      </div>
-    </template>
 </v-navigation-drawer>
 
 </template>
@@ -117,12 +167,22 @@
 <script setup>
 import { ref } from 'vue'
 import { useDisplay } from 'vuetify'
+import { useRouter } from 'vue-router'
 
 import LogOutButton from '~/components/features/auth/LogOutButton.vue'
 
-defineEmits(['ask-ai'])
-
 const drawer = ref(false)
+
+const router = useRouter()
+const searchQuery = ref('')
+const mobileSearchQuery = ref('')
+
+const submitSearch = (query) => {
+  const q = query.trim()
+  if(!q) return
+  router.push({ path: '/search', query:{ q } })
+}
+
 const { lgAndUp } = useDisplay()
 </script>
 

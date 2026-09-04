@@ -63,51 +63,54 @@
             <div v-if="event.games.length">
                 <p class="text-body-2 font-weight-bold mb-2">Games</p>
 
-                <div class="d-flex flex-column ga-2">
-                    <div
+                <div class="games-grid">
+                    <BaseCard
                         v-for="game in event.games"
                         :key="game.id"
-                        class="d-flex align-center ga-3"
+                        rounded="lg"
                     >
                         <BaseImage
                             :src="game.imageUrl"
                             :alt="game.title"
-                            width="40px"
-                            height="40px"
+                            height="120px"
+                            width="100%"
                             fit="cover"
-                            style="border-radius: 8px;"
                         />
 
-                        <div>
-                            <p class="text-body-2 font-weight-bold mb-0">{{ game.title }}</p>
+                        <div class="pa-3">
+                            <p class="text-body-2 font-weight-bold mb-1">
+                                {{ game.title }}
+                            </p>
                             <p class="text-caption text-medium-emphasis mb-0">
                                 {{ game.genres.join(', ') }}
                             </p>
                         </div>
-                    </div>
+                    </BaseCard>
                 </div>
             </div>
 
             <v-divider />
                 
             <div class="d-flex flex-column ga-2">
-                <BaseButton
-                    v-if="event.rsvpStatus !== 'ATTENDING'"
-                    :disabled="event.eventStatus !== 'OPEN'"
-                    @click="$emit('rsvp', event.id)"
-                >
-                    <v-icon start>mdi-calendar-check</v-icon>
-                    RSVP to event
-                </BaseButton>
+                <template v-if="!event.isHost">
+                    <BaseButton
+                        v-if="event.rsvpStatus !== 'ATTENDING'"
+                        :disabled="event.eventStatus !== 'OPEN'"
+                        @click="$emit('rsvp', event.id)"
+                    >
+                        <v-icon start>mdi-calendar-check</v-icon>
+                        RSVP to event
+                    </BaseButton>
 
-                <BaseButton
-                    v-else
-                    variant="secondary"
-                    @click="$emit('de-rsvp', event.id)"
-                >
-                    <v-icon start>mdi-calendar-remove</v-icon>
-                    Cancel RSVP
-                </BaseButton>
+                    <BaseButton
+                        v-else
+                        variant="secondary"
+                        @click="$emit('de-rsvp', event.id)"
+                    >
+                        <v-icon start>mdi-calendar-remove</v-icon>
+                        Cancel RSVP
+                    </BaseButton>
+                </template>
 
                 <template v-if="event.isHost">
                     <BaseButton
@@ -135,6 +138,7 @@
 import { computed } from 'vue'
 import { useRouter } from '#vue-router'
 
+import BaseCard from '~/components/ui/BaseCard.vue';
 import BaseImage from '~/components/ui/BaseImage.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
 
@@ -159,3 +163,11 @@ const statusColor = (status) => {
 }
 
 </script>
+
+<style scoped>
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+}
+</style>

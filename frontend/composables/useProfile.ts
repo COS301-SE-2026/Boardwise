@@ -11,7 +11,28 @@ export const useProfile = () => {
         error.value = ''
         try{
             const res = await userService.getCurrentUser()
-            console.log(res)
+            return res
+        }
+        catch(err: any){
+            error.value = err.data?.message || "This user does not exist"
+            if(err.response?.status === 401){
+                localStorage.removeItem("access_token")
+                router.push('/auth/signin')
+                return;
+            }
+            throw err;
+                
+        }
+        finally{
+            isLoading.value = false
+        }
+    }
+
+    const fetchUserById = async (userId: string) => {
+        isLoading.value = true;
+        error.value = ''
+        try{
+            const res = await userService.getUser(userId);
             return res
         }
         catch(err: any){
@@ -149,5 +170,24 @@ export const useProfile = () => {
         }
     };
 
-    return { isLoading, fetchCurrentUser, updateProfile, updateProfilePicture, addGame, removeGame, searchGames ,addExistingGame, error }
+    const createGame = async (gameInfo: OtherGameDTO, gameImage: File) => {
+        isLoading.value = true;
+        error.value = ''
+        try {
+            const res = await userService.createBoardgame(gameInfo, gameImage);
+            return res;
+        } catch (err: any) {
+            error.value = "Failed to add game";
+            if (err.response?.status === 401) {
+                router.push('/auth/signin');
+            }
+            throw err;
+        } finally {
+            isLoading.value = false;
+        }
+
+
+    };
+
+    return { isLoading, fetchCurrentUser, fetchUserById, updateProfile, updateProfilePicture, addGame, removeGame, searchGames ,addExistingGame, createGame, error }
 }

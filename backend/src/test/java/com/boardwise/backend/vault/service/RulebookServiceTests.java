@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+
 import org.assertj.core.api.Assertions;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,9 +27,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.boardwise.backend.shared.repository.BoardGameRepository;
+import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.repos.BoardGameRepository;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
+import com.boardwise.backend.vault.dto.response.ChunkDto;
 import com.boardwise.backend.vault.dto.response.DownloadUrlResponseDto;
 import com.boardwise.backend.vault.dto.response.EditEventResponseDto;
 import com.boardwise.backend.vault.dto.response.EditHistoryResponseDto;
@@ -38,7 +41,6 @@ import com.boardwise.backend.vault.dto.response.RulebookTextResponseDto;
 import com.boardwise.backend.vault.enums.EditType;
 import com.boardwise.backend.vault.exception.R2PresignException;
 import com.boardwise.backend.vault.exception.RulebookNotFoundException;
-import com.boardwise.backend.vault.model.Chunk;
 import com.boardwise.backend.vault.model.EditEvent;
 import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.model.RulebookText;
@@ -62,6 +64,9 @@ public class RulebookServiceTests {
 
     @Mock
     private EditEventRepository editEventRepository;
+
+    @Mock 
+    private JWTService jwtService;
 
     @Mock
     private BoardGameRepository boardgameRepository;
@@ -130,10 +135,9 @@ public class RulebookServiceTests {
         public void testSearchRulebooksBuildsZeroIndexedPageableSortedByUpdatedAtDesc(){
             // Arrange
             Page<Rulebook> emptyPage = new PageImpl<>(List.of());
-            when(rulebookRepository.searchWithFilters(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(Pageable.class))).thenReturn(emptyPage);
-
+            when(rulebookRepository.searchWithFilters(Mockito.any(),Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(emptyPage);
             // Act
-            rulebookService.searchRulebooks("catan", "strategy", List.of("English"), 4, 90, 10, 2, 20);
+            rulebookService.searchRulebooks(null,"catan", "strategy", List.of("English"), 4, 90, 10, 2, 20);
 
             // Assert
             ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
@@ -154,7 +158,7 @@ public class RulebookServiceTests {
             when(rulebookRepository.searchWithFilters(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(Pageable.class))).thenReturn(emptyPage);
             
             // Act
-            rulebookService.searchRulebooks( null, null, null, null, null, null, 1, 500);
+            rulebookService.searchRulebooks(null,null, null, null, null, null, null, 1, 500);
 
             // Assert
             ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
@@ -171,7 +175,7 @@ public class RulebookServiceTests {
             when(rulebookRepository.searchWithFilters(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(Pageable.class))).thenReturn(page);
             
             // Act
-            Page<RulebookSummaryResponseDto> result = rulebookService.searchRulebooks(null, null, null, null, null, null, 1, 20);
+            Page<RulebookSummaryResponseDto> result = rulebookService.searchRulebooks(null, null, null, null, null, null, null, 1, 20);
 
             // Assert
             Assertions.assertThat(result.getContent()).hasSize(1);
@@ -191,7 +195,7 @@ public class RulebookServiceTests {
 
         @Test
         public void testSearchRulebooksPageZeroThrowsIllegalArgumentException(){
-            Assertions.assertThatThrownBy(() -> rulebookService.searchRulebooks(null, null, null, null, null, null, 0, 20))
+        Assertions.assertThatThrownBy(() -> rulebookService.searchRulebooks(null, null, null, null, null, null, null, 0, 20))
                 .isInstanceOf(IllegalArgumentException.class);
         }
     }
@@ -460,15 +464,6 @@ public class RulebookServiceTests {
             rulebookId = rb.getId();
         }
 
-        private RulebookText giveRulebookText(ObjectId rbId, long v, List<Chunk> chunks, Instant at){
-            return RulebookText.builder()
-                .rulebookId(rbId)
-                .version(v)
-                .chunks(chunks)
-                .updatedAt(at)
-                .build();
-        }
-
         @Test
         public void testGetRulebookTextThrowsWhenTulebookNotFound(){
             // Arrange
@@ -481,15 +476,14 @@ public class RulebookServiceTests {
         }
         
         @Test
-        public void testGetRulebookTextThrowsWhenTextContentNotFound(){
+        public void testGetRulebookTextReturnsEmptyListWhenTextContentNotFound(){
             // Arrange
             when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
-            when(rulebookTextRepository.findByRulebookId(rulebookId)).thenReturn(Optional.empty());
+            when(rulebookTextRepository.findByRulebookIdOrderByIndexAsc(rulebookId)).thenReturn(List.of());
 
             // Act and Assert
-            Assertions.assertThatThrownBy(() -> rulebookService.getRulebookText(rulebookId))
-                .isInstanceOf(RulebookNotFoundException.class)
-                .hasMessageContaining("Text content not found");
+            RulebookTextResponseDto result = rulebookService.getRulebookText(rulebookId);
+            Assertions.assertThat(result.getChunks().isEmpty()).isTrue();
         }
         
         @Test
@@ -498,20 +492,18 @@ public class RulebookServiceTests {
             rb.setVersion(3);
             when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
 
-            Chunk c1 = Chunk.builder().chunkId(new ObjectId()).index(0).content("Setup: place the board...").build();
-            Chunk c2 = Chunk.builder().chunkId(new ObjectId()).index(1).content("Turn order: clockwise...").build();
-
-            RulebookText text = giveRulebookText(rulebookId, 3, List.of(c1, c2), Instant.now());
-            when(rulebookTextRepository.findByRulebookId(rulebookId)).thenReturn(Optional.of(text));
+            List<RulebookText> text = List.of(
+                RulebookText.builder().rulebookId(rulebookId).chunkId(new ObjectId()).index(0).content("Setup: place the board...").createdAt(Instant.now()).updatedAt(rb.getUpdatedAt()).build(),
+                RulebookText.builder().rulebookId(rulebookId).chunkId(new ObjectId()).index(1).content("Turn order: clockwise...").createdAt(Instant.now()).updatedAt(rb.getUpdatedAt()).build());
+            
+            when(rulebookTextRepository.findByRulebookIdOrderByIndexAsc(rulebookId)).thenReturn(text);
 
             // Act
             RulebookTextResponseDto dto = rulebookService.getRulebookText(rulebookId);
 
             // Assert
             Assertions.assertThat(dto.getRulebookId()).isEqualTo(rulebookId.toHexString());
-            Assertions.assertThat(dto.getChunks()).isEqualTo(text.getChunks());
-            Assertions.assertThat(dto.getVersion()).isEqualTo(3);
-            Assertions.assertThat(dto.getUpdatedAt()).isEqualTo(text.getUpdatedAt());
+            Assertions.assertThat(dto.getUpdatedAt()).isEqualTo(rb.getUpdatedAt());
             Assertions.assertThat(dto.getLockHeldBy()).isEmpty();
             Mockito.verifyNoInteractions(userRepository);
         }
@@ -523,9 +515,8 @@ public class RulebookServiceTests {
             rb.setLockHeldBy(lockHolderId);
             when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
 
-            RulebookText text = new RulebookText();
-            text.setChunks(List.of());
-            when(rulebookTextRepository.findByRulebookId(rulebookId)).thenReturn(Optional.of(text));
+            List<RulebookText> text = List.of();
+            when(rulebookTextRepository.findByRulebookIdOrderByIndexAsc(rulebookId)).thenReturn(text);
             
             User user = userWithUsername(lockHolderId.toHexString(),"bob");
             when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
@@ -538,20 +529,19 @@ public class RulebookServiceTests {
         }
         
         @Test
-        public void testGetRulebookTextThrowsWhenLockHolderUserMissing(){
+        public void testGetRulebookTextResolvesToDeletedUserWhenLockHolderUserMissing(){
             // Arrange
             ObjectId lockHolderId = new ObjectId();
             rb.setLockHeldBy(lockHolderId);
             when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
 
-            RulebookText text = new RulebookText();
-            when(rulebookTextRepository.findByRulebookId(rulebookId)).thenReturn(Optional.of(text));
+            List<RulebookText> text = List.of();
+            when(rulebookTextRepository.findByRulebookIdOrderByIndexAsc(rulebookId)).thenReturn(text);
             when(userRepository.findById(lockHolderId.toHexString())).thenReturn(Optional.empty());
 
             // Act and Assert
-            Assertions.assertThatThrownBy(() -> rulebookService.getRulebookText(rulebookId))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("User does not exist.");
+            RulebookTextResponseDto result = rulebookService.getRulebookText(rulebookId);
+            Assertions.assertThat(result.getLockHeldBy()).isEqualTo("Deleted User");
         }
         
         @Test
@@ -559,24 +549,23 @@ public class RulebookServiceTests {
             // Arrange
             when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
 
-            Chunk c1 = Chunk.builder().chunkId(new ObjectId()).index(0).content("Setup: place the board...").build();
-            Chunk c2 = Chunk.builder().chunkId(new ObjectId()).index(1).content("Turn order: clockwise...").build();
+            List<RulebookText> text = List.of(RulebookText.builder().rulebookId(rulebookId).chunkId(new ObjectId()).index(0).content("Setup: place the board...").build(),
+            RulebookText.builder().rulebookId(rulebookId).chunkId(new ObjectId()).index(1).content("Turn order: clockwise...").build());
 
-            RulebookText text = giveRulebookText(rulebookId, 3, List.of(c1, c2), Instant.now());
-            when(rulebookTextRepository.findByRulebookId(rulebookId)).thenReturn(Optional.of(text));
+            when(rulebookTextRepository.findByRulebookIdOrderByIndexAsc(rulebookId)).thenReturn(text);
 
             // Act
             RulebookTextResponseDto dto = rulebookService.getRulebookText(rulebookId);
 
             // Assert
             Assertions.assertThat(dto.getChunks()).hasSize(2);
-            Assertions.assertThat(dto.getChunks().get(0).getChunkId()).isEqualTo(c1.getChunkId());
-            Assertions.assertThat(dto.getChunks().get(0).getIndex()).isEqualTo(c1.getIndex());
-            Assertions.assertThat(dto.getChunks().get(0).getContent()).isEqualTo(c1.getContent());
-            Assertions.assertThat(dto.getChunks().get(1).getChunkId()).isEqualTo(c2.getChunkId());
-            Assertions.assertThat(dto.getChunks().get(1).getIndex()).isEqualTo(c2.getIndex());
-            Assertions.assertThat(dto.getChunks().get(1).getContent()).isEqualTo(c2.getContent());
-            Assertions.assertThat(dto.getChunks()).extracting(Chunk::getIndex).containsExactly(0, 1);
+            Assertions.assertThat(dto.getChunks().get(0).getChunkId()).isEqualTo(text.get(0).getChunkId().toHexString());
+            Assertions.assertThat(dto.getChunks().get(0).getIndex()).isEqualTo(text.get(0).getIndex());
+            Assertions.assertThat(dto.getChunks().get(0).getContent()).isEqualTo(text.get(0).getContent());
+            Assertions.assertThat(dto.getChunks().get(1).getChunkId()).isEqualTo(text.get(1).getChunkId().toHexString());
+            Assertions.assertThat(dto.getChunks().get(1).getIndex()).isEqualTo(text.get(1).getIndex());
+            Assertions.assertThat(dto.getChunks().get(1).getContent()).isEqualTo(text.get(1).getContent());
+            Assertions.assertThat(dto.getChunks()).extracting(ChunkDto::getIndex).containsExactly(0, 1);
         }
         
         @Test
@@ -584,30 +573,14 @@ public class RulebookServiceTests {
             // Arrange
             when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
 
-            RulebookText text = giveRulebookText(rulebookId, 1, List.of(), Instant.now());
-            when(rulebookTextRepository.findByRulebookId(rulebookId)).thenReturn(Optional.of(text));
+            List<RulebookText> text = List.of();
+            when(rulebookTextRepository.findByRulebookIdOrderByIndexAsc(rulebookId)).thenReturn(text);
 
             // Act
             RulebookTextResponseDto dto = rulebookService.getRulebookText(rulebookId);
 
             // Assert
             Assertions.assertThat(dto.getChunks()).isEmpty();
-        }
-        
-        @Test
-        public void testGetRulebookTextVersionComesFromRulebookNotFromTextDocument(){
-            // Arrange
-            rb.setVersion(7);
-            when(rulebookRepository.findById(rulebookId)).thenReturn(Optional.of(rb));
-
-            RulebookText text = giveRulebookText(rulebookId,999, List.of(), Instant.now());
-            when(rulebookTextRepository.findByRulebookId(rulebookId)).thenReturn(Optional.of(text));
-
-            // Act
-            RulebookTextResponseDto dto = rulebookService.getRulebookText(rulebookId);
-
-            // Assert
-            Assertions.assertThat(dto.getVersion()).isEqualTo(7);
         }
     }
 

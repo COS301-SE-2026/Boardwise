@@ -1,54 +1,90 @@
 <template>
-    <div
-        class="d-flex ga-3 mb-5"
-        :class="{ 'justify-end': message.isOwn }"
+    <article
+        class="chat-message"
+        :class="{
+            'chat-message--own': isOwn
+        }"
+        :aria-label="messageLabel"
     >
         <BaseAvatar
-            v-if="!message.isOwn"
-            :src="message.avatar"
-            :name="message.name"
+            v-if="!isOwn"
+            :src="conversation.profilePicture ?? '/images/avatar.jpg'"
+            :name="conversation.username"
             size="sm"
+            class="chat-message__avatar"
         />
 
-        <div class="bubble pa-3 rounded-lg"
-            :class="{ own: message.isOwn }">
-            <p class="mb-0">
-                {{ message.text }}
-            </p>
-            <span class="text-caption d-block mt-2 text-medium-emphasis">
-                {{  message.time }}
-            </span>
+        <div class="chat-message__content">
+            <div
+                class="chat-message__bubble"
+                :class="{
+                    'chat-message__bubble--own': isOwn
+                }"
+            >
+                <p class="chat-message__text">
+                    {{ message.message }}
+                </p>
+
+                <span class="chat-message__time">
+                    {{ formatSentAt(message.sentAt) }}
+                </span>
+            </div>
         </div>
 
         <BaseAvatar
-            v-if="message.isOwn"
-            :src="message.avatar"
-            :name="message.name"
+            v-if="isOwn"
+            :src="user.profilePicture ?? '/images/avatar.jpg'"
+            :name="user.username"
             size="sm"
+            class="chat-message__avatar"
         />
-    </div>
-</template>   
+    </article>
+</template>
 
 <script setup>
-import BaseAvatar from '~/components/ui/BaseAvatar.vue';
+import { computed } from 'vue'
 
-defineProps({
+
+import BaseAvatar from '~/components/ui/BaseAvatar.vue'
+
+const props = defineProps({
     message: {
+        type: Object,
+        required: true
+    },
+    conversation: {
+        type: Object,
+        required: true
+    },
+    user: {
         type: Object,
         required: true
     }
 })
+
+
+const isOwn = computed(() => {
+    return props.message?.senderId === props.user?.id 
+    && props.message.senderId === props.user.id;
+})
+
+const formatSentAt = (sentAt) => {
+    const date = new Date(sentAt);
+    const hours = date.getHours();
+    const formattedhours = hours < 10 ? `0${hours}` : hours;
+
+    const minutes = date.getMinutes();
+    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+    
+    return `${formattedhours}:${formattedMinutes}`
+}
+
+const messageLabel = computed(() => {
+    const sender = isOwn.value
+        ? 'You'
+        : props.conversation.username
+
+    return `${sender}: ${props.message.message}, ${props.message.sentAt}`
+})
+
 </script>
-
-<style scoped>
-.bubble{
-    max-width: 420px;
-    background: var(--color-surface);
-}
-
-.bubble.own{
-    background: var(--color-primary);
-    color: var(--color-text-inverse);
-}
-
-</style>

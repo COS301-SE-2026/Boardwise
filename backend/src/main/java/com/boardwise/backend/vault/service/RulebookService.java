@@ -2,16 +2,23 @@ package com.boardwise.backend.vault.service;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.Collections;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.boardwise.backend.shared.model.Boardgame;
+import com.boardwise.backend.shared.security.JWTService;
+import com.boardwise.backend.vault.dto.response.ChunkDto;
 import com.boardwise.backend.vault.dto.response.DownloadUrlResponseDto;
 import com.boardwise.backend.vault.dto.response.EditEventResponseDto;
 import com.boardwise.backend.vault.dto.response.EditHistoryResponseDto;
@@ -27,6 +34,8 @@ import com.boardwise.backend.vault.model.RulebookText;
 import com.boardwise.backend.vault.repository.EditEventRepository;
 import com.boardwise.backend.vault.repository.RulebookRepository;
 import com.boardwise.backend.vault.repository.RulebookTextRepository;
+import com.boardwise.backend.shared.repository.BoardGameRepository;
+
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -34,7 +43,7 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.repos.UserRepository;
+import com.boardwise.backend.user_service.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor // automatically generates a constructor for specific fields(Removes need for manual boilerplate code)
@@ -43,8 +52,10 @@ public class RulebookService {
     private final RulebookTextRepository rulebookTextRepository;
     private final EditEventRepository editEventRepository;
     private final UserRepository userRepository;
+    private final BoardGameRepository boardgameRepository;
+    private final JWTService jwtService;
 
-    @Value("${r2.rulebooks.public-prod-url}")
+    @Value("${r2.rulebooks.public-dev-url}")
     private String r2PublicDomain;
 
     @Value("${r2.bucket-rulebooks}")
@@ -54,7 +65,7 @@ public class RulebookService {
 
     // AC-VLT-02: List / Search Rulebooks
     public Page<RulebookSummaryResponseDto> searchRulebooks(
-        String search, String genre, List<String> languages,
+        String token, String search, String genre, List<String> languages,
         Integer playerCount, Integer duration, Integer minAge,
         int page, int limit){
         Pageable pageable = PageRequest.of(
@@ -66,7 +77,50 @@ public class RulebookService {
         Page<Rulebook> dtoPage = rulebookRepository.searchWithFilters(
             search, genre, languages, playerCount, duration, minAge, pageable);
 
-        return dtoPage.map(this::toRulebookSummaryResponse);
+        //For users that are not logged in
+        if (token == null || token.isBlank()) {
+            return dtoPage.map(this::toRulebookSummaryResponse);
+        }
+
+        //order based on inventory
+        User user;
+        try {
+            user = getUserFromToken(token);
+        } catch (Exception e) { 
+            //expired token or something else 
+            return dtoPage.map(this::toRulebookSummaryResponse);
+        }
+
+        Set<String> ownedTitles = Collections.emptySet();
+        if (user.getOwnedGames() != null && !user.getOwnedGames().isEmpty()) {
+            ownedTitles = boardgameRepository.findAllById(user.getOwnedGames()).stream()
+                .map(Boardgame::getTitle)
+                .collect(Collectors.toSet());
+        }
+
+        if (ownedTitles.isEmpty()) {
+            return dtoPage.map(this::toRulebookSummaryResponse);
+        }
+
+        Set<String> finalOwnedTitles = ownedTitles;
+
+        List<RulebookSummaryResponseDto> content = dtoPage
+        //get data
+        .getContent()
+        //get a seq
+        .stream()
+        //sort
+        .sorted((a, b) -> {
+            //owned first then the rest after
+            boolean aOwned = finalOwnedTitles.contains(a.getTitle());
+            boolean bOwned = finalOwnedTitles.contains(b.getTitle());
+            return Boolean.compare(bOwned, aOwned);
+        })
+        //map to response
+        .map(this::toRulebookSummaryResponse)
+        //return list
+        .toList();
+        return new PageImpl<>(content, pageable, dtoPage.getTotalElements());
     }
 
     // AC-VLT-03: Get Rulebook Detail
@@ -110,22 +164,32 @@ public class RulebookService {
     public RulebookTextResponseDto getRulebookText(ObjectId id){
         Rulebook rulebook = findRulebookOrThrow(id);
 
-        RulebookText text = rulebookTextRepository
-            .findByRulebookId(id)
-            .orElseThrow(() -> new RulebookNotFoundException("Text content not found for rulebook: " + id));
+        List<RulebookText> textChunks = rulebookTextRepository.findByRulebookIdOrderByIndexAsc(id);
 
-            String username = "";
-            if(rulebook.getLockHeldBy() != null){
+        List<ChunkDto> chunkDtos = textChunks.stream()
+            .map(chunk -> ChunkDto.builder()
+                .chunkId(chunk.getChunkId().toHexString())
+                .index(chunk.getIndex())
+                .content(chunk.getContent())
+                .build())
+            .toList();
+
+        String username = "";
+        if(rulebook.getLockHeldBy() != null){
+            try {
                 User user = findUserOrThrow(rulebook.getLockHeldBy());
                 username = user.getUsername();
+            } catch (IllegalArgumentException e) {
+                username = "Deleted User";
             }
+        }
 
         return RulebookTextResponseDto.builder()
             .rulebookId(id.toHexString())
-            .chunks(text.getChunks())
+            .chunks(chunkDtos)
             .version(rulebook.getVersion())
             .lockHeldBy(username)
-            .updatedAt(text.getUpdatedAt())
+            .updatedAt(rulebook.getUpdatedAt())
             .build();
     }
 
@@ -241,5 +305,10 @@ public class RulebookService {
             .versionPostEdit(event.getVersionPostEdit())
             .committedAt(event.getCommittedAt())
             .build();
+    }
+
+    private User getUserFromToken(String token){
+        String userId = jwtService.extractUserId(token).toString();
+        return userRepository.findById(userId).get();
     }
 }
