@@ -1,4 +1,4 @@
-import { type FriendStatus } from "./friendService";
+// import { type FriendStatus } from "./friendService"; 
 
 interface Boardgame{
     id: string;
@@ -52,7 +52,13 @@ interface Preferences{
     genres : Array<string>;
 }
 
+export enum FriendStatus{
+    REQUESTED,
+    ACCEPTED,
+    DECLINED 
+}
 export interface ProfileResponse{
+    id: string
     fullName: string;
     username: string;
     location: string;
@@ -65,7 +71,7 @@ export interface ProfileResponse{
     communities: Array<Community>;
     preferences: Preferences;
     createdAt: string;
-    FriendStatus: FriendStatus;
+    status: FriendStatus;
 }
 
 interface ProfileUpdateResponse{
@@ -100,9 +106,9 @@ export const userService = {
         return $api<ProfileResponse>("/users/");
     },
 
-    getUser(username: string){
+    getUser(id: string){
         const { $api } = useNuxtApp();
-        return $api<ProfileResponse>("/users/" + username);
+        return $api<ProfileResponse>("/users/" + id);
     },
     
     updateProfile(user: {

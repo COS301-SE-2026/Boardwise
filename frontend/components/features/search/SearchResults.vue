@@ -105,7 +105,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 import SectionTitle from '~/components/ui/SectionTitle.vue';
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue';
@@ -127,6 +127,18 @@ defineProps({
 })
 
 defineEmits(['friend-action','open-profile', 'open-rulebook', 'open-listing'])
+
+const router = useRouter();
+
+import { useUserService } from '~/composables/useUserService'
+
+const  {userSearchResult, searchForUser } = useUserService(); 
+
+onMounted( async () =>{
+    await searchForUser();
+  
+});
+
 
 const tabLabels = [ 'All', 'People', 'Rulebooks', 'Listings', 'Communities']
 const activeTab = ref('All')

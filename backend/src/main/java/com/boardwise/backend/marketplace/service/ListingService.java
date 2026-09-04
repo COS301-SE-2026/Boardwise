@@ -569,7 +569,7 @@ public class ListingService {
                 listing.getId(),
                 listing.getListingTitle(),
                 listing.getUsername(),
-                listing.getUserId(),
+                listing.getUserId().toString(),
                 listing.getGameTitle(),
                 listing.getItemType(),
                 listing.getListingType(),

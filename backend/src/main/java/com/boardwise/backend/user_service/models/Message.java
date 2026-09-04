@@ -26,9 +26,8 @@ public class Message {
     @Id
     private String id;
     private MessageType type;
+    private String targetId; // will be community id (for COMMUNITY), conversation id for DMs
     private String senderId;
-    private String recipientUserId; // set when type is DIRECT
-    private String communityId; // set when type is COMMUNITY
     private String message;
     private boolean deleted;
     private Instant sentAt;

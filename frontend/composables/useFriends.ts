@@ -1,78 +1,158 @@
-import { ref } from 'vue'
-import { friendService, type FriendSummary, type FriendRequestSummary } from '~/services/friendService'
-import { useSnackBar } from './useSnackbar'
-
+import { createSharedComposable } from "@vueuse/core";
+import { FriendService, type FriendListDTO, type FriendRequestsDTO, type ProfileResponseDTO} from "~/services/friendService";
 const { show } = useSnackBar()
 
-export const useFriends = () => {
-    const friends = ref<FriendSummary[]>([])
-    const mutuals = ref<FriendSummary[]>([])
-    const pendingRequests = ref<FriendRequestSummary[]>([])
-    const loading = ref(false)
-    const error = ref('')
 
-    const fetchFriends = async (username: string) => {
-        loading.value = true
-        error.value = ''
+const _useFriends=()=>{
+    const isLoading = ref(false);
+    const userFriendList = ref<FriendListDTO>()
+    const userFriendRequests = ref<FriendRequestsDTO>();
+    const profile = ref<ProfileResponseDTO>();
 
-        try {
-            const res = await friendService.getFriends(username)
-            friends.value = res.filter(f => !f.isMutual)
-            mutuals.value = res.filter(f => f.isMutual)
-        } catch (err: any) {
-            error.value = err.data?.message || 'Failed to load friends'
-            show(error.value, 'error')
-        } finally {
-            loading.value = false
+    const getOwnFriendsList = async ()=>{
+        isLoading.value = true;
+        try{
+            userFriendList.value = await  FriendService.getOwnFriendsList();
+            console.log("Yay we got friendLists");
+        }
+        catch(err){
+            console.log(err);
+        }
+        finally{
+            isLoading.value = false; 
+
         }
     }
 
-    const fetchPendingRequests = async () => {
-        try {
-            pendingRequests.value = await friendService.getPendingRequests()
-        } catch (err: any) {
-            error.value = err.data?.message || 'Failed to load friend requests'
-            show(error.value, 'error')
-        } finally {
-            loading.value = false
+    const getFriendRequests = async () =>{
+
+        isLoading.value = true;
+        try{
+            userFriendRequests.value = await  FriendService.getFriendRequests();
+            return userFriendRequests.value;
+        }
+        catch(err){
+            console.log(err);
+        }
+        finally{
+            isLoading.value = false; 
+
+        }
+    };
+
+    const sendFriendRequest = async (userId: string) =>{
+        isLoading.value = true;
+        try{
+            const sendResp  = (await FriendService.sendFriendRequest(userId)).message; 
+            show(sendResp, "success");            
+        }
+        catch(err){
+            console.log(err);
+            show("Error while sending friend request", "error");
+            throw err;
+        }
+        finally{
+            isLoading.value = false; 
+        }
+    };
+
+    const getOtherUserProfile = async(userId: string)=>{
+        isLoading.value = true
+        try{
+            profile.value = await FriendService.getOtherUserProfile(userId);
+            show("Successfully Fetched account", "success");
+        }
+        catch(err){
+            console.log(err);
+            show("Could not fetch Profile", "error");
+        }
+        finally{
+            isLoading.value = false;
         }
     }
 
-    const sendRequest = async (username: string) => {
-        try {
-            await friendService.sendFriendRequest(username)
-            show('Friend request sent', 'success')
-        } catch (err: any) {
-            show(err.data?.message || 'Failed to send request', 'error')
-            throw err
+    const otherFriendList = ref<FriendListDTO|null>();
+    const getOtherUserFriendList = async (userId: string) =>{
+        isLoading.value = true
+        try{
+            otherFriendList.value = await  FriendService.getOtherUserFriendsList(userId);
+            show("Successfully Fetched account", "success");
+            return otherFriendList.value;
+
+        }
+        catch(err){
+            console.log(err);
+            show("Could not fetch Profile", "error");
+        }
+        finally{
+            isLoading.value = false;
         }
     }
 
-    const respondToRequest = async (requestId: string, action: 'accept' | 'reject') => {
-        try {
-            await friendService.respondToRequest(requestId, action)
-            pendingRequests.value = pendingRequests.value.filter(r => r.requestId !== requestId)
-            show(action == 'accept' ? 'Friend request accepted' : 'Friend request declined', 'success')
-        } catch (err: any) {
-            show(err.data?.message || 'Failed to send request', 'error')
-            throw err
+    const getUserFriendsList = async (userId: string) =>{
+         isLoading.value = true
+        try{
+            otherFriendList.value = await  FriendService.getUserFriendsList(userId);
+            show("Successfully Fetched account", "success");
+            return otherFriendList.value;
+
+        }
+        catch(err){
+            console.log(err);
+            show("Could not fetch Profile", "error");
+        }
+        finally{
+            isLoading.value = false;
         }
     }
 
-    const removeFriend = async (username: string) => {
-         try {
-            await friendService.removeFriend(username)
-            friends.value = friends.value.filter(f => f.username !== username)
-            mutuals.value = mutuals.value.filter(f => f.username !== username)
-            show('Friend removed', 'info')
-        } catch (err: any) {
-            show(err.data?.message || 'Failed to remove friend', 'error')
-            throw err
+    const unfriendUser = async(id:string) =>{
+        isLoading.value = true
+        try{
+            const v = await FriendService.unfriendUser(id);
+            show("You have successfully unfriended them", "success");
+            return v.message;
+
+        }
+        catch(err){
+            console.log(err);
+            show("Failed to Unfriend user", "error");
+        }
+        finally{
+            isLoading.value = false;
+        }
+    }
+
+    const respondToFriendRequest = async (id: string, action: "accept" | "decline") => {
+        isLoading.value = true;
+        try{
+            const sendResp  = (await FriendService.respondToFriendRequest(id, action)).message; 
+            show(sendResp, "success");            
+        }
+        catch(err){
+            console.log(err);
+            show("Error while sending friend request", "error");
+            throw err;
+        }
+        finally{
+            isLoading.value = false; 
         }
     }
 
     return {
-        friends, mutuals, pendingRequests, loading, error, 
-        fetchFriends, fetchPendingRequests, sendRequest, respondToRequest, removeFriend
-    }
+        unfriendUser, 
+        getOwnFriendsList, 
+        getFriendRequests, 
+        sendFriendRequest, 
+        getOtherUserProfile, 
+        getOtherUserFriendList, 
+        getUserFriendsList , 
+        isLoading, 
+        otherFriendList, 
+        profile,
+        userFriendList,
+        respondToFriendRequest
+    };
 }
+
+export const useFriends = createSharedComposable(_useFriends);

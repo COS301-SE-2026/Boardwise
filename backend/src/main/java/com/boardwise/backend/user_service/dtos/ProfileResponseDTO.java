@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.boardwise.backend.shared.dtos.GameInventoryDTO;
+import com.boardwise.backend.user_service.enums.FriendStatus;
 import com.boardwise.backend.user_service.models.Preferences;
 
 public record ProfileResponseDTO(
@@ -18,5 +19,6 @@ public record ProfileResponseDTO(
     List<GameInventoryDTO> games,
     List<Map<String, String>> communities,
     Preferences preferences,
+    FriendStatus friendStatus,
     String createdAt
 ) {}

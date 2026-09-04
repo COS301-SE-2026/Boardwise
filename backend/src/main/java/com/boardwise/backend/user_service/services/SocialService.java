@@ -162,6 +162,7 @@ public class SocialService {
                 isMember = true;
 
             Map<String, String> userData = new HashMap<>();
+            userData.put("id", member.getId());
             userData.put("username", member.getUsername());
             userData.put("profilePicture", member.getProfilePicture());
             members.add(userData);

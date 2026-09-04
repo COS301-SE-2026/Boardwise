@@ -1,8 +1,7 @@
-
 <template>
     <PageContainer>
         <!-- Loading -->
-         <template v-if="loading">
+        <template v-if="loading">
             <v-container
                 class="d-flex justify-center align center"
                 style="min-height: 60vh"
@@ -32,35 +31,35 @@
         <template v-else-if="user">
             <Navbar />
 
-            <div class="d-flex justify-space-between align-center mb-4">
-                <div class="d-flex align-center ga-4">
-                    <BaseAvatar 
-                        :src="user.profilePicture ?? undefined" 
-                        :name="user.username" 
-                        size="lg" 
-                    />
+            <v-card flat class="profile-header pa-10 w-100 mb-6">
+                <div class="d-flex justify-space-between align-center flex-wrap ga-6">
+                    <div class="d-flex align-center ga-6 flex-wrap profle-info">
+                        <BaseAvatar 
+                            :src="user.profilePicture ?? '/images/avatar.jpg'" 
+                            :name="user.username" 
+                            size="lg" 
+                        />
 
-                    <div>
-                        <h2 class="text-h5 mb-1"
-                            >@{{ user.username }}
-                        </h2>
-
-                        <p v-if="user.bio" class="text-body-2 text-medium-emphasis mb-0">{{ user.bio }}</p>
+                        <div>
+                            <h1 class="profile-name ma-0">{{ user.fullName || user.username }}</h1>
+                            <p class="profile-username ma-0">@{{ user.username }}</p>
+                            
+                            <p v-if="user.bio" class="profile-bio ma-0">{{ user.bio }}</p>
+                        </div>
                     </div>
                 </div>
-
                 <FriendActionButton
-                    :status="user.FriendStatus"
+                    :status="user.status"
                     @add="handleAdd"
                     @remove="handleRemove"
                 />
-            </div>
+            </v-card>
 
             <ProfileStats
                 :games="user.ownedGameCount"
                 :friends="user.friendCount"
                 :communities="user.groupCount"
-                @friends-click="openFriendsModal"
+                @open="openFriendsModal"
             />
 
             <ProfileCommunities :communities="user.communities" />
@@ -84,10 +83,7 @@
         <FriendsModal
             v-model="showFriendsModal"
             :username="user?.username ?? ''"
-            :friends="friends"
-            :mutuals="mutuals"
-            :loading="friendsLoading"
-            @add="onModalAdd"
+            :loading="isLoading"
             @remove="onModalRemove"
         />
     </PageContainer>
@@ -112,12 +108,17 @@ import FriendActionButton from '~/components/features/people/FriendActionButton.
 import { useProfile } from '~/composables/useProfile'
 import { useFriends } from '~/composables/useFriends'
 import { useMarketplace } from '~/composables/useMarketplace'
+import { FriendStatus } from '~/services/userService';
 import type { ProfileResponse } from '~/services/userService'
 
 const route = useRoute()
-const { fetchUserByUsername } = useProfile()
+const { fetchUserById } = useProfile()
 const { listings, fetchUserListing } = useMarketplace()
-const { friends, mutuals, loading: friendsLoading, fetchFriends, sendRequest, removeFriend } = useFriends()
+const {  
+    isLoading, 
+    sendFriendRequest, 
+    unfriendUser
+} = useFriends()
 
 const loading = ref(true)
 const notFound = ref(false)
@@ -128,13 +129,13 @@ const showFriendsModal = ref(false)
 
 const games = computed(() => user.value?.games ?? [])
 
-const loadProfile = async (username: string) => {
-    loading.value = true
+const loadProfile = async (id: string) => {
+    isLoading.value = true
     notFound.value = false
     user.value = null
 
     try {
-        const profile = await fetchUserByUsername(username)
+        const profile = await fetchUserById(id);
 
         if(!profile) {
             notFound.value = true
@@ -142,8 +143,7 @@ const loadProfile = async (username: string) => {
         }
 
         user.value = profile
-        
-        await fetchUserListing(username)
+        await fetchUserListing();
     } catch (err) {
         console.error('Failed to load profile:', err)
         notFound.value = true
@@ -156,15 +156,14 @@ const openFriendsModal = async () => {
     if (!user.value) return
 
     showFriendsModal.value = true
-    await fetchFriends(user.value.username)
 }
 
 const handleAdd = async () => {
     if (!user.value) return
 
     try {
-        await sendRequest(user.value.username)
-        user.value.FriendStatus = 'pendingSent'
+        await sendFriendRequest(user.value.id)
+        user.value.status = FriendStatus.REQUESTED
     } catch (err) {
         console.error('Failed to send friend request:', err)
     }
@@ -174,52 +173,91 @@ const handleRemove = async () => {
     if (!user.value) return
 
     try {
-        await removeFriend(user.value.username)
-        user.value.FriendStatus = 'none'
-    } catch (err) {
-        console.error('Failed to remove friend:', err)
-  }
-}
-
-const onModalAdd = async (username: string) => {
-    try {
-        await sendRequest(username)
-
-        if(user.value) {
-            await fetchFriends(user.value.username)
-        }
+        await unfriendUser(user.value.id)
+        user.value.status = FriendStatus.DECLINED
     } catch (err) {
         console.error('Failed to send friend request:', err)
     }
 }
 
-const onModalRemove = async (username: string) => {
+const onModalRemove = async (id: string) => {
     try {
-        await removeFriend(username)
-        if (user.value) await fetchFriends(user.value.username)
+        await unfriendUser(id)
+        if (user.value) {
+            const res = await fetchUserById(user.value.id)
+            user.value = res ?? user.value
+        }
+            
     } catch(err) {
         console.error('Failed to remove friend:', err)
     }
 }
 
-onMounted(() => loadProfile(route.params.username as string))
-watch(() => route.params.username, (u) => u && loadProfile(u as string))
+onMounted(() => loadProfile(route.params.id as string))
+watch(() => route.params.id, (u) => u && loadProfile(u as string))
 
 </script>
 
 <style scoped>
+.profile-header {
+    background:    var(--color-surface-alt) !important;
+    border-radius: var(--radius-lg) !important;
+    border:        1px solid var(--color-border);
+    box-shadow:    var(--shadow-sm) !important;
+    min-height:    197px; 
+}
 
-.profile-top {
-    flex-wrap: wrap;
-    gap: var(--space-4);
+.profile-avatar {
+    border: 3px solid var(--color-border-strong);
+    flex-shrink: 0;
+}
+
+.profile-info {
+    min-width: 0;
+    height: auto;
+}
+
+.profile-details {
+    min-width: 0;
+}
+
+.profile-name {
+    font-family:  var(--font-display);
+    font-size:    var(--fs-h2);
+    font-weight:  var(--fw-regular);
+    color:        var(--color-secondary);
+    line-height:  var(--lh-tight);
+}
+
+.profile-username {
+    font-family: var(--font-body);
+    font-size:   var(--fs-body);
+    font-weight: var(--fw-bold);
+    color:       var(--color-primary);
+}
+
+.profile-bio {
+    font-family: var(--font-body);
+    font-size:   var(--fs-body);
+    color:       var(--color-text-muted);
 }
 
 @media (max-width: 600px) {
+    .profile-header {
+        padding: var(--space-5) !important;
+    }
 
-    .profile-top {
+    .profile-info {
+        width: 100%;
         align-items: flex-start !important;
     }
 
-}
+    .profile-details {
+        flex: 1;
+    }
 
+    .profile-name {
+        font-size: var(--fs-h3);
+    }
+}
 </style>

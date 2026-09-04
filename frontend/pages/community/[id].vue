@@ -10,20 +10,20 @@
         class="community-chat-window"
         :aria-label="`${community.name} community chat`"
       >
-        <CommunityBanner
-          :community="community"
-          @details="showDetails = true"
-          @updated="handleUpdate"
-        />
-
-        <div class="community-chat-window__body">
-          <CommunityChats
-            :community="community"
-            @join="handleJoin"
-            @leave="handleLeave"
-          />
-        </div>
-      </section>
+ 
+      <CommunityBanner 
+        :community="community" 
+        @members="showMembers = !showMembers"
+        @events="showEvents = !showEvents"
+        @updated="handleUpdate"
+      />
+ 
+      <CommunityChats 
+        :community="community" 
+        :token="token"
+        @join="handleJoin"
+      />
+    </section>
 
       <CommunityMoreDetails
         v-model="showDetails"
@@ -55,8 +55,8 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
@@ -68,9 +68,10 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
 import { useCommunity } from '~/composables/useCommunity'
 import { useSnackBar } from '~/composables/useSnackbar'
-import CommunityMoreDetails from '~/components/features/community/CommunityMoreDetails.vue'
+
 
 const route = useRoute()
+const router = useRouter()
 
 const {
   getCommunityDetails,
@@ -83,11 +84,17 @@ const {
 const { show } = useSnackBar()
 
 const community = ref(null)
-const showDetails = ref(false)
-const detailsTab = ref('about')
+const token = ref('')
 
 onMounted(async () => {
-  community.value = await getCommunityDetails(route.params.id)
+  const rawToken = localStorage.getItem("access_token")
+  if(!rawToken)
+      router.push("/auth/signin")
+  else{
+      token.value = rawToken;
+      community.value = await getCommunityDetails(route.params.id)
+  }
+ 
 })
 
 const handleJoin = async () => {

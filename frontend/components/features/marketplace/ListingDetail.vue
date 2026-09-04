@@ -42,7 +42,7 @@
 
       <p class="description" data-test="listing-description">{{ listing.description ?? 'No description provided.' }}</p>
 
-      <v-btn color="primary">Contact Seller</v-btn>
+      <BaseButton @click="handleClick" color="primary">Contact Seller</BaseButton>
 
     </div>
   </div>
@@ -50,10 +50,22 @@
 
 <script setup>
 import BaseBadge from '~/components/ui/BaseBadge.vue'
+import { useRouter } from 'vue-router'
+import BaseButton from '~/components/ui/BaseButton.vue'
 
-defineProps({
+
+const router = useRouter()
+const props = defineProps({
   listing: Object
 })
+
+const handleClick = () => {
+  console.log('Listing.userId: ', props.listing.userId, props.listing)
+  router.push({
+    path: '/chats',
+    query: { newChat: props.listing.userId }
+  })
+}
 </script>
 
 <style scoped>
