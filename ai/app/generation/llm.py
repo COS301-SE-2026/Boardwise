@@ -9,7 +9,7 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-hf_client = InferenceClient(model="Qwen/Qwen2.5-7B-Instruct", token=settings.HF_TOKEN)
+hf_client = InferenceClient(model="meta-llama/Meta-Llama-3.1-8B-Instruct", token=settings.HF_TOKEN)
 
 
 def _call_remote_llm(messages: list[dict], max_retries: int) -> str | None:

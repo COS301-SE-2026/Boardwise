@@ -16,3 +16,5 @@ sentence-transformers==3.0.1
 einops==0.8.0
 torch==2.13.0
 llama-cpp-python==0.3.35
+hf-xet==1.6.0
+setuptools==84.0.0
