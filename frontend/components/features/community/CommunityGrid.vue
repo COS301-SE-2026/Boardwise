@@ -14,7 +14,7 @@
       v-for="community in communities"
       :key="community.id"
       :community="community"
-      @join="$emit('join-request', community.id)"
+      @join="$emit(community.id)"
     />
     
   </BaseGrid>
