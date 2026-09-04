@@ -15,17 +15,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.boardwise.backend.shared.config.SecurityConfig;
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.shared.security.JwtFilter;
 import com.boardwise.backend.user_service.repository.TokenBlackListRepository;
 import com.boardwise.backend.user_service.services.MyUserDetailsService;
 import com.boardwise.backend.vault.dto.response.DownloadUrlResponseDto;
@@ -38,7 +36,8 @@ import com.boardwise.backend.vault.exception.RulebookNotFoundException;
 import com.boardwise.backend.vault.service.RulebookService;
 
 @WebMvcTest(RulebookController.class)
-@Import({SecurityConfig.class, JwtFilter.class})
+// @Import({SecurityConfig.class, JwtFilter.class})
+@AutoConfigureMockMvc(addFilters = false)
 public class RulebookControllerTest {
     @Autowired
     MockMvc mockMvc;
@@ -83,7 +82,8 @@ public class RulebookControllerTest {
                 .thenReturn(new PageImpl<>(List.of(sampleSummaryDto())));
             
             // Act and Assert
-            mockMvc.perform(get("/api/vault/rulebooks"))
+            mockMvc.perform(get("/api/vault/rulebooks").header("Authorization",
+                    "Bearer abc"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].title").value("Catan"));
         }
@@ -96,7 +96,8 @@ public class RulebookControllerTest {
                 .thenReturn(Page.empty());
             
             // Act and Assert
-            mockMvc.perform(get("/api/vault/rulebooks"))
+            mockMvc.perform(get("/api/vault/rulebooks").header("Authorization",
+                    "Bearer abc"))
                 .andExpect(status().isNoContent());
         }
         
@@ -107,9 +108,10 @@ public class RulebookControllerTest {
             when(rulebookService.searchRulebooks(any() ,any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(Page.empty());
             // Act and Assert
-            mockMvc.perform(get("/api/vault/rulebooks"))
+            mockMvc.perform(get("/api/vault/rulebooks")
+                .header("Authorization", "Bearer abc"))
                 .andExpect(status().isNoContent());
-            verify(rulebookService).searchRulebooks(isNull(),isNull(),isNull(),isNull(),isNull(), isNull(), isNull(),eq(1), eq(20));
+            verify(rulebookService).searchRulebooks(eq("abc"),isNull(),isNull(),isNull(),isNull(), isNull(), isNull(),eq(1), eq(20));
         }
         
         @Test
@@ -120,6 +122,7 @@ public class RulebookControllerTest {
                 .thenReturn(Page.empty());
             // Act and Assert
             mockMvc.perform(get("/api/vault/rulebooks")
+                .header("Authorization", "Bearer abc")
                 .param("search", "catan")
                 .param("genre", "strategy")
                 .param("languages", "English", "French")

@@ -9,8 +9,9 @@
 
             <OnBoardingGames
                 v-else-if="step === 2"
-                :games="availableGames"
+                :games="games"
                 @continue="handleGamesSelected"
+                @skip="step = 3"
             />
 
             <Complete
@@ -22,23 +23,50 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 import Complete from '~/components/features/auth/onboarding/Complete.vue';
 import OnBoardingGames from '~/components/features/auth/onboarding/OnBoardingGames.vue';
 import Welcome from '~/components/features/auth/onboarding/Welcome.vue';
 import PageContainer from '~/components/layout/PageContainer.vue';
+import { userService } from '~/services/userService';
 
 const router = useRouter()
 const { user } = useAuth()
-const step = ref(1)
 
-// Todo: replace with real fetch from game catalog
-const availableGames = ref([])
+const step = ref(1)
+const isSubmitting = ref(false)
+const errorMessages = ref('')
+
+const { games, searchGames } = useBoardGames()
+
+onMounted(() => {
+    handleGetGames()
+})
+
+async function handleGetGames(){
+    try{
+        await searchGames();
+        console.log("Games Array: ", games.value)
+    }catch(err){
+        console.error('Failed to fetch boardgames: ', err);
+        errorMessages.value = 'Failed to fetch games'
+    }
+}
 
 async function handleGamesSelected(selectedIds) {
-    // Todo: persist selectedIds to user's collection via API
-    step.value = 3
+    isSubmitting.value = true
+    errorMessages.value = ''
+
+    try{
+        await userService.addGamesToInventory({ knownGameIds: selectedIds})
+        step.value = 3
+    }catch(err){
+        console.error('Failed to save game inventory: ', err);
+        errorMessages.value = 'Failed to save your games. Please try again.'
+    }finally{
+        isSubmitting.value = false
+    }
 }
 </script>
 

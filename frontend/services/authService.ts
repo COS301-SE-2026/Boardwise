@@ -1,7 +1,15 @@
 import type ForgotPassword from "~/components/features/auth/ForgotPassword.vue";
 
+interface userResponse{
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+}
+
 interface AuthResponse{
   message: string;
+  user: userResponse
   accessToken: string;
 }
 

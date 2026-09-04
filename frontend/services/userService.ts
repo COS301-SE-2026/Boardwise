@@ -23,13 +23,13 @@ export interface OtherGameDTO {
     genres: Array<string>;
 }
 
-// interface GameInventory {
-//     id: string;
-//     title: string;
-//     description: string;
-//     imageURL: string;
-//     genres: Array<string>;
-// }
+interface GameInventory {
+    id: string;
+    title: string;
+    description: string;
+    imageURL: string;
+    genres: Array<string>;
+}
 
 interface InventoryUpdateResponse {
     message: string;
@@ -98,6 +98,11 @@ interface GenresResponse {
 }
 interface CreateBoardgameResponse {
     message: string;
+}
+interface BulkAddResponse {
+    message: string;
+    ownedGamesCount: number;
+    games: GameInventory[];
 }
 
 export const userService = {
@@ -201,6 +206,7 @@ export const userService = {
             }
         });
     },
+
     createBoardgame(gameInfo: OtherGameDTO, gameImage: File){
         const { $api } = useNuxtApp();
         const formData = new FormData();
@@ -214,4 +220,12 @@ export const userService = {
         });
     },
 
+    addGamesToInventory(payload: { knownGameIds: string[] }){
+        const { $api } = useNuxtApp();
+
+        return $api<BulkAddResponse>('users/gameInventory/bulk', {
+            method: 'POST',
+            body: payload
+        });
+    }
 }

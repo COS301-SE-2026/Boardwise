@@ -17,6 +17,7 @@ import com.boardwise.backend.user_service.dtos.LogoutResponseDTO;
 import com.boardwise.backend.user_service.dtos.RegisterDTO;
 import com.boardwise.backend.user_service.dtos.request.ForgotPasswordDto;
 import com.boardwise.backend.user_service.dtos.request.ResetPasswordDto;
+import com.boardwise.backend.user_service.dtos.response.SummaryUserResponseDto;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repository.UserRepository;
 import com.boardwise.backend.user_service.utils.PasswordResetTokenUtils;
@@ -50,7 +51,7 @@ public class AuthService {
 
         // generate JWT and return it
         String token = jwt.generateToken(newUser.getId());
-        return new AuthResponseDTO("User successfully register", token);
+        return new AuthResponseDTO("User successfully register",null, token);
     }
 
     public AuthResponseDTO login(LoginDTO dto){
@@ -65,8 +66,9 @@ public class AuthService {
             throw new IllegalArgumentException("Incorrect user credentials");
 
         // generate JWT and return it
-        String token = jwt.generateToken(userRepo.findByUsername(username).get().getId());
-        return new AuthResponseDTO("User logged in successfully", token);
+        User user = userRepo.findByUsername(username).get();
+        String token = jwt.generateToken(user.getId());
+        return new AuthResponseDTO("User logged in successfully", new SummaryUserResponseDto(user.getUsername(), user.getEmailAddress(), user.getFirstName(), user.getLastName()), token);
     }
 
     public LogoutResponseDTO logout(String token){

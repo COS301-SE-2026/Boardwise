@@ -1,5 +1,7 @@
+import { json } from 'node:stream/consumers'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { isNull } from 'vuetify/lib/util/v0.mjs'
 import { AuthService } from '~/services/authService'
 
 export const required = (message : string = 'This field is required') => (value: any) => {
@@ -39,24 +41,30 @@ export const minLength = (length: number, message?: string) => (value: string): 
   return value.length >= length || message ||'Must be at least 3 characters'
 }
 
+const token = ref<string|null>(
+  import.meta.client ? localStorage.getItem('access_token') : null
+)
+const isAuthenticated = ref<boolean>(!!token.value)
+const user = ref<any>(
+  import.meta.client ? JSON.parse(localStorage.getItem('user_data') || 'null') : null
+)
+const error = ref<string>('');
+const isLoading = ref<boolean>(false);
+
 export const useAuth = () => {
   const router = useRouter();
 
-  // Safe state initialization
-  const token = ref<string|null>(
-    import.meta.client ? localStorage.getItem('access_token') : null
-  )
-  const isAuthenticated = ref<boolean>(!!token.value)
-  const error = ref<string>('');
-  const isLoading = ref<boolean>(false);
-
   // Helper for session management
-  const setSession = (newToken: string) => {
+  const setSession = (newToken: string, userData?: any) => {
     if(import.meta.client){
       localStorage.setItem('access_token', newToken);
+      if(userData){
+        localStorage.setItem('user_data', JSON.stringify(userData));
+      }
     }
     token.value = newToken;
     isAuthenticated.value = true;
+    if(userData) user.value = userData;
   }
 
   const register = async (userData: any): Promise<boolean> => {
@@ -65,7 +73,13 @@ export const useAuth = () => {
 
     try{
       const response = await AuthService.register(userData);
-      setSession(response.accessToken);
+      setSession(response.accessToken, {
+        username: userData.username,
+        email: userData.emailAddress,
+        firstName: userData.firstName,
+        lastName: userData.lastName
+      });
+
       return true;
     }catch(err: any){
       error.value = err.data?.message || 'Registration failed';
@@ -80,7 +94,7 @@ export const useAuth = () => {
     isLoading.value = true;
     try{
       const response = await AuthService.login(credentials);
-      setSession(response.accessToken);
+      setSession(response.accessToken, response.user);
       return true;
     }catch(err: any){
       error.value = err.data?.message || 'Invalid credentials';
@@ -101,10 +115,12 @@ export const useAuth = () => {
         error.value = err.data?.message || 'Invalid credentials';
       }finally{
         localStorage.removeItem('access_token');
+        localStorage.removeItem('user_data');
         isLoading.value = false;
       }
     }
     token.value = null
+    user.value = null
     isAuthenticated.value = false;
     router.push('/auth/signin');
   }
@@ -141,6 +157,7 @@ export const useAuth = () => {
 
   return {
     token,
+    user,
     isAuthenticated,
     error,
     isLoading,

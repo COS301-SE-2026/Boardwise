@@ -30,6 +30,8 @@ import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
 import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
 import com.boardwise.backend.user_service.dtos.ProfileResponseDTO;
 import com.boardwise.backend.user_service.dtos.UpdateProfileDTO;
+import com.boardwise.backend.user_service.dtos.request.BoardgameCollectionBulkAddDto;
+import com.boardwise.backend.user_service.dtos.response.BulkAddResponseDTO;
 import com.boardwise.backend.user_service.services.ProfileService;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -213,6 +215,22 @@ public class ProfileController {
             res = new HashMap<>();
             res.put("message", e.getMessage());
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PostMapping("/gameInventory/bulk")
+    public ResponseEntity<?> addGamesToInventory(
+        @RequestBody BoardgameCollectionBulkAddDto dto,
+        HttpServletRequest req
+    ){
+        String token = extractToken(req);
+        try {
+            BulkAddResponseDTO res = service.bulkAddGameToInventory(token, dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(res);
+        } catch (Exception e) {
+            Map<String, Object> res = new HashMap<>();
+            res.put("message", "Something went wrong while adding game to inventory.");
+            return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

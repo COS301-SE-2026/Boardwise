@@ -12,7 +12,7 @@
               placeholder="Find a community..."
               />
 
-            <BaseTag  
+            <BaseTabGroup  
               v-model="activeTab"
               :tabs="tabs"
               />
@@ -31,7 +31,7 @@ import { ref, computed  } from 'vue';
 
 import SectionTitle from '~/components/ui/SectionTitle.vue';
 import BaseSearch from '~/components/ui/BaseSearch.vue';
-import BaseTag from '~/components/ui/BaseTag.vue';
+import BaseTabGroup from '~/components/ui/BaseTabGroup.vue';
 import CommunityGrid from './CommunityGrid.vue';
 
 const props = defineProps({

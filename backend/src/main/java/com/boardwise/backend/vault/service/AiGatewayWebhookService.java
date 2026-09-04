@@ -9,6 +9,7 @@ import com.boardwise.backend.vault.dto.request.ReEmbedRequestDto;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 @Service
 @Slf4j
@@ -16,17 +17,17 @@ import lombok.extern.slf4j.Slf4j;
 public class AiGatewayWebhookService {
     private final WebClient aiGatewayWebClient;
 
-    public void triggerReEmbedding(String chunkId, String content, Map<String, String> metadata){
+    public Mono<Void> triggerReEmbedding(String chunkId, String content, Map<String, String> metadata){
         ReEmbedRequestDto payload = new ReEmbedRequestDto(chunkId, content, metadata);
 
-        aiGatewayWebClient.post()
+        return aiGatewayWebClient.post()
             .uri("vault/internal/chunks/re-embed")
             .bodyValue(payload)
             .retrieve()
             .toBodilessEntity()
-            .subscribe(
-                response -> log.info("Successfully queued re-embedding for chunk: {}", chunkId),
-                error -> log.info("Failed to queue webhook for chunk {}: {}", chunkId, error.getMessage())
-            );
+            .doOnSuccess(response -> log.info("Successfully queued re-embedding for chunk: {}", chunkId))
+            .onErrorResume(error -> {log.info("Failed to queue webhook for chunk {}: {}", chunkId, error.getMessage());
+            return Mono.empty();})
+            .then();
     }
 }
