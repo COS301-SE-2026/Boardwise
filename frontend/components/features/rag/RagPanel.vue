@@ -26,7 +26,7 @@ import type { RagMessage as RagMessageType } from '~/composables/useRag'
 import RagFeed from '~/components/features/rag/RagFeed.vue'
 import RagComposer from '~/components/features/rag/RagComposer.vue'
 
-import { useRag } from '~/composables/useRag.ts'
+import { useRag } from '~/composables/useRag'
 
 const props = defineProps<{
     modelValue: boolean
