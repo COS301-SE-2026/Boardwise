@@ -46,7 +46,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Run Pulumi Script
-        uses: pulumi/actions@8e5e406f4007fca908480587cb9893c07090f58d
+        uses: pulumi/actions@v5
         with: 
           command: up
           stack-name: dev
