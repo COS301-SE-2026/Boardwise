@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 
 @RestController
-@RequestMapping("/api/vault/rulebooks")
+@RequestMapping("/api/sb/vault/rulebooks")
 @RequiredArgsConstructor
 public class WriteLockController {
     private final WriteLockService writeLockService;

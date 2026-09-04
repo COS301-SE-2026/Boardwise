@@ -27,7 +27,7 @@ import java.util.*;
 import java.util.logging.Logger;
 
 @RestController
-@RequestMapping("/api/marketplace")
+@RequestMapping("/api/sb/marketplace")
 
 public class ListingController {
     private final Logger logger = Logger.getLogger("Listing Controller Logger");

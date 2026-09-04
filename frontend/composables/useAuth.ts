@@ -1,7 +1,5 @@
-import { json } from 'node:stream/consumers'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { isNull } from 'vuetify/lib/util/v0.mjs'
 import { AuthService } from '~/services/authService'
 
 export const required = (message : string = 'This field is required') => (value: any) => {
