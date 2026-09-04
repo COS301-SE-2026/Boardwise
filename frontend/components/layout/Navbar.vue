@@ -164,7 +164,6 @@
     <v-list-item prepend-icon="mdi-store" title="Marketplace" to="/marketplace" @click="drawer = false" />
     <v-list-item prepend-icon="mdi-account-group" title="Community" to="/community" @click="drawer = false" />
     <v-list-item prepend-icon="mdi-calendar" title="Events" to="/events" @click="drawer = false" />
-    <v-list-item prepend-icon="mdi-account" title="Profile" to="/profile" @click="drawer = false" />
   </v-list>
 </v-navigation-drawer>
 
