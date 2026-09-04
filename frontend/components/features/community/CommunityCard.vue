@@ -1,6 +1,8 @@
 <template>
-  <BaseCard  >
-
+  <BaseCard 
+    class="cursor-pointer"
+    @click="navigateToCommunity"
+  >
     <div>
       <BaseImage
         :src="community.imageUrl"
@@ -17,30 +19,20 @@
       </BaseBadge>
     </div>
 
-
     <div class="d-flex flex-column ga-3 pa-4 flex-grow-1">
       <h3 class="mb-0">{{ community.name }}</h3>
 
       <p class="text-body-2 text-medium-emphasis mb-0">
         {{ community.description }}
       </p>
-
-      <BaseButton class="mt-auto"
-        block
-        @click.stop="navigateToCommunity"
-      >
-        View
-      </BaseButton>
     </div>
   </BaseCard>
 </template>
 
 <script setup>
-
 import { useRouter } from 'vue-router'
 
 import BaseCard from '~/components/ui/BaseCard.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
 import BaseBadge from '~/components/ui/BaseBadge.vue'
 
