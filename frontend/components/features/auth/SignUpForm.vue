@@ -1,8 +1,5 @@
 <template>
-    <v-container
-        fluid 
-        class="auth-page d-flex align-center justify-center"
-    >
+    <div class="auth-page d-flex align-center justify-center">
         <div class="auth-wrapper">
             <AuthForm
                 title="Sign Up"
@@ -28,7 +25,7 @@
                 </NuxtLink>
             </p>
         </div>
-    </v-container>
+    </div>
 </template>
 
 <script setup>
@@ -63,7 +60,7 @@ const handleSignUp = async (data) => {
     })
 
     if (success) {
-        router.push('/library')
+        router.push('/auth/onboarding')
     }
 }
 </script>

@@ -18,11 +18,11 @@ public class AiWebhookEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onDeltaCommitted(DeltaCommitedEventDto event){
-        webhookService.triggerReEmbedding(event.getChunkId(), event.getDeltaContent(), event.getMetadata());
+        webhookService.triggerReEmbedding(event.getChunkId(), event.getDeltaContent(), event.getMetadata()).subscribe();
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onChunkInserted(ChunkInsertedEventDto event){
-        webhookService.triggerReEmbedding(event.getChunkId(), event.getContent(), event.getMetadata());
+        webhookService.triggerReEmbedding(event.getChunkId(), event.getContent(), event.getMetadata()).subscribe();
     }
 }

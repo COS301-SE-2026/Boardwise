@@ -19,16 +19,27 @@
             >
                 {{  game.title }}
             </BaseTag>
+            <!-- <div v-for="game in games" :key="game.id">{{  game.title }}</div> -->
         </BaseGrid>
 
-        <BaseButton
-            variant="primary"
-            :disabled="selected.length < minRequired"
-            class="onboarding-step_cta"
-            @click="$emit('continue', selected)"
-        >
-            Continue
-        </BaseButton> 
+        <div class="onboarding-step_actions">
+            <BaseButton
+                variant="secondary"
+                class="onboarding-step_skip"
+                @click="$emit('skip')"
+            >
+                Skip for now
+            </BaseButton>
+
+            <BaseButton
+                variant="primary"
+                :disabled="selected.length < minRequired"
+                class="onboarding-step_cta"
+                @click="$emit('continue', selected)"
+            >
+                Continue
+            </BaseButton>
+        </div>
     </div>
 </template>
 
@@ -45,7 +56,7 @@ const props = defineProps({
     minRequired: {type: Number, default: 5 }
 })
 
-defineEmits(['continue'])
+defineEmits(['continue', 'skip'])
 
 const selected = ref([])
 
@@ -80,6 +91,19 @@ function toggleGame(id) {
 .onboarding-class_game-grid {
     max-height: 320px;
     overflow-y: auto;
+}
+
+.onboarding-step_actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+}
+
+.onboarding-step_skip {
+    color: var(--color-text-muted);
+    font-size: var(--fs-small);
 }
 
 </style>

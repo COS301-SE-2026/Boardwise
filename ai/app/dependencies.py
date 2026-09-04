@@ -94,14 +94,16 @@ def verify_index_ready():
             status_code=500, detail="Database connection error while verifying index."
         )
 
-def verify_internal_token():
+internal_key_header = APIKeyHeader(name="X-Internal-Token", auto_error=True)
+    
+def verify_internal_token(
+    header_value: str = Security(internal_key_header)
+):
     """
     FastAPI dependency that verifies the internal webhook token attached to the request.
     Returns the token if it is valid
     Raises a 403 Forbidden if the token is invalid
     """
-    internal_key_header = APIKeyHeader(name="X-Internal-Token", auto_error=True)
-    header_value = Security(internal_key_header)
     if header_value != settings.INTERNAL_WEBHOOK_SECRET:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
