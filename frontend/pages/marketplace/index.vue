@@ -31,7 +31,7 @@
       </div>
 
       <!-- Desktop -->
-      <div class="d-none d-md-flex ga-6 mt-6 align-start">
+      <div class="d-flex d-md-flex ga-6 mt-6 align-start">
         <FilterSidebar data-test="filter-sidebar" @filter="handleFilter"/>
         <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
           <v-progress-circular data-test="loading-spinner" indeterminate color="primary" size="48" />
