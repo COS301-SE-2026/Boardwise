@@ -39,6 +39,7 @@
         :events="events" 
         @filter="handleFilter" 
       />
+    </div>
 
       <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
         <v-progress-circular indeterminate color="primary" size="48" />
@@ -51,7 +52,7 @@
         @select="openEvent" 
         class="flex-1-1" 
       />
-    </div>
+    
 
     <CreateEvent v-model="showCreateEvent"   :on-submit="handleCreateEvent"  @created="handleCreateEvent"
  />
@@ -87,7 +88,6 @@ import { useDebounceFn } from '@vueuse/core'
 import { useRouter } from 'vue-router'
 import EditEventModal from '~/components/features/events/EditEventModal.vue'
 import InviteModal from '~/components/features/community/InviteModal.vue'
-import { query } from 'happy-dom/lib/PropertySymbol'
 import EventHeader from '~/components/features/events/EventHeader.vue'
 
 const showFilters = ref(false)

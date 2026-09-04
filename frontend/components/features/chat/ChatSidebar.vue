@@ -1,5 +1,5 @@
 <template>
-    <BaseCard class="chat-sidebar pa-4 h-100">
+    <BaseCard class="chat-sidebar pa-4">
         <header class="chat-sidebar__header">
             <div>
                 <h1 class="chat-sidebar__title">
@@ -165,3 +165,20 @@ const emptyDescription = computed(() => {
     return 'Your conversations will appear here.'
 })
 </script>
+
+<style scoped>
+.chat-sidebar :deep(.base-search) {
+  height: 48px;
+}
+
+.chat-sidebar :deep(.v-field) {
+  min-height: 48px !important;
+  height: 48px !important;
+}
+
+.chat-sidebar :deep(.v-field__input) {
+  min-height: 48px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+</style>

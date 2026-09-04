@@ -4,96 +4,105 @@
 
     <div class="d-flex flex-column ga-5 mb-6">
       <SectionTitle title="Library" subtitle="Browse community rulebooks" />
+
       <RulebookSearch
         @upload="handleUploadRequest"
         @search="handleSearch"
       />
     </div>
 
-  <RulebookCarousel :rulebooks="featuredRulebooks" @select="openRulebook" />
+    <RulebookCarousel :rulebooks="featuredRulebooks" @select="openRulebook" />
 
-  <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
-    <v-progress-circular indeterminate color="primary" size="48" />
-  </v-container>
-  <RecommendedBooks v-else :rulebooks="recommended" @select ="openRulebook"/>
+    <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
+      <v-progress-circular indeterminate color="primary" size="48" />
+    </v-container>
 
-  <SectionTitle
-  title="All Rulebooks"
-  class="mt-8"
-/>
+    <RecommendedBooks v-else :rulebooks="recommended" @select ="openRulebook"/>
 
-<!-- Mobile filter trigger -->
-<div class="d-flex d-md-none mt-4 mb-4">
-  <v-chip
-    color="secondary"
-    prepend-icon="mdi-filter-variant"
-    size="large"
-    :aria-expanded="showFilters"
-    aria-controls="rulebook-mobile-filters"
-    @click="showFilters = true"
-  >
-    Filters
-  </v-chip>
+    <SectionTitle
+        title="All Rulebooks"
+        class="mt-8"
+    />
 
-  <v-navigation-drawer
-    v-model="showFilters"
-    temporary
-    location="left"
-    width="300"
-  >
-    <div
-      id="rulebook-mobile-filters"
-      class="pa-4"
-    >
+    <!-- Mobile filter -->
+    <div class="d-flex d-md-none mt-4 mb-4">
+      <v-chip
+        color="secondary"
+        prepend-icon="mdi-filter-variant"
+        size="large"
+        @click="showFilters = true"
+      >
+        Filters
+      </v-chip>
+
+      <v-navigation-drawer
+        v-model="showFilters"
+        temporary
+        location="left"
+        width="300"
+      >
+        
+        <RulebookFilterSidebar
+          @filter="handleFilter"
+        />
+        
+      </v-navigation-drawer>
+    </div>
+
+    <!-- Desktop -->
+    <div class="d-none d-md-flex ga-6 align-start">
+
+      <!-- Filters -->
       <RulebookFilterSidebar
         @filter="handleFilter"
       />
+      
+      <div class="flex-grow-1" style="min-width: 0;">
+        <v-container 
+          v-if="isLoading"
+          class="d-flex justify-center align-center"
+          style="min-height: 60vh"
+        >
+          <v-progress-circular
+            indeterminate
+            color="primary"
+            size="48"
+          />
+        </v-container>
+
+        <RulebookGrid
+          v-else
+          :rulebooks="rulebooks"
+          @select="openRulebook"
+        />
+      </div>
     </div>
-  </v-navigation-drawer>
-</div>
 
-<!-- Shared catalogue -->
-<div class="library-catalog-layout">
-
-  <!-- Desktop filters -->
-  <aside
-    class="library-catalog-layout__filters d-none d-md-block"
-    aria-label="Rulebook filters"
-  >
-    <RulebookFilterSidebar
-      @filter="handleFilter"
-    />
-  </aside>
-
-  <!-- Results: desktop + mobile -->
-  <div class="library-catalog-layout__results">
-
-    <output
+  <div class="d-md-none">
+    <v-container 
       v-if="isLoading"
-      class="library-results-loading"
-      aria-live="polite"
-      aria-label="Loading rulebooks"
+      class="d-flex justify-center align-center"
+      style="min-height: 60vh"
     >
-      <v-progress-circular
-        indeterminate
-        color="primary"
-        size="48"
-      />
-    </output>
+      <div v-if="isLoading" class="d-flex justify-center align-center h-100">
+        <v-progress-circular indeterminate color="primary"/>
+      </div>
+    </v-container>
 
     <RulebookGrid
       v-else
       :rulebooks="rulebooks"
       @select="openRulebook"
     />
-
   </div>
 
-</div>
-
-  <div ref="sentinel" style="height:1px" />
+  <div 
+    ref="sentinel"
+    style="height: 1px"
+  />
 
   <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
+    
     <div v-if="isLoading" class="d-flex justify-center align-center h-100">
       <v-progress-circular indeterminate color="primary"/>
     </div>
@@ -208,6 +217,7 @@ const handleFilter = (filters) => {
     minAge: filters.minAge,
   }
     getAllRulebooks({...activeFilterState.value, search: searchQuery.value || null}, true);
+    
 }
 
 const handleUploadRulebook = async (newRulebook) => {
