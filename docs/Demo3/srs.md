@@ -13,8 +13,8 @@
 
 | Name | Surname | Student Number | % Contribution |
 | --- | --- | --- | --- |
-| Hayley* | Booysen* | u24868346* | -- |
-| Bandile | Mnyandu | u24675394 | -- |
+| Hayley | Booysen | u24868346 | -- |
+| Bandile* | Mnyandu* | u24675394 | -- |
 | Karabo | Nkomo | u24865169 | -- |
 | Palesa | Nkosi | u22664638 | -- |
 | Njabulo | Mathonsi | u24676412 | -- |
