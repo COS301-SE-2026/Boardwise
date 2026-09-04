@@ -1,50 +1,48 @@
 <template>
-  <div class="d-flex ga-3 align-start" 
-    :class="{ 'flex-row-reverse': isOwn }"
+  <article class="chat-message" 
+    :class="{ 'chat-message--own': isOwn }"
   >
 
     <BaseAvatar 
+      v-if="!isOwn"
       :src="sender.profilePicture ?? '/images/avatar.jpg'"
       :name="sender.username"
-      size="md"
+      size="sm"
+      class="chat-message-avatar"
     />
 
-    <div class="d-flex flex-column ga-1"
-      :class="{ 'align-end': isOwn }"
-      style="max-width: 60%;"
-    >
+    <div class="chat-message-content">
 
       <div class="d-flex ga-2 align-baseline" 
         :class="{ 'flex-row-reverse': isOwn }"
       >
-
-        <span class="text-subtitle-2 font-weight-bold">{{ sender.username }}</span>
+        <span class="text-subtitle-2 font-weight-bold">{{ sender?.username ?? 'User' }}</span>
         <span class="text-caption text-medium-emphasis">{{ formatSentAt(message.sentAt) }}</span>
       </div>
 
-      <v-sheet
-        rounded="lg"
-        :border
-        class="pa-2 px-4"
-        :color="isOwn ? 'primary' : 'surface'"
+      <div class="chat-message-bubble"
+        :class="{ 'chat-message-bubble--own': isOwn}"
       >
-
-      <p
-        class="d-flex flex-column ga-1"
-        :style="{  alignItems: isOwn ? 'flex-end' : 'flex-start' }"
-       >
-        {{ message.message }}
-      </p>
-      </v-sheet>
-
+        <p class="chat-message-text">
+          {{  message.message }}
+        </p>
+      </div>
     </div>
 
-  </div>
+    <BaseAvatar 
+      v-if="isOwn"
+      :src="sender.profilePicture ?? '/images/avatar.jpg'"
+      :name="sender.username"
+      size="sm"
+      class="chat-message-avatar"
+    />
+
+  </article>
 </template>
 
 <script setup>
 import BaseAvatar from '~/components/ui/BaseAvatar.vue'
-import { ref, computed, watch } from "vue"
+import { computed, watch } from "vue"
 import { jwtDecode } from 'jwt-decode'
 
 const props = defineProps({
@@ -62,11 +60,25 @@ const props = defineProps({
   }
 })
 
-const sender = ref(null)
-const myUserId = ref(jwtDecode(props.token).sub);
+// const sender = ref(null)
+// const myUserId = ref(jwtDecode(props.token).sub);
+
+const myUserId = computed(() => {
+    try {
+        return jwtDecode(props.token).sub
+    } catch {
+        return null
+    }
+})
 
 const isOwn = computed(() => {
-    return props.message?.senderId === myUserId.value
+     return String(props.message?.senderId) === String(myUserId.value)
+})
+
+const sender = computed(() => {
+    return props.community.members?.find(
+        member => String(member.id) === String(props.message?.senderId)
+    ) ?? null
 })
 
 watch(
@@ -92,3 +104,91 @@ const formatSentAt = (sentAt) => {
     return `${formattedhours}:${formattedMinutes}`
 }
 </script>
+
+<style scoped>
+.chat-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 24px;
+  padding: 0 20px;
+}
+
+.chat-message--own {
+  justify-content: flex-end;
+}
+
+.chat-message-avatar {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.chat-message-content {
+  display: flex;
+  flex-direction: column;
+  max-width: 65%;
+  min-width: 0;
+}
+
+.chat-message-content > .d-flex {
+  margin-bottom: 6px;
+}
+
+.chat-message-bubble {
+  width: fit-content;
+  max-width: 100%;
+  padding: 12px 18px;
+  border-radius: 10px;
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  box-shadow: none;
+}
+
+.chat-message-bubble--own {
+  margin-left: auto;
+  background-color: #ce2771;
+  border-color: #ce2771;
+  color: white;
+}
+
+.chat-message-text {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.chat-message-content .text-subtitle-2 {
+  color: #222;
+}
+
+.chat-message-content .text-caption {
+  font-size: 14px;
+}
+
+.chat-message--own .chat-message-content {
+  align-items: flex-end;
+}
+
+@media (max-width: 600px) {
+  .chat-message {
+    gap: 10px;
+    padding: 0 16px;
+    margin-bottom: 20px;
+  }
+
+  .chat-message-content {
+    max-width: 75%;
+  }
+
+  .chat-message-bubble {
+    padding: 10px 15px;
+  }
+
+  .chat-message-text {
+    font-size: 15px;
+  }
+}
+
+</style>
