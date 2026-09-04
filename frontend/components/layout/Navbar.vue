@@ -137,16 +137,16 @@
             to="/chats"
           />
 
-          <v-list-item 
+          <!-- <v-list-item 
             prepend-icon="mdi-cog-outline"
             title="Settings"
             to="/settings"
-          />
+          /> -->
 
           <v-divider class="my-1" />
-          <v-list-item class="px-2">
-            <LogOutButton block />
-          </v-list-item>
+            <v-list-item class="px-2">
+              <LogOutButton block />
+            </v-list-item>
         </v-list>
       </v-menu>
     </div>
