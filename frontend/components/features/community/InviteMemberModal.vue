@@ -63,7 +63,7 @@ const closeModal = () => {
 }
 
 const handleInvite = () => {
-  if (!username.value.trim()) return
+  if (!ElementInternals.value.trim()) return
 
   emit('confirm', {
     username: username.value.trim(),

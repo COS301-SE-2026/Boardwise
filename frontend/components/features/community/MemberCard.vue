@@ -1,9 +1,4 @@
 <template>
-  <NuxtLink
-    :to="`/profile/${encodeURIComponent(member.username)}`"
-    class="community-member-link"
-    :aria-label="`View ${member.username}'s profile`"
-  >
   <BaseCard class="pa-4">
 
     <div class="d-flex flex-column align-center ga-4 text-center">
@@ -19,7 +14,6 @@
     </div>
   </div>
   </BaseCard>
-  </NuxtLink>
 </template>
 
 <script setup>

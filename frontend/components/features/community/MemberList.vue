@@ -1,19 +1,5 @@
 <template>
-   <section v-if="modelValue">
-    <div class="d-flex justify-end mb-4">
-      <BaseButton
-        v-if="community.isMember"
-        @click="showInvite = true"
-      >
-        <v-icon
-          icon="mdi-account-plus-outline"
-          class="me-2"
-          aria-hidden="true"
-        />
-
-        Invite member
-      </BaseButton>
-    </div>
+  <section v-if="modelValue">
 
     <BaseGrid cols="180px" >
       <MemberCard
@@ -35,7 +21,6 @@ import MemberCard from './MemberCard.vue'
 import BaseGrid from '~/components/ui/BaseGrid.vue'
 
 import InviteMemberModal from './InviteMemberModal.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
 defineProps({
   community: { type: Object, required: true },
   modelValue: { type: Boolean, default: false }

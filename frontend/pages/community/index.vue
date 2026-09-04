@@ -9,72 +9,23 @@
       @create-community="showCreateCommunity = true"
     />
 
-    <!-- Mobile filter trigger -->
-<div class="d-flex d-md-none mt-6 mb-4">
-  <v-chip
-    color="secondary"
-    prepend-icon="mdi-filter-variant"
-    size="large"
-    :aria-expanded="showFilters"
-    aria-controls="community-mobile-filters"
-    @click="showFilters = true"
-  >
-    Filters
-  </v-chip>
+    <div class="d-flex ga-6 mt-6 align-start">
+      <CommunityFilter 
+        class="mt-6"
+        @filter="handleFilter" 
+      />
 
-  <v-navigation-drawer
-    v-model="showFilters"
-    temporary
-    location="left"
-    width="300"
-  >
-    <div
-      id="community-mobile-filters"
-      class="pa-4"
-    >
-      <CommunityFilter
-        @filter="handleFilter"
+      
+      <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
+        <v-progress-circular indeterminate color="primary" size="48" />
+      </v-container>
+  
+      <CommunityGrid 
+        v-else
+        class="mt-6"
+        :communities="filteredCommunities"
       />
     </div>
-  </v-navigation-drawer>
-</div>
-
-<!-- Shared catalogue/results -->
-<div class="community-results-layout">
-
-  <!-- Desktop filters -->
-  <aside
-    class="community-results-layout__filters d-none d-md-block"
-    aria-label="Community filters"
-  >
-    <CommunityFilter
-      @filter="handleFilter"
-    />
-  </aside>
-
-  <!-- One results area for desktop + mobile -->
-  <div class="community-results-layout__content">
-
-    <output
-      v-if="loading"
-      class="community-results-loading"
-      aria-live="polite"
-      aria-label="Loading communities"
-    >
-      <v-progress-circular
-        indeterminate
-        color="primary"
-        size="48"
-      />
-    </output>
-
-    <CommunityGrid
-      v-else
-      :communities="filteredCommunities"
-    />
-
-  </div>
-</div>
 
     <CommunityCreateForm 
       v-model="showCreateCommunity"
@@ -119,7 +70,7 @@ const selectedCategories = ref<string[]>([])
 onMounted(async () => {
   communities.value = await getAllCommunities()
 })
-const showFilters = ref(false)
+
 const delaySearch = useDebounceFn( async (query) => {
   const res = await searchForCommunity(query)
   communities.value = Array.isArray(res) ? res : []
@@ -131,7 +82,7 @@ watch(searchQuery, (query) => {
 
 const handleCreate = (newCommunity: GroupInfo) => {
   communities.value.push(newCommunity)
-  show("Your community is ready. Welcome to the table!")
+  show("Community successfully created")
 }
 
 const handleFilter = ({
