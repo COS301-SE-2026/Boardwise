@@ -25,10 +25,6 @@ import BaseGrid from '~/components/ui/BaseGrid.vue';
 import CommunityCard from './CommunityCard.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
-defineEmits([
-  'join-request'
-])
-
 defineProps({
     communities: {
         type: Array,
