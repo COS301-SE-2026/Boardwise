@@ -909,6 +909,290 @@ This section reproduces the full API contract set for all four service groupings
 
 ---
 
+## 3.3.6 Social - Friends
+ 
+### AC-FRND-01: Get Own Friends List
+ 
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-FRND-01|
+|**Endpoint**|`GET /api/users/friends`|
+|**Description**|Retrieves the authenticated user's accepted friends. Identity is derived from the Bearer token.|
+|**Authentication**|Bearer token required|
+ 
+**Request Body:** None
+ 
+**Success Response - 200 OK:**
+ 
+```json
+{
+  "message": "User friends list successfully retrieved",
+  "friends": [
+    {
+      "id": "string",
+      "username": "string",
+      "fullName": "string",
+      "profilePicture": "string | null"
+    }
+  ],
+  "mutuals": null
+}
+```
+ 
+`mutuals` is always null on this endpoint.
+ 
+**Error Responses:**
+ 
+|Status Code|Reason|
+|---|---|
+|`401 Unauthorized`|Missing, malformed, or invalid JWT|
+|`500 Internal Server Error`|Unexpected server error|
+ 
+---
+ 
+### AC-FRND-02: Get Another User's Friends List
+ 
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-FRND-02|
+|**Endpoint**|`GET /api/users/{userId}/friends`|
+|**Description**|Retrieves the accepted friends of the specified user, along with the subset that are also friends of the authenticated user.|
+|**Authentication**|Bearer token required|
+ 
+**Path Parameters:**
+ 
+|Parameter|Type|Description|
+|---|---|---|
+|`userId`|`string`|The ID of the user whose friends list is requested|
+ 
+**Request Body:** None
+ 
+**Success Response - 200 OK:**
+ 
+```json
+{
+  "message": "User friends list successfully retrieved",
+  "friends": [
+    {
+      "id": "string",
+      "username": "string",
+      "fullName": "string",
+      "profilePicture": "string | null"
+    }
+  ],
+  "mutuals": [
+    {
+      "id": "string",
+      "username": "string",
+      "fullName": "string",
+      "profilePicture": "string | null"
+    }
+  ]
+}
+```
+ 
+**Error Responses:**
+ 
+|Status Code|Reason|
+|---|---|
+|`401 Unauthorized`|Missing, malformed, or invalid JWT|
+|`404 Not Found`|userId does not exist|
+|`500 Internal Server Error`|Unexpected server error|
+ 
+---
+ 
+### AC-FRND-03: Unfriend a User
+ 
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-FRND-03|
+|**Endpoint**|`DELETE /api/users/friends/{userId}`|
+|**Description**|Ends an accepted friendship between the authenticated user and the specified user. This is a soft removal: the friendship record's status is set to declined rather than deleted.|
+|**Authentication**|Bearer token required|
+ 
+**Path Parameters:**
+ 
+|Parameter|Type|Description|
+|---|---|---|
+|`userId`|`string`|The ID of the user to unfriend|
+ 
+**Request Body:** None
+ 
+**Success Response - 200 OK:**
+ 
+```json
+{
+  "message": "Unfriend user query successful."
+}
+```
+ 
+**Error Responses:**
+ 
+|Status Code|Reason|
+|---|---|
+|`401 Unauthorized`|Missing, malformed, or invalid JWT|
+|`404 Not Found`|userId does not exist|
+|`400 Bad Request`|No accepted friendship exists between the authenticated user and userId|
+|`500 Internal Server Error`|Unexpected server error|
+ 
+---
+ 
+### AC-FRND-04: Get Incoming Friend Requests
+ 
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-FRND-04|
+|**Endpoint**|`GET /api/users/friendRequests`|
+|**Description**|Retrieves pending friend requests sent to the authenticated user.|
+|**Authentication**|Bearer token required|
+ 
+**Request Body:** None
+ 
+**Success Response - 200 OK:**
+ 
+```json
+{
+  "message": "User friend request successfully retrieved",
+  "requests": [
+    {
+      "id": "string",
+      "sender": {
+        "id": "string",
+        "username": "string",
+        "fullName": "string",
+        "profilePicture": "string | null"
+      }
+    }
+  ]
+}
+```
+ 
+**Error Responses:**
+ 
+|Status Code|Reason|
+|---|---|
+|`401 Unauthorized`|Missing, malformed, or invalid JWT|
+|`500 Internal Server Error`|Unexpected server error|
+ 
+---
+ 
+### AC-FRND-05: Send a Friend Request
+ 
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-FRND-05|
+|**Endpoint**|`POST /api/users/{userId}/friendRequests`|
+|**Description**|Sends a friend request from the authenticated user to the specified user. Sends a notification to the receiver on success.|
+|**Authentication**|Bearer token required|
+ 
+**Path Parameters:**
+ 
+|Parameter|Type|Description|
+|---|---|---|
+|`userId`|`string`|The ID of the user to send the request to|
+ 
+**Request Body:** None
+ 
+**Success Response - 200 OK:**
+ 
+```json
+{
+  "message": "Friend request successfully sent."
+}
+```
+ 
+**Error Responses:**
+ 
+|Status Code|Reason|
+|---|---|
+|`401 Unauthorized`|Missing, malformed, or invalid JWT|
+|`404 Not Found`|userId does not exist|
+|`400 Bad Request`|Sending a request to self, users are already friends, or a pending request already exists between the two users in either direction|
+|`500 Internal Server Error`|Unexpected server error|
+ 
+---
+ 
+### AC-FRND-06: Respond to a Friend Request
+ 
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-FRND-06|
+|**Endpoint**|`PATCH /api/users/friendRequests/{requestId}?status`|
+|**Description**|Accepts or declines a pending friend request sent to the authenticated user. Sends a confirmation notification to the original sender on accept.|
+|**Authentication**|Bearer token required|
+ 
+**Path Parameters:**
+ 
+|Parameter|Type|Description|
+|---|---|---|
+|`requestId`|`string`|The ID of the friend request to respond to|
+ 
+**Query Parameters:**
+ 
+|Parameter|Type|Description|
+|---|---|---|
+|`status`|`string`|Case-insensitive, must be `accept` or `decline`|
+ 
+**Request Body:** None
+ 
+**Success Response - 200 OK:**
+ 
+```json
+{
+  "message": "Friend request response successfully recorded."
+}
+```
+ 
+**Error Responses:**
+ 
+|Status Code|Reason|
+|---|---|
+|`401 Unauthorized`|Missing, malformed, or invalid JWT|
+|`404 Not Found`|requestId does not exist|
+|`400 Bad Request`|Authenticated user is not the receiver of this request, the request already has a response, or status is not `accept` or `decline`|
+|`500 Internal Server Error`|Unexpected server error|
+ 
+---
+ 
+## 3.3.7 Notifications
+ 
+### AC-NOTIF-01: Get Missed Notifications
+ 
+|Field|Detail|
+|---|---|
+|**Contract ID**|AC-NOTIF-01|
+|**Endpoint**|`GET /api/users/notifications`|
+|**Description**|Retrieves notifications generated for the authenticated user since they were last online. Calling this endpoint marks the returned notifications as delivered, so it is not idempotent for repeat reads.|
+|**Authentication**|Bearer token required|
+ 
+**Request Body:** None
+ 
+**Success Response - 200 OK:**
+ 
+```json
+{
+  "message": "Missed user notifications retrieved",
+  "notifications": [
+    { "type": "DIRECT_MESSAGE", "senderId": "string", "message": "string" },
+    { "type": "COMMUNITY_MESSAGE", "senderId": "string", "message": "string" },
+    { "type": "INVITE", "host": "string", "event": "object" },
+    { "type": "FRIEND_REQUEST", "request": { "id": "string", "sender": "FriendDTO" } },
+    { "type": "FRIEND_CONFIRMATION", "friend": "FriendDTO" }
+  ]
+}
+```
+ 
+Note: the exact field names for each notification subtype are not confirmed against the DTO source and should be verified before typing this response in the frontend.
+ 
+**Error Responses:**
+ 
+|Status Code|Reason|
+|---|---|
+|`401 Unauthorized`|Missing, malformed, or invalid JWT|
+|`500 Internal Server Error`|Unexpected server error|
+ 
+---
+
 ### 3.2 Marketplace Service API Contracts
 
 #### AC-MKT-01: Get All Active Listings
