@@ -133,6 +133,13 @@ flowchart TB
 The Vault processes uploads asynchronously through sequential sanitisation and extraction stages. WebSocket communication supports real-time features, while MRSW - Multi-Reader, Single-Writer - locking protects collaborative rulebook editing.
 
 See the [Software Requirements Specification](./docs/Demo3/srs.md) for detailed component diagrams, service contracts and the traceability matrix.
+| Team Member | Role | Focus Area | LinkedIn |
+|---|---|---|---|
+| **Hayley Booysen**  | UI/UX Engineer & Design · Integration Engineer | Project coordination, frontend architecture, UI/UX design & interface, Design Engineer | [LinkedIn](https://www.linkedin.com/in/hayley-booysen-9372a9252/) |
+| **Karabo Nkomo** | Services Engineer · Systems Architect | Backend services, system architecture, deployment | [LinkedIn](https://www.linkedin.com/in/karabo-nkomo-37b5b5319/) |
+| **Njabulo Mathonsi** | DevOps Engineer · Services Engineer | CI/CD, backend services, data flow & authentication | [LinkedIn](https://www.linkedin.com/in/njabulo-mathonsi-5126983aa/) |
+| **Palesa Nkosi** | UI Engineer | Responsive UI, accessibility, interface & experience design | [LinkedIn](https://www.linkedin.com/in/bridget-nkosi-03734834b) |
+| **Bandile Mnyandu** *(Team Lead)* | Project Manager · Services Engineer · Integration Engineer | Backend validation, integration, testing strategy | [LinkedIn](https://www.linkedin.com/in/bandile-mnyandu-900b96303/) |
 
 ---
 
