@@ -49,7 +49,7 @@ The platform is organised around three primary domains:
 | UI designs | Wireframes and interface references | [Open designs](./docs/design) |
 | Brand style guide | Colour, typography, components and accessibility | [View guide](./docs/design/brandStyleGuide%20(version%202).pdf) |
 | Coding standards | Shared implementation conventions | [View standards](./docs/Demo3/Coding_Standards.md) |
-| Testing Policy Document | Shared implementation conventions | [View standards](./docs/demo3/TESTING_POLICY_DOCUMENT_.pdf) |
+| Testing Policy Document | Boardwise Testing Policy | [View Testing Policy Document](./docs/demo3/TESTING_POLICY_DOCUMENT_.pdf) |
 
 ---
 
