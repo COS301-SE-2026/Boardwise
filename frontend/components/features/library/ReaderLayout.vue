@@ -99,7 +99,7 @@
 </template>
 
 <script setup>
-import{ ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import{ ref, computed, watch, onMounted, onUnmounted, provide } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 
 import ReaderToolbar from './ReaderToolbar.vue'
@@ -165,6 +165,8 @@ const handlePageChange = (index) => {
     targetBlock.scrollIntoView({behavior: 'smooth', block: 'center'});
   }
 }
+
+provide('jumpToSection', handlePageChange)
 
 const handleDelete = async (chunkId) => {
   if(!props.rulebook?.id) return
