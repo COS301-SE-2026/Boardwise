@@ -103,9 +103,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(rulebook.router, prefix="/api/vault/rulebooks")
-app.include_router(job.router, prefix="/api/vault/jobs")
-app.include_router(internal.router, prefix="/api/vault/internal")
+app.include_router(rulebook.router, prefix="/api/fa/vault/rulebooks")
+app.include_router(job.router, prefix="/api/fa/vault/jobs")
+app.include_router(internal.router, prefix="/api/fa/vault/internal")
 
 
 @app.get("/api/fa/health", tags=["System"])
