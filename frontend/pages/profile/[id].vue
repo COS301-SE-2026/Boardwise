@@ -47,12 +47,13 @@
                             <p v-if="user.bio" class="profile-bio ma-0">{{ user.bio }}</p>
                         </div>
                     </div>
+
+                    <FriendActionButton
+                        :status="user.status"
+                        @add="handleAdd"
+                        @remove="handleRemove"
+                    />
                 </div>
-                <FriendActionButton
-                    :status="user.status"
-                    @add="handleAdd"
-                    @remove="handleRemove"
-                />
             </v-card>
 
             <ProfileStats
@@ -71,11 +72,11 @@
 
             <v-window v-model="activeTab">
                 <v-window-item value="Games Owned">
-                    <GamesOwnedSection :games="games" />
+                    <GamesOwnedSection :games="games" :editable="false" />
                 </v-window-item>
 
                 <v-window-item value="Listings">
-                    <ListingsSection :listings="listings" />
+                    <ListingsSection :listings="listings" :editable="false" />
                 </v-window-item>
             </v-window>
         </template>

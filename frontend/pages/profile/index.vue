@@ -30,6 +30,7 @@
         <v-window-item value="Games Owned">
           <GamesOwnedSection
             :games="games"
+            :editable="true"
             @add-game="showBrowser = true"
             @remove-game="handleRemoveGame"
           />
@@ -38,6 +39,7 @@
         <v-window-item value="Listings">
           <ListingsSection 
             :listings="listings"
+            :editable="true"
             @deleted="fetchUserListing" 
             @updated="fetchUserListing"
           />
