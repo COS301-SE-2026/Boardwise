@@ -31,6 +31,8 @@ router = APIRouter(
     tags=["rulebooks"]
 )
 
+SAFE_TEXT_PATTERN = r"^[\w\s\-.,&'\(\)!?]+$"
+
 @router.post(
     "/upload",
     response_model=UploadResponse,

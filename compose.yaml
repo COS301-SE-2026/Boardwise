@@ -54,7 +54,7 @@ services:
       mongodb:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/auth/hello"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/sb/auth/hello"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -79,7 +79,7 @@ services:
       mongodb:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/fa/health"]
       interval: 30s
       timeout: 10s
       retries: 3
