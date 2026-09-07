@@ -56,7 +56,6 @@
 
     <GameBrowserModal
       v-model="showBrowser"
-      :games="games"
       @confirm="handleGamesAdded"
       @add-custom="openCustomModal"
     />
