@@ -76,7 +76,7 @@
                 </v-window-item>
 
                 <v-window-item value="Listings">
-                    <ListingsSection :listings="listings" />
+                    <ListingsSection :listings="listings" :editable="false" />
                 </v-window-item>
             </v-window>
         </template>

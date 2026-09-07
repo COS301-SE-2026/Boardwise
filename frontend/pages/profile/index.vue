@@ -38,10 +38,10 @@
 
         <v-window-item value="Listings">
           <ListingsSection 
-          :listings="listings"
-          @deleted="fetchUserListing" 
-          @updated="fetchUserListing"
-
+            :listings="listings"
+            :editable="true"
+            @deleted="fetchUserListing" 
+            @updated="fetchUserListing"
           />
         </v-window-item>
 
