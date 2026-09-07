@@ -2,7 +2,7 @@ import logging
 from typing import Annotated
 
 import jwt
-from fastapi import Depends, HTTPException, Security, status
+from fastapi import Depends, HTTPException, Request, Security, status
 from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 
 from app.config import settings
@@ -97,6 +97,7 @@ def verify_index_ready():
 internal_key_header = APIKeyHeader(name="X-Internal-Token", auto_error=True)
     
 def verify_internal_token(
+    request: Request,
     header_value: str = Security(internal_key_header)
 ):
     """
@@ -104,6 +105,9 @@ def verify_internal_token(
     Returns the token if it is valid
     Raises a 403 Forbidden if the token is invalid
     """
+    print(f"Recieved Headers: {request.headers}")
+    print(f"Received Value: [{header_value}]")
+    print(f"Expected Value: [{settings.INTERNAL_WEBHOOK_SECRET}]")
     if header_value != settings.INTERNAL_WEBHOOK_SECRET:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

@@ -3,8 +3,6 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-
-
 class Settings:
     # MONGODB_URL: str | None = os.getenv("PROD_DB_URL")
     MONGODB_URL: str | None = os.getenv("DEV_DB_URL")
