@@ -3,7 +3,8 @@
 
     <ListingGrid
       :listings="listings"
-      @add-listing="showAddListing = false"
+      :editable="editable"
+      @add-listing="showAddListing = true"
       @delete-listing="openDelete"
       @deleted="$emit('deleted')"
       @updated="$emit('updated')"
@@ -20,11 +21,14 @@
 import ListingGrid from './ListingsGrid.vue'
 import AddListingModal from './AddListingModal.vue'
 import DeleteModal from './DeleteListingModal.vue'
-import SectionTitle from '~/components/ui/SectionTitle.vue'
 import { useMarketplace } from '~/composables/useMarketplace'
 
 defineProps({
-  listings: Array
+  listings: Array,
+  editable: {
+    type: Boolean,
+    default: false
+  }
 })
 
 const { removeListing } = useMarketplace()

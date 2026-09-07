@@ -28,7 +28,6 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-// @Profile("!test")
 public class SecurityConfig {
 
     private final MyUserDetailsService userDetailsService; 
@@ -49,13 +48,14 @@ public class SecurityConfig {
                 request 
                     .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
                     .requestMatchers(
-                        "/api/auth/hello",
-                        "/api/auth/register",
-                        "/api/auth/login",
-                        "/api/auth/resetPassword",
-                        "/api/auth/forgotPassword",
-                        "/api/boardgames/",
-                        "/api/vault/rulebooks",
+                        "/api/sb/auth/hello",
+                        "/api/sb/auth/register",
+                        "/api/sb/auth/login",
+                        "/api/sb/auth/resetPassword",
+                        "/api/sb/auth/forgotPassword",
+                        "/api/sb/boardgames/",
+                        "/api/sb/boardgames/genres",
+                        "/api/sb/vault/rulebooks",
                          "/v3/api-docs/**",
                         "/swagger-ui/**",
                         "/swagger-ui.html"

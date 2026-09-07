@@ -118,6 +118,7 @@ const selectedCategories = ref<string[]>([])
 
 onMounted(async () => {
   communities.value = await getAllCommunities()
+  console.log(communities.value)
 })
 const showFilters = ref(false)
 const delaySearch = useDebounceFn( async (query) => {
