@@ -7,7 +7,7 @@
     :aria-label="label || ariaLabel"
     variant="outlined"
     rounded="lg"
-    auto-grow
+    :auto-grow="autoGrow"
     hide-details="auto"
     v-bind="$attrs"
   />
@@ -27,12 +27,16 @@ defineProps({
     default: ''
   },
   ariaLabel: {
-    type: Sring,
+    type: String,
     default: 'Text input'
   },
   rows: {
     type: Number,
     default: 5
+  },
+  autoGrow:{
+    type: Boolean,
+    default: true
   }
 })
 

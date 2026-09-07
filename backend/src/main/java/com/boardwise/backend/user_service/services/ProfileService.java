@@ -603,7 +603,7 @@ public class ProfileService {
             );
 
             FriendConfirmationNotification notification = new FriendConfirmationNotification(sender);
-            notificationService.notifyUser(clientId, notification);
+            notificationService.notifyUser(fs.getSender(), notification);
         }
 
         return new FriendRequestResponseDTO(

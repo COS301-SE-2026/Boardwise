@@ -2,6 +2,7 @@ package com.boardwise.backend.vault.service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import org.bson.types.ObjectId;
 import org.springframework.context.ApplicationEventPublisher;
@@ -103,6 +104,8 @@ public class WriteLockService {
             .orElseThrow(() -> new ChunkNotFoundException(rulebookId, targetChunkId));
         String previousText = chunkBeforeUpdate.getContent();
 
+        Map<String, String> chunkMetadata = chunkBeforeUpdate.getMetadata();
+
         rulebookTextRepository.atomicUpdateChunk(rulebookId, targetChunkId, request.getContent());
 
         rulebookRepository.atomicCommitForwardEdit(rulebookId, nextVersion);
@@ -125,6 +128,7 @@ public class WriteLockService {
             .chunkId(request.getChunkId())
             .deltaContent(request.getContent())
             .version(rulebook.getVersion())
+            .metadata(chunkMetadata)
             .build()
         );
 
@@ -196,6 +200,8 @@ public class WriteLockService {
             throw new ConcurrentModificationAnomalyException("Failed to insert chunk.");
         }
 
+        Map<String, String> chunkMetadata = insertedDocument.getMetadata();
+
         int actualAssignedIndex = insertedDocument.getIndex();
 
         rulebookRepository.atomicCommitForwardEdit(rulebookId, nextVersion);
@@ -225,6 +231,7 @@ public class WriteLockService {
             .chunkId(chunkId.toHexString())
             .content(request.getContent())
             .index(actualAssignedIndex)
+            .metadata(chunkMetadata)
             .build());
         
         return InsertNewChunkResponseDto.builder()
@@ -311,6 +318,8 @@ public class WriteLockService {
         Integer eventIndex = null;
         int actualRestoredIndex = -1;
 
+        Map<String,String> eventMetadata = null;
+
         switch (targetEvent.getEditType()) {
             case EditType.INSERT:
                 rulebookTextRepository.atomicDeleteChunk(rulebookId, targetEvent.getChunkId());
@@ -336,6 +345,7 @@ public class WriteLockService {
                 eventNewContent = targetEvent.getPreviousContent();
 
                 eventIndex = actualRestoredIndex;
+                eventMetadata = updatedDocument.getMetadata();
                 break;
             case EditType.UPDATE:
                 rulebookTextRepository.atomicUpdateChunk(rulebookId, targetEvent.getChunkId(), targetEvent.getPreviousContent());
@@ -345,6 +355,9 @@ public class WriteLockService {
                 eventPreviousContent = targetEvent.getNewContent();
                 
                 eventIndex = targetEvent.getIndex();
+                RulebookText restoredChunk = rulebookTextRepository.findById(targetEvent.getChunkId()).orElseThrow(
+                    () -> new IllegalStateException("Chunk missing after update"));
+                eventMetadata = restoredChunk.getMetadata();
                 break;
             default:
                 throw new IllegalArgumentException(targetEvent.getEditType() +" is not a valid edit type.");
@@ -376,6 +389,7 @@ public class WriteLockService {
                         .chunkId(targetEvent.getChunkId().toHexString())
                         .content(eventNewContent)
                         .index(actualRestoredIndex)
+                        .metadata(eventMetadata)
                         .build());
                 break;
             case "CHUNK_DELETED":
@@ -397,6 +411,7 @@ public class WriteLockService {
                     .chunkId(targetEvent.getChunkId().toHexString())
                     .deltaContent(eventNewContent)
                     .version(newVersion)
+                    .metadata(eventMetadata)
                     .build());
                 break;
         }
@@ -437,6 +452,8 @@ public class WriteLockService {
         Integer eventIndex = null;
         int actualRestoredIndex = -1;
 
+        Map<String,String> eventMetadata = null;
+
         switch (targetEvent.getEditType()) {
             case EditType.INSERT:
                 int targetIndex = targetEvent.getIndex();
@@ -455,6 +472,8 @@ public class WriteLockService {
 
                 eventNewContent = targetEvent.getNewContent();
                 eventIndex = actualRestoredIndex;
+
+                eventMetadata = updatedDocument.getMetadata();
                 break;
             case EditType.DELETE:
                 rulebookTextRepository.atomicDeleteChunk(rulebookId, targetEvent.getChunkId());
@@ -470,6 +489,10 @@ public class WriteLockService {
                 eventPreviousContent = targetEvent.getPreviousContent();
                 eventNewContent = targetEvent.getNewContent();
                 eventIndex = targetEvent.getIndex();
+
+                RulebookText restoredChunk = rulebookTextRepository.findById(targetEvent.getChunkId()).orElseThrow(
+                    () -> new IllegalStateException("Chunk missing after update"));
+                eventMetadata = restoredChunk.getMetadata();
                 break;
             default:
                 throw new IllegalArgumentException(targetEvent.getEditType() + " is not a valid edit type.");
@@ -501,6 +524,7 @@ public class WriteLockService {
                         .chunkId(targetEvent.getChunkId().toHexString())
                         .content(eventNewContent)
                         .index(actualRestoredIndex)
+                        .metadata(eventMetadata)
                         .build());
                 break;
             case "CHUNK_DELETED":
@@ -522,6 +546,7 @@ public class WriteLockService {
                         .chunkId(targetEvent.getChunkId().toHexString())
                         .deltaContent(eventNewContent)
                         .version(newVersion)
+                        .metadata(eventMetadata)
                         .build());
                 break;
         }

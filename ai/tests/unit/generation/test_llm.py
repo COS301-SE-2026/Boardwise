@@ -7,6 +7,7 @@ from app.generation.llm import generate_answer
 def test_generate_answer_successful_api_call_returns_stripped_text(mock_hf_client):
     # Arrange
     messages = [{"role": "user", "content": "How do I win?"}]
+    ml_models = {}
     expected_clean_answer = "You must score 10 victory points."
 
     mock_message = MagicMock()
@@ -21,7 +22,7 @@ def test_generate_answer_successful_api_call_returns_stripped_text(mock_hf_clien
     mock_hf_client.chat_completion.return_value = mock_response
 
     # Act
-    answer = generate_answer(messages)
+    answer = generate_answer(messages, ml_models)
 
     # Assert
     assert answer == expected_clean_answer

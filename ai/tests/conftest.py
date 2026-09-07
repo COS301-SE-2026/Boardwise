@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from app.dependencies import verify_jwt
@@ -64,6 +64,7 @@ def safe_pdf_with_exceptions() -> bytes:
     100 bytes of a safe exception context (/Type /Catalog)
     """
     return b"%PDF-1.4\n<< /Type /Catalog ... /JavaScript >>\n%EOF"
+
 
 @pytest.fixture
 def minimal_pdf():
@@ -144,3 +145,13 @@ def mock_nomic_embedder():
 
     mock_model.encode.return_value = dummy_embeddings
     return mock_model
+
+@pytest.fixture(autouse=True)
+def mock_local_llm():
+    with patch("app.main.Llama") as mock_local:
+        mock_instance = MagicMock()
+        mock_instance.create_chat_completion.return_value = {
+            "choices": [{"message": {"content": "Mocked fallback response."}}]
+        }
+        mock_local.return_value = mock_instance
+        yield mock_local

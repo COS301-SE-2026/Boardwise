@@ -2,7 +2,6 @@
   <BaseModal v-model="open">
 
     <div class="content">
-
       <h2>Edit Profile</h2>
 
       <BaseInput
@@ -24,6 +23,33 @@
         v-model="bio"
         placeholder="Bio"
       />
+
+      <div class="preferences-section">
+        <h3>Preferences</h3>
+        
+        <!-- Visibility -->
+         <v-radio-group
+          v-model="visibility"
+          label="Who can see your prefernces?"
+          inline
+        >
+          <v-radio label="Public" value="public" />
+          <v-radio label="Private" value="private" />
+        </v-radio-group>
+
+        <!-- Genres -->
+        <v-select
+          v-model="selectedGenres"
+          :items="genres"
+          label="Preferred Genres"
+          variant="outlined"
+          multiple
+          chips
+          closable-chips
+          hint="Select the genres you enjoy"
+          persistent-hint
+        />
+      </div>
 
       <div class="actions">
 
@@ -54,11 +80,14 @@ import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseTextarea from '~/components/ui/BaseTextArea.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+
+import { ref, watch } from 'vue'
+
 import { useProfile } from '~/composables/useProfile'
 import { useSnackBar } from '~/composables/useSnackbar';
 
 
-const { updateProfile, isLoading, error } = useProfile();
+const { updateProfile, isLoading, error, getGenres } = useProfile();
 const { show } = useSnackBar();
 
 const open = defineModel()
@@ -71,35 +100,62 @@ const props = defineProps({
   }
 })
 
+const name = ref('')
+const username = ref('')
+const location = ref('')
+const bio = ref('')
 
-const name = ref(props.user.fullName)
-const username = ref(props.user.username)
-const location = ref(props.user.location)
-const bio = ref(props.user.preferences.genres.join('•'))
+const visibility = ref('public')
+
+const genres = ref([])
+const selectedGenres = ref([])
+
+const loadUserData = () => {
+  name.value = props.user.fullName ?? ''
+  username.value = props.user.username ?? ''
+  location.value = props.user.location ?? ''
+  bio.value = props.user.bio ?? ''
+  visibility.value = props.user.preferences?.visibility ?? 'public'
+  selectedGenres.value = [...(props.user.preferences?.genres ?? [])]
+}
+
+const loadGenres = async () => {
+  try {
+    const res = await getGenres()
+    genres.value = res
+  } catch (err)
+  {
+    console.error('Failed to load genres', err)
+  }
+}
+
+watch(open, async (isOpen) => {
+  if(isOpen) {
+    loadUserData()
+    await loadGenres()
+  }
+})
 
 const handleSave = async () => {
   try{
     const response = await updateProfile({
-      name : name.value,
-      username : username.value,
-      location : location.value
+      name: name.value,
+      username: username.value,
+      location: location.value,
+      // bio: bio.value,
+      // preferences: {
+      //   visibility: visibility.value,
+      //   genres: selectedGenres.value
+      // }
     })
+
     emit('save', response)  
-    resetRefs()
+    open.value = false
   }
   catch(err){
     console.error("Failed to update profile details", err)
     show(error.value, "error");
   }
-}
-
-const resetRefs = () => {
-    // clear everything
-    open.value = false
-    name.value = ""
-    username.value = ""
-    location.value = ""
-    bio.value = ""
 }
 </script>
 
@@ -108,6 +164,16 @@ const resetRefs = () => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.preferences-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.preferences-section h3 {
+  margin: 0;
 }
 
 .actions {

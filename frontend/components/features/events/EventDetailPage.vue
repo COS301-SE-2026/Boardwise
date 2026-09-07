@@ -92,23 +92,25 @@
             <v-divider />
                 
             <div class="d-flex flex-column ga-2">
-                <BaseButton
-                    v-if="event.rsvpStatus !== 'ATTENDING'"
-                    :disabled="event.eventStatus !== 'OPEN'"
-                    @click="$emit('rsvp', event.id)"
-                >
-                    <v-icon start>mdi-calendar-check</v-icon>
-                    RSVP to event
-                </BaseButton>
+                <template v-if="!event.isHost">
+                    <BaseButton
+                        v-if="event.rsvpStatus !== 'ATTENDING'"
+                        :disabled="event.eventStatus !== 'OPEN'"
+                        @click="$emit('rsvp', event.id)"
+                    >
+                        <v-icon start>mdi-calendar-check</v-icon>
+                        RSVP to event
+                    </BaseButton>
 
-                <BaseButton
-                    v-else
-                    variant="secondary"
-                    @click="$emit('de-rsvp', event.id)"
-                >
-                    <v-icon start>mdi-calendar-remove</v-icon>
-                    Cancel RSVP
-                </BaseButton>
+                    <BaseButton
+                        v-else
+                        variant="secondary"
+                        @click="$emit('de-rsvp', event.id)"
+                    >
+                        <v-icon start>mdi-calendar-remove</v-icon>
+                        Cancel RSVP
+                    </BaseButton>
+                </template>
 
                 <template v-if="event.isHost">
                     <BaseButton

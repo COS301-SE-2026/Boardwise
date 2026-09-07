@@ -1,9 +1,27 @@
 <template>
+    <section>
     <v-container class="py-12 text-center">
-        <h1>Help Centre</h1>
+            <div class="help-hero__copy">
+                <h1 class="help-hero__title">
+                    How can we help?
+                </h1>
 
-        <p class="text-medium-emphasis mt-4">
-            Find answers to common questions about Boardwise.
-        </p>
+                <p class="help-hero__description">
+                    Find guides, answers and support for using Boardwise.
+                </p>
+
+                </div>
     </v-container>
+    </section>
 </template>
+<script setup>
+
+defineProps({
+    modelValue: {
+        type: String,
+        default: ''
+    }
+})
+
+defineEmits(['update:modelValue'])
+</script>

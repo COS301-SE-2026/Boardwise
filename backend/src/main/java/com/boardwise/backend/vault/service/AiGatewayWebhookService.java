@@ -1,5 +1,7 @@
 package com.boardwise.backend.vault.service;
 
+import java.util.Map;
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -14,8 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 public class AiGatewayWebhookService {
     private final WebClient aiGatewayWebClient;
 
-    public void triggerReEmbedding(String chunkId, String content){
-        ReEmbedRequestDto payload = new ReEmbedRequestDto(chunkId, content);
+    public void triggerReEmbedding(String chunkId, String content, Map<String, String> metadata){
+        ReEmbedRequestDto payload = new ReEmbedRequestDto(chunkId, content, metadata);
 
         aiGatewayWebClient.post()
             .uri("vault/internal/chunks/re-embed")

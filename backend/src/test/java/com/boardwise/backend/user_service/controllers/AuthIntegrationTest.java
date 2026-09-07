@@ -6,32 +6,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.Instant;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureWebMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.boardwise.backend.BaseIntegrationTest;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repository.UserRepository;
 import com.boardwise.backend.user_service.utils.PasswordResetTokenUtils;
 
-@AutoConfigureWebMvc
-@Transactional
 public class AuthIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     private UserRepository userRepo;
-    
-
     @Nested
     class ForgotPassword{
         @Test

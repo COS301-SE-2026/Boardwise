@@ -1,13 +1,14 @@
 <template>
   <PageContainer>
 
+    <!-- Profile loaded -->
     <template v-if="user">
       <Navbar />
 
       <ProfileHeader :user="user" @saved="handleProfileUpdate" @pfp-change="handlePfpChange"/>
 
       <ProfileStats
-        :games="user.games.length"
+        :games="user.ownedGamesCount"
         :friends="user.friendCount"
         :communities="user.groupCount"
       />
@@ -54,6 +55,7 @@
 
     <GameBrowserModal
       v-model="showBrowser"
+      :games="games"
       @confirm="handleGamesAdded"
       @add-custom="openCustomModal"
     />
@@ -73,18 +75,22 @@ definePageMeta({
 })
 
 import { ref, onMounted, computed } from 'vue'
+
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
+
 import ProfileHeader from '~/components/features/profile/ProfileHeader.vue'
 import ProfileStats from '~/components/features/profile/ProfileStats.vue'
 import ProfileCommunities from '~/components/features/profile/ProfileCommunities.vue'
+
 import GamesOwnedSection from '~/components/features/profile/GamesOwnedSection.vue'
 import ListingsSection from '~/components/features/profile/ListingsSection.vue'
 import GameBrowserModal from '~/components/features/profile/GameBrowserModal.vue'
-import AddCustomGameModal from '~/components/features/profile/AddCustomGameModal.vue'
+import AddCustomGameModal from '~/components/features/shared/AddCustomGameModal.vue'
 import { useProfile } from '~/composables/useProfile'
 import { useSnackBar } from '~/composables/useSnackbar'
 import { useMarketplace } from '~/composables/useMarketplace'
+
 import { useRouter } from 'vue-router'
 
 const { fetchCurrentUser, removeGame } = useProfile();
@@ -147,7 +153,7 @@ const handleProfileUpdate = (newValues) => {
     ...user.value,
     ...newValues
   }
-  show("Profile details successfully updated");
+  show("Your profile changes are locked in.");
 }
 
 const handlePfpChange = (newPfp) => {
@@ -155,7 +161,7 @@ const handlePfpChange = (newPfp) => {
     return;
 
   user.value.profilePicture = newPfp.profilePictureUrl;
-  show("Profile picture successfully updated");
+  show("Looking good! Your profile picture is updated.");
 }
 
 onMounted(async () => {

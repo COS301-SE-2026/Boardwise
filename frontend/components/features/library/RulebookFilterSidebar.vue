@@ -1,76 +1,98 @@
 <template>
   <BaseFilterSidebar @reset="resetFilters">
 
-    <BaseFilterGroup title="Genres">
-      <div
-        class="genre-option text-capitalize"
-        :class="{active: selectedGenre === 'all' }"
-        @click="selectedGenre='all'"
+    <BaseFilterGroup
+      title="Genre"
+      :default-open="false"
+    >
+      <v-radio-group
+        v-model="selectedGenre"
+        hide-details
+        density="compact"
       >
-      All
-      </div>
+        <v-radio
+          label="All"
+          value="all"
+          color="primary"
+        />
 
-      <div
-        v-for="genre in presetGenres"
-        :key="genre"
-        class="genre-option text-capitalize"
-        :class="{ active: selectedGenre === genre }"
-        @click="selectedGenre= genre"
-      >
-        {{ genre }}
-      </div>
+        <v-radio
+          v-for="genre in presetGenres"
+          :key="genre"
+          :label="genre"
+          :value="genre"
+          color="primary"
+          class="text-capitalize"
+        />
+      </v-radio-group>
     </BaseFilterGroup>
 
-    <BaseFilterGroup title="Language">
+    <BaseFilterGroup
+      title="Language"
+      :default-open="false"
+    >
       <v-checkbox
         v-for="lang in languages"
         :key="lang"
+        v-model="selectedLanguages"
         :label="lang"
         :value="lang"
-        v-model="selectedLanguages"
+        hide-details
         density="compact"
         color="primary"
-        hide-details
       />
     </BaseFilterGroup>
 
-    <BaseFilterGroup title="Player Count">
-        <v-text-field
-          v-model.number="filters.playerCount"
-          placeholder="How many players?"
-          type="number"
-          density="compact"
-          hide-details
-          rounded="lg"
-        />
+    <BaseFilterGroup
+      title="Player Count"
+      :default-open="false"
+    >
+      <v-text-field
+        v-model.number="filters.playerCount"
+        type="number"
+        placeholder="How many players?"
+        min="1"
+        density="compact"
+        hide-details
+        rounded="lg"
+      />
     </BaseFilterGroup>
 
-    <BaseFilterGroup title="Max Duration (mins)">
+    <BaseFilterGroup
+      title="Max Duration"
+      :default-open="false"
+    >
       <v-text-field
         v-model.number="filters.duration"
-        placeholder="e.g. 60"
         type="number"
+        placeholder="e.g. 60 minutes"
+        min="1"
         density="compact"
         hide-details
         rounded="lg"
       />
     </BaseFilterGroup>
 
-    <BaseFilterGroup title="Minimum Age">
+    <BaseFilterGroup
+      title="Minimum Age"
+      :default-open="false"
+    >
       <v-text-field
         v-model.number="filters.minAge"
-        placeholder="e.g. 10"
         type="number"
+        placeholder="e.g. 10"
+        min="0"
         density="compact"
         hide-details
         rounded="lg"
       />
     </BaseFilterGroup>
+
   </BaseFilterSidebar>
 </template>
 
 <script setup>
-import { ref, reactive, watch} from 'vue'
+import { reactive, ref, watch } from 'vue'
 
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue'
 import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue'
@@ -83,12 +105,17 @@ const presetGenres = [
   'economic',
   'family',
   'fantasy',
-  'strategy',
-];
-const selectedGenre  = ref('all');
-const selectedLanguages = ref([]);
+  'strategy'
+]
 
-const languages = ['English', 'French', 'Spanish']
+const languages = [
+  'English',
+  'French',
+  'Spanish'
+]
+
+const selectedGenre = ref('all')
+const selectedLanguages = ref([])
 
 const filters = reactive({
   playerCount: '',
@@ -96,20 +123,33 @@ const filters = reactive({
   minAge: ''
 })
 
-watch([selectedGenre, selectedLanguages, filters], () => {
-  emit('filter', {
-    genre:   selectedGenre.value === 'all' ? null : selectedGenre.value,
-    languages: selectedLanguages.value,
-    ...filters
-  })
-}, { deep: true })
+watch(
+  [selectedGenre, selectedLanguages, filters],
+  () => {
+    emit('filter', {
+      genre:
+        selectedGenre.value === 'all'
+          ? null
+          : selectedGenre.value,
+
+      languages: selectedLanguages.value,
+
+      playerCount: filters.playerCount,
+      duration: filters.duration,
+      minAge: filters.minAge
+    })
+  },
+  {
+    deep: true
+  }
+)
 
 const resetFilters = () => {
-  selectedGenre.value   = 'all'
+  selectedGenre.value = 'all'
   selectedLanguages.value = []
+
   filters.playerCount = ''
   filters.duration = ''
   filters.minAge = ''
 }
 </script>
-

@@ -1,31 +1,66 @@
 <template>
-    <BaseCard class="flex-grow-1 overflow-y-auto pa-4">
-        <div v-if="messages.length">
-            <ChatMessage
-                v-for="message in messages"
-                :key="message.id"
-                :message="message"
+    <BaseCard class="chat-feed-card flex-grow-1">
+        <div
+            ref="feedRef"
+            class="chat-feed"
+            role="log"
+            aria-label="Conversation messages"
+            aria-live="polite"
+            aria-relevant="additions text"
+        >
+            <template v-if="messages.length">
+                <ChatMessage
+                    v-for="message in messages"
+                    :key="message.id"
+                    :message="message"
+                />
+            </template>
+
+            <BaseEmptyState
+                v-else
+                class="chat-feed__empty"
+                title="No messages yet"
+                description="Start the conversation by sending the first message."
             />
         </div>
-        
-        <BaseEmptyState
-            v-else
-            title="No messages"
-            description="Start the conversation by sending a message."
-        />
-
     </BaseCard>
 </template>
 
 <script setup>
-import BaseCard from '~/components/ui/BaseCard.vue';
-import ChatMessage from './ChatMessage.vue';
-import BaseEmptyState from '~/components/ui/BaseEmptyState.vue';
+import {
+    nextTick,
+    onMounted,
+    ref,
+    watch
+} from 'vue'
 
-defineProps({
+import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
+
+import ChatMessage from './ChatMessage.vue'
+
+const props = defineProps({
     messages: {
         type: Array,
         default: () => []
     }
 })
+
+const feedRef = ref(null)
+
+const scrollToBottom = async () => {
+    await nextTick()
+
+    if (!feedRef.value) return
+
+    feedRef.value.scrollTop =
+        feedRef.value.scrollHeight
+}
+
+watch(
+    () => props.messages.length,
+    scrollToBottom
+)
+
+onMounted(scrollToBottom)
 </script>

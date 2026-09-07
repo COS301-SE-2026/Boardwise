@@ -1,6 +1,8 @@
 package com.boardwise.backend.vault.model;
 
 import java.time.Instant;
+import java.util.Map;
+
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -35,6 +37,9 @@ public class RulebookText {
 
     @Field("charCount")
     private int charCount;
+
+    @Field("metadata")
+    private Map<String, String> metadata;
     
     @Field("createdAt")
     private Instant createdAt;

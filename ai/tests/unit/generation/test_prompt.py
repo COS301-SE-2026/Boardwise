@@ -20,9 +20,16 @@ def test_build_chat_messages_valid_chunks_returns_strict_adjudicator_payload():
     assert "hallucinate mechanics" in messages[0]["content"]
 
     assert messages[1]["role"] == "user"
-    assert "-- Rulebook Excerpt 1 --" in messages[1]["content"]
+    
+    assert "<context>" in messages[1]["content"]
+    assert "</context>" in messages[1]["content"]
+    
+    assert "[Excerpt1]" in messages[1]["content"]
     assert retrieved_chunks[0]["content"] in messages[1]["content"]
-    assert "-- Rulebook Excerpt 2 --" in messages[1]["content"]
+    
+    assert "[Excerpt2]" in messages[1]["content"]
     assert retrieved_chunks[1]["content"] in messages[1]["content"]
 
-    assert f"User Question: {query}" in messages[1]["content"]
+    assert "<question>" in messages[1]["content"]
+    assert query in messages[1]["content"]
+    assert "</question>" in messages[1]["content"]

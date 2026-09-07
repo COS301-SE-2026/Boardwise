@@ -1,5 +1,5 @@
 <template>
-  <v-avatar :size="sizeMap[size] || sizeMap.md" clas="base-avatar">
+  <v-avatar :size="sizeMap[size] || sizeMap.md" class="base-avatar">
     <v-img 
       v-if="src && !imageError"
       :src="src"

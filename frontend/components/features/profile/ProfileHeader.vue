@@ -3,7 +3,7 @@
 
     <div class="d-flex justify-space-between align-center flex-wrap ga-6">
 
-      <div class="d-flex align-center ga-6 flex-wrap">
+      <div class="d-flex align-center ga-6 flex-wrap profile-info">
 
         <v-avatar size="80" class="profile-avatar" @click="showPfpModal = true">
           <v-img
@@ -13,36 +13,41 @@
           />
         </v-avatar>
 
-        <div class="d-flex flex-column ga-3">
+        <div class="d-flex flex-column ga-3 profile-details">
 
           <h1 class="profile-name ma-0">{{ user.fullName }}</h1>
 
          
           <p class="profile-username ma-0">@{{ user.username }}</p>
           
-          <div
-            v-if="user.preferences?.visibility === 'public' && user.preferences.genres?.length > 0"
-            class="d-flex flex-wrap ga-1"
-          >
-            <v-chip
-              v-for="genre in user.preferences.genres"
-              :key="genre"
-              size="small"
-              class="genre-chip"
+          <div class="profile-preferences">
+
+            <span class="preference-label">Preferences</span>
+
+            <div
+              v-if="user.preferences?.visibility === 'public' && user.preferences.genres?.length > 0"
+              class="d-flex flex-wrap ga-1"
             >
-              {{ genre }}
-            </v-chip>
+              <v-chip
+                v-for="genre in user.preferences.genres"
+                :key="genre"
+                size="small"
+                class="genre-chip"
+              >
+                {{ genre }}
+              </v-chip>
+              
+            </div>
             
-          </div>
-          
-          <div v-else-if="user.preferences?.visibility === 'private'">
-            <p class = "no-pref">user genre preferences are private</p>
-          </div>
+            <div v-else-if="user.preferences?.visibility === 'private'">
+              <p class = "no-pref">user genre preferences are private</p>
+            </div>
 
-          <div v-else>
-            <p class = "no-pref">no preferences</p>
-          </div>
+            <div v-else>
+              <p class = "no-pref">no preferences</p>
+            </div>
 
+          </div>
         </div>
 
       </div>
@@ -93,11 +98,15 @@ const showPfpModal = ref(false)
 .profile-avatar {
   border: 3px solid var(--color-border-strong);
   cursor: pointer;
+  flex-shrink: 0;
 }
 
-.profile-bio--empty {
-  color:      var(--color-text-muted);
-  font-style: italic;
+.profile-info {
+  min-width: 0;
+}
+
+.profile-details {
+  min-width: 0;
 }
 
 .profile-name {
@@ -147,5 +156,48 @@ const showPfpModal = ref(false)
 
 :deep(.v-btn:hover) {
   background: var(--color-primary-hover) !important;
+}
+.profile-preferences {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.preference-label {
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  color: var(--color-text-muted);
+}
+
+.no-pref {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+@media (max-width: 600px) {
+  .profile-header {
+    padding: var(--space-5) !important;
+  }
+
+  .profile-info {
+    width: 100%;
+    align-items: flex-start !important;
+  }
+
+  .profile-details {
+    flex: 1;
+  }
+
+  .profile-name {
+    font-size: var(--fs-h3);
+  }
+
+  :deep(.v-btn) {
+    width: 100%;
+  }
 }
 </style>

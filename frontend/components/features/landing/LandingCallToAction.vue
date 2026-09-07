@@ -13,10 +13,10 @@
                     </BaseButton>
                     
                     
-            <h2 class="cta-title text-h3 font-weight-bold text-white mb-4">
+            <p  class="cta-title text-h3 font-weight-bold mb-4">
                 Spend less time reading.
                 <br>More time playing.
-            </h2>
+            </p>
 
             <p class="text-body-1 text-white mb-8">
                 Discover new board games, access rulebooks,

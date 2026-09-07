@@ -1,27 +1,25 @@
 <template>
   <v-card class="status-header pa-3">
-    <div class="status-header__stats">
+    <div class="status-header_stats">
 
-      <div class="status-header__stat">
-        <span class="status-header__value">{{ games }}</span>
-        <span class="status-header__label">Games</span>
+      <div class="status-header_stat">
+        <span class="status-header_value">{{ games }}</span>
+        <span class="status-header_label">Games</span>
       </div>
 
-      <v-divider vertical class="status-header__divider d-none d-sm-flex" />
+      <v-divider vertical class="status-header_divider d-none d-sm-flex" />
 
-      <div class="status-header__stat">
-        <span class="status-header__value">{{ friends }}</span>
-        <span class="status-header__label">Friends</span>
+      <div class="status-header_stat">
+        <span class="status-header_value">{{ friends }}</span>
+        <span class="status-header_label">Friends</span>
       </div>
 
-      <v-divider vertical class="status-header__divider d-none d-sm-flex" />
+      <v-divider vertical class="status-header_divider d-none d-sm-flex" />
 
-      <div class="status-header__stat">
-        <span class="status-header__value">{{ communities }}</span>
-        <span class="status-header__label">Communities</span>
+      <div class="status-header_stat">
+        <span class="status-header_value">{{ communities }}</span>
+        <span class="status-header_label">Communities</span>
       </div>
-
-
 
     </div>
   </v-card>
@@ -45,7 +43,7 @@ defineProps({
   min-height: auto;
 }
 
-.status-header__stats {
+.status-header_stats {
   display:         flex;
   justify-content: space-around;
   align-items:     center;
@@ -53,7 +51,7 @@ defineProps({
   gap:             var(--space-6);
 }
 
-.status-header__stat {
+.status-header_stat {
   display:        flex;
   flex-direction: column;
   align-items:    center;
@@ -61,7 +59,7 @@ defineProps({
   flex:           1;
 }
 
-.status-header__value {
+.status-header_value {
   font-family: var(--font-display);
   font-size:   var(--fs-h1);
   font-weight: var(--fw-regular);
@@ -69,13 +67,13 @@ defineProps({
   line-height: var(--lh-tight);
 }
 
-.status-header__label {
+.status-header_label {
   font-family: var(--font-body);
   font-size:   var(--fs-small);
   color:       var(--color-text-muted);
 }
 
-.status-header__divider {
+.status-header_divider {
   height:      60px;
   align-self:  center;
 }

@@ -10,13 +10,12 @@
   />
 
   <div class="pa-4 d-flex flex-column ga-2">
-    <h3 class="card-title">
+    <h2 class="card-title">
       {{ rulebook.title }}
-    </h3>
-
-    <p class="card-meta">
-      {{ rulebook.genre }}
-    </p>
+    </h2>
+    <h4 class="card-meta">
+      {{ rulebook.edition }}
+    </h4>
   </div>
         
     </BaseCard>

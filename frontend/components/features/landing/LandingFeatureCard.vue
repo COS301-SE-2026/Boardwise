@@ -1,52 +1,60 @@
 <template>
-    <v-hover v-slot="{ isHovering }">
-    <BaseCard class="pa-6 h-100" >
+    <NuxtLink
+        :to="feature.route"
+        class="landing-feature-link"
+    >
+    <div class="landing-feature-card h-100">
+  <BaseCard class="pa-6 h-100">
+        <div>
         <v-icon
             :icon="feature.icon"
             :size="isHovering ? 74 : 64"
             color="primary"
-            class="mb-6"
+            aria-hidden="true"
         />
-        <h3 class="text-h6 font-weight-bold">
+        </div>
+        <h3 class="landing-feature-card__title">
             {{ feature.title }}
         </h3>
 
-        <p class="text-body-2 text-medium-emphasis mt-2">
+        <p class="landing-feature-card__description">
             {{ feature.description }}
         </p>
 
-        <v-list>
-            <v-list-item 
-                v-for="highlight in feature.highlights"
-                :key="highlight"
-                prepend-icon="mdi-check-circle"
-            >
-                <v-list-item-title>
-                    {{ highlight }}
-                </v-list-item-title>
-            </v-list-item>
-        </v-list>
-        <v-spacer/>
+        <ul class="landing-feature-card__highlights">
+                <li
+                    v-for="highlight in feature.highlights"
+                    :key="highlight"
+                    class="landing-feature-card__highlight"
+                >
+                    <v-icon
+                        icon="mdi-check-circle"
+                        size="18"
+                        aria-hidden="true"
+                    />
+
+                    <span>
+                        {{ highlight }}
+                    </span>
+                </li>
+            </ul>
         
-        <div class="d-flex align-center font-weight-medium cursor-pointer"
-            @click="router.push(feature.route)"
-            >
+        <div class="landing-feature-card__action">
             
-            Explore
+            <span>Explore</span>
             <v-icon 
-                class="ms-2"
-             >
-                mdi-arrow-right
-            </v-icon>
+                icon="mdi-arrow-right"
+                size="20"
+                aria-hidden="true"
+             />
         </div>
     </BaseCard>
-</v-hover>
+    </div>
+</NuxtLink>
 </template>
 
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
-
-const router = useRouter()
 
 defineProps({
     feature: {

@@ -1,36 +1,57 @@
 <template>
-    <div class="chat-layout mt-6">
-        <ChatSidebar
-            :conversations="conversations"
-            :selected-id="selectedConversation.id"
-            @select="selectConversation"
-        />
+    <div
+        class="chat-layout mt-6"
+        :class="{
+            'chat-layout--conversation-open': mobileConversationOpen
+        }"
+    >
+        <div class="chat-layout__sidebar">
+            <ChatSidebar
+                :conversations="conversations"
+                :selected-id="selectedConversation?.id"
+                @select="selectConversation"
+            />
+        </div>
 
-        <ChatWindow
-            :conversation="selectedConversation"
-        />
+        <div class="chat-layout__window">
+            <ChatWindow
+                v-if="selectedConversation"
+                :conversation="selectedConversation"
+                :show-back="mobileConversationOpen"
+                @back="mobileConversationOpen = false"
+            />
+        </div>
     </div>
 </template>
 
 <script setup>
-import { ref , computed, onMounted } from 'vue'
+import {
+    computed,
+    onMounted,
+    ref
+} from 'vue'
 
-import ChatSidebar from './ChatSidebar.vue';
-import ChatWindow from './ChatWindow.vue';
+import ChatSidebar from './ChatSidebar.vue'
+import ChatWindow from './ChatWindow.vue'
+
 import { getChats } from '~/services/chatService.js'
-
 import { useEvents } from '~/composables/useEvents'
 
-const { inviteCount, fetchInvites } = useEvents()
+const {
+    inviteCount,
+    fetchInvites
+} = useEvents()
 
-onMounted(async() => {
+const mobileConversationOpen = ref(false)
+
+onMounted(async () => {
     await fetchInvites()
 })
 
 const conversations = computed(() => {
     const lastMessage = inviteCount.value > 0
-     ? `${inviteCount.value} pending invites`
-     : 'No pending invites'
+        ? `${inviteCount.value} pending invites`
+        : 'No pending invites'
 
     return [
         {
@@ -47,28 +68,19 @@ const conversations = computed(() => {
     ]
 })
 
-const selectedConversation = ref(conversations.value[0])
+const selectedConversation = ref(
+    conversations.value[0] ?? null
+)
 
 const selectConversation = (id) => {
-    const conversation = conversations.value.find(c => c.id === id)
+    const conversation =
+        conversations.value.find(
+            (item) => item.id === id
+        )
 
-    if (conversation){
-        selectedConversation.value = conversation
-    }
+    if (!conversation) return
+
+    selectedConversation.value = conversation
+    mobileConversationOpen.value = true
 }
 </script>
-
-<style scoped>
-.chat-layout {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: var(--space-6);
-    min-height: calc(100vh - 180px);
-}
-
-@media (max-width: 960px) {
-    .chat-layout {
-        grid-template-columns: 1fr;
-    }
-}
-</style>

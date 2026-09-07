@@ -1,3 +1,5 @@
+import { type FriendStatus } from "./friendService";
+
 interface Boardgame{
     id: string;
     title: string;
@@ -50,10 +52,11 @@ interface Preferences{
     genres : Array<string>;
 }
 
-interface ProfileResponse{
+export interface ProfileResponse{
     fullName: string;
     username: string;
     location: string;
+    bio?: string;
     profilePicture: string;
     friendCount: number;
     groupCount: number;
@@ -62,6 +65,7 @@ interface ProfileResponse{
     communities: Array<Community>;
     preferences: Preferences;
     createdAt: string;
+    FriendStatus: FriendStatus;
 }
 
 interface ProfileUpdateResponse{
@@ -85,6 +89,9 @@ export interface ProfileSearchResponse {
 interface GenresResponse {
     message: string;
     genres: string[];
+}
+interface CreateBoardgameResponse {
+    message: string;
 }
 
 export const userService = {
@@ -187,6 +194,18 @@ export const userService = {
                 search: query
             }
         });
-    }
+    },
+    createBoardgame(gameInfo: OtherGameDTO, gameImage: File){
+        const { $api } = useNuxtApp();
+        const formData = new FormData();
+
+        formData.append('gameInfo', new Blob([JSON.stringify(gameInfo)], { type: 'application/json' }));
+        formData.append('gameImage', gameImage);
+
+        return $api<CreateBoardgameResponse>('/boardgames/', {
+            method: 'POST',
+            body: formData
+        });
+    },
 
 }
