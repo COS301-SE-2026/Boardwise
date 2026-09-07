@@ -585,6 +585,8 @@ cert_record_www = cloudflare.DnsRecord(
     name=frontend_cert.domain_validation_options.apply(lambda opts: opts[1].resource_record_name),
     type=frontend_cert.domain_validation_options.apply(lambda opts: opts[1].resource_record_type),
     content=frontend_cert.domain_validation_options.apply(lambda opts: opts[1].resource_record_value),
+    proxied=False,
+    ttl=1
 )
 
 cert_validation = aws.acm.CertificateValidation(
