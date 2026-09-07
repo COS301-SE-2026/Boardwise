@@ -102,14 +102,14 @@ public class SocialService {
         List<GroupInfo> groups = new ArrayList<>();
 
         for(Group group : groupRepo.findAll()){
-            if(group.getVisibility().equals(Visibility.PRIVATE)){
-                GroupMembership toCheck = new GroupMembership();
-                toCheck.setGroupId(group.getId());
-                toCheck.setUserId(userId);
+            // if(group.getVisibility().equals(Visibility.PRIVATE)){
+            //     GroupMembership toCheck = new GroupMembership();
+            //     toCheck.setGroupId(group.getId());
+            //     toCheck.setUserId(userId);
 
-                if(!gmRepo.exists(Example.of(toCheck)))
-                    continue;
-            }
+            //     if(!gmRepo.exists(Example.of(toCheck)))
+            //         continue;
+            // }
 
             User owner = userRepo.findById(group.getOwnerId()).get();
             

@@ -31,13 +31,13 @@
         </span>
       </p>
 
-      <div class="actions">
+      <!-- <div v-if="editable" class="actions">
 
         <BaseButton
           size="sm"
           @click="showEdit = true"
         >
-          
+          Edit
         </BaseButton>
 
         <BaseButton
@@ -45,12 +45,12 @@
           variant="secondary"
           @click="showDelete = true"
         >
-          
+          Delete
         </BaseButton>
 
-      </div>
+      </div> -->
 
-      <div class="d-flex ga-2 mt-1">
+      <div v-if="editable" class="d-flex ga-2 mt-1">
         <v-btn size="small" color="primary" variant="tonal" @click.stop="showEdit = true">Edit</v-btn>
         <v-btn size="small" color="error"   variant="tonal" @click.stop="showDelete = true">Delete</v-btn>
       </div>
@@ -72,7 +72,8 @@ import { useMarketplace } from '~/composables/useMarketplace'
 const {removeListing} = useMarketplace();
 
 const props = defineProps({
-  listing: { type: Object, required: true }
+  listing: { type: Object, required: true },
+  editable: { type: Boolean, default: false }
 })
 
 const router = useRouter()

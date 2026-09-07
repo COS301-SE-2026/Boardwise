@@ -76,7 +76,7 @@
                 </v-window-item>
 
                 <v-window-item value="Listings">
-                    <ListingsSection :listings="listings" />
+                    <ListingsSection :listings="listings" :editable="false" />
                 </v-window-item>
             </v-window>
         </template>
@@ -137,6 +137,7 @@ const loadProfile = async (id: string) => {
 
     try {
         const profile = await fetchUserById(id);
+        console.log(`User ${id} profile:\n`, profile)
 
         if(!profile) {
             notFound.value = true

@@ -17,7 +17,7 @@ defineProps({
 
 <style scoped>
 .section-title {
-  padding: var(--space-12) 0 var(--space-8);
+  padding: var(--space-4) 0 var(--space-1);
   color: var(--color-primary);
 }
 

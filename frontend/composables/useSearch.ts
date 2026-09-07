@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { LibraryService } from '~/services/libraryService'
 import { MarketplaceService, type ListingResponse } from '~/services/marketplaceService'
 import { CommunityService, type GroupInfo } from '~/services/communityService'
-import { userService, type ProfileSearchResponse } from '~/services/userService'
+import { FriendStatus, userService, type ProfileSearchResponse } from '~/services/userService'
 import { useSnackBar } from './useSnackbar'
 
 // TODO: Fix any issues : integration
@@ -48,14 +48,6 @@ export const useSearch = () => {
     const loading = ref<boolean>(false)
     const error = ref<string>('')
 
-    // Mock 
-    // TODO: Fix this usage
-    const mockSearchForUser = async (query: string): Promise<ProfileSearchResponse[]> => {
-        return [
-            { id: '1', username: 'catan_carla', fullName: 'Carla Santos', profilePicture: '' },
-            { id: '2', username: 'settlersfan88', fullName: 'Sam Ellis', profilePicture: '' },
-        ].filter(p => p.username.toLowerCase().includes(query.toLowerCase()))
-    }
 
     const fetchPeople = async (query: string) => {
         const res = await userService.searchForUser(query) as ProfileSearchResponse[]
@@ -64,7 +56,7 @@ export const useSearch = () => {
             username: p.username,
             //TODO: Fix friends part : backend
             mutualLabel: '', 
-            isFriend: false, 
+            isFriend: p.status === FriendStatus.ACCEPTED, 
             avatarUrl: p.profilePicture || null,
         }))
     }

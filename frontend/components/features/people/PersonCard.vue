@@ -9,15 +9,16 @@
         <div class="pa-4 d-flex flex-column ga-2">
             <h3 class="card-title">@{{  person.username }}</h3>
 
-            <p class="card-meta">
+            <!-- <p class="card-meta">
                 {{  person.mutualLabel }}
-            </p>
+            </p> -->
 
             <BaseButton
                 class="mt-auto"
                 block
                 :variant="person.isFriend? 'secondary' : 'primary'"
                 @click.stop="$emit('friend-action', person)"
+                :disabled="person.isFriend"
             >
                 {{  person.isFriend ? 'Friends':  'Add Friend'}}
             </BaseButton>

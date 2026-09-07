@@ -1,9 +1,13 @@
 <template>
-    <BaseModal v-model="open" :max-width="760">
+    <BaseModal 
+        :model-value="modelValue" 
+        @update:model-value="$emit('update:modelValue', $event)" 
+        :max-width="760"
+    >
         <div class="modal">
             <div class="d-flex align-center justify-space-between mb-4">
                 <h2>Add games to your collection</h2>
-                <v-btn icon variant="text" @click="open = false">
+                <v-btn icon variant="text" @click="$emit('update:modelValue', false)">
                     <v-icon>mdi-close</v-icon>
                 </v-btn>
             </div>
@@ -15,7 +19,7 @@
             />
 
             <div
-                v-if="isSearching"
+                v-if="searching"
                 class="d-flex justify-center pa-6"
             >
                 <v-progress-circular
@@ -31,76 +35,76 @@
 
             <div class="gamesGrid mb-4">
                 <div
-                    v-for="game in filteredGames"
+                    v-for="game in searchResults"
                     :key="game.id"
                     class="gameCard card"
                     :class="{ 'gameCard_selected': isSelected(game) ,
                         'gameCard_owned' :isOwned(game)
                     }"
-                    @click="handleGameClick(game)"
+                    @click="toggleGame(game)"
                 >
 
-                <div class="gameCard_image">
-                    <div 
-                        v-if="isOwned(game)"
-                        class="gameCard_overlay" gameCard_ownedOverlay
-                    >
-                        <v-icon size="28">mdi-check-circle</v-icon>
+                    <div class="gameCard_image">
+                        <div 
+                            v-if="isOwned(game)"
+                            class="gameCard_overlay" gameCard_ownedOverlay
+                        >
+                            <v-icon size="28">mdi-check-circle</v-icon>
+                        </div>
+
+                        <div v-if="isSelected(game)" class="gameCard_overlay float-right">
+                            <v-icon color="primary" size="28">mdi-check-circle</v-icon>
+                        </div>
+
+                        <v-img
+                            :width="131"
+                            aspect-ratio="16/9"
+                            cover
+                            :src="game.imageUrl ?? '/default.png'"
+                        ></v-img>
                     </div>
 
-                    <div v-if="isSelected(game)" class="gameCard_overlay float-right">
-                        <v-icon color="primary" size="28">mdi-check-circle</v-icon>
+                    <div class="gameCard_content">
+                        <p class="gameCard_title">{{ game.title }}</p>
+                        <p class="gameCard_genre">{{ game.genre?.[0] ?? '' }}</p>
+
+                        <!-- Duplicate warning -->
+                        <p v-if="isOwned(game)" class="duplicate-warning"><v-icon size="14">mdi-alert-circle</v-icon>Already in your collection</p>
                     </div>
-
-                    <v-img
-                        :width="131"
-                        aspect-ratio="16/9"
-                        cover
-                        :src="game.imageUrl ?? '/default.png'"
-                    ></v-img>
-                </div>
-
-                <div class="gameCard_content">
-                    <p class="gameCard_title">{{ game.title }}</p>
-                    <p class="gameCard_genre">{{ game.genre?.[0] ?? '' }}</p>
-
-                    <!-- Duplicate warning -->
-                    <p v-if="isOwned(game)" class="duplicate-warning"><v-icon size="14">mdi-alert-circle</v-icon>Already in your collection</p>
                 </div>
             </div>
 
             <!-- No results -->
             <BaseEmptyState 
-                v-if="!filteredGames.length && search.trim() && !isSearching"
+                v-if="!searchResults.length && search.trim() && !searching"
                 title="No games found"
                 description="Try searching for another board game."
             />
 
             <!-- Empty search -->
             <BaseEmptyState
-                v-if="!search.trim() && !isSearching"
+                v-if="!search.trim() && !searching"
                 title="Search for a game"
                 description="Search our game library to add a board game to your collection."
             />
 
 
-                <div class="d-flex justify-space-between align-center">
-                    <BaseButton variant="secondary" @click="$emit('add-custom')">
-                        + Add unlisted game
-                    </BaseButton>
+            <div class="d-flex justify-space-between align-center">
+                <BaseButton variant="secondary" @click="$emit('add-custom')">
+                    + Add unlisted game
+                </BaseButton>
 
-                    <BaseButton :disabled="!selectedGames.length" @click="handleConfirm">
-                        <v-progress-circular
-                            v-if="isSubmitting"
-                            indeterminate
-                            size="16"
-                            width="2"
-                            class="mr-2"
-                        />
-                        Add {{ selectedGames.length > 0 ? selectedGames.length : '' }} 
-                        Game{{ selectedGames.length !== 1 ? 's' : '' }}
-                    </BaseButton>
-                </div>
+                <BaseButton :disabled="!selectedGames.length" @click="handleConfirm">
+                    <v-progress-circular
+                        v-if="adding"
+                        indeterminate
+                        size="16"
+                        width="2"
+                        class="mr-2"
+                    />
+                    Add {{ selectedGames.length > 0 ? selectedGames.length : '' }} 
+                    Game{{ selectedGames.length !== 1 ? 's' : '' }}
+                </BaseButton>
             </div>
         </div>
     </BaseModal>
@@ -114,7 +118,7 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
 import { ref } from 'vue'
 import { useProfile } from '~/composables/useProfile'
-import { userService } from '~/services/userService'
+// import { userService } from '~/services/userService'
 
 const props = defineProps({
     modelValue: {
@@ -129,7 +133,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'confirm', 'add-custom'])
 
-const { searchGames, addExistingGameToInventory } = useProfile()
+const { searchGames, addExistingGame, addGame } = useProfile()
 
 const search = ref('')
 const searchResults = ref([])
@@ -142,17 +146,17 @@ const isOwned = (game) => {
 }
 
 async function handleSearch() {
-     if (!query || !query.trim()) {
-        games.value = []
+     if (!search.value || !search.value.trim()) {
+        searchResults.value = []
         return
     }
 
     searching.value = true
 
     try{
-        const res = await userService.searchForBoardGame(query.value.trim());
+        const res = await searchGames(search.value.trim());
         console.log(res);
-        searchResults.value = res?.boardGames ?? []
+        searchResults.value = res ?? []
     }
     catch(err){
         console.error("search failed: ", err);
@@ -162,6 +166,11 @@ async function handleSearch() {
         searching.value = false;
     }
 }
+
+
+watch(search, (_) => {
+    handleSearch()
+})
 
 const toggleGame = (game) => {
     // No Dups allowed
@@ -188,10 +197,10 @@ const handleConfirm = async () => {
 
     try {
         const gamesToAdd = selectedGames.value.filter(
-            games => !isOwned(game)
+            game => !isOwned(game)
         )
 
-        await Promise.all(gamesToAdd.map(game => addExistingGameToInventory(game.id)))
+        await Promise.all(gamesToAdd.map(game => addExistingGame(game.id)))
 
         emit('confirm')
 
@@ -207,14 +216,6 @@ const handleConfirm = async () => {
     finally {
         adding.value = false
     }
-}
-
-function closeModa() {
-    selectedGames.value = []
-    search.value = ''
-    searchResults.value = []
-
-    emit('update:modelValue', false)
 }
 
 </script>

@@ -38,10 +38,10 @@
 
         <v-window-item value="Listings">
           <ListingsSection 
-          :listings="listings"
-          @deleted="fetchUserListing" 
-          @updated="fetchUserListing"
-
+            :listings="listings"
+            :editable="true"
+            @deleted="fetchUserListing" 
+            @updated="fetchUserListing"
           />
         </v-window-item>
 
@@ -57,7 +57,6 @@
 
     <GameBrowserModal
       v-model="showBrowser"
-      :games="games"
       @confirm="handleGamesAdded"
       @add-custom="openCustomModal"
     />
