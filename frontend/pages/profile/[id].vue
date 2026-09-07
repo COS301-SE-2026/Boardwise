@@ -137,6 +137,7 @@ const loadProfile = async (id: string) => {
 
     try {
         const profile = await fetchUserById(id);
+        console.log(`User ${id} profile:\n`, profile)
 
         if(!profile) {
             notFound.value = true

@@ -19,6 +19,6 @@ public record ProfileResponseDTO(
     List<GameInventoryDTO> games,
     List<Map<String, String>> communities,
     Preferences preferences,
-    FriendStatus friendStatus,
+    FriendStatus status,
     String createdAt
 ) {}

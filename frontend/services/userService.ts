@@ -53,9 +53,9 @@ interface Preferences{
 }
 
 export enum FriendStatus{
-    REQUESTED,
-    ACCEPTED,
-    DECLINED 
+    REQUESTED = "REQUESTED",
+    ACCEPTED = "ACCEPTED",
+    DECLINED = "DECLINED"
 }
 export interface ProfileResponse{
     id: string
@@ -71,7 +71,7 @@ export interface ProfileResponse{
     communities: Array<Community>;
     preferences: Preferences;
     createdAt: string;
-    status: FriendStatus;
+    status: FriendStatus | null;
 }
 
 interface ProfileUpdateResponse{

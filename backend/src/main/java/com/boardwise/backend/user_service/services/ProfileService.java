@@ -87,7 +87,7 @@ public class ProfileService {
 
     public ProfileResponseDTO getProfile(String userId, String token) {
         // get user data from db
-        String clientId = token != null ? jwtService.extractUserId(token).toString() : null;
+        String clientId = (token != null && !token.isBlank()) ? jwtService.extractUserId(token).toString() : null;
         User user = userRepo.findById(userId)
                             .orElseThrow(() -> new NoSuchElementException("User with id:" +  userId + "does not exist."));
         
@@ -171,14 +171,18 @@ public class ProfileService {
         List<User> matches = template.find(dbQuery, User.class);
 
         for(User user : matches){
-            if(!user.getId().equals(subject.getId()))
+            if(!user.getId().equals(subject.getId())){
+                Optional<Friendship> optional = fsRepo.findFriendShipBetweenUsers(userId, user.getId());
+                FriendStatus status = optional.isPresent() ? optional.get().getStatus() : null;
                 results.add(new ProfileSearchResponse(
                         user.getId(),
                         user.getUsername(),
                         user.getFirstName() + " " + user.getLastName(),
-                        user.getProfilePicture()
+                        user.getProfilePicture(),
+                        status
                     )
                 );
+            }
         }
 
         return results;
