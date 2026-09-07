@@ -133,7 +133,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'confirm', 'add-custom'])
 
-const { searchGames, addExistingGameToInventory } = useProfile()
+const { searchGames, addExistingGame, addGame } = useProfile()
 
 const search = ref('')
 const searchResults = ref([])
@@ -200,7 +200,7 @@ const handleConfirm = async () => {
             game => !isOwned(game)
         )
 
-        await Promise.all(gamesToAdd.map(game => addExistingGameToInventory(game.id)))
+        await Promise.all(gamesToAdd.map(game => addExistingGame(game.id)))
 
         emit('confirm')
 
