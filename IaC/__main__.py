@@ -343,7 +343,7 @@ docker run -d \
     -e HF_TOKEN="__HF_TOKEN__" \
     -e INTERNAL_SECRET="__INTERNAL_SECRET__" \
     -e CPU_CORES="__CPU_CORES__" \
-    -e APP_ENV="__APP_ENV__"
+    -e APP_ENV="__APP_ENV__" \
     __IMAGE_URI__
 """
 python_user_data = python_image.image_uri.apply(
@@ -418,7 +418,7 @@ docker run -d \
     -e SMTP_HOST="__SMTP_HOST__" \
     -e SMTP_USERNAME="__SMTP_USERNAME__" \
     -e SMTP_PASSWORD="__SMTP_PASSWORD__" \
-    -e SPRING_PROFILES_ACTIVE="__SPRING_PROFILES_ACTIVE__"
+    -e SPRING_PROFILES_ACTIVE="__SPRING_PROFILES_ACTIVE__" \
     __IMAGE_URI__
 """
 spring_user_data = pulumi.Output.all(
@@ -439,7 +439,7 @@ spring_user_data = pulumi.Output.all(
                         .replace("__R2_RULEBOOKS_PUBLIC_PROD_URL__", settings.R2_RULEBOOKS_PUBLIC_PROD_URL)
                         .replace("__R2_BUCKET_LISTINGS__", settings.R2_BUCKET_LISTINGS)
                         .replace("__R2_BUCKET_PROFILES__", settings.R2_BUCKET_PROFILES)
-                        .replace("__PROD_FAST_API_BASE__", f"http://{args["python_ip"]}:8000/api/fa/") # NOSONAR
+                        .replace("__PROD_FAST_API_BASE__", f"http://{args['python_ip']}:8000/api/fa/") # NOSONAR
                         .replace("__INTERNAL_SECRET__", settings.INTERNAL_WEBHOOK_SECRET)
                         .replace("__R2_SECRET_KEY__", settings.R2_SECRET_KEY)
                         .replace("__R2_ACCESS_KEY__", settings.R2_ACCESS_KEY)
@@ -574,9 +574,9 @@ frontend_cert = aws.acm.Certificate(
 cert_record_base = cloudflare.DnsRecord(
     f"{RESOURCE_PREFIX}-cert-record-base",
     zone_id=settings.CLOUDFLARE_ZONE_ID,
-    name=frontend_cert.domain_validation_options[0].resource_record_name,
-    type=frontend_cert.domain_validation_options[0].resource_record_type,
-    content=frontend_cert.domain_validation_options[0].resource_record_value,
+    name=frontend_cert.domain_validation_options.apply(lambda opts: opts[0].resource_record_name),
+    type=frontend_cert.domain_validation_options.apply(lambda opts: opts[0].resource_record_type),
+    content=frontend_cert.domain_validation_options.apply(lambda opts: opts[0].resource_record_value),
     proxied=False,
     ttl=1
 )
