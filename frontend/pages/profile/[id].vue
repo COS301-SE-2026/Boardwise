@@ -47,12 +47,13 @@
                             <p v-if="user.bio" class="profile-bio ma-0">{{ user.bio }}</p>
                         </div>
                     </div>
+
+                    <FriendActionButton
+                        :status="user.status"
+                        @add="handleAdd"
+                        @remove="handleRemove"
+                    />
                 </div>
-                <FriendActionButton
-                    :status="user.status"
-                    @add="handleAdd"
-                    @remove="handleRemove"
-                />
             </v-card>
 
             <ProfileStats
