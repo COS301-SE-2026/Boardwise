@@ -217,7 +217,7 @@ public class ProfileService {
             toReturn.put("username", newUsername);
         }
         
-        if(newLocation != null){
+        if(newLocation != null && !newLocation.trim().isBlank()){
             GeocodingResult[] results = GeocodingApi.geocode(geoContext, newLocation).await();
             if(results.length == 0)
                 throw new NoSuchElementException("Could not find coordinates for location: " + newLocation);

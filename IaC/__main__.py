@@ -343,6 +343,7 @@ docker run -d \
     -e HF_TOKEN="__HF_TOKEN__" \
     -e INTERNAL_SECRET="__INTERNAL_SECRET__" \
     -e CPU_CORES="__CPU_CORES__" \
+    -e APP_ENV="__APP_ENV__"
     __IMAGE_URI__
 """
 python_user_data = python_image.image_uri.apply(
@@ -361,6 +362,7 @@ python_user_data = python_image.image_uri.apply(
                         .replace("__PROD_DB_URL__", settings.MONGODB_URL)
                         .replace("__REGISTRY_URL__", image_uri.split('/')[0])
                         .replace("__REGION__", aws.get_region().id)
+                        .replace("__APP_ENV__", settings.APP_ENV)
 )
 
 python_instance = aws.ec2.Instance(
@@ -416,6 +418,7 @@ docker run -d \
     -e SMTP_HOST="__SMTP_HOST__" \
     -e SMTP_USERNAME="__SMTP_USERNAME__" \
     -e SMTP_PASSWORD="__SMTP_PASSWORD__" \
+    -e SPRING_PROFILES_ACTIVE="__SPRING_PROFILES_ACTIVE__"
     __IMAGE_URI__
 """
 spring_user_data = pulumi.Output.all(
@@ -447,6 +450,7 @@ spring_user_data = pulumi.Output.all(
                         .replace("__PROD_DB_URL__", settings.MONGODB_URL)
                         .replace("__REGISTRY_URL__", args["image_uri"].split('/')[0])
                         .replace("__REGION__", aws.get_region().id)
+                        .replace("__SPRING_PROFILES_ACTIVE__", settings.SPRING_PROFILES_ACTIVE)
 )
 
 spring_instance = aws.ec2.Instance(

@@ -116,6 +116,7 @@ public class ProfileController {
         }
         catch(Exception e){
             Map<String, Object> res = new HashMap<>();
+            System.out.println("[ERROR] Update profile error:\n" + e);
             res.put("message", "Something went wrong during profile update.");
             return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
         }

@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 
 @RestController
-@RequestMapping("/api/messages")
+@RequestMapping("/api/sb/messages")
 @RequiredArgsConstructor
 public class ChatController {
     

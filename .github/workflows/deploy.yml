@@ -24,8 +24,13 @@ jobs:
         working-directory: ./frontend
         run: |
           npm ci --ignore-scripts
-          npm run build 
-
+          npm run build
+        env:
+          APP_ENV: "prod"
+          PROD_API_BASE: ${{ secrets.PROD_API_BASE }}
+          PROD_WS_API_BASE: ${{ secrets.PROD_WS_API_BASE }}
+          PROD_FAST_API_BASE: ${{ secrets.PROD_FAST_API_BASE }}
+          
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -46,12 +51,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Run Pulumi Script
-        uses: pulumi/actions@v5
+        uses: pulumi/actions@5ed04cf8dc4f168bc9baa6ad7df2b795b64f6737 # 5.5.0
         with: 
           command: up
           stack-name: dev
           work-dir: ./IaC
         env:
+          APP_ENV: 'prod'
+          SPRING_PROFILES_ACTIVE: 'prod'
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           PROD_DB_URL: ${{ secrets.DB_URL }}
@@ -88,6 +95,10 @@ jobs:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
       - name: Invalidate CloudFront Cache
+        env:
+          AWS_REGION: eu-north-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ env.DISTRO_ID }} \
