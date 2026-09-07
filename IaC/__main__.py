@@ -343,8 +343,7 @@ docker run -d \
     -e HF_TOKEN="__HF_TOKEN__" \
     -e INTERNAL_SECRET="__INTERNAL_SECRET__" \
     -e CPU_CORES="__CPU_CORES__" \
-    -e APP_ENV="__APP_ENV__" \
-    __IMAGE_URI__
+    -e APP_ENV="__APP_ENV__" __IMAGE_URI__
 """
 python_user_data = python_image.image_uri.apply(
     lambda image_uri : python_setup_script
@@ -418,15 +417,14 @@ docker run -d \
     -e SMTP_HOST="__SMTP_HOST__" \
     -e SMTP_USERNAME="__SMTP_USERNAME__" \
     -e SMTP_PASSWORD="__SMTP_PASSWORD__" \
-    -e SPRING_PROFILES_ACTIVE="__SPRING_PROFILES_ACTIVE__" \
-    __IMAGE_URI__
+    -e SPRING_PROFILES_ACTIVE="__SPRING_PROFILES_ACTIVE__" __IMAGE_URI__
 """
 spring_user_data = pulumi.Output.all(
     image_uri = spring_image.image_uri,
     python_ip = python_instance.private_ip
 ).apply(
     lambda args : spring_setup_script
-                        .replace("__IMAGE_URI__", args["image_uri"])
+                        .replace("__IMAGE_URI__", args['image_uri'])
                         .replace("__SMTP_PASSWORD__", settings.SMTP_PASSWORD if settings.SMTP_PASSWORD is not None else "")
                         .replace("__SMTP_USERNAME__", settings.SMTP_USERNAME if settings.SMTP_USERNAME is not None else "")
                         .replace("__SMTP_HOST__", settings.SMTP_HOST if settings.SMTP_HOST is not None else "")
@@ -584,11 +582,9 @@ cert_record_base = cloudflare.DnsRecord(
 cert_record_www = cloudflare.DnsRecord(
     f"{RESOURCE_PREFIX}-cert-record-www",
     zone_id=settings.CLOUDFLARE_ZONE_ID,
-    name=frontend_cert.domain_validation_options[1].resource_record_name,
-    type=frontend_cert.domain_validation_options[1].resource_record_type,
-    content=frontend_cert.domain_validation_options[1].resource_record_value,
-    proxied=False,
-    ttl=1
+    name=frontend_cert.domain_validation_options.apply(lambda opts: opts[1].resource_record_name),
+    type=frontend_cert.domain_validation_options.apply(lambda opts: opts[1].resource_record_type),
+    content=frontend_cert.domain_validation_options.apply(lambda opts: opts[1].resource_record_value),
 )
 
 cert_validation = aws.acm.CertificateValidation(
