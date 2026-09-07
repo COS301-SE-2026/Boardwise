@@ -41,7 +41,7 @@
                         color="primary"
                         prepend-icon="mdi-plus"
                         :disabled="isSaving"
-                        @click="$emit('insert-below', index + 1)"
+                        @click="$emit('insert', index + 1)"
                     >
                         Add Below
                     </BaseButton>
@@ -87,7 +87,7 @@ const props = defineProps({
     activeOccurrence: { type: Number, default: -1 }
 })
 
-const emit = defineEmits(['save', 'cancel', 'insert-below', 'delete'])
+const emit = defineEmits(['save', 'cancel', 'insert', 'delete'])
 
 marked.use({
     gfm: true,
@@ -99,7 +99,9 @@ const draftContent = ref(props.chunk?.content ?? '')
 const isDirty = computed(() => draftContent.value !== (props.chunk?.content ?? ''))
 
 watch(() => props.chunk?.content, (newContent) => {
-    draftContent.value = newContent ?? ''
+    if(!isDirty.value){
+        draftContent.value = newContent ?? ''
+    }
 })
 
 const handleSave = () => {
