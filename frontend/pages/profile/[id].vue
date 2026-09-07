@@ -72,7 +72,7 @@
 
             <v-window v-model="activeTab">
                 <v-window-item value="Games Owned">
-                    <GamesOwnedSection :games="games" />
+                    <GamesOwnedSection :games="games" :editable="false" />
                 </v-window-item>
 
                 <v-window-item value="Listings">
