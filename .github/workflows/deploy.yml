@@ -46,7 +46,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Run Pulumi Script
-        uses: pulumi/actions@8e5e406f4007fca908480587cb9893c07090f58d
+        uses: pulumi/actions@v5
         with: 
           command: up
           stack-name: dev
@@ -74,6 +74,9 @@ jobs:
           BGG_URL: ${{ secrets.BGG_URL }}
           GOOGLE_MAP_API_KEY: ${{ secrets.GOOGLE_MAP_API_KEY }}
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
     
       - name: Get CloudFront Distro ID
         id: get_distro

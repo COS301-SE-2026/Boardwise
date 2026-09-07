@@ -2,4 +2,4 @@ pulumi==3.260.0
 pulumi-aws==7.44.0
 pulumi-awsx==3.9.0
 pulumi-cloudflare==6.20.0
-dotenv==1.2.3
+dotenv

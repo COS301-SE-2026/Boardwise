@@ -68,6 +68,8 @@
                         © {{ currentYear }} Boardwise. By WOMM.
                     </p>
 
+                    <img src="/public/images/powered-by-bgg-rgb.svg" alt="poweredbybgg" />
+
                 </v-col>
             </v-row>
 
