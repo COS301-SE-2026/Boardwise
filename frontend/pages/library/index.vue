@@ -86,7 +86,7 @@
     >
       <div v-if="isLoading" class="d-flex justify-center align-center h-100">
         <v-progress-circular indeterminate color="primary"/>
-      </div>
+</div>
     </v-container>
 
     <RulebookGrid

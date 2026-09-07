@@ -34,28 +34,26 @@
     </div>
 
     <!-- Desktop -->
-    <div class="d-none d-md-flex ga-6 mt-6 align-start">
+    <div class="d-flex d-md-flex ga-6 mt-6 align-start">
       <EventFilter 
         :events="events" 
         @filter="handleFilter" 
       />
     </div>
 
-      <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
-        <v-progress-circular indeterminate color="primary" size="48" />
-      </v-container>
+    <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
+      <v-progress-circular indeterminate color="primary" size="48" />
+    </v-container>
 
       
-      <EventGrid 
-        v-else
-        :events="filteredEvents" 
-        @select="openEvent" 
-        class="flex-1-1" 
-      />
+    <EventGrid 
+      v-else
+      :events="filteredEvents" 
+      @select="openEvent" 
+      class="flex-1-1" 
+    />
     
-
-    <CreateEvent v-model="showCreateEvent"   :on-submit="handleCreateEvent"  @created="handleCreateEvent"
- />
+    <CreateEvent v-model="showCreateEvent"   :on-submit="handleCreateEvent"  @created="handleCreateEvent"/>
 
     <EditEventModal
       v-model="showEditEvent"
