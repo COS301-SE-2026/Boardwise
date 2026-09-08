@@ -9,7 +9,7 @@ class Settings:
     MONGODB_URL: str | None = os.getenv("PROD_DB_URL") if environment == "prod" else os.getenv("DEV_DB_URL")
     MONGODB_DATABASE: str | None = os.getenv("DB_NAME")
     JWT_SECRET: str | None = os.getenv("JWT_SECRET")
-    JWT_ALGORITHM: str | None = os.getenv("JWT_ALGORITHM")
+    JWT_ALGORITHM: str | None = os.getenv("JWT_ALGORITHM", "HS512")
     R2_ACCOUNT_ID: str | None = os.getenv("R2_ACCOUNT_ID")
     R2_BUCKET_RULEBOOKS: str | None = os.getenv("R2_BUCKET_RULEBOOKS")
     R2_ACCESS_KEY: str | None = os.getenv("R2_ACCESS_KEY")
