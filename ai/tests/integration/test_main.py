@@ -10,7 +10,7 @@ def test_lifespan_boot_populates_state_and_health_returns_200(client):
     expected_health_response = {"status": "healthy", "service": "ai-gateway"}
 
     # Act
-    response = client.get("/health")
+    response = client.get("/api/fa/health")
 
     # Assert
     assert response.status_code == 200
