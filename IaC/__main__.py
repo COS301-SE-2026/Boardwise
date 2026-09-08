@@ -373,7 +373,8 @@ python_instance = aws.ec2.Instance(
     tags={"Name": f"{RESOURCE_PREFIX}-python-backend"},
     user_data=python_user_data,
     iam_instance_profile=backend_profile.name,
-    associate_public_ip_address=True
+    associate_public_ip_address=True,
+    user_data_replace_on_change=True
 )
 
 spring_repo = awsx.ecr.Repository(f"{RESOURCE_PREFIX}-spring-repo", force_delete=True)
@@ -460,7 +461,8 @@ spring_instance = aws.ec2.Instance(
     tags={"Name": f"{RESOURCE_PREFIX}-spring-backend"},
     user_data=spring_user_data,
     iam_instance_profile=backend_profile.name,
-    associate_public_ip_address=True
+    associate_public_ip_address=True,
+    user_data_replace_on_change=True
 )
 
 # Set up ecs &-ec2 instance for caddy
@@ -515,6 +517,7 @@ caddy_instance = aws.ec2.Instance(
     user_data=caddy_user_data,
     iam_instance_profile=backend_profile.name,
     tags={"Name": "boardwise-reverse-proxy"},
+    user_data_replace_on_change=True
 )
 
 caddy_eip = aws.ec2.Eip(
@@ -551,12 +554,15 @@ for root, dirs, files in os.walk(frontend_build_dir):
         mime, _ = mimetypes.guess_type(abs_path)
         mime = mime if mime is not None else "application/octet-stream"
 
+        cache_control = "no-cache, no-store, must-revalidate" if file.endswith(".html") else "public, max-age=31536000, immutable"
+
         obj = aws.s3.BucketObject(
             f"bucket-object-{key}",
             bucket=bucket.id,
             key=key,
             source=pulumi.FileAsset(abs_path),
-            content_type=mime
+            content_type=mime,
+            cache_control=cache_control
         )
 
 # frontend DNS stuff
