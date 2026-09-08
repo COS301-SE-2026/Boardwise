@@ -24,7 +24,7 @@ def verify_jwt(
     token = credentials.credentials
     try:
         payload = jwt.decode(
-            token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM or "HS512"]
+            token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
         )
 
         jti = payload.get("jti")
