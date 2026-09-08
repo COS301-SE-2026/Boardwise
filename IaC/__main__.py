@@ -429,7 +429,7 @@ spring_user_data = pulumi.Output.all(
                         .replace("__SMTP_USERNAME__", settings.SMTP_USERNAME if settings.SMTP_USERNAME is not None else "")
                         .replace("__SMTP_HOST__", settings.SMTP_HOST if settings.SMTP_HOST is not None else "")
                         .replace("__GOOGLE_MAP_API_KEY__", settings.GOOGLE_MAP_API_KEY)
-                        .replace("__PROD_FRONTEND_BASE__", f"https://{BOARDWISE_BASE_DOMAIN}")
+                        .replace("__PROD_FRONTEND_BASE__", f"https://{BOARDWISE_BASE_DOMAIN}/")
                         .replace("__BGG_URL__", settings.BGG_URL)
                         .replace("__BGG_TOKEN__", settings.BGG_TOKEN)
                         .replace("__R2_PROD_URL__", settings.R2_PROD_URL)
