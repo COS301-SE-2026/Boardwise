@@ -68,6 +68,7 @@ const getFieldRules = (field) => {
 }
 
 const submitForm = async () => {
+    console.log(values);
     const { valid } = await formRef.value.validate()
     if (!valid) return 
     
