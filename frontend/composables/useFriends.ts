@@ -7,13 +7,13 @@ const _useFriends=()=>{
     const isLoading = ref(false);
     const userFriendList = ref<FriendListDTO>()
     const userFriendRequests = ref<FriendRequestsDTO>();
+    const otherFriendList = ref<FriendListDTO>();
     const profile = ref<ProfileResponseDTO>();
 
     const getOwnFriendsList = async ()=>{
         isLoading.value = true;
         try{
-            userFriendList.value = await  FriendService.getOwnFriendsList();
-            console.log("Yay we got friendLists");
+            userFriendList.value = await FriendService.getOwnFriendsList();
         }
         catch(err){
             console.log(err);
@@ -28,8 +28,7 @@ const _useFriends=()=>{
 
         isLoading.value = true;
         try{
-            userFriendRequests.value = await  FriendService.getFriendRequests();
-            return userFriendRequests.value;
+            userFriendRequests.value = await FriendService.getFriendRequests();
         }
         catch(err){
             console.log(err);
@@ -71,31 +70,11 @@ const _useFriends=()=>{
         }
     }
 
-    const otherFriendList = ref<FriendListDTO|null>();
-    const getOtherUserFriendList = async (userId: string) =>{
-        isLoading.value = true
-        try{
-            otherFriendList.value = await  FriendService.getOtherUserFriendsList(userId);
-            show("Successfully Fetched account", "success");
-            return otherFriendList.value;
-
-        }
-        catch(err){
-            console.log(err);
-            show("Could not fetch Profile", "error");
-        }
-        finally{
-            isLoading.value = false;
-        }
-    }
-
     const getUserFriendsList = async (userId: string) =>{
-         isLoading.value = true
+        isLoading.value = true
         try{
             otherFriendList.value = await  FriendService.getUserFriendsList(userId);
             show("Successfully Fetched account", "success");
-            return otherFriendList.value;
-
         }
         catch(err){
             console.log(err);
@@ -144,13 +123,13 @@ const _useFriends=()=>{
         getOwnFriendsList, 
         getFriendRequests, 
         sendFriendRequest, 
-        getOtherUserProfile, 
-        getOtherUserFriendList, 
+        getOtherUserProfile,
         getUserFriendsList , 
         isLoading, 
         otherFriendList, 
         profile,
         userFriendList,
+        userFriendRequests,
         respondToFriendRequest
     };
 }

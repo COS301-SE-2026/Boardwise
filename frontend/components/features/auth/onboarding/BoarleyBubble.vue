@@ -7,6 +7,10 @@
     </div>
 </template>
 
+<script setup>
+    import BaseAvatar from '~/components/ui/BaseAvatar.vue'
+</script>
+
 <style scoped>
 .boarley-bubble {
     display: flex;

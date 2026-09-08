@@ -1,6 +1,6 @@
 import logging
 
-import fitz
+import pymupdf
 import pymupdf4llm
 
 logger = logging.getLogger(__name__)
@@ -12,7 +12,7 @@ def extract_text(file_bytes: bytes) -> tuple[bool, str, str]:
     Returns: (success, extracted_markdown, failure_reason).
     """
     try:
-        with fitz.open(stream=file_bytes, filetype="pdf") as pdf_document:
+        with pymupdf.open(stream=file_bytes, filetype="pdf") as pdf_document:
             if len(pdf_document) == 0:
                 return (False, "", "PDF document is empty.")
 

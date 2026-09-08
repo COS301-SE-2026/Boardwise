@@ -31,10 +31,18 @@
 
             <div v-else class="d-flex flex-column ga-2">
                 <div v-for="person in visibleList" :key="person.id" class="d-flex align-center ga-3">
-                    <BaseAvatar :src="person.profilePicture ?? undefined" :name="person.username" size="sm" />
+                    <BaseAvatar :src="person.profilePicture ??  '/images/avatar.jpg'" :name="person.username" size="sm" />
                     <span class="flex-grow-1">{{ person.username }}</span>
                     
                     <template v-if="!route.params.id">
+                        <BaseButton 
+                            @click="handleClick(person.id)" 
+                            :variant="'primary'"
+                            size="small"
+                        >
+                            <p>Message</p>
+                        </BaseButton>
+
                         <FriendActionButton
                             :status="FriendStatus.ACCEPTED"
                             @remove="$emit('remove', person.id)"
@@ -47,7 +55,7 @@
          <!-- Friend Requests -->
           <template v-else-if="!route.params.id">
             <FriendRequestsList
-                :requests="pendingRequests!"
+                :requests="userFriendRequests!"
                 @respond="(requestId, action) => $emit('respond', requestId, action)"
             />
           </template>
@@ -68,22 +76,21 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 import FriendActionButton from './FriendActionButton.vue'
 import FriendRequestsList from './FriendRequestsList.vue'
 
-import type { FriendDTO, FriendRequestsDTO } from '~/services/friendService'
+import type { FriendDTO } from '~/services/friendService'
 import { useFriends } from '~/composables/useFriends.ts'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { FriendStatus } from '~/services/userService.ts'
 
 const {
-    getFriendRequests,
-    userFriendList,
-    getOwnFriendsList,
-    getUserFriendsList
+    userFriendRequests
 } = useFriends()
 
 const props = defineProps<{
     modelValue: boolean
     username: string
-    loading?: boolean
+    loading?: boolean,
+    friends: FriendDTO[] | null | undefined,
+    mutuals: FriendDTO[] | null | undefined
 }>()
 
 const emit = defineEmits<{
@@ -98,17 +105,14 @@ const emit = defineEmits<{
 }>()
 
 const route = useRoute()
-
-const friends = ref<FriendDTO[]>([])
-const mutuals = ref<FriendDTO[]>([])
+const router = useRouter()
 
 const tabs = ref<['Friends', 'Requests'] | ['Friends', 'Mutuals']>()
 const activeTab = ref<'Friends' | 'Mutuals' | 'Requests'>('Friends')
 const query = ref('')
-const pendingRequests = ref<FriendRequestsDTO | null | undefined>(null)
 
 const visibleList = computed(() => {
-    const list = activeTab.value === 'Friends' ? friends.value : mutuals.value
+    const list = activeTab.value === 'Friends' ? props.friends! : props.mutuals!
     if(!query.value.trim()) return list
     const q = query.value.toLowerCase()
     return list.filter(p => p.username.toLowerCase().includes(q))
@@ -116,24 +120,18 @@ const visibleList = computed(() => {
 
 const close = () => emit('update:modelValue', false)
 
+const handleClick = (id: string) => {
+  router.push({
+    path: '/chats',
+    query: { newChat: id }
+  })
+}
 
-onMounted(async () => {
-    const possibleId = route.params.id; 
-    pendingRequests.value = await getFriendRequests()
-    let response = null;
-    if(possibleId){
-        response = await getUserFriendsList(possibleId as string)
+onMounted(() => {
+    if(route.params.id)
         tabs.value = ['Friends', 'Mutuals']
-    }
-    else{
-        await getOwnFriendsList()
-        response = userFriendList.value;
+    else
         tabs.value = ['Friends', 'Requests']
-    }
-    
-    friends.value = response?.friends ?? []
-    mutuals.value = response?.mutuals ?? []
-    
 })
 </script>
 

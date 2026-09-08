@@ -17,7 +17,9 @@ export interface RulebookCardData {
 
 export interface ListingCardData {
     id: string
-    title: string
+    listingTitle: string
+    gameTitle: string
+    username: string;
     price: number
     imageUrl: string | null
 }
@@ -76,9 +78,11 @@ export const useSearch = () => {
         const raw = (res?.content ?? res ?? []) as ListingResponse[]
         listings.value = raw.map((l): ListingCardData => ({
             id: l.listingId,
-            title: l.listingTitle,
+            gameTitle: l.gameTitle,
+            listingTitle: l.listingTitle,
             price: l.price,
             imageUrl: l.imageUrl ?? null,
+            username: l.username
         }))
     }
 

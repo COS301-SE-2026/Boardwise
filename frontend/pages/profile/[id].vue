@@ -48,11 +48,22 @@
                         </div>
                     </div>
 
-                    <FriendActionButton
-                        :status="user.status"
-                        @add="handleAdd"
-                        @remove="handleRemove"
-                    />
+                    <div class="d-flex ga-1">
+                        <BaseButton 
+                            @click="handleClick(route.params.id as string)" 
+                            :variant="'primary'"
+                            size="small"
+                            v-if="user.status === FriendStatus.ACCEPTED"
+                        >
+                            <p>Message</p>
+                        </BaseButton>
+                        
+                        <FriendActionButton
+                            :status="user.status"
+                            @add="handleAdd"
+                            @remove="handleRemove"
+                        />
+                    </div>
                 </div>
             </v-card>
 
@@ -85,6 +96,8 @@
             v-model="showFriendsModal"
             :username="user?.username ?? ''"
             :loading="isLoading"
+            :friends="otherFriendList?.friends"
+            :mutuals="otherFriendList?.mutuals"
             @remove="onModalRemove"
         />
     </PageContainer>
@@ -92,10 +105,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import Navbar from '~/components/layout/Navbar.vue';
 import BaseAvatar from '~/components/ui/BaseAvatar.vue';
+import BaseButton from '~/components/ui/BaseButton.vue';
 import PageContainer from '~/components/layout/PageContainer.vue';
 
 import ProfileStats from '~/components/features/profile/ProfileStats.vue';
@@ -108,17 +122,19 @@ import FriendActionButton from '~/components/features/people/FriendActionButton.
 
 import { useProfile } from '~/composables/useProfile'
 import { useFriends } from '~/composables/useFriends'
-import { useMarketplace } from '~/composables/useMarketplace'
 import { FriendStatus } from '~/services/userService';
 import type { ProfileResponse } from '~/services/userService'
 
 const route = useRoute()
+const router = useRouter()
 const { fetchUserById } = useProfile()
-const { listings, fetchUserListing } = useMarketplace()
+
 const {  
     isLoading, 
     sendFriendRequest, 
-    unfriendUser
+    unfriendUser,
+    otherFriendList,
+    getUserFriendsList,
 } = useFriends()
 
 const loading = ref(true)
@@ -126,18 +142,18 @@ const notFound = ref(false)
 
 const user = ref<ProfileResponse | null>(null)
 const activeTab = ref('Games Owned')
+const listings = ref([])
 const showFriendsModal = ref(false)
 
 const games = computed(() => user.value?.games ?? [])
 
 const loadProfile = async (id: string) => {
-    isLoading.value = true
+    loading.value = true
     notFound.value = false
     user.value = null
 
     try {
         const profile = await fetchUserById(id);
-        console.log(`User ${id} profile:\n`, profile)
 
         if(!profile) {
             notFound.value = true
@@ -145,13 +161,21 @@ const loadProfile = async (id: string) => {
         }
 
         user.value = profile
-        await fetchUserListing();
+        await getUserFriendsList(id)
+        // gotta add fetching other user listings
     } catch (err) {
         console.error('Failed to load profile:', err)
         notFound.value = true
     } finally {
         loading.value = false
     }
+}
+
+const handleClick = (id: string) => {
+  router.push({
+    path: '/chats',
+    query: { newChat: id }
+  })
 }
 
 const openFriendsModal = async () => {

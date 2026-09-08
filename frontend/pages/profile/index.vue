@@ -47,6 +47,27 @@
 
       </v-window>
 
+      <GameBrowserModal
+        v-model="showBrowser"
+        @confirm="handleGamesAdded"
+        @add-custom="openCustomModal"
+      />
+
+      <AddCustomGameModal
+        v-model="showCustom"
+        @confirm="handleCustomGame"
+        @back="showCustom = false; showBrowser = true"
+      />
+
+      <FriendsModal
+          v-model="showFriendsModal"
+          :username="user?.username ?? ''"
+          :loading="isLoading"
+          :friends="userFriendList.friends"
+          :mutuals="userFriendList.mutuals"
+          @respond="onRespond"
+          @remove="handleRemove"
+      />
     </template>
 
     <template v-else>
@@ -55,25 +76,6 @@
       </v-container>
     </template>
 
-    <GameBrowserModal
-      v-model="showBrowser"
-      @confirm="handleGamesAdded"
-      @add-custom="openCustomModal"
-    />
-
-    <AddCustomGameModal
-      v-model="showCustom"
-      @confirm="handleCustomGame"
-      @back="showCustom = false; showBrowser = true"
-    />
-
-    <FriendsModal
-        v-model="showFriendsModal"
-        :username="user?.username ?? ''"
-        :loading="isLoading"
-        @respond="onRespond"
-        @remove="handleRemove"
-    />
   </PageContainer>
 </template>
 
@@ -105,7 +107,7 @@ import { useRouter } from 'vue-router'
 
 const { fetchCurrentUser, removeGame } = useProfile();
 const { listings, fetchUserListing, loading } = useMarketplace();
-const {  isLoading, respondToFriendRequest, unfriendUser } = useFriends()
+const {  isLoading, respondToFriendRequest, unfriendUser, getFriendRequests, getOwnFriendsList, userFriendList } = useFriends()
 const { show } = useSnackBar();
 const router = useRouter();
 const activeTab = ref('Games Owned');
@@ -182,11 +184,12 @@ const handlePfpChange = (newPfp) => {
 }
 
 const onRespond = async (id, action) => {
-    console.log("respond event emitted and caught")
     try {
         await respondToFriendRequest(id, action)
         await refreshUser()
         await fetchUserListing()
+        await getFriendRequests()
+        await getOwnFriendsList()
         showFriendsModal.value = false
 
     } catch (err) {
@@ -200,6 +203,7 @@ const handleRemove = async (id) => {
         await unfriendUser(id)
         await refreshUser()
         await fetchUserListing()
+        await getOwnFriendsList()
         showFriendsModal.value = false
     } catch (err) {
         console.error('Failed to send friend request:', err)
@@ -213,7 +217,9 @@ onMounted(async () => {
     return;
   }
 
-  await refreshUser();
   await fetchUserListing();
+  await getFriendRequests();
+  await getOwnFriendsList();
+  await refreshUser();
 });
 </script>
