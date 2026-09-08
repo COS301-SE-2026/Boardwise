@@ -11,6 +11,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class CommitEditDeltaOrDoActionRequestDto extends VaultBaseRequestDto {
+public class CommitEditDeltaOrDoActionRequestDto extends BaseColabRequestDto {
     private String chunkId;
 }

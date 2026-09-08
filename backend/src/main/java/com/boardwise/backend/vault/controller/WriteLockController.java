@@ -13,10 +13,8 @@ import com.boardwise.backend.vault.dto.request.CommitEditDeltaOrDoActionRequestD
 import com.boardwise.backend.vault.dto.request.DeleteChunkRequestDto;
 import com.boardwise.backend.vault.dto.request.InsertNewChunkRequestDto;
 import com.boardwise.backend.vault.dto.response.AcquireWriteLockDto;
-import com.boardwise.backend.vault.dto.response.CommitEditDeltaResponseDto;
-import com.boardwise.backend.vault.dto.response.DeleteChunkResponseDto;
+import com.boardwise.backend.vault.dto.response.BaseColabResponseDto;
 import com.boardwise.backend.vault.dto.response.InsertNewChunkResponseDto;
-import com.boardwise.backend.vault.dto.response.UndoOrRedoActionResponseDto;
 import com.boardwise.backend.vault.service.WriteLockService;
 
 import lombok.RequiredArgsConstructor;
@@ -46,7 +44,7 @@ public class WriteLockController {
     
     // AC-VLT-07: Commit Edit Delta
     @PatchMapping("/{id}/chunk/update")
-    public ResponseEntity<CommitEditDeltaResponseDto> commitDelta(
+    public ResponseEntity<BaseColabResponseDto> commitDelta(
         @PathVariable("id") String rulebookId,
         @RequestHeader("Authorization") String authHeader,
         @RequestBody CommitEditDeltaOrDoActionRequestDto request){
@@ -91,7 +89,7 @@ public class WriteLockController {
         }
 
     @DeleteMapping("/{id}/chunk/remove")
-    public ResponseEntity<DeleteChunkResponseDto> deleteChunk(
+    public ResponseEntity<BaseColabResponseDto> deleteChunk(
         @PathVariable("id") String rulebookId,
         @RequestHeader("Authorization") String authHeader,
         @RequestBody DeleteChunkRequestDto request){
@@ -102,7 +100,7 @@ public class WriteLockController {
         }
 
     @PostMapping("/{id}/action/undo")
-    public ResponseEntity<UndoOrRedoActionResponseDto> undoEdit(
+    public ResponseEntity<BaseColabResponseDto> undoEdit(
         @PathVariable("id") String rulebookId,
         @RequestHeader("Authorization") String authHeader,
         @RequestBody CommitEditDeltaOrDoActionRequestDto request){
@@ -113,7 +111,7 @@ public class WriteLockController {
     }
 
     @PostMapping("/{id}/action/redo")
-    public ResponseEntity<UndoOrRedoActionResponseDto> redoEdit(
+    public ResponseEntity<BaseColabResponseDto> redoEdit(
             @PathVariable("id") String rulebookId,
             @RequestHeader("Authorization") String authHeader,
             @RequestBody CommitEditDeltaOrDoActionRequestDto request) {

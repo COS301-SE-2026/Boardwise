@@ -9,6 +9,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class InsertNewChunkRequestDto extends VaultBaseRequestDto {
+public class InsertNewChunkRequestDto extends BaseColabRequestDto {
     private int insertIndex;
 }

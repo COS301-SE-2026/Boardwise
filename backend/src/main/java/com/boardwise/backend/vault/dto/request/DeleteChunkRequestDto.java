@@ -9,7 +9,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class DeleteChunkRequestDto extends VaultBaseRequestDto {
+public class DeleteChunkRequestDto extends BaseColabRequestDto {
     private String chunkId;
-    private String chunkBeforeId; // The id of the chunk that came before the current chunk
 }
