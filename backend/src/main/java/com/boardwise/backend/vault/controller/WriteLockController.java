@@ -88,7 +88,7 @@ public class WriteLockController {
             );
         }
 
-    @DeleteMapping("/{id}/chunk/remove")
+    @PostMapping("/{id}/chunk/remove")
     public ResponseEntity<BaseColabResponseDto> deleteChunk(
         @PathVariable("id") String rulebookId,
         @RequestHeader("Authorization") String authHeader,

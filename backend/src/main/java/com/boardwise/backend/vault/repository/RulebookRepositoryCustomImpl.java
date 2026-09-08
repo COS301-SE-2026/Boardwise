@@ -1,6 +1,7 @@
 package com.boardwise.backend.vault.repository;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -43,7 +44,9 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
 
         Update update = new Update()
             .set("lockHeldBy", userId)
-            .set("lockExpiresAt", newExpiry);
+            .set("lockExpiresAt", newExpiry)
+            .set("undoStack", Collections.emptyList())
+            .set("redoStack", Collections.emptyList());
 
         FindAndModifyOptions options = new FindAndModifyOptions().returnNew(true);
 
@@ -81,7 +84,9 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
 
         Update update = new Update()
             .set("lockHeldBy", null)
-            .set("lockExpiresAt", null);
+            .set("lockExpiresAt", null)
+            .set("undoStack", Collections.emptyList())
+            .set("redoStack", Collections.emptyList());
 
         FindAndModifyOptions options = new FindAndModifyOptions().returnNew(true);
 
@@ -94,7 +99,9 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
 
         Update update = new Update()
             .set("lockHeldBy", null)
-            .set("lockExpiresAt", null);
+            .set("lockExpiresAt", null)
+            .set("undoStack", Collections.emptyList())
+            .set("redoStack", Collections.emptyList());
         
         mongoTemplate.updateMulti(query, update, Rulebook.class);
     }

@@ -133,8 +133,12 @@ const showRagPanel = ref(false)
 
 const setBlockRef = (el, chunkId) => {
   if(el){
-    blockRefs.value[chunkId] = el.$el || el;
+    const domNode = el.$el || el;
+    blockRefs.value[chunkId]  = domNode;
+    if(observer) observer.observe(domNode);
   }else{
+    const existingNode = blockRefs.value[chunkId];
+    if(observer && existingNode) observer.unobserve(existingNode);
     delete blockRefs.value[chunkId];
   }
 }
@@ -240,11 +244,15 @@ const handleCancel = () => {}
 const handleDelete = async (chunkId) => {
   if(!props.rulebook?.id) return
   isSaving.value = true;
+  
+  const targetIndex = localChunks.value.findIndex(c => c.chunkId === chunkId);
+  const previousChunkId = targetIndex > 0 ? localChunks.value[targetIndex - 1]?.chunkId : null;
 
   try{
     const newVersion = await deleteChunk(
       props.rulebook.id,
       chunkId,
+      previousChunkId,
       currentVersion.value
     )
     currentVersion.value = newVersion;
@@ -271,26 +279,32 @@ const handleInsert = async (targetIndex) => {
   const previousChunkId = targetIndex > 0 ? localChunks.value[targetIndex - 1]?.chunkId : null;
 
   try{
-    const newVersion = await insertChunk(
+    const {newVersion, newChunkId } = await insertChunk(
       props.rulebook.id,
       "New Section Content...",
       previousChunkId,
-      currentVersion.value
+      currentVersion.value,
+      targetIndex
     )
 
     currentVersion.value = newVersion;
     show('New section added.', 'success')
 
-    await nextTick();
-    const newChunk = localChunks.value[targetIndex];
-    const targetBlock = blockRefs.value[newChunk?.chunkId];
-    if(targetBlock){
-      const textarea = targetBlock.querySelector('textarea');
-      if(textarea){
-        textarea.focus();
+    let retries = 0;
+    const focusNewBlock = () => {
+      const targetBlock = blockRefs.value[newChunkId];
+      if(targetBlock){
+        const textarea = targetBlock.querySelector('textarea');
+        if(textarea){
+          textarea.focus();
+        }
+        targetBlock.scrollIntoView({behavior: 'smooth', block:'center'});
+      }else if(retries < 15){
+        retries++;
+        setTimeout(focusNewBlock, 50);
       }
-      targetBlock.scrollIntoView({behavior: 'smooth', block:'center'});
-    }
+    };
+    focusNewBlock();
   }catch (err) {
     if(err?.status === 409 && err?.data?.error === 'VersionMismatchException') {
       await reconcileStaleState();
@@ -417,9 +431,8 @@ const reconcileStaleState = async (silent = false) => {
 const handleUndo = async () => {
     if (!props.rulebook?.id) return;
     try {
-        const newVersion = await undoEdit(props.rulebook.id, '', currentVersion.value);
+        const newVersion = await undoEdit(props.rulebook.id, currentVersion.value);
         currentVersion.value = newVersion;
-        await reconcileStaleState(true);
     } catch(err) {
         if (err?.status === 409) {
             show('Nothing left to undo.', 'info');
@@ -432,9 +445,8 @@ const handleUndo = async () => {
 const handleRedo = async () => {
     if (!props.rulebook?.id) return;
     try {
-        const newVersion = await redoEdit(props.rulebook.id, '', currentVersion.value);
+        const newVersion = await redoEdit(props.rulebook.id, currentVersion.value);
         currentVersion.value = newVersion;
-        await reconcileStaleState(true);
     } catch(err) {
         if (err?.status === 409) {
             show('Nothing left to redo.', 'info');
