@@ -1,39 +1,42 @@
 <template>
   <div>
-    <ReaderToolbar 
-      :rulebook="rulebook" 
-      :current-page="activeChunkIndex"
-      :total-pages="localChunks.length" 
-      :search-query="searchQuery"
-      :match-count="matchResults.length"
-      :current-match="currentMatch"
-      :is-editing="isEditing"
-      :is-saving="isSaving"
-      :lock-held-by="lockHeldBy"
-      :lock-expires-at="lockExpiresAt"
-      :lock-error="lockError"
-      :can-undo="canUndo"
-      :can-redo="canRedo"
-      @search="searchQuery = $event"
-      @prev-match="prevMatch"
-      @next-match="nextMatch"
-      @clear-search="clearSearch"
-      @edit="handleEdit"
-      @toggle-history="showHistory = !showHistory"
-      @undo="handleUndo"
-      @redo="handleRedo"
-    />
+    <div class="reader-header">
 
-    <ReaderProgress :current-page="activeChunkIndex" :total-pages="localChunks.length" />
+      <ReaderToolbar
+        :rulebook="rulebook"
+        :current-page="activeChunkIndex"
+        :total-pages="localChunks.length"
+        :search-query="searchQuery"
+        :match-count="matchResults.length"
+        :current-match="currentMatch"
+        :is-editing="isEditing"
+        :is-saving="isSaving"
+        :lock-held-by="lockHeldBy"
+        :lock-expires-at="lockExpiresAt"
+        :lock-error="lockError"
+        :can-undo="canUndo"
+        :can-redo="canRedo"
+        @search="searchQuery = $event"
+        @prev-match="prevMatch"
+        @next-match="nextMatch"
+        @clear-search="clearSearch"
+        @edit="handleEdit"
+        @stop-editing="handleStopEditing"
+        @toggle-history="showHistory = !showHistory"
+        @undo="handleUndo"
+        @redo="handleRedo"
+      />
 
+      <ReaderProgress :current-page="activeChunkIndex" :total-pages="localChunks.length" />
+    </div>
     <v-container fluid style="max-width: 1200px;">
       <v-row>
         <v-col cols="12" md="3">
-          <ReaderSidebar 
+          <ReaderSidebar
             :pages="localChunks"
             :current-page="activeChunkIndex"
             :matching-chunks="matchingChunkIndices"
-            @change="handlePageChange" 
+            @change="handlePageChange"
           />
         </v-col>
 
@@ -63,9 +66,9 @@
               <transition-group name="block-list" tag="div" class="blocks-wrapper d-flex flex-column ga-4">
                 <ReaderBlock
                   v-for="(chunk, i) in localChunks"
-                  :key="chunk.chunkId || i"
-                  :data-index="i"
-                  :ref="(el) => setBlockRef(el, i)"
+                  :key="chunk.chunkId"
+                  :data-chunk-id="chunk.chunkId"
+                  :ref="(el) => setBlockRef(el, chunk.chunkId)"
                   :chunk="chunk"
                   :index="i"
                   :is-editing="isEditing"
@@ -99,8 +102,8 @@
 </template>
 
 <script setup>
-import{ ref, computed, watch, onMounted, onUnmounted, provide } from 'vue'
-import { onBeforeRouteLeave } from 'vue-router'
+import{ ref, computed, watch, onMounted, onUnmounted, provide, nextTick } from 'vue'
+import { onBeforeRouteLeave, useRoute } from 'vue-router'
 
 import ReaderToolbar from './ReaderToolbar.vue'
 import ReaderProgress from './ReaderProgress.vue'
@@ -109,7 +112,6 @@ import ReaderBlock from './ReaderBlock.vue'
 import ReaderHistory from './ReaderHistory.vue'
 
 import BaseImage from '~/components/ui/BaseImage.vue'
-
 import AIFloatingButton from '~/components/layout/AIFloatingButton.vue'
 import RagPanel from '../rag/RagPanel.vue'
 
@@ -117,28 +119,35 @@ import { useEditLock } from '~/composables/useEditLock'
 import { useEditHistory } from '~/composables/useEditHistory'
 import { useSnackBar }  from '~/composables/useSnackbar'
 import { useLibrary } from '~/composables/useLibrary'
+import { useReaderSocket } from '~/composables/useReaderSocket'
 
 const props = defineProps({
   rulebook: Object,
   chunks: { type: Array, default: () => [] }
 })
 
+const route = useRoute()
 const activeChunkIndex = ref(0)
-const blockRefs = ref([])
+const blockRefs = ref({})
 const searchQuery = ref('')
 const currentMatch = ref(0)
 const showRagPanel = ref(false)
 
-const setBlockRef = (el, index) => {
+const setBlockRef = (el, chunkId) => {
   if(el){
-    blockRefs.value[index] = el.$el || el;
+    const domNode = el.$el || el;
+    blockRefs.value[chunkId]  = domNode;
+    if(observer) observer.observe(domNode);
+  }else{
+    const existingNode = blockRefs.value[chunkId];
+    if(observer && existingNode) observer.unobserve(existingNode);
+    delete blockRefs.value[chunkId];
   }
 }
 
 let observer = null;
 
 // edit logic
-
 const localChunks = ref([...props.chunks])
 const showHistory = ref(false)
 
@@ -147,20 +156,68 @@ const { editHistory, isLoadingHistory, historyError, fetchEditHistory } = useEdi
 const { show } = useSnackBar()
 const { getRulebookText } = useLibrary()
 
+// Websocket
+useReaderSocket(
+  route.params.id,
+  {
+    onLockAcquired: (payload) => {
+      if(!isEditing.value){
+        lockHeldBy.value = payload.lockedByUsername || payload.lockedByUserId;
+        lockExpiresAt.value = payload.expiresAt;
+      }
+      currentVersion.value = payload.currentVersion;
+    },
+    onLockReleased: (payload) => {
+      if(lockHeldBy.value === payload.releasedByUsername || lockHeldBy.value === payload.releasedByUserId){
+        lockHeldBy.value = null;
+        lockExpiresAt.value = null;
+        }
+    },
+    onDeltaCommitted: (payload) => {
+      const chunk = localChunks.value.find(c => c.chunkId === payload.chunkId);
+
+      if(chunk){
+        chunk.content = payload.deltaContent;
+      }
+      currentVersion.value = payload.version;
+    },
+    onChunkInserted: (payload) => {
+      localChunks.value.splice(payload.index, 0, {
+        chunkId: payload.chunkId,
+        content: payload.content,
+      });
+      currentVersion.value = payload.version;
+    },
+    onChunkDeleted: (payload) => {
+      const idx = localChunks.value.findIndex(c => c.chunkId === payload.chunkId);
+      if(idx !== -1){
+        localChunks.value.splice(idx, 1);
+      }
+      currentVersion.value = payload.version;
+    },
+    onReconnect: () => {
+      if(isEditing.value){
+        show('Connection restored, but you may have missed updates. Save carefully.', 'warning');
+      }else{
+        reconcileStaleState(true);
+      }
+    }
+});
 
 watch(() => props.chunks, (val) => {
-  localChunks.value = [...val]
+  localChunks.value = val.map(chunk => ({ ...chunk }));
   if(activeChunkIndex.value >= localChunks.value.length) {
     activeChunkIndex.value = Math.max(0, localChunks.value.length - 1)
   }
-}, { immediate: true, deep: true })
+}, { immediate: true })
 
 const handlePageChange = (index) => {
   if (isEditing.value) {
     show('Save or cancel your edits before switching sections.', 'info')
     return
   }
-  const targetBlock = blockRefs.value[index];
+  const targetChunkId = localChunks.value[index]?.chunkId;
+  const targetBlock = blockRefs.value[targetChunkId];
   if(targetBlock){
     targetBlock.scrollIntoView({behavior: 'smooth', block: 'center'});
   }
@@ -168,14 +225,36 @@ const handlePageChange = (index) => {
 
 provide('jumpToSection', handlePageChange)
 
+// Editing Controls
+const handleEdit = async () => {
+  if (!props.rulebook?.id) return;
+  await startEditing(props.rulebook.id);
+  if (lockError.value) {
+    show(lockError.value, 'error');
+  }
+}
+
+const handleStopEditing = async () => {
+  if (!props.rulebook?.id) return;
+  await stopEditing(props.rulebook.id);
+  show('Finished editing session', 'info');
+}
+
+// Cancel 
+const handleCancel = () => {}
+
 const handleDelete = async (chunkId) => {
   if(!props.rulebook?.id) return
   isSaving.value = true;
+  
+  const targetIndex = localChunks.value.findIndex(c => c.chunkId === chunkId);
+  const previousChunkId = targetIndex > 0 ? localChunks.value[targetIndex - 1]?.chunkId : null;
 
   try{
     const newVersion = await deleteChunk(
       props.rulebook.id,
       chunkId,
+      previousChunkId,
       currentVersion.value
     )
     currentVersion.value = newVersion;
@@ -191,7 +270,6 @@ const handleDelete = async (chunkId) => {
       show('Failed to delete section', 'error')
     }
   } finally {
-    await stopEditing(props.rulebook.id)
     isSaving.value = false
   }
 }
@@ -200,26 +278,35 @@ const handleInsert = async (targetIndex) => {
   if(!props.rulebook?.id) return;
   isSaving.value = true
 
+  const previousChunkId = targetIndex > 0 ? localChunks.value[targetIndex - 1]?.chunkId : null;
+
   try{
-    const newVersion = await insertChunk(
+    const {newVersion, newChunkId } = await insertChunk(
       props.rulebook.id,
       "New Section Content...",
-      targetIndex,
-      currentVersion.value
+      previousChunkId,
+      currentVersion.value,
+      targetIndex
     )
 
     currentVersion.value = newVersion;
     show('New section added.', 'success')
 
-    await nextTick();
-    const targetBlock = blockRefs.value[targetIndex];
-    if(targetBlock){
-      const textarea = targetBlock.querySelector('textarea');
-      if(textarea){
-        textarea.focus();
+    let retries = 0;
+    const focusNewBlock = () => {
+      const targetBlock = blockRefs.value[newChunkId];
+      if(targetBlock){
+        const textarea = targetBlock.querySelector('textarea');
+        if(textarea){
+          textarea.focus();
+        }
+        targetBlock.scrollIntoView({behavior: 'smooth', block:'center'});
+      }else if(retries < 15){
+        retries++;
+        setTimeout(focusNewBlock, 50);
       }
-      targetBlock.scrollIntoView({behavior: 'smooth', block:'center'});
-    }
+    };
+    focusNewBlock();
   }catch (err) {
     if(err?.status === 409 && err?.data?.error === 'VersionMismatchException') {
       await reconcileStaleState();
@@ -227,16 +314,7 @@ const handleInsert = async (targetIndex) => {
       show('Failed to add section.', 'error')
     }
   } finally {
-    await stopEditing(props.rulebook.id);
     isSaving.value = false;
-  }
-}
-
-const handleEdit = async () => {
-  if (!props.rulebook?.id) return;
-  await startEditing(props.rulebook.id);
-  if (lockError.value) {
-    show(lockError.value, 'error');
   }
 }
 
@@ -266,7 +344,6 @@ const handleSave = async ({chunkId, content}) => {
             show('Failed to save. Please try again.', 'error');
         }
     } finally {
-        await stopEditing(props.rulebook.id);
         isSaving.value = false;
     }
 }
@@ -280,12 +357,6 @@ watch(showHistory, async (val) => {
         }
     }
 })
-
-// Cancel 
-const handleCancel = async () => {
-  if (!props.rulebook?.id) return
-  await stopEditing(props.rulebook.id)
-}
 
 // Search logic 
 const matchResults = computed(() => { 
@@ -362,9 +433,8 @@ const reconcileStaleState = async (silent = false) => {
 const handleUndo = async () => {
     if (!props.rulebook?.id) return;
     try {
-        const newVersion = await undoEdit(props.rulebook.id, '', currentVersion.value);
+        const newVersion = await undoEdit(props.rulebook.id, currentVersion.value);
         currentVersion.value = newVersion;
-        await reconcileStaleState(true);
     } catch(err) {
         if (err?.status === 409) {
             show('Nothing left to undo.', 'info');
@@ -377,9 +447,8 @@ const handleUndo = async () => {
 const handleRedo = async () => {
     if (!props.rulebook?.id) return;
     try {
-        const newVersion = await redoEdit(props.rulebook.id, '', currentVersion.value);
+        const newVersion = await redoEdit(props.rulebook.id, currentVersion.value);
         currentVersion.value = newVersion;
-        await reconcileStaleState(true);
     } catch(err) {
         if (err?.status === 409) {
             show('Nothing left to redo.', 'info');
@@ -418,8 +487,9 @@ onMounted(() => {
     observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if(entry.isIntersecting){
-          const index = Number(entry.target.dataset.index);
-          if(activeChunkIndex.value !== index){
+          const chunkId = entry.target.dataset.chunkId;
+          const index = localChunks.value.findIndex(c => c.chunkId === chunkId);
+          if(index !== -1 && activeChunkIndex.value !== index){
             activeChunkIndex.value = index;
           }
         }
@@ -430,7 +500,7 @@ onMounted(() => {
     });
 
     nextTick(() => {
-      blockRefs.value.forEach(block => {
+      Object.values(blockRefs.value).forEach(block => {
         if(block) observer.observe(block);
       });
     });
@@ -455,3 +525,11 @@ defineExpose({
 });
 
 </script>
+
+<style scoped>
+.reader-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+</style>

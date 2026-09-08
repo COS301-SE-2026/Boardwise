@@ -10,4 +10,6 @@ public interface RulebookTextRepositoryCustom {
     RulebookText atomicInsertChunk(ObjectId rulebookId, String content, int insertIndex);
 
     boolean atomicDeleteChunk(ObjectId rulebookId, ObjectId chunkId);
+
+    RulebookText atomicRestoreChunk(ObjectId rulebookId, ObjectId targetChunkId, String content, ObjectId chunkBeforeId, int historicalIndex);
 }

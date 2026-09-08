@@ -54,27 +54,40 @@
                   </v-btn>
                 </template>
               </v-tooltip>
-            </template>
+          </template>
 
-            <!-- Edit Button -->
-             <v-tooltip
-              :text="lockHeldBy ? `Currently being edited by @${lockHeldBy}` : 'Edit this section'"
-              location="bottom"
-            >
-              <template #activator="{ props: tooltipProps }">
-                <v-btn
-                  v-bind="tooltipProps"
-                  size="small"
-                  variant="outlined"
-                  color="primary"
-                  prepend-icon="mdi-pencil"
-                  :disabled="!!lockHeldBy || isEditing"
-                  @click="emit('edit')"
-                >
-                  Edit
+            <!-- Edit/ Done Editing Button -->
+            <template v-if="isEditing">
+              <v-btn
+                size="small"
+                variant="flat"
+                color="secondary"
+                prepend-icon="mdi-check"
+                @click="emit('stop-editing')"
+              >
+                Done Editing
+              </v-btn>
+            </template>
+            <template v-else>
+              <v-tooltip
+                :text="lockHeldBy ? `Currently being edited by @${lockHeldBy}` : 'Edit this section'"
+                location="bottom"
+              >
+                <template #activator="{ props: tooltipProps }">
+                  <v-btn
+                    v-bind="tooltipProps"
+                    size="small"
+                    variant="outlined"
+                    color="primary"
+                    prepend-icon="mdi-pencil"
+                    :disabled="!!lockHeldBy"
+                    @click="emit('edit')"
+                  >
+                    Edit
                 </v-btn>
-              </template>
-            </v-tooltip>
+                </template>
+              </v-tooltip>
+            </template>
 
             <!-- Download Button -->
             <v-tooltip text="Download PDF" location="bottom">
@@ -125,19 +138,17 @@
                 <v-icon size="18">mdi-close</v-icon>
               </v-btn>
 
-              <v-btn icon size="small" variant="text" @click="showSearch = !showSearch">
-                <v-icon>mdi-magnify</v-icon>
-              </v-btn>
-
               <span class="text-caption text-medium-emphasis text-no-wrap">
                 {{ currentPage + 1 }} / {{ totalPages }}
               </span>
             </template>
-
-          
+            <template v-else>
+              <v-btn icon size="small" variant="text" @click="showSearch = !showSearch">
+                <v-icon>mdi-magnify</v-icon>
+              </v-btn>
+            </template>
       </div>
     </template>
-
   </v-app-bar>
 </template>
 
@@ -146,10 +157,9 @@ import { ref, computed, onUnmounted ,watch } from 'vue'
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 import { useSnackBar } from '~/composables/useSnackbar.ts'
 import { useLibrary } from '~/composables/useLibrary'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 const route = useRoute();
-const router = useRouter();
 const { show } = useSnackBar();
 
 const { getDownloadLink, downloadUrl } = useLibrary();
@@ -170,7 +180,7 @@ const props = defineProps({
   canRedo: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['search', 'next-match', 'prev-match', 'clear-search', 'edit', 'toggle-history', 'undo', 'redo'])
+const emit = defineEmits(['search', 'next-match', 'prev-match', 'clear-search', 'edit', 'stop-editing','toggle-history', 'undo', 'redo'])
 
 const showSearch = ref(false)
 const localQuery = ref('')
@@ -233,10 +243,4 @@ const handleDownload = async () => {
     isDownloading.value = false;
   }
 }
-
-const formattedExpiry = computed(() => {
-  if(!props.lockExpiresAt) return ''
-  return new Date(props.lockExpiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-})
-
 </script>

@@ -25,14 +25,7 @@ export const useEditLock = () => {
             const fetchError = err as FetchError<{message: string}>;
 
             lockError.value = fetchError.data?.message || 'Failed to acquire write lock';
-            
-            // if(fetchError.response?.status === 409){
-            //     lockError.value = fetchError.data?.message || 'Rulebook is currently being edited.';
-            // }else if(fetchError.response?.status === 404){
-            //     lockError.value = fetchError.data?.message || 'Rulebook was not found.';
-            // }else{
-            //     lockError.value = 'Failed to acquire lock.';
-            // }
+
             return false;
         }
     }
@@ -49,10 +42,6 @@ export const useEditLock = () => {
             const fetchError = err as FetchError<{message: string}>;
             lockError.value = fetchError.data?.message || 'Failed to release write lock';
         }
-
-        // // Mock — just clears state
-        // lockHeldBy.value    = null
-        // lockExpiresAt.value = null
     }
 
     const releaseAllLocks = async () => {
@@ -76,29 +65,30 @@ export const useEditLock = () => {
                 "content": content,
                 "chunkId": chunkId
             })
-            if(response.committed){
+            if(response.done){
                 lockExpiresAt.value = new Date(response.lockExpiresAt).toISOString();
                 canUndo.value = true;
                 canRedo.value = false;
+                currentVersion.value = response.newVersion;
                 return response.newVersion;
             }
             return expectedVersion;
         }catch(err){
             const fetchError = err as FetchError<{message: string}>;
             lockError.value = fetchError.data?.message || 'Failed to commit the edit';
+            throw err;
         }
     }
 
-    const undoEdit = async (rulebookId: string, chunkId: string, expectedVersion: number) => {
+    const undoEdit = async (rulebookId: string, expectedVersion: number) => {
         try{
             const response = await LibraryService.undoEdit(rulebookId, {
                 "expectedVersion":expectedVersion,
-                "content": "",
-                "chunkId": chunkId
             });
             if(response.done){
                 canRedo.value = true;
                 lockExpiresAt.value = new Date(response.lockExpiresAt).toISOString();
+                currentVersion.value = response.newVersion;
                 return response.newVersion;
             }
             return expectedVersion;
@@ -112,16 +102,15 @@ export const useEditLock = () => {
         }
     }
 
-    const redoEdit = async (rulebookId: string, chunkId: string, expectedVersion: number) => {
+    const redoEdit = async (rulebookId: string, expectedVersion: number) => {
         try{
             const response = await LibraryService.redoEdit(rulebookId, {
-                "expectedVersion":expectedVersion,
-                "content": "",
-                "chunkId": chunkId
+                "expectedVersion":expectedVersion
             });
             if(response.done){
                 canUndo.value = true;
                 lockExpiresAt.value = new Date(response.lockExpiresAt).toISOString();
+                currentVersion.value = response.newVersion;
                 return response.newVersion;
             }
             return expectedVersion;
@@ -151,6 +140,51 @@ export const useEditLock = () => {
         isSaving.value = false;
     }
 
+    const insertChunk = async (rulebookId: string, content: string, chunkBeforeId: string | null, expectedVersion: number, insertIndex: number) => {
+        try{
+            const response = await LibraryService.insertChunk(rulebookId, {
+                expectedVersion: expectedVersion,
+                content: content,
+                chunkBeforeId: chunkBeforeId,
+                insertIndex: insertIndex
+            });
+            if(response.done){
+                lockExpiresAt.value = new Date(response.lockExpiresAt).toISOString();
+                canUndo.value = true;
+                canRedo.value = false;
+                currentVersion.value = response.newVersion;
+                return { newVersion: response.newVersion, newChunkId: response.chunkId };
+            }
+            throw new Error("Failed to insert");
+        }catch(err){
+            const fetchError = err as FetchError<{message: string}>;
+            lockError.value = fetchError.data?.message || 'Failed to insert the chunk';
+            throw err;
+        }
+    }
+
+    const deleteChunk = async (rulebookId: string, chunkId: string, chunkBeforeId: string| null, expectedVersion: number) => {
+        try{
+            const response = await LibraryService.deleteChunk(rulebookId, {
+                expectedVersion: expectedVersion,
+                chunkId: chunkId,
+                chunkBeforeId: chunkBeforeId
+            });
+            if(response.done){
+                lockExpiresAt.value = new Date(response.lockExpiresAt).toISOString();
+                canUndo.value = true;
+                canRedo.value = false;
+                currentVersion.value = response.newVersion;
+                return response.newVersion;
+            }
+            throw new Error("Failed to delete");
+        }catch(err){
+            const fetchError = err as FetchError<{message: string}>;
+            lockError.value = fetchError.data?.message || 'Failed to delete the chunk';
+            throw err;
+        }
+    }
+
     return {
         isEditing,
         isSaving,
@@ -165,6 +199,8 @@ export const useEditLock = () => {
         commitDelta,
         releaseAllLocks,
         undoEdit,
-        redoEdit
+        redoEdit,
+        insertChunk,
+        deleteChunk
     }
 }

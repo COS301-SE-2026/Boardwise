@@ -18,11 +18,11 @@ public interface RulebookRepositoryCustom {
 
     void atomicReleaseAllWriteLocks(ObjectId userId);
 
-    Long atomicPopUndoAndPushRedo(ObjectId rulebookId, ObjectId userId);
+    ObjectId atomicPopUndoAndPushRedo(ObjectId rulebookId, ObjectId userId);
     
-    Long atomicPopRedoAndPushUndo(ObjectId rulebookId, ObjectId userId);
+    ObjectId atomicPopRedoAndPushUndo(ObjectId rulebookId, ObjectId userId);
 
-    void atomicCommitForwardEdit(ObjectId rulebookId, Long newVersion);
+    void atomicCommitForwardEdit(ObjectId rulebookId, ObjectId eventId);
     
     Page<Rulebook> searchWithFilters(
         String search, String genre, List<String> languages,
