@@ -90,6 +90,7 @@ export interface ProfileSearchResponse {
     username: string;
     fullName: string;
     profilePicture: string;
+    status: FriendStatus | null
 }
 
 interface GenresResponse {

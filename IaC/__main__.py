@@ -343,8 +343,7 @@ docker run -d \
     -e HF_TOKEN="__HF_TOKEN__" \
     -e INTERNAL_SECRET="__INTERNAL_SECRET__" \
     -e CPU_CORES="__CPU_CORES__" \
-    -e APP_ENV="__APP_ENV__"
-    __IMAGE_URI__
+    -e APP_ENV="__APP_ENV__" __IMAGE_URI__
 """
 python_user_data = python_image.image_uri.apply(
     lambda image_uri : python_setup_script
@@ -418,15 +417,14 @@ docker run -d \
     -e SMTP_HOST="__SMTP_HOST__" \
     -e SMTP_USERNAME="__SMTP_USERNAME__" \
     -e SMTP_PASSWORD="__SMTP_PASSWORD__" \
-    -e SPRING_PROFILES_ACTIVE="__SPRING_PROFILES_ACTIVE__"
-    __IMAGE_URI__
+    -e SPRING_PROFILES_ACTIVE="__SPRING_PROFILES_ACTIVE__" __IMAGE_URI__
 """
 spring_user_data = pulumi.Output.all(
     image_uri = spring_image.image_uri,
     python_ip = python_instance.private_ip
 ).apply(
     lambda args : spring_setup_script
-                        .replace("__IMAGE_URI__", args["image_uri"])
+                        .replace("__IMAGE_URI__", args['image_uri'])
                         .replace("__SMTP_PASSWORD__", settings.SMTP_PASSWORD if settings.SMTP_PASSWORD is not None else "")
                         .replace("__SMTP_USERNAME__", settings.SMTP_USERNAME if settings.SMTP_USERNAME is not None else "")
                         .replace("__SMTP_HOST__", settings.SMTP_HOST if settings.SMTP_HOST is not None else "")
@@ -439,7 +437,7 @@ spring_user_data = pulumi.Output.all(
                         .replace("__R2_RULEBOOKS_PUBLIC_PROD_URL__", settings.R2_RULEBOOKS_PUBLIC_PROD_URL)
                         .replace("__R2_BUCKET_LISTINGS__", settings.R2_BUCKET_LISTINGS)
                         .replace("__R2_BUCKET_PROFILES__", settings.R2_BUCKET_PROFILES)
-                        .replace("__PROD_FAST_API_BASE__", f"http://{args["python_ip"]}:8000/api/fa/") # NOSONAR
+                        .replace("__PROD_FAST_API_BASE__", f"http://{args['python_ip']}:8000/api/fa/") # NOSONAR
                         .replace("__INTERNAL_SECRET__", settings.INTERNAL_WEBHOOK_SECRET)
                         .replace("__R2_SECRET_KEY__", settings.R2_SECRET_KEY)
                         .replace("__R2_ACCESS_KEY__", settings.R2_ACCESS_KEY)
@@ -574,9 +572,9 @@ frontend_cert = aws.acm.Certificate(
 cert_record_base = cloudflare.DnsRecord(
     f"{RESOURCE_PREFIX}-cert-record-base",
     zone_id=settings.CLOUDFLARE_ZONE_ID,
-    name=frontend_cert.domain_validation_options[0].resource_record_name,
-    type=frontend_cert.domain_validation_options[0].resource_record_type,
-    content=frontend_cert.domain_validation_options[0].resource_record_value,
+    name=frontend_cert.domain_validation_options.apply(lambda opts: opts[0].resource_record_name),
+    type=frontend_cert.domain_validation_options.apply(lambda opts: opts[0].resource_record_type),
+    content=frontend_cert.domain_validation_options.apply(lambda opts: opts[0].resource_record_value),
     proxied=False,
     ttl=1
 )
@@ -584,9 +582,9 @@ cert_record_base = cloudflare.DnsRecord(
 cert_record_www = cloudflare.DnsRecord(
     f"{RESOURCE_PREFIX}-cert-record-www",
     zone_id=settings.CLOUDFLARE_ZONE_ID,
-    name=frontend_cert.domain_validation_options[1].resource_record_name,
-    type=frontend_cert.domain_validation_options[1].resource_record_type,
-    content=frontend_cert.domain_validation_options[1].resource_record_value,
+    name=frontend_cert.domain_validation_options.apply(lambda opts: opts[1].resource_record_name),
+    type=frontend_cert.domain_validation_options.apply(lambda opts: opts[1].resource_record_type),
+    content=frontend_cert.domain_validation_options.apply(lambda opts: opts[1].resource_record_value),
     proxied=False,
     ttl=1
 )
@@ -645,6 +643,18 @@ frontend_distro = aws.cloudfront.Distribution(
         ssl_support_method="sni-only",
         minimum_protocol_version="TLSv1.2_2021"
     ),
+    custom_error_responses=[
+        aws.cloudfront.DistributionCustomErrorResponseArgs(
+            error_code=403,
+            response_code=200,
+            response_page_path="/index.html"
+        ),
+        aws.cloudfront.DistributionCustomErrorResponseArgs(
+            error_code=404,
+            response_code=200,
+            response_page_path="/index.html"
+        )
+    ],
     opts=pulumi.ResourceOptions(depends_on=[bucket])
 )
 
