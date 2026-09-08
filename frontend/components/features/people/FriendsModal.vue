@@ -90,7 +90,7 @@ const props = defineProps<{
     username: string
     loading?: boolean,
     friends: FriendDTO[] | null | undefined,
-    mutuals?: FriendDTO[] | null | undefined
+    mutuals: FriendDTO[] | null | undefined
 }>()
 
 const emit = defineEmits<{
@@ -106,9 +106,6 @@ const emit = defineEmits<{
 
 const route = useRoute()
 const router = useRouter()
-
-const friends = ref<FriendDTO[]>([])
-const mutuals = ref<FriendDTO[]>([])
 
 const tabs = ref<['Friends', 'Requests'] | ['Friends', 'Mutuals']>()
 const activeTab = ref<'Friends' | 'Mutuals' | 'Requests'>('Friends')
