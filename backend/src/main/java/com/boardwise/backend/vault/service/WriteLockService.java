@@ -14,12 +14,10 @@ import com.boardwise.backend.user_service.repository.UserRepository;
 import com.boardwise.backend.vault.dto.request.CommitEditDeltaOrDoActionRequestDto;
 import com.boardwise.backend.vault.dto.request.DeleteChunkRequestDto;
 import com.boardwise.backend.vault.dto.request.InsertNewChunkRequestDto;
-import com.boardwise.backend.vault.dto.request.VaultBaseRequestDto;
+import com.boardwise.backend.vault.dto.request.BaseColabRequestDto;
 import com.boardwise.backend.vault.dto.response.AcquireWriteLockDto;
-import com.boardwise.backend.vault.dto.response.CommitEditDeltaResponseDto;
-import com.boardwise.backend.vault.dto.response.DeleteChunkResponseDto;
+import com.boardwise.backend.vault.dto.response.BaseColabResponseDto;
 import com.boardwise.backend.vault.dto.response.InsertNewChunkResponseDto;
-import com.boardwise.backend.vault.dto.response.UndoOrRedoActionResponseDto;
 import com.boardwise.backend.vault.dto.websocket.ChunkDeletedEventDto;
 import com.boardwise.backend.vault.dto.websocket.ChunkInsertedEventDto;
 import com.boardwise.backend.vault.dto.websocket.DeltaCommitedEventDto;
@@ -91,12 +89,10 @@ public class WriteLockService {
 
     // AC-VLT-07: Commit Edit Delta
     @Transactional
-    public CommitEditDeltaResponseDto commitEditDelta(ObjectId rulebookId, ObjectId userId, CommitEditDeltaOrDoActionRequestDto request){
+    public BaseColabResponseDto commitEditDelta(ObjectId rulebookId, ObjectId userId, CommitEditDeltaOrDoActionRequestDto request){
         User user = findUserOrThrow(userId);
         Instant now = Instant.now();
         Rulebook rulebook = validateRulebookAndLockPossession(rulebookId, userId, now, request, "edit");
-
-        long nextVersion = rulebook.getVersion();
 
         ObjectId targetChunkId = new ObjectId(request.getChunkId());
         
@@ -108,9 +104,12 @@ public class WriteLockService {
 
         rulebookTextRepository.atomicUpdateChunk(rulebookId, targetChunkId, request.getContent());
 
-        rulebookRepository.atomicCommitForwardEdit(rulebookId, nextVersion);
+        ObjectId editId = new ObjectId();
+
+        rulebookRepository.atomicCommitForwardEdit(rulebookId, editId);
         
         EditEvent event = EditEvent.builder()
+            .id(editId)
             .rulebookId(rulebookId)
             .editorId(new ObjectId(user.getId()))
             .chunkId(targetChunkId)
@@ -132,10 +131,10 @@ public class WriteLockService {
             .build()
         );
 
-        return CommitEditDeltaResponseDto.builder()
-            .committed(true)
+        return BaseColabResponseDto.builder()
+            .done(true)
             .newVersion(rulebook.getVersion())
-            .committedAt(now)
+            .doneAt(now)
             .lockExpiresAt(rulebook.getLockExpiresAt())
             .build();
     }
@@ -192,8 +191,6 @@ public class WriteLockService {
 
         Rulebook rulebook = validateRulebookAndLockPossession(rulebookId, userId, now, request, "insert");
 
-        long nextVersion = rulebook.getVersion();
-
         RulebookText insertedDocument = rulebookTextRepository.atomicInsertChunk(rulebookId, request.getContent(), request.getInsertIndex());
 
         if(insertedDocument == null){
@@ -203,12 +200,14 @@ public class WriteLockService {
         Map<String, String> chunkMetadata = insertedDocument.getMetadata();
 
         int actualAssignedIndex = insertedDocument.getIndex();
-
-        rulebookRepository.atomicCommitForwardEdit(rulebookId, nextVersion);
+        
+        ObjectId editId = new ObjectId();
+        rulebookRepository.atomicCommitForwardEdit(rulebookId, editId);
 
         ObjectId chunkId = insertedDocument.getChunkId();
 
         EditEvent event = EditEvent.builder()
+                .id(editId)
                 .rulebookId(rulebookId)
                 .editorId(new ObjectId(user.getId()))
                 .chunkId(chunkId)
@@ -235,22 +234,21 @@ public class WriteLockService {
             .build());
         
         return InsertNewChunkResponseDto.builder()
-            .inserted(true)
+            .done(true)
             .newVersion(rulebook.getVersion())
             .chunkId(chunkId.toHexString())
             .actualIndex(actualAssignedIndex)
-            .insertedAt(now)
+            .doneAt(now)
+            .lockExpiresAt(rulebook.getLockExpiresAt())
             .build();
     }
 
     @Transactional
-    public DeleteChunkResponseDto removeChunk(ObjectId rulebookId, ObjectId userId, DeleteChunkRequestDto request){
+    public BaseColabResponseDto removeChunk(ObjectId rulebookId, ObjectId userId, DeleteChunkRequestDto request){
         User user = findUserOrThrow(userId);
         Instant now = Instant.now();
 
         Rulebook rulebook = validateRulebookAndLockPossession(rulebookId, userId, now, request, "delete");
-
-        long nextVersion = rulebook.getVersion();
         
         ObjectId chunkToDeleteId = new ObjectId(request.getChunkId());
         RulebookText chunkBeforeDelete = rulebookTextRepository.findById(chunkToDeleteId)
@@ -259,9 +257,11 @@ public class WriteLockService {
         int actualPreviousIndex = chunkBeforeDelete.getIndex();
         boolean deleted = rulebookTextRepository.atomicDeleteChunk(rulebookId, chunkToDeleteId);
 
-        rulebookRepository.atomicCommitForwardEdit(rulebookId, nextVersion);
+        ObjectId editId = new ObjectId();
+        rulebookRepository.atomicCommitForwardEdit(rulebookId, editId);
         
         EditEvent event = EditEvent.builder()
+                .id(editId)
                 .rulebookId(rulebookId)
                 .editorId(new ObjectId(user.getId()))
                 .chunkId(chunkToDeleteId)
@@ -284,16 +284,17 @@ public class WriteLockService {
                 .chunkId(request.getChunkId())
                 .build());
 
-        return DeleteChunkResponseDto.builder()
-                .deleted(deleted)
+        return BaseColabResponseDto.builder()
+                .done(deleted)
                 .newVersion(rulebook.getVersion())
                 .chunkId(request.getChunkId())
-                .deletedAt(now)
+                .doneAt(now)
+                .lockExpiresAt(rulebook.getLockExpiresAt())
                 .build();
     }
 
     @Transactional
-    public UndoOrRedoActionResponseDto undoAction(ObjectId rulebookId, ObjectId userId, CommitEditDeltaOrDoActionRequestDto request){
+    public BaseColabResponseDto undoAction(ObjectId rulebookId, ObjectId userId, CommitEditDeltaOrDoActionRequestDto request){
         User user = findUserOrThrow(userId);
         Instant now = Instant.now();
 
@@ -303,11 +304,11 @@ public class WriteLockService {
             throw new NoActionsToUndoException(rulebookId);
         }
 
-        Long targetVersion = rulebookRepository.atomicPopUndoAndPushRedo(rulebookId, userId);
+        ObjectId targetEventId = rulebookRepository.atomicPopUndoAndPushRedo(rulebookId, userId);
         long newVersion = rulebook.getVersion();
 
-        EditEvent targetEvent = editEventRepository.findByRulebookIdAndVersionPostEdit(rulebookId, targetVersion).orElseThrow(
-           () -> new IllegalStateException("Database corruption. undoStack pointed to a version that does not exist in the EDIT_EVENT ledger")
+        EditEvent targetEvent = editEventRepository.findById(targetEventId).orElseThrow(
+           () -> new IllegalStateException("Database corruption. undoStack pointed to an ID that does not exist in the EDIT_EVENT ledger")
         );
 
         String broadcastEventType = "";
@@ -332,7 +333,14 @@ public class WriteLockService {
             case EditType.DELETE:
                 int targetIndex = targetEvent.getIndex();
 
-                RulebookText updatedDocument = rulebookTextRepository.atomicInsertChunk(rulebookId, targetEvent.getPreviousContent(), targetIndex);
+                // RulebookText updatedDocument = rulebookTextRepository.atomicInsertChunk(rulebookId, targetEvent.getPreviousContent(), targetIndex);
+                RulebookText updatedDocument = rulebookTextRepository.atomicRestoreChunk(
+                    rulebookId,
+                    targetEvent.getChunkId(),
+                    targetEvent.getPreviousContent(),
+                    targetEvent.getChunkBefore(),
+                    targetIndex
+                );
 
                 if (updatedDocument == null) {
                     throw new ConcurrentModificationAnomalyException("Failed to insert chunk.");
@@ -373,7 +381,7 @@ public class WriteLockService {
                 .newContent(eventNewContent)
                 .index(eventIndex)
                 .versionPostEdit(newVersion)
-                .compensatesVersion(targetVersion)
+                .compensatesVersion(targetEvent.getVersionPostEdit())
                 .committedAt(now)
                 .build();
         editEventRepository.save(event);
@@ -416,7 +424,7 @@ public class WriteLockService {
                 break;
         }
 
-        return UndoOrRedoActionResponseDto.builder()
+        return BaseColabResponseDto.builder()
             .done(true)
             .chunkId(targetEvent.getChunkId().toHexString())
             .newVersion(newVersion)
@@ -426,7 +434,7 @@ public class WriteLockService {
     }
 
     @Transactional
-    public UndoOrRedoActionResponseDto redoAction(ObjectId rulebookId, ObjectId userId, CommitEditDeltaOrDoActionRequestDto request){
+    public BaseColabResponseDto redoAction(ObjectId rulebookId, ObjectId userId, CommitEditDeltaOrDoActionRequestDto request){
         User user = findUserOrThrow(userId);
         Instant now = Instant.now();
 
@@ -436,12 +444,12 @@ public class WriteLockService {
             throw new NoActionsToRedoException(rulebookId);
         }
 
-        Long targetVersion = rulebookRepository.atomicPopRedoAndPushUndo(rulebookId, userId);
+        ObjectId targetEventId = rulebookRepository.atomicPopRedoAndPushUndo(rulebookId, userId);
         long newVersion = rulebook.getVersion();
 
-        EditEvent targetEvent = editEventRepository.findByRulebookIdAndVersionPostEdit(rulebookId, targetVersion)
+        EditEvent targetEvent = editEventRepository.findById(targetEventId)
             .orElseThrow(
-                () -> new IllegalStateException("Database corruption. redoStack pointed to a version that does not exist in the EDIT_EVENT ledger")
+                () -> new IllegalStateException("Database corruption. redoStack pointed to an ID that does not exist in the EDIT_EVENT ledger")
             );
 
         String broadcastEventType = "";
@@ -458,8 +466,14 @@ public class WriteLockService {
             case EditType.INSERT:
                 int targetIndex = targetEvent.getIndex();
 
-                RulebookText updatedDocument = rulebookTextRepository.atomicInsertChunk(rulebookId,
-                        targetEvent.getNewContent(), targetIndex);
+                // RulebookText updatedDocument = rulebookTextRepository.atomicInsertChunk(rulebookId, targetEvent.getNewContent(), targetIndex);
+                RulebookText updatedDocument = rulebookTextRepository.atomicRestoreChunk(
+                    rulebookId,
+                    targetEvent.getChunkId(),
+                    targetEvent.getPreviousContent(),
+                    targetEvent.getChunkBefore(),
+                    targetIndex
+                );
 
                 if (updatedDocument == null) {
                     throw new ConcurrentModificationAnomalyException("Failed to insert chunk.");
@@ -508,7 +522,7 @@ public class WriteLockService {
                 .newContent(eventNewContent)
                 .index(eventIndex)
                 .versionPostEdit(newVersion)
-                .compensatesVersion(targetVersion)
+                .compensatesVersion(targetEvent.getVersionPostEdit())
                 .committedAt(now)
                 .build();
         editEventRepository.save(event);
@@ -551,7 +565,7 @@ public class WriteLockService {
                 break;
         }
 
-        return UndoOrRedoActionResponseDto.builder()
+        return BaseColabResponseDto.builder()
                 .done(true)
                 .chunkId(targetEvent.getChunkId().toHexString())
                 .newVersion(newVersion)
@@ -570,7 +584,7 @@ public class WriteLockService {
             .orElseThrow(() -> new IllegalArgumentException("User does not exist."));
     }
 
-    private Rulebook validateRulebookAndLockPossession(ObjectId rulebookId, ObjectId userId , Instant now, VaultBaseRequestDto request, String action){
+    private Rulebook validateRulebookAndLockPossession(ObjectId rulebookId, ObjectId userId , Instant now, BaseColabRequestDto request, String action){
         Rulebook rulebook = rulebookRepository.atomicValidateAndExtendLock(rulebookId, userId,
                 request.getExpectedVersion(), now.plusSeconds(LOCK_TIMEOUT_MINUTES * 60));
         if (rulebook == null) {

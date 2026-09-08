@@ -94,11 +94,11 @@ def verify_index_ready():
             status_code=500, detail="Database connection error while verifying index."
         )
 
+
 internal_key_header = APIKeyHeader(name="X-Internal-Token", auto_error=True)
-    
-def verify_internal_token(
-    header_value: str = Security(internal_key_header)
-):
+
+
+def verify_internal_token(header_value: str = Security(internal_key_header)):
     """
     FastAPI dependency that verifies the internal webhook token attached to the request.
     Returns the token if it is valid
