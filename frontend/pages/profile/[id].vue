@@ -48,11 +48,21 @@
                         </div>
                     </div>
 
-                    <FriendActionButton
-                        :status="user.status"
-                        @add="handleAdd"
-                        @remove="handleRemove"
-                    />
+                    <div class="d-flex ga-1">
+                        <BaseButton 
+                            @click="handleClick(route.params.id as string)" 
+                            :variant="'primary'"
+                            size="small"
+                        >
+                            <p>Message</p>
+                        </BaseButton>
+                        
+                        <FriendActionButton
+                            :status="user.status"
+                            @add="handleAdd"
+                            @remove="handleRemove"
+                        />
+                    </div>
                 </div>
             </v-card>
 
@@ -92,10 +102,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import Navbar from '~/components/layout/Navbar.vue';
 import BaseAvatar from '~/components/ui/BaseAvatar.vue';
+import BaseButton from '~/components/ui/BaseButton.vue';
 import PageContainer from '~/components/layout/PageContainer.vue';
 
 import ProfileStats from '~/components/features/profile/ProfileStats.vue';
@@ -113,6 +124,7 @@ import { FriendStatus } from '~/services/userService';
 import type { ProfileResponse } from '~/services/userService'
 
 const route = useRoute()
+const router = useRouter()
 const { fetchUserById } = useProfile()
 const { listings, fetchUserListing } = useMarketplace()
 const {  
@@ -152,6 +164,13 @@ const loadProfile = async (id: string) => {
     } finally {
         loading.value = false
     }
+}
+
+const handleClick = (id: string) => {
+  router.push({
+    path: '/chats',
+    query: { newChat: id }
+  })
 }
 
 const openFriendsModal = async () => {

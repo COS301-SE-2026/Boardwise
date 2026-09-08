@@ -8,7 +8,7 @@
         <v-progress-circular
             indeterminate
             color="primary"
-            size="48"
+            size="24"
             v-if="isLoading"
         />
         <p v-else>{{ label }}</p>
@@ -51,7 +51,6 @@ const variant = computed(() => {
 })
 
 const handleClick = () => {
-    console.log("you clicked the friend action button")
     if(props.status === FriendStatus.ACCEPTED) emit('remove')
     else emit('add')
 }

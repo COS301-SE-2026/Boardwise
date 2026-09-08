@@ -31,10 +31,11 @@
 
             <div v-else class="d-flex flex-column ga-2">
                 <div v-for="person in visibleList" :key="person.id" class="d-flex align-center ga-3">
-                    <BaseAvatar :src="person.profilePicture ?? undefined" :name="person.username" size="sm" />
+                    <BaseAvatar :src="person.profilePicture ??  '/images/avatar.jpg'" :name="person.username" size="sm" />
                     <span class="flex-grow-1">{{ person.username }}</span>
                     
                     <template v-if="!route.params.id">
+                        <BaseButton @click="handleClick(person.id)" color="primary">Message</BaseButton>
                         <FriendActionButton
                             :status="FriendStatus.ACCEPTED"
                             @remove="$emit('remove', person.id)"
@@ -70,7 +71,7 @@ import FriendRequestsList from './FriendRequestsList.vue'
 
 import type { FriendDTO, FriendRequestsDTO } from '~/services/friendService'
 import { useFriends } from '~/composables/useFriends.ts'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { FriendStatus } from '~/services/userService.ts'
 
 const {
@@ -98,6 +99,7 @@ const emit = defineEmits<{
 }>()
 
 const route = useRoute()
+const router = useRouter()
 
 const friends = ref<FriendDTO[]>([])
 const mutuals = ref<FriendDTO[]>([])
@@ -116,6 +118,12 @@ const visibleList = computed(() => {
 
 const close = () => emit('update:modelValue', false)
 
+const handleClick = (id: string) => {
+  router.push({
+    path: '/chats',
+    query: { newChat: id }
+  })
+}
 
 onMounted(async () => {
     const possibleId = route.params.id; 
