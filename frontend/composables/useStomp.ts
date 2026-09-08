@@ -72,12 +72,6 @@ export function useStomp(){
     };
 
     function subscribe(dest: string, callback: MessageHandler){
-        console.log(
-            "[STOMP] subscribing to: ", 
-            dest, 
-            "\nreference count will be: ", 
-            (subscriptions.get(dest) ?.referenceCount ?? 0) + 1
-        );
         const exists = subscriptions.get(dest);
         if(exists){ // already subscribed
             exists.referenceCount++;
