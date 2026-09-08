@@ -96,53 +96,58 @@ const _useMarketplace = () =>{
         }
     }
 
-const editListing = async (id: string, listingData: any, image?: File) => {
-    loading.value = true;
-    error.value = null;
-    try {
-        await MarketplaceService.updateListing(id, listingData, image);
-        show('Successfully updated your listing!')
-    } catch (err: any) {
-        console.error('Status:', err.status);
-        console.error('Response data:', err.response?.data);
-        error.value = err.response?.data?.message ?? 'Failed to update listing';
-        show('Could not update your listing, Try Again', 'error');
-    } finally {
-        loading.value = false;
+    const editListing = async (id: string, listingData: any, image?: File) => {
+        loading.value = true;
+        error.value = null;
+        try {
+            await MarketplaceService.updateListing(id, listingData, image);
+            show('Successfully updated your listing!')
+        } catch (err: any) {
+            console.error('Status:', err.status);
+            console.error('Response data:', err.response?.data);
+            error.value = err.response?.data?.message ?? 'Failed to update listing';
+            show('Could not update your listing, Try Again', 'error');
+        } finally {
+            loading.value = false;
+        }
     }
-}
 
-const removeListing = async (id: string) => {
-  loading.value = true;
-  error.value = null;
-  try {
-    await MarketplaceService.deleteListing(id);
-    show('Listing deleted successfully!');
-  } catch (err: any) {
-     error.value = err.data?.message ?? 'Failed to delete listing';
-     show('Failed to delete listing','error');
-  } finally {
-    loading.value = false;
-  }
-}
+    const removeListing = async (id: string) => {
+        loading.value = true;
+        error.value = null;
+        try {
+            await MarketplaceService.deleteListing(id);
+            show('Listing deleted successfully!');
+        } catch (err: any) {
+            error.value = err.data?.message ?? 'Failed to delete listing';
+            show('Failed to delete listing','error');
+        } finally {
+            loading.value = false;
+        }
+        }
 
-const fetchListingById = async (id: string) => {
-  error.value = null
-  try {
-    const res = await MarketplaceService.getListingById(id)
-    return res
-  } catch (err: any) {
-      error.value = err.data?.message ?? 'Failed to fetch listing'
-      show( 'Failed to fetch listing','error');
-    return null
-  } finally {
-    loading.value = false
-  }
-}
-
+        const fetchListingById = async (id: string) => {
+        error.value = null
+        try {
+            const res = await MarketplaceService.getListingById(id)
+            return res
+        } catch (err: any) {
+            error.value = err.data?.message ?? 'Failed to fetch listing'
+            show( 'Failed to fetch listing','error');
+            return null
+        } finally {
+            loading.value = false
+        }
+    }
 
 
-return { listings, loading, error, fetchListings, fetchListingById, addListing, fetchUserListing, editListing, removeListing,page,loadMore,hasMore, }
+    return { 
+        listings, 
+        loading, 
+        error, 
+        fetchListings, 
+        fetchListingById, 
+        addListing, fetchUserListing, editListing, removeListing,page,loadMore,hasMore, }
 }
 
 export const useMarketplace = createSharedComposable(_useMarketplace)

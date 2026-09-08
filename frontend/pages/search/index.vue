@@ -69,8 +69,7 @@ function handleOpenProfile(person) {
 
 const handleFriendAction =  async (person) => {
     // TODO: wire to friend/social service once it exists
-    console.log("Sent log to: ", person.username);
-    console.log(person.id);
+    person.isFriend = true
     return await sendFriendRequest(person.id);
 }
 
