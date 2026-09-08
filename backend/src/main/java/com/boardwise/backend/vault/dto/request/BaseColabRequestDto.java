@@ -10,9 +10,11 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder // Allows for builder inheritance
 @NoArgsConstructor
 @AllArgsConstructor
-public class VaultBaseRequestDto {
+public class BaseColabRequestDto {
     private long expectedVersion;
 
     @Size(max = 1000, message = "Chunk content cannot exceed 1000 characters")
     private String content;
+
+    private String chunkBeforeId;
 }

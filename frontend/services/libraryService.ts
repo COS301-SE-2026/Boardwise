@@ -96,19 +96,17 @@ interface AcquireWriteLockResponse{
     expiresAt: string;
     currentVersion: number;
 }
-interface CommitEditDeltaResponse{
-    committed: boolean;
-    newVersion: number;
-    committedAt: string;
-    lockExpiresAt: string;
-}
 
-interface UndoOrRedoActionResponse{
+interface BaseColabResponse{
     done: boolean;
     newVersion: number;
     chunkId: string;
     doneAt: string;
     lockExpiresAt: string;
+}
+
+interface InsertNewChunkResponse extends BaseColabResponse {
+    actualIndex: number;
 }
 
 export const LibraryService = {
@@ -159,7 +157,7 @@ export const LibraryService = {
     commitEditDelta(id: string, data: any){
         const {$api} = useNuxtApp();
 
-        return $api<CommitEditDeltaResponse>(`vault/rulebooks/${id}/chunk/update`, {
+        return $api<BaseColabResponse>(`vault/rulebooks/${id}/chunk/update`, {
             method:'PATCH',
             body: {
                 expectedVersion: data?.expectedVersion,
@@ -181,24 +179,45 @@ export const LibraryService = {
 
     undoEdit(id: string, data: any){
         const {$api} = useNuxtApp();
-        return $api<UndoOrRedoActionResponse>(`vault/rulebooks/${id}/action/undo`, {
+        return $api<BaseColabResponse>(`vault/rulebooks/${id}/action/undo`, {
             method: 'POST',
             body: {
-                expectedVersion: data?.expectedVersion,
-                content: data?.content,
-                chunkId: data?.chunkId
+                expectedVersion: data?.expectedVersion
             }
         });
     },
 
     redoEdit(id: string, data: any){
         const {$api} = useNuxtApp();
-        return $api<UndoOrRedoActionResponse>(`vault/rulebooks/${id}/action/redo`, {
+        return $api<BaseColabResponse>(`vault/rulebooks/${id}/action/redo`, {
+            method: 'POST',
+            body: {
+                expectedVersion: data?.expectedVersion,
+            }
+        });
+    },
+
+    insertChunk(id: string, data: any){
+        const {$api} = useNuxtApp();
+        return $api<InsertNewChunkResponse>(`vault/rulebooks/${id}/chunk/insert`,{
             method: 'POST',
             body: {
                 expectedVersion: data?.expectedVersion,
                 content: data?.content,
-                chunkId: data?.chunkId
+                chunkBeforeId: data?.chunkBeforeId,
+                insertIndex: data?.insertIndex
+            }
+        });
+    },
+    
+    deleteChunk(id: string, data: any){
+        const {$api} = useNuxtApp();
+        return $api<InsertNewChunkResponse>(`vault/rulebooks/${id}/chunk/remove`,{
+            method: 'POST',
+            body: {
+                expectedVersion: data?.expectedVersion,
+                chunkId: data?.chunkId,
+                chunkBeforeId: data?.chunkBeforeId,
             }
         });
     }

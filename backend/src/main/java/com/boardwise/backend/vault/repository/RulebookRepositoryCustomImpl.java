@@ -1,6 +1,7 @@
 package com.boardwise.backend.vault.repository;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -43,7 +44,9 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
 
         Update update = new Update()
             .set("lockHeldBy", userId)
-            .set("lockExpiresAt", newExpiry);
+            .set("lockExpiresAt", newExpiry)
+            .set("undoStack", Collections.emptyList())
+            .set("redoStack", Collections.emptyList());
 
         FindAndModifyOptions options = new FindAndModifyOptions().returnNew(true);
 
@@ -81,7 +84,9 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
 
         Update update = new Update()
             .set("lockHeldBy", null)
-            .set("lockExpiresAt", null);
+            .set("lockExpiresAt", null)
+            .set("undoStack", Collections.emptyList())
+            .set("redoStack", Collections.emptyList());
 
         FindAndModifyOptions options = new FindAndModifyOptions().returnNew(true);
 
@@ -94,13 +99,15 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
 
         Update update = new Update()
             .set("lockHeldBy", null)
-            .set("lockExpiresAt", null);
+            .set("lockExpiresAt", null)
+            .set("undoStack", Collections.emptyList())
+            .set("redoStack", Collections.emptyList());
         
         mongoTemplate.updateMulti(query, update, Rulebook.class);
     }
 
     @Override
-    public Long atomicPopUndoAndPushRedo(ObjectId rulebookId, ObjectId userId){
+    public ObjectId atomicPopUndoAndPushRedo(ObjectId rulebookId, ObjectId userId){
         Query query = new Query(
             Criteria.where("_id").is(rulebookId)
             .and("lockHeldBy").is(userId)
@@ -130,12 +137,12 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
             return null;
         }
 
-        List<Long> redoStack = updatedRulebook.getRedoStack();
+        List<ObjectId> redoStack = updatedRulebook.getRedoStack();
         return redoStack.get(redoStack.size() - 1);
     }
 
     @Override
-    public Long atomicPopRedoAndPushUndo(ObjectId rulebookId, ObjectId userId) {
+    public ObjectId atomicPopRedoAndPushUndo(ObjectId rulebookId, ObjectId userId) {
         Query query = new Query(
                 Criteria.where("_id").is(rulebookId)
                         .and("lockHeldBy").is(userId)
@@ -160,12 +167,12 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
             return null;
         }
 
-        List<Long> undoStack = updatedRulebook.getUndoStack();
+        List<ObjectId> undoStack = updatedRulebook.getUndoStack();
         return undoStack.get(undoStack.size() - 1);
     }
 
     @Override
-    public void atomicCommitForwardEdit(ObjectId rulebookId, Long newVersion){
+    public void atomicCommitForwardEdit(ObjectId rulebookId, ObjectId eventId){
         Query query = new Query(Criteria.where("_id").is(rulebookId));
 
         AggregationUpdate updatePipeline = AggregationUpdate.update()
@@ -173,7 +180,7 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
                 new Document("$slice", List.of(
                     new Document("$concatArrays", List.of(
                         new Document("$ifNull", List.of("$undoStack", List.of())),
-                        List.of(newVersion)
+                        List.of(eventId)
                     )),
                     -50 // Dynamically keep only the last 50 elements to limit how many undo actions one can do.
                 ))

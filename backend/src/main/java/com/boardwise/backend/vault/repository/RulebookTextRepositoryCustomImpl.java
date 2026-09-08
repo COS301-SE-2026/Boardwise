@@ -93,4 +93,53 @@ public class RulebookTextRepositoryCustomImpl implements RulebookTextRepositoryC
 
         return true;
     }
+
+    @Override
+    public RulebookText atomicRestoreChunk(ObjectId rulebookId, ObjectId targetChunkId, String content, ObjectId chunkBeforeId, int historicalIndex){
+        int actualIndex = 0;
+        
+        // Fetch the total number of chunks so that the insertIndex is bounded within
+        long totalChunks = mongoTemplate.count(
+            new Query(Criteria.where("rulebookId").is(rulebookId)),
+                RulebookText.class
+        );
+
+        if(chunkBeforeId != null){
+            Query findBefore = new Query(Criteria.where("rulebookId").is(rulebookId).and("chunkId").is(chunkBeforeId));
+            RulebookText beforeChunk = mongoTemplate.findOne(findBefore, RulebookText.class);
+
+            if(beforeChunk != null){
+                actualIndex = beforeChunk.getIndex() + 1;
+            }else{
+                actualIndex = (historicalIndex >= 0 && historicalIndex <= totalChunks) ? historicalIndex : (int)totalChunks;
+            }
+        }else{
+            actualIndex = (historicalIndex == 0) ? 0 : ((historicalIndex >= 0 && historicalIndex <= totalChunks) ? historicalIndex : (int)totalChunks);
+        }
+
+        
+        Criteria shiftCriteria = new Criteria().andOperator(
+            Criteria.where("rulebookId").is(rulebookId),
+            Criteria.where("index").gte(actualIndex)
+        );
+        Query query = new Query(shiftCriteria);
+        Update update = new Update().inc("index", 1);
+
+        mongoTemplate.updateMulti(query, update, RulebookText.class);
+
+        RulebookText newChunk = RulebookText.builder()
+            .rulebookId(rulebookId)
+            .chunkId(targetChunkId)
+            .index(actualIndex)
+            .content(content)
+            .embedding(null) // AI pipeline will fill this asynchronously later
+            .charCount(content.length())
+            .createdAt(Instant.now())
+            .updatedAt(Instant.now())
+            .build();
+        
+        mongoTemplate.insert(newChunk);
+
+        return newChunk;
+    }
 }
