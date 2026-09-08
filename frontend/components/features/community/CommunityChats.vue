@@ -1,35 +1,38 @@
 <template>
-  <div class="d-flex flex-column ga-4">
+  <div class="community-chat-window__body">
+    <div class="community-chat-content">
+      <ChatFeed 
+        :messages="messages" 
+        :community="community"
+        :token="token"
+      />
 
-    <ChatFeed 
-      :messages="messages" 
-      :community="community"
-      :token="token"
-    />
+      <div class="community-chat-content__composer">
+        <BaseCard 
+          v-if="!community.isMember"
+          class="pa-4"
+        >
 
-    <BaseCard 
-      v-if="!community.isMember"
-      class="pa-4"
-    >
+          <p class="text-body-2 text-medium-emphasis mb-4">
+            Join this community to participate in the discussion
+          </p>
 
-      <p class="text-body-2 text-medium-emphasis mb-4">
-        Join this community to participate in the discussion
-      </p>
+          <BaseButton 
+            :disabled="loading"
+            @click="$emit('join')"
+          >
+            {{ loading ? 'Joining...' : 'Join community' }}
+          </BaseButton>
 
-      <BaseButton 
-        :disabled="loading"
-        @click="$emit('join')"
-      >
-        {{ loading ? 'Joining...' : 'Join community' }}
-      </BaseButton>
-
-    </BaseCard>
+        </BaseCard>
+          
+        <ChatInput 
+          v-else 
+          @send="handleSend"
+        />
+      </div>
       
-    <ChatInput 
-      v-else 
-      @send="handleSend"
-    />
-
+    </div>
   </div>
 </template>
 

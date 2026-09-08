@@ -36,7 +36,7 @@ import com.boardwise.backend.user_service.services.ProfileService;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/sb/users")
 public class ProfileController {
 
     private final ProfileService service;
@@ -116,6 +116,7 @@ public class ProfileController {
         }
         catch(Exception e){
             Map<String, Object> res = new HashMap<>();
+            System.out.println("[ERROR] Update profile error:\n" + e);
             res.put("message", "Something went wrong during profile update.");
             return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
         }

@@ -47,6 +47,7 @@
             <v-btn 
               icon
               variant="text"
+              to="/profile"
               v-bind="menuProps"
               aria-label="Account menu"
             >
@@ -56,21 +57,15 @@
 
           <v-list nav density="compact" min-width="200">
                 <v-list-item
-                    prepend-icon="mdi-account"
-                    title="Profile"
-                    to="/profile"
-                />
-                <v-list-item
                     prepend-icon="mdi-chat-outline"
                     title="Chats"
                     to="/chats"
                 />
-                <v-list-item
+                <!-- <v-list-item
                     prepend-icon="mdi-cog-outline"
                     title="Settings"
                     to="/settings"
-                />
-                
+                /> -->
                 <v-divider class="my-1" />
                 <v-list-item class="px-2">
                     <LogOutButton block />
@@ -122,6 +117,7 @@
           <v-btn 
             icon
             variant="text"
+            to="/profile"
             v-bind="menuProps"
             aria-label="Account menu"
           >
@@ -131,27 +127,21 @@
 
         <v-list nav density="compact" min-width="200">
           <v-list-item 
-            prepend-icon="mdi-account-outline"
-            title="Profile"
-            to="/profile"
-          />
-          
-          <v-list-item 
             prepend-icon="mdi-chat-outline"
             title="Chats"
             to="/chats"
           />
 
-          <v-list-item 
+          <!-- <v-list-item 
             prepend-icon="mdi-cog-outline"
             title="Settings"
             to="/settings"
-          />
+          /> -->
 
           <v-divider class="my-1" />
-          <v-list-item class="px-2">
-            <LogOutButton block />
-          </v-list-item>
+            <v-list-item class="px-2">
+              <LogOutButton block />
+            </v-list-item>
         </v-list>
       </v-menu>
     </div>
@@ -169,7 +159,6 @@
     <v-list-item prepend-icon="mdi-store" title="Marketplace" to="/marketplace" @click="drawer = false" />
     <v-list-item prepend-icon="mdi-account-group" title="Community" to="/community" @click="drawer = false" />
     <v-list-item prepend-icon="mdi-calendar" title="Events" to="/events" @click="drawer = false" />
-    <v-list-item prepend-icon="mdi-account" title="Profile" to="/profile" @click="drawer = false" />
   </v-list>
 </v-navigation-drawer>
 

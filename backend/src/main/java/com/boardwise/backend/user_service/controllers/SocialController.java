@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 
 @RestController
-@RequestMapping("/api/social")
+@RequestMapping("/api/sb/social")
 public class SocialController {
 
     private final SocialService service;

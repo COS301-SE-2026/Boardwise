@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 
 @RestController
-@RequestMapping("/api/boardgames")
+@RequestMapping("/api/sb/boardgames")
 public class BoardGameController {
 
     private final BoardGameService service;

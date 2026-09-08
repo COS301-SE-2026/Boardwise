@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RestController
-@RequestMapping("/api/community")
+@RequestMapping("/api/sb/community")
 public class CommunityController {
 
     private final CommunityService service;

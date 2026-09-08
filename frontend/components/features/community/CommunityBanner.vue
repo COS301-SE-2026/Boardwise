@@ -35,11 +35,11 @@
           {{ community.memberCount }} members
         </p>
       </div>
-      <v-icon
+      <!-- <v-icon
         icon="mdi-chevron-right"
         class="community-chat-header__chevron"
         aria-hidden="true"
-      />
+      /> -->
 </button>
 
       <div v-if="community.isOwner" class="community-chat-header__actions">

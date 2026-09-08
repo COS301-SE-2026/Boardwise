@@ -139,3 +139,18 @@ const handleUpdate = (newData) => {
   show('Nice move! Community details updated.', 'success')
 }
 </script>
+
+<style scoped>
+.community-detail-page {
+  height: calc(100vh - 64px); /* adjust 64px to your navbar height */
+  display: flex;
+  flex-direction: column;
+}
+
+.community-chat-window {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+</style>

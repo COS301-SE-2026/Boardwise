@@ -14,7 +14,7 @@
         v-for="message in messages"
         :key="message.id"
         :message="message"
-        :token="token",
+        :token="token"
         :community="community"
       />
     </template>
@@ -25,19 +25,15 @@
       message="Be the first to say something!"
     />
 
-    <ChatMessage
-      v-for="message in messages"
-      :key="message.id"
-      :message="message"
-    />
-
 </div>
 </template>
 
 <script setup>
 import { ref, watch, nextTick, onMounted } from 'vue'
+
 import { useCommunityChat } from '~/composables/useCommunityChat'
 import { useStomp } from '~/composables/useStomp'
+
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import ChatMessage from './ChatMessage.vue'
 
@@ -82,3 +78,12 @@ onMounted(async () => {
 })
 </script>
 
+.community-chat-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 16px;
+}

@@ -29,7 +29,6 @@ services:
       - DEV_FAST_API_BASE=${DEV_FAST_API_BASE}
       - INTERNAL_SECRET=${INTERNAL_SECRET}
       - DEV_DB_URL=${DEV_DB_URL}
-      - PROD_DB_URL=${PROD_DB_URL}
       - JWT_SECRET=${JWT_SECRET}
       - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
       - R2_ACCESS_KEY=${R2_ACCESS_KEY}
@@ -39,7 +38,6 @@ services:
       - R2_BUCKET_PROFILES=${R2_BUCKET_PROFILES}
       - R2_BUCKET_LISTINGS=${R2_BUCKET_LISTINGS}
       - R2_DEV_URL=${R2_DEV_URL}
-      - R2_PROD_URL=${R2_PROD_URL}
       - BGG_TOKEN=${BGG_TOKEN}
       - BGG_URL=${BGG_URL}
       - R2_RULEBOOKS_PUBLIC_DEV_URL=${R2_RULEBOOKS_PUBLIC_DEV_URL}
@@ -48,6 +46,7 @@ services:
       - SMTP_USERNAME=${SMTP_USERNAME}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - DEV_FRONTEND_BASE=${DEV_FRONTEND_BASE}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
       
     ports:
       - 8080:8080
@@ -55,7 +54,7 @@ services:
       mongodb:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/auth/hello"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/sb/auth/hello"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -65,7 +64,6 @@ services:
     restart: on-failure
     environment:
       - DEV_DB_URL=${DEV_DB_URL}
-      - PROD_DB_URL=${PROD_DB_URL}
       - DB_NAME=${DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_ALGORITHM=${JWT_ALGORITHM}
@@ -76,13 +74,14 @@ services:
       - HF_TOKEN=${HF_TOKEN}
       - INTERNAL_SECRET=${INTERNAL_SECRET}
       - CPU_CORES=${CPU_CORES}
+      - APP_ENV=${APP_ENV}
     ports:
       - 8000:8000
     depends_on:
       mongodb:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/fa/health"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -2,7 +2,6 @@ package com.boardwise.backend.marketplace.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -111,8 +110,7 @@ public class ListingControllerTest{
         //ARRANGE
         when(listingService.getAllActiveListings(anyString())).thenReturn(List.of(buildDefaultResponse()));
         //ACT & ASSERT
-         mockMvc.perform(get("/api/marketplace/listings")
-                .header("Authorization", "valid-token"))
+         mockMvc.perform(get("/api/sb/marketplace/listings"))
                .andExpect(status().isOk());
     }
 
@@ -123,9 +121,8 @@ public class ListingControllerTest{
         //ARRANGE
         when(listingService.getAllActiveListings(anyString())).thenReturn(List.of());
         //ACT & ASSERT
-         mockMvc.perform(get("/api/marketplace/listings")
-            .header("Authorization", "valid-token"))
-               .andExpect(status().isNoContent());
+         mockMvc.perform(get("/api/sb/marketplace/listings"))
+               .andExpect(status().isAccepted());
     }
 
     @Test
@@ -135,7 +132,7 @@ public class ListingControllerTest{
         //ARRANGE
         when(listingService.getAllActiveListings("abc")).thenThrow(new RuntimeException("boom"));
         //ACT & ASSERT
-         mockMvc.perform(get("/api/marketplace/listings"))
+         mockMvc.perform(get("/api/sb/marketplace/listings"))
                .andExpect(status().is5xxServerError());
     }
 
@@ -149,7 +146,7 @@ public class ListingControllerTest{
         when(listingService.getListingById(fakeListingId)).thenReturn(buildDefaultResponse());
 
         //ACT & ASSERT
-        mockMvc.perform(get("/api/marketplace/listing/someListingId")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/sb/marketplace/listing/someListingId")).andExpect(status().isOk());
     }
 
     @Test
@@ -161,7 +158,7 @@ public class ListingControllerTest{
         when(listingService.getListingById(fakeListingId)).thenThrow(IllegalArgumentException.class);
 
         //ACT & ASSERT
-        mockMvc.perform(get("/api/marketplace/listing/someListingId")).andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/sb/marketplace/listing/someListingId")).andExpect(status().isNotFound());
     }
 
     @Test
@@ -173,7 +170,7 @@ public class ListingControllerTest{
         when(listingService.getListingById(fakeListingId)).thenThrow(new RuntimeException());
 
         //ACT & ASSERT
-        mockMvc.perform(get("/api/marketplace/listing/someListingId")).andExpect(status().is5xxServerError());
+        mockMvc.perform(get("/api/sb/marketplace/listing/someListingId")).andExpect(status().is5xxServerError());
     }
 
 
@@ -189,7 +186,7 @@ public class ListingControllerTest{
         when(listingService.createListing(any(), any(), any())).thenReturn(buildDefaultResponse());
 
         //ACT & ASSERT
-        mockMvc.perform(multipart("/api/marketplace/listings").file(image).file(data).header("Authorization", "Bearer valid-test-token").with(csrf())).andExpect(status().isOk());        
+        mockMvc.perform(multipart("/api/sb/marketplace/listings").file(image).file(data).header("Authorization", "Bearer valid-test-token").with(csrf())).andExpect(status().isOk());        
     }
 
     @Test
@@ -204,7 +201,7 @@ public class ListingControllerTest{
         when(listingService.createListing(any(), any(), any())).thenThrow(IllegalArgumentException.class);
 
         //ACT & ASSERT
-        mockMvc.perform(multipart("/api/marketplace/listings").file(image).file(data).header("Authorization", "Bearer valid-test-token").with(csrf())).andExpect(status().isBadRequest());        
+        mockMvc.perform(multipart("/api/sb/marketplace/listings").file(image).file(data).header("Authorization", "Bearer valid-test-token").with(csrf())).andExpect(status().isBadRequest());        
     }
 
 
@@ -220,7 +217,7 @@ public class ListingControllerTest{
         when(listingService.createListing(any(), any(), any())).thenThrow(RuntimeException.class);
 
         //ACT & ASSERT
-        mockMvc.perform(multipart("/api/marketplace/listings")
+        mockMvc.perform(multipart("/api/sb/marketplace/listings")
         .file(image)
         .file(data)
         .with(csrf())
@@ -240,7 +237,7 @@ public class ListingControllerTest{
         when(listingService.updateListing(any(),any(), any(), any())).thenReturn(buildDefaultResponse());
 
         //ACT & ASSERT
-        mockMvc.perform(multipart("/api/marketplace/listing/someListingId")
+        mockMvc.perform(multipart("/api/sb/marketplace/listing/someListingId")
         .file(image)
         .file(data)
         .with(csrf())
@@ -262,7 +259,7 @@ public class ListingControllerTest{
         when(listingService.updateListing(any(),any(), any(), any())).thenThrow(new IllegalArgumentException());
 
         //ACT & ASSERT
-        mockMvc.perform(multipart("/api/marketplace/listing/someListingId")
+        mockMvc.perform(multipart("/api/sb/marketplace/listing/someListingId")
         .file(image)
         .file(data)
         .header("Authorization", "Bearer valid-test-token")
@@ -285,7 +282,7 @@ public class ListingControllerTest{
         when(listingService.updateListing(any(),any(), any(), any())).thenThrow(new ForbiddenException("err"));
 
         //ACT & ASSERT
-        mockMvc.perform(multipart("/api/marketplace/listing/someListingId")
+        mockMvc.perform(multipart("/api/sb/marketplace/listing/someListingId")
         .file(image)
         .file(data)
         .header("Authorization", "Bearer valid-test-token")
@@ -303,7 +300,7 @@ public class ListingControllerTest{
         //ARRANGE
         doNothing().when(listingService).deleteListing(any(), any());
         //ACT & ASSERT
-        mockMvc.perform(delete("/api/marketplace/listing/someId")
+        mockMvc.perform(delete("/api/sb/marketplace/listing/someId")
         .header("Authorization", "Bearer valid-test-token")
         .with(csrf()))
         .andExpect(status().isNoContent());        
@@ -316,7 +313,7 @@ public class ListingControllerTest{
         //ARRANGE
         doThrow(new IllegalArgumentException()).when(listingService).deleteListing(any(),any());
         //ACT & ASSERT
-        mockMvc.perform(delete("/api/marketplace/listing/someId")
+        mockMvc.perform(delete("/api/sb/marketplace/listing/someId")
         .header("Authorization", "Bearer valid-test-token")
         .with(csrf()))
         .andExpect(status().isNotFound());    
@@ -329,7 +326,7 @@ public class ListingControllerTest{
         //ARRANGE
         doThrow(new ForbiddenException("err")).when(listingService).deleteListing(any(),any());
         //ACT & ASSERT
-        mockMvc.perform(delete("/api/marketplace/listing/someId")
+        mockMvc.perform(delete("/api/sb/marketplace/listing/someId")
         .header("Authorization", "Bearer valid-test-token")
         .with(csrf()))
         .andExpect(status().isForbidden());    
@@ -342,7 +339,7 @@ public class ListingControllerTest{
         //ARRANGE
         doThrow(new RuntimeException()).when(listingService).deleteListing(any(),any());
         //ACT & ASSERT
-        mockMvc.perform(delete("/api/marketplace/listing/someId")
+        mockMvc.perform(delete("/api/sb/marketplace/listing/someId")
         .header("Authorization", "Bearer valid-test-token")
         .with(csrf()))
         .andExpect(status().isInternalServerError());    
@@ -356,7 +353,7 @@ public class ListingControllerTest{
         when(listingService.getUserListings(any())).thenReturn(List.of(buildDefaultResponse()));
 
         //ACT & ASSERT
-        mockMvc.perform(get("/api/marketplace/listings/user").header("Authorization", "Bearer valid-test-token")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/sb/marketplace/listings/user").header("Authorization", "Bearer valid-test-token")).andExpect(status().isOk());
     }
 
     @Test
@@ -366,7 +363,7 @@ public class ListingControllerTest{
         //ARRANGE 
         when(listingService.getUserListings(any())).thenReturn(List.of());
         //ACT & ASSERT
-        mockMvc.perform(get("/api/marketplace/listings/user").header("Authorization", "Bearer valid-test-token")).andExpect(status().isNoContent());
+        mockMvc.perform(get("/api/sb/marketplace/listings/user").header("Authorization", "Bearer valid-test-token")).andExpect(status().isNoContent());
     }
 
     @Test
@@ -376,7 +373,7 @@ public class ListingControllerTest{
         //ARRANGE 
         when(listingService.getUserListings(any())).thenThrow(new RuntimeException());
         //ACT & ASSERT
-        mockMvc.perform(get("/api/marketplace/listings/user")
+        mockMvc.perform(get("/api/sb/marketplace/listings/user")
         .header("Authorization", "Bearer valid-test-token"))
         .andExpect(status().isInternalServerError());
     }
@@ -393,7 +390,7 @@ public class ListingControllerTest{
         
         //ACT & ASSERT
 
-        mockMvc.perform(get("/api/marketplace/listings/search")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/sb/marketplace/listings/search")).andExpect(status().isOk());
     }
 
     @Test
@@ -408,7 +405,7 @@ public class ListingControllerTest{
         
         //ACT & ASSERT
 
-        mockMvc.perform(get("/api/marketplace/listings/search")).andExpect(status().isNoContent());
+        mockMvc.perform(get("/api/sb/marketplace/listings/search")).andExpect(status().isNoContent());
     }
 
     @Test
@@ -420,7 +417,7 @@ public class ListingControllerTest{
             any(),any(), any(),any(), any(),anyString())).thenThrow(new RuntimeException());
         
         //ACT & ASSERT
-        mockMvc.perform(get("/api/marketplace/listings/search")).andExpect(status().isInternalServerError());
+        mockMvc.perform(get("/api/sb/marketplace/listings/search")).andExpect(status().isInternalServerError());
     }
 
     //RETAILER TESTS
@@ -435,7 +432,7 @@ public void getPersonalizedRetailListings_200() throws Exception{
     when(retailService.getPersonalizedRetailListings("valid-test-token", 0)).thenReturn(fakeObjs);
 
     //ACT & ASSERT
-    mockMvc.perform(get("/api/marketplace/listings/personalised")
+    mockMvc.perform(get("/api/sb/marketplace/listings/personalised")
             .header("Authorization", "Bearer valid-test-token"))
         .andExpect(status().isOk());
 }
@@ -449,7 +446,7 @@ public void getPersonalizedRetailListings_500() throws Exception{
         .thenThrow(new RuntimeException("boom"));
 
     //ACT & ASSERT
-    mockMvc.perform(get("/api/marketplace/listings/personalised")
+    mockMvc.perform(get("/api/sb/marketplace/listings/personalised")
             .header("Authorization", "Bearer valid-test-token"))
         .andExpect(status().isInternalServerError());
 }

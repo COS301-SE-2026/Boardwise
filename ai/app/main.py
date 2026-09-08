@@ -108,7 +108,7 @@ app.include_router(job.router, prefix="/api/vault/jobs")
 app.include_router(internal.router, prefix="/api/vault/internal")
 
 
-@app.get("/health", tags=["System"])
+@app.get("/api/fa/health", tags=["System"])
 async def health_check():
     """A lightweight endpoint for health checks"""
     return {"status": "healthy", "service": "ai-gateway"}

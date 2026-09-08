@@ -33,28 +33,56 @@
       </v-navigation-drawer>
     </div>
 
+    <div class="d-md-none">
+      <v-container 
+        v-if="isLoading"
+        class="d-flex justify-center align-center"
+        style="min-height: 60vh"
+      >
+        <v-progress-circular 
+          indeterminate 
+          color="primary" 
+          size="48" 
+        />
+      </v-container>
+
+      <EventGrid 
+        v-else 
+        :events="filteredEvents"
+        @select="openEvent"
+      />
+    </div>
+
     <!-- Desktop -->
     <div class="d-none d-md-flex ga-6 mt-6 align-start">
       <EventFilter 
         :events="events" 
         @filter="handleFilter" 
       />
+    
+      <div class="flex-grow-1" style="min-width: 0;">
+        <v-container 
+          v-if="isLoading" 
+          class="d-flex justify-center align-center" 
+          style="min-height: 60vh"
+        >
+          <v-progress-circular 
+            indeterminate 
+            color="primary" 
+            size="48" 
+          />
 
-      <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
-        <v-progress-circular indeterminate color="primary" size="48" />
-      </v-container>
+        </v-container>
 
-      
-      <EventGrid 
-        v-else
-        :events="filteredEvents" 
-        @select="openEvent" 
-        class="flex-1-1" 
-      />
+        <EventGrid 
+          v-else
+          :events="filteredEvents" 
+          @select="openEvent" 
+        />
+      </div>
     </div>
 
-    <CreateEvent v-model="showCreateEvent"   :on-submit="handleCreateEvent"  @created="handleCreateEvent"
- />
+    <CreateEvent v-model="showCreateEvent"   :on-submit="handleCreateEvent"  @created="handleCreateEvent" />
 
     <EditEventModal
       v-model="showEditEvent"
@@ -87,7 +115,6 @@ import { useDebounceFn } from '@vueuse/core'
 import { useRouter } from 'vue-router'
 import EditEventModal from '~/components/features/events/EditEventModal.vue'
 import InviteModal from '~/components/features/community/InviteModal.vue'
-import { query } from 'happy-dom/lib/PropertySymbol'
 import EventHeader from '~/components/features/events/EventHeader.vue'
 
 const showFilters = ref(false)
