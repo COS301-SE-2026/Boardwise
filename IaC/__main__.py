@@ -643,6 +643,18 @@ frontend_distro = aws.cloudfront.Distribution(
         ssl_support_method="sni-only",
         minimum_protocol_version="TLSv1.2_2021"
     ),
+    custom_error_responses=[
+        aws.cloudfront.DistributionCustomErrorResponseArgs(
+            error_code=403,
+            response_code=200,
+            response_page_path="/index.html"
+        ),
+        aws.cloudfront.DistributionCustomErrorResponseArgs(
+            error_code=404,
+            response_code=200,
+            response_page_path="/index.html"
+        )
+    ],
     opts=pulumi.ResourceOptions(depends_on=[bucket])
 )
 

@@ -1,32 +1,34 @@
 <template>
   <div>
-    <ReaderToolbar
-      :rulebook="rulebook"
-      :current-page="activeChunkIndex"
-      :total-pages="localChunks.length"
-      :search-query="searchQuery"
-      :match-count="matchResults.length"
-      :current-match="currentMatch"
-      :is-editing="isEditing"
-      :is-saving="isSaving"
-      :lock-held-by="lockHeldBy"
-      :lock-expires-at="lockExpiresAt"
-      :lock-error="lockError"
-      :can-undo="canUndo"
-      :can-redo="canRedo"
-      @search="searchQuery = $event"
-      @prev-match="prevMatch"
-      @next-match="nextMatch"
-      @clear-search="clearSearch"
-      @edit="handleEdit"
-      @stop-editing="handleStopEditing"
-      @toggle-history="showHistory = !showHistory"
-      @undo="handleUndo"
-      @redo="handleRedo"
-    />
+    <div class="reader-header">
 
-    <ReaderProgress :current-page="activeChunkIndex" :total-pages="localChunks.length" />
+      <ReaderToolbar
+        :rulebook="rulebook"
+        :current-page="activeChunkIndex"
+        :total-pages="localChunks.length"
+        :search-query="searchQuery"
+        :match-count="matchResults.length"
+        :current-match="currentMatch"
+        :is-editing="isEditing"
+        :is-saving="isSaving"
+        :lock-held-by="lockHeldBy"
+        :lock-expires-at="lockExpiresAt"
+        :lock-error="lockError"
+        :can-undo="canUndo"
+        :can-redo="canRedo"
+        @search="searchQuery = $event"
+        @prev-match="prevMatch"
+        @next-match="nextMatch"
+        @clear-search="clearSearch"
+        @edit="handleEdit"
+        @stop-editing="handleStopEditing"
+        @toggle-history="showHistory = !showHistory"
+        @undo="handleUndo"
+        @redo="handleRedo"
+      />
 
+      <ReaderProgress :current-page="activeChunkIndex" :total-pages="localChunks.length" />
+    </div>
     <v-container fluid style="max-width: 1200px;">
       <v-row>
         <v-col cols="12" md="3">
@@ -523,3 +525,11 @@ defineExpose({
 });
 
 </script>
+
+<style scoped>
+.reader-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+</style>
