@@ -115,7 +115,7 @@ const activeTab = ref<'Friends' | 'Mutuals' | 'Requests'>('Friends')
 const query = ref('')
 
 const visibleList = computed(() => {
-    const list = activeTab.value === 'Friends' ? friends.value : mutuals.value
+    const list = activeTab.value === 'Friends' ? props.friends! : props.mutuals!
     if(!query.value.trim()) return list
     const q = query.value.toLowerCase()
     return list.filter(p => p.username.toLowerCase().includes(q))
