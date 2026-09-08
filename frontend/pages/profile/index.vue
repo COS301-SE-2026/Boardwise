@@ -71,6 +71,8 @@
         v-model="showFriendsModal"
         :username="user?.username ?? ''"
         :loading="isLoading"
+        :friends="userFriendList.friends"
+        :mutuals="userFriendList.mutuals"
         @respond="onRespond"
         @remove="handleRemove"
     />
@@ -105,7 +107,7 @@ import { useRouter } from 'vue-router'
 
 const { fetchCurrentUser, removeGame } = useProfile();
 const { listings, fetchUserListing, loading } = useMarketplace();
-const {  isLoading, respondToFriendRequest, unfriendUser } = useFriends()
+const {  isLoading, respondToFriendRequest, unfriendUser, getFriendRequests, getOwnFriendsList, userFriendList } = useFriends()
 const { show } = useSnackBar();
 const router = useRouter();
 const activeTab = ref('Games Owned');
@@ -182,11 +184,12 @@ const handlePfpChange = (newPfp) => {
 }
 
 const onRespond = async (id, action) => {
-    console.log("respond event emitted and caught")
     try {
         await respondToFriendRequest(id, action)
         await refreshUser()
         await fetchUserListing()
+        await getFriendRequests()
+        await getOwnFriendsList()
         showFriendsModal.value = false
 
     } catch (err) {
@@ -200,6 +203,7 @@ const handleRemove = async (id) => {
         await unfriendUser(id)
         await refreshUser()
         await fetchUserListing()
+        await getOwnFriendsList()
         showFriendsModal.value = false
     } catch (err) {
         console.error('Failed to send friend request:', err)

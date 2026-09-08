@@ -35,7 +35,14 @@
                     <span class="flex-grow-1">{{ person.username }}</span>
                     
                     <template v-if="!route.params.id">
-                        <BaseButton @click="handleClick(person.id)" color="primary">Message</BaseButton>
+                        <BaseButton 
+                            @click="handleClick(person.id)" 
+                            :variant="'primary'"
+                            size="small"
+                        >
+                            <p>Message</p>
+                        </BaseButton>
+
                         <FriendActionButton
                             :status="FriendStatus.ACCEPTED"
                             @remove="$emit('remove', person.id)"
@@ -48,7 +55,7 @@
          <!-- Friend Requests -->
           <template v-else-if="!route.params.id">
             <FriendRequestsList
-                :requests="pendingRequests!"
+                :requests="userFriendRequests!"
                 @respond="(requestId, action) => $emit('respond', requestId, action)"
             />
           </template>
@@ -69,22 +76,22 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 import FriendActionButton from './FriendActionButton.vue'
 import FriendRequestsList from './FriendRequestsList.vue'
 
-import type { FriendDTO, FriendRequestsDTO } from '~/services/friendService'
+import type { FriendDTO } from '~/services/friendService'
 import { useFriends } from '~/composables/useFriends.ts'
 import { useRoute, useRouter } from 'vue-router'
 import { FriendStatus } from '~/services/userService.ts'
 
 const {
     getFriendRequests,
-    userFriendList,
-    getOwnFriendsList,
-    getUserFriendsList
+    userFriendRequests
 } = useFriends()
 
 const props = defineProps<{
     modelValue: boolean
     username: string
-    loading?: boolean
+    loading?: boolean,
+    friends: FriendDTO[] | null | undefined,
+    mutuals?: FriendDTO[] | null | undefined
 }>()
 
 const emit = defineEmits<{
@@ -107,7 +114,6 @@ const mutuals = ref<FriendDTO[]>([])
 const tabs = ref<['Friends', 'Requests'] | ['Friends', 'Mutuals']>()
 const activeTab = ref<'Friends' | 'Mutuals' | 'Requests'>('Friends')
 const query = ref('')
-const pendingRequests = ref<FriendRequestsDTO | null | undefined>(null)
 
 const visibleList = computed(() => {
     const list = activeTab.value === 'Friends' ? friends.value : mutuals.value
@@ -126,22 +132,7 @@ const handleClick = (id: string) => {
 }
 
 onMounted(async () => {
-    const possibleId = route.params.id; 
-    pendingRequests.value = await getFriendRequests()
-    let response = null;
-    if(possibleId){
-        response = await getUserFriendsList(possibleId as string)
-        tabs.value = ['Friends', 'Mutuals']
-    }
-    else{
-        await getOwnFriendsList()
-        response = userFriendList.value;
-        tabs.value = ['Friends', 'Requests']
-    }
-    
-    friends.value = response?.friends ?? []
-    mutuals.value = response?.mutuals ?? []
-    
+    await getFriendRequests()   
 })
 </script>
 
