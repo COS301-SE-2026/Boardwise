@@ -19,6 +19,8 @@ public class RulebookTextRepositoryCustomImpl implements RulebookTextRepositoryC
 
     @Override
     public void atomicUpdateChunk(ObjectId rulebookId, ObjectId chunkId, String newContent){
+        String safeContent = (newContent == null) ? "" : newContent;
+
         Criteria updateCriteria = new Criteria().andOperator(
             Criteria.where("rulebookId").is(rulebookId),
             Criteria.where("chunkId").is(chunkId)
@@ -27,8 +29,8 @@ public class RulebookTextRepositoryCustomImpl implements RulebookTextRepositoryC
         Query query = new Query(updateCriteria);
 
         Update update = new Update()
-            .set("content", newContent)
-            .set("charCount", newContent.length())
+            .set("content", safeContent)
+            .set("charCount", safeContent.length())
             .set("updatedAt", Instant.now());
 
         mongoTemplate.updateFirst(query, update, RulebookText.class);
@@ -36,6 +38,8 @@ public class RulebookTextRepositoryCustomImpl implements RulebookTextRepositoryC
 
     @Override
     public RulebookText atomicInsertChunk(ObjectId rulebookId, String content, int insertIndex){
+        String safeContent = (content == null) ? "" : content;
+
         // Fetch the total number of chunks so that the insertIndex is bounded within
         long totalChunks = mongoTemplate.count(
             new Query(Criteria.where("rulebookId").is(rulebookId)),
@@ -57,9 +61,9 @@ public class RulebookTextRepositoryCustomImpl implements RulebookTextRepositoryC
             .rulebookId(rulebookId)
             .chunkId(new ObjectId())
             .index(actualIndex)
-            .content(content)
+            .content(safeContent)
             .embedding(null) // AI pipeline will fill this asynchronously later
-            .charCount(content.length())
+            .charCount(safeContent.length())
             .createdAt(Instant.now())
             .updatedAt(Instant.now())
             .build();
@@ -96,6 +100,8 @@ public class RulebookTextRepositoryCustomImpl implements RulebookTextRepositoryC
 
     @Override
     public RulebookText atomicRestoreChunk(ObjectId rulebookId, ObjectId targetChunkId, String content, ObjectId chunkBeforeId, int historicalIndex){
+        String safeContent = (content == null) ? "" : content;
+        
         int actualIndex = 0;
         
         // Fetch the total number of chunks so that the insertIndex is bounded within
@@ -131,9 +137,9 @@ public class RulebookTextRepositoryCustomImpl implements RulebookTextRepositoryC
             .rulebookId(rulebookId)
             .chunkId(targetChunkId)
             .index(actualIndex)
-            .content(content)
+            .content(safeContent)
             .embedding(null) // AI pipeline will fill this asynchronously later
-            .charCount(content.length())
+            .charCount(safeContent.length())
             .createdAt(Instant.now())
             .updatedAt(Instant.now())
             .build();

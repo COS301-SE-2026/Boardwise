@@ -122,10 +122,14 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
             ))
         )
         .set("undoStack").toValue(
-            new Document("$slice", List.of(
-                "$undoStack",
-                0,
-                new Document("$subtract", List.of(new Document("$size", "$undoStack"), 1))
+            new Document("$cond", List.of(
+                new Document("$eq", List.of(new Document("$size", "$undoStack"), 1)),
+                Collections.emptyList(),
+                new Document("$slice", List.of(
+                    "$undoStack",
+                    0,
+                    new Document("$subtract", List.of(new Document("$size", "$undoStack"), 1))
+                ))
             ))
         );
 
@@ -154,10 +158,16 @@ public class RulebookRepositoryCustomImpl implements RulebookRepositoryCustom {
                                 new Document("$ifNull", List.of("$undoStack", List.of())),
                                 List.of(new Document("$arrayElemAt", List.of("$redoStack", -1))))))
                 .set("redoStack").toValue(
+                    new Document("$cond", List.of(
+                        new Document("$eq", List.of(new Document("$size", "$redoStack"), 1)),
+                        Collections.emptyList(),
                         new Document("$slice", List.of(
-                                "$redoStack",
-                                0,
-                                new Document("$subtract", List.of(new Document("$size", "$redoStack"), 1)))));
+                            "$redoStack",
+                            0,
+                            new Document("$subtract", List.of(new Document("$size", "$redoStack"), 1))
+                        ))
+                    ))
+                );
 
         FindAndModifyOptions options = FindAndModifyOptions.options().returnNew(true);
 
