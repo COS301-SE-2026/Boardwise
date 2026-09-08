@@ -82,7 +82,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { FriendStatus } from '~/services/userService.ts'
 
 const {
-    getFriendRequests,
     userFriendRequests
 } = useFriends()
 
@@ -131,8 +130,11 @@ const handleClick = (id: string) => {
   })
 }
 
-onMounted(async () => {
-    await getFriendRequests()   
+onMounted(() => {
+    if(route.params.id)
+        tabs.value = ['Friends', 'Mutuals']
+    else
+        tabs.value = ['Friends', 'Requests']
 })
 </script>
 

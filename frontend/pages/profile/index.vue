@@ -47,6 +47,27 @@
 
       </v-window>
 
+      <GameBrowserModal
+        v-model="showBrowser"
+        @confirm="handleGamesAdded"
+        @add-custom="openCustomModal"
+      />
+
+      <AddCustomGameModal
+        v-model="showCustom"
+        @confirm="handleCustomGame"
+        @back="showCustom = false; showBrowser = true"
+      />
+
+      <FriendsModal
+          v-model="showFriendsModal"
+          :username="user?.username ?? ''"
+          :loading="isLoading"
+          :friends="userFriendList.friends"
+          :mutuals="userFriendList.mutuals"
+          @respond="onRespond"
+          @remove="handleRemove"
+      />
     </template>
 
     <template v-else>
@@ -55,27 +76,6 @@
       </v-container>
     </template>
 
-    <GameBrowserModal
-      v-model="showBrowser"
-      @confirm="handleGamesAdded"
-      @add-custom="openCustomModal"
-    />
-
-    <AddCustomGameModal
-      v-model="showCustom"
-      @confirm="handleCustomGame"
-      @back="showCustom = false; showBrowser = true"
-    />
-
-    <FriendsModal
-        v-model="showFriendsModal"
-        :username="user?.username ?? ''"
-        :loading="isLoading"
-        :friends="userFriendList.friends"
-        :mutuals="userFriendList.mutuals"
-        @respond="onRespond"
-        @remove="handleRemove"
-    />
   </PageContainer>
 </template>
 
@@ -217,7 +217,9 @@ onMounted(async () => {
     return;
   }
 
-  await refreshUser();
   await fetchUserListing();
+  await getFriendRequests();
+  await getOwnFriendsList();
+  await refreshUser();
 });
 </script>
