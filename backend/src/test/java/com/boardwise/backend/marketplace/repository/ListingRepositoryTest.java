@@ -42,8 +42,7 @@ public class ListingRepositoryTest extends SharedMongoContainer {
 
         return new Listing(id, username, objectId, "full boardgame", listingType, price,
         "Pretoria", false, "fake title", "like new", gameTitle, "original",
-        "some description", defaultIMG, ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-        genres, rp);
+        "some description", defaultIMG, ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(), rp);
     }
 
     private final ObjectId compId = new ObjectId();
