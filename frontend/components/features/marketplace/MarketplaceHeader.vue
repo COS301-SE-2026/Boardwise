@@ -10,6 +10,7 @@
       <BaseButton 
         data-test="create-listing-button" 
         variant="primary" 
+        :block="mobile"
         prepend-icon="mdi-plus" 
         @click="$emit('create-listing')"
       > 
@@ -26,6 +27,9 @@
 </template>
 
 <script setup>
+import { useDisplay } from 'vuetify'
+const { mobile } = useDisplay()
+
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import MarketplaceSearch from './MarketplaceSearch.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
