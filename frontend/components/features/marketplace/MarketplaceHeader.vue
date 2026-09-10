@@ -1,13 +1,12 @@
 <template>
   <div class="d-flex flex-column ga-5" data-test="marketplace-header">
-    
-    <SectionTitle
-      data-test="marketplace-title"
-      title="Marketplace"
-      subtitle="Buy, Rent and List board games with the community"
-    />
+    <div class="marketplace-header__top">
+      <SectionTitle
+        data-test="marketplace-title"
+        title="Marketplace"
+        subtitle="Buy, Rent and List board games with the community"
+      />
 
-    <div class="marketplace-header__actions">
       <BaseButton 
         data-test="create-listing-button" 
         variant="primary" 
@@ -35,8 +34,11 @@ defineEmits(['search', 'create-listing'])
 </script>
 
 <style scoped>
-.marketplace-header__actions {
+.marketplace-header__top {
   display: flex;
-  justify-content: flex-end;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
 }
 </style>
