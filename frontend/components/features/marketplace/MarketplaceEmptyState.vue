@@ -34,7 +34,7 @@
 </template>
 
 <script setup>
-import { compile, computed } from 'vue'
+import { computed } from 'vue'
 
 import BaseImage from '~/components/ui/BaseImage.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
