@@ -194,6 +194,13 @@ useIntersectionObserver(sentinel, async ([entry])=>  {
   if(hasMore.value && !loading.value) loadMore()
 })
 
+const showInlineLoading = computed(() => {
+  if (activeTab.value === 'Web') {
+    return retailLoading.value && retailResults.value.length > 0
+  }
+  return loading.value && listings.value.length > 0
+})
+
 const searchQ = ref('');
 const activeFilterState = ref({})
 const activeRetailFilterState = ref({ retailers: null, minPrice: null, maxPrice: null }, true)
