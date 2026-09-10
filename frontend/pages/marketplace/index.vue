@@ -46,24 +46,59 @@
     
     <!-- External Retail -->
     <template v-else-if="activeTab === 'Web'">
-      <v-container
-        v-if="retailLoading && retailResults.length === 0"
-        class="d-flex justify-center align-center"
-        style="min-height: 60vh"
-      >
-        <v-progress-circular 
-          data-test="loading-spinner"
-          indeterminate
-          color="primary"
-          size="48"
-        />
-      </v-container>
-      
-      <RetailerGrid 
-        v-else
-        data-test="retailer-grid"
-        :retailers="retailResults"
-      />
+      <!-- Mobile -->
+      <div class="d-flex d-md-none mt-6 mb-4">
+          <v-chip
+            color="secondary"
+            prepend-icon="mdi-filter-variant"
+            size="large"
+            @click="showRetailFilters = true"
+          >
+            Filters
+          </v-chip>
+
+          <v-navigation-drawer
+            v-model="showRetailFilters"
+            temporary
+            location="left"
+            width="300"
+          >
+            <RetailerFilterSidebar 
+              data-test="retailer-filter-sidebar"
+              :retailer-options="retailerOptions"
+              @filter="handleRetailerFilter" 
+            />
+          </v-navigation-drawer>
+        </div>
+
+        <!-- Desktop -->
+        <div class="d-flex d-md-flex ga-6 mt-6 align-start">
+          <div class="d-none d-md-block">
+            <RetailerFilterSidebar 
+              data-test="filter-sidebar" 
+              :retailer-options="retailerOptions"
+              @filter="handleRetailerFilter"
+            />
+          </div>
+            
+          <v-container 
+            v-if="retailLoading && retailResults.length === 0" 
+            class="d-flex justify-center align-center flex-1-1"
+            style="min-height: 60vh"
+          >
+            <v-progress-circular 
+              data-test="loading-spinner" 
+              indeterminate 
+              color="primary" 
+              size="48" 
+            />
+          </v-container>
+          <RetailerGrid 
+            v-else
+            data-test="retailer-grid" 
+            :retailers="filteredRetailResults" 
+            />
+      </div>
     </template>
 
     <div ref="sentinel" style="height:1px" />
@@ -89,6 +124,7 @@ import MarketplaceHeader from '~/components/features/marketplace/MarketplaceHead
 import MarketplaceTabs from '~/components/features/marketplace/MarketplaceTabs.vue'
 
 import FilterSidebar from '~/components/features/marketplace/FilterSidebar.vue'
+import RetailerFilterSidebar from '~/components/features/marketplace/RetailerFilterSidebar.vue'
 import ListingGrid from '~/components/features/marketplace/ListingGrid.vue'
 import RetailerGrid from '~/components/features/marketplace/RetailerGrid.vue'
 import AddListingModal from '~/components/features/profile/AddListingModal.vue'
@@ -101,6 +137,7 @@ import { useRetail } from '~/composables/useRetail'
 const router = useRouter();
 const activeTab = ref('Community Listings')
 const showFilters = ref(false)
+const showRetailFilters = ref(false)
 const showCreateListing = ref(false)
 
 const {listings, loading, fetchListings, addListing, loadMore, hasMore} = useMarketplace();
@@ -135,7 +172,7 @@ useIntersectionObserver(sentinel, async ([entry])=>  {
 
 const searchQ = ref('');
 const activeFilterState = ref({})
-
+const activeRetailFilterState = ref({ retailers: null, minPrice: null, maxPrice: null }, true)
 
 const delaySearch = useDebounceFn((query) => {
   if(activeTab.value === 'Web'){
@@ -181,6 +218,26 @@ watch(searchQ,(query)=>{
 
   fetchListings({ ...activeFilterState.value, search: searchQ.value || null }, true);
 }
+
+const retailerOptions = computed(() => {
+  const names = retailResults.value.map(r => r.retailer).filter(Boolean)
+  return [...new Set(names)].sort()
+})
+
+const handleRetailerFilter = (filters) => {
+  activeRetailFilterState.value = filters
+}
+
+const filteredRetailResults = computed(() => {
+  const { retailers, minPrice, maxPrice } = activeRetailFilterState.value
+
+  return retailResults.value.filter((r) => {
+    if (retailers && !retailers.includes(r.retailer)) return false
+    if (minPrice != null && (r.price ?? 0) < minPrice) return false
+    if (maxPrice != null && (r.price ?? Infinity) > maxPrice) return false
+    return true
+  })
+})
 
 </script>
 
