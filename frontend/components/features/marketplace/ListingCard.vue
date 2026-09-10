@@ -86,11 +86,6 @@ const openListing = () => {
   cursor: pointer;
 }
 
-.listing-card:hover {
-  transform:  translateY(-2px);
-  box-shadow: var(--shadow-md) !important;
-}
-
 .image-container {
   position: relative;
 }

@@ -14,13 +14,28 @@
 <style scoped>
 .base-card {
     overflow: hidden;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+
     transition: 
         transform var(--transition-base),
-        box-shadow var(--transition-base);
+        box-shadow var(--transition-base),
+        border-color var(--transition-base);
 }
 
-.base-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md) !important;
+@media (hover: hover) and (pointer: fine) {
+    .base-card:hover {
+        transform: translateY(-2px);
+        border-color:var(--color-primary);
+        box-shadow: var(--shadow-md) !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .base-card:hover {
+        transform: none;
+    }
 }
 </style>
