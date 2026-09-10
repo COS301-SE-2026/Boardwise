@@ -11,6 +11,7 @@
         :games="user.ownedGamesCount"
         :friends="user.friendCount"
         :communities="user.groupCount"
+        :friends-delta="pendingFriendRequests ? `${pendingFriendRequests} pending invites` : ''"
         @open="openFriendsModal"
       />
 

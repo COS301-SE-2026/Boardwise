@@ -1,28 +1,29 @@
 <template>
-  <v-card class="status-header pa-3">
-    <div class="status-header_stats">
-
-      <div class="status-header_stat">
-        <span class="status-header_value">{{ games }}</span>
-        <span class="status-header_label">Games</span>
+  <div class="stats-row">
+    <v-card class="stat-card" flat @click="undefined">
+      <div class="stat-icon"><v-icon size="20">mdi-dice-multiple</v-icon></div>
+      <div class="stat-body">
+        <span class="stat-value">{{  games }}</span>
+        <span class="stat-label">Games Owned</span>
       </div>
+    </v-card>
 
-      <v-divider vertical class="status-header_divider d-none d-sm-flex" />
-
-      <button @click="$emit('open')" class="status-header_stat">
-        <span class="status-header_value">{{ friends }}</span>
-        <span class="status-header_label">Friends</span>
-      </button>
-
-      <v-divider vertical class="status-header_divider d-none d-sm-flex" />
-
-      <div class="status-header_stat">
-        <span class="status-header_value">{{ communities }}</span>
-        <span class="status-header_label">Communities</span>
+    <button class="stat-card stat-card__clickable" @click="$emit('open')">
+      <div class="stat-icon"><v-icon size="20">mdi-account-multiple</v-icon></div>
+      <div class="stat-body">
+        <span class="stat-value">{{ friends }}</span>
+        <span class="stat-label">Friends</span>
       </div>
+    </button>
 
-    </div>
-  </v-card>
+    <v-card class="stat-card" flat @click="undefined">
+      <div class="stat-icon"><v-icon size="20">mdi-shield-account</v-icon></div>
+      <div class="stat-body">
+        <span class="stat-value">{{ communities }}</span>
+        <span class="stat-label">Communities</span>
+      </div>
+    </v-card>
+  </div>
 </template>
 
 <script setup>
@@ -30,59 +31,75 @@
 defineProps({
   games: { type: Number, default: 0 },
   friends: { type: Number, default: 0 },
-  communities: { type: Number, default: 0 },
-  reviews: { type: Number, default: 0 },
+  communities: { type: Number, default: 0 }
 })
 
 defineEmits(['open'])
 </script>
 
 <style scoped>
-.status-header {
-  border-radius:  var(--radius-lg) !important;
-  margin-inline:  var(--space-12);
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  margin-inline: var(--space-12);
   margin-top: -32px;
-  max-height: fit-content;
-  min-height: auto;
 }
 
-.status-header_stats {
-  display:         flex;
-  justify-content: space-around;
-  align-items:     center;
-  flex-wrap:       wrap;
-  gap:             var(--space-6);
+.stat-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface) !important;
+  border-radius: var(--radius-lg) !important;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm) !important;
+  text-align: left;
 }
 
-.status-header_stat {
-  display:        flex;
+.stat-card__clickable {
+  cursor: pointer;
+  font: inherit;
+}
+
+.stat-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bw-gold-muted, #f3e6c8);
+  color: var(--color-primary);
+}
+
+.stat-body {
+  display: flex;
   flex-direction: column;
-  align-items:    center;
-  gap:            var(--space-2);
-  flex:           1;
+  min-width: 0;
 }
 
-.status-header_value {
+.stat-value {
   font-family: var(--font-display);
-  font-size:   var(--fs-h1);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-regular);
-  color:       var(--color-primary);
+  color: var(--color-secondary);
   line-height: var(--lh-tight);
 }
 
-.status-header_label {
+.stat-label {
   font-family: var(--font-body);
-  font-size:   var(--fs-small);
-  color:       var(--color-text-muted);
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
 }
 
-.status-header_divider {
-  height:      60px;
-  align-self:  center;
-}
-
-button {
-  border: none;
-  background-color: var(--color-alabaster);
+@media (max-width: 600px) {
+  .stats-row {
+    margin-inline: var(--space-4);
+    grid-template-columns: 1fr;
+  }
 }
 </style>
