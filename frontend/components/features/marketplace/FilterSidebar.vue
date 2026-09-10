@@ -1,16 +1,19 @@
 <template>
   <BaseFilterSidebar data-test="filter-sidebar" @reset="resetFilters">
 
-    <BaseFilterGroup title="genres">
-      <div
-        v-for="genre in genres"
-        :key="genre"
-        class="genre-option"
-        :class="{ active: selectedGenre === genre }"
-        data-test="`genre-${genre.toLowerCase()}`"
-        @click="selectedGenre= genre"
-      >
-        {{ genre }}
+    <BaseFilterGroup title="Genres">
+      <div class="genre-list">
+        <button 
+          v-for="genre in genres"
+          :key="genre"
+          type="button"
+          class="genre-option"
+          :class="{ 'genre-option--active': selectedGenre === genre}"
+          :data-test="`genre-${genre.toLowerCase()}`"
+          @click="selectedGenre = genre"
+        >
+          {{ genre }}
+        </button>
       </div>
     </BaseFilterGroup>
 
@@ -81,7 +84,52 @@ const resetFilters = () => {
   filters.minPrice = ''
   filters.maxPrice = ''
 }
-
-
 </script>
 
+<style scoped>
+.genre-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.genre-option {
+  display: block;
+  width: 100%;
+
+  padding: 6px var(--space-3);
+
+  border: none;
+  border-radius: var(--radius-sm);
+
+  background: transparent;
+  color: var(--color-text);
+
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-medium);
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.genre-option:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+}
+
+.genre-option:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.genre-option--active {
+  background: rgba(199, 40, 110, 0.12);
+  color: var(--color-primary);
+  font-weight: var(--fw-bold);
+}
+</style>
