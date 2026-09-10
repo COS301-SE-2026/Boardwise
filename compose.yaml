@@ -59,6 +59,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s
+      
   ai-gateway:
     build: ./ai/
     restart: on-failure
@@ -95,7 +96,25 @@ services:
       - "8025:8025"
     restart: unless-stopped
 
+  caddy:
+    image: caddy:2.11.4-alpine
+    container_name: boardwise-proxy
+    restart: unless-stopped
+    ports:
+      - "8088:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      backend:
+        condition: service_started
+      ai-gateway:
+        condition: service_started
+
 volumes:
   db:
   configdb:
   mongot:
+  caddy_data:
+  caddy_config:
