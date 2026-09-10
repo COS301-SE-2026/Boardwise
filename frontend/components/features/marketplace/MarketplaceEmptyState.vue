@@ -26,7 +26,7 @@
                 variant="primary"
                 @click="$emit('create-listing')"
             >
-                <v-icon star icon="mid-plus" />
+                <v-icon star icon="mdi-plus" />
                 Create the first listing
             </BaseButton>
         </div>
@@ -40,7 +40,7 @@ import BaseImage from '~/components/ui/BaseImage.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
 
 const props = defineProps({
-    tab: { type: String, default: 'Communiy Listings' },
+    tab: { type: String, default: 'Community Listings' },
     search: { type: String, default: '' },
     hasActiveFilters: { type: Boolean, default: false },
     mascotSrc: { type: String, default: '/images/BoarleySide.svg' }
@@ -62,7 +62,7 @@ const copy = computed(() => {
         }
         return {
             title: 'Nothing to show yet',
-            subititle: "Boarley's still out shopping - check back in a bit, or try a search."
+            subtitle: "Boarley's still out shopping - check back in a bit, or try a search."
         }
     }
 

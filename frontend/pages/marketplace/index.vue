@@ -138,6 +138,8 @@ definePageMeta({
   middleware: 'auth'
 })
 
+import { computed, unref } from 'vue'
+
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 
@@ -195,10 +197,13 @@ useIntersectionObserver(sentinel, async ([entry])=>  {
 })
 
 const showInlineLoading = computed(() => {
+  const currentListings = unref(listings) ?? []
+  const currentRetail = unref(retailResults) ?? []
+
   if (activeTab.value === 'Web') {
-    return retailLoading.value && retailResults.value.length > 0
+    return retailLoading.value && currentRetail.length > 0
   }
-  return loading.value && listings.value.length > 0
+  return loading.value && currentListings.length > 0
 })
 
 const searchQ = ref('');
@@ -246,13 +251,14 @@ watch(searchQ,(query)=>{
     maxPrice: filters.maxPrice || null,
   }
 
-
   fetchListings({ ...activeFilterState.value, search: searchQ.value || null }, true);
 }
 
+const KNOWN_RETAILERS = ['Bobshop', 'Takealot', 'ToysRUs']
+
 const retailerOptions = computed(() => {
-  const names = retailResults.value.map(r => r.retailer).filter(Boolean)
-  return [...new Set(names)].sort()
+  const loadedNames = retailResults.value.map(r => r.retailer).filter(Boolean)
+  return [...new Set([...KNOWN_RETAILERS, ...loadedNames ])].sort()
 })
 
 const handleRetailerFilter = (filters) => {

@@ -41,12 +41,12 @@ const props = defineProps ({
 
 const messages = { 
     'Community Listings': {
-        intial: [
+        initial: [
             "Boarley's sniffing out board games...",
             'Rummaging through the shelves...',
             'Boarley is on the hunt...'
         ],
-        more: 'Fetch more listings...'
+        more: 'Fetching more listings...'
     },
     'Web': {
         initial: [
