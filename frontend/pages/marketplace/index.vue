@@ -37,8 +37,18 @@
         </div>
           
         <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
-          <v-progress-circular data-test="loading-spinner" indeterminate color="primary" size="48" />
+          <MarketplaceLoadingState tab="Community Listings" />
         </v-container>
+
+        <MarketplaceEmptyState
+          v-else-if="listings.length === 0"
+          tab="Community Listings"
+          :search="searchQ"
+          :has-active-filters="hasCommunityFilters"
+          @clear-filters="resetCommunityFilters"
+          @create-listing="showCreateListing = true"
+        />
+
         <ListingGrid data-test="listing-grid" v-else :listings="listings" />
       </div>
       
@@ -86,13 +96,18 @@
             class="d-flex justify-center align-center flex-1-1"
             style="min-height: 60vh"
           >
-            <v-progress-circular 
-              data-test="loading-spinner" 
-              indeterminate 
-              color="primary" 
-              size="48" 
-            />
+            <MarketplaceLoadingState tab="Web" />
+
           </v-container>
+
+          <MarketplaceEmptyState
+            v-else-if="filteredRetailResults.length === 0"
+            tab="Web"
+            :search="searchQ"
+            :has-active-filters="hasRetailFilters"
+            @clear-filters="resetRetailFilters"
+          />
+
           <RetailerGrid 
             v-else
             data-test="retailer-grid" 
@@ -100,6 +115,12 @@
             />
       </div>
     </template>
+
+    <MarketplaceLoadingState
+      v-if="showInlineLoading"
+      :tab="activeTab"
+      inline
+    />
 
     <div ref="sentinel" style="height:1px" />
 
@@ -128,6 +149,9 @@ import RetailerFilterSidebar from '~/components/features/marketplace/RetailerFil
 import ListingGrid from '~/components/features/marketplace/ListingGrid.vue'
 import RetailerGrid from '~/components/features/marketplace/RetailerGrid.vue'
 import AddListingModal from '~/components/features/profile/AddListingModal.vue'
+
+import MarketplaceLoadingState from '~/components/features/marketplace/MarketplaceLoadingState.vue'
+import MarketplaceEmptyState from '~/components/features/marketplace/MarketplaceEmptyState.vue'
 
 import { useRouter } from 'vue-router'
 import { useMarketplace } from '~/composables/useMarketplace'
