@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.boardwise.backend.user_service.dtos.CommunityMessage;
 import com.boardwise.backend.user_service.dtos.CommunityMessageDTO;
-import com.boardwise.backend.user_service.dtos.ConversationsResponseDTO;
+import com.boardwise.backend.user_service.dtos.response.ConversationsResponseDTO;
 import com.boardwise.backend.user_service.dtos.DirectMessage;
 import com.boardwise.backend.user_service.dtos.DirectMessageDTO;
 import com.boardwise.backend.user_service.dtos.ErrorMessage;

@@ -31,12 +31,10 @@ public class AsyncEventListener{
         }
     }
 
-    @Async
-    @EventListener
-    public void handleJoinedCommunity(JoinedCommunityEvent event){
-        
-       notificationService.notifyCommunity(null, null);
-    } 
-    
+    @Async 
+    @EventListener 
+    public void handledJoinedCommunityEvent(JoinedCommunityEvent event){
+        notificationService.notifyCommunity(null, null);
+    }
 
 }

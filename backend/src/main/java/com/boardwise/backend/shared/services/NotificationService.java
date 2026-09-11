@@ -8,11 +8,11 @@ import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import com.boardwise.backend.user_service.dtos.ChatNotification;
-import com.boardwise.backend.user_service.dtos.FriendConfirmationNotification;
-import com.boardwise.backend.user_service.dtos.FriendRequestNotification;
-import com.boardwise.backend.user_service.dtos.InviteNotification;
-import com.boardwise.backend.user_service.dtos.NotificationDTO;
+import com.boardwise.backend.user_service.dtos.notifications.ChatNotification;
+import com.boardwise.backend.user_service.dtos.notifications.FriendConfirmationNotification;
+import com.boardwise.backend.user_service.dtos.notifications.FriendRequestNotification;
+import com.boardwise.backend.user_service.dtos.notifications.InviteNotification;
+import com.boardwise.backend.user_service.dtos.notifications.NotificationDTO;
 import com.boardwise.backend.user_service.enums.NotificationType;
 import com.boardwise.backend.user_service.models.ChatMessageData;
 import com.boardwise.backend.user_service.models.EventInviteData;

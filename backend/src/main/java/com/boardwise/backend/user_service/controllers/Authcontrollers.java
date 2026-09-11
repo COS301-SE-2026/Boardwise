@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.boardwise.backend.user_service.dtos.AuthResponseDTO;
-import com.boardwise.backend.user_service.dtos.LoginDTO;
-import com.boardwise.backend.user_service.dtos.LogoutResponseDTO;
-import com.boardwise.backend.user_service.dtos.RegisterDTO;
+import com.boardwise.backend.user_service.dtos.response.AuthResponseDTO;
+import com.boardwise.backend.user_service.dtos.request.LoginDTO;
+import com.boardwise.backend.user_service.dtos.response.LogoutResponseDTO;
+import com.boardwise.backend.user_service.dtos.request.RegisterDTO;
 import com.boardwise.backend.user_service.dtos.request.ForgotPasswordDto;
 import com.boardwise.backend.user_service.dtos.request.ResetPasswordDto;
 import com.boardwise.backend.user_service.services.AuthService;

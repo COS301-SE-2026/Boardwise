@@ -37,7 +37,7 @@ import com.boardwise.backend.user_service.dtos.EventInviteDTO;
 import com.boardwise.backend.user_service.dtos.EventInviteInfo;
 import com.boardwise.backend.user_service.dtos.EventUpdateDTO;
 import com.boardwise.backend.user_service.dtos.InviteDTO;
-import com.boardwise.backend.user_service.dtos.InviteNotification;
+import com.boardwise.backend.user_service.dtos.notifications.InviteNotification;
 import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.user_service.enums.EventStatus;
 import com.boardwise.backend.user_service.enums.RSVPStatus;
