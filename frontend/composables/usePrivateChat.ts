@@ -90,9 +90,9 @@ export const usePrivateChat = () => {
         }
     }
 
-    const getChats = async () => {
+    const getChats = async (messageReceipt: boolean = false) => {
         error.value = '';
-        isLoading.value = true;
+        isLoading.value = !messageReceipt;
 
         try{
             const response = await ChatService.getConversations();
@@ -168,7 +168,7 @@ export const usePrivateChat = () => {
                 chats.value.unshift(convo);
             }
             else{
-                
+
                 const convo: Conversation = {
                     id: convoId,
                     userId: message.senderId,
@@ -187,7 +187,7 @@ export const usePrivateChat = () => {
                     convo.profilePicture = sender.profilePicture;
                     chats.value.unshift(convo);
                 }
-                
+               
             }
         });
     }
