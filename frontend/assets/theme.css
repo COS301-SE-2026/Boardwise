@@ -2205,6 +2205,7 @@ html[data-density="compact"] .rulebook-list {
 
     font-size: 0.75rem;
   }
+}
 /* =============================================================
    ACCESSIBILITY — SHARED COMPONENTS
    WCAG 2.2 AA accessibility foundation
@@ -2334,6 +2335,20 @@ html[data-density="compact"] .rulebook-list {
   cursor: pointer;
 }
 
+.base-add-card {
+  height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 2px dashed var(--color-border-strong);
+}
+
+.add-card__plus {
+  font-size: var(--fs-h1);
+  font-weight: var(--fw-bold);
+  color: var(--color-text-muted);
+}
 
 /* -------------------------------------------------------------
    DROPDOWN
@@ -2691,7 +2706,6 @@ button:disabled,
     transform: none !important;
   }
 }
-}
 
 /* -------------------------------------------------------------
    MOBILE / SMALL SCREENS
@@ -2780,7 +2794,6 @@ button:disabled,
     var(--space-10)
   );
 }
-
 
 /* Left content */
 
