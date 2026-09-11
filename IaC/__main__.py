@@ -343,7 +343,7 @@ docker run -d \
     -e HF_TOKEN="__HF_TOKEN__" \
     -e INTERNAL_SECRET="__INTERNAL_SECRET__" \
     -e CPU_CORES="__CPU_CORES__" \
-    __IMAGE_URI__
+    -e APP_ENV="__APP_ENV__" __IMAGE_URI__
 """
 python_user_data = python_image.image_uri.apply(
     lambda image_uri : python_setup_script
@@ -361,6 +361,7 @@ python_user_data = python_image.image_uri.apply(
                         .replace("__PROD_DB_URL__", settings.MONGODB_URL)
                         .replace("__REGISTRY_URL__", image_uri.split('/')[0])
                         .replace("__REGION__", aws.get_region().id)
+                        .replace("__APP_ENV__", settings.APP_ENV)
 )
 
 python_instance = aws.ec2.Instance(
@@ -372,7 +373,8 @@ python_instance = aws.ec2.Instance(
     tags={"Name": f"{RESOURCE_PREFIX}-python-backend"},
     user_data=python_user_data,
     iam_instance_profile=backend_profile.name,
-    associate_public_ip_address=True
+    associate_public_ip_address=True,
+    user_data_replace_on_change=True
 )
 
 spring_repo = awsx.ecr.Repository(f"{RESOURCE_PREFIX}-spring-repo", force_delete=True)
@@ -416,19 +418,19 @@ docker run -d \
     -e SMTP_HOST="__SMTP_HOST__" \
     -e SMTP_USERNAME="__SMTP_USERNAME__" \
     -e SMTP_PASSWORD="__SMTP_PASSWORD__" \
-    __IMAGE_URI__
+    -e SPRING_PROFILES_ACTIVE="__SPRING_PROFILES_ACTIVE__" __IMAGE_URI__
 """
 spring_user_data = pulumi.Output.all(
     image_uri = spring_image.image_uri,
     python_ip = python_instance.private_ip
 ).apply(
     lambda args : spring_setup_script
-                        .replace("__IMAGE_URI__", args["image_uri"])
+                        .replace("__IMAGE_URI__", args['image_uri'])
                         .replace("__SMTP_PASSWORD__", settings.SMTP_PASSWORD if settings.SMTP_PASSWORD is not None else "")
                         .replace("__SMTP_USERNAME__", settings.SMTP_USERNAME if settings.SMTP_USERNAME is not None else "")
                         .replace("__SMTP_HOST__", settings.SMTP_HOST if settings.SMTP_HOST is not None else "")
                         .replace("__GOOGLE_MAP_API_KEY__", settings.GOOGLE_MAP_API_KEY)
-                        .replace("__PROD_FRONTEND_BASE__", f"https://{BOARDWISE_BASE_DOMAIN}")
+                        .replace("__PROD_FRONTEND_BASE__", f"https://{BOARDWISE_BASE_DOMAIN}/")
                         .replace("__BGG_URL__", settings.BGG_URL)
                         .replace("__BGG_TOKEN__", settings.BGG_TOKEN)
                         .replace("__R2_PROD_URL__", settings.R2_PROD_URL)
@@ -436,7 +438,7 @@ spring_user_data = pulumi.Output.all(
                         .replace("__R2_RULEBOOKS_PUBLIC_PROD_URL__", settings.R2_RULEBOOKS_PUBLIC_PROD_URL)
                         .replace("__R2_BUCKET_LISTINGS__", settings.R2_BUCKET_LISTINGS)
                         .replace("__R2_BUCKET_PROFILES__", settings.R2_BUCKET_PROFILES)
-                        .replace("__PROD_FAST_API_BASE__", f"http://{args["python_ip"]}:8000/api/fa/") # NOSONAR
+                        .replace("__PROD_FAST_API_BASE__", f"http://{args['python_ip']}:8000/api/fa/") # NOSONAR
                         .replace("__INTERNAL_SECRET__", settings.INTERNAL_WEBHOOK_SECRET)
                         .replace("__R2_SECRET_KEY__", settings.R2_SECRET_KEY)
                         .replace("__R2_ACCESS_KEY__", settings.R2_ACCESS_KEY)
@@ -447,6 +449,7 @@ spring_user_data = pulumi.Output.all(
                         .replace("__PROD_DB_URL__", settings.MONGODB_URL)
                         .replace("__REGISTRY_URL__", args["image_uri"].split('/')[0])
                         .replace("__REGION__", aws.get_region().id)
+                        .replace("__SPRING_PROFILES_ACTIVE__", settings.SPRING_PROFILES_ACTIVE)
 )
 
 spring_instance = aws.ec2.Instance(
@@ -458,7 +461,8 @@ spring_instance = aws.ec2.Instance(
     tags={"Name": f"{RESOURCE_PREFIX}-spring-backend"},
     user_data=spring_user_data,
     iam_instance_profile=backend_profile.name,
-    associate_public_ip_address=True
+    associate_public_ip_address=True,
+    user_data_replace_on_change=True
 )
 
 # Set up ecs &-ec2 instance for caddy
@@ -513,6 +517,7 @@ caddy_instance = aws.ec2.Instance(
     user_data=caddy_user_data,
     iam_instance_profile=backend_profile.name,
     tags={"Name": "boardwise-reverse-proxy"},
+    user_data_replace_on_change=True
 )
 
 caddy_eip = aws.ec2.Eip(
@@ -549,12 +554,15 @@ for root, dirs, files in os.walk(frontend_build_dir):
         mime, _ = mimetypes.guess_type(abs_path)
         mime = mime if mime is not None else "application/octet-stream"
 
+        cache_control = "no-cache, no-store, must-revalidate" if file.endswith(".html") else "public, max-age=31536000, immutable"
+
         obj = aws.s3.BucketObject(
             f"bucket-object-{key}",
             bucket=bucket.id,
             key=key,
             source=pulumi.FileAsset(abs_path),
-            content_type=mime
+            content_type=mime,
+            cache_control=cache_control
         )
 
 # frontend DNS stuff
@@ -570,9 +578,9 @@ frontend_cert = aws.acm.Certificate(
 cert_record_base = cloudflare.DnsRecord(
     f"{RESOURCE_PREFIX}-cert-record-base",
     zone_id=settings.CLOUDFLARE_ZONE_ID,
-    name=frontend_cert.domain_validation_options[0].resource_record_name,
-    type=frontend_cert.domain_validation_options[0].resource_record_type,
-    content=frontend_cert.domain_validation_options[0].resource_record_value,
+    name=frontend_cert.domain_validation_options.apply(lambda opts: opts[0].resource_record_name),
+    type=frontend_cert.domain_validation_options.apply(lambda opts: opts[0].resource_record_type),
+    content=frontend_cert.domain_validation_options.apply(lambda opts: opts[0].resource_record_value),
     proxied=False,
     ttl=1
 )
@@ -580,9 +588,9 @@ cert_record_base = cloudflare.DnsRecord(
 cert_record_www = cloudflare.DnsRecord(
     f"{RESOURCE_PREFIX}-cert-record-www",
     zone_id=settings.CLOUDFLARE_ZONE_ID,
-    name=frontend_cert.domain_validation_options[1].resource_record_name,
-    type=frontend_cert.domain_validation_options[1].resource_record_type,
-    content=frontend_cert.domain_validation_options[1].resource_record_value,
+    name=frontend_cert.domain_validation_options.apply(lambda opts: opts[1].resource_record_name),
+    type=frontend_cert.domain_validation_options.apply(lambda opts: opts[1].resource_record_type),
+    content=frontend_cert.domain_validation_options.apply(lambda opts: opts[1].resource_record_value),
     proxied=False,
     ttl=1
 )
@@ -641,6 +649,18 @@ frontend_distro = aws.cloudfront.Distribution(
         ssl_support_method="sni-only",
         minimum_protocol_version="TLSv1.2_2021"
     ),
+    custom_error_responses=[
+        aws.cloudfront.DistributionCustomErrorResponseArgs(
+            error_code=403,
+            response_code=200,
+            response_page_path="/index.html"
+        ),
+        aws.cloudfront.DistributionCustomErrorResponseArgs(
+            error_code=404,
+            response_code=200,
+            response_page_path="/index.html"
+        )
+    ],
     opts=pulumi.ResourceOptions(depends_on=[bucket])
 )
 

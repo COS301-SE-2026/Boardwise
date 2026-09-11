@@ -8,7 +8,7 @@
         <v-progress-circular
             indeterminate
             color="primary"
-            size="48"
+            size="24"
             v-if="isLoading"
         />
         <p v-else>{{ label }}</p>
@@ -24,7 +24,7 @@ import { useFriends } from '~/composables/useFriends';
 const { isLoading } = useFriends()
 
 const props = defineProps<{
-    status: FriendStatus
+    status: FriendStatus | null
 }>()
 
 const emit = defineEmits<{
@@ -33,6 +33,7 @@ const emit = defineEmits<{
 }>()
 
 const label = computed(() => {
+    console.log("current user friendship status: ", props.status)
     switch(props.status) {
         case FriendStatus.ACCEPTED: return 'Unfriend'
         case FriendStatus.REQUESTED : return 'Requested'
@@ -50,7 +51,6 @@ const variant = computed(() => {
 })
 
 const handleClick = () => {
-    console.log("you clicked the friend action button")
     if(props.status === FriendStatus.ACCEPTED) emit('remove')
     else emit('add')
 }

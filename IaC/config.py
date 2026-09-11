@@ -33,6 +33,8 @@ class Settings:
     SMTP_PASSWORD: str | None = os.getenv("SMTP_PASSWORD") 
     CLOUDFLARE_ZONE_ID: str | None = os.getenv("CLOUDFLARE_ZONE_ID")
     CLOUDFLARE_API_TOKEN: str | None = os.getenv("CLOUDFLARE_API_TOKEN")
+    APP_ENV: str | None = os.getenv("APP_ENV", "prod")
+    SPRING_PROFILES_ACTIVE: str | None = os.getenv("SPRING_PROFILES_ACTIVE")
 
 
 settings = Settings()

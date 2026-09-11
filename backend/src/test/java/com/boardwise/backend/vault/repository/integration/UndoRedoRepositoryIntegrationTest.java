@@ -24,16 +24,22 @@ public class UndoRedoRepositoryIntegrationTest extends VaultIntegrationTest {
         ObjectId userId;
         Rulebook rulebook;
 
+        ObjectId u1, u2, u3;
+        ObjectId r1, r2, r3;
+
         @BeforeEach
         void setup(){
             rulebookId = new ObjectId();
             userId = new ObjectId();
 
+            u1 = new ObjectId(); u2 = new ObjectId(); u3 = new ObjectId();
+            r1 = new ObjectId(); r2 = new ObjectId(); r3 = new ObjectId();
+
             rulebook = Rulebook.builder()
                 .id(rulebookId)
                 .lockHeldBy(userId)
-                .undoStack(List.of(0L, 1L, 2L))
-                .redoStack(List.of(5L, 4L, 3L))
+                .undoStack(List.of(u1, u2, u3))
+                .redoStack(List.of(r1, r2, r3))
                 .build();
 
             rulebookRepository.save(rulebook);
@@ -42,13 +48,13 @@ public class UndoRedoRepositoryIntegrationTest extends VaultIntegrationTest {
         @Test
         void atomicPopUndoAndPushRedoShouldSucceedIfUserHoldsTheLock(){            
             // Act
-            Long popped = rulebookRepository.atomicPopUndoAndPushRedo(rulebookId, userId);
+            ObjectId popped = rulebookRepository.atomicPopUndoAndPushRedo(rulebookId, userId);
             Rulebook fetched = rulebookRepository.findById(rulebookId).orElse(null);
 
             // Assert
-            assertEquals(2L, popped, "The version popped from the undo stack should match exactly");
+            assertEquals(u3, popped, "The version popped from the undo stack should match exactly");
             assertEquals(2, fetched.getUndoStack().size(), "The size of the undo stack must match exactly");
-            assertEquals(2L, fetched.getRedoStack().getLast(), "The version pushed into the redo stack should match exactly");
+            assertEquals(u3, fetched.getRedoStack().getLast(), "The version pushed into the redo stack should match exactly");
             assertEquals(4, fetched.getRedoStack().size(), "The size of the redo stack must match exactly");
         }
 
@@ -58,15 +64,15 @@ public class UndoRedoRepositoryIntegrationTest extends VaultIntegrationTest {
             ObjectId doesNotHoldIt = new ObjectId();
 
             // Act
-            Long shouldBeNull = rulebookRepository.atomicPopUndoAndPushRedo(rulebookId, doesNotHoldIt);
+            ObjectId shouldBeNull = rulebookRepository.atomicPopUndoAndPushRedo(rulebookId, doesNotHoldIt);
             Rulebook fetched = rulebookRepository.findById(rulebookId).orElse(null);
 
             // Assert
             assertNull(shouldBeNull, "The pop failed so no changes were made. Null is returned.");
             assertEquals(3, fetched.getUndoStack().size(), "The size of the undo stack must match exactly");
-            assertEquals(2L, fetched.getUndoStack().getLast(), "The version at the top of the undo stack should match exactly");
+            assertEquals(u3, fetched.getUndoStack().getLast(), "The version at the top of the undo stack should match exactly");
             assertEquals(3, fetched.getRedoStack().size(), "The size of the redo stack must match exactly");
-            assertEquals(3L, fetched.getRedoStack().getLast(), "The version at the top of the redo stack should match exactly");
+            assertEquals(r3, fetched.getRedoStack().getLast(), "The version at the top of the redo stack should match exactly");
         }
 
         @Test
@@ -76,31 +82,31 @@ public class UndoRedoRepositoryIntegrationTest extends VaultIntegrationTest {
                     .id(new ObjectId())
                     .lockHeldBy(userId)
                     .undoStack(List.of())
-                    .redoStack(List.of(5L, 4L, 3L))
+                    .redoStack(List.of(r1, r2, r3))
                     .build();
 
             rulebookRepository.save(emptyUndoStack);
             // Act
-            Long shouldBeNull = rulebookRepository.atomicPopUndoAndPushRedo(emptyUndoStack.getId(), userId);
+            ObjectId shouldBeNull = rulebookRepository.atomicPopUndoAndPushRedo(emptyUndoStack.getId(), userId);
             Rulebook fetched = rulebookRepository.findById(emptyUndoStack.getId()).orElse(null);
 
             // Assert
             assertNull(shouldBeNull, "The pop failed so no changes were made. Null is returned.");
             assertEquals(0, fetched.getUndoStack().size(), "The size of the undo stack must match exactly");
             assertEquals(3, fetched.getRedoStack().size(), "The size of the redo stack must match exactly");
-            assertEquals(3L, fetched.getRedoStack().getLast(), "The version at the top of the redo stack should match exactly");
+            assertEquals(r3, fetched.getRedoStack().getLast(), "The version at the top of the redo stack should match exactly");
         }
 
         @Test
         void atomicPopRedoAndPushUndoShouldSucceedIfUserHoldsTheLock() {
             // Act
-            Long popped = rulebookRepository.atomicPopRedoAndPushUndo(rulebookId, userId);
+            ObjectId popped = rulebookRepository.atomicPopRedoAndPushUndo(rulebookId, userId);
             Rulebook fetched = rulebookRepository.findById(rulebookId).orElse(null);
 
             // Assert
-            assertEquals(3L, popped, "The version popped from the redo stack should match exactly");
+            assertEquals(r3, popped, "The version popped from the redo stack should match exactly");
             assertEquals(2, fetched.getRedoStack().size(), "The size of the redo stack must match exactly");
-            assertEquals(3L, fetched.getUndoStack().getLast(), "The version pushed into the undo stack should match exactly");
+            assertEquals(r3, fetched.getUndoStack().getLast(), "The version pushed into the undo stack should match exactly");
             assertEquals(4, fetched.getUndoStack().size(), "The size of the undo stack must match exactly");
         }
 
@@ -110,15 +116,15 @@ public class UndoRedoRepositoryIntegrationTest extends VaultIntegrationTest {
             ObjectId doesNotHoldIt = new ObjectId();
 
             // Act
-            Long shouldBeNull = rulebookRepository.atomicPopRedoAndPushUndo(rulebookId, doesNotHoldIt);
+            ObjectId shouldBeNull = rulebookRepository.atomicPopRedoAndPushUndo(rulebookId, doesNotHoldIt);
             Rulebook fetched = rulebookRepository.findById(rulebookId).orElse(null);
 
             // Assert
             assertNull(shouldBeNull, "The pop failed so no changes were made. Null is returned.");
             assertEquals(3, fetched.getUndoStack().size(), "The size of the undo stack must match exactly");
-            assertEquals(2L, fetched.getUndoStack().getLast(), "The version at the top of the undo stack should match exactly");
+            assertEquals(u3, fetched.getUndoStack().getLast(), "The version at the top of the undo stack should match exactly");
             assertEquals(3, fetched.getRedoStack().size(), "The size of the redo stack must match exactly");
-            assertEquals(3L, fetched.getRedoStack().getLast(), "The version at the top of the redo stack should match exactly");
+            assertEquals(r3, fetched.getRedoStack().getLast(), "The version at the top of the redo stack should match exactly");
         }
 
         @Test
@@ -127,20 +133,20 @@ public class UndoRedoRepositoryIntegrationTest extends VaultIntegrationTest {
             Rulebook emptyRedoStack = Rulebook.builder()
                     .id(new ObjectId())
                     .lockHeldBy(userId)
-                    .undoStack(List.of(0L, 1L, 2L))
+                    .undoStack(List.of(u1, u2, u3))
                     .redoStack(List.of())
                     .build();
 
             rulebookRepository.save(emptyRedoStack);
             // Act
-            Long shouldBeNull = rulebookRepository.atomicPopRedoAndPushUndo(emptyRedoStack.getId(), userId);
+            ObjectId shouldBeNull = rulebookRepository.atomicPopRedoAndPushUndo(emptyRedoStack.getId(), userId);
             Rulebook fetched = rulebookRepository.findById(emptyRedoStack.getId()).orElse(null);
 
             // Assert
             assertNull(shouldBeNull, "The pop failed so no changes were made. Null is returned.");
             assertEquals(0, fetched.getRedoStack().size(), "The size of the redo stack must match exactly");
             assertEquals(3, fetched.getUndoStack().size(), "The size of the undo stack must match exactly");
-            assertEquals(2L, fetched.getUndoStack().getLast(), "The version at the top of the undo stack should match exactly");
+            assertEquals(u3, fetched.getUndoStack().getLast(), "The version at the top of the undo stack should match exactly");
         }
     }
 }

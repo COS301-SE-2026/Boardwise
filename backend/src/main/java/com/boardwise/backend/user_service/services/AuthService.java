@@ -1,11 +1,9 @@
 package com.boardwise.backend.user_service.services;
 
 import java.time.Instant;
-
 import org.owasp.encoder.Encode;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -59,11 +57,9 @@ public class AuthService {
         String username = sanitize(dto.username());
         
         // validate user
-        Authentication auth = manager
-        .authenticate(new UsernamePasswordAuthenticationToken(username, dto.password()) );
-
-        if(!auth.isAuthenticated())
-            throw new IllegalArgumentException("Incorrect user credentials");
+        manager.authenticate(
+            new UsernamePasswordAuthenticationToken(username, dto.password()) 
+        );
 
         // generate JWT and return it
         User user = userRepo.findByUsername(username).get();

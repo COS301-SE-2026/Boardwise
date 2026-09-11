@@ -27,9 +27,10 @@ from app.utils.logging_utils import sanitise_log_input
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/api/fa/vault/rulebooks",
     tags=["rulebooks"]
 )
+
+SAFE_TEXT_PATTERN = r"^[\w\s\-.,&'\(\)!?]+$"
 
 @router.post(
     "/upload",

@@ -1,0 +1,11 @@
+http://localhost {
+    # Route requests to spring
+    handle /api/sb/* {
+        reverse_proxy backend:8080
+    }
+
+    # Route requests to python
+    handle /api/fa/* {
+        reverse_proxy ai-gateway:8000
+    }
+}

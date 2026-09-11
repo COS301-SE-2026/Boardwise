@@ -31,6 +31,7 @@ const messages = ref<Array<DirectMessageDTO>>([]);
 
 export const usePrivateChat = () => {
     const { isConnected, subscribe, unsubscribe, sendPrivateMessage } = useStomp();
+    const { fetchUserById } = useProfile();
     const dest = "/user/queue/chat";
     const token = localStorage.getItem("access_token");
 
@@ -54,6 +55,12 @@ export const usePrivateChat = () => {
         try{
             if(!token) throw new Error("User is not authenticated");
 
+            const isSameChat = messages.value.length > 0 && 
+                (messages.value[0]?.senderId == targetId || messages.value[0]?.receiverId == targetId);
+
+            if(!isSameChat)
+                messages.value = [];
+            
             const res = await ChatService.getMissedPrivateMessage(
                 targetId, 
                 lastMessageTime.value
@@ -65,7 +72,7 @@ export const usePrivateChat = () => {
 
             messages.value = res.sort((a, b) => {
                 return new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime();
-            })
+            });
         }
         catch(err: any){
             if(err.message.includes("authenticated")){
@@ -102,7 +109,9 @@ export const usePrivateChat = () => {
                 (!el.lastMessage || el.lastMessage === "")
             )
 
-            chats.value = [...unsavedChats, ...fetchedChats]
+            chats.value = [...unsavedChats, ...fetchedChats].sort((a, b) => 
+                new Date(a.lastMessageAt).getTime() - new Date(b.lastMessageAt).getTime()
+            )
             
         }
         catch(err: any){
@@ -149,7 +158,7 @@ export const usePrivateChat = () => {
             // check if they have spoken before
             const convoId = generateConversationId(message.senderId, message.receiverId);
             const eId: number = chats.value.findIndex((el) => {
-                return el.id === generateConversationId(message.senderId, message.receiverId)
+                return el.id === convoId
             })  
             if(eId !== -1 && chats.value[eId]){
                 const convo: Conversation = chats.value[eId];
@@ -159,7 +168,7 @@ export const usePrivateChat = () => {
                 chats.value.unshift(convo);
             }
             else{
-                const { fetchUserById } = useProfile();
+                
                 const convo: Conversation = {
                     id: convoId,
                     userId: message.senderId,
