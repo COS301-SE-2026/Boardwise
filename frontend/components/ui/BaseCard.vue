@@ -1,26 +1,28 @@
 <!-- Base Card for every other Card (Marketplace, Library and Profile Cards) -->
 <template> 
     <v-card 
-        rounded="lg"
-        :elevation="0"
-        border
         class="base-card"
+        :class="{ 'base-card--clickable' : clickable}"
+        rounded="lg"
         v-bind="$attrs"
     >
-        <slot />
+        <div v-if="$slots.media" class="base-card__media">
+            <slot name="media" />
+        </div>
+
+        <div class="base-card__body" :class="{ 'base-card__body--flush': flush }">
+            <slot />
+        </div>
+
+        <div v-if="$slots.actions" class="base-card__actions">
+            <slot name="actions" />
+        </div>
     </v-card>
 </template>
 
-<style scoped>
-.base-card {
-    overflow: hidden;
-    transition: 
-        transform var(--transition-base),
-        box-shadow var(--transition-base);
-}
-
-.base-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md) !important;
-}
-</style>
+<script setup>
+defineProps({
+    clickable: { type: Boolean, default: false },
+    flush: {type: Boolean, default: false }
+})
+</script>
