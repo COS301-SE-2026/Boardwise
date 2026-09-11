@@ -112,7 +112,7 @@ export const useAuth = () => {
     isLoading.value = true;
     if(import.meta.client){
       try{
-        const response = await AuthService.logout();
+        await AuthService.logout();
         disconnect();
         return true;
       }catch(err: any){

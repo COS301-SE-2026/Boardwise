@@ -61,17 +61,17 @@ public class NotificationService {
         if(notification.getType() != NotificationType.COMMUNITY_CHAT) return;
 
         List<GroupMembership> memberships = groupRepo.findByGroupId(communityId);
-        List<Notification> notifications = memberships.stream()
-                                                    .filter((membership) -> !isOnline(membership.getUserId()))
-                                                    .map((membership) -> new Notification(
-                                                        null,
-                                                        membership.getUserId(),
-                                                        notification.getType(),
-                                                        makeNotificationData(notification),
-                                                        Instant.now(),
-                                                        false,
-                                                        null
-                                                    )).toList();
+        // List<Notification> notifications = memberships.stream()
+        //                                             .filter((membership) -> !isOnline(membership.getUserId()))
+        //                                             .map((membership) -> new Notification(
+        //                                                 null,
+        //                                                 membership.getUserId(),
+        //                                                 notification.getType(),
+        //                                                 makeNotificationData(notification),
+        //                                                 Instant.now(),
+        //                                                 false,
+        //                                                 null
+        //                                             )).toList();
         
         // if(!notifications.isEmpty()) notifRepo.saveAll(notifications);
 

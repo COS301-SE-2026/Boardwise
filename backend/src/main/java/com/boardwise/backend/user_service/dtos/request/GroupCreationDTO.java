@@ -1,4 +1,4 @@
-package com.boardwise.backend.user_service.dtos;
+package com.boardwise.backend.user_service.dtos.request;
 
 import org.springframework.boot.context.properties.bind.DefaultValue;
 

@@ -1,5 +1,6 @@
-package com.boardwise.backend.user_service.dtos;
+package com.boardwise.backend.user_service.dtos.notifications;
 
+import com.boardwise.backend.user_service.dtos.FriendRequestDTO;
 import com.boardwise.backend.user_service.enums.NotificationType;
 
 public record FriendRequestNotification(

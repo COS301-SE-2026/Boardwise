@@ -8,15 +8,18 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+import com.boardwise.backend.shared.services.NotificationService;
+import com.boardwise.backend.user_service.events.JoinedCommunityEvent;
 import com.boardwise.backend.user_service.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class AsyncEventListener {
+public class AsyncEventListener{
 
     private final UserRepository userRepo;
+    private final NotificationService notificationService;
 
     @Async
     @EventListener
@@ -27,5 +30,13 @@ public class AsyncEventListener {
             userRepo.updateLastOnlineAtByUserId(user.getName(), Instant.now());
         }
     }
+
+    @Async
+    @EventListener
+    public void handleJoinedCommunity(JoinedCommunityEvent event){
+        
+       notificationService.notifyCommunity(null, null);
+    } 
+    
 
 }

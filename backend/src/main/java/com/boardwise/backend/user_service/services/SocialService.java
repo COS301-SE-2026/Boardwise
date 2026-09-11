@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,7 @@ import com.boardwise.backend.user_service.dtos.GroupMembershipResponseDTO;
 import com.boardwise.backend.user_service.dtos.GroupUpdateRequestDTO;
 import com.boardwise.backend.user_service.dtos.GroupUpdateResponseDTO;
 import com.boardwise.backend.user_service.enums.Visibility;
+import com.boardwise.backend.user_service.events.JoinedCommunityEvent;
 import com.boardwise.backend.user_service.models.Group;
 import com.boardwise.backend.user_service.models.GroupMembership;
 import com.boardwise.backend.user_service.models.User;
@@ -43,6 +46,7 @@ public class SocialService {
     private final GroupMembershipRepository gmRepo;
     private final JWTService jwtService;
     private final R2StorageService bucket;
+    private final ApplicationEventPublisher eventPublisher;
     private final MongoTemplate template;
 
 
@@ -98,19 +102,9 @@ public class SocialService {
     }
 
     public List<?> getAllGroups(String token) {
-        String userId = jwtService.extractUserId(token).toString();
         List<GroupInfo> groups = new ArrayList<>();
 
         for(Group group : groupRepo.findAll()){
-            // if(group.getVisibility().equals(Visibility.PRIVATE)){
-            //     GroupMembership toCheck = new GroupMembership();
-            //     toCheck.setGroupId(group.getId());
-            //     toCheck.setUserId(userId);
-
-            //     if(!gmRepo.exists(Example.of(toCheck)))
-            //         continue;
-            // }
-
             User owner = userRepo.findById(group.getOwnerId()).get();
             
             GroupMembership gm = new GroupMembership();
@@ -197,6 +191,11 @@ public class SocialService {
 
         gm.setJoinedAt(Instant.now());
         gmRepo.save(gm);
+
+        // "notify" members about the new member 
+        Object obj = new Object();
+        JoinedCommunityEvent event = new JoinedCommunityEvent(this, obj);
+        eventPublisher.publishEvent(event);
 
         Map<String, Object> data = new HashMap<>();
 

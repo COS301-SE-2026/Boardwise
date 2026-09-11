@@ -17,6 +17,7 @@ export const useCommunityChat = () => {
     const { isConnected, subscribe, unsubscribe, sendCommunityMessage } = useStomp();
     const route = useRoute();
     let dest: string | null = null;
+    let notifDest: string | null = null;
     const token = localStorage.getItem("access_token");
 
     const lastMessageTime = computed(() =>{
@@ -106,9 +107,12 @@ export const useCommunityChat = () => {
     }
 
     const subToComm = (id: string) => {
-        if(dest)
+        if(dest && notifDest){
             unsubscribe(dest);
+            unsubscribe(notifDest)
+        }
         dest = `/topic/community/${id}/chat`;
+        notifDest = `/topic/community/${id}/notif`;
         listenForMessages(id);
     }
 

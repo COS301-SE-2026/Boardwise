@@ -114,6 +114,7 @@ public class ChatController {
     @MessageExceptionHandler(IllegalAccessException.class)
     @SendToUser("/queue/errors")
     public ErrorMessage handleIllegalAccessException(IllegalAccessException e){
+        System.err.println("Triggered not a community member error");
         return new ErrorMessage("NOT_COMMUNITY_MEMBER", e.getMessage());
     }
 
@@ -122,4 +123,5 @@ public class ChatController {
     public ErrorMessage handleGenericException(Exception e){
         return new ErrorMessage("INTERNAL_ERROR", "Something went wrong on our end.");
     }
+
 }
