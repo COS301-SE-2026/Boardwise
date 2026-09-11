@@ -86,10 +86,7 @@ const props = defineProps({
 defineEmits(['select'])
 
 const conversationLabel = computed(() => {
-    // const unread = props.conversation.unread
-    //     ? `, ${props.conversation.unread} unread`
-    //     : ''
-
+    
     const status = props.conversation.isOnline
         ? ', online'
         : ', offline'
