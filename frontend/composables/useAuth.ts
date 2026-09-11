@@ -52,7 +52,7 @@ const isLoading = ref<boolean>(false);
 
 export const useAuth = () => {
   const router = useRouter();
-  const { connect } = useStomp();
+  const { connect, disconnect } = useStomp();
 
   // Helper for session management
   const setSession = (newToken: string, userData?: any) => {
@@ -113,6 +113,7 @@ export const useAuth = () => {
     if(import.meta.client){
       try{
         const response = await AuthService.logout();
+        disconnect();
         return true;
       }catch(err: any){
         error.value = err.data?.message || 'Invalid credentials';
