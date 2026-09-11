@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { AuthService } from '~/services/authService'
+import { useStomp } from '~/composables/useStomp'
 
 export const required = (message : string = 'This field is required') => (value: any) => {
   return (value !== null && value !== undefined && String(value).trim() !== '') || message 
@@ -51,6 +52,7 @@ const isLoading = ref<boolean>(false);
 
 export const useAuth = () => {
   const router = useRouter();
+  const { connect } = useStomp();
 
   // Helper for session management
   const setSession = (newToken: string, userData?: any) => {
@@ -77,7 +79,8 @@ export const useAuth = () => {
         firstName: userData.firstName,
         lastName: userData.lastName
       });
-
+      connect();
+      
       return true;
     }catch(err: any){
       error.value = err.data?.message || 'Registration failed';
@@ -93,6 +96,8 @@ export const useAuth = () => {
     try{
       const response = await AuthService.login(credentials);
       setSession(response.accessToken, response.user);
+      connect();
+
       return true;
     }catch(err: any){
       error.value = err.data?.message || 'Invalid credentials';
