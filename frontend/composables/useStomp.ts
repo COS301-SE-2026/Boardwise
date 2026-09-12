@@ -1,6 +1,7 @@
 import { Client, type IMessage } from "@stomp/stompjs";
 import { type DirectMessage } from "~/composables/usePrivateChat";
 import { type CommunityMessage } from "~/composables/useCommunityChat";
+import { ref } from "vue"
 
 // how to deal with received messages
 type MessageHandler = (payload: any) => void;
@@ -13,8 +14,8 @@ interface Subscription{
 
 let client: Client | null = null;
 const subscriptions = new Map<string, Subscription>(); // track all subscriptions to an endpoint
-const isConnected = useState('socket-connected', () => false);
-const connectedBefore = useState('socket-connected-before', () => false);
+const isConnected = ref<boolean>(false);
+const connectedBefore = ref<boolean>(false);
 const reconnectHooks: Array<() => void> = [];
 
 function reSubToAll(){

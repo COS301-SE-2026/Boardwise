@@ -168,7 +168,7 @@ export const usePrivateChat = () => {
                 chats.value.unshift(convo);
             }
             else{
-
+                
                 const convo: Conversation = {
                     id: convoId,
                     userId: message.senderId,
@@ -180,12 +180,18 @@ export const usePrivateChat = () => {
                     unread: true
                 }
 
-                const sender: ProfileResponse | undefined = await fetchUserById(convo.userId);
+                chats.value.unshift(convo);
+
+                try{
+                    const sender: ProfileResponse | undefined = await fetchUserById(convo.userId);
                 
-                if(sender){
-                    convo.username = sender.username;
-                    convo.profilePicture = sender.profilePicture;
-                    chats.value.unshift(convo);
+                    if(sender){
+                        convo.username = sender.username;
+                        convo.profilePicture = sender.profilePicture;
+                    }
+                }
+                catch(err){
+                    console.error("[Private chat composable]: Making request for user data failed:", err);
                 }
                
             }

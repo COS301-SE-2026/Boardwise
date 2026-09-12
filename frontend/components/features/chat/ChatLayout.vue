@@ -38,6 +38,7 @@ import ChatWindow from './ChatWindow.vue'
 import { useEvents } from '~/composables/useEvents'
 import { usePrivateChat } from '~/composables/usePrivateChat'
 import { useRoute, useRouter } from 'vue-router'
+import { useStomp } from '~/composables/useStomp';
 
 
 const {
@@ -51,6 +52,8 @@ const {
     getChats,
     startNewConversation
 } = usePrivateChat()
+
+const { onReconnectHook } = useStomp()
 
 const router = useRouter()
 const route = useRoute()
@@ -76,8 +79,8 @@ onMounted(async () => {
     if(currentChat.value){
         selectConversation(currentChat.value.id)
     }
-    else if(conversations.value.length > 0 && conversations.value[0])
-        selectConversation(conversations.value[0].id)
+
+    onReconnectHook(async () => await getChats())
 })
 
 const conversations = computed(() => {
