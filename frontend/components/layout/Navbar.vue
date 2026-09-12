@@ -13,7 +13,7 @@
         @click="drawer = !drawer"
       />
 
-      <NuxtLink data-test="nuxt-link" to="/" class="logo ">
+      <NuxtLink data-test="nuxt-link" to="/library" class="logo ">
           Boardwise
       </NuxtLink>
 
