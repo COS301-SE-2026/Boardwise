@@ -55,7 +55,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import Navbar from '~/components/layout/Navbar.vue'
@@ -68,10 +68,18 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
 import { useCommunity } from '~/composables/useCommunity'
 import { useSnackBar } from '~/composables/useSnackbar'
+import { useCommunityChat } from '~/composables/useCommunityChat'
+
 
 
 const route = useRoute()
 const router = useRouter()
+const { show } = useSnackBar()
+
+const {
+  subToCommNotif,
+  unSubToCommNotif
+} = useCommunityChat()
 
 const {
   getCommunityDetails,
@@ -81,29 +89,60 @@ const {
   loading
 } = useCommunity()
 
-const { show } = useSnackBar()
 
 const community = ref(null)
 const token = ref('')
+const id = ref('')
+const showDetails = ref(false)
+const showMembers = ref(false)
+const showEvents = ref(false)
 
 onMounted(async () => {
   const rawToken = localStorage.getItem("access_token")
   if(!rawToken)
       router.push("/auth/signin")
   else{
-      token.value = rawToken;
-      community.value = await getCommunityDetails(route.params.id)
+      token.value = rawToken
+      id.value = route.params.id
+      community.value = await getCommunityDetails(id.value)
+
+      if(community.value && community.value.isMember){
+        subToCommNotif(id.value, (newMember) => {
+          community.value.members.push(newMember)
+          community.value.memberCount++
+        }) 
+      }
   }
  
 })
 
+watch(
+    () => route.params.id,
+    (cId) => {
+        if (typeof cId === "string") {
+            id.value = cId
+            if(community.value?.isMember){
+              subToCommNotif(id.value, (newMember) => {
+                community.value.members.push(newMember)
+                community.value.memberCount++
+              }) 
+            }
+        }
+    },
+    { immediate: true }
+)
+
 const handleJoin = async () => {
   try {
-    const response = await joinCommunity(route.params.id)
+    const response = await joinCommunity(id.value)
 
     community.value.members = response.data.members
     community.value.memberCount = response.data.memberCount
     community.value.isMember = response.data.isMember
+    subToCommNotif(id.value, (newMember) => {
+      community.value.members.push(newMember)
+      community.value.memberCount++
+    }) 
 
     show('Nice move! You joined the community.', 'success')
   } catch (err) {
@@ -114,11 +153,12 @@ const handleJoin = async () => {
 
 const handleLeave  = async () => {
   try {
-    const response = await leaveCommunity(route.params.id)
+    const response = await leaveCommunity(id.value)
 
     community.value.members = response.data.members
     community.value.memberCount = response.data.memberCount
     community.value.isMember = response.data.isMember
+    unSubToCommNotif()
 
     show('You left the community.', 'success')
     showDetails.value = false

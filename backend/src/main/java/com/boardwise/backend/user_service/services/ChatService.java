@@ -91,12 +91,6 @@ public class ChatService {
                 messageTime
             );
         }
-
-        NotificationDTO notification = new DirectMessageNotification(
-            senderId,
-            message.message()
-        );
-        notifService.notifyUser(message.receiverId(), notification);
         
         return new DirectMessageDTO(
             senderId,
@@ -145,12 +139,6 @@ public class ChatService {
                 sentAt
             );
         }
-
-        NotificationDTO notification = new CommunityMessageNotification(
-            senderId, 
-            message.message()
-        );
-        notifService.notifyCommunity(message.communityId(), notification);
 
         return new CommunityMessageDTO(
             senderId, 

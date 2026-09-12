@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.dtos.GroupDTO;
 import com.boardwise.backend.user_service.dtos.GroupInfo;
+import com.boardwise.backend.user_service.dtos.notifications.CommunityMessageNotification;
 import com.boardwise.backend.user_service.dtos.request.GroupCreationDTO;
 import com.boardwise.backend.user_service.dtos.request.GroupUpdateRequestDTO;
 import com.boardwise.backend.user_service.dtos.response.GroupCreationResponseDTO;
@@ -28,12 +29,15 @@ import com.boardwise.backend.user_service.dtos.response.GroupMembershipResponseD
 import com.boardwise.backend.user_service.dtos.response.GroupUpdateResponseDTO;
 import com.boardwise.backend.user_service.enums.Visibility;
 import com.boardwise.backend.user_service.events.JoinedCommunityEvent;
+import com.boardwise.backend.user_service.events.payload.JoinedCommunityEventPayload;
 import com.boardwise.backend.user_service.models.Group;
 import com.boardwise.backend.user_service.models.GroupMembership;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repository.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repository.GroupRepository;
 import com.boardwise.backend.user_service.repository.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -48,6 +52,7 @@ public class SocialService {
     private final R2StorageService bucket;
     private final ApplicationEventPublisher eventPublisher;
     private final MongoTemplate template;
+    private final ObjectMapper objectMapper;
 
 
     public GroupCreationResponseDTO createGroup(String token, GroupCreationDTO group, MultipartFile image) throws IOException{
@@ -192,11 +197,7 @@ public class SocialService {
         gm.setJoinedAt(Instant.now());
         gmRepo.save(gm);
 
-        // "notify" members about the new member 
-        Object obj = new Object();
-        JoinedCommunityEvent event = new JoinedCommunityEvent(this, obj);
-        eventPublisher.publishEvent(event);
-
+        
         Map<String, Object> data = new HashMap<>();
 
         // new member count
@@ -217,11 +218,30 @@ public class SocialService {
                 continue;
 
             Map<String, String> userData = new HashMap<>();
+            userData.put("id", member.getId());
             userData.put("username", member.getUsername());
             userData.put("profilePicture", member.getProfilePicture());
             members.add(userData);
         }
         data.put("members", members);
+        
+        try{
+            User member = userRepo.findById(userId).get();
+            Map<String, String> message = new HashMap<>();
+
+            message.put("id", userId);
+            message.put("username", member.getUsername());
+            message.put("profilePicture", member.getProfilePicture());
+
+            String messageJson = objectMapper.writeValueAsString(message);
+            CommunityMessageNotification notification = new CommunityMessageNotification("SYSTEM", messageJson);
+            JoinedCommunityEventPayload payload = new JoinedCommunityEventPayload(groupId, notification);
+            JoinedCommunityEvent event = new JoinedCommunityEvent(this, payload);
+            eventPublisher.publishEvent(event);
+        } 
+        catch(JsonProcessingException e){
+            System.out.println("[Social Service]: Failed to process object into json:\n" + e);
+        }
 
         return new GroupMembershipResponseDTO(
             "Joined group successfully",
@@ -269,6 +289,17 @@ public class SocialService {
             members.add(userData);
         }
         data.put("members", members);
+
+        try{
+            String messageJson = objectMapper.writeValueAsString(data);
+            CommunityMessageNotification notification = new CommunityMessageNotification("SYSTEM", messageJson);
+            JoinedCommunityEventPayload payload = new JoinedCommunityEventPayload(groupId, notification);
+            JoinedCommunityEvent event = new JoinedCommunityEvent(this, payload);
+            eventPublisher.publishEvent(event);
+        } 
+        catch(JsonProcessingException e){
+            System.out.println("[Social Service]: Failed to process object into json:\n" + e);
+        }
         
         return new GroupMembershipResponseDTO(
             "Group exited successfully",

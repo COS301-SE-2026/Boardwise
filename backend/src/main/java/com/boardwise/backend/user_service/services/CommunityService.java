@@ -28,7 +28,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.boardwise.backend.shared.dtos.GameInventoryDTO;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.shared.services.NotificationService;
 import com.boardwise.backend.user_service.dtos.DeRsvpDTO;
 import com.boardwise.backend.user_service.dtos.EventDTO;
 import com.boardwise.backend.user_service.dtos.EventHostInfo;
@@ -37,7 +36,6 @@ import com.boardwise.backend.user_service.dtos.EventInviteDTO;
 import com.boardwise.backend.user_service.dtos.EventInviteInfo;
 import com.boardwise.backend.user_service.dtos.EventUpdateDTO;
 import com.boardwise.backend.user_service.dtos.InviteDTO;
-import com.boardwise.backend.user_service.dtos.notifications.InviteNotification;
 import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.user_service.enums.EventStatus;
 import com.boardwise.backend.user_service.enums.RSVPStatus;
@@ -67,7 +65,6 @@ public class CommunityService {
     private final GeoApiContext geoApiContext;
     private final R2StorageService bucket;
     private final EventAttendeeRepository eaRepo;
-    private final NotificationService notifService;
     private final MongoTemplate template;
 
     public Map<String, Object> getEvents(String token, String name, Integer pageNumber) {
@@ -362,7 +359,6 @@ public class CommunityService {
         }
         
         if(eventChanged){
-            // TODO: notify attendees about the update
             event = eventRepo.save(event);
 
             EventAttendee forExample = new EventAttendee();
@@ -526,7 +522,7 @@ public class CommunityService {
     }
 
     public Map<String, Object> inviteToEvent(String token, EventInviteDTO inviteInfo) throws NoSuchElementException{
-        User inviter = getUserFromToken(token);
+
         Optional<User> invitee = userRepo.findByUsername(inviteInfo.invitee());
         Map<String, Object> result = new HashMap<>();
         
@@ -547,21 +543,6 @@ public class CommunityService {
             invitee.get().getId(), inviteInfo.eventId(), RSVPStatus.INVITED 
         );
         eaRepo.save(newAttendee);
-
-        Event event = eventRepo.findById(inviteInfo.eventId()).get();        
-        EventInviteInfo invite = new EventInviteInfo(
-            event.getId(),
-            event.getName(),
-            event.getEventImg(),
-            event.getStartDateTime().toLocalDate()
-        ); 
-        EventHostInfo sender = new EventHostInfo(inviter.getUsername(), inviter.getProfilePicture());                                   
-        InviteNotification payload = new InviteNotification(sender, invite);
-
-        notifService.notifyUser(
-            invitee.get().getId(), 
-            payload
-        );
 
         result.put("message", "Invite successfully sent.");
         return result;

@@ -10,6 +10,7 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import com.boardwise.backend.shared.services.NotificationService;
 import com.boardwise.backend.user_service.events.JoinedCommunityEvent;
+import com.boardwise.backend.user_service.events.payload.JoinedCommunityEventPayload;
 import com.boardwise.backend.user_service.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,8 @@ public class AsyncEventListener{
     @Async 
     @EventListener 
     public void handledJoinedCommunityEvent(JoinedCommunityEvent event){
-        notificationService.notifyCommunity(null, null);
+        JoinedCommunityEventPayload payload = event.getMessage();
+        notificationService.notifyCommunity(payload.communityId(), payload.notification());
     }
 
 }

@@ -1,11 +1,17 @@
 import { jwtDecode } from 'jwt-decode';
 import { useStomp } from '~/composables/useStomp';
 import { useRoute } from 'vue-router';
-import { type CommunityMessageDTO, CommunityService } from '~/services/communityService';
+import { type CommunityMessageDTO, type Member, CommunityService } from '~/services/communityService';
 
 export interface CommunityMessage{
     id: string,
     communityId: string,
+    message: string
+}
+
+export interface NewMemberNotification{
+    type: 'COMMUNITY_CHAT',
+    senderId: string,
     message: string
 }
 
@@ -29,6 +35,10 @@ export const useCommunityChat = () => {
     const getMissedCommunityMessages = async (targetId: string) => {
         error.value = '';
         isLoading.value = true;
+
+        if(messages.value.length > 0 && messages.value[0]?.communityId !== targetId){
+            messages.value = [];
+        }
 
         try{
             if(!token) throw new Error("User is not authenticated");
@@ -89,6 +99,17 @@ export const useCommunityChat = () => {
         })
     }
 
+    const listenForNewMemberJoin = (id: string, notificationHandler: (member: Member) => void) => {
+        if(!token) return;
+
+        subscribe(`/topic/community/${id}/notification`, (notification: NewMemberNotification) => {
+            console.log("System community message received!!\n", notification);
+            const newMember = JSON.parse(notification.message) as Member;
+            notificationHandler(newMember);
+            
+        })
+    }
+
     const sendGroupMessage = (msg: CommunityMessageDTO) => {
         if(!token) return;
         
@@ -107,13 +128,25 @@ export const useCommunityChat = () => {
     }
 
     const subToComm = (id: string) => {
-        if(dest && notifDest){
+        if(dest)
             unsubscribe(dest);
-            unsubscribe(notifDest)
-        }
+        
         dest = `/topic/community/${id}/chat`;
-        notifDest = `/topic/community/${id}/notif`;
         listenForMessages(id);
+        
+    }
+
+    const subToCommNotif = (id: string, notificationHandler: (member: Member) => void) => {
+        if(notifDest)
+            unsubscribe(notifDest);
+
+        notifDest = `/topic/community/${id}/notification`;
+        listenForNewMemberJoin(id, notificationHandler);
+    }
+
+    const unSubToCommNotif = () => {
+        if(notifDest)
+            unsubscribe(notifDest);
     }
 
     watch(
@@ -126,7 +159,10 @@ export const useCommunityChat = () => {
         { immediate: true }
     )
 
-    onUnmounted(() => unsubscribe(dest!));
+    onUnmounted(() => {
+        unsubscribe(dest!)
+        unsubscribe(notifDest!)
+    });
 
     return {
         isConnected,
@@ -134,6 +170,9 @@ export const useCommunityChat = () => {
         error,
         sendGroupMessage,
         getMissedCommunityMessages,
-        messages
+        messages,
+        listenForNewMemberJoin,
+        subToCommNotif,
+        unSubToCommNotif
     }
 }
