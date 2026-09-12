@@ -1,6 +1,8 @@
 <template>
   <BaseGrid cols="220px" gap="var(--space-6)">
 
+    <AddGameCard v-if="editable" @add-game="$emit('add-game')" />
+
     <GameCard
       v-for="game in games"
       :key="game.id"
@@ -10,8 +12,6 @@
       :removeable="editable"
       @remove="$emit('remove-game', game.id)"
     />
-
-    <AddGameCard v-if="editable" @add-game="$emit('add-game')" />
 
   </BaseGrid>
 </template>
