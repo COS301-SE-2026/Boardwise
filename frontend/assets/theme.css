@@ -373,6 +373,11 @@ a:hover { text-decoration: underline; }
   border: 2px solid var(--color-surface);
   box-shadow: var(--shadow-sm);
   color: #fff;
+
+  /* Spacing */
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-4);
 }
 .badge--copper { background: var(--copper); transform: rotate(-3deg); }
 .badge--fire { background: var(--wildfire); transform: rotate(2deg); }

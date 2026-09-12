@@ -1,24 +1,20 @@
 <template> 
-  <BaseCard 
-    class="cursor-pointer" 
-    @click="$emit('click', rulebook)"
-  > 
-
-  <BaseImage 
-    :src="rulebook.coverUrl" 
-    :alt="rulebook.title" 
-  />
-
-  <div class="pa-4 d-flex flex-column ga-2">
-    <h2 class="card-title">
+  <BaseCard clickable @click="$emit('click', rulebook)"> 
+    <template #media>
+      <BaseImage 
+        :src="rulebook.coverUrl" 
+        :alt="rulebook.title" 
+      />
+    </template>
+    
+    <p class="card-title">
       {{ rulebook.title }}
-    </h2>
-    <h4 class="card-meta">
+    </p>
+    <p class="card-meta">
       {{ rulebook.edition }}
-    </h4>
-  </div>
-        
-    </BaseCard>
+    </p>
+    
+  </BaseCard>
 </template>
 
 <script setup> 
