@@ -43,7 +43,7 @@ defineEmits(['open'])
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-4);
   margin-inline: var(--space-12);
-  margin-top: -32px;
+  margin-top: 25px;
 }
 
 .stat-card {

@@ -1,25 +1,23 @@
 <template>
-    <BaseCard data-test="base-card" class="pa-4">
+    <BaseCard data-test="base-card" flush>
 
-        <div class="d-flex ga-4">
-
+        <div class="d-flex ga-4 pa-4">
             <BaseImage
                 data-test="base-image"
                 :src="invite.event.image || '/images/default-listing.png'"
                 :alt="invite.event.name"
                 height="140px"
                 width="180px"
-                class="event-image"
+                class="invite-card__image"
 
             />
 
             <div class="flex-grow-1">
-
-                <h3 class="text-h6 mb-2">
+                <p class="card-title mb-2">
                     {{ invite.event.name }}
-                </h3>
+                </p>
 
-                <p class="text-body-2 mb-1">
+                <p class="card-meta mb-1">
                     <strong>
                         Host:
                     </strong>
@@ -27,7 +25,7 @@
                     {{ invite.host.username }}
                 </p>
 
-                <p class="text-body-2 mb-4">
+                <p class="card-meta-2 mb-4">
                     <strong>
                         Date:
                     </strong>
@@ -37,26 +35,24 @@
 
                 <div class="d-flex ga-2">
 
-                    <v-btn
+                    <BaseButton
                         data-test="accept-button"
-                        color="primary"
                         :loading="responding"
                         :disabled="responding"
                         @click="$emit('accept', invite.event.id)"
                     >
                         Accept
-                    </v-btn>
+                    </BaseButton>
 
-                    <v-btn
+                    <BaseButton
                         data-test="decline-button"
-                        variant="outlined"
-                        color="error"
+                        variant="secondary"
                         :loading="responding"
                         :disabled="responding"
                         @click="$emit('decline', invite.event.id)"
                     >
                         Decline
-                    </v-btn>
+                    </BaseButton>
                 </div>
             </div>
         </div>
@@ -66,6 +62,7 @@
 <script setup lang="ts">
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
+import BaseButton from '~/components/ui/BaseButton.vue';
 
 import type { InviteItem } from '~/services/eventService'
 
@@ -82,7 +79,7 @@ defineEmits<{
 </script>
 
 <style scoped>
-.event-image {
+.invite-card__image {
     width: 180px;
     height: 140px;
     border-radius: 12px;

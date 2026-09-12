@@ -1,12 +1,12 @@
 <template> 
-    <BaseCard 
-      class="cursor-pointer"
-      @click="$emit('click', event)"
-    >
-    <BaseImage
-        :src="event.imageUrl ?? '/default-event.png'"
-        :alt="event.name"
-    />
+    <BaseCard clickable @click="$emit('click', event)" flush>
+      <template #media>
+        <BaseImage
+            :src="event.imageUrl ?? '/default-event.png'"
+            :alt="event.name"
+            height="200px"
+        />
+      </template>
 
       <div class="pa-4 d-flex flex-column ga-2">
 
