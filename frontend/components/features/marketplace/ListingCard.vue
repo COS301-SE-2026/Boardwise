@@ -1,7 +1,7 @@
 <template>
-  <BaseCard data-test="listing-card" class="listing-card" @click="openListing">
+  <BaseCard data-test="listing-card" clickable @click="openListing">
 
-    <div class="image-container">
+    <template #media>
       <BaseImage
         data-test="listing-image"
         :src="listing.imageUrl ?? '/default-listing.png'"
@@ -11,22 +11,20 @@
 
       <BaseBadge
         data-test="listing-badge"
-        class="badge"
+        class="badge--absolute"
         :variant="listing.listingType === 'rental' ? 'rent' : 'sale'"
       >
         {{ listing.listingType === 'rental' ? 'For Rent' : 'For Sale' }}
       </BaseBadge>
-    </div>
+    </template>
 
-    <v-card-text class="pa-4 d-flex flex-column ga-2">
+    <p class="card-title" data-test="listing-title">
+      {{ listing.listingTitle }}
+    </p>
 
-      <h2 class="listing-title" data-test="listing-title">
-        {{ listing.listingTitle }}
-      </h2>
-
-      <h3 class="listing-game" data-test="listing-game">
-        {{ listing.gameTitle }}
-      </h3>
+    <p class="card-subtitle" data-test="listing-game">
+      {{ listing.gameTitle }}
+    </p>
 
       <p  
         data-test="listing-price"
@@ -41,7 +39,7 @@
         <br />
 
         <span v-if="listing.listingType === 'rental'" 
-          class="period"
+          class="card-meta"
           data-test="listing-period"
         >
           {{
@@ -53,14 +51,13 @@
       </p>
 
       <div class="meta">
-        <span data-test="listing-username">@{{ listing.username ?? 'unknown' }}</span>
+        <span class="card-meta" data-test="listing-username">@{{ listing.username ?? 'unknown' }}</span>
 
-        <span v-if="listing.location" data-test="listing-location" class="d-flex align-center ga-1">
+        <span v-if="listing.location" data-test="listing-location" class="card-meta d-flex align-center ga-1">
           <v-icon size="16"> mdi-map-marker</v-icon> 
           {{ listing.location }}
         </span>
       </div>
-    </v-card-text>
 
   </BaseCard>
 </template>
@@ -82,33 +79,6 @@ const openListing = () => {
 </script>
 
 <style scoped>
-.listing-card {
-  cursor: pointer;
-}
-
-.listing-card:hover {
-  transform:  translateY(-2px);
-  box-shadow: var(--shadow-md) !important;
-}
-
-.image-container {
-  position: relative;
-}
-
-.listing-title {
-  font-family: var(--font-display);
-  font-size: var(--fs-h4);
-  color: var(--color-primary);
-  line-height: 1.2;
-  margin: 0;
-}
-
-.listing-game {
-  margin: 0;
-  font-size: var(--fs-body);
-  font-weight: var(--fw-semibold);
-}
-
 .price {
   font-weight: var(--fw-bold);
   font-size: var(--fs-body);
