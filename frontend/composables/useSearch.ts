@@ -64,7 +64,7 @@ export const useSearch = () => {
     }
     
     const fetchRulebooks = async (query: string) => {
-        const res = await LibraryService.fetchAllRulebooks({ title: query })
+        const res = await LibraryService.fetchAllRulebooks({ search: query })
         rulebooks.value = (res?.content ?? []).map((rb): RulebookCardData => ({
             id: rb.id,
             title: rb.title,
