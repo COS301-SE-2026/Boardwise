@@ -1,5 +1,6 @@
 package com.boardwise.backend.marketplace.service;
 
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -8,6 +9,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,6 +23,7 @@ import com.boardwise.backend.marketplace.dtos.listing.ListingRequest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
 import com.boardwise.backend.marketplace.enums.*;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
+import com.boardwise.backend.marketplace.exceptions.ResourceNotFound;
 import com.boardwise.backend.marketplace.models.*;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
@@ -43,6 +47,10 @@ import java.util.*;
 
 @Service
 public class ListingService {
+
+    private static final Logger log = LoggerFactory.getLogger(ListingService.class);
+
+    private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of(".png", ".jpg", ".jpeg", ".webp");
 
     @Value("${r2.bucket-listings}")
     private String listingsBucket;
@@ -69,24 +77,44 @@ public class ListingService {
         this.boardGameRepository = boardGameRepository;
     }
 
-        public static String sanitize(String input) {
+    public static String sanitize(String input) {
         if (input == null) return null;
-        
+
         // trim whitespace
         String sanitized = input.trim();
-        
+
         // strip HTML tags
         sanitized = sanitized.replaceAll("<[^>]*>", "");
-        
+
         // encode any remaining special characters
         sanitized = Encode.forHtml(sanitized);
-        
+
         // block NoSQL injection operators
         if (sanitized.contains("$") || sanitized.contains("{")) {
             throw new IllegalArgumentException("Invalid characters in input");
         }
-        
+
         return sanitized;
+    }
+    
+    private static String requireNonBlank(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(fieldName + " is required");
+        }
+        return sanitize(value.trim());
+    }
+
+    private static String validateImageExtension(String originalFilename) {
+        String name = sanitize(originalFilename);
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Invalid image file");
+        }
+        name = name.toLowerCase(); // accounting for capitalised extensions
+        boolean hasAllowedExtension = ALLOWED_IMAGE_EXTENSIONS.stream().anyMatch(name::endsWith);
+        if (!hasAllowedExtension) {
+            throw new IllegalArgumentException("Invalid image file type. Allowed types: " + ALLOWED_IMAGE_EXTENSIONS);
+        }
+        return name;
     }
 
     private static String truncateAfterWords(String text, int wordLimit) {
@@ -132,14 +160,18 @@ public class ListingService {
 
         if (fileName.contains(publicUrl)) {
             fileName = fileName.substring(publicUrl.length());
-        }    
+        }
 
-        // request object
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder().bucket(listingsBucket)
         .key(fileName)
         .build();
 
-        s3Client.deleteObject(deleteObjectRequest);
+
+        try {
+            s3Client.deleteObject(deleteObjectRequest);
+        } catch (SdkException e) {
+            log.warn("Failed to delete file '{}' from bucket '{}': {}", fileName, listingsBucket, e.getMessage(), e);
+        }
     }
 
     public String replaceFile(String currentFile, String listingId, MultipartFile targetFile) throws IOException {
@@ -152,57 +184,39 @@ public class ListingService {
     }
 
     public ListingResponse createListing(ListingRequest req, String token, @RequestPart MultipartFile img) {
-        
+
         ObjectId userId = jwtService.extractUserId(token); // fails at filter level
 
-        String itemType = sanitize(req.itemType().trim());
+        String itemType = requireNonBlank(req.itemType(), "Item type");
+        ItemType.fromValue(itemType); // sanity check
 
-        // Sanity check
-        ItemType.fromValue(itemType);
+        String listingType = requireNonBlank(req.listingType(), "Listing type");
+        ListingType.fromValue(listingType); // sanity check
 
-        String listingType =sanitize( req.listingType().trim());
-
-        // Sanity check
-        ListingType.fromValue(listingType);
-
-        // Sanity check
-        String condition = sanitize(req.condition());
-        Condition.fromValue(condition);
+        String condition = requireNonBlank(req.condition(), "Condition");
+        Condition.fromValue(condition); // sanity check
 
         double price = req.price();
         if (price < 0) {
             throw new IllegalArgumentException("Negative pricing is not allowed");
         }
 
-        String description;
-        if(!req.description().isBlank()){
-
-           description = truncateAfterWords(sanitize(req.description()), 500);
+        if (req.description() == null || req.description().isBlank()) {
+            throw new IllegalArgumentException("Description is required");
         }
-        else{
-            throw new IllegalArgumentException();
-        }
+        String description = truncateAfterWords(sanitize(req.description()), 500);
 
-        String imageUrl;
+        String listingTitle = requireNonBlank(req.listingTitle(), "Listing title");
 
-        String listingTitle = sanitize(req.listingTitle().trim());
-
-        List<String> genres = req.genres();
-
-        // Sanity check
-        for (int i = 0; i < genres.size(); i++)
-            Genres.fromValue(genres.get(i)).getValue();
-
-        String gameTitle =sanitize(req.gameTitle());
-
-        //check if title is avaliable if not upload to db
-
+        String gameTitle = sanitize(req.gameTitle());
         if (gameTitle == null || gameTitle.isBlank()) {
             throw new IllegalArgumentException("Game Title cannot be blank");
         }
 
-        if(boardGameRepository.findByTitle(gameTitle).isEmpty()){
-            Boardgame toBeInserted = new Boardgame(null, null, sanitize(req.gameTitle()),null,null,1,2,3,null,null);
+        // check if title is available, if not upload to db
+        Optional<Boardgame> validGame = boardGameRepository.findByTitle(gameTitle);
+        if (validGame.isEmpty()) {
+            Boardgame toBeInserted = new Boardgame(null, null, gameTitle, null, null, 1, 2, 3, null, null);
             boardGameRepository.insert(toBeInserted);
         }
 
@@ -223,8 +237,14 @@ public class ListingService {
 
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-            LocalDate start = LocalDate.parse(rentalPeriod.toArray()[0].toString(), dateFormatter);
-            LocalDate end = LocalDate.parse(rentalPeriod.toArray()[1].toString(), dateFormatter);
+            LocalDate start;
+            LocalDate end;
+            try {
+                start = LocalDate.parse(rentalPeriod.get(0), dateFormatter);
+                end = LocalDate.parse(rentalPeriod.get(1), dateFormatter);
+            } catch (java.time.format.DateTimeParseException e) {
+                throw new IllegalArgumentException("Rental dates must be in yyyy-MM-dd format");
+            }
 
             int comp = start.compareTo(end);
 
@@ -246,43 +266,36 @@ public class ListingService {
 
         LocalDateTime now = LocalDateTime.now();
         ListingStatus status = ListingStatus.AVAILABLE;
-        String location = sanitize(req.location());
+        String location = requireNonBlank(req.location(), "Location");
 
-        String version = sanitize(req.version());
+        String version = requireNonBlank(req.version(), "Version");
 
-        String username = userRepository.findById(jwtService.extractUserId(token).toString())
-        .orElseThrow(() -> new IllegalArgumentException("User not found"))
+        String username = userRepository.findById(userId.toString())
+        .orElseThrow(() -> new ResourceNotFound("User not found"))
         .getUsername();
 
         Listing toSave = new Listing(null,username,userId, itemType,
                 listingType, price, location, req.isNegotiable(),listingTitle, condition, gameTitle, version,
                 description,
                 null,
-                status, now, now, genres, borrowDate);
+                status, now, now, borrowDate);
 
         Listing saved = listingRepository.save(toSave);
 
         if (img != null && !img.isEmpty()) {
-            String imgAsString = sanitize(img.getOriginalFilename().toLowerCase());
-            
-            if (imgAsString == null) throw new IllegalArgumentException("Invalid image file");
+            // throws IllegalArgumentException on a bad extension - fine, listing is
+            // already saved with the default image and nothing has leaked yet.
+            validateImageExtension(img.getOriginalFilename());
 
-            imgAsString = imgAsString.toLowerCase(); // accounting for Capitalised extensions
-
-            if(!imgAsString.endsWith(".png") && !imgAsString.endsWith(".jpg") && !imgAsString.endsWith(".jpeg") && !imgAsString.endsWith(".webp")){
-                throw new IllegalArgumentException("Invalid image file");
-            }
             try {
-                imageUrl = uploadImageToR2(saved.getId(), img);
+                String imageUrl = uploadImageToR2(saved.getId(), img);
                 saved.setImageUrl(imageUrl);
-            } catch (IOException e) {
+            } catch (IOException | SdkException e) {
+                log.warn("Image upload failed for listing '{}', falling back to default image: {}", saved.getId(), e.getMessage(), e);
                 saved.setImageUrl(defaultImage);
             }
-        }
-        //failsafe
-        else{
-            imageUrl = defaultImage;
-            saved.setImageUrl(imageUrl);
+        } else {
+            saved.setImageUrl(defaultImage);
         }
 
         listingRepository.save(saved);
@@ -312,6 +325,7 @@ public class ListingService {
                     }
                 }
             } catch (Exception e) {
+                log.warn("Failed to personalize listing order, falling back to default order: {}", e.getMessage(), e);
                 return listings;
             }
         }
@@ -330,15 +344,17 @@ public class ListingService {
 
         return listings.stream().sorted(personalizedOrder).toList();
     }
-    
+
     private boolean ownsGame(Listing listing, List<String> ownedGames) {
         if (listing.getGameTitle() == null) return false;
         return ownedGames.stream().anyMatch(owned -> owned.equalsIgnoreCase(listing.getGameTitle()));
     }
 
     private long genreOverlapCount(Listing listing, List<String> preferredGenres) {
-        if (listing.getGenres() == null || listing.getGenres().isEmpty()) return 0;
-        return listing.getGenres().stream()
+        Optional<Boardgame> validGame = boardGameRepository.findByTitle(listing.getGameTitle());
+
+        if (validGame.isEmpty() || validGame.get().getGenres() == null) return 0;
+        return validGame.get().getGenres().stream()
             .filter(g -> preferredGenres.stream().anyMatch(p -> p.equalsIgnoreCase(g)))
             .count();
     }
@@ -347,25 +363,28 @@ public class ListingService {
         ObjectId userId = jwtService.extractUserId(token);
 
         Listing listing = listingRepository.findById(listingId)
-                .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + listingId));
+                .orElseThrow(() -> new ResourceNotFound("Listing not found: " + listingId));
 
         if (!listing.getUserId().equals(userId)) {
             throw new ForbiddenException("You do not own listing: " + listingId);
         }
 
-        //trying not to delete the stored image 
-        if(!listing.getImageUrl().equals(defaultImage))deleteFile(listing.getImageUrl());
+        // trying not to delete the stored default image
+        if (listing.getImageUrl() != null && !listing.getImageUrl().equals(defaultImage)) {
+            deleteFile(listing.getImageUrl());
+        }
         listingRepository.deleteById(listingId);
 
     }
 
     public ListingResponse getListingById(String listingId) {
-        return mapToResponse(listingRepository.findById(listingId).orElseThrow( ()-> new IllegalArgumentException("Listing not found: " + listingId)));
+        return mapToResponse(listingRepository.findById(listingId)
+                .orElseThrow(() -> new ResourceNotFound("Listing not found: " + listingId)));
     }
 
     public Page<ListingResponse> getByFilter(String gameTitle, String listingTitle, String listingType,String itemType, Double minPrice, Double maxPrice, List<String> conditions, List<String> genres,
-        Integer page, Integer size, String token){        
-        //Search for AVAILABLE Listings 
+        Integer page, Integer size, String token){
+        //Search for AVAILABLE Listings
         Criteria criteria = Criteria.where("status").is(ListingStatus.AVAILABLE);
 
         // if(listingTitle != null) criteria.and("listingTitle").regex(listingTitle, "i");
@@ -391,8 +410,8 @@ public class ListingService {
         if (genres != null && !genres.isEmpty())criteria.and("genres").in(genres);
 
         if (conditions != null && !conditions.isEmpty())criteria.and("condition").in(conditions);
-        
-        
+
+
         PageRequest pageRequest;
         Query query = new Query(criteria);
         if(page != null && size != null){
@@ -400,7 +419,7 @@ public class ListingService {
             if(size < 0) size = Integer.MAX_VALUE;
 
             //Pagination
-            pageRequest = PageRequest.of(page ,size); 
+            pageRequest = PageRequest.of(page ,size);
             query.with(pageRequest);
         }
         List<Listing> allMatches = mongoTemplate.find(new Query(criteria), Listing.class);
@@ -423,91 +442,77 @@ public class ListingService {
         ObjectId userId = jwtService.extractUserId(token);
 
         Listing existing = listingRepository.findById(listingId)
-                .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + listingId));
+                .orElseThrow(() -> new ResourceNotFound("Listing not found: " + listingId));
 
         if (!userId.equals(existing.getUserId())) {
             throw new ForbiddenException("Cannot update " + listingId);
         }
 
         // sanity check
-        if (!req.itemType().equals(existing.getItemType())) {
+        if (req.itemType() != null && !req.itemType().equals(existing.getItemType())) {
             ItemType.fromValue(req.itemType());
-            existing.setItemType(req.itemType());
+            existing.setItemType(sanitize(req.itemType()));
         }
 
         // sanity check
-        if (!req.condition().equals(existing.getCondition())) {
+        if (req.condition() != null && !req.condition().equals(existing.getCondition())) {
             Condition.fromValue(req.condition());
-            existing.setCondition(req.condition());
+            existing.setCondition(sanitize(req.condition()));
         }
-        
 
         // sanity check
-        if (!req.listingType().equals(existing.getListingType())) {
+        if (req.listingType() != null && !req.listingType().equals(existing.getListingType())) {
             ListingType.fromValue(req.listingType());
             existing.setListingType(sanitize(req.listingType()));
         }
 
         double priceToAdd = req.price();
         if (priceToAdd != existing.getPrice()) {
-            if (priceToAdd <= 0) { // bind it to curr
+            if (priceToAdd < 0) { // bind it to curr; 0 is a valid ("free") price
                 priceToAdd = existing.getPrice();
             }
             existing.setPrice(priceToAdd);
         }
 
-        if (!existing.getLocation().equals(req.location())) {
+        if (req.location() != null && !existing.getLocation().equals(req.location())) {
             existing.setLocation(sanitize(req.location()));
         }
 
-        if(!existing.getListingTitle().equals(req.listingTitle())){
+        if (req.listingTitle() != null && !existing.getListingTitle().equals(req.listingTitle())) {
             existing.setListingTitle(sanitize(req.listingTitle()));
         }
 
-        if (!existing.getGameTitle().equals(sanitize(req.gameTitle()))) {
-
-            if(boardGameRepository.findByTitle(req.gameTitle()).isEmpty()){
-                Boardgame toBeInserted = new Boardgame(null, null, req.gameTitle(),null,null,1,2,3,null,null);
-                boardGameRepository.insert(toBeInserted);
+        if (req.gameTitle() != null && !existing.getGameTitle().equals(sanitize(req.gameTitle()))) {
+            String newGameTitle = sanitize(req.gameTitle());
+            if (newGameTitle.isBlank()) {
+                throw new IllegalArgumentException("Game Title cannot be blank");
             }
-            existing.setGameTitle(sanitize(req.gameTitle()));
+            Optional<Boardgame> validGame = boardGameRepository.findByTitle(req.gameTitle());
+            if (validGame.isEmpty()) {
+                Boardgame toBeInserted = new Boardgame(null, null, req.gameTitle(), null, null, 1, 2, 3, null, null);
+                boardGameRepository.insert(toBeInserted);
+                existing.setGameTitle(newGameTitle);
+            } else {
+                existing.setGameTitle(sanitize(validGame.get().getTitle()));
+            }
         }
 
-        if (!req.description().isBlank() && !req.description().equals(existing.getDescription()))
+        if (req.description() != null && !req.description().isBlank() && !req.description().equals(existing.getDescription()))
             existing.setDescription(sanitize(truncateAfterWords(req.description(), 500)));
 
-        // sanity check
-        if (!req.genres().equals(existing.getGenres())) {
-            // just validating genres
-            for (int i = 0; i < req.genres().size(); i++)
-                Genres.fromValue(req.genres().get(i)).getValue();
-
-            existing.setGenres(req.genres());
-        }
 
         if (img != null && !img.isEmpty()) {// only update if img is there
-            String imgAsString = img.getOriginalFilename();
+            validateImageExtension(img.getOriginalFilename());
 
-            if (imgAsString == null) throw new IllegalArgumentException("Invalid image file");
+            boolean isCurrentlyDefaultImage = existing.getImageUrl() == null || existing.getImageUrl().equals(defaultImage);
 
-            imgAsString = imgAsString.toLowerCase(); // accounting for Capitalised extensions
-
-            if(!imgAsString.endsWith(".png") && !imgAsString.endsWith(".jpg") && !imgAsString.endsWith(".jpeg") && !imgAsString.endsWith(".webp")){
-                throw new IllegalArgumentException("Invalid image file");
-            }
-
-            String imageUrl;
             try {
-                if(existing.getImageUrl().equals(defaultImage)){// prevent deletion of base photo  being deleted 
-                    imageUrl= uploadImageToR2(listingId, img); // just create and replace in db
-                }
-                else{// actually replace your file 
-                    // Unfortunate consequence: no UNDO's
-                    imageUrl = replaceFile(existing.getImageUrl(), listingId, img);
-                }
+                String imageUrl = isCurrentlyDefaultImage
+                        ? uploadImageToR2(listingId, img) // just create and set in db
+                        : replaceFile(existing.getImageUrl(), listingId, img); // actually replace the file (no undo)
                 existing.setImageUrl(imageUrl);
-            } catch (IOException e) {
-                existing.setImageUrl(defaultImage);
+            } catch (IOException | SdkException e) {
+                log.warn("Image update failed for listing '{}', keeping previous image: {}", listingId, e.getMessage(), e);
             }
         }
 
@@ -519,13 +524,18 @@ public class ListingService {
                 }
 
                 DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                LocalDate start = LocalDate.parse(req.rentalPeriod().get(0), dateFormatter);
+                LocalDate start;
+                LocalDate end;
+                try {
+                    start = LocalDate.parse(req.rentalPeriod().get(0), dateFormatter);
+                    end = LocalDate.parse(req.rentalPeriod().get(1), dateFormatter);
+                } catch (java.time.format.DateTimeParseException e) {
+                    throw new IllegalArgumentException("Rental dates must be in yyyy-MM-dd format");
+                }
 
                 if(start.compareTo(LocalDate.now()) < 0){
                     throw new IllegalArgumentException("start date cannot be before today");
                 }
-
-                LocalDate end = LocalDate.parse(req.rentalPeriod().get(1), dateFormatter);
 
                 if(end.compareTo(start) < 0){
                     throw new IllegalArgumentException("end date cannot be before start date");
@@ -541,15 +551,15 @@ public class ListingService {
             existing.setRentalPeriod(null);// better to just always set it to null just incase
         }
 
-        if (!existing.getVersion().equals(req.version())) {
-            existing.setVersion(req.version());
+        if (req.version() != null && !existing.getVersion().equals(req.version())) {
+            existing.setVersion(sanitize(req.version()));
         }
         existing.setUpdatedAt(LocalDateTime.now());
 
         existing.setIsNegotiable(req.isNegotiable());
 
-        String username = userRepository.findById(jwtService.extractUserId(token).toString())
-        .orElseThrow(() -> new IllegalArgumentException("User not found"))
+        String username = userRepository.findById(userId.toString())
+        .orElseThrow(() -> new ResourceNotFound("User not found"))
         .getUsername();
 
         if(!existing.getUsername().equals(username)){
@@ -565,6 +575,16 @@ public class ListingService {
     }
 
     private ListingResponse mapToResponse(Listing listing) {
+        Optional<Boardgame> validGame = boardGameRepository.findByTitle(listing.getGameTitle());
+
+        if (validGame.isEmpty()) {
+            log.warn("Listing '{}' references game '{}' which no longer exists in boardGameRepository; returning empty genres", listing.getId(), listing.getGameTitle());
+        }
+
+        List<String> genres = validGame.map(Boardgame::getGenres)
+                .filter(g -> g != null && !g.isEmpty())
+                .orElseGet(ArrayList::new);
+
         return new ListingResponse(
                 listing.getId(),
                 listing.getListingTitle(),
@@ -580,7 +600,7 @@ public class ListingService {
                 listing.getIsNegotiable(),
                 listing.getCondition(),
                 listing.getVersion(),
-                listing.getGenres(),
+                genres,
                 listing.getRentalPeriod(),
                 listing.getStatus());
     }
