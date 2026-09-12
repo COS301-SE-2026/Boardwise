@@ -1,31 +1,24 @@
 <template>
-  <BaseCard 
-    class="cursor-pointer"
-    @click="navigateToCommunity"
-  >
-    <div>
+  <BaseCard clickable @click="navigateToCommunity">
+    <template #media>
       <BaseImage
         :src="community.imageUrl"
         :alt="community.name"
-        height="180px"
-        class="rounded-t-lg"
+        height="200px"
       />
 
-      <BaseBadge
-        class="badge--absolute text-white"
-        :variant="community.visibility"
-      >
+      <BaseBadge :variant="community.visibility">
         {{ community.visibility }}
       </BaseBadge>
-    </div>
+    </template>
 
-    <div class="d-flex flex-column ga-3 pa-4 flex-grow-1">
-      <h3 class="mb-0">{{ community.name }}</h3>
+    <p class="card-title">
+      {{ community.name }}
+    </p>
 
-      <p class="text-body-2 text-medium-emphasis mb-0">
-        {{ community.description }}
-      </p>
-    </div>
+    <p class="card-meta">
+      {{ community.description }}
+    </p>
   </BaseCard>
 </template>
 

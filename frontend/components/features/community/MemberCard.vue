@@ -4,21 +4,19 @@
     class="community-member-link"
     :aria-label="`View ${member.username}'s profile`"
   >
-  <BaseCard class="pa-4">
-
-    <div class="d-flex flex-column align-center ga-4 text-center">
-      <BaseAvatar
-       :src="member.profilePicture ?? '/images/avatar.jpg'"
-       :name="member.username"
-       size="xl"
-      />
-      
-    <div class="d-flex flex-column ga-1" >
-      <h3 class="ma-0"
-      >{{ member.username }}</h3>
-    </div>
-  </div>
-  </BaseCard>
+    <BaseCard>
+      <div class="d-flex flex-column align-center ga-4 text-center">
+        <BaseAvatar
+        :src="member.profilePicture ?? '/images/avatar.jpg'"
+        :name="member.username"
+        size="xl"
+        />
+    
+        <p class="card-title ma-0">
+          {{ member.username }}
+        </p>
+      </div>
+    </BaseCard>
   </NuxtLink>
 </template>
 
