@@ -1,34 +1,31 @@
 <template>
-  <BaseCard data-test="retailer-card" class="retail-card" @click="openRetailLink">
+  <BaseCard data-test="retailer-card" clickable @click="openRetailLink">
 
-    <div class="image-container">
+    <template #media>
       <BaseImage
         data-test="retailer-image"
         :src="retail.imageUrl ?? '/default-listing.png'"
         :alt="retail.retailTitle"
         height="200px"
       />
-    </div>
+    </template>
 
-    <v-card-text class="pa-4 d-flex flex-column ga-2">
+    <p class="card-title" data-test="retailer-title">
+      {{ retail.retailTitle }}
+    </p>
 
-      <h2 class="retail-title" data-test="retailer-title">
-        {{ retail.retailTitle }}
-      </h2>
+    <p class="card-subtitle" data-test="retailer-name">
+      {{ retail.retailer }}
+    </p>
 
-      <h3 class="retail-name" data-test="retailer-name">
-        {{ retail.retailer }}
-      </h3>
+    <p
+      v-if="retail.price != null"
+      class="price ma-0"
+      data-test="retailer-price"
+    >
+      R{{ retail.price }} 
+    </p>
 
-      <p
-        v-if="retail.price != null"
-        class="price ma-0"
-        data-test="retailer-price"
-      >
-        R{{ retail.price }} 
-      </p>
-
-    </v-card-text>
   </BaseCard>
 </template>
 
@@ -54,33 +51,6 @@ const openRetailLink = () => {
 </script>
 
 <style scoped>
-.retail-card {
-  cursor: pointer;
-}
-
-.retail-card:hover {
-  transform:  translateY(-2px);
-  box-shadow: var(--shadow-md) !important;
-}
-
-.image-container {
-  position: relative;
-}
-
-.retail-title {
-  font-family: var(--font-display);
-  font-size: var(--fs-h4);
-  color: var(--color-primary);
-  line-height: 1.2;
-  margin: 0;
-}
-
-.retail-name {
-  margin: 0;
-  font-size: var(--fs-body);
-  font-weight: var(--fw-semibold);
-}
-
 .price {
   font-weight: var(--fw-bold);
   font-size: var(--fs-body);
