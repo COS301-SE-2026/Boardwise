@@ -36,17 +36,3 @@ const emit = defineEmits<{
     (e: 'retry', message: RagMessageType): void
 }>()
 </script>
-
-<style scoped>
-.rag-feed {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: var(--space-4, 16px);
-}
-
-.rag-empty-state {
-    font-size: var(--fs-body, 15px);
-    color: var(--color-text-muted);
-    line-height: var(--lh-normal, 1.5);
-}
-</style>

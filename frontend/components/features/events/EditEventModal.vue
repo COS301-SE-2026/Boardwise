@@ -199,7 +199,3 @@ const closeModal = () => {
 
 const visibilities = ['PUBLIC', 'PRIVATE']
 </script>
-
-<style scoped>
-.hidden-input { display: none; }
-</style>

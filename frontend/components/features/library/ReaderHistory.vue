@@ -104,27 +104,3 @@ const formatDate = (iso) => {
   })
 }
 </script>
-
-<style scoped>
-.history-entry {
-  border-left: 3px solid var(--color-border);
-}
-
-.diff-block {
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-
-.diff-old {
-  background: #ffeaea;
-  color: var(--color-error);
-  text-decoration: line-through;
-  padding: var(--space-2) var(--space-3);
-}
-
-.diff-new {
-  background: #eaffea;
-  color: var(--color-success);
-  padding: var(--space-2) var(--space-3);
-}
-</style>

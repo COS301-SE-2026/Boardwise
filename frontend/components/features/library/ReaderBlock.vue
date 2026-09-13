@@ -146,16 +146,3 @@ const parsedContent = computed(() => {
     return cleanHtml
 })
 </script>
-
-<style scoped>
-.search-highlight {
-  background: #fff176;
-  border-radius: 2px;
-  padding: 0 2px;
-}
-
-.search-highlight--active {
-  background: #ffb300;
-  outline: 2px solid #e65100;
-}
-</style>

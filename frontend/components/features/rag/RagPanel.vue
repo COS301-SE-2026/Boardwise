@@ -60,34 +60,3 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 watch(() => props.rulebook?.id, () => clearConversation())
 </script>
-
-<style scoped>
-.rag-panel {
-    position: fixed;
-    right: var(--space-6, 24px);
-    bottom: 96px; /* sits just above the floating button */
-    width: min(380px, calc(100vw - 32px));
-    height: min(520px, calc(100vw - 120px));
-    max-height: calc(100vh - 140px);
-    display: flex;
-    flex-direction: column;
-    z-index: 1000;
-}
-
-.rag-header {
-    border-bottom: 1px solid var(--color-border, #eee);
-}
-
-@media (max-width: 480px) {
-    .rag-panel {
-        inset: 0;
-        right: auto;
-        left: auto;
-        width: 100vw;
-        bottom: auto;
-        height: 100vh;
-        max-height: 100vh;
-        border-radius: 0;
-    }
-}
-</style>

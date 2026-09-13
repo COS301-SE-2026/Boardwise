@@ -92,22 +92,3 @@ const resetFilters = () => {
   filters.inPerson = false
 }
 </script>
-
-<style scoped>
-.date-option {
-  padding: 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.date-option:hover {
-  background: var(--color-surface-hover);
-}
-
-.date-option.active {
-  background: var(--color-primary);
-  color: white;
-  font-weight: 600;
-}
-</style>

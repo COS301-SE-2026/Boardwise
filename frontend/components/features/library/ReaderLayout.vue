@@ -525,11 +525,3 @@ defineExpose({
 });
 
 </script>
-
-<style scoped>
-.reader-header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-</style>

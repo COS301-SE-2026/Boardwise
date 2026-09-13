@@ -77,13 +77,3 @@ defineEmits<{
     (e: 'decline', eventId: string): void
 }>()
 </script>
-
-<style scoped>
-.invite-card__image {
-    width: 180px;
-    height: 140px;
-    border-radius: 12px;
-    object-fit: cover;
-    flex-shrink: 0;
-}
-</style>
