@@ -1,7 +1,4 @@
 <template>
-  <!-- <v-avatar :size="sizeMap[size]">
-    <v-img v-if="src" :src="src" :alt="alt ?? name" />
-    <span v-else class="avatar-intials">{{  initials }}</span> -->
   <v-avatar :size="sizeMap[size] || sizeMap.md" clas="base-avatar">
     <v-img 
       v-if="src && !imageError"
@@ -14,7 +11,6 @@
     <span
       v-else
       class="base-avatar__fallback"
-      role="img"
       :aria-label="fallbackLabel"
     >
       {{ initials }}
@@ -50,7 +46,9 @@ const sizeMap = {
   sm: '32',
   md: '48',
   lg: '64',
-  xl: '96',}
+  xl: '96',
+  xxl: '80'
+}
 
 const initials = computed(() => {
   if (!props.name) return '?'

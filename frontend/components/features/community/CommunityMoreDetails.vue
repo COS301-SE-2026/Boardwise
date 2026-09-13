@@ -9,9 +9,9 @@
             <header class="chat-user-details__header">
                 <div class="d-flex align-center ga-4">
                     <BaseAvatar
-               :src="conversation.avatar"
-               :name="conversation.name"
-               size="xl"
+                        :src="conversation.avatar"
+                        :name="conversation.name"
+                        size="xl"
                     />
 
                     <div class="flex-grow-1">

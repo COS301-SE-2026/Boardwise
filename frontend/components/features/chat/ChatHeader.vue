@@ -26,7 +26,7 @@
                 <div class="chat-header__avatar">
                     <BaseAvatar
                         :src="conversation.profilePicture "
-                        :name="conversation.username + ' profile picture'"
+                        :name="conversation.username"
                         size="lg"
                     />
                 </div>

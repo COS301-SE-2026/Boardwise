@@ -5,13 +5,13 @@
 
       <div class="d-flex align-center ga-6 flex-wrap profile-info">
 
-        <v-avatar size="80" class="profile-avatar" @click="showPfpModal = true">
-          <v-img
-            :src="user.profilePicture ?? '/images/avatar.jpg'"
-            :alt="`${user.fullName} profile picture`"
-            cover
-          />
-        </v-avatar>
+        <BaseAvatar 
+          :src="user.profilePicture ?? '/images/avatar.jpg'"
+          :name="user.fullName"
+          size="xxl"
+          class="profile-avatar"
+          @click="showPfpModal = true"
+        />
 
         <div class="d-flex flex-column ga-3 profile-details">
 
@@ -74,6 +74,8 @@
 <script setup>
 import EditProfileModal from './EditProfileModal.vue'
 import BaseButton from '~/components/ui/BaseButton.vue';
+import BaseAvatar from '~/components/ui/BaseAvatar.vue';
+
 import ChangeProfilePictureModal from './ChangeProfilePictureModal.vue';
 
 defineProps({

@@ -13,10 +13,13 @@
         :to="`/community/${community.id}`"
         class="community-pill text-decoration-none"
       >
-        <v-avatar size="36" class="community-avatar">
-          <v-img :src="community.image" :alt="community.name" cover />
-        </v-avatar>
-
+        <BaseAvatar 
+          :src="community.image"
+          :name="community.name"
+          size="sm"
+          class="community-avatar"
+        />
+        
         <div class="pill-text">
           <span class="pill-name">{{ community.name }}</span>
           <span v-if="community.memberCount" class="pill-meta">{{ community.memberCount }} members</span>
