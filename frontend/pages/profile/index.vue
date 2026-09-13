@@ -102,12 +102,13 @@ import { useProfile } from '~/composables/useProfile'
 import { useSnackBar } from '~/composables/useSnackbar'
 import { useMarketplace } from '~/composables/useMarketplace'
 import { useFriends } from '~/composables/useFriends'
+import { NotificationType } from "~/services/friendService";
 
 import { useRouter } from 'vue-router'
 
 const { fetchCurrentUser, removeGame } = useProfile();
 const { listings, fetchUserListing, loading } = useMarketplace();
-const {  isLoading, respondToFriendRequest, unfriendUser, getFriendRequests, getOwnFriendsList, userFriendList } = useFriends()
+const {  isLoading, respondToFriendRequest, unfriendUser, getFriendRequests, getOwnFriendsList, userFriendList, listenForFriendNotifications, userFriendRequests } = useFriends()
 const { show } = useSnackBar();
 const router = useRouter();
 const activeTab = ref('Games Owned');
@@ -186,11 +187,13 @@ const handlePfpChange = (newPfp) => {
 const onRespond = async (id, action) => {
     try {
         await respondToFriendRequest(id, action)
-        await refreshUser()
-        await fetchUserListing()
-        await getFriendRequests()
-        await getOwnFriendsList()
-        showFriendsModal.value = false
+        if(action === 'accept'){
+          user.value.friendCount++
+          const idx = userFriendRequests.value.requests.findIndex((el) => el.id === id);
+          const friendRequest = userFriendRequests.value.requests[idx]
+          userFriendRequests.value.requests.splice(idx, 1)
+          userFriendList.value.friends.push(friendRequest.sender)
+        }
 
     } catch (err) {
         console.error('Failed to respond to friend request:', err)
@@ -201,10 +204,9 @@ const handleRemove = async (id) => {
     if (!user.value) return
     try {
         await unfriendUser(id)
-        await refreshUser()
-        await fetchUserListing()
-        await getOwnFriendsList()
-        showFriendsModal.value = false
+        user.value.friendCount--
+        userFriendList.value = userFriendList.value.friends.filter((el) => el.id !== id)
+
     } catch (err) {
         console.error('Failed to send friend request:', err)
     }
@@ -221,5 +223,14 @@ onMounted(async () => {
   await getFriendRequests();
   await getOwnFriendsList();
   await refreshUser();
+  listenForFriendNotifications((notification) => {
+      if(notification.type === NotificationType.FRIEND_REQUEST){
+          userFriendRequests.value?.requests.push(notification.request);
+      }
+      else if(notification.type === NotificationType.FRIEND_CONFIRMATION){
+          userFriendList.value?.friends.push(notification.friend);
+          user.value.friendCount++;
+      }
+  });
 });
 </script>

@@ -1,6 +1,10 @@
 import { createSharedComposable } from "@vueuse/core";
-import { FriendService, type FriendListDTO, type FriendRequestsDTO, type ProfileResponseDTO} from "~/services/friendService";
-const { show } = useSnackBar()
+import { onUnmounted } from "vue";
+import { FriendService, type FriendListDTO, type FriendRequestsDTO, type ProfileResponseDTO, type FriendRequestNotification, type FriendConfirmationNotification, NotificationType } from "~/services/friendService";
+
+
+const { subscribe, unsubscribe } = useStomp();
+const { show } = useSnackBar();
 
 
 const _useFriends=()=>{
@@ -9,6 +13,8 @@ const _useFriends=()=>{
     const userFriendRequests = ref<FriendRequestsDTO>();
     const otherFriendList = ref<FriendListDTO>();
     const profile = ref<ProfileResponseDTO>();
+    const dest = '/user/queue/notification';
+    const token = localStorage.getItem("access_token");
 
     const getOwnFriendsList = async ()=>{
         isLoading.value = true;
@@ -59,11 +65,11 @@ const _useFriends=()=>{
         isLoading.value = true
         try{
             profile.value = await FriendService.getOtherUserProfile(userId);
-            show("Successfully Fetched account", "success");
+            // show("Successfully Fetched account", "success");
         }
         catch(err){
             console.log(err);
-            show("Could not fetch Profile", "error");
+            // show("Could not fetch Profile", "error");
         }
         finally{
             isLoading.value = false;
@@ -118,6 +124,15 @@ const _useFriends=()=>{
         }
     }
 
+    // websocket stuff 
+    const listenForFriendNotifications = (handler: (notification : FriendRequestNotification | FriendConfirmationNotification) => void) => {
+        if(!token) return;
+
+        subscribe(dest, handler);
+    }
+
+    onUnmounted(() => unsubscribe(dest));
+
     return {
         unfriendUser, 
         getOwnFriendsList, 
@@ -130,7 +145,8 @@ const _useFriends=()=>{
         profile,
         userFriendList,
         userFriendRequests,
-        respondToFriendRequest
+        respondToFriendRequest,
+        listenForFriendNotifications
     };
 }
 
