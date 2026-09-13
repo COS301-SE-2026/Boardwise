@@ -44,6 +44,9 @@ const games = [
 
 const selectedDate = ref('All')
 const selectedGames = ref([])
+const selectedFormats = ref([])
+
+const gameOptions = computed(() => games)
 
 const filters = reactive({
   online: false,
