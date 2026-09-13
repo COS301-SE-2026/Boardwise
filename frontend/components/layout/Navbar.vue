@@ -44,7 +44,7 @@
           offset="8"
         >
           <template #activator="{ props: menuProps }">
-            <v-btn 
+            <BaseButton
               icon
               variant="text"
               to="/profile"
@@ -52,7 +52,7 @@
               aria-label="Account menu"
             >
               <v-icon size="28">mdi-account-circle</v-icon>
-            </v-btn>
+            </BaseButton>
           </template>
 
           <v-list nav density="compact" min-width="200">
@@ -83,14 +83,14 @@
       >
 
         <template #activator="{ props: menuProps }">
-          <v-btn 
+          <BaseButton 
             icon
             variant="text" 
             v-bind="menuProps" 
             aria-label="Search"
           >
             <v-icon size="26">mdi-magnify</v-icon>
-          </v-btn>
+          </BaseButton>
         </template>
 
         <!-- Search (Mobile) -->
@@ -114,7 +114,7 @@
         location="bottom end"
       >
         <template #activator="{ props: menuProps }">
-          <v-btn 
+          <BaseButton
             icon
             variant="text"
             to="/profile"
@@ -122,7 +122,7 @@
             aria-label="Account menu"
           >
             <v-icon size="26">mdi-account-circle</v-icon>
-          </v-btn>
+          </BaseButton>
         </template>
 
         <v-list nav density="compact" min-width="200">
@@ -170,6 +170,7 @@ import { useDisplay } from 'vuetify'
 import { useRouter } from 'vue-router'
 
 import LogOutButton from '~/components/features/auth/LogOutButton.vue'
+import BaseButton from '../ui/BaseButton.vue'
 
 const drawer = ref(false)
 
@@ -266,12 +267,6 @@ const { lgAndUp } = useDisplay()
 
   .logo {
     font-size: 2rem;
-  }
-
-  .mobile .v-btn {
-    width: 36px;
-    min-width: 36px;
-    height: 36px;
   }
 
   .left {

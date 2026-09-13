@@ -9,7 +9,7 @@
             <div class="rag-panel">
                 <div class="rag-header d-flex justify-space-between align-center pa-4">
                     <h3 class="text-subtitle-1 font-weight-bold mb-0">{{  rulebook?.title  }} - Ask AI</h3>
-                    <v-btn icon="mdi-close" variant="text" size="small" aria-label="Close Ask AI panel" @click="close" />
+                    <BaseButton icon="mdi-close" variant="text" size="small" aria-label="Close Ask AI panel" @click="close" />
                 </div> 
 
                 <RagFeed data-test="rag-feed" :messages="messages" :is-loading="isLoading" :has-no-result="false" @retry="handleRetry" />

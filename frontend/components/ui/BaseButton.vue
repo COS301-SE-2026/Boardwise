@@ -3,9 +3,11 @@
     :color="colorMap[variant] || variant"
     :variant="styleMap[variant] || 'flat'"
     :elevation="0"
-    rounded="pill"
+    :rounded="icon ? 'circle' : 'pill'"
+    :icon="icon"
+    :size="size"
     class="text-none base-button"
-    :class="`btn--${variant}`"
+    :class="[`btn--${variant}`, { 'base-button--icon' : icon }]"
     v-bind="$attrs"
   >
     <slot />
@@ -18,6 +20,18 @@ defineProps({
     type: String,
     default: 'primary',
     validator: (v) => ['primary', 'secondary','accent','ghost','error','success','text'].includes(v)
+  }, 
+  icon: {
+    type: Boolean, 
+    default: false
+  },
+  size: {
+    type: String,
+    default: undefined
+  },
+  iconSize: {
+    type: String,
+    default: 'default'
   }
 })
 
@@ -38,8 +52,8 @@ const styleMap = {
   accent: 'flat',
   ghost: 'flat',
   text: 'text',
-  error: 'flat',
-  success: 'flat'
+  error: 'text',
+  success: 'text'
 }
 </script>
 

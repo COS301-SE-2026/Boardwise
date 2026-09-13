@@ -36,8 +36,8 @@
 
      <div class="d-flex">
         <v-btn-toggle v-model="listing_type" color="primary" variant="outlined" mandatory divided>
-          <v-btn value="sell">Sell</v-btn>
-          <v-btn value="rent">Rent</v-btn>
+          <BaseButton value="sell">Sell</BaseButton>
+          <BaseButton value="rent">Rent</BaseButton>
         </v-btn-toggle>
       </div>
 
@@ -60,14 +60,14 @@
       <v-textarea v-model="description" label="Description" placeholder="description" variant ="outlined" density="compact" hide-details/>
 
       <div class="d-flex align-center ga-3">
-        <v-btn variant="outlined" color="primary" @click="triggerUpload">Upload Image</v-btn>
+        <BaseButton variant="outlined" color="primary" @click="triggerUpload">Upload Image</BaseButton>
         <label for="edit-image-upload" class="text-grey text-body-2">{{ file_name || '···' }}</label>
         <input id="edit-image-upload" ref="file_input" type="file" accept="image/*" class="hidden-input" @change="handleFileChange" />
       </div>
 
       <div class="d-flex justify-end ga-3">
-        <v-btn variant="outlined" color="primary" @click="closeModal">Cancel</v-btn>
-        <v-btn color="primary" @click="handleSave">Edit Listing</v-btn>
+        <BaseButton variant="secondary" color="primary" @click="closeModal">Cancel</BaseButton>
+        <BaseButton variant="primary" @click="handleSave">Edit Listing</BaseButton>
       </div>
 
     </BaseCard>

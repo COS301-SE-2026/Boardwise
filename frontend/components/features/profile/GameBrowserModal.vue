@@ -7,9 +7,9 @@
         <div class="modal">
             <div class="d-flex align-center justify-space-between mb-4">
                 <h2>Add games to your collection</h2>
-                <v-btn icon variant="text" @click="$emit('update:modelValue', false)">
+                <BaseButton icon variant="text" @click="$emit('update:modelValue', false)">
                     <v-icon>mdi-close</v-icon>
-                </v-btn>
+                </BaseButton>
             </div>
 
             <BaseSearch 

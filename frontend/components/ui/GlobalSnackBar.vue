@@ -30,7 +30,7 @@
     </div>
 
     <template #actions>
-      <v-btn
+      <BaseButton
         icon="mdi-close"
         variant="text"
         size="small"
@@ -44,6 +44,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useSnackBar } from '~/composables/useSnackbar'
+import BaseButton from './BaseButton.vue'
 
 const {
   visible,

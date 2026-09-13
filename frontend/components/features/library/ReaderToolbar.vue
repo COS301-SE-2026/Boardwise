@@ -31,42 +31,42 @@
           <template v-if="isEditing">
               <v-tooltip text="Undo" location="bottom">
                 <template #activator="{ props: tooltipProps }">
-                  <v-btn 
+                  <BaseButton
                     v-bind="tooltipProps"
                     icon size="small" variant="text"
                     :disabled="!canUndo"
                     @click="emit('undo')"
                   >
                     <v-icon>mdi-undo</v-icon>
-                  </v-btn>
+                  </BaseButton>
                 </template>
               </v-tooltip>
 
               <v-tooltip text="Redo" location="bottom">
                 <template #activator="{ props: tooltipProps }">
-                  <v-btn 
+                  <BaseButton
                     v-bind="tooltipProps"
-                    icon size="small" variant="text"
+                    icon size="small" 
+                    variant="text"
                     :disabled="!canRedo"
                     @click="emit('redo')"
                   >
                     <v-icon>mdi-redo</v-icon>
-                  </v-btn>
+                  </BaseButton>
                 </template>
               </v-tooltip>
           </template>
 
             <!-- Edit/ Done Editing Button -->
             <template v-if="isEditing">
-              <v-btn
-                size="small"
-                variant="flat"
-                color="secondary"
+              <BaseButton
+                size="sm"
+                variant="secondary"
                 prepend-icon="mdi-check"
                 @click="emit('stop-editing')"
               >
                 Done Editing
-              </v-btn>
+              </BaseButton>
             </template>
             <template v-else>
               <v-tooltip
@@ -76,7 +76,7 @@
                 <template #activator="{ props: tooltipProps }">
                   <BaseButton
                     v-bind="tooltipProps"
-                    size="small"
+                    size="sm"
                     variant="secondary"
                     prepend-icon="mdi-pencil"
                     :disabled="!!lockHeldBy"
@@ -91,23 +91,27 @@
             <!-- Download Button -->
             <v-tooltip text="Download PDF" location="bottom">
               <template #activator="{ props: tooltipProps }">
-                <v-btn
+                <BaseButton
                   v-bind="tooltipProps"
-                  icon size="small"
+                  icon size="sm"
                   variant="text"
                   :loading="isDownloading"
                   :disabled="!rulebook?.id"
                   @click="handleDownload"
                 >
                   <v-icon>mdi-download</v-icon>
-                </v-btn>
+                </BaseButton>
               </template>
             </v-tooltip>
 
             <!-- History Button -->
-            <v-btn icon size="small" variant="text" @click="emit('toggle-history')">
+            <BaseButton 
+              icon size="small" 
+              variant="text"
+              @click="emit('toggle-history')"
+            >
               <v-icon>mdi-history</v-icon>
-            </v-btn>
+            </BaseButton>
 
             <!-- Search  -->
             <template v-if="showSearch">
@@ -125,26 +129,26 @@
                 {{ matchCount > 0 ? `${currentMatch + 1} / ${matchCount}`: 'No matches' }}
               </span>
 
-              <v-btn icon size="small" variant="text" :disabled="matchCount === 0" @click="$emit('prev-match')">
+              <BaseButton icon size="small" variant="text" :disabled="matchCount === 0" @click="$emit('prev-match')">
                 <v-icon size="18">mdi-chevron-up</v-icon>
-              </v-btn>
+              </BaseButton>
 
-              <v-btn icon size="small" variant="text" :disabled="matchCount === 0" @click="$emit('next-match')">
+              <BaseButton icon size="small" variant="text" :disabled="matchCount === 0" @click="$emit('next-match')">
                 <v-icon size="18">mdi-chevron-down</v-icon>
-              </v-btn>
+              </BaseButton>
 
-              <v-btn icon size="small" variant="text" @click="closeSearch">
+              <BaseButton icon size="small" variant="text" @click="closeSearch">
                 <v-icon size="18">mdi-close</v-icon>
-              </v-btn>
+              </BaseButton>
 
               <span class="text-caption text-medium-emphasis text-no-wrap">
                 {{ currentPage + 1 }} / {{ totalPages }}
               </span>
             </template>
             <template v-else>
-              <v-btn icon size="small" variant="text" @click="showSearch = !showSearch">
+              <BaseButton icon size="small" variant="text" @click="showSearch = !showSearch">
                 <v-icon>mdi-magnify</v-icon>
-              </v-btn>
+              </BaseButton>
             </template>
       </div>
     </template>

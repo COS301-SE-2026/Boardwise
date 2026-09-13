@@ -14,7 +14,7 @@
     v-bind="$attrs"
   >
     <template #append-inner>
-      <v-btn
+      <BaseButton
         v-if="isPassword"
         class="base-input__password-toggle"
         :icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
@@ -30,6 +30,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import BaseButton from './BaseButton.vue'
 
 defineOptions({
   inheritAttrs: false
