@@ -4,6 +4,6 @@ import com.boardwise.backend.user_service.enums.NotificationType;
 
 public sealed interface NotificationDTO 
 permits InviteNotification, ChatNotification, FriendConfirmationNotification, 
-FriendRequestNotification, PresenceNotification{
+FriendRequestNotification, PresenceNotification, UnfriendNotification{
     NotificationType getType();
 }

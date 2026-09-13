@@ -1,6 +1,6 @@
 import { createSharedComposable } from "@vueuse/core";
 import { onUnmounted } from "vue";
-import { FriendService, type FriendListDTO, type FriendRequestsDTO, type ProfileResponseDTO, type FriendRequestNotification, type FriendConfirmationNotification, NotificationType } from "~/services/friendService";
+import { FriendService, type FriendListDTO, type FriendRequestsDTO, type ProfileResponseDTO, type FriendRequestNotification, type FriendConfirmationNotification, type UnfriendNotification } from "~/services/friendService";
 
 
 const { subscribe, unsubscribe } = useStomp();
@@ -125,7 +125,7 @@ const _useFriends=()=>{
     }
 
     // websocket stuff 
-    const listenForFriendNotifications = (handler: (notification : FriendRequestNotification | FriendConfirmationNotification) => void) => {
+    const listenForFriendNotifications = (handler: (notification : FriendRequestNotification | FriendConfirmationNotification | UnfriendNotification) => void) => {
         if(!token) return;
 
         subscribe(dest, handler);

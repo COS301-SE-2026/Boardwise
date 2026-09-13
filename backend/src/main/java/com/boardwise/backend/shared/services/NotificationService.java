@@ -10,7 +10,6 @@ import com.boardwise.backend.user_service.dtos.notifications.FriendConfirmationN
 import com.boardwise.backend.user_service.dtos.notifications.FriendRequestNotification;
 import com.boardwise.backend.user_service.dtos.notifications.InviteNotification;
 import com.boardwise.backend.user_service.dtos.notifications.NotificationDTO;
-import com.boardwise.backend.user_service.dtos.notifications.PresenceNotification;
 import com.boardwise.backend.user_service.enums.NotificationType;
 import com.boardwise.backend.user_service.models.ChatMessageData;
 import com.boardwise.backend.user_service.models.EventInviteData;
@@ -80,7 +79,7 @@ public class NotificationService {
             case FriendConfirmationNotification dto -> new FriendConfirmationData(dto.friend());
             case FriendRequestNotification dto -> new FriendRequestData(dto.request());
             case InviteNotification dto -> new EventInviteData(dto.host(), dto.event());
-            case PresenceNotification dto -> null;
+            default -> null;
         };
     }
 }

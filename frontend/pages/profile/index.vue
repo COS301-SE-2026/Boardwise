@@ -205,7 +205,7 @@ const handleRemove = async (id) => {
     try {
         await unfriendUser(id)
         user.value.friendCount--
-        userFriendList.value = userFriendList.value.friends.filter((el) => el.id !== id)
+        userFriendList.value.friends = userFriendList.value.friends.filter((el) => el.id !== id)
 
     } catch (err) {
         console.error('Failed to send friend request:', err)
@@ -224,13 +224,19 @@ onMounted(async () => {
   await getOwnFriendsList();
   await refreshUser();
   listenForFriendNotifications((notification) => {
-      if(notification.type === NotificationType.FRIEND_REQUEST){
-          userFriendRequests.value?.requests.push(notification.request);
-      }
-      else if(notification.type === NotificationType.FRIEND_CONFIRMATION){
-          userFriendList.value?.friends.push(notification.friend);
-          user.value.friendCount++;
-      }
+    console.log("[useFriends | Profile.index]: Notification callback executed")
+    if(notification.type === NotificationType.FRIEND_REQUEST){
+        userFriendRequests.value?.requests.push(notification.request);
+    }
+    else if(notification.type === NotificationType.FRIEND_CONFIRMATION){
+        userFriendList.value?.friends.push(notification.friend);
+        user.value.friendCount++;
+    }
+    else if(notification.type === NotificationType.UNFRIEND){
+      const idx = userFriendList.value?.friends.findIndex((el) => el.id === notification.friendId);
+      userFriendList.value?.friends.splice(idx, 1);
+      user.value.friendCount--;
+    }
   });
 });
 </script>
