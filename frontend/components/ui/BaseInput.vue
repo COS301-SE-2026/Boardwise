@@ -3,7 +3,7 @@
     v-model="inputValue"
     class="base-input"
     :label="label"
-    :rules="normalizedRules"
+    :rules="props.rules"
     :aria-label="accessibleLabel"
     :type="resolvedType"
     variant="outlined"
@@ -17,7 +17,7 @@
       <BaseButton
         v-if="isPassword"
         class="base-input__password-toggle"
-        :icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+        :icon="passwordIcon"
         variant="text"
         density="compact"
         :aria-label="passwordToggleLabel"
@@ -36,25 +36,18 @@ defineOptions({
   inheritAttrs: false
 })
 
-const props = defineProps({
-  label: {
-    type: String,
-    default: ''
-  },
+type InputRule = (value: any) => boolean | string
 
-  rules: {
-    type: Array,
-    default: () => []
-  },
-  ariaLabel: {
-    type: String,
-    default: ''
-  },
-
-  type: {
-    type: String,
-    default: 'text'
-  }
+const props = withDefaults(defineProps<{
+    label?: string
+    rules?: InputRule[]
+    ariaLabel?: string
+    type?: string
+}>(), {
+  label: '',
+  rules: () => [],
+  ariaLabel: '',
+  type: 'text'
 })
 
 const inputValue = defineModel<string>({
@@ -95,11 +88,9 @@ const passwordToggleLabel = computed(() => {
     : 'Show password'
 })
 
-const normalizedRules = computed(() => {
-  return Array.isArray(props.rules)
-    ? props.rules
-    : []
-})
+const passwordIcon = computed<any>(() => 
+  showPassword.value ? 'mdi-eye-off' : 'mdi-eye'
+)
 
 const togglePassword = () => {
   showPassword.value = !showPassword.value
