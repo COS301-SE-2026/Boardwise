@@ -190,11 +190,11 @@ public class BoardGameService {
         List<Boardgame> dbGames;
 
         if(query == null){
-            Limit maxRecords = Limit.of(10);
+            Limit maxRecords = Limit.of(12);
             dbGames = gameRepo.findAllBy(maxRecords);
         }
         else{
-            dbGames = gameSearch.search(query, 10);
+            dbGames = gameSearch.search(query, 12);
         }
 
         List<GameListDTO> games = new ArrayList<>();

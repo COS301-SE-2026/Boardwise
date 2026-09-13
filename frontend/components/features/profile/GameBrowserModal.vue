@@ -118,7 +118,7 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
 import { ref } from 'vue'
 import { useProfile } from '~/composables/useProfile'
-// import { userService } from '~/services/userService'
+import { useDebounceFn } from '@vueuse/core'
 
 const props = defineProps({
     modelValue: {
@@ -167,9 +167,10 @@ async function handleSearch() {
     }
 }
 
+const delaySearch = useDebounceFn(() => handleSearch(), 400)
 
 watch(search, (_) => {
-    handleSearch()
+    delaySearch()
 })
 
 const toggleGame = (game) => {
