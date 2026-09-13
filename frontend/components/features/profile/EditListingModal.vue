@@ -13,16 +13,21 @@
             placeholder="Listing title"
             variant="outlined"
             density="compact"
-            :rules="[rules.required]"
+            :rules="[rules.required, rules.listingTitle]"
           />
 
-          <v-text-field
+          <v-autocomplete
             v-model="game_title"
             label="Game Title"
-            placeholder="Game title"
+            :items="games"
+            :loading="gamesLoading"
+            item-title="title"
+            item-value="title"
+            no-filter
             variant="outlined"
             density="compact"
             :rules="[rules.required]"
+            @update:search="onGameSearch"
           />
 
           <v-text-field
@@ -31,7 +36,8 @@
             placeholder="e.g. Original"
             variant="outlined"
             density="compact"
-            hide-details
+            hide-details="auto"
+            :rules="[rules.required, rules.version]"
           />
 
           <v-autocomplete
@@ -79,9 +85,13 @@
             prefix="R"
             placeholder="e.g. 650"
             type="number"
+            min="0"
+            step="1"
             variant="outlined"
             density="compact"
             :rules="[rules.required, rules.positiveNumber]"
+            @keydown="blockNegativeKeys"
+            @paste="blockNegativePaste"
           />
 
           <div class="RentalPeriod">
@@ -90,13 +100,13 @@
                 v-model="start_date"
                 label="Start Date"
                 variant="outlined"
-                :rules="[rules.required]"
+                :rules="[rules.required, rules.startNotPast]"
               />
               <v-date-input
                 v-model="end_date"
                 label="End Date"
                 variant="outlined"
-                :rules="[rules.required, rules.endAfterStart]"
+                :rules="[rules.required, rules.endAfterStart, rules.rentalMaxLength]"
               />
             </div>
             <div v-else>
@@ -113,19 +123,22 @@
             :rules="[rules.required]"
           />
 
-          <v-textarea
+          <BaseTextArea
             v-model="description"
             label="Description"
             placeholder="description"
             variant="outlined"
             density="compact"
-            :rules="[rules.required]"
+            :rules="[rules.required, rules.description]"
           />
 
-          <div class="d-flex align-center ga-3">
-            <v-btn variant="outlined" color="primary" @click="triggerUpload">Upload Image</v-btn>
-            <label for="edit-image-upload" class="text-grey text-body-2">{{ file_name || '···' }}</label>
-            <input id="edit-image-upload" ref="file_input" type="file" accept="image/*" class="hidden-input" @change="handleFileChange" />
+          <div class="d-flex flex-column ga-1">
+            <div class="d-flex align-center ga-3">
+              <v-btn variant="outlined" color="primary" @click="triggerUpload">Upload Image</v-btn>
+              <label for="edit-image-upload" class="text-grey text-body-2">{{ file_name || '···' }}</label>
+              <input id="edit-image-upload" ref="file_input" type="file" accept="image/*" class="hidden-input" @change="handleFileChange" />
+            </div>
+            <p v-if="fileError" class="text-error text-caption">{{ fileError }}</p>
           </div>
 
           <div v-if="saveError" class="text-error text-body-2">{{ saveError }}</div>
@@ -145,16 +158,27 @@
 <script setup>
 import { useMarketplace } from '~/composables/useMarketplace'
 import { useBoardGames } from '~/composables/useBoardGames'
+import BaseTextArea from '~/components/ui/BaseTextArea.vue'
 const { editListing } = useMarketplace()
 
 const { searchGenres, genres, isLoading: genresLoading } = useBoardGames()
+const { searchGames, games, isLoading: gamesLoading } = useBoardGames()
 
-onMounted(() => searchGenres())
+onMounted(() => {
+  searchGenres()
+  searchGames()
+})
 
 let genreSearchTimeout
 const onGenreSearch = (query) => {
   clearTimeout(genreSearchTimeout)
   genreSearchTimeout = setTimeout(() => searchGenres(query), 300)
+}
+
+let gameSearchTimeout
+const onGameSearch = (query) => {
+  clearTimeout(gameSearchTimeout)
+  gameSearchTimeout = setTimeout(() => searchGames(query), 300)
 }
 
 const open  = defineModel()
@@ -165,6 +189,7 @@ const form = ref(null)
 const formValid = ref(false)
 const saving = ref(false)
 const saveError = ref('')
+const fileError = ref('')
 
 const listing_title = ref('')
 const game_title = ref('')
@@ -187,19 +212,59 @@ const selected_item_type = ref(null)
 const start_date = ref(null)
 const end_date = ref(null)
 
+const MAX_FILE_SIZE = 50 * 1024 * 1024
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+
+const startOfDay = (d) => {
+  const date = new Date(d)
+  date.setHours(0, 0, 0, 0)
+  return date
+}
+
+const blockNegativeKeys = (e) => {
+  if (['-', '+', 'e', 'E'].includes(e.key)) {
+    e.preventDefault()
+  }
+}
+
+const blockNegativePaste = (e) => {
+  const pasted = (e.clipboardData || window.clipboardData).getData('text')
+  if (!/^\d*\.?\d*$/.test(pasted)) {
+    e.preventDefault()
+  }
+}
+
 const rules = {
   required: (v) => (v !== null && v !== undefined && String(v).trim() !== '') || 'This field is required',
   requiredArray: (v) => (Array.isArray(v) && v.length > 0) || 'Select at least one genre',
   positiveNumber: (v) => (Number(v) > 0) || 'Amount must be greater than 0',
+  listingTitle: (v) => {
+    const s = String(v ?? '')
+    if (s.length < 3) return 'Title must be at least 3 characters'
+    if (s.length > 100) return 'Title cannot exceed 100 characters'
+    return true
+  },
+  version: (v) => (String(v ?? '').length <= 50) || 'Version cannot exceed 50 characters',
+  description: (v) => {
+    const s = String(v ?? '').trim()
+    if (s.length < 10) return 'Description must be at least 10 characters'
+    if (s.length > 2000) return 'Description cannot exceed 2000 characters'
+    return true
+  },
+  startNotPast: (v) => {
+    if (listing_type.value !== 'rent' || !v) return true
+    return startOfDay(v) >= startOfDay(new Date()) || 'Start date cannot be in the past'
+  },
   endAfterStart: (v) => {
-    if (!start_date.value || !v) return true // let `required` handle emptiness
+    if (!start_date.value || !v) return true 
     return new Date(v) > new Date(start_date.value) || 'End date must be after start date'
-  }
+  },
 }
 
 watch(open, val => { // listen for an open & populate ref
   if (!val || !props.listing) return
   saveError.value = ''
+  fileError.value = ''
   const listing_element = props.listing
   listing_title.value = listing_element.listingTitle ?? ''
   game_title.value = listing_element.gameTitle ?? ''
@@ -214,10 +279,16 @@ watch(open, val => { // listen for an open & populate ref
   selected_item_type.value = listing_element.itemType ?? null
   start_date.value = listing_element.rentalPeriod?.startDate ?? null
   end_date.value = listing_element.rentalPeriod?.endDate ?? null
+  file_name.value = ''
+  image_file.value = null
 
   if (selected_genres.value.length) {
     const missing = selected_genres.value.filter(g => !genres.value.includes(g))
     if (missing.length) genres.value = [...missing, ...genres.value]
+  }
+
+  if (game_title.value && !games.value.some(g => g.title === game_title.value)) {
+    games.value = [{ title: game_title.value }, ...games.value]
   }
 
   nextTick(() => form.value?.resetValidation())
@@ -226,9 +297,25 @@ watch(open, val => { // listen for an open & populate ref
 const triggerUpload = () => file_input.value?.click()
 
 const handleFileChange = (e) => {
-  const file = e.target.files[0] ?? null
-  image_file.value = file
-  file_name.value = file?.name ?? null
+  fileError.value = ''
+  const selected = e.target.files[0]
+  if (!selected) return
+
+  if (!ALLOWED_IMAGE_TYPES.includes(selected.type)) {
+    fileError.value = 'Please upload a JPEG, PNG, WEBP or GIF image.'
+  } else if (selected.size > MAX_FILE_SIZE) {
+    fileError.value = 'Image must be smaller than 5MB.'
+  }
+
+  if (fileError.value) {
+    e.target.value = ''
+    file_name.value = ''
+    image_file.value = null
+    return
+  }
+
+  image_file.value = selected
+  file_name.value = selected.name
 }
 
 function get_rental_period() {
@@ -246,6 +333,8 @@ const handleSave = async () => {
   saveError.value = ''
   const { valid } = await form.value.validate()
   if (!valid) return
+
+  if (fileError.value) return
 
   saving.value = true
   try {
@@ -291,6 +380,7 @@ const closeModal = () => {
   file_name.value = ''
   image_file.value = null
   saveError.value = ''
+  fileError.value = ''
 }
 const conditions = ['New', 'Like New', 'Good', 'Fair']
 

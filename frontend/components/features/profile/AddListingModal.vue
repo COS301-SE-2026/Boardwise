@@ -22,7 +22,7 @@
           variant="outlined"
           density="compact"
           hide-details="auto"
-          :rules="[requiredRule]"
+          :rules="[requiredRule, listingTitleRule]"
         />
 
         <v-autocomplete
@@ -46,7 +46,7 @@
           variant="outlined"
           density="compact"
           hide-details="auto"
-          :rules="[requiredRule]"
+          :rules="[requiredRule, versionRule]"
         />
 
         <v-select
@@ -128,14 +128,14 @@
           </p>
         </div>
 
-        <v-textarea
+        <BaseTextArea
           v-model="description"
           label="Description"
           placeholder="description"
           variant="outlined"
           density="compact"
           hide-details="auto"
-          :rules="[requiredRule]"
+          :rules="[requiredRule, descriptionRule]"
         />
 
         <div class="d-flex flex-column ga-1">
@@ -167,6 +167,7 @@
 import { useUserLocation } from '@/composables/useUserLocation';
 import { useBoardGames } from '~/composables/useBoardGames'
 import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseTextArea from '~/components/ui/BaseTextArea.vue';
 
 const { city, suburb, lat, long, error: locationError, loading, findUserLocation } = useUserLocation();
 const {searchGames, games } = useBoardGames();
@@ -220,6 +221,7 @@ const locationValue = computed(() =>
 );
 
 watch(useCurrLocation, async (val) => {
+
   if (!val) return;
   await findUserLocation();
   if (locationError.value) {
@@ -227,6 +229,8 @@ watch(useCurrLocation, async (val) => {
     return;
   }
   location.value = locationValue.value;
+  console.log("location: ", location.value);
+
 });
 
 // validation rules 
@@ -238,7 +242,8 @@ const priceRule = (v) => {
   if (v === null || v === undefined || v === '') return 'Enter an amount';
   const n = Number(v);
   if (Number.isNaN(n)) return 'Enter a valid amount';
-  if (n < 0) return 'Amount cannot be negative';
+  if (!Number.isFinite(n)) return 'Enter a valid amount';
+  if (n <= 0) return 'Amount must be greater than 0';
   return true;
 };
 
@@ -247,6 +252,8 @@ const startOfDay = (d) => {
   date.setHours(0, 0, 0, 0);
   return date;
 };
+
+const MAX_RENTAL_DAYS = 90;
 
 const startDateRule = (v) => {
   if (listingType.value !== 'rent') return true;
@@ -258,13 +265,39 @@ const endDateRule = (v) => {
   if (listingType.value !== 'rent') return true;
   if (!v) return 'End date is required';
   if (startOfDay(v) < startOfDay(new Date())) return 'End date cannot be in the past';
-  if (startDate.value && startOfDay(v) < startOfDay(startDate.value)) {
-    return 'End date must be after start date';
-  }
+  if (startDate.value) {
+    const start = startOfDay(startDate.value);
+    const end = startOfDay(v);
+    if (end < start) return 'End date must be after start date';
+    }
   return true;
 };
 
-const MAX_FILE_SIZE = 100 * 1024 * 1024;
+const listingTitleRule = (v) => {
+  const required = requiredRule(v);
+  if (required !== true) return required;
+
+  if (String(v).length < 3) return 'Title must be at least 3 characters';
+  if (String(v).length > 100) return 'Title cannot exceed 100 characters';
+
+  return true;
+};
+
+const versionRule = (v) => {
+  const required = requiredRule(v);
+  if (required !== true) return required;
+
+  if (String(v).length > 50) return 'Version cannot exceed 50 characters';
+  return true;
+};
+
+const descriptionRule = (v) => {
+  const required = requiredRule(v);
+  if (required !== true) return required;
+  return true;
+};
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 const triggerUpload = () => file_input.value.click();
@@ -338,6 +371,11 @@ const handleConfirm = async () => {
   if (!valid) return;
 
   if (fileError.value) return;
+
+  if (!file.value) {
+    fileError.value = 'Please upload an image';
+    return;
+  }
 
   isLoading.value = true;
 
