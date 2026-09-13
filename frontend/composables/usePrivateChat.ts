@@ -34,7 +34,7 @@ const isLoading = ref<boolean>(false);
 const chats = ref<Array<Conversation>>([]);
 const currentChat = ref<Conversation | null | undefined>(null);
 const messages = ref<Array<DirectMessageDTO>>([]);
-const watchedPresenceUsers = new Set<String>();
+const watchedPresenceUsers = new Set<string>();
 
 export const usePrivateChat = () => {
     const { isConnected, subscribe, unsubscribe, sendPrivateMessage } = useStomp();
