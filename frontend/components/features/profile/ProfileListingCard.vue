@@ -31,25 +31,6 @@
         </span>
       </p>
 
-      <!-- <div v-if="editable" class="actions">
-
-        <BaseButton
-          size="sm"
-          @click="showEdit = true"
-        >
-          Edit
-        </BaseButton>
-
-        <BaseButton
-          size="sm"
-          variant="secondary"
-          @click="showDelete = true"
-        >
-          Delete
-        </BaseButton>
-
-      </div> -->
-
       <div v-if="editable" class="d-flex ga-2 mt-1">
         <v-btn size="small" color="primary" variant="tonal" @click.stop="showEdit = true">Edit</v-btn>
         <v-btn size="small" color="error"   variant="tonal" @click.stop="showDelete = true">Delete</v-btn>
