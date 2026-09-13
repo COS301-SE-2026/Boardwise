@@ -1,26 +1,14 @@
 <template>
-  <base-card
+  <BaseCard
     class="add-card d-flex flex-column justify-center align-center"
-    @click="showAdd = true"
   >
     <span class="text-h3 font-weight-bold">+</span>
     <p class="mt-3">Add Listing</p>
-
-    <AddListingModal v-model="showAdd" @confirm="handleConfirm" />
-  </base-card>
+  </BaseCard>
 </template>
 
 <script setup>
-import BaseCard        from '~/components/ui/BaseCard.vue'
-import AddListingModal from '~/components/features/profile/AddListingModal.vue'
-import { useMarketplace } from '~/composables/useMarketplace'
-
-const { addListing } = useMarketplace()
-const showAdd = ref(false)
-
-const handleConfirm = async (payload, file) => {
-  await addListing(payload, file)
-}
+import BaseCard from '~/components/ui/BaseCard.vue'
 </script>
 
 <style scoped>

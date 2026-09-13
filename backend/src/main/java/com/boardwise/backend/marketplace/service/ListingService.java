@@ -286,8 +286,6 @@ public class ListingService {
         Listing saved = listingRepository.save(toSave);
 
         if (img != null && !img.isEmpty()) {
-            // throws IllegalArgumentException on a bad extension - fine, listing is
-            // already saved with the default image and nothing has leaked yet.
             validateImageExtension(img.getOriginalFilename());
 
             try {

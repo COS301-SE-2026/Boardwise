@@ -255,7 +255,7 @@ const startOfDay = (d) => {
   return date;
 };
 
-// blocks typed keystrokes in the date fields
+// blocks typed keystrokes in the date fields while still letting the calendar picker open/close and tabbing work
 const blockManualDateEntry = (e) => {
   const allowed = ['Tab', 'Shift', 'Escape', 'Enter'];
   if (!allowed.includes(e.key)) {
@@ -306,7 +306,7 @@ const descriptionRule = (v) => {
   return true;
 };
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 const triggerUpload = () => file_input.value.click();
@@ -360,7 +360,7 @@ function getRentalPeriod() {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    return `${day}/${m}/${y}`;
+    return `${y}-${m}-${day}`;
   }
   return [fmt(startDate.value), fmt(endDate.value)];
 }
