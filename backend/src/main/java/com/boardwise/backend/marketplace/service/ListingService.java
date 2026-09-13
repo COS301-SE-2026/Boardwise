@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -41,9 +42,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-
+import org.springframework.http.HttpStatus;
 
 import java.util.*;
+
+import javax.management.RuntimeErrorException;
 
 @Service
 public class ListingService {
@@ -169,7 +172,7 @@ public class ListingService {
 
         try {
             s3Client.deleteObject(deleteObjectRequest);
-        } catch (SdkException e) {
+        } catch (Exception e) {
             log.warn("Failed to delete file '{}' from bucket '{}': {}", fileName, listingsBucket, e.getMessage(), e);
         }
     }
@@ -570,10 +573,75 @@ public class ListingService {
     }
 
     public List<ListingResponse> getUserListings(String token) {
-        return listingRepository.findByUserId(jwtService.extractUserId(token))
+        ObjectId id = jwtService.extractUserId(token);
+        return listingRepository.findByUserId(id)
         .stream().map(this::mapToResponse).toList();
     }
 
+    public List<ListingResponse> getOtherUserListings(String userId){
+        //check user exists 
+        Optional<User> curr =  userRepository.findById(userId);
+
+        if(curr.isEmpty()||!curr.isPresent()){
+            log.warn(userId + " is not a valid user");
+            throw new IllegalArgumentException("User is not present.");
+        }
+       
+        List<ListingResponse> ls = listingRepository.findByUserId(new ObjectId(userId)).stream().map(this::mapToResponse).toList();
+
+        if(ls.isEmpty()){
+            return new ArrayList<>();
+        }
+        else{
+            return ls;
+        }
+
+    }
+
+    public Map<Integer, String> rentOutListing(String listingId, String token){
+    if (token == null || token.isBlank()) {
+        throw new ForbiddenException("Missing authentication token");
+    }
+    ObjectId requesterId = jwtService.extractUserId(token);
+
+    Listing listing = listingRepository.findById(listingId)
+            .orElseThrow(() -> new IllegalArgumentException("Listing not found"));
+
+    if (!listing.getUserId().equals(requesterId)) {
+        log.warn("User attempted to rent out unowned listing");
+        throw new ForbiddenException("User does not own this listing");
+    }
+
+    listing.setStatus(ListingStatus.RENTED);
+    listingRepository.save(listing);
+
+    return Map.of(200, "Rental is now rented");
+}
+    
+    public Map<HttpStatus, String> returnRentedListing(String listingId, String token){
+    if (token == null || token.isBlank()) {
+        throw new ForbiddenException("Missing authentication token");
+    }
+    ObjectId requesterId = jwtService.extractUserId(token);
+
+    Listing listing = listingRepository.findById(listingId)
+            .orElseThrow(() -> new IllegalArgumentException("Listing not found"));
+
+    if (!listing.getUserId().equals(requesterId)) {
+        log.warn("User attempted to return a non-owned listing");
+        throw new ForbiddenException("User does not own this listing");
+    }
+
+    if (listing.getStatus().equals(ListingStatus.AVAILABLE)) {
+        return Map.of(HttpStatus.OK, "Listing is already available");
+    }
+
+    listing.setStatus(ListingStatus.AVAILABLE);
+    listingRepository.save(listing);
+
+    return Map.of(HttpStatus.OK, "Rental is now back to available");
+}
+    
     private ListingResponse mapToResponse(Listing listing) {
         Optional<Boardgame> validGame = boardGameRepository.findByTitle(listing.getGameTitle());
 
