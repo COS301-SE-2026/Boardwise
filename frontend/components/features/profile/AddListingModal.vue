@@ -95,6 +95,7 @@
               label="Start Date"
               variant="outlined"
               hide-details="auto"
+              @keydown="blockManualDateEntry"
               :rules="[startDateRule]"
             />
             <v-date-input
@@ -102,6 +103,7 @@
               label="End Date"
               variant="outlined"
               hide-details="auto"
+              @keydown="blockManualDateEntry"
               :rules="[endDateRule]"
             />
           </div>
@@ -253,7 +255,14 @@ const startOfDay = (d) => {
   return date;
 };
 
-const MAX_RENTAL_DAYS = 90;
+// blocks typed keystrokes in the date fields
+const blockManualDateEntry = (e) => {
+  const allowed = ['Tab', 'Shift', 'Escape', 'Enter'];
+  if (!allowed.includes(e.key)) {
+    e.preventDefault();
+  }
+};
+
 
 const startDateRule = (v) => {
   if (listingType.value !== 'rent') return true;
@@ -351,7 +360,7 @@ function getRentalPeriod() {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
+    return `${day}/${m}/${y}`;
   }
   return [fmt(startDate.value), fmt(endDate.value)];
 }

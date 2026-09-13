@@ -100,13 +100,15 @@
                 v-model="start_date"
                 label="Start Date"
                 variant="outlined"
+                @keydown="blockManualDateEntry"
                 :rules="[rules.required, rules.startNotPast]"
               />
               <v-date-input
                 v-model="end_date"
                 label="End Date"
                 variant="outlined"
-                :rules="[rules.required, rules.endAfterStart, rules.rentalMaxLength]"
+                @keydown="blockManualDateEntry"
+                :rules="[rules.required, rules.endAfterStart]"
               />
             </div>
             <div v-else>
@@ -221,6 +223,14 @@ const startOfDay = (d) => {
   return date
 }
 
+// blocks typed keystrokes in the date fields
+const blockManualDateEntry = (e) => {
+  const allowed = ['Tab', 'Shift', 'Escape', 'Enter']
+  if (!allowed.includes(e.key)) {
+    e.preventDefault()
+  }
+}
+
 const blockNegativeKeys = (e) => {
   if (['-', '+', 'e', 'E'].includes(e.key)) {
     e.preventDefault()
@@ -248,7 +258,6 @@ const rules = {
   description: (v) => {
     const s = String(v ?? '').trim()
     if (s.length < 10) return 'Description must be at least 10 characters'
-    if (s.length > 2000) return 'Description cannot exceed 2000 characters'
     return true
   },
   startNotPast: (v) => {
@@ -324,7 +333,7 @@ function get_rental_period() {
     const y = date.getFullYear()
     const m = String(date.getMonth() + 1).padStart(2, '0')
     const day = String(date.getDate()).padStart(2, '0')
-    return `${y}-${m}-${day}`
+    return `${day}/${m}/${y}`
   }
   return [fmt(start_date.value), fmt(end_date.value)]
 }
