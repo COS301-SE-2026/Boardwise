@@ -64,8 +64,8 @@ export function useStomp(){
         client.activate();
     };
 
-    function disconnect(){
-        client?.deactivate();
+    async function disconnect(){
+        await client?.deactivate();
         client = null;
         subscriptions.clear();
         isConnected.value = false;

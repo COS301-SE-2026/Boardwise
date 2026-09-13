@@ -8,7 +8,7 @@ import org.springframework.messaging.simp.user.SimpUser;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.messaging.SessionConnectEvent;
+import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import com.boardwise.backend.shared.services.NotificationService;
 import com.boardwise.backend.user_service.dtos.notifications.PresenceNotification;
@@ -36,15 +36,18 @@ public class AsyncEventListener{
         String userId = user.getName();
         SimpUser simpUser = simpUserRegistry.getUser(userId);
         boolean sessionExist = simpUser != null && !simpUser.getSessions().isEmpty();
+        System.out.println("[Async Event Listener]: User, \"" + userId + "\" has at least one existing session: " + sessionExist);
 
         if(!sessionExist){
-            broadcastUserPresence(userId, true, Instant.now());
+            System.out.println("[Async Event Listener]: Broadcasting OFFLINE for user " + userId);
+            broadcastUserPresence(userId, false, Instant.now());
+            System.out.println("[Async Event Listener]: Broadcast call completed for user " + userId);
         }
     }
 
     @Async 
     @EventListener 
-    public void handleConnect(SessionConnectEvent event){
+    public void handleConnect(SessionConnectedEvent event){
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
         Principal user = accessor.getUser();
         if(user == null) 
@@ -53,6 +56,7 @@ public class AsyncEventListener{
         String userId = user.getName();
         SimpUser simpUser = simpUserRegistry.getUser(userId);
         int sessions = simpUser != null ? simpUser.getSessions().size() : 0;
+        System.out.println("[Async Event Listener]: Sessions for user, \"" + userId + "\": " + sessions);
 
         if(sessions == 1){
             broadcastUserPresence(userId, true, null);

@@ -72,8 +72,6 @@ export const useCommunityChat = () => {
         if(!token) return;
 
         subscribe(`/topic/community/${id}/chat`, (message: CommunityMessageDTO) => {
-            console.log("Community message received!!\n", message);
-
             const myUserId = jwtDecode<{sub: string}>(token).sub;
             const serverEcho = message.senderId === myUserId;
 
@@ -103,10 +101,8 @@ export const useCommunityChat = () => {
         if(!token) return;
 
         subscribe(`/topic/community/${id}/notification`, (notification: NewMemberNotification) => {
-            console.log("System community message received!!\n", notification);
             const newMember = JSON.parse(notification.message) as Member;
             notificationHandler(newMember);
-            
         })
     }
 

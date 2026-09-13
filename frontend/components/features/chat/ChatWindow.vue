@@ -134,8 +134,8 @@ const respondingId = ref<string | null>(null);
 
 onMounted(() => {
     fetchInvites();
-    getMissedMessages(props.conversation.id);
-    onReconnectHook(() => getMissedMessages(props.conversation.id))
+    getMissedMessages(props.conversation.userId);
+    onReconnectHook(() => getMissedMessages(props.conversation.userId))
 })
 
 watch(

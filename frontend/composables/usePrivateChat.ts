@@ -62,14 +62,16 @@ export const usePrivateChat = () => {
         try{
             if(!token) throw new Error("User is not authenticated");
 
+            const userId = jwtDecode(token).sub
+
             const isSameChat = messages.value.length > 0 && 
-                (messages.value[0]?.senderId == targetId || messages.value[0]?.receiverId == targetId);
+                (messages.value[0]?.senderId === targetId || messages.value[0]?.receiverId === targetId);
 
             if(!isSameChat)
                 messages.value = [];
             
             const res = await ChatService.getMissedPrivateMessage(
-                targetId, 
+                generateConversationId(targetId, userId as string), 
                 lastMessageTime.value
             );
 
@@ -209,10 +211,15 @@ export const usePrivateChat = () => {
     }
 
     const listenForPresence = (userId: string) => {
-        if(watchedPresenceUsers.has(userId)) return;
+        if(watchedPresenceUsers.has(userId)){
+            console.warn(`[usePrivateChat]: "/topic/presence/${userId}" already subscribed to.`)
+            return;
+        } 
 
         watchedPresenceUsers.add(userId);
         subscribe(`/topic/presence/${userId}`, (presence: PresenceNotification) => {
+            console.log("[usePrivateChat] Presence Notification received!!!")
+            
             const cIdx = chats.value.findIndex((el) => el.userId === presence.userId);
             if(cIdx !== -1 && chats.value[cIdx]){
                 chats.value[cIdx].isOnline = presence.isOnline;
@@ -292,6 +299,7 @@ export const usePrivateChat = () => {
         for(const userId of watchedPresenceUsers){
             unsubscribe(`/topic/presence/${userId}`);
         }
+        watchedPresenceUsers.clear();
     });
 
     return { 

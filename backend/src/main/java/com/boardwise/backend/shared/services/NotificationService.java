@@ -37,7 +37,11 @@ public class NotificationService {
 
     @Async 
     public void broadcastPresence(String userId, NotificationDTO notification){
-        if(notification.getType() != NotificationType.PRESENCE) return;
+        System.out.println("[Presence] broadcastPresence called, type=" + notification.getType());
+        if(notification.getType() != NotificationType.PRESENCE){
+            System.out.println("[Presence]: Type mismatch, aborting broadcast");
+            return;
+        } 
 
         messagingTemplate.convertAndSend(
             "/topic/presence/" + userId,
