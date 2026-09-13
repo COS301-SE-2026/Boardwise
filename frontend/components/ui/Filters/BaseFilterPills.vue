@@ -1,13 +1,11 @@
 <template>
   <div class="filter-pills">
-    <div class="filter-search">
-      <BaseSearch 
-        v-model="searchQuery"
-        placeholder=""
-        aria-label="Search"
-        class="filter-pills__search"
-      />
-    </div>
+    <BaseSearch 
+      v-model="searchQuery"
+      placeholder=""
+      aria-label="Search"
+      class="filter-pills__search"
+    />
 
     <div class="filter-pill-options">
       <button
@@ -65,7 +63,7 @@ const filteredOptions = computed(() => {
     return props.options
   }
 
-  return props.options.filter((option) =>
+  return props.options.filter(option =>
     option.toLowerCase().includes(query)
   )
 })

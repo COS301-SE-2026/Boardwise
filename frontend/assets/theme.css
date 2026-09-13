@@ -2926,12 +2926,6 @@ html[data-density="compact"] .rulebook-list {
   color: var(--color-text-muted);
 }
 
-.base-search:focus-within {
-  outline: 3px solid var(--color-primary);
-  outline-offset: 2px;
-  border-radius: var(--radius-pill);
-}
-
 .base-search:focus-within :deep(.v-field__outline) {
   color: var(--color-primary);
 }
