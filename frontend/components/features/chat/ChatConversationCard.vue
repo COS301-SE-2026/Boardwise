@@ -24,11 +24,8 @@
                             v-if="conversation.isOnline"
                             class="chat-online-indicator"
                             aria-hidden="true"
-                        />
+                        ></span>
 
-                        <span class="sr-only">
-                            {{ conversation.isOnline ? 'Online' : 'Offline' }}
-                        </span>
                     </div>
 
                     <div class="chat-conversation-card__content">

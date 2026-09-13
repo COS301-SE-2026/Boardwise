@@ -114,7 +114,11 @@ const selectConversation = (id: string) => {
     const convo = conversations.value.find((el) => el.id === id)
     if(!convo) return
 
-    convo.isOnline = !(convo.username === 'Invites' && inviteCount.value > 0)
+    const online = (convo.username === 'Invites' && inviteCount.value > 0) ? 
+                    true :
+                    convo.isOnline
+    
+    convo.isOnline = online
     selectedId.value = id
     mobileConversationOpen.value = true
     currentChat.value = convo.isInvite ? null : convo

@@ -23,11 +23,18 @@ export interface Conversation{
     isInvite?: boolean
 }
 
+interface PresenceNotification{
+    type: "PRESENCE",
+    userId: string,
+    isOnline: boolean
+}
+
 const error = ref<string>('');
 const isLoading = ref<boolean>(false);
 const chats = ref<Array<Conversation>>([]);
 const currentChat = ref<Conversation | null | undefined>(null);
 const messages = ref<Array<DirectMessageDTO>>([]);
+const watchedPresenceUsers = new Set<String>();
 
 export const usePrivateChat = () => {
     const { isConnected, subscribe, unsubscribe, sendPrivateMessage } = useStomp();
@@ -102,17 +109,20 @@ export const usePrivateChat = () => {
                     unread: false
                 }
                 return newChat;
-            })
+            });
 
             const unsavedChats = chats.value.filter( el => 
                 !fetchedChats.some((fetched) => fetched.id === el.id) &&
                 (!el.lastMessage || el.lastMessage === "")
-            )
+            );
 
             chats.value = [...unsavedChats, ...fetchedChats].sort((a, b) => 
                 new Date(a.lastMessageAt).getTime() - new Date(b.lastMessageAt).getTime()
-            )
+            );
             
+            for(const chat of chats.value){
+                listenForPresence(chat.userId);
+            }
         }
         catch(err: any){
             error.value = err.data?.message || "Could not retrieve chats."
@@ -198,6 +208,21 @@ export const usePrivateChat = () => {
         });
     }
 
+    const listenForPresence = (userId: string) => {
+        if(watchedPresenceUsers.has(userId)) return;
+
+        watchedPresenceUsers.add(userId);
+        subscribe(`/topic/presence/${userId}`, (presence: PresenceNotification) => {
+            const cIdx = chats.value.findIndex((el) => el.userId === presence.userId);
+            if(cIdx !== -1 && chats.value[cIdx]){
+                chats.value[cIdx].isOnline = presence.isOnline;
+            }
+            if(currentChat.value?.userId === presence.userId){
+                currentChat.value.isOnline = presence.isOnline;
+            }
+        })
+    }
+
     const sendDirectMessage = (msg: DirectMessageDTO) => {
         if(!token) return;
 
@@ -239,7 +264,7 @@ export const usePrivateChat = () => {
                 userId: receiverId,
                 username: sender.username,
                 profilePicture: sender.profilePicture,
-                isOnline: true,
+                isOnline: false,
                 lastMessage: "",
                 lastMessageAt: new Date().toISOString(),
                 unread: false
@@ -262,7 +287,12 @@ export const usePrivateChat = () => {
         })
     }
     
-    onUnmounted(() => unsubscribe(dest));
+    onUnmounted(() => { 
+        unsubscribe(dest);
+        for(const userId of watchedPresenceUsers){
+            unsubscribe(`/topic/presence/${userId}`);
+        }
+    });
 
     return { 
         isConnected, 

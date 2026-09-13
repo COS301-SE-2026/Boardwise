@@ -36,13 +36,13 @@
                         {{ conversation.username }}
                     </h2>
 
-                <div class="chat-header__status">
-                    <span
-                        :class="{
-                            'chat-status-dot--online': conversation.online
-                        }"
-                        aria-hidden="true"
-                    />
+                    <div class="chat-header__status">
+                        <span
+                            :class="{
+                                'chat-status-dot--online': conversation.online
+                            }"
+                            aria-hidden="true"
+                        ></span>
 
                         <span>
                             {{ conversation.isOnline ? 'Online' : 'Offline' }}
