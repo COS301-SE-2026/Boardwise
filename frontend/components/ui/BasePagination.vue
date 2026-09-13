@@ -17,7 +17,7 @@
 
                 <BaseButton 
                     v-else
-                    variant="page === modelValue ? 'primary' : 'ghost'"
+                    :variant="page === modelValue ? 'primary' : 'ghost'"
                     size="sm"
                     class="base-pagination__page"
                     :data-test="`pagination-page-{page}`"

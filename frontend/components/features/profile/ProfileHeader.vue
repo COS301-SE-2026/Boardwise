@@ -52,7 +52,7 @@
 
       </div>
 
-      <v-btn @click="showEdit = true">Edit Profile</v-btn>
+      <BaseButton @click="showEdit = true">Edit Profile</BaseButton>
 
     </div>
 
@@ -73,6 +73,7 @@
 
 <script setup>
 import EditProfileModal from './EditProfileModal.vue'
+import BaseButton from '~/components/ui/BaseButton.vue';
 import ChangeProfilePictureModal from './ChangeProfilePictureModal.vue';
 
 defineProps({
@@ -142,22 +143,6 @@ const showPfpModal = ref(false)
   color:        var(--bw-navy-ink) !important;
   border-radius: var(--radius-pill) !important;
 }
-
-:deep(.v-btn) {
-  font-family:    var(--font-button) !important;
-  background:     var(--color-primary) !important;
-  color:          var(--color-text-inverse) !important;
-  border-radius:  var(--radius-md) !important;
-  height:         44px !important;
-  padding:        0 var(--space-5) !important;
-  text-transform: none !important;
-  letter-spacing: 0 !important;
-  box-shadow:     none !important;
-}
-
-:deep(.v-btn:hover) {
-  background: var(--color-primary-hover) !important;
-}
 .profile-preferences {
   display: flex;
   flex-direction: column;
@@ -195,10 +180,6 @@ const showPfpModal = ref(false)
 
   .profile-name {
     font-size: var(--fs-h3);
-  }
-
-  :deep(.v-btn) {
-    width: 100%;
   }
 }
 </style>

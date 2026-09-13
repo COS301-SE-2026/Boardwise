@@ -70,9 +70,9 @@
         />
 
         <div class="d-flex">
-          <v-btn-toggle v-model="listingType" color="primary" variant="outlined" mandatory divided>
-            <v-btn value="sell">Sell</v-btn>
-            <v-btn value="rent">Rent</v-btn>
+          <v-btn-toggle v-model="listingType" color="primary" variant="secondary" mandatory divided>
+            <BaseButton value="sell">Sell</BaseButton>
+            <BaseButton value="rent">Rent</BaseButton>
           </v-btn-toggle>
         </div>
 
@@ -140,7 +140,7 @@
 
         <div class="d-flex flex-column ga-1">
           <div class="d-flex align-center ga-3">
-            <v-btn variant="outlined" color="primary" @click="triggerUpload">Upload Image</v-btn>
+            <BaseCard variant="secondary" color="primary" @click="triggerUpload">Upload Image</BaseCard>
             <label for="image-upload" class="text-grey text-body-2">{{ fileName || '···' }}</label>
             <input
               id="image-upload"
@@ -155,8 +155,8 @@
         </div>
 
         <div class="d-flex justify-end ga-3">
-          <v-btn variant="outlined" color="primary" :disabled="isLoading" @click="closeModal">Cancel</v-btn>
-          <v-btn color="primary" @click="handleConfirm" :loading="isLoading" :disabled="isLoading">Create Listing</v-btn>
+          <BaseButton variant="secondary" color="primary" :disabled="isLoading" @click="closeModal">Cancel</BaseButton>
+          <BaseButton @click="handleConfirm" :loading="isLoading" :disabled="isLoading">Create Listing</BaseButton>
         </div>
       </v-form>
     </BaseCard>
@@ -167,6 +167,7 @@
 import { useUserLocation } from '@/composables/useUserLocation';
 import { useBoardGames } from '~/composables/useBoardGames'
 import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseButton from '~/components/ui/BaseButton.vue';
 
 const { city, suburb, lat, long, error: locationError, loading, findUserLocation } = useUserLocation();
 const {searchGames, games } = useBoardGames();

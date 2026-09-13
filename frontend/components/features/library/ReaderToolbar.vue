@@ -74,17 +74,16 @@
                 location="bottom"
               >
                 <template #activator="{ props: tooltipProps }">
-                  <v-btn
+                  <BaseButton
                     v-bind="tooltipProps"
                     size="small"
-                    variant="outlined"
-                    color="primary"
+                    variant="secondary"
                     prepend-icon="mdi-pencil"
                     :disabled="!!lockHeldBy"
                     @click="emit('edit')"
                   >
                     Edit
-                </v-btn>
+                  </BaseButton>
                 </template>
               </v-tooltip>
             </template>

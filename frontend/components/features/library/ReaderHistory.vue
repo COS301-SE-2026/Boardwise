@@ -10,9 +10,9 @@
         <div class="pa-6">
             <div class="d-flex justify-space-between align-center mb-6">
                 <h2>Edit History</h2>
-                <v-btn icon variant="text" @click="$emit('update:modelValue', false)">
+                <BaseButton icon variant="text" @click="$emit('update:modelValue', false)">
                 <v-icon>mdi-close</v-icon>
-                </v-btn>
+                </BaseButton>
             </div>
 
             <v-alert
@@ -78,6 +78,7 @@
 
 <script setup>
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
 
 defineProps({
   modelValue: { type: Boolean, default: false },

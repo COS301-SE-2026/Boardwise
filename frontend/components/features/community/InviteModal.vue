@@ -46,7 +46,7 @@
             </div>
           </div>
 
-          <v-btn
+          <BaseButton
             icon
             variant="text"
             :disabled="invitedUsernames.has(user.username)"
@@ -56,7 +56,7 @@
             <v-icon>
               {{ invitedUsernames.has(user.username) ? 'mdi-check' : 'mdi-plus' }}
             </v-icon>
-          </v-btn>
+          </BaseButton>
         </div>
       </div>
 

@@ -2,9 +2,9 @@
     <BaseModal v-model="open" :max-width="600">
         <div class="d-flex align-center justify-space-between mb-5">
             <h2> Create Event</h2>
-            <v-btn icon variant="text" @click="open = false">
+            <BaseButton icon variant="text" @click="open = false">
                 <v-icon>mdi-close</v-icon>
-            </v-btn>
+            </BaseButton>
         </div>
 
         <div class="d-flex flex-column ga-4 mb-6">

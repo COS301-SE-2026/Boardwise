@@ -1,6 +1,6 @@
 <template>
   <v-dialog v-model="open" max-width="400">
-    <v-card class="delete-modal">
+    <BaseCard class="delete-modal">
 
       <div class="modal-icon">
         <v-icon size="28" color="error">mdi-trash-can-outline</v-icon>
@@ -10,16 +10,19 @@
       <p>Are you sure you want to remove this game from your profile?</p>
 
      <div class="d-flex justify-center ga-3 mt-2">
-      <v-btn variant="outlined" color="primary" @click="open = false">Cancel</v-btn>
-      <v-btn color="error" @click="confirm">Delete</v-btn>
+      <BaseButton variant="secondary" color="primary" @click="open = false">Cancel</BaseButton>
+      <BaseButton variant="error" @click="confirm">Delete</BaseButton>
     </div>
 
     
-    </v-card>
+  </BaseCard>
   </v-dialog>
 </template>
 
 <script setup>
+import BaseButton from '~/components/ui/BaseButton.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
+
 const open = defineModel({ type: Boolean, default: false })
 const emit = defineEmits(['confirm'])
 
@@ -46,16 +49,5 @@ const confirm = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-h2 {
-  margin: 0;
-  font-size: var(--fs-h3);
-}
-
-p {
-  margin: 0;
-  font-size: var(--fs-body);
-  color: var(--color-text-muted);
 }
 </style>

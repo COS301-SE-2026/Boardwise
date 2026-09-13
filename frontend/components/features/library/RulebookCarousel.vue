@@ -48,12 +48,9 @@
 
             <p>{{ rulebook.genre }}</p>
             
-            <v-btn 
-              color="primary"
-              rounded="pill"
-            >
+            <BaseCard>
               Read Rulebook
-            </v-btn>
+            </BaseCard>
           </div>
         </div>
       </v-carousel-item>
@@ -64,6 +61,7 @@
 <script setup>
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
+import BaseButton from '~/components/ui/BaseButton.vue';
 import { useLibrary } from '~/composables/useLibrary';
 
 const { isLoading } = useLibrary()
@@ -103,7 +101,7 @@ defineEmits(['select'])
   background: linear-gradient(
     to top,
     rgba(0,0,0,0.8),
-    rgba(0,0,0,0.35)
+    rgba(0,0,0,0.35),
     transparent
   );
 }

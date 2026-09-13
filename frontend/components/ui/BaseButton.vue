@@ -16,7 +16,8 @@
 defineProps({
   variant: {
     type: String,
-    default: 'primary'
+    default: 'primary',
+    validator: (v) => ['primary', 'secondary','accent','ghost','error','success','text'].includes(v)
   }
 })
 
@@ -32,11 +33,13 @@ const colorMap = {
 }
 
 const styleMap = {
-  primary:   'flat',
+  primary: 'flat',
   secondary: 'outlined',
-  accent:    'flat',
-  ghost:     'flat',
-  text:       'text'
+  accent: 'flat',
+  ghost: 'flat',
+  text: 'text',
+  error: 'flat',
+  success: 'flat'
 }
 </script>
 
