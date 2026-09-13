@@ -21,6 +21,6 @@ class Settings:
     HF_TOKEN: str | None = os.getenv("HF_TOKEN")
     INTERNAL_WEBHOOK_SECRET: str | None = os.getenv("INTERNAL_SECRET")
     CPU_CORES: int = int(os.getenv("CPU_CORES", "1"))
-
+    TRUNCATE_DIMENSION: int = 256
 
 settings = Settings()
