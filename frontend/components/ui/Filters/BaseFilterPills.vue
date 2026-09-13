@@ -1,38 +1,30 @@
 <template>
   <div class="filter-pills">
     <div class="filter-search">
-      <v-icon 
-        icon="mdi-magnify"
-        size="16"
-      />
-
-      <input 
+      <BaseSearch 
         v-model="searchQuery"
-        type="text"
-        placeholder="Search genres"
-        aria-label="Search genres"
+        placeholder=""
+        aria-label="Search"
+        class="filter-pills__search"
       />
-
-      <button
-        v-if="searchQuery"
-        type="button"
-        class="filter-pill-search__clear"
-        aria-label="Clear genre search"
-        @click="searchQuery = ''"
-      >
-        <v-icon icon="mdi-close" size="14" />
-      </button>
     </div>
 
     <div class="filter-pill-options">
       <button
-        v-for="option in options"
+        v-for="option in filteredOptions"
         :key="option"
         type="button"
         class="filter-pill"
         :class="{ 'filter-pill--active': isSelected(option) }"
-        @click="$emit('update:modelValue', option)"
+        :aria-pressed="isSelected(option)"
+        @click="toggleOption(option)"
       >
+        <v-icon 
+          v-if="isSelected(option)"
+          icon="mdi-check"
+          size="16"
+        />
+
         {{ option }}
       </button>
 
@@ -48,6 +40,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import BaseSearch from '../BaseSearch.vue'
 
 const props = defineProps({
   options: {
@@ -83,7 +76,6 @@ function isSelected(option) {
 
 function toggleOption(option) {
   const selected = [...props.modelValue]
-
   const index = selected.indexOf(option)
 
   if (index === -1) {
