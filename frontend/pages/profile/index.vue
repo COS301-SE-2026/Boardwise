@@ -204,8 +204,9 @@ const handleRemove = async (id) => {
     if (!user.value) return
     try {
         await unfriendUser(id)
-        user.value.friendCount--
-        userFriendList.value.friends = userFriendList.value.friends.filter((el) => el.id !== id)
+        const idx = userFriendList.value?.friends.findIndex((el) => el.id === id);
+        userFriendList.value?.friends.splice(idx, 1);
+        user.value.friendCount--;
 
     } catch (err) {
         console.error('Failed to send friend request:', err)
@@ -224,7 +225,6 @@ onMounted(async () => {
   await getOwnFriendsList();
   await refreshUser();
   listenForFriendNotifications((notification) => {
-    console.log("[useFriends | Profile.index]: Notification callback executed")
     if(notification.type === NotificationType.FRIEND_REQUEST){
         userFriendRequests.value?.requests.push(notification.request);
     }
