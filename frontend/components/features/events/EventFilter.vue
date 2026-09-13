@@ -1,5 +1,5 @@
 <template>
-    <BaseFilterSidebar @resetFilters="resetFilters">
+    <BaseFilterSidebar @reset="resetFilters">
         
         <BaseFilterGroup title="Date">
             <div
@@ -11,7 +11,7 @@
             >
                 {{ date }}
             </div>
-        </BaseFilterGroup>
+        </BaseFilterGroup title="Games Titles">
             <v-checkbox
                 v-for="game in games"
                 :key="game"
@@ -22,7 +22,7 @@
                 color="primary"
                 hide-details
             />    
-        <BaseFilterGroup title="Game">
+        <BaseFilterGroup title="Format">
             <v-checkbox
                 v-model="filters.online"
                 label="Online"

@@ -5,9 +5,20 @@
         style="flex-shrink: 0"
         class="d-flex flex-column ga-2 pa-4 base-filter-sidebar"
     >
-        <h2 class="base-filter-sidebar__heading">Filters</h2>
+        <div class="d-flex justify-space-between align-center mb-2">
+            <h2 class="base-filter-sidebar__heading">Filters</h2>
+            <BaseButton 
+                variant="text" 
+                size="sm"
+                class="base-filter-sidebar__reset"
+                @click="$emit('reset')"
+            >
+                ↺ Reset
+            </BaseButton>
+        </div>
+        
         <slot />
-        <BaseButton variant="secondary" @click="$emit('reset')">↺ Reset</BaseButton>
+        
     </v-sheet>
 </template>
 
@@ -15,11 +26,3 @@
 import BaseButton from '~/components/ui/BaseButton.vue'
 defineEmits(['reset'])
 </script>
-
-<style scoped>
-.base-filter-sidebar {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-}
-</style>

@@ -2671,21 +2671,126 @@ html[data-density="compact"] .rulebook-list {
   }
 }
 
-/* -------------------------------------------------------------
+/* ============================================================= 
    FILTER SIDEBAR
-   ------------------------------------------------------------- */
+   ============================================================= */
 
 .base-filter-sidebar {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   flex-shrink: 0;
 }
 
 .base-filter-sidebar__heading {
   margin: 0;
-
   font-family: var(--font-body);
   font-weight: var(--fw-bold);
 }
 
+.base-filter-sidebar__reset {
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  font-family: var(--font-body);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-small);
+  cursor: pointer;
+}
+
+.base-filter-sidebar__reset:hover {
+  color: var(--color-primary-hover);
+}
+
+.base-filter-group :deep(.v-expansion-panel) {
+  background: transparent;
+}
+
+.base-filter-group__title {
+  padding-inline: 0 !important;
+
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+}
+
+.base-filter-group :deep(.v-expansion-panel-text__wrapper) {
+  padding-inline: 0;
+}
+
+/* ============================================================
+   FILTER PILLS (single-select, e.g. Date, Genre)
+   ============================================================ */
+
+.filter-pills {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+}
+
+.filter-pill {
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  text-align: center;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.filter-pill:hover {
+  background: var(--rosewood);
+}
+
+.filter-pill--active {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.filter-pill:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   FILTER CHECKBOX ROW (with optional trailing count)
+   ============================================================ */
+
+.filter-checkbox-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.filter-checkbox-row .v-checkbox {
+  flex: 1;
+}
+
+.filter-checkbox-row__count {
+  min-width: 28px;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  text-align: center;
+}
+
+/* ============================================================
+   FILTER PRICE RANGE
+   ============================================================ */
+
+.filter-price-range {
+  display: flex;
+  gap: var(--space-2);
+}
 
 /* -------------------------------------------------------------
    GRID
