@@ -323,9 +323,6 @@ const handleFileChange = (e) => {
   }
 
   if (fileError.value) {
-    e.target.value = '';
-    fileName.value = '';
-    file.value = null;
     return;
   }
 
