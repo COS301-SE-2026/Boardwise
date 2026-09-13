@@ -21,7 +21,7 @@
       </div>
 
       <div class="chat-message-bubble"
-        :class="{ 'chat-message-bubble--own': isOwn}"
+        :class="{ 'chat-message-bubble--own': isOwn }"
       >
         <p class="chat-message-text">
           {{  message.message }}
@@ -60,9 +60,6 @@ const props = defineProps({
   }
 })
 
-// const sender = ref(null)
-// const myUserId = ref(jwtDecode(props.token).sub);
-
 const myUserId = computed(() => {
     try {
         return jwtDecode(props.token).sub
@@ -84,9 +81,7 @@ const sender = computed(() => {
 watch(
   () => props.message.senderId,
   (id) => {
-    // if(isOwn.value){
-    //   sender.value = props.user
-    // }
+
     sender.value = props.community.members.find((el) => el.id === id);
   },
   { immediate: true }
