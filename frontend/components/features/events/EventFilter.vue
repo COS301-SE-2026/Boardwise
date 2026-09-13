@@ -2,42 +2,15 @@
     <BaseFilterSidebar @reset="resetFilters">
         
         <BaseFilterGroup title="Date">
-            <div
-                v-for="date in dates"
-                :key="date"
-                class="date-option"
-                :class="{ 'active': selectedDate === date }"
-                @click="selectedDate= date"
-            >
-                {{ date }}
-            </div>
-        </BaseFilterGroup title="Games Titles">
-            <v-checkbox
-                v-for="game in games"
-                :key="game"
-                :label="game"
-                :value="game"
-                v-model="selectedGames"
-                density="compact"
-                color="primary"
-                hide-details
-            />    
-        <BaseFilterGroup title="Format">
-            <v-checkbox
-                v-model="filters.online"
-                label="Online"
-                density="compact"
-                color="primary"
-                hide-details
-            />
+            <BaseFilterPills v-model="selectedDate" :options="dates" />
+        </BaseFilterGroup>
 
-            <v-checkbox
-                v-model="filters.inPerson"
-                label="In Person"
-                density="compact"
-                color="primary"
-                hide-details
-            />
+        <BaseFilterGroup title="Games Titles">
+            <BaseFilterCheckboxGroup v-model="selectedGames" :options="gameOptions" />
+        </BaseFilterGroup>
+
+        <BaseFilterGroup title="Format">
+            <BaseFilterCheckboxGroup v-model="selectedFormats" :options="['In-Person', 'Online']" />
         </BaseFilterGroup>
 
     </BaseFilterSidebar>
@@ -48,6 +21,8 @@ import { ref, reactive, watch} from 'vue';
 
 import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue';
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue';
+import BaseFilterPills from '~/components/ui/Filters/BaseFilterPills.vue';
+import BaseFilterCheckboxGroup from '~/components/ui/Filters/BaseFilterCheckboxGroup.vue';
 
 const emit = defineEmits(['filter'])
 
