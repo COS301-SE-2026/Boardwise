@@ -2,45 +2,26 @@
   <BaseFilterSidebar data-test="filter-sidebar" @reset="resetFilters">
 
     <BaseFilterGroup title="Genres">
-      <div class="genre-list">
-        <button 
-          v-for="genre in genres"
-          :key="genre"
-          type="button"
-          class="genre-option"
-          :class="{ 'genre-option--active': selectedGenre === genre}"
-          :data-test="`genre-${genre.toLowerCase()}`"
-          @click="selectedGenre = genre"
-        >
-          {{ genre }}
-        </button>
-      </div>
+      <BaseFilterPills v-model="selectedGenre" :options="genres" />
     </BaseFilterGroup>
 
     <BaseFilterGroup title="Listing Type">
-      <v-checkbox data-test="rent-filter" v-model="filters.rent" label="Rent" density="compact" color="primary" hide-details />
-      <v-checkbox data-test="sale-filter" v-model="filters.sale" label="For Sale" density="compact" color="primary" hide-details />
+      <BaseFilterCheckboxGroup v-model="selectedListingTypes" 
+        :options="[{ label: 'Rent', value: 'rent'}, { label: 'Sale', value: 'sale'}]"
+      />
     </BaseFilterGroup>
 
     <BaseFilterGroup title="Price Range">
-      <div class="d-flex ga-2">
-        <v-text-field data-test="min-price" v-model="filters.minPrice" placeholder="Min" prefix="R" type="number" density="compact" hide-details />
-        <v-text-field data-test="max-price" v-model="filters.maxPrice" placeholder="Max" prefix="R" type="number" density="compact" hide-details />
-      </div>
+      <BaseFilterPriceRange 
+        :min="filters.minPrice"
+        :max="filters.maxPrice"
+        @update:min="filters.minPrice = $event"
+        @update:max="filters.maxPrice = $event"
+      />
     </BaseFilterGroup>
 
     <BaseFilterGroup title="Condition">
-      <v-checkbox
-        v-for="c in conditions"
-        :key="c"
-        :data-test="`condition-${c.toLowerCase().replace(' ', '-')}`"
-        :label="c"
-        :value="c"
-        v-model="selectedConditions"
-        density="compact"
-        color="primary"
-        hide-details
-      />
+      <BaseFilterCheckboxGroup v-model="selectedConditions" :options="conditions" />
     </BaseFilterGroup>
 
   </BaseFilterSidebar>
@@ -50,6 +31,8 @@
 import { ref, reactive, watch } from 'vue'
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue'
 import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue'
+import BaseFilterCheckboxGroup from '~/components/ui/Filters/BaseFilterCheckboxGroup.vue'
+import BaseFilterPills from '~/components/ui/Filters/BaseFilterPills.vue'
 
 const emit = defineEmits(['filter'])
 
@@ -59,11 +42,12 @@ const selectedGenre  = ref('All')
 const selectedConditions = ref([])
 
 const filters = reactive({
-  rent: false,
-  sale: false,
   minPrice: '',
   maxPrice: '',
 })
+
+const rent = computed(() => selectedListingTypes.value.includes('rent'))
+const sale = computed(() => selectedListingTypes.value.includes('sale'))
 
 watch([selectedGenre, selectedConditions, filters], () => {
   emit('filter', {
