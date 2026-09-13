@@ -13,8 +13,7 @@
  
       <CommunityBanner 
         :community="community" 
-        @members="showMembers = !showMembers"
-        @events="showEvents = !showEvents"
+        @details="showDetails = true"
         @updated="handleUpdate"
       />
  
@@ -63,6 +62,7 @@ import PageContainer from '~/components/layout/PageContainer.vue'
 
 import CommunityBanner from '~/components/features/community/CommunityBanner.vue'
 import CommunityChats from '~/components/features/community/CommunityChats.vue'
+import CommunityMoreDetails from '~/components/features/community/CommunityMoreDetails.vue'
 
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
@@ -95,8 +95,8 @@ const community = ref(null)
 const token = ref('')
 const id = ref('')
 const showDetails = ref(false)
-const showMembers = ref(false)
-const showEvents = ref(false)
+// const showMembers = ref(false)
+// const showEvents = ref(false)
 
 onMounted(async () => {
   const rawToken = localStorage.getItem("access_token")
