@@ -24,7 +24,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.boardwise.backend.shared.dtos.GameInventoryDTO;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
@@ -50,7 +49,6 @@ import com.google.maps.GeoApiContext;
 import com.google.maps.GeocodingApi;
 import com.google.maps.errors.ApiException;
 import com.google.maps.model.GeocodingResult;
-
 import lombok.RequiredArgsConstructor;
 
 
@@ -126,14 +124,14 @@ public class CommunityService {
                 games.add(dto);
             }
 
-            if(event.getStatus() == EventStatus.OPEN){
+            if(event.getStatus() == EventStatus.OPEN && event.getStartDateTime().isAfter(LocalDateTime.now())){
                 RSVPStatus status = (attending || event.getCreatorId().equals(user.getId()))? 
                                     RSVPStatus.ATTENDING : 
                                     RSVPStatus.NOT_ATTENDING;
 
-            EventDTO dto = EventDTO.fromEntity(event, attendeeCount, status, hostInfo, isHost, games);
-            double score = computeSimilarity(userInventory, event.getGames());
-            scored.add(Map.entry(dto, score));
+                EventDTO dto = EventDTO.fromEntity(event, attendeeCount, status, hostInfo, isHost, games);
+                double score = computeSimilarity(userInventory, event.getGames());
+                scored.add(Map.entry(dto, score));
             }
         }
         if (!userInventory.isEmpty()) {
@@ -277,7 +275,9 @@ public class CommunityService {
                     newGames.add(id);
                 }
             }
-            
+
+            boolean updateStart = newStart != null && !event.getStartDateTime().toLocalTime().equals(newStart);
+            boolean updateEnd = newEnd != null && !event.getEndDateTime().toLocalTime().equals(newEnd);
 
 
             if(newName != null && !event.getName().equals(newName)){
@@ -319,7 +319,22 @@ public class CommunityService {
                 event.setStartDateTime(startDateTime);
                 event.setEndDateTime(endDateTime);
             }
-            if(newStart != null && !event.getStartDateTime().toLocalTime().equals(newStart)){
+            if(updateStart && updateEnd){
+                LocalDateTime startDateTime = LocalDateTime.of(
+                    event.getStartDateTime().toLocalDate(), newStart
+                );
+
+                boolean ifPlusOne = newEnd.isBefore(newStart);
+
+                LocalDateTime endDateTime = ifPlusOne ? 
+                                            LocalDateTime.of(startDateTime.toLocalDate().plusDays(1), newEnd) :
+                                            LocalDateTime.of(startDateTime.toLocalDate(), newEnd);
+                    
+                event.setStartDateTime(startDateTime);
+                event.setEndDateTime(endDateTime);
+                eventChanged = true;
+            }
+            if(updateStart){
                 LocalDateTime startDateTime = LocalDateTime.of(
                     event.getStartDateTime().toLocalDate(), newStart
                 );
@@ -331,7 +346,7 @@ public class CommunityService {
                 eventChanged = true;
                 
             }
-            if(newEnd != null && !event.getEndDateTime().toLocalTime().equals(newEnd)){
+            if(updateEnd){
                 LocalDateTime endDateTime = LocalDateTime.of(
                     event.getEndDateTime().toLocalDate(), newEnd
                 );
@@ -347,7 +362,7 @@ public class CommunityService {
                 eventChanged = true;
                 event.setVisibility(newVisibility);
             }
-            if(newGames.size() != 0){
+            if(newGames.size() > 0){
                 Set<String> newGameSet = new HashSet<>(newGames);
                 Set<String> oldGameSet = new HashSet<>(event.getGames());
 
