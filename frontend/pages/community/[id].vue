@@ -90,7 +90,6 @@ import CommunityMoreDetails from '~/components/features/community/CommunityMoreD
 import CommunityChats from '~/components/features/community/CommunityChats.vue'
 
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
-import CommunitySidebar from '~/components/features/community/CommunitySidebar.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 
 import { useCommunity } from '~/composables/useCommunity'
