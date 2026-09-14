@@ -93,10 +93,10 @@
             <v-divider />
 
             <div class="community-more-details__body">
-                <div
+                <output
                     v-if="loading"
                     class="community-more-details__loading"
-                    role="status"
+                    aria-live="polite"
                     aria-label="Loading community details"
                     >
 
@@ -105,7 +105,7 @@
                         color="primary"
                         size="48"
                     />
-                </div>
+            </output>
 
                 <v-window
                     v-else
