@@ -5,459 +5,275 @@
         max-width="760"
         scrollable
     >
-        <BaseCard class="chat-user-details">
-            <header class="chat-user-details__header">
-                <div class="d-flex align-center ga-4">
-                    <BaseAvatar
-               :src="conversation.avatar"
-               :name="conversation.name"
-               size="xl"
+        <BaseCard
+            class="community-more-details"
+            role="dialog"
+            aria-labelledby="community-details-title"
+            >
+            <header class="community-more-details__header">
+                <div class="community-more-details__identity">
+                    <BaseImage
+                        :src="community.imageUrl"
+                        :alt="`${community.name} community image`"
+                        width="72"
+                        height="72"
+                        class="community-more-details__image"
                     />
 
-                    <div class="flex-grow-1">
-               <h2 class="chat-user-details__name">
-                            {{ conversation.name }}
-                 </h2>
-
-                        <p
-                            v-if="username"                    class="chat-user-details__username"
+                   <div class="community-more-details__heading">
+                        <div class="community-more-details__title-row">
+                        <h2
+                            id="community-details-title"
+                            class="community-more-details__name"
                         >
-                            @{{ username }}
-               </p>
+                            {{ community.name }}
+                        </h2>
 
-                        <div class="chat-user-details__status">
-                   <span
-                             class="chat-user-details__status-dot"
-                          :class="{
-                                    'chat-user-details__status-dot--online':
-                                        conversation.online
-                                }"
-                    aria-hidden="true"
-                            />
-
-                       {{ conversation.online ? 'Online' : 'Offline' }}
+                        <BaseBadge :variant="community.visibility">
+                            {{ visibilityLabel }}
+                        </BaseBadge>
                         </div>
+
+                        <p class="community-more-details__meta">
+                        <v-icon
+                            icon="mdi-account-group-outline"
+                            size="17"
+                            aria-hidden="true"
+                        />
+
+                        {{ memberCount }}
+                        {{ memberCount === 1 ? 'member' : 'members' }}
+                        </p>
+                    </div>
                     </div>
 
                     <BaseButton
                         variant="secondary"
-                        aria-label="Close conversation details"
-                   @click="dialog = false"
+                        class="community-more-details__close"
+                        aria-label="Close community details"
+                        @click="dialog = false"
                     >
                         <v-icon
                             icon="mdi-close"
                             aria-hidden="true"
                />
                     </BaseButton>
-                </div>
             </header>
 
             <v-divider />
 
             <v-tabs
                 v-model="activeTab"
-           color="primary"
-                class="chat-user-details__tabs"
+                color="primary"
+                class="community-more-details__tabs"
                 grow
+                show-arrows
             >
                 <v-tab value="overview">
                     Overview
                 </v-tab>
 
-                <v-tab value="media">
-                    Media
+                <v-tab value="members">
+                    Members
 
                     <v-chip
-                        v-if="media.length"
+                        v-if="memberCount"
                         size="x-small"
                         class="ms-2"
                     >
-                        {{ media.length }}
+                        {{ memberCount }}
               </v-chip>
                 </v-tab>
 
-                <v-tab value="events">
+            <v-tab value="events">
                     Events
-                </v-tab>
-
-     <v-tab value="communities">
-                    Communities
                 </v-tab>
             </v-tabs>
 
             <v-divider />
 
-            <div class="chat-user-details__body">
-                <v-window v-model="activeTab">
-          
+            <div class="community-more-details__body">
+                <output
+                    v-if="loading"
+                    class="community-more-details__loading"
+                    aria-live="polite"
+                    aria-label="Loading community details"
+                    >
+
+                    <v-progress-circular
+                        indeterminate
+                        color="primary"
+                        size="48"
+                    />
+            </output>
+
+                <v-window
+                    v-else
+                    v-model="activeTab">
+
                     <v-window-item value="overview">
-                        <div class="d-flex flex-column ga-6">
-                
-                            <v-divider />
+                        <section
+                            class="community-more-details__section"
+                            aria-labelledby="community-overview-heading"
+                            >
+                            <h3
+                                id="community-overview-heading"
+                                class="community-more-details__section-title"
+                            >
+                                About this community
+                            </h3>
+                            <p class="community-more-details__description">
+                                {{
+                                community.description ||
+                                    'This community does not have a description yet.'
+                                }}
+                            </p>
 
-                            <section>
-                                <h3 class="chat-user-details__section-title">
-                                    You both have
-                                </h3>
-
-                                <div class="chat-user-details__stats">
-                         <div class="chat-user-detail-stat">
-                                        <v-icon
-                                  icon="mdi-account-group-outline"
-                                            color="primary"
-                                            aria-hidden="true"
-                                        />
-
-                                        <div>
-                               <strong>
-                                                {{ communities.length }}
-                                            </strong>
-
-                                            <span>
-                                                Common communities
-                                            </span>
-                      </div>
-                                    </div>
-
-                                    <div class="chat-user-detail-stat">
-                                        <v-icon
-                                            icon="mdi-calendar-outline"
-                                            color="primary"
-                         aria-hidden="true"
-                                        />
-
-                                        <div>
-                                            <strong>
-                                                {{ events.length }}
-                         </strong>
-
-                                            <span>
-                                                Shared events
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div class="chat-user-detail-stat">
-                                        <v-icon
-                                            icon="mdi-image-multiple-outline"
+                        <div class="community-more-details__stats">
+                         <div class="community-more-details__stat">
+                            <v-icon
+                                icon="mdi-account-group-outline"
                                 color="primary"
-                                            aria-hidden="true"
-                                        />
+                                aria-hidden="true"
+                            />
 
-                                        <div>
-                                            <strong>
-                                           {{ media.length }}
-                                            </strong>
+                            <div>
+                               <strong>
+                                    {{ memberCount }}
+                                </strong>
 
-                                            <span>
-                                                Shared media
-                                   </span>
-                                        </div>
-                           </div>
+                                <span>
+                                    {{ memberCount === 1 ? 'Member' : 'Members' }}
+                                </span>
+                        </div>
+                    </div>
 
-                                    <div class="chat-user-detail-stat">
-                                 <v-icon
-                                            icon="mdi-dice-multiple-outline"
-                                            color="primary"
-                                            aria-hidden="true"
-                                        />
+                        <div class="community-more-details__stat">
+                            <v-icon
+                                :icon="visibilityIcon"
+                                color="primary"
+                                aria-hidden="true"
+                            />
+
+                            <div>
+                                <strong>
+                                    {{ visibilityLabel }}
+                                </strong>
+
+                                <span>
+                                    Visibility
+                                </span>
+                            </div>
+                        </div>
+
+                    <div class="community-more-details__stat">
+                        <v-icon
+                            icon="mdi-account-star-outline"
+                            color="primary"
+                            aria-hidden="true"
+                        />
+
+                        <div>
+                            <strong>{{ ownerName }}</strong>
+                            <span> Community Owner</span>
+                        </div>
+                    </div>
+
+                    <div class="community-more-details__stat">
+                        <v-icon
+                            icon="mdi-calendar-outline"
+                            color="primary"
+                            aria-hidden="true"
+                        />
 
                              <div>
-                                            <strong>
-                                                {{ sharedGames.length }}
-                                            </strong>
-
-                               <span>
-                                                Games in common
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+                                <strong>{{ createdDate }}</strong>
+                               <span> Created</span>
+                            </div>
+                        </div>
+                    </div>
                   </section>
 
-                            <template v-if="sharedGames.length">
-                                <v-divider />
+                            <template v-if="community.rules">
+                                <v-divider class="my-6" />
 
-                                <section>
-                                    <h3 class="chat-user-details__section-title">
-                                        Games you both enjoy
+                                <section
+                                    class="community-more-details__section"
+                                    aria-labelledby="community-rules-heading"
+                                >
+                                    <h3
+                                        id="community-rules-heading"
+                                        class="community-more-details__section-title"
+                                    >
+                                        Community guidelines
                                     </h3>
 
-                                    <div class="d-flex flex-wrap ga-2">
-                             <v-chip
-                                            v-for="game in sharedGames"
-                                            :key="game.id ?? game.title ?? game"
-                                            color="primary"
-                                            variant="tonal"
-                                        >
-                                            {{
-                                                game.title ??
-                                          game.name ??
-                                    game
-                                            }}
-                                        </v-chip>
-                                    </div>
+                                    <p class="community-more-details__description">
+                                        {{ community.rules }}
+                                    </p>
                                 </section>
                             </template>
-                        </div>
                     </v-window-item>
 
-                    <v-window-item value="media">
-                        <section aria-labelledby="shared-media-heading">
-                            <div class="mb-5">                       <h3
-                                    id="shared-media-heading"
-                                    class="chat-user-details__section-title"
-                                >
-                                    Shared media
-                                </h3>
-
-                                <p class="text-body-2 text-medium-emphasis mb-0">
-                                    Images shared in this conversation.
-                                </p>
-                            </div>
-
-                            <div
-                                v-if="media.length"
-                                class="chat-media-grid"
-                            >
-                                <button
-                                    v-for="(item, index) in media"
-                                    :key="item.id ?? index"
-                          type="button"
-                                    class="chat-media-item"
-                                    :aria-label="
-                                        `View ${
-                                            item.alt ??
-                                            item.title ??
-                                            `shared image ${index + 1}`
-                              }`
-                                    "
-                                    @click="selectedMedia = item"
-                                >
-                                    <BaseImage
-                        :src="mediaSource(item)"
-                                        :alt="
-                                            item.alt ??
-                                            item.title ??
-                                 'Shared conversation image'
-                                        "
-                                        height="150"
-                                        cover
-                                    />
-                                </button>
-                            </div>
-
-                            <BaseEmptyState
-                             v-else
-                                title="No shared media"
-                                description="Photos and images shared in this conversation will appear here."
-                            />
-                        </section>
-                    </v-window-item>
-
-                    <v-window-item value="events">
-                        <section aria-labelledby="shared-events-heading">
-                            <div class="mb-5">
-                                <h3
-                                    id="shared-events-heading"
-                                    class="chat-user-details__section-title"
-                                >
-                                    Events
+                    <v-window-item value="members">
+                    <section
+                        class="community-more-details__section"
+                        aria-labelledby="community-members-heading"
+                    >
+                        <div class="community-more-details__section-heading">
+                        <h3
+                            id="community-members-heading"
+                            class="community-more-details__section-title"
+                        >
+                            Community members
                         </h3>
 
-                                <p class="text-body-2 text-medium-emphasis mb-0">
-                                    Boardwise events you have in common.
-                                </p>
-                            </div>
+                        <p class="community-more-details__section-description">
+                            View the people who belong to this community.
+                        </p>
+                        </div>
 
-                            <div
-                                v-if="events.length"
-                     class="d-flex flex-column ga-3"
-                            >
-                                <NuxtLink
-                                    v-for="event in events"
-                                    :key="event.id"
-                                    :to="`/events/detail/${event.id}`"
-                                    class="chat-detail-link"
-                          >
-                                    <BaseCard class="chat-detail-row pa-4">
-                                        <div class="d-flex align-center ga-4">
-                                            <div class="chat-detail-row__icon">
-                                      <v-icon
-                                    icon="mdi-calendar"
-                                        color="primary"
-                                       aria-hidden="true"
-                                      />
-                                   </div>
-                                            <div class="flex-grow-1">
-                                                <h4 class="chat-detail-row__title">
-                                                    {{
-                                                     event.name ??
-                                      event.title
-                                           }}
-                                                </h4>
-
-                                <p
-                                                    v-if="event.date"
-                                                    class="chat-detail-row__meta"
-                                     >
-                                                   <v-icon
-                                                        icon="mdi-calendar-outline"
-                                          size="15"
-                                                      aria-hidden="true"                                />
-
-                                  {{ event.date }}
-                                                </p>
-
-                                                <p
-                                                    v-if="event.location"
-                        class="chat-detail-row__meta"
-                                                >
-                                                    <v-icon
-                                                        icon="mdi-map-marker-outline"
-                                                        size="15"
-                                             aria-hidden="true"
-                                                    />
-
-                                                    {{ event.location }}
-                                    </p>
-                                            </div>
-
-                                            <v-icon
-                                                icon="mdi-chevron-right"
-                                                aria-hidden="true"
-                                            />
-                                        </div>
-                                    </BaseCard>
-                                </NuxtLink>
-                            </div>
-
-                            <BaseEmptyState
-                                v-else
-                                title="No shared events"
-                                description="Events you both attend will appear here."
-                            />
-                        </section>
-                    </v-window-item>
-
-                    <v-window-item value="communities">
-                        <section aria-labelledby="common-communities-heading">
-                            <div class="mb-5">
-                                <h3
-                                    id="common-communities-heading"
-                      class="chat-user-details__section-title"
-                                >
-                                    Communities in common
-                                </h3>
-
-                                <p class="text-body-2 text-medium-emphasis mb-0">
-                                    Communities that you both belong to.
-                                </p>
-                            </div>
-                    <div
-                                v-if="communities.length"
-                                class="d-flex flex-column ga-3"
-                            >
-                                <NuxtLink
-                                    v-for="community in communities"
-                                    :key="community.id"
-                        :to="`/community/${community.id}`"
-                                    class="chat-detail-link"
-                                >
-                                    <BaseCard class="chat-detail-row pa-4">
-                                        <div class="d-flex align-center ga-4">
-                                            <BaseAvatar
-                                    :src="
-                                    community.imageUrl ??
-                                                    community.avatar
-                                                "
-                                                :name="community.name"
-                                              size="lg"
-                                            />
-
-                                            <div class="flex-grow-1">
-                              <h4 class="chat-detail-row__title">
-                                                    {{ community.name }}
-                                                </h4>
-
-                                      <p
-                                                    v-if="community.memberCount"
-                                         class="chat-detail-row__meta"
-                                                >
-                                    {{
-                                                        community.memberCount
-                                                    }}
-                                            members
-                                                </p>
-                                            </div>
-
-                                  <v-icon
-                                                icon="mdi-chevron-right"
-                                    aria-hidden="true"
-                                            />
-                                </div>
-                                    </BaseCard>
-                                </NuxtLink>
-                            </div>
-
-                            <BaseEmptyState
-                                v-else
-                                title="No communities in common"
-                                description="Communities you both join will appear here."
-                     />
-                        </section>
-                    </v-window-item>
-                </v-window>
-            </div>
-        </BaseCard>
-
-        <v-dialog
-            :model-value="Boolean(selectedMedia)"
-            max-width="900"
-            @update:model-value="
-                !$event && (selectedMedia = null)
-            "
-        >
-            <BaseCard
-                v-if="selectedMedia"
-                class="pa-3"
-            >
-                <div class="d-flex justify-end mb-2">
-                    <BaseButton
-                        variant="secondary"
-                        aria-label="Close media preview"
-                   @click="selectedMedia = null"
-                    >
-                        <v-icon
-                            icon="mdi-close"
-                       aria-hidden="true"
+                        <MemberList
+                        :community="community"
+                        :model-value="true"
                         />
-                    </BaseButton>
-                </div>
+                    </section>
+                    </v-window-item>
 
-          <BaseImage
-                    :src="mediaSource(selectedMedia)"
-                    :alt="
-                        selectedMedia.alt ??
-                        selectedMedia.title ??
-                        'Shared conversation image'
-                    "
-                    contain
-                />
-            </BaseCard>
-        </v-dialog>
-    </v-dialog>
+        </v-window>
+    </div>
+      <template v-if="community.isMember && !community.isOwner">
+        <v-divider />
+
+        <footer class="community-more-details__footer">
+          <BaseButton
+            variant="secondary"
+            @click="emit('leave')"
+          >
+            <v-icon
+              icon="mdi-logout"
+              class="me-2"
+              aria-hidden="true"
+            />
+
+            Leave community
+          </BaseButton>
+        </footer>
+      </template>
+    </BaseCard>
+  </v-dialog>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
 
-import BaseAvatar from '~/components/ui/BaseAvatar.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
-import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
+import BaseBadge from '~/components/ui/BaseBadge.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
+
+import MemberList from './MemberList.vue'
 
 const props = defineProps({
     modelValue: {
@@ -465,20 +281,23 @@ const props = defineProps({
         default: false
     },
 
-    conversation: {
+    community: {
         type: Object,
         required: true
+    },
+    loading: {
+        type: Boolean,
+        default: false
     }
 })
 
 const emit = defineEmits([
-    'update:modelValue'
+    'update:modelValue','leave'
 ])
 
 const { smAndDown } = useDisplay()
 
 const activeTab = ref('overview')
-const selectedMedia = ref(null)
 
 const dialog = computed({
     get: () => props.modelValue,
@@ -488,44 +307,62 @@ const dialog = computed({
     }
 })
 
-const details = computed(() => {
-    return props.conversation.details ?? props.conversation
+const memberCount = computed(() => {
+    return props.community.memberCount ?? members.value.length
 })
 
-const username = computed(() =>
-    details.value.username ?? ''
+const members = computed(() =>
+    Array.isArray(props.community.members)
+    ? props.community.members
+    : []
 )
 
+const visibilityLabel = computed(() => {
+  const visibility = props.community.visibility ?? 'public'
 
-const media = computed(() =>
-    details.value.media ?? []
+  return visibility.charAt(0).toUpperCase() +
+    visibility.slice(1).toLowerCase()
+})
+
+const visibilityIcon = computed(() =>
+  visibilityLabel.value.toLowerCase() === 'private'
+    ? 'mdi-lock-outline'
+    : 'mdi-earth'
 )
 
-const events = computed(() =>
-    details.value.sharedEvents ??
-    details.value.events ??
-    []
+const ownerName = computed(() =>
+  props.community.owner?.username ??
+  props.community.owner?.name ??
+  props.community.ownerUsername ??
+  props.community.createdBy ??
+  'Not available'
 )
 
-const communities = computed(() =>
-    details.value.commonCommunities ??
-    details.value.sharedCommunities ??
-    details.value.communities ??
-    []
-)
+const createdDate = computed(() => {
+  const value =
+    props.community.createdAt ??
+    props.community.creationDate
 
-const sharedGames = computed(() =>
-    details.value.sharedGames ??
-    details.value.commonGames ??
-    []
-)
+  if (!value) {
+    return 'Not available'
+  }
 
-const mediaSource = (item) => {
-    return (
-        item.url ??
-        item.src ??
-        item.imageUrl ??
-        ''
-    )
-}
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return 'Not available'
+  }
+
+  return new Intl.DateTimeFormat('en-ZA', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  }).format(date)
+})
+
+watch(dialog, isOpen => {
+  if (isOpen) {
+    activeTab.value = 'overview'
+  }
+})
 </script>
