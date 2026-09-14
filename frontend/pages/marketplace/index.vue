@@ -51,7 +51,7 @@
           />
 
           <template v-else>
-            <ListingGrid data-test="listing-grid" :listings="pageListings" />
+            <ListingGrid data-test="listing-grid" :listings="listings" />
           
             <p class="text-caption text-medium-emphasis mt-4">
               Showing {{ communityRangeStart }}-{{ communityRangeEnd }}
