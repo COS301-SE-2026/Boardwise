@@ -165,7 +165,6 @@ async def upload_rulebook(
 @router.post(
     "/{rulebook_id}/query",
     response_model=QueryResponse,
-    dependencies=[Depends(verify_jwt)],
     responses={
         500: {
             "description": "Internal Server Error",
