@@ -240,31 +240,6 @@
                     </section>
                     </v-window-item>
 
-
-        <v-window-item value="events">
-            <section
-              class="community-more-details__section"
-              aria-labelledby="community-events-heading"
-            >
-              <div class="community-more-details__section-heading">
-                <h3
-                  id="community-events-heading"
-                  class="community-more-details__section-title"
-                >
-                  Community events
-                </h3>
-
-                <p class="community-more-details__section-description">
-                  View upcoming activities organised by this community.
-                </p>
-              </div>
-
-              <CommunityEvents
-                :community="community"
-                :model-value="true"
-              />
-            </section>
-          </v-window-item>
         </v-window>
     </div>
       <template v-if="community.isMember && !community.isOwner">
@@ -298,7 +273,6 @@ import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseBadge from '~/components/ui/BaseBadge.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
 
-import CommunityEvents from './CommunityEvents.vue'
 import MemberList from './MemberList.vue'
 
 const props = defineProps({
