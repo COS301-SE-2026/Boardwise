@@ -3487,7 +3487,6 @@ transition:
   flex-shrink: 0;
   margin-left: auto;
 }
-}
 /* -------------------------------------------------------------
    COMMUNITY DETAILS MODAL
    ------------------------------------------------------------- */
@@ -4069,3 +4068,4 @@ transition:
     border-radius: 0;
     box-shadow: none;
   }
+}
