@@ -27,6 +27,7 @@ import com.boardwise.backend.user_service.dtos.request.GroupUpdateRequestDTO;
 import com.boardwise.backend.user_service.dtos.response.GroupCreationResponseDTO;
 import com.boardwise.backend.user_service.dtos.response.GroupMembershipResponseDTO;
 import com.boardwise.backend.user_service.dtos.response.GroupUpdateResponseDTO;
+import com.boardwise.backend.user_service.enums.GroupMembershipStatus;
 import com.boardwise.backend.user_service.enums.Visibility;
 import com.boardwise.backend.user_service.events.JoinedCommunityEvent;
 import com.boardwise.backend.user_service.events.payload.JoinedCommunityEventPayload;
@@ -182,13 +183,88 @@ public class SocialService {
 
     }
 
-    public GroupMembershipResponseDTO addToGroup(String token, String groupId) {
+    public List<GroupInfo> getGroup(String groupName) {
+        String cleanName = AuthService.sanitize(groupName);
+        
+        Criteria searchCriteria = Criteria.where("name").regex(cleanName, "i");
+        Pageable page = PageRequest.of(0, 10);
+        Query query = new Query(searchCriteria);
+        query.with(page);
+        List<Group> matches = template.find(query, Group.class);
+
+        List<GroupInfo> groups = new ArrayList<>();
+        for(Group group : matches){
+            User owner = userRepo.findById(group.getOwnerId()).get();
+
+            // get memberCount
+            GroupMembership gm = new GroupMembership();
+            gm.setGroupId(group.getId());
+            int memberCount = (int) gmRepo.count(Example.of(gm));
+
+            groups.add(new GroupInfo(
+                    group.getId(),
+                    group.getName(),
+                    group.getImageUrl(),
+                    group.getDescription(),
+                    owner.getUsername(),
+                    group.getVisibility(),
+                    group.getCategory(),
+                    memberCount
+                )
+            );
+        }
+        return groups;
+    }
+
+    public GroupUpdateResponseDTO updateGroup(String token, String groupId, GroupUpdateRequestDTO updateData, MultipartFile image) throws IOException {
+        
+        String userId = jwtService.extractUserId(token).toString();
+        Group group = groupRepo.findById(groupId).orElseThrow();
+        
+        if(!userId.equals(group.getOwnerId()))
+            throw new IllegalStateException("This user is not the owner of this group");
+
+        String newName = AuthService.sanitize(updateData.name());
+        String newDesc = AuthService.sanitize(updateData.description());
+
+        if(newName != null && !group.getName().equals(newName)){
+            group.setName(newName);
+        }
+        if(newDesc != null && !group.getDescription().equals(newDesc)){
+            group.setDescription(newDesc);
+        }
+        if(updateData.visibility() != null && !group.getVisibility().equals(updateData.visibility())){
+            group.setVisibility(updateData.visibility());
+        }
+        if(image != null){
+            bucket.deleteFile(group.getImageUrl());
+            String fileName = bucket.uploadFile(image, group.getId());
+            String imageUrl = bucket.getFileUrl(fileName);
+            group.setImageUrl(imageUrl);
+            group = groupRepo.save(group);
+        }
+
+        Group updatedGroup = groupRepo.save(group);
+        Map<String, Object> data = new HashMap<>();
+        data.put("name", updatedGroup.getName());
+        data.put("description", updatedGroup.getDescription());
+        data.put("visibility", updatedGroup.getVisibility());
+        data.put("imageUrl", updatedGroup.getImageUrl());
+
+        return new GroupUpdateResponseDTO(
+            "Successfully updated group information",
+            data
+        );
+    }
+
+    public GroupMembershipResponseDTO joinGroup(String token, String groupId) {
         String userId = jwtService.extractUserId(token).toString();
         Group group = groupRepo.findById(groupId).orElseThrow();
 
         GroupMembership gm = new GroupMembership();
         gm.setGroupId(group.getId());
         gm.setUserId(userId);
+        gm.setStatus(GroupMembershipStatus.MEMBER);
 
         if(gmRepo.exists(Example.of(gm)))
             throw new IllegalStateException("User already a member of this group.");
@@ -249,13 +325,14 @@ public class SocialService {
         
     }
 
-    public GroupMembershipResponseDTO removeFromGroup(String token, String groupId) {
+    public GroupMembershipResponseDTO leaveGroup(String token, String groupId) {
         String userId = jwtService.extractUserId(token).toString();
         Group group = groupRepo.findById(groupId).orElseThrow();
         
         GroupMembership example = new GroupMembership();
         example.setGroupId(group.getId());
         example.setUserId(userId);
+        example.setStatus(GroupMembershipStatus.MEMBER);
 
         if(!gmRepo.exists(Example.of(example)))
             throw new IllegalStateException("User is not a member of this group.");
@@ -306,77 +383,10 @@ public class SocialService {
 
     }
 
-    public List<GroupInfo> getGroup(String groupName) {
-        String cleanName = AuthService.sanitize(groupName);
-        
-        Criteria searchCriteria = Criteria.where("name").regex(cleanName, "i");
-        Pageable page = PageRequest.of(0, 10);
-        Query query = new Query(searchCriteria);
-        query.with(page);
-        List<Group> matches = template.find(query, Group.class);
+    // send invite
 
-        List<GroupInfo> groups = new ArrayList<>();
-        for(Group group : matches){
-            User owner = userRepo.findById(group.getOwnerId()).get();
+    // respond to invite
 
-            // get memberCount
-            GroupMembership gm = new GroupMembership();
-            gm.setGroupId(group.getId());
-            int memberCount = (int) gmRepo.count(Example.of(gm));
-
-            groups.add(new GroupInfo(
-                    group.getId(),
-                    group.getName(),
-                    group.getImageUrl(),
-                    group.getDescription(),
-                    owner.getUsername(),
-                    group.getVisibility(),
-                    group.getCategory(),
-                    memberCount
-                )
-            );
-        }
-        return groups;
-    }
-
-    public GroupUpdateResponseDTO updateGroup(String token, String groupId, GroupUpdateRequestDTO updateData, MultipartFile image) throws IOException {
-        
-        String userId = jwtService.extractUserId(token).toString();
-        Group group = groupRepo.findById(groupId).orElseThrow();
-        
-        if(!userId.equals(group.getOwnerId()))
-            throw new IllegalStateException("This user is not the owner of this group");
-
-        String newName = AuthService.sanitize(updateData.name());
-        String newDesc = AuthService.sanitize(updateData.description());
-
-        if(newName != null && !group.getName().equals(newName)){
-            group.setName(newName);
-        }
-        if(newDesc != null && !group.getDescription().equals(newDesc)){
-            group.setDescription(newDesc);
-        }
-        if(updateData.visibility() != null && !group.getVisibility().equals(updateData.visibility())){
-            group.setVisibility(updateData.visibility());
-        }
-        if(image != null){
-            String fileName = bucket.uploadFile(image, group.getId());
-            String imageUrl = bucket.getFileUrl(fileName);
-            group.setImageUrl(imageUrl);
-            group = groupRepo.save(group);
-        }
-
-        Group updatedGroup = groupRepo.save(group);
-        Map<String, Object> data = new HashMap<>();
-        data.put("name", updatedGroup.getName());
-        data.put("description", updatedGroup.getDescription());
-        data.put("visibility", updatedGroup.getVisibility());
-        data.put("imageUrl", updatedGroup.getImageUrl());
-
-        return new GroupUpdateResponseDTO(
-            "Successfully updated group information",
-            data
-        );
-    }
+    // Kick User from communituy
 
 }

@@ -265,13 +265,14 @@ public class ProfileService {
         String url = "";
         String message = "";
         String userId = jwtService.extractUserId(token).toString();
+        User user = userRepo.findById(userId).get();
 
         // logic here
+        bucket.deleteFile(user.getProfilePicture());
         String fileName = bucket.uploadFile(pfp, userId);
         url = bucket.getFileUrl(fileName);
         message = "Profile picture successfully update";
          
-        User user = userRepo.findById(userId).get();
         user.setProfilePicture(url);
         userRepo.save(user);
 

@@ -255,6 +255,7 @@ public class CommunityService {
 
         if(newImage != null){
             eventChanged = true;
+            bucket.deleteFile(event.getEventImg());
             String fileName = bucket.uploadFile(newImage, eventId);
             String imageUrl = bucket.getFileUrl(fileName);
             event.setEventImg(imageUrl);
