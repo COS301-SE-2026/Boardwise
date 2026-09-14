@@ -51,13 +51,15 @@
           />
 
           <template v-else>
-            <ListingGrid data-test="listing-grid" :listings="pageListings" />
-          
-            <p class="text-caption text-medium-emphasis mt-4">
-              Showing {{ communityRangeStart }}-{{ communityRangeEnd }}
-              of {{ hasMore ? `${listings.length}+` : listings.length }} marketplace listings
-            </p>
+            <ListingGrid data-test="listing-grid" :listings="pagedListings" />
 
+            <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
+              <span class="card-meta">
+                Showing {{ communityRangeStart }}-{{ communityRangeEnd }}
+                of {{ hasMore ? `${listings.length}+` : listings.length }} marketplace listings
+              </span>
+            </div>
+              
             <BasePagination
               v-if="communityTotalPages > 1"
               class="mt-4"
@@ -114,7 +116,6 @@
               style="min-height: 60vh"
             >
               <MarketplaceLoadingState tab="Web" />
-
             </v-container>
 
             <MarketplaceEmptyState
@@ -128,14 +129,16 @@
             <template v-else>
               <RetailerGrid 
                 data-test="retailer-grid" 
-                :retailers="filteredRetailResults" 
+                :retailers="pagedRetailResults" 
               />
 
-              <p class="text-caption text-medium-emphasis mt-4">
-                Showing {{ retailRangeStart }}-{{ retailRangeEnd }}
-                of {{ hasMoreRetail ? `${filteredRetailResults.length}+` : filteredRetailResults.length }} results
-              </p>
-
+              <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
+                <span class="text-caption text-medium-emphasis mt-4">
+                  Showing {{ retailRangeStart }}-{{ retailRangeEnd }}
+                  of {{ hasMoreRetail ? `${filteredRetailResults.length}+` : filteredRetailResults.length }} results
+                </span>
+              </div>
+              
               <BasePagination
                 v-if="retailTotalPages > 1"
                 class="mt-4"
@@ -170,7 +173,7 @@ definePageMeta({
   middleware: 'auth'
 })
 
-import { computed, unref } from 'vue'
+import { computed, unref, ref, watch, onMounted } from 'vue'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
@@ -193,7 +196,7 @@ import { useMarketplace } from '~/composables/useMarketplace'
 import { useIntersectionObserver, useDebounceFn  } from '@vueuse/core'
 import { useRetail } from '~/composables/useRetail'
 
-const PAGE_SIZE = 6
+const CARD_PAGE_SIZE = 6 // cards per "page"
 
 const router = useRouter();
 const activeTab = ref('Community Listings')
@@ -214,6 +217,7 @@ onMounted(async () => {
 const handleAdd = async (data, image) => {
   await addListing(data, image);
   showCreateListing.value = false;
+  communityPage.value = 1;
   fetchListings(activeFilterState.value, true);
 }
 
@@ -231,8 +235,8 @@ useIntersectionObserver(sentinel, async ([entry])=>  {
 })
 
 const showInlineLoading = computed(() => {
-  const currentListings = unref(listings) ?? []
-  const currentRetail = unref(retailResults) ?? []
+const currentListings = unref(listings) ?? []
+const currentRetail = unref(retailResults) ?? []
 
   if (activeTab.value === 'Web') {
     return retailLoading.value && currentRetail.length > 0
@@ -246,10 +250,12 @@ const activeRetailFilterState = ref({ retailers: null, minPrice: null, maxPrice:
 
 const delaySearch = useDebounceFn((query) => {
   if(activeTab.value === 'Web'){
+    retailPage.value = 1
     fetchPersonalisedListings(true);
     return
   }
 
+  communityPage.value = 1
   fetchListings({ ...activeFilterState.value, search: query || null }, true)
 }, 400)
 
@@ -285,6 +291,7 @@ watch(searchQ,(query)=>{
     maxPrice: filters.maxPrice || null,
   }
 
+  communityPage.value = 1
   fetchListings({ ...activeFilterState.value, search: searchQ.value || null }, true);
 }
 
@@ -311,58 +318,50 @@ const filteredRetailResults = computed(() => {
   })
 })
 
-// Pagination: Community Listings 
+//============================ Pagination: Community Listings =========================
 const communityPage = ref(1)
 
 const communityTotalPages = computed(() => {
-  const loadedPages = Math.ceil((listings.value?.length || 0) / PAGE_SIZE)
+  const loadedPages = Math.ceil((listings.value?.length || 0) / CARD_PAGE_SIZE)
   return hasMore.value ? loadedPages + 1 : Math.max(loadedPages, 1)
 })
 
 const pagedListings = computed(() => {
-  const start = (communityPage.value - 1) * PAGE_SIZE
-  return listings.value.slice(start, start + PAGE_SIZE)
+  const start = (communityPage.value - 1) * CARD_PAGE_SIZE
+  return listings.value.slice(start, start + CARD_PAGE_SIZE)
 })
 
-const communityRangeStart = computed(() => (communityPage.value - 1) * PAGE_SIZE + 1)
-const communityRangeEnd = computed(() => (communityPage.value - 1) * PAGE_SIZE + pagedListings.value.length)
-
-const ensureCommunityPageLoaded = async (page) => {
-  while (listings.value.length < page * PAGE_SIZE && hasMore.value && !loading.value) {
-    await loadMore()
-  }
-}
+const communityRangeStart = computed(() => (listings.value.length === 0 ? 0 : (communityPage.value - 1) * CARD_PAGE_SIZE + 1))
+const communityRangeEnd = computed(() => (communityPage.value - 1) * CARD_PAGE_SIZE + pagedListings.value.length)
 
 const goToCommunityPage = async (page) => {
   communityPage.value = page
-  await ensureCommunityPageLoaded(page)
+  while(listings.value.length < page * CARD_PAGE_SIZE && hasMore.value && !loading.value) {
+    await fetchListings(activeFilterState.value, false)
+  }
 }
 
-// Pagination: Retailer
+// ======================= Pagination: Retailer ========================================
 const retailPage = ref(1)
 
 const retailTotalPages = computed(() => {
-  const loadedPages = Math.ceil((filteredRetailResults.value?.length || 0) / PAGE_SIZE)
+  const loadedPages = Math.ceil((filteredRetailResults.value?.length || 0) / CARD_PAGE_SIZE)
   return hasMoreRetail.value ? loadedPages + 1 : Math.max(loadedPages, 1)
 })
 
 const pagedRetailResults = computed(() => {
-  const start = (retailPage.value - 1) * PAGE_SIZE
-  return filteredRetailResults.value.slice(start, start + PAGE_SIZE)
+  const start = (retailPage.value - 1) * CARD_PAGE_SIZE
+  return filteredRetailResults.value.slice(start, start + CARD_PAGE_SIZE)
 })
 
-const retailRangeStart = computed(() => (retailPage.value - 1) * PAGE_SIZE + 1)
-const retailRangeEnd = computed(() => (retailPage.value - 1) * PAGE_SIZE + pagedRetailResults.value.length)
-
-const ensureRetailPageLoaded = async (page) => {
-  while (filteredRetailResults.value.length < page * PAGE_SIZE && hasMoreRetail.value && !retailLoading.value) {
-    await fetchPersonalisedListings()
-  }
-}
+const retailRangeStart = computed(() => (filteredRetailResults.value.length === 0 ? 0 : (retailPage.value - 1) * CARD_PAGE_SIZE + 1))
+const retailRangeEnd = computed(() => (retailPage.value - 1) * CARD_PAGE_SIZE + pagedRetailResults.value.length)
 
 const goToRetailPage = async (page) => {
   retailPage.value = page
-  await ensureRetailPageLoaded(page)
+  while (filteredRetailResults.value.length < page * CARD_PAGE_SIZE && hasMoreRetail.value && !retailLoading.value) {
+    await fetchPersonalisedListings()
+  }
 }
 
 </script>

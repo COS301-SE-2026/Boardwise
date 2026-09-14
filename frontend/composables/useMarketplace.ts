@@ -59,6 +59,7 @@ const _useMarketplace = () =>{
             page.value += 1;
         } catch(err) {
                 show('Failed to find any listings!', 'error');
+                throw err;
         } finally {
             loading.value = false;
         }
