@@ -2553,8 +2553,6 @@ html[data-density="compact"] .rulebook-list {
   z-index: 2;
 }
 
-
-
 /* -------------------------------------------------------------
    BASE CARD
    ------------------------------------------------------------- */
@@ -2944,6 +2942,10 @@ html[data-density="compact"] .rulebook-list {
 /* -------------------------------------------------------------
    SEARCH
    ------------------------------------------------------------- */
+.base-search {
+  background-color: var(--alabaster);
+  border-radius: var(--radius-md);
+}
 
 .base-search:focus-within {
   outline: 3px solid var(--color-primary);
