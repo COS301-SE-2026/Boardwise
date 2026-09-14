@@ -233,7 +233,43 @@ h4 { font-size: var(--fs-h4); }
 h5 { font-size: var(--fs-h5); }
 
 a { color: var(--color-link); text-decoration: none; }
-a:hover { text-decoration: underline; }
+
+.nav-link:hover,
+.nav-link.router-link-active,
+.nav-link.router-link-exact-active {
+  color: var(--color-primary);
+  font-weight: var(--fw-bold);
+  text-decoration: none;
+}
+
+.nav-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: var(--fw-medium);
+  transition: color .2s;
+}
+
+@media (max-width:1279px) {
+  :deep(.v-toolbar__content) {
+    padding: 0 12px;
+  }
+
+  .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+
+:deep(.v-field--outlined) {
+  --v-field-border-color: var(--color-border-strong);
+  --v-field-border-opacity: 1;
+}
+
+:deep(.v-field--focused) {
+  --v-field-border-color: var(--color-primary) !important;
+}
 
 /* =============================================================
    COMPONENT PRIMITIVES — reuse via class instead of re-styling
@@ -1580,6 +1616,22 @@ html[data-density="compact"] .rulebook-list {
     width: 56px;
     flex-basis: 56px;
   }
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.page-header__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-bold);
+  color: var(--color-secondary);
+  margin: 0;
+}
+
+.page-header__subtitle {
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
 }
 
 /* ============================================================
@@ -2930,6 +2982,48 @@ html[data-density="compact"] .rulebook-list {
   color: var(--color-primary);
 }
 
+/* =========================================================
+  PAGINATION 
+  ========================================================= */
+
+.base-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.base-pagination__list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.base-pagination__page {
+  min-width: 40px !important;
+  padding: 0 !important;
+}
+
+.base-pagination__arrow {
+  gap: var(--space-1);
+}
+
+.base-pagination__ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 40px;
+  min-height: 40px;
+
+  color: var(--color-text-muted);
+  font-weight: var(--fw-bold);
+}
+
 /* -------------------------------------------------------------
    MODAL
    ------------------------------------------------------------- */
@@ -3131,7 +3225,7 @@ html[data-density="compact"] .rulebook-list {
    ------------------------------------------------------------- */
 
 main a:not(.btn):not(.v-btn):not(.logo-wrapper) {
-  text-decoration: underline;
+  text-decoration: none;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
@@ -3140,8 +3234,6 @@ main a:not(.btn):not(.v-btn):not(.logo-wrapper):hover,
 main a:not(.btn):not(.v-btn):not(.logo-wrapper):focus-visible {
   text-decoration-thickness: 2px;
 }
-
-
 
 /* -------------------------------------------------------------
    DISABLED CONTROLS

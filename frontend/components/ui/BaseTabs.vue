@@ -40,7 +40,7 @@ defineEmits(['change'])
 }
 
 :deep(.v-tab) {
-  font-family: var(--font-button);
+  font-family: var(--font-body);
   font-size: var(--fs-body);
   font-weight: var(--fw-bold);
   color: var(--color-text-muted);

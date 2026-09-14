@@ -13,7 +13,7 @@
         @click="drawer = !drawer"
       />
 
-      <NuxtLink data-test="nuxt-link" to="/" class="logo ">
+      <NuxtLink data-test="nuxt-link" to="/library" class="logo ">
           Boardwise
       </NuxtLink>
 
@@ -37,6 +37,11 @@
         <NuxtLink to="/marketplace" class="nav-link">Marketplace</NuxtLink>
         <NuxtLink to="/community" class="nav-link">Community</NuxtLink>
         <NuxtLink to="/events" class="nav-link">Events</NuxtLink>
+
+        <BaseButton icon variant="text" to="/notifications" aria-label="Notifications">
+          <v-icon size="26">mdi-bell-outline</v-icon>
+        </BaseButton>
+
         <v-menu 
           open-on-hover
           :close-on-content-click="false"
@@ -108,6 +113,10 @@
           />
         </v-card>
       </v-menu>
+
+      <BaseButton icon variant="text" to="/notifications" aria-label="Notifications">
+        <v-icon size="26">mdi-bell-outline</v-icon>
+      </BaseButton>
 
       <v-menu
         :close-on-content-click="false"
@@ -243,14 +252,15 @@ const { lgAndUp } = useDisplay()
   color: var(--color-text);
   text-decoration: none;
   font-weight: var(--fw-medium);
-  transition: color .2s;
+  transition: color 0.2s;
 }
 
 .nav-link:hover,
 .nav-link.router-link-active,
 .nav-link.router-link-exact-active {
-  color: var(--obsidian);
+  color: var(--color-primary);
   font-weight: var(--fw-bold);
+  text-decoration: none;
 }
 
 @media (max-width:1279px) {
@@ -273,6 +283,11 @@ const { lgAndUp } = useDisplay()
     flex: 1;
     min-width: 0;
   }
+}
+.mobile {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 :deep(.v-field--outlined) {
