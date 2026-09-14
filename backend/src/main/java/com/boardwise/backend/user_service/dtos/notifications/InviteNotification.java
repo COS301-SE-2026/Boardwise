@@ -1,5 +1,7 @@
-package com.boardwise.backend.user_service.dtos;
+package com.boardwise.backend.user_service.dtos.notifications;
 
+import com.boardwise.backend.user_service.dtos.EventHostInfo;
+import com.boardwise.backend.user_service.dtos.EventInviteInfo;
 import com.boardwise.backend.user_service.enums.NotificationType;
 
 public record InviteNotification(

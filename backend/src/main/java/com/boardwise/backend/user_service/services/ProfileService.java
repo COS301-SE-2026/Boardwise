@@ -13,6 +13,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Example;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -26,28 +27,30 @@ import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.shared.dtos.OtherGameDTO;
 import com.boardwise.backend.shared.model.Boardgame;
-import com.boardwise.backend.shared.services.NotificationService;
-import com.boardwise.backend.user_service.dtos.CommunityMessageNotification;
-import com.boardwise.backend.user_service.dtos.DirectMessageNotification;
-import com.boardwise.backend.user_service.dtos.FriendConfirmationNotification;
+import com.boardwise.backend.user_service.dtos.notifications.CommunityMessageNotification;
+import com.boardwise.backend.user_service.dtos.notifications.DirectMessageNotification;
+import com.boardwise.backend.user_service.dtos.notifications.FriendConfirmationNotification;
 import com.boardwise.backend.user_service.dtos.FriendDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestDTO;
-import com.boardwise.backend.user_service.dtos.FriendRequestNotification;
-import com.boardwise.backend.user_service.dtos.FriendRequestResponseDTO;
+import com.boardwise.backend.user_service.dtos.notifications.FriendRequestNotification;
+import com.boardwise.backend.user_service.dtos.response.FriendRequestResponseDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestsDTO;
 import com.boardwise.backend.user_service.dtos.FriendsListDTO;
-import com.boardwise.backend.user_service.dtos.InviteNotification;
-import com.boardwise.backend.user_service.dtos.NotificationDTO;
-import com.boardwise.backend.user_service.dtos.NotificationsDTO;
-import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
-import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
-import com.boardwise.backend.user_service.dtos.ProfileResponseDTO;
-import com.boardwise.backend.user_service.dtos.ProfileSearchResponse;
-import com.boardwise.backend.user_service.dtos.UpdateProfileDTO;
+import com.boardwise.backend.user_service.dtos.notifications.InviteNotification;
+import com.boardwise.backend.user_service.dtos.notifications.NotificationDTO;
+import com.boardwise.backend.user_service.dtos.notifications.NotificationsDTO;
+import com.boardwise.backend.user_service.dtos.notifications.UnfriendNotification;
+import com.boardwise.backend.user_service.dtos.request.PreferencesRequestDTO;
+import com.boardwise.backend.user_service.dtos.response.ProfilePictureResponseDTO;
+import com.boardwise.backend.user_service.dtos.response.ProfileResponseDTO;
+import com.boardwise.backend.user_service.dtos.response.ProfileSearchResponse;
+import com.boardwise.backend.user_service.dtos.request.UpdateProfileDTO;
 import com.boardwise.backend.user_service.dtos.request.BoardgameCollectionBulkAddDto;
 import com.boardwise.backend.user_service.dtos.response.BulkAddResponseDTO;
 import com.boardwise.backend.user_service.enums.FriendStatus;
 import com.boardwise.backend.user_service.enums.NotificationType;
+import com.boardwise.backend.user_service.events.FriendEvent;
+import com.boardwise.backend.user_service.events.payload.FriendEventPayload;
 import com.boardwise.backend.user_service.models.*;
 import com.boardwise.backend.user_service.repository.FriendShipRepository;
 import com.boardwise.backend.user_service.repository.GroupMembershipRepository;
@@ -74,8 +77,8 @@ public class ProfileService {
     private final R2StorageService bucket;
     private final GeoApiContext geoContext;
     private final MongoTemplate template;
-    private final NotificationService notificationService;
     private final NotificationRepository notifRepo;
+    private final ApplicationEventPublisher eventPublisher;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
@@ -598,8 +601,9 @@ public class ProfileService {
             friendship.getId(),
             sender
         );
+        
         FriendRequestNotification notification = new FriendRequestNotification(dto);
-        notificationService.notifyUser(userId, notification);
+        emitFriendEvent(userId, notification);
 
         return new FriendRequestResponseDTO(
             "Friend request successfully sent."
@@ -645,7 +649,7 @@ public class ProfileService {
             );
 
             FriendConfirmationNotification notification = new FriendConfirmationNotification(sender);
-            notificationService.notifyUser(fs.getSender(), notification);
+            emitFriendEvent(fs.getSender(), notification);
         }
 
         return new FriendRequestResponseDTO(
@@ -655,18 +659,20 @@ public class ProfileService {
 
     public FriendRequestResponseDTO unfriendUser(String token, String userId) throws NoSuchElementException, IllegalAccessException {
         String clientId = jwtService.extractUserId(token).toString();
-        User client = userRepo.findById(clientId).get();
 
         if(!userRepo.existsById(userId))
             throw new NoSuchElementException("User with id: " + userId + " does not exist.");
 
-        Optional<Friendship> preFriendship = fsRepo.findFriendShipBetweenUsers(client.getId(), userId);
+        Optional<Friendship> preFriendship = fsRepo.findFriendShipBetweenUsers(clientId, userId);
         if(preFriendship.isEmpty() || preFriendship.get().getStatus() != FriendStatus.ACCEPTED)
             throw new IllegalAccessException("Requesting user is a not friends with the user associated with id: " + userId + ".");
 
         Friendship friendship = preFriendship.get();
         friendship.setStatus(FriendStatus.DECLINED);
         fsRepo.save(friendship);
+
+        UnfriendNotification notification = new UnfriendNotification(clientId);
+        emitFriendEvent(userId, notification);
 
         return new FriendRequestResponseDTO(
             "Unfriend user query successful."
@@ -704,4 +710,9 @@ public class ProfileService {
         );
     }
 
+    private void emitFriendEvent(String receiver, NotificationDTO notification){
+        FriendEventPayload payload = new FriendEventPayload(receiver , notification);
+        FriendEvent event = new FriendEvent(this, payload);
+        eventPublisher.publishEvent(event);
+    }
 }
