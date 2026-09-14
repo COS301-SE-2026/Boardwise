@@ -157,8 +157,6 @@
       inline
     />
 
-    <div ref="sentinel" style="height:1px" />
-
     <AddListingModal
       data-test="add-listing-modal"
       v-model="showCreateListing" 
@@ -193,7 +191,7 @@ import MarketplaceEmptyState from '~/components/features/marketplace/Marketplace
 
 import { useRouter } from 'vue-router'
 import { useMarketplace } from '~/composables/useMarketplace'
-import { useIntersectionObserver, useDebounceFn  } from '@vueuse/core'
+import { useDebounceFn  } from '@vueuse/core'
 import { useRetail } from '~/composables/useRetail'
 
 const CARD_PAGE_SIZE = 6 // cards per "page"
@@ -220,19 +218,6 @@ const handleAdd = async (data, image) => {
   communityPage.value = 1;
   fetchListings(activeFilterState.value, true);
 }
-
-const sentinel = ref(null)
-useIntersectionObserver(sentinel, async ([entry])=>  {
-  if(!entry.isIntersecting) return;
-
-  if(activeTab.value === 'Web'){
-    if(hasMoreRetail.value && !retailLoading.value) fetchPersonalisedListings();
-    console.log("CUrrent retail results: ", retailResults.value );
-    return
-  }
-
-  if(hasMore.value && !loading.value) loadMore()
-})
 
 const showInlineLoading = computed(() => {
 const currentListings = unref(listings) ?? []
