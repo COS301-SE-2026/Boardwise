@@ -36,22 +36,38 @@
           <FilterSidebar data-test="filter-sidebar" @filter="handleFilter"/>
         </div>
           
-        <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
-          <MarketplaceLoadingState tab="Community Listings" />
-        </v-container>
+        <div class="flex-1-1">
+          <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
+            <MarketplaceLoadingState tab="Community Listings" />
+          </v-container>
 
-        <MarketplaceEmptyState
-          v-else-if="listings.length === 0"
-          tab="Community Listings"
-          :search="searchQ"
-          :has-active-filters="hasCommunityFilters"
-          @clear-filters="resetCommunityFilters"
-          @create-listing="showCreateListing = true"
-        />
+          <MarketplaceEmptyState
+            v-else-if="listings.length === 0"
+            tab="Community Listings"
+            :search="searchQ"
+            :has-active-filters="hasCommunityFilters"
+            @clear-filters="resetCommunityFilters"
+            @create-listing="showCreateListing = true"
+          />
 
-        <ListingGrid data-test="listing-grid" v-else :listings="listings" />
+          <template v-else>
+            <ListingGrid data-test="listing-grid" :listings="pageListings" />
+          
+            <p class="text-caption text-medium-emphasis mt-4">
+              Showing {{ communityRangeStart }}-{{ communityRangeEnd }}
+              of {{ hasMore ? `${listings.length}+` : listings.length }} marketplace listings
+            </p>
+
+            <BasePagination
+              v-if="communityTotalPages > 1"
+              class="mt-4"
+              :model-value="communityPage"
+              :total-pages="communityTotalPages"
+              @update:modelValue="goToCommunityPage"
+            />
+          </template>
+        </div>
       </div>
-      
     </template>
     
     <!-- External Retail -->
@@ -91,28 +107,44 @@
             />
           </div>
             
-          <v-container 
-            v-if="retailLoading && retailResults.length === 0" 
-            class="d-flex justify-center align-center flex-1-1"
-            style="min-height: 60vh"
-          >
-            <MarketplaceLoadingState tab="Web" />
+          <div class="flex-1-1">
+            <v-container 
+              v-if="retailLoading && retailResults.length === 0" 
+              class="d-flex justify-center align-center flex-1-1"
+              style="min-height: 60vh"
+            >
+              <MarketplaceLoadingState tab="Web" />
 
-          </v-container>
+            </v-container>
 
-          <MarketplaceEmptyState
-            v-else-if="filteredRetailResults.length === 0"
-            tab="Web"
-            :search="searchQ"
-            :has-active-filters="hasRetailFilters"
-            @clear-filters="resetRetailFilters"
-          />
-
-          <RetailerGrid 
-            v-else
-            data-test="retailer-grid" 
-            :retailers="filteredRetailResults" 
+            <MarketplaceEmptyState
+              v-else-if="filteredRetailResults.length === 0"
+              tab="Web"
+              :search="searchQ"
+              :has-active-filters="hasRetailFilters"
+              @clear-filters="resetRetailFilters"
             />
+
+            <template v-else>
+              <RetailerGrid 
+                data-test="retailer-grid" 
+                :retailers="filteredRetailResults" 
+              />
+
+              <p class="text-caption text-medium-emphasis mt-4">
+                Showing {{ retailRangeStart }}-{{ retailRangeEnd }}
+                of {{ hasMoreRetail ? `${filteredRetailResults.length}+` : filteredRetailResults.length }} results
+              </p>
+
+              <BasePagination
+                v-if="retailTotalPages > 1"
+                class="mt-4"
+                :model-value="retailPage"
+                :total-pages="retailTotalPages"
+                @update:modelValue="goToRetailPage"
+              />
+            </template>
+          </div>
       </div>
     </template>
 
@@ -142,6 +174,7 @@ import { computed, unref } from 'vue'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
+import BasePagination from '~/components/ui/BasePagination.vue'
 
 import MarketplaceHeader from '~/components/features/marketplace/MarketplaceHeader.vue'
 import MarketplaceTabs from '~/components/features/marketplace/MarketplaceTabs.vue'
@@ -160,6 +193,8 @@ import { useMarketplace } from '~/composables/useMarketplace'
 import { useIntersectionObserver, useDebounceFn  } from '@vueuse/core'
 import { useRetail } from '~/composables/useRetail'
 
+const PAGE_SIZE = 6
+
 const router = useRouter();
 const activeTab = ref('Community Listings')
 const showFilters = ref(false)
@@ -167,7 +202,6 @@ const showRetailFilters = ref(false)
 const showCreateListing = ref(false)
 
 const {listings, loading, fetchListings, addListing, loadMore, hasMore} = useMarketplace();
-
 const {retailResults, retailLoading, hasMoreRetail, fetchPersonalisedListings} = useRetail()
 
 onMounted(async () => {
@@ -263,6 +297,7 @@ const retailerOptions = computed(() => {
 
 const handleRetailerFilter = (filters) => {
   activeRetailFilterState.value = filters
+  retailPage.value = 1
 }
 
 const filteredRetailResults = computed(() => {
@@ -275,6 +310,60 @@ const filteredRetailResults = computed(() => {
     return true
   })
 })
+
+// Pagination: Community Listings 
+const communityPage = ref(1)
+
+const communityTotalPages = computed(() => {
+  const loadedPages = Math.ceil((listings.value?.length || 0) / PAGE_SIZE)
+  return hasMore.value ? loadedPages + 1 : Math.max(loadedPages, 1)
+})
+
+const pagedListings = computed(() => {
+  const start = (communityPage.value - 1) * PAGE_SIZE
+  return listings.value.slice(start, start + PAGE_SIZE)
+})
+
+const communityRangeStart = computed(() => (communityPage.value - 1) * PAGE_SIZE + 1)
+const communityRangeEnd = computed(() => (communityPage.value - 1) * PAGE_SIZE + pagedListings.value.length)
+
+const ensureCommunityPageLoaded = async (page) => {
+  while (listings.value.length < page * PAGE_SIZE && hasMore.value && !loading.value) {
+    await loadMore()
+  }
+}
+
+const goToCommunityPage = async (page) => {
+  communityPage.value = page
+  await ensureCommunityPageLoaded(page)
+}
+
+// Pagination: Retailer
+const retailPage = ref(1)
+
+const retailTotalPages = computed(() => {
+  const loadedPages = Math.ceil((filteredRetailResults.value?.length || 0) / PAGE_SIZE)
+  return hasMoreRetail.value ? loadedPages + 1 : Math.max(loadedPages, 1)
+})
+
+const pagedRetailResults = computed(() => {
+  const start = (retailPage.value - 1) * PAGE_SIZE
+  return filteredRetailResults.value.slice(start, start + PAGE_SIZE)
+})
+
+const retailRangeStart = computed(() => (retailPage.value - 1) * PAGE_SIZE + 1)
+const retailRangeEnd = computed(() => (retailPage.value - 1) * PAGE_SIZE + pagedRetailResults.value.length)
+
+const ensureRetailPageLoaded = async (page) => {
+  while (filteredRetailResults.value.length < page * PAGE_SIZE && hasMoreRetail.value && !retailLoading.value) {
+    await fetchPersonalisedListings()
+  }
+}
+
+const goToRetailPage = async (page) => {
+  retailPage.value = page
+  await ensureRetailPageLoaded(page)
+}
 
 </script>
 

@@ -13,7 +13,7 @@
         </BaseButton>
 
             <ul class="base-pagination__list">
-                <li v-for="(page, i) in pages" :key="`${page}-$[i]`">
+                <li v-for="(page, i) in pages" :key="`${page}-${i}`">
                     <span v-if="page === ELLIPSIS" class="base-pagination__ellipsis">...</span>
 
                     <BaseButton 
@@ -36,7 +36,7 @@
             size="sm"
             class="base-pagination__arrow"
             data-test="pagination-next"
-            :disabled="modelValue <= 1"
+            :disabled="modelValue >= totalPages"
             aria-label="Next page"
             @click="goTo(modelValue + 1)"
         >
