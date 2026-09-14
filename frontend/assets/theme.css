@@ -3764,3 +3764,248 @@ transition:
 }
 
 
+/* Community sidebar */
+
+.community-sidebar {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.community-sidebar__header {
+  flex-shrink: 0;
+
+  padding: var(--space-5) var(--space-5) 0;
+}
+
+.community-sidebar__title {
+  margin: 0;
+
+  color: var(--color-secondary);
+
+  font-family: var(--font-display);
+  font-size: var(--fs-h2);
+  line-height: 1.2;
+}
+
+.community-sidebar__subtitle {
+  margin: var(--space-2) 0 0;
+
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  line-height: 1.5;
+}
+
+.community-sidebar__search {
+  height: 48px;
+  min-height: 48px;
+  flex: 0 0 48px;
+
+  margin: var(--space-4) var(--space-5) 0;
+}
+
+.community-sidebar__filters {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  padding: var(--space-3) var(--space-5);
+}
+
+.community-sidebar__filter-label {
+  color: var(--color-text-muted);
+
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+}
+
+.community-sidebar__results {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+
+  border-top: 1px solid var(--color-border);
+}
+
+.community-sidebar__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 240px;
+}
+
+.community-sidebar__list {
+  margin: 0;
+  padding: var(--space-2);
+
+  list-style: none;
+}
+
+.community-sidebar__list-item {
+  margin: 0;
+  padding: 0;
+}
+
+.community-sidebar__community {
+  display: flex;
+  width: 100%;
+  min-height: 76px;
+  align-items: center;
+  gap: var(--space-3);
+
+  padding: var(--space-3);
+
+  color: var(--color-text);
+  text-align: left;
+
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+
+  cursor: pointer;
+
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.community-sidebar__community:hover {
+  background: var(--color-surface-alt);
+  border-color: var(--color-border);
+}
+
+.community-sidebar__community:focus-visible {
+  outline:
+    var(--focus-ring-width)
+    solid
+    var(--focus-ring-color);
+
+  outline-offset: var(--focus-ring-offset);
+}
+
+.community-sidebar__community--active {
+  background:
+    color-mix(
+      in srgb,
+      var(--color-primary) 10%,
+      var(--color-surface)
+    );
+
+  border-color: var(--color-primary);
+}
+
+.community-sidebar__community--active
+.community-sidebar__chevron {
+  color: var(--color-primary);
+}
+
+.community-sidebar__image {
+  width: 48px !important;
+  height: 48px !important;
+
+  flex: 0 0 auto;
+  overflow: hidden;
+
+  border-radius: var(--radius-md);
+}
+
+.community-sidebar__content {
+  min-width: 0;
+  flex: 1;
+}
+
+.community-sidebar__name-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.community-sidebar__name {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+
+  color: var(--color-secondary);
+
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.community-sidebar__visibility {
+  flex-shrink: 0;
+}
+
+.community-sidebar__description {
+  display: -webkit-box;
+  margin: var(--space-1) 0;
+
+  overflow: hidden;
+
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  line-height: 1.35;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.community-sidebar__members {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+}
+
+.community-sidebar__chevron {
+  flex-shrink: 0;
+
+  color: var(--color-text-muted);
+
+  transition:
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.community-sidebar__community:hover
+.community-sidebar__chevron {
+  color: var(--color-primary);
+
+  transform: translateX(2px);
+}
+
+.community-sidebar__search .v-input__control,
+.community-sidebar__search .v-field {
+  height: 48px !important;
+  min-height: 48px !important;
+}
+
+.community-sidebar__search .v-field__input {
+  height: 48px;
+  min-height: 48px !important;
+
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.community-sidebar__search .v-field__prepend-inner {
+  align-items: center;
+  padding-top: 0;
+}
+
