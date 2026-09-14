@@ -46,11 +46,24 @@
         />
       </v-container>
 
-      <EventGrid 
-        v-else 
-        :events="filteredEvents"
-        @select="openEvent"
-      />
+      <template v-else>
+        <EventGrid 
+          :events="filteredEvents"
+          @select="openEvent"
+        />
+
+        <div v-if="filteredEvents.length > 0" class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
+          <span class="card-meta">Page {{ page }} of {{ totalPages }}</span>
+
+          <BasePagination
+            v-if="totalPages > 1"
+            :model-value="page"
+            :total-pages="totalPages"
+            @update:modelValue="goToPage"
+          />
+        </div>
+      </template>
+      
     </div>
 
     <!-- Desktop -->
@@ -74,11 +87,23 @@
 
         </v-container>
 
-        <EventGrid 
-          v-else
-          :events="filteredEvents" 
-          @select="openEvent" 
-        />
+        <template v-else>
+          <EventGrid 
+            :events="filteredEvents" 
+            @select="openEvent" 
+          />
+
+          <div v-if="filteredEvents.length > 0" class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
+            <span class="card-meta">Page {{ page }} of {{ totalPages }}</span>
+
+            <BasePagination
+              v-if="totalPages > 1"
+              :model-value="page"
+              :total-pages="totalPages"
+              @update:modelValue="goToPage"
+            />
+          </div>
+        </template>
       </div>
     </div>
 
@@ -105,6 +130,8 @@ definePageMeta({
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
+import BasePagination from '~/components/ui/BasePagination.vue'
+
 import EventFilter from '~/components/features/events/EventFilter.vue'
 import EventGrid from '~/components/features/events/EventGrid.vue'
 import CreateEvent from '~/components/features/events/CreateEvent.vue'
@@ -122,6 +149,8 @@ const { show } = useSnackBar(3)
 const {
   events, 
   isLoading, 
+  page,
+  totalPages,
   fetchEvents,
   createEvent,
   rsvpToEvent, 
@@ -139,7 +168,6 @@ onMounted(async () => {
 
   fetchEvents()
 })
-
 
 const searchQuery = ref('')
 const activeFilters = ref({})
