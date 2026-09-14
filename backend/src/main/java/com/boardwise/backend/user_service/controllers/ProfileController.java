@@ -34,16 +34,14 @@ import com.boardwise.backend.user_service.dtos.request.BoardgameCollectionBulkAd
 import com.boardwise.backend.user_service.dtos.response.BulkAddResponseDTO;
 import com.boardwise.backend.user_service.services.ProfileService;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/sb/users")
+@RequiredArgsConstructor 
 public class ProfileController {
 
     private final ProfileService service;
-
-    ProfileController(ProfileService service) {
-        this.service = service;
-    }
 
     @GetMapping("/{userId}")
     public ResponseEntity<?> getOtherUserProfile(

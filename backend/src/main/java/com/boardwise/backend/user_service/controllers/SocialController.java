@@ -23,6 +23,7 @@ import com.boardwise.backend.user_service.dtos.response.GroupUpdateResponseDTO;
 import com.boardwise.backend.user_service.services.SocialService;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,13 +33,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("/api/sb/social")
+@RequiredArgsConstructor 
 public class SocialController {
 
     private final SocialService service;
-
-    SocialController(SocialService service) {
-        this.service = service;
-    }
 
     @PostMapping("/groups")
     public ResponseEntity<?> createGroup(
@@ -110,7 +108,7 @@ public class SocialController {
     ){
         try{
             String token = ProfileController.extractToken(req);
-            GroupMembershipResponseDTO res = service.addToGroup(token, groupId);
+            GroupMembershipResponseDTO res = service.joinGroup(token, groupId);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(IllegalStateException e){
@@ -138,7 +136,7 @@ public class SocialController {
     ){
         try{
             String token = ProfileController.extractToken(req);
-            GroupMembershipResponseDTO res = service.removeFromGroup(token, groupId);
+            GroupMembershipResponseDTO res = service.leaveGroup(token, groupId);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(IllegalStateException e){

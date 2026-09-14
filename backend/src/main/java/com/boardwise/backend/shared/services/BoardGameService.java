@@ -66,6 +66,8 @@ public class BoardGameService {
 
             List<Boardgame> boardgames = new ArrayList<>();
             NodeList nodeList = document.getElementsByTagName("item");
+            List<Boardgame> nullGames = gameRepo.findAllByBggIdNull(); // user provided games
+            
             for(int i = 0; i < nodeList.getLength(); i++){
                 boolean updateEntry = false;
                 Node node = nodeList.item(i);
@@ -153,11 +155,10 @@ public class BoardGameService {
                     genres
                 );
 
-                List<Boardgame> nullGames = gameRepo.findAllByBggIdNull(); // user provided games
                 for(Boardgame nullGame : nullGames){
                     String nullTitle = nullGame.getTitle().trim().toLowerCase();
                     String newGameTitle = game.getTitle().trim().toLowerCase();
-                    if(nullTitle.equalsIgnoreCase(newGameTitle)){
+                    if(nullTitle.equals(newGameTitle)){
                         // update nullGame
                         updateEntry = true;
                         
