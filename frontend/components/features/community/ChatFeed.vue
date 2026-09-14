@@ -32,12 +32,10 @@
 import { ref, watch, nextTick, onMounted } from 'vue'
 
 import { useCommunityChat } from '~/composables/useCommunityChat'
-import { useStomp } from '~/composables/useStomp'
 
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import ChatMessage from './ChatMessage.vue'
 
-const { connect } = useStomp()
 const { isLoading } = useCommunityChat()
 
 const props = defineProps({
@@ -56,7 +54,6 @@ const props = defineProps({
 })
 
 const feedEl = ref(null)
-// const user = ref(null)
 
 const scrollToBottom = async () => {
   await nextTick()
@@ -73,7 +70,6 @@ watch(
 )
 
 onMounted(async () => {
-  connect()
   scrollToBottom()
 })
 </script>

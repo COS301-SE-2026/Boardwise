@@ -1,4 +1,4 @@
-package com.boardwise.backend.user_service.dtos;
+package com.boardwise.backend.user_service.dtos.response;
 
 import java.util.List;
 import java.util.Map;
