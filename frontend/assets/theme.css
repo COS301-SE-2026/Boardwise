@@ -4009,3 +4009,63 @@ transition:
   padding-top: 0;
 }
 
+/* Mobile community navigation */
+
+@media (max-width: 900px) {
+  .community-detail-page {
+    padding: 0;
+  }
+
+  .community-layout {
+    display: block;
+
+    height: calc(100dvh - 64px);
+    min-height: 0;
+  }
+
+  .community-layout__sidebar {
+    display: block;
+
+    height: 100%;
+  }
+
+  .community-layout__main {
+    display: none;
+
+    height: 100%;
+  }
+
+  .community-layout--community-open
+  .community-layout__sidebar {
+    display: none;
+  }
+
+  .community-layout--community-open
+  .community-layout__main {
+    display: flex;
+  }
+
+  .community-layout__mobile-back {
+    display: flex;
+    flex-shrink: 0;
+
+    align-self: flex-start;
+    margin: var(--space-2) var(--space-3);
+  }
+
+  .community-layout__main
+  .community-chat-window {
+    flex: 1;
+    height: auto;
+
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+
+  .community-sidebar {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
