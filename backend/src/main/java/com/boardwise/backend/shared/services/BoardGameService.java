@@ -155,7 +155,9 @@ public class BoardGameService {
 
                 List<Boardgame> nullGames = gameRepo.findAllByBggIdNull(); // user provided games
                 for(Boardgame nullGame : nullGames){
-                    if(game.getTitle().contains(nullGame.getTitle()) || nullGame.getTitle().contains(game.getTitle())){
+                    String nullTitle = nullGame.getTitle().trim().toLowerCase();
+                    String newGameTitle = game.getTitle().trim().toLowerCase();
+                    if(nullTitle.equalsIgnoreCase(newGameTitle)){
                         // update nullGame
                         updateEntry = true;
                         
@@ -170,6 +172,7 @@ public class BoardGameService {
                         nullGame.setGenres(genres);
 
                         gameRepo.save(nullGame);
+                        break;
                     }
                 }
 

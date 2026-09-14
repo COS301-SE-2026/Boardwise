@@ -3,11 +3,9 @@ package com.boardwise.backend.shared.model;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import com.mongodb.lang.Nullable;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,7 +19,7 @@ import lombok.NoArgsConstructor;
 public class Boardgame {
     @Id
     private String id;
-    @Nullable
+    @Indexed(unique = true, sparse = true) 
     private Integer bggId;
     @TextIndexed
     private String title;
