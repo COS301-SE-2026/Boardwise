@@ -3347,9 +3347,33 @@ button:disabled,
     height: 44px !important;
   }
 
+  .community-chat-header__title-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.community-chat-header__visibility {
+  flex-shrink: 0;
+}
+
   .community-chat-header__title {
-    max-width: 160px;
-    font-size: 1rem;
+    min-width: 0;
+  flex: 1 1 auto;
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--color-secondary);
+
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  line-height: 1.2;
+
+  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   }
 
   .community-chat-header__actions .base-button {
