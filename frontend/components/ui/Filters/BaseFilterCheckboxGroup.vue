@@ -32,7 +32,7 @@ const props = defineProps({
   modelValue: { type: Array, default: () => [] }
 })
 
-defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue'])
 
 const normalizedOptions = computed(() =>
   props.options.map(opt => typeof opt === 'string' ? { label: opt, value: opt } : opt)
@@ -44,6 +44,7 @@ const toggle = (value) => {
   const next = isChecked(value)
     ? props.modelValue.filter(v => v !== value)
     : [...props.modelValue, value]
+    
   emit('update:modelValue', next)
 }
 </script>

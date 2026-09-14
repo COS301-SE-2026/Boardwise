@@ -1,23 +1,23 @@
 <template>
   <BaseFilterSidebar @reset="resetFilters">
 
-    <BaseFilterGroup title="Genre" :default-open="false">
-      <BaseFilterPills v-model="selectedGenre" :option="genreOptions" />
+    <BaseFilterGroup title="Genre" :default-open="true">
+      <BaseFilterPills v-model="selectedGenre" :options="presetGenres" />
     </BaseFilterGroup>
 
-    <BaseFilterGroup title="Language" :default-open="false">
+    <BaseFilterGroup title="Language" :default-open="true">
       <BaseFilterCheckboxGroup v-model="selectedLanguages" :options="languages" />
     </BaseFilterGroup>
 
-    <BaseFilterGroup title="Player Count" :default-open="false">
+    <BaseFilterGroup title="Player Count" :default-open="true">
       <BaseFilterNumberField v-model.number="filters.playerCount" placeholder="e.g. 4 players" :min="1" />
     </BaseFilterGroup>
 
-    <BaseFilterGroup title="Max Duration" :default-open="false">
+    <BaseFilterGroup title="Max Duration" :default-open="true">
       <BaseFilterNumberField v-model.number="filters.duration" placeholder="e.g. 60 minutes" :min="1" />
     </BaseFilterGroup>
 
-    <BaseFilterGroup title="Minimum Age":default-open="false">
+    <BaseFilterGroup title="Minimum Age" :default-open="true">
       <BaseFilterNumberField v-model.number="filters.minAge" placeholder="e.g. 10" :min="0" />
     </BaseFilterGroup>
 
@@ -36,6 +36,7 @@ import BaseFilterPills from '~/components/ui/Filters/BaseFilterPills.vue'
 const emit = defineEmits(['filter'])
 
 const presetGenres = [
+  'all',
   'adventure',
   'card game',
   'economic',

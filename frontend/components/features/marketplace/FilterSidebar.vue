@@ -28,18 +28,21 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { computed, ref, reactive, watch } from 'vue'
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue'
 import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue'
 import BaseFilterCheckboxGroup from '~/components/ui/Filters/BaseFilterCheckboxGroup.vue'
 import BaseFilterPills from '~/components/ui/Filters/BaseFilterPills.vue'
+import BaseFilterPriceRange from '~/components/ui/Filters/BaseFilterPriceRange.vue'
 
 const emit = defineEmits(['filter'])
 
 const genres = ['All', 'Strategy', 'Family', 'Party', 'Card', 'Abstract']
 const conditions = ['New', 'Like New', 'Good', 'Fair']
+
 const selectedGenre  = ref('All')
 const selectedConditions = ref([])
+const selectedListingTypes = ref([])
 
 const filters = reactive({
   minPrice: '',
@@ -49,12 +52,12 @@ const filters = reactive({
 const rent = computed(() => selectedListingTypes.value.includes('rent'))
 const sale = computed(() => selectedListingTypes.value.includes('sale'))
 
-watch([selectedGenre, selectedConditions, filters], () => {
+watch([selectedGenre, selectedListingTypes, selectedConditions, filters], () => {
   emit('filter', {
     genres: selectedGenre.value === 'All' ? null : [selectedGenre.value.toLowerCase()],
     conditions: selectedConditions.value,
-    rent: filters.rent,
-    sale: filters.sale,
+    rent: rent.value,
+    sale: sale.value,
     minPrice: filters.minPrice === '' ? null : Number(filters.minPrice),
     maxPrice: filters.maxPrice === '' ? null : Number(filters.maxPrice),
   })
@@ -63,8 +66,7 @@ watch([selectedGenre, selectedConditions, filters], () => {
 const resetFilters = () => {
   selectedGenre.value = 'All'
   selectedConditions.value = []
-  filters.rent= false
-  filters.sale = false
+  selectedListingTypes.value = []
   filters.minPrice = ''
   filters.maxPrice = ''
 }
