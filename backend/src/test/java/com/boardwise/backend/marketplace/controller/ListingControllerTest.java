@@ -110,8 +110,9 @@ public class ListingControllerTest{
         //ARRANGE
         when(listingService.getAllActiveListings(anyString())).thenReturn(List.of(buildDefaultResponse()));
         //ACT & ASSERT
-         mockMvc.perform(get("/api/sb/marketplace/listings"))
-               .andExpect(status().isOk());
+         mockMvc.perform(get("/api/sb/marketplace/listings")
+            .header("Authorization", "Bearer valid-test-token"))
+            .andExpect(status().isOk());
     }
 
     @Test
@@ -121,8 +122,9 @@ public class ListingControllerTest{
         //ARRANGE
         when(listingService.getAllActiveListings(anyString())).thenReturn(List.of());
         //ACT & ASSERT
-         mockMvc.perform(get("/api/sb/marketplace/listings"))
-               .andExpect(status().isAccepted());
+         mockMvc.perform(get("/api/sb/marketplace/listings")
+            .header("Authorization", "Bearer valid-test-token"))
+            .andExpect(status().isNoContent());
     }
 
     @Test
