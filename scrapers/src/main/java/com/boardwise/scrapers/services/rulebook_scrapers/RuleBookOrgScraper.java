@@ -7,6 +7,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import jakarta.annotation.PreDestroy;
+
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.boardwise.scrapers.dtos.RulebookPdfDTO;
@@ -25,7 +27,7 @@ public class RuleBookOrgScraper {
     private final Playwright playwright;
     private final Browser browser;
 
-    private final HashMap<String,List<RulebookPdfDTO>> pdfs; // todo: change to a queue for queue based requests 
+    private final HashMap<String, List<RulebookPdfDTO>> pdfs; // todo: change to a queue for queue based requests
 
     public RuleBookOrgScraper() {
         this.playwright = Playwright.create();
@@ -66,15 +68,14 @@ public class RuleBookOrgScraper {
             page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions()
                     .setName(title)
                     .setExact(true))
-                .click();
+                    .click();
 
             page.waitForURL("**/pdf");
-            page.navigate(page.url()); 
+            page.navigate(page.url());
             page.waitForLoadState(LoadState.NETWORKIDLE);
             page.waitForFunction(
-                "() => Array.from(document.images).every(img => img.complete && img.naturalWidth > 0)",
-                null, new Page.WaitForFunctionOptions().setTimeout(80000)
-            );
+                    "() => Array.from(document.images).every(img => img.complete && img.naturalWidth > 0)",
+                    null, new Page.WaitForFunctionOptions().setTimeout(80000));
             page.waitForTimeout(10000);
 
             byte[] pdfBytes = page.pdf();
@@ -91,11 +92,16 @@ public class RuleBookOrgScraper {
             return null;
         }
     }
-    
 
     @PreDestroy
     public void shutdown() {
         browser.close();
         playwright.close();
+    }
+
+    @Scheduled
+    public void scrapeRulebooksForExistingGames() {
+        //TODO: Discuss How to ensure we don't rescrape a game we alr have a rulebook for:
+        //e.g. Monopoly returns all related RB's e.g. ANti- monopoly
     }
 }
