@@ -48,20 +48,23 @@
 
       <template v-else>
         <EventGrid 
-          :events="filteredEvents"
+          :events="pagedEvents"
           @select="openEvent"
         />
 
-        <div v-if="filteredEvents.length > 0" class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
-          <span class="card-meta">Page {{ page }} of {{ totalPages }}</span>
-
+        <template v-if="filteredEvents.length > 0">
+          <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
+            <span class="card-meta">Page {{ eventsPage }} of {{ eventsTotalPages }}</span>
+          </div>
+          
           <BasePagination
-            v-if="totalPages > 1"
-            :model-value="page"
-            :total-pages="totalPages"
+            v-if="eventsTotalPages > 1"
+            class="mt-4"
+            :model-value="eventsPage"
+            :total-pages="eventsTotalPages"
             @update:modelValue="goToPage"
           />
-        </div>
+        </template>
       </template>
       
     </div>
@@ -89,20 +92,23 @@
 
         <template v-else>
           <EventGrid 
-            :events="filteredEvents" 
+            :events="pagedEvents" 
             @select="openEvent" 
           />
 
-          <div v-if="filteredEvents.length > 0" class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
-            <span class="card-meta">Page {{ page }} of {{ totalPages }}</span>
+          <template v-if="filteredEvents.length > 0">
+            <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
+              <span class="card-meta">Page {{ eventsPage }} of {{ eventsTotalPages }}</span>
+            </div>
 
             <BasePagination
-              v-if="totalPages > 1"
-              :model-value="page"
-              :total-pages="totalPages"
+              v-if="eventsTotalPages > 1"
+              class="mt-4"
+              :model-value="eventsPage"
+              :total-pages="eventsTotalPages"
               @update:modelValue="goToPage"
             />
-          </div>
+          </template>
         </template>
       </div>
     </div>
@@ -149,12 +155,10 @@ const { show } = useSnackBar(3)
 const {
   events, 
   isLoading, 
-  page,
-  totalPages,
   fetchEvents,
   createEvent,
   rsvpToEvent, 
-  deRsvpFromEvent,
+  deRsvpToEvent,
   cancelEvent
 } = useEvents()
 
@@ -220,6 +224,30 @@ const filteredEvents = computed(() => {
   return result
 })
 
+// ============================== Pagination ==========================================
+
+const EVENTS_PAGE_SIZE = 6
+const eventsPage = ref(1)
+
+const eventsTotalPages = computed(() => 
+  Math.max(1, Math.ceil(filteredEvents.value.length /EVENTS_PAGE_SIZE))
+)
+
+const pagedEvents = computed(() => {
+  const start = (eventsPage.value - 1) * EVENTS_PAGE_SIZE
+  return filteredEvents.value.slice(start, start + EVENTS_PAGE_SIZE)
+})
+
+const goToPage = async (pageNum) => {
+  eventsPage.value = pageNum
+}
+
+watch(filteredEvents, () => {
+  if (eventsPage.value > eventsTotalPages.value) {
+    eventsPage.value = 1
+  }
+})
+
 const showInviteModal = ref(false);
 const createdEvent = ref(null);
 
@@ -235,6 +263,7 @@ const openEdit = (event) => {
 
 const handleFilter = (filters) => {
   activeFilters.value = filters
+  eventsPage.value = 1
 }
 
 const handleRsvp = async (eventId) => {
@@ -249,7 +278,7 @@ const handleRsvp = async (eventId) => {
 
 const handleDeRsvp = async (eventId) => {
   try {
-    const updated = await deRsvpFromEvent(eventId)
+    const updated = await deRsvpToEvent(eventId)
     selectedEvent.value = updated
     show('Your seat has been opened up.', 'info')
   } catch {
@@ -290,17 +319,11 @@ const handleEventUpdated = async () => {
       e => e.id === editingEvent.value.id
     )
   }
-
-
-
   show('Your event changes are locked in.', 'success')
 
   showEditEvent.value = false
   showDetail.value = true
   editingEvent.value = null
-
-
-
 }
 
 const delaySearch = useDebounceFn(async (query) => {
@@ -310,6 +333,5 @@ const delaySearch = useDebounceFn(async (query) => {
 watch(searchQuery, (query) => {
   delaySearch(query)
 })
-
 
 </script>

@@ -15,32 +15,15 @@ const _useEvents = () => {
     const inviteCount = ref<number>(0)
     const isLoading = ref<boolean>(false)
     const error = ref<string>('')
-    const page = ref<number>(1)
-    const totalPages = ref<number>(1)
 
     //AC-EVT-01
-    const fetchEvents = async (name?: string, pageNum: number = page.value) => {
+    const fetchEvents = async (name?: string) => {
         isLoading.value = true
         error.value = ''
-        page.value = pageNum
 
         try {
-            const data = await EventService.getAllEvents(name, page.value)
+            const data = await EventService.getAllEvents(name)
             events.value = data.result
-
-            // Pagination 
-            // Todo: Update this integration to match services 
-            if (typeof (data as any).totalPages === 'number') {
-                totalPages.value = Math.max(1, (data as any).totalPages)
-            } else if (typeof (data as any).totalElements === 'number' && typeof (data as any).size === 'number') {
-                totalPages.value = Math.max(1, Math.ceil((data as any).totalElements / (data as any).size))
-            } else if(events.value.length === 0 && page.value > 1) {
-                page.value -= 1
-                totalPages.value = page.value
-            } else {
-                totalPages.value = Math.max(totalPages.value, page.value + (events.value.length > 0 ? 1 : 0))
-            }
-
             return events.value;
         }catch (err: any) {
             error.value = err.data?.message || 'Failed to load events'
@@ -212,8 +195,6 @@ const _useEvents = () => {
         invites, 
         inviteCount, 
         isLoading, 
-        page,
-        totalPages,
         error, 
         fetchEvents,
         fetchEventbyId,
