@@ -12,17 +12,6 @@
             mobileCommunityOpen
         }"
       >
-        <aside
-          class="community-layout__sidebar"
-          aria-label="Communities"
-        >
-          <CommunitySidebar
-            :communities="communities"
-            :selected-id="route.params.id"
-            :loading="communitiesLoading"
-            @select="handleCommunitySelect"
-          />
-        </aside>
 
         <main class="community-layout__main">
           <BaseButton
