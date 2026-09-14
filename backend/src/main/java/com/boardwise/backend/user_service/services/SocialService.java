@@ -1,13 +1,14 @@
 package com.boardwise.backend.user_service.services;
 
 import java.io.IOException;
+import java.lang.foreign.Linker.Option;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.Map;
 import java.util.NoSuchElementException;
-
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
@@ -17,7 +18,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.user_service.dtos.GroupDTO;
 import com.boardwise.backend.user_service.dtos.GroupInfo;
@@ -108,15 +108,16 @@ public class SocialService {
     }
 
     public List<?> getAllGroups(String token) {
+        String userId = jwtService.extractUserId(token).toString();
         List<GroupInfo> groups = new ArrayList<>();
 
         for(Group group : groupRepo.findAll()){
             User owner = userRepo.findById(group.getOwnerId()).get();
             
-            GroupMembership gm = new GroupMembership();
-            gm.setGroupId(group.getId());
+            int memberCount = (int) gmRepo.countByGroupIdAndStatus(group.getId(), GroupMembershipStatus.MEMBER);
 
-            int memberCount = (int) gmRepo.count(Example.of(gm));
+            Optional<GroupMembership> membership = gmRepo.findByUserIdAndGroupId(userId, group.getId());
+
             GroupInfo info = new GroupInfo(
                 group.getId(),
                 group.getName(),
@@ -125,7 +126,8 @@ public class SocialService {
                 owner.getUsername(),
                 group.getVisibility(),
                 group.getCategory(),
-                memberCount
+                memberCount,
+                membership.isPresent() ? membership.get().getStatus() : null
             );
 
             groups.add(info);
@@ -134,26 +136,33 @@ public class SocialService {
         return groups;
     }
 
-    public GroupDTO getGroup(String token, String groupId) {
+    public GroupDTO getGroup(String token, String groupId) throws IllegalAccessException {
         String userId = jwtService.extractUserId(token).toString();
         Group group = groupRepo.findById(groupId).orElseThrow(
             () -> {
                 throw new NoSuchElementException("Group with associated id does not exist");
             }
         );
+
+        Optional<GroupMembership> gm = gmRepo.findByUserIdAndGroupId(userId, group.getId());
+        if(
+            group.getVisibility() == Visibility.PRIVATE && 
+            (gm.isEmpty() || (gm.isPresent() && gm.get().getStatus() != GroupMembershipStatus.MEMBER))
+        )
+            throw new IllegalAccessException("This user is not a member of this group");
+
         // get owner
         User owner = userRepo.findById(group.getOwnerId()).get();
         boolean isOwner = owner.getId().equals(userId);
 
         // get memberCount
-        GroupMembership gm = new GroupMembership();
-        gm.setGroupId(group.getId());
-        int memberCount = (int) gmRepo.count(Example.of(gm));
+        List<GroupMembership> memberships = gmRepo.findAllByGroupIdAndStatus(groupId, GroupMembershipStatus.MEMBER);
+        int memberCount = memberships.size();
 
         // get explicit members
         List<Map<String, String>> members = new ArrayList<>();
         boolean isMember = false;
-        for(GroupMembership membership : gmRepo.findByGroupId(groupId)){
+        for(GroupMembership membership : memberships){
             User member = userRepo.findById(membership.getUserId()).get();
             if(member == null)
                 continue;
@@ -385,8 +394,9 @@ public class SocialService {
 
     // send invite
 
+
     // respond to invite
 
-    // Kick User from communituy
+    // Kick User from community
 
 }

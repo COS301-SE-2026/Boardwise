@@ -93,6 +93,11 @@ public class SocialController {
             res.put("message", e.getMessage());
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
+        catch(IllegalAccessException e){
+            Map<String, Object> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.FORBIDDEN);
+        }
         catch(Exception e){
             e.printStackTrace();
             Map<String, Object> res = new HashMap<>();
