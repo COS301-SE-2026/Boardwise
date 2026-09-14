@@ -70,12 +70,15 @@ services:
 
     ports: 
       - 8081:8081
+
+    shm_size: "1gb"
+
     depends_on:
       mongodb:
         condition: service_healthy
 
     healthcheck:
-      test: ["CMD","curl","-f", "arg", "http://localhost:8081/api/sb/ws/auth/hello"]
+      test: ["CMD","curl","-f", "http://localhost:8081/api/sb/scrapper/hello"]
       interval: 30s
       timeout: 30s
       retries: 5
