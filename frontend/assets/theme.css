@@ -3216,8 +3216,10 @@ button:disabled,
 .community-chat-header__identity {
   display: flex;
   min-width: 0;
+  flex: 1 1 auto;
   align-items: center;
   gap: var(--space-3);
+  overflow: hidden;
 }
 
 .community-chat-header__image {
