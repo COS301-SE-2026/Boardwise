@@ -61,10 +61,10 @@
     <v-divider />
 
     <div class="community-sidebar__results">
-      <div
+      <output
         v-if="loading"
         class="community-sidebar__loading"
-        role="status"
+        aria-live="polite"
         aria-label="Loading communities"
       >
         <v-progress-circular
@@ -72,7 +72,7 @@
           color="primary"
           size="40"
         />
-      </div>
+    </output>
 
       <ul
         v-else-if="filteredCommunities.length"
