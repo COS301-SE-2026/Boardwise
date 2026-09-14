@@ -324,7 +324,8 @@ public class CommunityService {
                     event.getStartDateTime().toLocalDate(), newStart
                 );
 
-                boolean ifPlusOne = newEnd.isBefore(newStart);
+                @SuppressWarnings("null")
+				boolean ifPlusOne = newEnd.isBefore(newStart);
 
                 LocalDateTime endDateTime = ifPlusOne ? 
                                             LocalDateTime.of(startDateTime.toLocalDate().plusDays(1), newEnd) :
