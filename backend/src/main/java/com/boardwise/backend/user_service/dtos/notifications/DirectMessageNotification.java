@@ -1,21 +1,19 @@
-package com.boardwise.backend.user_service.dtos;
+package com.boardwise.backend.user_service.dtos.notifications;
 
 import com.boardwise.backend.user_service.enums.NotificationType;
 
-public record CommunityMessageNotification(
+public record DirectMessageNotification(
     NotificationType type,
     String senderId,
     String message
-
 ) implements ChatNotification{
 
-    public CommunityMessageNotification(String senderId, String message){
-        this(NotificationType.COMMUNITY_CHAT, senderId, message);
+    public DirectMessageNotification(String senderId, String message){
+        this(NotificationType.DIRECT_MESSAGE, senderId, message);
     }
 
     @Override
     public NotificationType getType(){
         return type;
     }
-
-}   
+}
