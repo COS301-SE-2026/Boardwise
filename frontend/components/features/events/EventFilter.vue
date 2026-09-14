@@ -5,7 +5,7 @@
             <BaseFilterPills v-model="selectedDate" :options="dates" />
         </BaseFilterGroup>
 
-        <BaseFilterGroup title="Games Titles">
+        <BaseFilterGroup title="Game Titles">
             <BaseFilterCheckboxGroup v-model="selectedGames" :options="gameOptions" />
         </BaseFilterGroup>
 

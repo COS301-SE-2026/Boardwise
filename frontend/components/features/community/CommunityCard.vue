@@ -7,7 +7,7 @@
         height="200px"
       />
 
-      <BaseBadge :variant="community.visibility">
+      <BaseBadge class="badge--absolute" :variant="community.visibility">
         {{ community.visibility }}
       </BaseBadge>
     </template>

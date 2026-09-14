@@ -41,6 +41,8 @@
   --color-secondary:      var(--obsidian);
   --color-accent:         var(--copper);
   --color-link:           var(--wildfire);
+  --rent:                 var(--copper);
+  --sale:                 var(--wildfire);
 
   --color-text:           var(--shadowink);
   --color-text-muted:     var(--ashquill);
@@ -296,6 +298,15 @@ a { color: var(--color-link); text-decoration: none; }
   color: var(--color-text-muted);
 }
 
+.card-price {
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-body);
+  margin: 0;
+}
+
+.card-price--rent { color: var(--rent); }
+.card-price--sale { color: var(--sale); }
+
 /* Buttons - pill shape*/
 .btn {
   font-family: var(--font-body);
@@ -432,24 +443,6 @@ a { color: var(--color-link); text-decoration: none; }
   white-space: nowrap !important;
 
   border: 0 !important;
-}
-
-/* Add Game Card */
-.card--dashed {
-  border: 2px dashed var(--color-border-strong);
-  cursor: pointer;
-  height: 280px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
-}
-
-.card--dashed:hover {
-  transform: translateY(-2px);
-  background-color: var(--color-surface-alt);
-  box-shadow: var(--shadow-md);
 }
 
 /* Model overlay */
@@ -3459,16 +3452,23 @@ button:disabled,
 }
 
 .stat-card {
-  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-4) var(--space-5);
-  background: var(--color-surface) !important;
-  border-radius: var(--radius-lg) !important;
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm) !important;
   text-align: left;
+}
+
+.stat-card--button {
+  position: relative;
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  font: inherit;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 
 .stat-card__clickable {
@@ -3506,6 +3506,13 @@ button:disabled,
   font-family: var(--font-body);
   font-size: var(--fs-small);
   color: var(--color-text-muted);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .stat-card--button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
 }
 
 @media (max-width: 600px) {
@@ -4389,7 +4396,7 @@ button:disabled,
 }
 
 .date-option:hover {
-  background: var(--color-surface-hover);
+  background: var(--color-surface-alt);
 }
 
 .date-option.active {

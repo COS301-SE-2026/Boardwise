@@ -13,11 +13,11 @@
             />
 
             <div class="flex-grow-1">
-                <p class="card-title mb-2">
+                <p class="card-title">
                     {{ invite.event.name }}
                 </p>
 
-                <p class="card-meta mb-1">
+                <p class="card-meta">
                     <strong>
                         Host:
                     </strong>
@@ -25,7 +25,7 @@
                     {{ invite.host.username }}
                 </p>
 
-                <p class="card-meta-2 mb-4">
+                <p class="card-meta">
                     <strong>
                         Date:
                     </strong>

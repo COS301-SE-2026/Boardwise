@@ -6,10 +6,10 @@
             cols="12"
             sm="6"
             md="4"
-            lg="3"
         >
             <EventCard
                 :event="event"
+                class="h-100"
                 @click="$emit('select', event)"
             />
         </v-col>
