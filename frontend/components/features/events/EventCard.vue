@@ -58,7 +58,7 @@
         <div class="d-flex justify-space-between align-center">
 
           <p class="card-meta">
-            <v-icon size="12">mdi account-group</v-icon>
+            <v-icon size="12">mdi-account-group</v-icon>
               {{ event.attendeeCount }} attending
           </p>
 

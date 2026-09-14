@@ -31,7 +31,7 @@
         <template v-else-if="user">
             <Navbar />
 
-            <v-card flat class="profile-header pa-10 w-100 mb-6">
+            <BaseCard flush class="profile-header pa-10 w-100 mb-6">
                 <div class="d-flex justify-space-between align-center flex-wrap ga-6">
                     <div class="d-flex align-center ga-6 flex-wrap profle-info">
                         <BaseAvatar 
@@ -65,7 +65,7 @@
                         />
                     </div>
                 </div>
-            </v-card>
+            </BaseCard>
 
             <ProfileStats
                 :games="user.ownedGameCount"
@@ -110,6 +110,7 @@ import { useRoute, useRouter } from 'vue-router'
 import Navbar from '~/components/layout/Navbar.vue';
 import BaseAvatar from '~/components/ui/BaseAvatar.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
+import BaseCard from '~/components/ui/BaseCard.vue';
 import PageContainer from '~/components/layout/PageContainer.vue';
 
 import ProfileStats from '~/components/features/profile/ProfileStats.vue';

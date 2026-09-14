@@ -1,5 +1,5 @@
 <template>
-  <v-card rounded="lg" class="pa-4" style="position: sticky; top: 80px;">
+  <BaseCard class="reader-sidebar" style="position: sticky; top: 80px;">
 
     <p class="text-caption text-uppercase font-weight-bold text-medium-emphasis mb-3">
       Contents
@@ -42,10 +42,12 @@
       </v-list-item>
     </v-list>
 
-  </v-card>
+  </BaseCard>
 </template>
 
 <script setup>
+import BaseCard from '~/components/ui/BaseCard.vue'
+
 const props = defineProps({
   pages: {
     type: Array,

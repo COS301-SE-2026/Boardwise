@@ -6,7 +6,7 @@
             elevation="8"
             rounded="lg"
         >
-            <div class="rag-panel">
+            <div class="rag-panel__inner">
                 <div class="rag-header d-flex justify-space-between align-center pa-4">
                     <h3 class="text-subtitle-1 font-weight-bold mb-0">{{  rulebook?.title  }} - Ask AI</h3>
                     <BaseButton icon="mdi-close" variant="text" size="small" aria-label="Close Ask AI panel" @click="close" />

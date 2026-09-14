@@ -1,5 +1,5 @@
 <template>
-  <v-card flat class="profile-header pa-10 w-100 ">
+  <BaseCard flush class="profile-header pa-10 w-100 ">
 
     <div class="d-flex justify-space-between align-center flex-wrap ga-6">
 
@@ -68,7 +68,7 @@
       @save="$emit('pfpChange', $event)"
     />
 
-  </v-card>
+  </BaseCard>
 </template>
 
 <script setup>
@@ -77,6 +77,7 @@ import BaseButton from '~/components/ui/BaseButton.vue';
 import BaseAvatar from '~/components/ui/BaseAvatar.vue';
 
 import ChangeProfilePictureModal from './ChangeProfilePictureModal.vue';
+import BaseCard from '~/components/ui/BaseCard.vue';
 
 defineProps({
   user: { type: Object, required: true }
@@ -88,100 +89,3 @@ const showEdit = ref(false)
 const showPfpModal = ref(false)
 
 </script>
-
-<style scoped>
-.profile-header {
-  background:    var(--color-surface-alt) !important;
-  border-radius: var(--radius-lg) !important;
-  border:        1px solid var(--color-border);
-  box-shadow:    var(--shadow-sm) !important;
-  min-height: 197px; 
-}
-
-.profile-avatar {
-  border: 3px solid var(--color-border-strong);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.profile-info {
-  min-width: 0;
-  height: auto;
-}
-
-.profile-details {
-  min-width: 0;
-}
-
-.profile-name {
-  font-family:  var(--font-display);
-  font-size:    var(--fs-h2);
-  font-weight:  var(--fw-regular);
-  color:        var(--color-secondary);
-  line-height:  var(--lh-tight);
-}
-
-.profile-username {
-  font-family: var(--font-body);
-  font-size:   var(--fs-body);
-  font-weight: var(--fw-bold);
-  color:       var(--color-primary);
-  /* margin-bottom: 90px */
-}
-
-.profile-bio {
-  font-family: var(--font-body);
-  font-size:   var(--fs-body);
-  color:       var(--color-text-muted);
-  line-height: 4px;
-
-}
-
-.genre-chip {
-  font-family:  var(--font-body) !important;
-  font-size:    var(--fs-small) !important;
-  font-weight:  var(--fw-medium) !important;
-  background:   var(--bw-gold-muted) !important;
-  color:        var(--bw-navy-ink) !important;
-  border-radius: var(--radius-pill) !important;
-}
-.profile-preferences {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.preference-label {
-  font-family: var(--font-body);
-  font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
-  color: var(--color-text-muted);
-}
-
-.no-pref {
-  margin: 0;
-  font-family: var(--font-body);
-  font-size: var(--fs-small);
-  color: var(--color-text-muted);
-  font-style: italic;
-}
-
-@media (max-width: 600px) {
-  .profile-header {
-    padding: var(--space-5) !important;
-  }
-
-  .profile-info {
-    width: 100%;
-    align-items: flex-start !important;
-  }
-
-  .profile-details {
-    flex: 1;
-  }
-
-  .profile-name {
-    font-size: var(--fs-h3);
-  }
-}
-</style>

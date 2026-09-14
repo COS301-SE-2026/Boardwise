@@ -23,7 +23,7 @@
         <v-col cols="12" md="6">
             <v-card flat border class="voice-card do pa-4 h-100">
                 <div class="voice-card-title dont-title mb-3">
-                    <v-icon>mdi-check</v-icon>
+                    <v-icon>mdi-close-check</v-icon>
                     Not like this
                 </div>
 

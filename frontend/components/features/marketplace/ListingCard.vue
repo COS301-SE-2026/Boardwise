@@ -83,13 +83,6 @@ const openListing = () => {
   font-weight: var(--fw-bold);
   font-size: var(--fs-body);
 }
-
-.period {
-  font-size: var(--fs-small);
-  font-weight: var(--fw-regular);
-  color: var(--color-text-muted);
-}
-
 .meta {
   display: flex;
   justify-content: space-between;

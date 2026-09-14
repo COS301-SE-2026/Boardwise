@@ -9,7 +9,7 @@
       />
 
       <BaseBadge
-        class="badge"
+        class="badge--absolute"
         :variant="listing.listingType === 'rental' ? 'rent' : 'sale'"
       >
         {{ listing.listingType === 'rental' ? 'For Rent' : 'For Sale' }}
@@ -34,8 +34,8 @@
     </p>
 
     <template v-if="editable" #actions>
-      <BaseButton size="sm" @click.stop="showEdit = true">Edit</BaseButton>
-      <BaseButton size="sm" variant="secondary" @click.stop="showDelete = true">Delete</BaseButton>
+      <BaseButton size="small" @click.stop="showEdit = true">Edit</BaseButton>
+      <BaseButton size="small" variant="secondary" @click.stop="showDelete = true">Delete</BaseButton>
     </template>
 
     <EditListingModal   v-model="showEdit"   :listing="listing" @saved="$emit('updated', listing.listingId)"  />

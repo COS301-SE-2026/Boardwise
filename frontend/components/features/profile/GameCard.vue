@@ -2,7 +2,7 @@
   <BaseCard clickable @click="openDelete = true">
 
     <template #media>
-      <BaseImage :src="image" alt="title" height="200px" />
+      <BaseImage :src="image" :alt="title" height="200px" />
     </template>
  
     <p class="card-title">

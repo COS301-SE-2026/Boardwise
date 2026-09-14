@@ -1,9 +1,7 @@
 <template>
-    <v-card
-        elevation="0"
+    <BaseCard
         class="block-wrapper pa-4 mb-2"
-        :class="{'bg-grey-lighten-4': isEditing}"
-        rounded="lg"
+        :class="{'block-wrapper--editing': isEditing}"
     >
     <!-- Read view -->
         <div v-if="!isEditing" class="text-body-1 text-medium-emphasis" style="line-height: 1.9;" v-html="parsedContent"></div>
@@ -68,7 +66,7 @@
                 </div>
             </div>
         </div>
-    </v-card>
+    </BaseCard>
 </template>
 
 <script setup>
@@ -77,6 +75,7 @@ import {marked} from 'marked'
 import DOMPurify from 'dompurify'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseTextArea from '~/components/ui/BaseTextArea.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
 
 const props = defineProps({
     chunk: {type: Object, required: true},

@@ -41,7 +41,7 @@
         </v-col>
 
         <v-col cols="12" md="9">
-          <v-card rounded="xl" elevation="1" class="pb-10">
+          <BaseCard flush class="pb-10">
             <!-- Document Header -->
             <BaseImage :src="rulebook?.coverUrl" :alt="rulebook?.title" height="280px" fit="cover" />
 
@@ -82,7 +82,7 @@
                 />
               </transition-group>
             </div>
-          </v-card>
+          </BaseCard>
         </v-col>
       </v-row>
     </v-container>
@@ -112,6 +112,7 @@ import ReaderBlock from './ReaderBlock.vue'
 import ReaderHistory from './ReaderHistory.vue'
 
 import BaseImage from '~/components/ui/BaseImage.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
 import AIFloatingButton from '~/components/layout/AIFloatingButton.vue'
 import RagPanel from '../rag/RagPanel.vue'
 

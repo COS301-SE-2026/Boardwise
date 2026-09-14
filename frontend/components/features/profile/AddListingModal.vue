@@ -140,7 +140,7 @@
 
         <div class="d-flex flex-column ga-1">
           <div class="d-flex align-center ga-3">
-            <BaseCard variant="secondary" color="primary" @click="triggerUpload">Upload Image</BaseCard>
+            <BaseButton variant="secondary" color="primary" @click="triggerUpload">Upload Image</BaseButton>
             <label for="image-upload" class="text-grey text-body-2">{{ fileName || '···' }}</label>
             <input
               id="image-upload"
