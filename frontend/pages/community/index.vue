@@ -68,11 +68,25 @@
       />
     </output>
 
-    <CommunityGrid
-      v-else
-      :communities="filteredCommunities"
-    />
+    <template v-else>
+      <CommunityGrid
+        :communities="pagedCommunities"
+      />
 
+      <template v-if="filteredCommunities.length > 0">
+        <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
+          <span class="card-meta">Page {{ communitiesPage }} of {{ communitiesTotalPages }}</span>
+        </div>
+
+        <BasePagination
+          v-if="communitiesTotalPages > 1"
+          class="mt-4"
+          :model-value="communitiesPage"
+          :total-pages="communitiesTotalPages"
+          @update:modelValue="goToCommunitiesPage"
+        />
+      </template>
+    </template>
   </div>
 </div>
 
@@ -94,6 +108,7 @@ import { useDebounceFn } from '@vueuse/core'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
+import BasePagination from '~/components/ui/BasePagination.vue'
 
 import ExploreHeader from '~/components/features/community/ExploreHeader.vue'
 import ExploreSearch from '~/components/features/community/ExploreSearch.vue'
@@ -105,6 +120,7 @@ import type { GroupInfo } from '~/services/communityService'
 import { useCommunity } from '~/composables/useCommunity'
 import { useSnackBar } from '~/composables/useSnackbar'
 
+const CARD_PAGE_SIZE = 6
 
 const { getAllCommunities, searchForCommunity, loading } = useCommunity()
 const { show } = useSnackBar()
@@ -158,6 +174,33 @@ const filteredCommunities = computed(() => {
 
     return matchesVisibility && matchesCategory
   })
+})
+
+// =================== Pagination ============================
+const communitiesPage = ref(1)
+
+const communitiesTotalPages = computed(() => 
+  Math.max(1, Math.ceil(filteredCommunities.value.length / CARD_PAGE_SIZE))
+)
+
+const pageCommunities = computed(() => {
+  const start = (communitiesPage.value - 1) * CARD_PAGE_SIZE
+  return filteredCommunities.value.slice(start, start + CARD_PAGE_SIZE)
+})
+
+const goToCommunitiesPage = (page: number) => {
+  communitiesPage.value = page
+}
+
+watch(filteredCommunities, () => {
+  if (communitiesPage.value > communitiesTotalPages.value) {
+    communitiesPage.value = 1
+  }
+})
+
+const pagedCommunities = computed(() => {
+  const start = (communitiesPage.value - 1) * CARD_PAGE_SIZE
+  return filteredCommunities.value.slice(start, start + CARD_PAGE_SIZE)
 })
 
 </script>
