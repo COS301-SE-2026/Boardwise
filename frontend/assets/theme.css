@@ -284,7 +284,7 @@ a { color: var(--color-link); text-decoration: none; }
   font-weight: var(--fw-regular);
   color: var(--color-secondary);
   line-height: 1.2;
-  margin: auto;
+  margin: 0;
 }
 
 .card-subtitle {
@@ -2523,7 +2523,6 @@ html[data-density="compact"] .rulebook-list {
   background: var(--color-surface-alt);
 }
 
-
 /* -------------------------------------------------------------
    BASE BADGE
    ------------------------------------------------------------- */
@@ -2905,7 +2904,7 @@ html[data-density="compact"] .rulebook-list {
 }
 
 /* -------------------------------------------------------------
-   GRID
+  BASE GRID
    ------------------------------------------------------------- */
 
 .base-grid {

@@ -5,11 +5,7 @@
       class="justify-center"
     />
 
-  <BaseGrid
-    v-else
-    cols="280px"
-    gap="20px"
-  >
+  <BaseGrid v-else>
     <CommunityCard
       v-for="community in communities"
       :key="community.id"

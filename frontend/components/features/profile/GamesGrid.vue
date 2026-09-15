@@ -1,5 +1,5 @@
 <template>
-  <BaseGrid cols="220px" gap="var(--space-6)">
+  <BaseGrid data-test="games-grid">
 
     <AddGameCard v-if="editable" @add-game="$emit('add-game')" />
 

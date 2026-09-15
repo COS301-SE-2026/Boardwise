@@ -181,7 +181,7 @@ import { useAuth } from '~/composables/useAuth';
 
 import { useSnackBar } from '~/composables/useSnackbar';
 
-const CARD_PAGE_SIZE = 6
+const CARD_PAGE_SIZE = 12
 
 const { show } = useSnackBar();
 const showFilters = ref(false)
