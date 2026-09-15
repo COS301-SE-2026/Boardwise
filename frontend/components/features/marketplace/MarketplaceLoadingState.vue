@@ -29,6 +29,7 @@
 <script setup>
 import { computed } from 'vue'
 import BaseImage from '~/components/ui/BaseImage.vue';
+import BaseSpinner from '~/components/ui/BaseSpinner.vue';
 
 const props = defineProps ({
     tab: { type: String, default: 'Community Listings' },

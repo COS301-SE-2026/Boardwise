@@ -4,10 +4,7 @@
     class="community-chat-feed"
 
   >
-    <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
-        <BaseSpinner size="lg" />
-    </v-container>
-
+    <BaseLoadingState v-if="isLoading" />
 
     <template v-else-if="messages.length">
       <ChatMessage
@@ -35,7 +32,7 @@ import { useCommunityChat } from '~/composables/useCommunityChat'
 
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import ChatMessage from './ChatMessage.vue'
-import BaseSpinner from '~/components/ui/BaseSpinner.vue'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 
 const { isLoading } = useCommunityChat()
 
@@ -75,6 +72,7 @@ onMounted(async () => {
 })
 </script>
 
+<styled scoped>
 .community-chat-feed {
   display: flex;
   flex-direction: column;
@@ -84,3 +82,4 @@ onMounted(async () => {
   min-height: 0;
   padding: 16px;
 }
+</styled>

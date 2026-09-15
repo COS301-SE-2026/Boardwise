@@ -25,9 +25,7 @@
                 {{ error }}
             </v-alert>
 
-            <div v-if="isLoading" class="d-flex justify-center my-6">
-                <BaseSpinner size="md" />
-            </div>
+            <BaseLoadingState v-if="isLoading" />
 
             <div v-if="edits.length" class="d-flex flex-column ga-4">
                 <div
@@ -79,7 +77,7 @@
 <script setup>
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
-import BaseSpinner from '~/components/ui/BaseSpinner.vue'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 
 defineProps({
   modelValue: { type: Boolean, default: false },

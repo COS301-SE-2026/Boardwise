@@ -8,9 +8,7 @@
             @retry="emit('retry', message)"
         />
 
-        <div v-if="isLoading" class="rag-message assistant">
-            <BaseSpinner data-test="rag-loading-spinner" size="md" />
-        </div>
+        <BaseLoadingState v-if="isLoading" />
 
         <div v-if="!messages.length && !isLoading" class="rag-empty-state">
             Ask a question about this rulebook - answers are grounded in its actual text.
@@ -23,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import BaseSpinner from '~/components/ui/BaseSpinner.vue';
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue';
 import RagMessage from './RagMessage.vue'
 import type { RagMessage as RagMessageType } from '~/composables/useRag'
 

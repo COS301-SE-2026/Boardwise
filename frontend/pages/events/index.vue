@@ -34,13 +34,7 @@
     </div>
 
     <div class="d-md-none">
-      <v-container 
-        v-if="isLoading"
-        class="d-flex justify-center align-center"
-        style="min-height: 60vh"
-      >
-        <BaseSpinner size="lg" />
-      </v-container>
+      <BaseLoadingState v-if="isLoading" />
 
       <template v-else>
         <EventGrid 
@@ -73,33 +67,34 @@
       />
     
       <div class="flex-grow-1" style="min-width: 0;">
-        <v-container 
-          v-if="isLoading" 
-          class="d-flex justify-center align-center" 
-          style="min-height: 60vh"
-        >
-          <BaseSpinner size="lg" />
-
-        </v-container>
+        <BaseLoadingState v-if="isLoading" />
 
         <template v-else>
-          <EventGrid 
-            :events="pagedEvents" 
-            @select="openEvent" 
+          <BaseEmptyState
+            v-if="filteredEvents.length === 0"
+            title="No events found"
+            message="Try adjusting your filters, or be the first to create one."
           />
 
-          <template v-if="filteredEvents.length > 0">
-            <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
-              <span class="card-meta">Page {{ eventsPage }} of {{ eventsTotalPages }}</span>
-            </div>
-
-            <BasePagination
-              v-if="eventsTotalPages > 1"
-              class="mt-4"
-              :model-value="eventsPage"
-              :total-pages="eventsTotalPages"
-              @update:modelValue="goToPage"
+          <template v-else>
+            <EventGrid 
+              :events="pagedEvents" 
+              @select="openEvent" 
             />
+
+            <template v-if="filteredEvents.length > 0">
+              <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
+                <span class="card-meta">Page {{ eventsPage }} of {{ eventsTotalPages }}</span>
+              </div>
+
+              <BasePagination
+                v-if="eventsTotalPages > 1"
+                class="mt-4"
+                :model-value="eventsPage"
+                :total-pages="eventsTotalPages"
+                @update:modelValue="goToPage"
+              />
+            </template>
           </template>
         </template>
       </div>
@@ -141,7 +136,8 @@ import { useRouter } from 'vue-router'
 import EditEventModal from '~/components/features/events/EditEventModal.vue'
 import InviteModal from '~/components/features/community/InviteModal.vue'
 import EventHeader from '~/components/features/events/EventHeader.vue'
-import BaseSpinner from '~/components/ui/BaseSpinner.vue'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
+import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
 const showFilters = ref(false)
 const { show } = useSnackBar(3)

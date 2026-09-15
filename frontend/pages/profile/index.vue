@@ -72,9 +72,7 @@
     </template>
 
     <template v-else>
-      <v-container class="d-flex justify-center align-center" style="min-height: 60vh">
-        <BaseSpinner size="lg" />
-      </v-container>
+      <BaseLoadingState />
     </template>
 
   </PageContainer>
@@ -89,7 +87,6 @@ import { ref, onMounted, computed } from 'vue'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
-import BaseSpinner from '~/components/ui/BaseSpinner.vue'
 
 import ProfileHeader from '~/components/features/profile/ProfileHeader.vue'
 import ProfileStats from '~/components/features/profile/ProfileStats.vue'
@@ -107,6 +104,7 @@ import { useFriends } from '~/composables/useFriends'
 import { NotificationType } from "~/services/friendService";
 
 import { useRouter } from 'vue-router'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 
 const { fetchCurrentUser, removeGame } = useProfile();
 const { listings, fetchUserListing, loading } = useMarketplace();

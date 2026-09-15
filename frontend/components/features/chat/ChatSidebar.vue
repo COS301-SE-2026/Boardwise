@@ -62,13 +62,7 @@
 
         <div class="chat-sidebar__results">
 
-            <v-container
-                v-if="isLoading"
-                class="d-flex justify-center align center"
-                style="min-height: 60vh"
-            >
-                <BaseSpinner size="lg" />
-            </v-container>
+            <BaseLoadingState v-if="isLoading" />
 
             <ChatConversationList
                 v-else-if="filteredConversations.length"
@@ -81,7 +75,7 @@
                 v-else
                 class="mt-8"
                 title="No conversations found"
-                :description="emptyDescription"
+                :message="emptyDescription"
             />
         </div>
     </BaseCard>
@@ -94,9 +88,9 @@ import { usePrivateChat } from '#imports'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import BaseSearch from '~/components/ui/BaseSearch.vue'
-import BaseSpinner from '~/components/ui/BaseSpinner.vue'
 
 import ChatConversationList from './ChatConversationList.vue'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 
 const props = defineProps({
     conversations: {

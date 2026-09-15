@@ -31,9 +31,7 @@
       </v-card-title>
 
       <v-card-text class="pa-6">
-        <div v-if="loading" class="base-modal__loading" data-test="modal-loading">
-          <v-progress-circular indeterminate color="primary" />
-        </div>
+        <BaseLoadingState v-if="loading" />
         <slot v-else />
       </v-card-text>
 
@@ -47,6 +45,7 @@
 <script setup>
 import { useId } from 'vue'
 import BaseButton from './BaseButton.vue'
+import BaseLoadingState from './BaseLoadingState.vue'
 
 const props = defineProps({
   modelValue: {

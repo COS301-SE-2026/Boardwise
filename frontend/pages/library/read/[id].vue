@@ -6,9 +6,7 @@
     :chunks="rulebookText?.chunks ?? []"
   />
 
-  <div v-else-if="isLoading" class="d-flex justify-center align-center" style="height: 60vh;">
-    <BaseSpinner size="md" />
-  </div>
+  <BaseLoadingState v-if="isLoading" />
 
   <v-empty-state
     v-else
@@ -30,9 +28,9 @@ import { useStomp } from '~/composables/useStomp'
 
 import ReaderLayout from '~/components/features/library/ReaderLayout.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
-import BaseSpinner from '~/components/ui/BaseSpinner.vue'
 
 import { ref, onMounted } from 'vue';
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 
 const readerLayoutRef = ref(null);
 const route = useRoute()

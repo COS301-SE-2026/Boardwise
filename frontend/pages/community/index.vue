@@ -55,14 +55,7 @@
   <!-- One results area for desktop + mobile -->
   <div class="community-results-layout__content">
 
-    <output
-      v-if="loading"
-      class="community-results-loading"
-      aria-live="polite"
-      aria-label="Loading communities"
-    >
-      <BaseSpinner size="lg" />
-    </output>
+    <BaseLoadingState v-if="loading" />
 
     <template v-else>
       <CommunityGrid
@@ -105,7 +98,6 @@ import { useDebounceFn } from '@vueuse/core'
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import BasePagination from '~/components/ui/BasePagination.vue'
-import BaseSpinner from '~/components/ui/BaseSpinner.vue'
 
 import ExploreHeader from '~/components/features/community/ExploreHeader.vue'
 import ExploreSearch from '~/components/features/community/ExploreSearch.vue'
@@ -116,6 +108,7 @@ import type { GroupInfo } from '~/services/communityService'
 
 import { useCommunity } from '~/composables/useCommunity'
 import { useSnackBar } from '~/composables/useSnackbar'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 
 const CARD_PAGE_SIZE = 6
 

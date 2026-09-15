@@ -2,12 +2,7 @@
     <PageContainer>
         <!-- Loading -->
         <template v-if="loading">
-            <v-container
-                class="d-flex justify-center align center"
-                style="min-height: 60vh"
-            >
-                <BaseSpinner size="lg" />
-            </v-container>
+            <BaseLoadingState />
         </template>
 
         <!-- Profile not found -->
@@ -18,7 +13,7 @@
             >
                 <BaseEmptyState
                     title="Profile not found"
-                    description="The user you're looking for doesn't exist or is no longer available."
+                    message="The user you're looking for doesn't exist or is no longer available."
                 />
             </v-container>
         </template>
@@ -108,7 +103,6 @@ import BaseAvatar from '~/components/ui/BaseAvatar.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
 import BaseCard from '~/components/ui/BaseCard.vue';
 import PageContainer from '~/components/layout/PageContainer.vue';
-import BaseSpinner from '~/components/ui/BaseSpinner.vue';
 
 import ProfileStats from '~/components/features/profile/ProfileStats.vue';
 import ProfileCommunities from '~/components/features/profile/ProfileCommunities.vue';
@@ -122,6 +116,7 @@ import { useProfile } from '~/composables/useProfile'
 import { useFriends } from '~/composables/useFriends'
 import { FriendStatus } from '~/services/userService';
 import type { ProfileResponse } from '~/services/userService'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue';
 
 const route = useRoute()
 const router = useRouter()

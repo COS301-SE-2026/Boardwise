@@ -8,9 +8,7 @@
             aria-live="polite"
             aria-relevant="additions text"
         >
-            <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
-                <BaseSpinner size="sm" />
-            </v-container>
+            <BaseLoadingState v-if="isLoading" />
 
             <template v-else-if="messages.length">
                 <ChatMessage
@@ -26,7 +24,7 @@
                 v-else
                 class="chat-feed__empty"
                 title="No messages yet"
-                description="Start the conversation by sending the first message."
+                message="Start the conversation by sending the first message."
             />
         </div>
     </BaseCard>
@@ -46,7 +44,6 @@ import { useStomp } from '~/composables/useStomp'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import ChatMessage from './ChatMessage.vue'
-import BaseSpinner from '~/components/ui/BaseSpinner.vue'
 
 
 const { fetchCurrentUser, isLoading } = useProfile()

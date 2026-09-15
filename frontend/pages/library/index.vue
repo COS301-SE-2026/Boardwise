@@ -13,9 +13,7 @@
 
     <RulebookCarousel :rulebooks="featuredRulebooks" @select="openRulebook" />
 
-    <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
-      <BaseSpinner size="lg" />
-    </v-container>
+    <BaseLoadingState v-if="isLoading" message="Fetching your library..." />
 
     <RecommendedBooks v-else :rulebooks="recommended" @select ="openRulebook"/>
 
@@ -58,14 +56,7 @@
       />
       
       <div class="flex-grow-1" style="min-width: 0;">
-        <v-container 
-          v-if="isLoading"
-          class="d-flex justify-center align-center"
-          style="min-height: 60vh"
-        >
-          <BaseSpinner size="lg" />
-        </v-container>
-
+        <BaseLoadingState v-if="isLoading" message="Loading rulebooks... " />
         <template v-else>
           <RulebookGrid
             :rulebooks="pagedRulebooks"
@@ -93,15 +84,7 @@
     </div>
 
   <div class="d-md-none">
-    <v-container 
-      v-if="isLoading"
-      class="d-flex justify-center align-center"
-      style="min-height: 60vh"
-    >
-      <div v-if="isLoading" class="d-flex justify-center align-center h-100">
-        <BaseSpinner size="md" />
-      </div>
-    </v-container>
+    <BaseLoadingState v-if="isLoading" message="Fetching your library... " />
 
     <template v-else>
       <RulebookGrid
@@ -130,9 +113,7 @@
 
   <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
     
-    <div v-if="isLoading" class="d-flex justify-center align-center h-100">
-      <BaseSpinner size="md" />
-    </div>
+    <BaseLoadingState v-if="isLoading" message="Loading rulebooks... " />
 
     <RulebookDetail
       v-if="selectedRulebook"
@@ -162,7 +143,6 @@ import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BasePagination from '~/components/ui/BasePagination.vue'
-import BaseSpinner from '~/components/ui/BaseSpinner.vue'
 
 import RulebookFilterSidebar from '~/components/features/library/RulebookFilterSidebar.vue'
 import RulebookGrid from '~/components/features/library/RulebookGrid.vue'

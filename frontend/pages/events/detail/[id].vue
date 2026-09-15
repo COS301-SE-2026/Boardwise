@@ -2,9 +2,7 @@
     <PageContainer>
         <Navbar />
 
-        <div v-if="isLoading" class="d-flex justify-center pa-16">
-            <BaseSpinner size="lg" />
-        </div>
+        <BaseLoadingState v-if="isLoading" />
 
         <EventDetailPage
             v-else-if="event"
@@ -44,6 +42,7 @@ import EditEventModal from '~/components/features/events/EditEventModal.vue'
 import { useEvents } from '~/composables/useEvents'
 import { useSnackBar } from '~/composables/useSnackbar'
 import BaseSpinner from '~/components/ui/BaseSpinner.vue'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 // import { useProfile } from '~/composables/useProfile'
 
 const { show } = useSnackBar(3)
