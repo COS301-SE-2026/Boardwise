@@ -6,6 +6,8 @@
     :rules="props.rules"
     :aria-label="accessibleLabel"
     :type="resolvedType"
+    :loading="loading"
+    :disabled="loading || disabled"
     variant="outlined"
     density="comfortable"
     rounded="xl"
@@ -43,11 +45,15 @@ const props = withDefaults(defineProps<{
     rules?: InputRule[]
     ariaLabel?: string
     type?: string
+    loading?: boolean
+    disabled?: boolean
 }>(), {
   label: '',
   rules: () => [],
   ariaLabel: '',
-  type: 'text'
+  type: 'text',
+  loading: false,
+  disabled: false
 })
 
 const inputValue = defineModel<string>({

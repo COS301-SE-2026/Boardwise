@@ -3028,7 +3028,7 @@ html[data-density="compact"] .rulebook-list {
 }
 
 /* -------------------------------------------------------------
-   MODAL
+   BASE MODAL
    ------------------------------------------------------------- */
 
 .base-modal__title {
@@ -3036,9 +3036,19 @@ html[data-density="compact"] .rulebook-list {
   color: var(--color-secondary);
 }
 
+.base-modal__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.base-modal__actions {
+  padding: 0 var(--space-6) var(--space-6);
+}
 
 /* -------------------------------------------------------------
-   TABS
+  BASE TABS
    ------------------------------------------------------------- */
 
 .base-tabs {
