@@ -14,8 +14,8 @@
       <BaseImage
         :src="response.mascotSrc"
         :alt="response.title"
-        height="36px"
-        width="36px"
+        height="56px"
+        width="56px"
         fit="contain"
         class="boardwise-snackbar__mascot"
       />
@@ -59,22 +59,22 @@ const response = computed(() => {
   const states = {
     success: {
       title: 'Nice move!',
-      icon: '/images/Boarley_cute.svg'
+      mascotSrc: '/images/Boarley_cute.svg'
     },
 
     info: {
       title: 'Your move.',
-      icon: '/images/BoarleySide.svg'
+      mascotSrc: '/images/Boarley_North.svg'
     },
 
     warning: {
       title: 'Heads up.',
-      icon: '/images/BoarleySide.svg'
+      mascotSrc: '/images/BoarleySide.svg'
     },
 
     error: {
       title: 'That move didn’t land.',
-      icon: '/images/BoarleySide.svg'
+      mascotSrc: '/images/BoarleySouth.svg'
     }
   }
 

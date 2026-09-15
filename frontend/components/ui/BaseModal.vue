@@ -48,10 +48,10 @@
 import { useId } from 'vue'
 import BaseButton from './BaseButton.vue'
 
-defineProps({
+const props = defineProps({
   modelValue: {
     type:Boolean,
-    default: false  
+    required: true  
   },
   title: {
     type: String,
@@ -67,7 +67,7 @@ defineProps({
   },
   closable: {
     type: Boolean,
-    default: false
+    default: true
   },
   loading: {
     type: Boolean,

@@ -1,16 +1,39 @@
 <template>
-  <v-dialog v-model="open" max-width="600">
-    <BaseCard class="pa-6 d-flex flex-column ga-5" style="background: var(--color-surface) !important; overflow-y: auto;">
+  <BaseModal v-model="open" title="Edit Event" :max-width="600" :closable="!isLoading" >
+    <div class="d-flex flex-column ga-5">
+      <BaseInput 
+        v-model="name" 
+        label="Event Name" 
+        placeholder="Event name" 
+        variant="outlined" 
+        density="compact" 
+        hide-details 
+      />
 
-      <h2 class="ma-0">Edit Event</h2>
+      <BaseInput 
+        v-model="description" 
+        label="Description" 
+        placeholder="description" 
+        variant="outlined" 
+        density="compact" 
+        hide-details 
+      />
 
-      <BaseInput v-model="name" label="Event Name" placeholder="Event name" variant="outlined" density="compact" hide-details />
+      <BaseInput 
+        v-model="location" 
+        label="Location" 
+        placeholder="e.g. Pretoria" 
+        variant="outlined" 
+        density="compact" 
+        hide-details 
+      />
 
-      <BaseInput v-model="description" label="Description" placeholder="description" variant="outlined" density="compact" hide-details />
-
-      <BaseInput v-model="location" label="Location" placeholder="e.g. Pretoria" variant="outlined" density="compact" hide-details />
-
-      <v-date-input v-model="date" label="Date" variant="outlined" hide-details />
+      <v-date-input 
+        v-model="date" 
+        label="Date" 
+        variant="outlined" 
+        hide-details 
+      />
 
       <div class="d-flex ga-3">
         <BaseInput 
@@ -32,7 +55,13 @@
         />
       </div>
 
-      <v-select v-model="selected_visibility" label="Visibility" :items="visibilities" variant="outlined" density="compact" hide-details />
+      <v-select 
+        v-model="selected_visibility" 
+        label="Visibility" :items="visibilities" 
+        variant="outlined" 
+        density="compact" 
+        hide-details 
+      />
 
       <v-autocomplete
         v-model="selected_games"
@@ -64,8 +93,9 @@
       </div>
 
       <p v-if="error" class="text-error text-body-2 ma-0">{{ error }}</p>
+    </div>
 
-      <div class="d-flex justify-end ga-3">
+      <template #actions>
         <BaseButton 
           variant="outlined" 
           color="primary" 
@@ -80,16 +110,15 @@
         >
           Save Changes
         </BaseButton>
-      </div>
-
-    </BaseCard>
-  </v-dialog>
+      </template>
+  </BaseModal>
 </template>
 
 <script setup>
 import { useEvents } from '~/composables/useEvents'
 import { useBoardGames } from '~/composables/useBoardGames'
-import BaseCard from '~/components/ui/BaseCard.vue'
+
+import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 

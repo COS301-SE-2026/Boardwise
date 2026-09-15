@@ -9,13 +9,11 @@
       <h2>Remove Game From Your Profile</h2>
       <p>Are you sure you want to remove this game from your profile?</p>
 
-     <div class="d-flex justify-center ga-3 mt-2">
-      <BaseButton variant="secondary" color="primary" @click="open = false">Cancel</BaseButton>
-      <BaseButton variant="error" @click="confirm">Delete</BaseButton>
-    </div>
-
-    
-  </BaseCard>
+      <div class="d-flex justify-center ga-3 mt-2">
+        <BaseButton variant="secondary" color="primary" @click="open = false">Cancel</BaseButton>
+        <BaseButton variant="error" @click="confirm">Delete</BaseButton>
+      </div>
+    </BaseCard>
   </v-dialog>
 </template>
 
