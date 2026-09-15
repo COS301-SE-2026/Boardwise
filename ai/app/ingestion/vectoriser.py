@@ -39,7 +39,7 @@ def vectorise_chunks(
             model.encode(texts, normalize_embeddings=True, convert_to_numpy=True)
         )
 
-        truncated_embeddings = embeddings[:, : settings.TRUNCATE_DIMENSION]
+        truncated_embeddings = embeddings[:, : settings.EMBEDDING_DIMENSIONS]
 
         # Re-normalize after truncation to maintain cosine/hamming similarity accuracy
         norms = np.linalg.norm(truncated_embeddings, axis=1, keepdims=True)

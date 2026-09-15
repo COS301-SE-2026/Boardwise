@@ -31,7 +31,7 @@ def retrieve_context(query: str, rulebook_id: str, ml_models: dict) -> list[dict
             [prefixed_query], normalize_embeddings=True
         )
 
-        truncated_query = query_embedding[:, : settings.TRUNCATE_DIMENSION]
+        truncated_query = query_embedding[:, : settings.EMBEDDING_DIMENSIONS]
 
         norms = np.linalg.norm(truncated_query, axis=1, keepdims=True)
         norms = np.maximum(norms, 1e-10)
