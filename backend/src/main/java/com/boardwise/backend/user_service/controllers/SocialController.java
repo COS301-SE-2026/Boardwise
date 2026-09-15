@@ -9,12 +9,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.boardwise.backend.user_service.dtos.request.GroupCreationDTO;
+import com.boardwise.backend.user_service.dtos.request.GroupInviteRequest;
+import com.boardwise.backend.user_service.dtos.request.GroupRemovalRequest;
 import com.boardwise.backend.user_service.dtos.response.GroupCreationResponseDTO;
+import com.boardwise.backend.user_service.dtos.response.GroupInviteResponse;
 import com.boardwise.backend.user_service.dtos.GroupDTO;
 import com.boardwise.backend.user_service.dtos.GroupInfo;
 import com.boardwise.backend.user_service.dtos.response.GroupMembershipResponseDTO;
@@ -29,6 +33,8 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 
 @RestController
@@ -189,12 +195,14 @@ public class SocialController {
     }
 
     // search by group name
-    @GetMapping("/groups/search/{groupName}")
+    @GetMapping("/groups/search")
     public ResponseEntity<?> getGroupByName(
-        @PathVariable String groupName
+        @RequestParam String query,
+        HttpServletRequest req
     ){
         try{
-            List<GroupInfo> groups = service.getGroup(groupName);
+            String token = ProfileController.extractToken(req);
+            List<GroupInfo> groups = service.searchForGroup(token, query);
             Map<String, Object> res = new HashMap<>();
             res.put("groups", groups);
             return new ResponseEntity<>(res, HttpStatus.OK);
@@ -207,4 +215,72 @@ public class SocialController {
         }
     }
 
+    @PostMapping("/groups/{groupId}/invite")
+    public ResponseEntity<?> inviteUserToGroup(
+        HttpServletRequest req,
+        @PathVariable String groupId,
+        @RequestBody GroupInviteRequest invite
+    ) {
+        try{
+            String token = ProfileController.extractToken(req);
+            Map<String, String> res = service.inviteToGroup(token, groupId, invite);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(NoSuchElementException e){
+            Map<String, String> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        catch(IllegalAccessException e){
+            Map<String, String> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.FORBIDDEN);
+        }
+    }
+
+    @PatchMapping("/groups/{groupId}/invite")
+    public ResponseEntity<?> respondToGroupInvite(
+        HttpServletRequest req,
+        @PathVariable String groupId,
+        @RequestBody GroupInviteResponse invite
+    ){
+        try{
+            String token = ProfileController.extractToken(req);
+            Map<String, String> res = service.respondToGroupInvite(token, groupId, invite);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(NoSuchElementException e){
+            Map<String, String> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        catch(IllegalAccessException e){
+            Map<String, String> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.FORBIDDEN);
+        }
+    }
+    
+    @DeleteMapping("/groups/{groupId}/members") 
+    public ResponseEntity<?> removeMemberFromGroup(
+        HttpServletRequest req,
+        @PathVariable String groupId,
+        @RequestBody GroupRemovalRequest removal
+    ){
+        try{
+            String token = ProfileController.extractToken(req);
+            Map<String, String> res = service.kickMemberFromGroup(token, groupId, removal);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(NoSuchElementException e){
+            Map<String, String> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        catch(IllegalAccessException e){
+            Map<String, String> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.FORBIDDEN);
+        }
+    }
 }

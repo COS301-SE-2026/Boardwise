@@ -1,7 +1,6 @@
 package com.boardwise.backend.user_service.services;
 
 import java.io.IOException;
-import java.lang.foreign.Linker.Option;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,11 +22,15 @@ import com.boardwise.backend.user_service.dtos.GroupDTO;
 import com.boardwise.backend.user_service.dtos.GroupInfo;
 import com.boardwise.backend.user_service.dtos.notifications.CommunityMessageNotification;
 import com.boardwise.backend.user_service.dtos.request.GroupCreationDTO;
+import com.boardwise.backend.user_service.dtos.request.GroupInviteRequest;
+import com.boardwise.backend.user_service.dtos.request.GroupRemovalRequest;
 import com.boardwise.backend.user_service.dtos.request.GroupUpdateRequestDTO;
 import com.boardwise.backend.user_service.dtos.response.GroupCreationResponseDTO;
+import com.boardwise.backend.user_service.dtos.response.GroupInviteResponse;
 import com.boardwise.backend.user_service.dtos.response.GroupMembershipResponseDTO;
 import com.boardwise.backend.user_service.dtos.response.GroupUpdateResponseDTO;
 import com.boardwise.backend.user_service.enums.GroupMembershipStatus;
+import com.boardwise.backend.user_service.enums.ResponseStatus;
 import com.boardwise.backend.user_service.enums.Visibility;
 import com.boardwise.backend.user_service.events.JoinedCommunityEvent;
 import com.boardwise.backend.user_service.events.payload.JoinedCommunityEventPayload;
@@ -98,7 +101,8 @@ public class SocialService {
             user.getUsername(),
             newGroup.getVisibility(),
             newGroup.getCategory(),
-            1
+            1,
+            GroupMembershipStatus.MEMBER
         );
 
         return new GroupCreationResponseDTO(
@@ -129,7 +133,6 @@ public class SocialService {
                 memberCount,
                 membership.isPresent() ? membership.get().getStatus() : null
             );
-
             groups.add(info);
         }
 
@@ -192,7 +195,8 @@ public class SocialService {
 
     }
 
-    public List<GroupInfo> getGroup(String groupName) {
+    public List<GroupInfo> searchForGroup(String token, String groupName) {
+        String userId = jwtService.extractUserId(token).toString();
         String cleanName = AuthService.sanitize(groupName);
         
         Criteria searchCriteria = Criteria.where("name").regex(cleanName, "i");
@@ -205,10 +209,9 @@ public class SocialService {
         for(Group group : matches){
             User owner = userRepo.findById(group.getOwnerId()).get();
 
-            // get memberCount
-            GroupMembership gm = new GroupMembership();
-            gm.setGroupId(group.getId());
-            int memberCount = (int) gmRepo.count(Example.of(gm));
+            int memberCount = (int) gmRepo.countByGroupIdAndStatus(group.getId(), GroupMembershipStatus.MEMBER);
+
+            Optional<GroupMembership> membership = gmRepo.findByUserIdAndGroupId(userId, group.getId());
 
             groups.add(new GroupInfo(
                     group.getId(),
@@ -218,7 +221,8 @@ public class SocialService {
                     owner.getUsername(),
                     group.getVisibility(),
                     group.getCategory(),
-                    memberCount
+                    memberCount,
+                    membership.isPresent() ? membership.get().getStatus() : null
                 )
             );
         }
@@ -266,9 +270,12 @@ public class SocialService {
         );
     }
 
-    public GroupMembershipResponseDTO joinGroup(String token, String groupId) {
+    public GroupMembershipResponseDTO joinGroup(String token, String groupId) throws IllegalAccessException, IllegalStateException {
         String userId = jwtService.extractUserId(token).toString();
         Group group = groupRepo.findById(groupId).orElseThrow();
+
+        if(group.getVisibility() == Visibility.PRIVATE)
+            throw new IllegalAccessException("User must receive invite in order to join private communities");
 
         GroupMembership gm = new GroupMembership();
         gm.setGroupId(group.getId());
@@ -393,10 +400,72 @@ public class SocialService {
     }
 
     // send invite
+    public Map<String, String> inviteToGroup(String token, String groupId, GroupInviteRequest invite) throws IllegalAccessException, NoSuchElementException{
+        Map<String, String> result = new HashMap<>();
+        String ownerId = jwtService.extractUserId(token).toString();
+        Group group = groupRepo.findById(groupId).orElseThrow(
+            () -> new NoSuchElementException("Group with associated id does not exist")
+        );
 
+        if(!group.getOwnerId().equals(ownerId))
+            throw new IllegalAccessException("This user is not the owner of this group. Only the owner may send group invites");
+
+        GroupMembership membership = new GroupMembership();
+        membership.setGroupId(groupId);
+        membership.setUserId(invite.userId());
+        membership.setStatus(GroupMembershipStatus.INVITED);
+        gmRepo.save(membership);
+
+        // send notification to the receiver
+
+
+        result.put("message", "Group invite sent successfully.");
+        return result;
+    }
 
     // respond to invite
+    public Map<String, String> respondToGroupInvite(String token, String groupId, GroupInviteResponse invite) throws IllegalAccessException, IllegalArgumentException, NoSuchElementException{
+        Map<String, String> result = new HashMap<>();
+        String userId = jwtService.extractUserId(token).toString();
+
+        if(!groupRepo.existsById(groupId))
+            throw new NoSuchElementException("Group with associated id does not exist.");
+
+        Optional<GroupMembership> optGm = gmRepo.findByUserIdAndGroupId(userId, groupId);
+        if(optGm.isEmpty() || (optGm.isPresent() && optGm.get().getStatus() != GroupMembershipStatus.INVITED))
+            throw new IllegalAccessException("No invite to this group was sent to this user.");
+
+        GroupMembership gm = optGm.get();
+        if(invite.status() == ResponseStatus.ACCEPT){
+            gm.setStatus(GroupMembershipStatus.MEMBER);
+            gm.setJoinedAt(Instant.now());
+        }
+        else if(invite.status() == ResponseStatus.DECLINE){
+            gmRepo.delete(gm);
+        }
+        else{
+            throw new IllegalArgumentException("Invite response must be \"ACCEPT\" or \"DECLINE\"");
+        }
+
+        result.put("message", "Group invite response successfully recorded.");
+        return result;
+    }
 
     // Kick User from community
+    public Map<String, String> kickMemberFromGroup(String token, String groupId, GroupRemovalRequest data) throws IllegalAccessException, NoSuchElementException{
+        Map<String, String> result = new HashMap<>();
+        String ownerId = jwtService.extractUserId(token).toString();
+        Group group = groupRepo.findById(groupId).orElseThrow(
+            () -> new NoSuchElementException("Group with associated id does not exist")
+        );
+
+        if(!group.getOwnerId().equals(ownerId))
+            throw new IllegalAccessException("This user is not the owner of this group. Only the owner may remove users from a group");
+
+        gmRepo.deleteByUserIdAndGroupId(data.memberId(), groupId);
+
+        result.put("message", "User successfully removed from the group");
+        return result;
+    }
 
 }
