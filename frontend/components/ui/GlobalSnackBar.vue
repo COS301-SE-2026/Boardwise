@@ -11,12 +11,14 @@
       class="boardwise-snackbar__content"
       :role="color === 'error' ? 'alert' : 'status'"
     >
-      <div class="boardwise-snackbar__icon">
-        <v-icon
-          :icon="response.icon"
-          size="22"
-        />
-      </div>
+      <BaseImage
+        :src="response.mascotSrc"
+        :alt="response.title"
+        height="36px"
+        width="36px"
+        fit="contain"
+        class="boardwise-snackbar__mascot"
+      />
 
       <div class="boardwise-snackbar__copy">
         <span class="boardwise-snackbar__title">
@@ -45,6 +47,7 @@
 import { computed } from 'vue'
 import { useSnackBar } from '~/composables/useSnackbar'
 import BaseButton from './BaseButton.vue'
+import BaseImage from './BaseImage.vue'
 
 const {
   visible,
@@ -56,22 +59,22 @@ const response = computed(() => {
   const states = {
     success: {
       title: 'Nice move!',
-      icon: 'mdi-check-circle-outline'
+      icon: '/images/Boarley_cute.svg'
     },
 
     info: {
       title: 'Your move.',
-      icon: 'mdi-information-outline'
+      icon: '/images/BoarleySide.svg'
     },
 
     warning: {
       title: 'Heads up.',
-      icon: 'mdi-alert-outline'
+      icon: '/images/BoarleySide.svg'
     },
 
     error: {
       title: 'That move didn’t land.',
-      icon: 'mdi-alert-circle-outline'
+      icon: '/images/BoarleySide.svg'
     }
   }
 
