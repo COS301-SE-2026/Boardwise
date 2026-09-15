@@ -284,18 +284,21 @@ a { color: var(--color-link); text-decoration: none; }
   font-weight: var(--fw-regular);
   color: var(--color-secondary);
   line-height: 1.2;
+  margin: auto;
 }
 
 .card-subtitle {
   font-family: var(--font-body);
   font-size: var(--fs-body);
   font-weight: var(--fw-bold);
+  margin: 0;
 }
 
 .card-meta {
   font-family: var(--font-body);
   font-size: var(--fs-small);
   color: var(--color-text-muted);
+  margin: 0;
 }
 
 .card-price {

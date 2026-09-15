@@ -194,7 +194,7 @@ import { useMarketplace } from '~/composables/useMarketplace'
 import { useDebounceFn  } from '@vueuse/core'
 import { useRetail } from '~/composables/useRetail'
 
-const CARD_PAGE_SIZE = 6 // cards per "page"
+const CARD_PAGE_SIZE = 9 // cards per "page"
 
 const router = useRouter();
 const activeTab = ref('Community Listings')

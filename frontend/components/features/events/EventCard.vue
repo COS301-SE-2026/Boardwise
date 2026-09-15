@@ -1,5 +1,5 @@
 <template> 
-    <BaseCard data-test="event-card" clickable @click="$emit('click', event)" flush>
+    <BaseCard data-test="event-card" clickable class="h-100 d-flex flex-column" @click="$emit('click', event)">
       <template #media>
         <BaseImage
             data-test="event-image"
