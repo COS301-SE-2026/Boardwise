@@ -18,5 +18,7 @@ public interface GroupMembershipRepository extends MongoRepository<GroupMembersh
 
     List<GroupMembership> findAllByGroupIdAndStatus(String groupId, GroupMembershipStatus status);
 
+    List<GroupMembership> findAllByUserIdAndStatus(String userId, GroupMembershipStatus status);
+
     long countByGroupIdAndStatus(String groupId, GroupMembershipStatus status);
 }

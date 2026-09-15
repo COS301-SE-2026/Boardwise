@@ -12,7 +12,7 @@ public record GroupDTO(
     String owner,
     Visibility visibility,
     int memberCount,
-    List<?> members,
+    List<GroupMember> members,
     @JsonProperty("isMember")
     boolean isMember,
     @JsonProperty("isOwner")
