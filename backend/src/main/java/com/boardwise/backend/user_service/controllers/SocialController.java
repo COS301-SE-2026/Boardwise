@@ -194,6 +194,15 @@ public class SocialController {
         }
     }
 
+    @GetMapping("/groups/invites")
+    public ResponseEntity<?> getMethodName(
+        HttpServletRequest req
+    ) {
+        String token = ProfileController.extractToken(req);
+        var res = service.getGroupInvites(token);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+    
     // search by group name
     @GetMapping("/groups/search")
     public ResponseEntity<?> getGroupByName(

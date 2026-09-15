@@ -468,4 +468,9 @@ public class SocialService {
         return result;
     }
 
+    public Object getGroupInvites(String token) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getGroupInvites'");
+    }
+
 }
