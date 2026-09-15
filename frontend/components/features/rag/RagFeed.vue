@@ -9,7 +9,7 @@
         />
 
         <div v-if="isLoading" class="rag-message assistant">
-            <v-progress-circular data-test="v-progress-circular" size="20" color="primary" />
+            <BaseSpinner data-test="rag-loading-spinner" size="md" />
         </div>
 
         <div v-if="!messages.length && !isLoading" class="rag-empty-state">
@@ -23,6 +23,7 @@
 </template>
 
 <script setup lang="ts">
+import BaseSpinner from '~/components/ui/BaseSpinner.vue';
 import RagMessage from './RagMessage.vue'
 import type { RagMessage as RagMessageType } from '~/composables/useRag'
 

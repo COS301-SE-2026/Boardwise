@@ -39,11 +39,7 @@
         class="d-flex justify-center align-center"
         style="min-height: 60vh"
       >
-        <v-progress-circular 
-          indeterminate 
-          color="primary" 
-          size="48" 
-        />
+        <BaseSpinner size="lg" />
       </v-container>
 
       <template v-else>
@@ -82,11 +78,7 @@
           class="d-flex justify-center align-center" 
           style="min-height: 60vh"
         >
-          <v-progress-circular 
-            indeterminate 
-            color="primary" 
-            size="48" 
-          />
+          <BaseSpinner size="lg" />
 
         </v-container>
 
@@ -149,6 +141,7 @@ import { useRouter } from 'vue-router'
 import EditEventModal from '~/components/features/events/EditEventModal.vue'
 import InviteModal from '~/components/features/community/InviteModal.vue'
 import EventHeader from '~/components/features/events/EventHeader.vue'
+import BaseSpinner from '~/components/ui/BaseSpinner.vue'
 
 const showFilters = ref(false)
 const { show } = useSnackBar(3)

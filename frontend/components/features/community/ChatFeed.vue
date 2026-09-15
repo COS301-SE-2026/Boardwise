@@ -5,7 +5,7 @@
 
   >
     <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
-        <v-progress-circular indeterminate color="primary" size="48" />
+        <BaseSpinner size="lg" />
     </v-container>
 
 
@@ -35,6 +35,7 @@ import { useCommunityChat } from '~/composables/useCommunityChat'
 
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import ChatMessage from './ChatMessage.vue'
+import BaseSpinner from '~/components/ui/BaseSpinner.vue'
 
 const { isLoading } = useCommunityChat()
 

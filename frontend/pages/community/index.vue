@@ -61,11 +61,7 @@
       aria-live="polite"
       aria-label="Loading communities"
     >
-      <v-progress-circular
-        indeterminate
-        color="primary"
-        size="48"
-      />
+      <BaseSpinner size="lg" />
     </output>
 
     <template v-else>
@@ -109,6 +105,7 @@ import { useDebounceFn } from '@vueuse/core'
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import BasePagination from '~/components/ui/BasePagination.vue'
+import BaseSpinner from '~/components/ui/BaseSpinner.vue'
 
 import ExploreHeader from '~/components/features/community/ExploreHeader.vue'
 import ExploreSearch from '~/components/features/community/ExploreSearch.vue'

@@ -14,7 +14,7 @@
     <RulebookCarousel :rulebooks="featuredRulebooks" @select="openRulebook" />
 
     <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
-      <v-progress-circular indeterminate color="primary" size="48" />
+      <BaseSpinner size="lg" />
     </v-container>
 
     <RecommendedBooks v-else :rulebooks="recommended" @select ="openRulebook"/>
@@ -63,11 +63,7 @@
           class="d-flex justify-center align-center"
           style="min-height: 60vh"
         >
-          <v-progress-circular
-            indeterminate
-            color="primary"
-            size="48"
-          />
+          <BaseSpinner size="lg" />
         </v-container>
 
         <template v-else>
@@ -103,7 +99,7 @@
       style="min-height: 60vh"
     >
       <div v-if="isLoading" class="d-flex justify-center align-center h-100">
-        <v-progress-circular indeterminate color="primary"/>
+        <BaseSpinner size="md" />
       </div>
     </v-container>
 
@@ -135,7 +131,7 @@
   <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
     
     <div v-if="isLoading" class="d-flex justify-center align-center h-100">
-      <v-progress-circular indeterminate color="primary"/>
+      <BaseSpinner size="md" />
     </div>
 
     <RulebookDetail
@@ -166,6 +162,7 @@ import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BasePagination from '~/components/ui/BasePagination.vue'
+import BaseSpinner from '~/components/ui/BaseSpinner.vue'
 
 import RulebookFilterSidebar from '~/components/features/library/RulebookFilterSidebar.vue'
 import RulebookGrid from '~/components/features/library/RulebookGrid.vue'

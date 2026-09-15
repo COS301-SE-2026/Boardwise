@@ -18,7 +18,7 @@
       cycle
     >
       <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
-        <v-progress-circular indeterminate color="primary" size="48" />
+        <BaseSpinner size="lg" />
       </v-container>
 
       <v-carousel-item
@@ -61,7 +61,7 @@
 <script setup>
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
-import BaseButton from '~/components/ui/BaseButton.vue';
+import BaseSpinner from '~/components/ui/BaseSpinner.vue';
 import { useLibrary } from '~/composables/useLibrary';
 
 const { isLoading } = useLibrary()

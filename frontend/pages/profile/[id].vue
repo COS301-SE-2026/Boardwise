@@ -6,11 +6,7 @@
                 class="d-flex justify-center align center"
                 style="min-height: 60vh"
             >
-                <v-progress-circular
-                    indeterminate
-                    color="primary"
-                    size="48"
-                />
+                <BaseSpinner size="lg" />
             </v-container>
         </template>
 
@@ -112,6 +108,7 @@ import BaseAvatar from '~/components/ui/BaseAvatar.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
 import BaseCard from '~/components/ui/BaseCard.vue';
 import PageContainer from '~/components/layout/PageContainer.vue';
+import BaseSpinner from '~/components/ui/BaseSpinner.vue';
 
 import ProfileStats from '~/components/features/profile/ProfileStats.vue';
 import ProfileCommunities from '~/components/features/profile/ProfileCommunities.vue';

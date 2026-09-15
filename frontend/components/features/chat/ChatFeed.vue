@@ -9,7 +9,7 @@
             aria-relevant="additions text"
         >
             <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
-                <v-progress-circular indeterminate color="primary" size="48" />
+                <BaseSpinner size="sm" />
             </v-container>
 
             <template v-else-if="messages.length">
@@ -46,6 +46,7 @@ import { useStomp } from '~/composables/useStomp'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import ChatMessage from './ChatMessage.vue'
+import BaseSpinner from '~/components/ui/BaseSpinner.vue'
 
 
 const { fetchCurrentUser, isLoading } = useProfile()

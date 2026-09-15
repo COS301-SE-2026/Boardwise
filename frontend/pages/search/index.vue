@@ -3,7 +3,7 @@
         <Navbar data-test="navbar" />
 
         <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
-            <v-progress-circular data-test="loading-spinner" indeterminate color="primary" size="48" />
+            <BaseSpinner data-test="loading-spinner" size="lg" />
         </v-container>
 
        <v-container v-else-if="!query" class="d-flex flex-column align-center justify-center" style="min-height: 60vh">
@@ -40,6 +40,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import { useSearch } from '~/composables/useSearch'
 import { useFriends } from '~/composables/useFriends'
+import BaseSpinner from '~/components/ui/BaseSpinner.vue'
 
 const { sendFriendRequest } = useFriends();
 

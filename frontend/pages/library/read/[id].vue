@@ -7,7 +7,7 @@
   />
 
   <div v-else-if="isLoading" class="d-flex justify-center align-center" style="height: 60vh;">
-    <v-progress-circular indeterminate color="primary" />
+    <BaseSpinner size="md" />
   </div>
 
   <v-empty-state
@@ -30,6 +30,7 @@ import { useStomp } from '~/composables/useStomp'
 
 import ReaderLayout from '~/components/features/library/ReaderLayout.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+import BaseSpinner from '~/components/ui/BaseSpinner.vue'
 
 import { ref, onMounted } from 'vue';
 

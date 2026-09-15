@@ -3,7 +3,7 @@
     <Navbar />
 
     <div v-if="isLoading" class="d-flex justify-center mt-12">
-      <v-progress-circular indeterminate color="primary" />
+      <BaseSpinner size="md" />
     </div>
 
     <template v-else>
@@ -41,6 +41,7 @@ import PageContainer from '~/components/layout/PageContainer.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import RulebookDetailsHero from '~/components/features/library/RulebookDetailsHero.vue'
 import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue'
+import BaseSpinner from '~/components/ui/BaseSpinner.vue'
 
 const route = useRoute()
 

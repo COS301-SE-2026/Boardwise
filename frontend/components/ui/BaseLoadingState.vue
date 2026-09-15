@@ -11,12 +11,7 @@
 
     <p v-if="message" class="base-state__message">{{ message }}</p>
 
-    <v-progress-circular
-      indeterminate
-      color="primary"
-      :size="size === 'page' ? 24 : 18"
-      :width="2"
-    />
+    <BaseSpinner size="sm"/>
 
     <span class="sr-only">Loading</span>
   </div>
@@ -24,6 +19,7 @@
 
 <script setup>
 import BaseImage from './BaseImage.vue'
+import BaseSpinner from './BaseSpinner.vue';
 
 defineProps({
   message: {

@@ -14,12 +14,9 @@
             {{  message  }}
         </p>
 
-        <v-progress-circular
+        <BaseSpinner
             v-if="inline"
-            indeterminate
-            color="primary"
-            size="20"
-            width="2"
+            size="sm"
             class="mt-1"
         />
 
