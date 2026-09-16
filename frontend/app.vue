@@ -5,6 +5,7 @@ import GlobalSnackBar from './components/ui/GlobalSnackBar.vue';
 
 <template>
   <v-app>
+    <NuxtPwaManifest />
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
