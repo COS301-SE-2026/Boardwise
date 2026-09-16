@@ -3454,3 +3454,58 @@ button:disabled,
   flex-shrink: 0;
   margin-left: auto;
 }
+
+/* PWA update notification */
+
+.pwa-update-notice {
+  position: fixed;
+  z-index: 2400;
+
+  inset-inline: var(--space-4);
+  bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+
+  max-width: 640px;
+  margin-inline: auto;
+  padding: var(--space-4);
+
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.pwa-update-notice__message {
+  display: flex;
+  flex: 1 1 240px;
+  flex-direction: column;
+  gap: var(--space-1);
+
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.pwa-update-notice__title {
+  font-weight: var(--fw-bold);
+}
+
+.pwa-update-notice__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+@media (max-width: 599px) {
+  .pwa-update-notice__actions {
+    width: 100%;
+  }
+
+  .pwa-update-notice__actions .base-button {
+    flex: 1;
+  }
+}
