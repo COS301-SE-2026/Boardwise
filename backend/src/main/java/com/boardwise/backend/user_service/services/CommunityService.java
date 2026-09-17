@@ -443,19 +443,50 @@ public class CommunityService {
         return result;
     }
 
-    public Map<String, Object> rsvp(String token, String eventId) throws NoSuchElementException{
+    public Map<String, Object> rsvp(String token, String eventId) throws NoSuchElementException, IllegalStateException{
         User user = getUserFromToken(token);
         Event event = eventRepo.findById(eventId).get();
         Map<String, Object> result = new HashMap<>();
+        String message;
 
         if(event == null)
             throw new NoSuchElementException("Event with ID: " + eventId + " does not exist.");
 
 
         Optional<EventAttendee> existing = eaRepo.findByUserIdAndEventId(user.getId(), eventId);
-        EventAttendee newAttendee = existing
-            .map(ea -> { ea.setStatus(RSVPStatus.ATTENDING); return ea; })
-            .orElseGet(() -> new EventAttendee(user.getId(), eventId, RSVPStatus.ATTENDING));
+        EventAttendee newAttendee;
+        RSVPStatus status;
+
+        if(existing.isPresent()){
+            newAttendee = existing.get();
+
+            if(newAttendee.getStatus() == RSVPStatus.ATTENDING || newAttendee.getStatus() == RSVPStatus.REQUESTED)
+                throw new IllegalStateException("User is either already recorded as an attendant or an invite as already been requested");
+
+            
+            if(event.getVisibility() == Visibility.PRIVATE && newAttendee.getStatus() != RSVPStatus.INVITED){
+                status = RSVPStatus.REQUESTED;
+                message = "Event is private. An invite has been requested for this user";
+                // notify host
+            }
+            else{
+                status = RSVPStatus.ATTENDING;
+                message = "User attendance successfully recorded.";
+            }
+        }
+        else{
+            if(event.getVisibility() == Visibility.PRIVATE){
+                status = RSVPStatus.REQUESTED;
+                message = "Event is private. An invite has been requested for this user";
+                // notify host
+
+            }
+            else{
+                status = RSVPStatus.ATTENDING;
+                message = "User attendance successfully recorded.";
+            }
+            newAttendee = new EventAttendee(user.getId(), eventId, status);
+        }
 
         newAttendee = eaRepo.save(newAttendee);
         EventAttendee forExample = new EventAttendee();
@@ -484,7 +515,7 @@ public class CommunityService {
         EventDTO data = EventDTO.fromEntity(event, attendeeCount, RSVPStatus.ATTENDING, hostInfo, isHost, games);
 
 
-        result.put("message", "User attendance successfully recorded.");
+        result.put("message", message);
         result.put("data", data);
 
         return result;
