@@ -14,6 +14,8 @@ public interface GroupMembershipRepository extends MongoRepository<GroupMembersh
 
     void deleteByUserIdAndGroupId(String userId, String groupId);
 
+    void deleteAllByGroupId(String groupId);
+
     Optional<GroupMembership> findByUserIdAndGroupId(String userId, String groupId);
 
     List<GroupMembership> findAllByGroupIdAndStatus(String groupId, GroupMembershipStatus status);

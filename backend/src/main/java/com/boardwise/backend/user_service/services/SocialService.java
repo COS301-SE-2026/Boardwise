@@ -280,9 +280,7 @@ public class SocialService {
     public GroupMembershipResponseDTO joinGroup(String token, String groupId) throws IllegalAccessException, IllegalStateException {
         String userId = jwtService.extractUserId(token).toString();
         Group group = groupRepo.findById(groupId).orElseThrow();
-
-        if(group.getVisibility() == Visibility.PRIVATE)
-            throw new IllegalAccessException("User must receive invite in order to join private communities");
+        Map<String, Object> data = new HashMap<>();
 
         GroupMembership gm = new GroupMembership();
         gm.setGroupId(group.getId());
@@ -292,16 +290,24 @@ public class SocialService {
         if(gmRepo.exists(Example.of(gm)))
             throw new IllegalStateException("User already a member of this group.");
 
-        gm.setJoinedAt(Instant.now());
+        String message;
+        if(group.getVisibility() == Visibility.PRIVATE){
+            gm.setStatus(GroupMembershipStatus.REQUESTED);
+            // alert the owner that someone has requested to join
+
+            message = "Group is private. An invite request has been seen";
+        }
+        else{ 
+            gm.setJoinedAt(Instant.now()); 
+            message = "Joined group successfully";
+        }
+        
         gmRepo.save(gm);
 
-        
-        Map<String, Object> data = new HashMap<>();
 
         // new member count
-        GroupMembership example = new GroupMembership();
-        example.setGroupId(group.getId());
-        int memberCount = (int) gmRepo.count(Example.of(example));
+        List<GroupMembership> memberships = gmRepo.findAllByGroupIdAndStatus(groupId, GroupMembershipStatus.MEMBER);
+        int memberCount = memberships.size();
         data.put("memberCount", memberCount);
 
         // new status
@@ -310,7 +316,7 @@ public class SocialService {
 
         // new members array
         List<GroupMember> members = new ArrayList<>();
-        for(GroupMembership membership : gmRepo.findByGroupId(group.getId())){
+        for(GroupMembership membership : memberships){
             User member = userRepo.findById(membership.getUserId()).get();
             if(member == null)
                 continue;
@@ -326,14 +332,14 @@ public class SocialService {
         
         try{
             User member = userRepo.findById(userId).get();
-            GroupMember message = new GroupMember(
+            GroupMember notif = new GroupMember(
                 member.getId(),
                 member.getUsername(),
                 member.getProfilePicture()
             );
 
-            String messageJson = objectMapper.writeValueAsString(message);
-            CommunityMessageNotification notification = new CommunityMessageNotification("SYSTEM", messageJson);
+            String notifJson = objectMapper.writeValueAsString(notif);
+            CommunityMessageNotification notification = new CommunityMessageNotification("SYSTEM", notifJson);
             JoinedCommunityEventPayload payload = new JoinedCommunityEventPayload(groupId, notification);
             JoinedCommunityEvent event = new JoinedCommunityEvent(this, payload);
             eventPublisher.publishEvent(event);
@@ -343,13 +349,14 @@ public class SocialService {
         }
 
         return new GroupMembershipResponseDTO(
-            "Joined group successfully",
+            message,
             data
         );
         
     }
 
     public GroupMembershipResponseDTO leaveGroup(String token, String groupId) {
+        Map<String, Object> data = new HashMap<>();
         String userId = jwtService.extractUserId(token).toString();
         Group group = groupRepo.findById(groupId).orElseThrow();
         
@@ -368,33 +375,40 @@ public class SocialService {
             query.limit(1);
             List<GroupMembership> oldestMember = db.find(query, GroupMembership.class);
 
-            if(oldestMember.size() >= 1){
+            if(oldestMember.get(0) != null && !oldestMember.get(0).getUserId().equals(group.getOwnerId())){
                 group.setOwnerId(oldestMember.get(0).getUserId());
                 groupRepo.save(group);
             }
             else{
-                groupRepo.deleteById(group.getId());
+                gmRepo.deleteByUserIdAndGroupId(userId, groupId); // removes the last member of the group
+                gmRepo.deleteAllByGroupId(groupId); // removes all references to this group
+                groupRepo.deleteById(groupId); // remove actually group
+
+                data.put("memberCount", 0);
+                data.put("isMember", false);
+                data.put("members", new ArrayList<>());
+
+                return new GroupMembershipResponseDTO(
+                    "Group exited successfully. Since this was the last member the group has been deleted",
+                    data
+                );
             }
-            
+
         }
 
-        gmRepo.deleteByUserIdAndGroupId(userId, group.getId());
-
-        Map<String, Object> data = new HashMap<>();
-
+        gmRepo.deleteByUserIdAndGroupId(userId, groupId);
+        
         // new member count
-        GroupMembership ex = new GroupMembership();
-        ex.setGroupId(group.getId());
-        int memberCount = (int) gmRepo.count(Example.of(ex));
+        List<GroupMembership> memberships = gmRepo.findAllByGroupIdAndStatus(groupId, GroupMembershipStatus.MEMBER);
+        int memberCount = memberships.size();
         data.put("memberCount", memberCount);
-
         // new status
         boolean isMember = false;
         data.put("isMember", isMember);
 
         // new members array
         List<GroupMember> members = new ArrayList<>();
-        for(GroupMembership membership : gmRepo.findByGroupId(group.getId())){
+        for(GroupMembership membership : memberships){
             User member = userRepo.findById(membership.getUserId()).get();
             if(member == null)
                 continue;
