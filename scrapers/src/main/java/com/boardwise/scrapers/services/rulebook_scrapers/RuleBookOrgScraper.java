@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.stream.Stream;
 
 import jakarta.annotation.PreDestroy;
 
+import org.bson.types.ObjectId;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
@@ -27,7 +29,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -99,16 +100,8 @@ public class RuleBookOrgScraper {
         this.pythonUploadClient = pythonUploadClient;
     }
 
-        @Scheduled(initialDelayString = "30s", fixedRate = 3600000L)
+    @Scheduled(initialDelayString = "30s", fixedRateString = "10h")
     public void scrapeRulebooksForExistingGames() {
-        long totalGames = mongoTemplate.count(new Query(), Boardgame.class);
-
-        if (totalGames == 0) {
-            logger.info("Boardgame collection is empty. Retrying next cycle.");
-            return;
-        }
-
-        buildExistingRulebookCache();
 
         long currentRulebookCount = rulebookRepository.count();
 
@@ -116,6 +109,15 @@ public class RuleBookOrgScraper {
             logger.info("Rulebook maximum limit reached (" + MAXNUMRULEBOOKS + "). Skipping scrape.");
             return;
         }
+
+        long totalGames = mongoTemplate.count(new Query(), Boardgame.class);
+
+        if (totalGames == 0) {
+            logger.info("Boardgame collection is empty. Retrying next cycle.");
+            return;
+        }
+
+        refreshCaches();
 
         Set<String> processedThisRun = new HashSet<>();
         List<GameOwnershipCount> top = userRepository.findMostOwnedGameIds(MAXNUMRULEBOOKS);
@@ -152,7 +154,7 @@ public class RuleBookOrgScraper {
 
         Query query = new Query();
         query.fields().include("_id", "title");
-        query.cursorBatchSize(1000);
+        query.cursorBatchSize(500);
 
         try (Stream<Boardgame> stream = mongoTemplate.stream(query, Boardgame.class)) {
             final long[] rulebookCount = {currentRulebookCount};
@@ -178,6 +180,12 @@ public class RuleBookOrgScraper {
         }
     }
 
+    private synchronized void refreshCaches() {
+        existingRulebookGameIdsCache = null;
+        existingGameTitlesCache = null;
+        buildExistingRulebookCache();
+    }
+
     private synchronized void buildExistingRulebookCache() {
         if (existingRulebookGameIdsCache != null) {
             return;
@@ -196,7 +204,7 @@ public class RuleBookOrgScraper {
 
         Query query = new Query();
         query.fields().include("title");
-        query.cursorBatchSize(1000);
+        query.cursorBatchSize(500);
 
         Set<String> gameTitles = new HashSet<>();
 
@@ -212,14 +220,6 @@ public class RuleBookOrgScraper {
 
         logger.info("Built existing rulebooks cache: " + rulebookCache.size() + " entries.");
         logger.info("Built existing game titles cache: " + gameTitles.size() + " entries.");
-    }
-
-    private boolean gameExistsInDb(String scrapedTitle) {
-        if (existingGameTitlesCache == null) {
-            buildExistingRulebookCache();
-        }
-
-        return existingGameTitlesCache.contains(normalizeTitle(scrapedTitle));
     }
 
     private String normalizeTitle(String rawTitle) {
@@ -256,7 +256,11 @@ public class RuleBookOrgScraper {
         return cleaned.isEmpty() ? "rulebook" : cleaned;
     }
 
-    private byte[] stripActiveContent(byte[] pdfBytes) throws IOException {
+    /**
+     * Strips active content and, for Playwright captures, drops the leading
+     * site-chrome page. Single load/save pass.
+     */
+    private byte[] cleanPdf(byte[] pdfBytes, boolean dropFirstPage) throws IOException {
         try (PDDocument doc = Loader.loadPDF(pdfBytes)) {
             PDDocumentCatalog catalog = doc.getDocumentCatalog();
             COSDictionary catalogDict = catalog.getCOSObject();
@@ -267,6 +271,10 @@ public class RuleBookOrgScraper {
                 page.getCOSObject().removeItem(COSName.getPDFName("AA"));
             }
 
+            if (dropFirstPage && doc.getNumberOfPages() > 1) {
+                doc.removePage(0);
+            }
+
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             doc.save(out);
             return out.toByteArray();
@@ -274,6 +282,14 @@ public class RuleBookOrgScraper {
     }
 
     public List<RulebookPdfDTO> scrapeForPdfs(String boardgame) {
+        return scrapeForPdfs(boardgame, null);
+    }
+
+    /**
+     * @param gameId the boardgame's Mongo _id, so a successful upload can be recorded
+     *               against it. Pass null if unknown (no Rulebook row will be written).
+     */
+    public List<RulebookPdfDTO> scrapeForPdfs(String boardgame, String gameId) {
         try {
             String requestUrl = "?search=" + URLEncoder.encode(boardgame, StandardCharsets.UTF_8) + "&language=en";
             RulebookOrgResponseDTO res = restClient.get()
@@ -282,7 +298,7 @@ public class RuleBookOrgScraper {
                     .body(RulebookOrgResponseDTO.class);
 
             if (res != null && res.results() != null && !res.results().isEmpty()) {
-                return downloadFromApi(res.results(), boardgame);
+                return downloadFromApi(res.results(), boardgame, gameId);
             }
         } catch (Exception e) {
             logger.log(Level.WARNING, "REST API failed for " + boardgame + ", falling back to website", e);
@@ -299,14 +315,22 @@ public class RuleBookOrgScraper {
             page.waitForSelector("[data-slot='card-title']");
 
             List<String> titles = page.locator("[data-slot='card-title']").allTextContents();
+            String targetTitle = normalizeTitle(boardgame);
+            Set<String> seenTitles = new HashSet<>();
 
             for (String title : titles) {
-                if (!normalizeTitle(title).equals(normalizeTitle(boardgame)) && !gameExistsInDb(title)) {
+                String normalized = normalizeTitle(title);
+
+                if (!normalized.equals(targetTitle)) {
+                    continue;
+                }
+
+                if (!seenTitles.add(normalized)) {
                     continue;
                 }
 
                 String cleanTitle = stripRulebookSuffix(title);
-                RulebookPdfDTO dto = downloadOne(page, boardgame, title, cleanTitle);
+                RulebookPdfDTO dto = downloadOne(page, boardgame, gameId, title, cleanTitle);
 
                 if (dto != null) {
                     results.add(dto);
@@ -319,7 +343,7 @@ public class RuleBookOrgScraper {
         return results;
     }
 
-    private RulebookPdfDTO downloadOne(Page page, String boardgame, String title, String cleanTitle) {
+    private RulebookPdfDTO downloadOne(Page page, String boardgame, String gameId, String title, String cleanTitle) {
         try {
             page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setName(title).setExact(true)).click();
             page.waitForURL("**/pdf");
@@ -333,7 +357,7 @@ public class RuleBookOrgScraper {
                 return null;
             }
 
-            pdfBytes = stripActiveContent(pdfBytes);
+            pdfBytes = cleanPdf(pdfBytes, true);
             String safeTitle = sanitizeFilename(cleanTitle);
 
             if (!uploadToPythonService(boardgame, safeTitle, pdfBytes, "en")) {
@@ -341,6 +365,7 @@ public class RuleBookOrgScraper {
                 return null;
             }
 
+            recordRulebook(gameId, safeTitle, "en");
             resetToSearch(page, boardgame);
             return new RulebookPdfDTO(safeTitle, pdfBytes);
         } catch (Exception e) {
@@ -349,15 +374,23 @@ public class RuleBookOrgScraper {
         }
     }
 
-    private List<RulebookPdfDTO> downloadFromApi(List<RulebookOrgItemDTO> rulebooks, String boardgame) {
+    private List<RulebookPdfDTO> downloadFromApi(List<RulebookOrgItemDTO> rulebooks, String boardgame, String gameId) {
         List<RulebookPdfDTO> results = new ArrayList<>();
+        String targetTitle = normalizeTitle(boardgame);
+        Set<String> seenTitles = new HashSet<>();
 
         for (RulebookOrgItemDTO rulebook : rulebooks) {
             if (rulebook.link() == null || rulebook.link().isEmpty()) {
                 continue;
             }
 
-            if (!normalizeTitle(rulebook.name()).equals(normalizeTitle(boardgame)) && !gameExistsInDb(rulebook.name())) {
+            String normalized = normalizeTitle(rulebook.name());
+
+            if (!normalized.equals(targetTitle)) {
+                continue;
+            }
+
+            if (!seenTitles.add(normalized)) {
                 continue;
             }
 
@@ -368,10 +401,11 @@ public class RuleBookOrgScraper {
                     continue;
                 }
 
-                pdfBytes = stripActiveContent(pdfBytes);
+                pdfBytes = cleanPdf(pdfBytes, false);
                 String safeTitle = sanitizeFilename(stripRulebookSuffix(rulebook.name()));
 
                 if (uploadToPythonService(boardgame, safeTitle, pdfBytes, rulebook.language())) {
+                    recordRulebook(gameId, safeTitle, rulebook.language());
                     results.add(new RulebookPdfDTO(safeTitle, pdfBytes));
                 }
             } catch (Exception e) {
@@ -380,6 +414,34 @@ public class RuleBookOrgScraper {
         }
 
         return results;
+    }
+
+    private void recordRulebook(String gameId, String title, String language) {
+        if (gameId == null) {
+            return;
+        }
+
+        try {
+            Instant now = Instant.now();
+
+            Rulebook rulebook = Rulebook.builder()
+                    .gameId(new ObjectId(gameId))
+                    .title(title)
+                    .language(language)
+                    .status("Processing")
+                    .version(1L)
+                    .uploadedAt(now)
+                    .updatedAt(now)
+                    .build();
+
+            rulebookRepository.save(rulebook);
+
+            if (existingRulebookGameIdsCache != null) {
+                existingRulebookGameIdsCache.add(gameId);
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to record rulebook for gameId " + gameId, e);
+        }
     }
 
     private void resetToSearch(Page page, String boardgame) {
@@ -422,7 +484,7 @@ public class RuleBookOrgScraper {
             return false;
         }
 
-        List<RulebookPdfDTO> results = scrapeForPdfs(game.getTitle());
+        List<RulebookPdfDTO> results = scrapeForPdfs(game.getTitle(), game.getId());
 
         sleepBetweenScrapes();
 
