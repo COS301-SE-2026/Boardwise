@@ -162,10 +162,29 @@ async def upload_rulebook(
         job_id=job_id
     )
 
-@router.post("/internal/upload", 
-             response_model=UploadResponse,
-             status_code= status.HTTP_202_ACCEPTED,
-            )
+@router.post(
+    "/internal/upload",
+    response_model=UploadResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    responses={
+        400: {
+            "description": "Bad Request",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Upload rejected"}
+                }
+            },
+        },
+        500: {
+            "description": "Internal Server Error",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "An internal server error occurred."}
+                }
+            },
+        },
+    },
+)
 async def internal_upload_rulebooks(
     background_tasks: BackgroundTasks,
     request: Request,

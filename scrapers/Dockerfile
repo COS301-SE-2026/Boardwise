@@ -11,7 +11,10 @@ RUN ./mvnw clean package -DskipTests
 
 FROM mcr.microsoft.com/playwright/java:v1.62.0-jammy
 WORKDIR /app
+
 COPY --from=builder /app/target/*.jar app.jar
+RUN chown -R pwuser:pwuser /app
+USER pwuser
 
 EXPOSE 8081
 ENTRYPOINT ["java", "-jar", "app.jar"]
