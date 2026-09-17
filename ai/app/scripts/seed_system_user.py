@@ -8,7 +8,7 @@ from app.services.mongo_service import get_db
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_USERNAME = "boardwise-scraper"
+SYSTEM_USERNAME = "BOARLY" # SYSTEM USER
 SYSTEM_EMAIL = "scraper@system.boardwise.internal"
 
 
