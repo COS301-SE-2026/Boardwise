@@ -1,5 +1,6 @@
 package com.boardwise.backend.user_service.dtos;
 
+import com.boardwise.backend.user_service.enums.GroupMembershipStatus;
 import com.boardwise.backend.user_service.enums.Visibility;
 
 public record GroupInfo(
@@ -10,5 +11,6 @@ public record GroupInfo(
     String owner,
     Visibility visibility,
     String category,
-    int memberCount
+    int memberCount,
+    GroupMembershipStatus status
 ) {}
