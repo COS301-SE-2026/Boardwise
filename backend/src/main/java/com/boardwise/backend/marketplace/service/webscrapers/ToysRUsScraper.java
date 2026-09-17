@@ -83,6 +83,9 @@ public class ToysRUsScraper implements WebScraper {
                 
                 
                 String title = titleElement.innerText().trim();
+                if(!title.toLowerCase().contains("boardgame") ||!title.toLowerCase().contains("board game")){
+                    continue;
+                }
 
                 String url = card.locator("a.product-item-link").first().getAttribute("href");
             
