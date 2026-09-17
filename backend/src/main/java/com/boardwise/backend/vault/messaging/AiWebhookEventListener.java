@@ -4,7 +4,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.boardwise.backend.vault.dto.websocket.ChunkDeletedEventDto;
 import com.boardwise.backend.vault.dto.websocket.ChunkInsertedEventDto;
 import com.boardwise.backend.vault.dto.websocket.DeltaCommitedEventDto;
 import com.boardwise.backend.vault.service.AiGatewayWebhookService;

@@ -19,4 +19,6 @@ test-results
 
 #ignore for backend
 # Temporary Igngore
-refactorNotes.md
+ai/eval
+ai/backup
+ai/

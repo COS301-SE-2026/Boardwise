@@ -1,4 +1,5 @@
 import logging
+import time
 from datetime import datetime, timezone
 
 from sentence_transformers import SentenceTransformer
@@ -7,9 +8,33 @@ from app.ingestion.chunker import generate_chunks
 from app.ingestion.extractor import extract_text
 from app.ingestion.sanitiser import sanitise_pdf
 from app.ingestion.vectoriser import vectorise_chunks
-from app.services import mongo_service, r2_service
+from app.services import lancedb_service, mongo_service, r2_service
 
 logger = logging.getLogger(__name__)
+
+LANCEDB_WRITE_MAX_RETRIES = 3
+LANCEDB_WRITE_BASE_DELAY_SECONDS = 1.0
+
+
+def _write_chunks_to_lancedb_with_retry(chunks: list[dict]) -> tuple[bool, str]:
+    """Returns (success, failure_reason)"""
+    for attempt in range(LANCEDB_WRITE_MAX_RETRIES):
+        try:
+            lancedb_service.write_chunks(chunks)
+            return (True, "")
+        except Exception as error:
+            is_last_attempt = attempt == LANCEDB_WRITE_MAX_RETRIES - 1
+            logger.warning(
+                "LanceDB write attempt %d/%d failed: %s",
+                attempt + 1,
+                LANCEDB_WRITE_MAX_RETRIES,
+                error,
+            )
+            if is_last_attempt:
+                logger.exception("LanceDB write exhausted retries.")
+                return (False, "Failed to write vectors to LanceDB after retries.")
+            time.sleep(LANCEDB_WRITE_BASE_DELAY_SECONDS * (2**attempt))
+    return (False, "Failed to write vectors to LanceDB.")
 
 
 def run_ingestion_pipeline(
@@ -70,7 +95,7 @@ def run_ingestion_pipeline(
             )
             return
 
-        # =========== Stage5: Storage & Finalisation ===========
+        # =========== Stage 5: Storage & Finalisation ===========
         # Storage
         pdf_key = r2_service.generate_pdf_key(rulebook_id, filename)
 
@@ -91,9 +116,23 @@ def run_ingestion_pipeline(
             chunk["updatedAt"] = current_time
 
         # Finalisation
-        mongo_service.finalise_rulebook_ingestion(
-            rulebook_id, job_id, pdf_key, vectorised_chunks
+        # A
+        mongo_service.store_rulebook_text_and_pdf_key(
+            rulebook_id, pdf_key, vectorised_chunks
         )
+
+        # B
+        lancedb_success, lancedb_reason = _write_chunks_to_lancedb_with_retry(
+            vectorised_chunks
+        )
+
+        if not lancedb_success:
+            mongo_service.mark_pipeline_failed(
+                rulebook_id, job_id, "Store", lancedb_reason
+            )
+
+        # C
+        mongo_service.mark_rulebook_ready(rulebook_id, job_id)
 
         logger.info("Pipeline completed successfully for rulebook %s", rulebook_id)
     except Exception:

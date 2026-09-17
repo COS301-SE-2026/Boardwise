@@ -1,11 +1,10 @@
 import logging
 
 import numpy as np
-from bson import ObjectId
 from sentence_transformers import SentenceTransformer
 
 from app.config import settings
-from app.services import mongo_service
+from app.services import lancedb_service, mongo_service
 from app.utils.logging_utils import sanitise_log_input
 
 logger = logging.getLogger(__name__)
@@ -16,7 +15,7 @@ def vectorise_chunks(
 ) -> tuple[bool, list[dict], str]:
     """
     Vectorises chunk content using the Nomic embedding model, including Markdown header metadata.
-    Truncates to 256 dimensions to prepare for MongoDB Binary Quantization.
+    Truncates to 512 dimensions to prepare for LanceDB IVF storage.
     """
     try:
         if not chunks:
@@ -62,9 +61,17 @@ def background_vectorise_and_update(
     chunk_id: str, content: str, metadata: dict, embedding_model: SentenceTransformer
 ):
     """
-    Generates a 256d vector for the updated content, preserving metadata from the DB/Frontend.
+    Generates a refreshed vector for the updated content and upserts it into LanceDB.
     """
     try:
+        existing = mongo_service.get_rulebook_text_chunk(chunk_id)
+        if not existing:
+            logger.warning(
+                "Re-embedding skipped: chunk %s not found in RULEBOOK_TEXT.",
+                sanitise_log_input(chunk_id),
+            )
+            return
+
         payload = [{"content": content, "metadata": metadata}]
         success, chunks, reason = vectorise_chunks(payload, embedding_model)
 
@@ -78,21 +85,18 @@ def background_vectorise_and_update(
 
         final_embedding = chunks[0]["embedding"]
 
-        db = mongo_service.get_db()
-        result = db["RULEBOOK_TEXT"].update_one(
-            {"_id": ObjectId(chunk_id)}, {"$set": {"embedding": final_embedding}}
+        lancedb_service.upsert_chunk(
+            chunk_id=chunk_id,
+            rulebook_id=existing["rulebookId"],
+            content=content,
+            index=existing["index"],
+            embedding=final_embedding,
         )
 
-        if result.modified_count > 0:
-            logger.info(
-                "Successfully updated embedding for chunk %s",
-                sanitise_log_input(chunk_id),
-            )
-        else:
-            logger.warning(
-                "Chunk %s was not found during re-embedding update",
-                sanitise_log_input(chunk_id),
-            )
+        logger.info(
+            "Successfully updated embedding for chunk %s",
+            sanitise_log_input(chunk_id),
+        )
     except Exception:
         logger.exception(
             "Unexpected error occurred while re-embedding chunk %s",

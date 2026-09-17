@@ -9,8 +9,8 @@ from sentence_transformers import CrossEncoder, SentenceTransformer
 
 from app.config import settings
 from app.routers import internal, job, rulebook
-from app.services import mongo_service, r2_service
-from app.utils.init_vector_index import initialise_vector_index
+from app.services import lancedb_service, mongo_service, r2_service
+from app.utils.init_lancedb_index import initialise_lancedb
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -37,7 +37,10 @@ async def lifespan(app: FastAPI):
         r2_service.ping_r2_storage()
         logger.info("Connection to R2 bucket verified.")
 
-        initialise_vector_index()
+        lancedb_service.ping_lancedb()
+        logger.info("LanceDB connection verified.")
+
+        initialise_lancedb()
 
         # device="cpu" is set to avoid searching for CUDA on Fargate
         # trust_remote_code=True is required for Nomic models via HuggingFace
@@ -83,7 +86,7 @@ app = FastAPI(
     
     Core Capabilities:
     - Ingestion Pipeline: PDF sanitisation, OCR text extraction, and hierarchical chunking.
-    - Vectorisation: Matryoshka dimensionality truncation and MongoDB Binary Quantization via Nomic embeddings.
+    - Vectorisation: Matryoshka dimensionality truncation (Nomic embeddings) stored in embedded LanceDB vector index.
     - Retrieval & Generation: Vector similarity search, cross-encoder re-ranking, and LLM context generation.
     """,
     version="1.0.0",
