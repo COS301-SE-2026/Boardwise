@@ -281,29 +281,44 @@ public class SocialService {
         String userId = jwtService.extractUserId(token).toString();
         Group group = groupRepo.findById(groupId).orElseThrow();
         Map<String, Object> data = new HashMap<>();
-
-        GroupMembership gm = new GroupMembership();
-        gm.setGroupId(group.getId());
-        gm.setUserId(userId);
-        gm.setStatus(GroupMembershipStatus.MEMBER);
-
-        if(gmRepo.exists(Example.of(gm)))
-            throw new IllegalStateException("User already a member of this group.");
-
         String message;
-        if(group.getVisibility() == Visibility.PRIVATE){
-            gm.setStatus(GroupMembershipStatus.REQUESTED);
-            // alert the owner that someone has requested to join
 
-            message = "Group is private. An invite request has been seen";
-        }
-        else{ 
-            gm.setJoinedAt(Instant.now()); 
-            message = "Joined group successfully";
-        }
+        Optional<GroupMembership> existing = gmRepo.findByUserIdAndGroupId(userId, groupId);
+        GroupMembership gm;
         
-        gmRepo.save(gm);
+        if(existing.isPresent()){
+            gm = existing.get();
 
+            if(gm.getStatus() == GroupMembershipStatus.MEMBER || gm.getStatus() == GroupMembershipStatus.REQUESTED)
+                throw new IllegalStateException("User is either already recorded as a member or an invite has already been requested");
+
+            if(group.getVisibility() == Visibility.PRIVATE && gm.getStatus() != GroupMembershipStatus.INVITED){
+                gm.setStatus(GroupMembershipStatus.REQUESTED);
+                // alert the owner that someone has requested to join
+
+                message = "Group is private. An invite request has been seen";
+            }
+            else{ 
+                gm.setStatus(GroupMembershipStatus.MEMBER);
+                gm.setJoinedAt(Instant.now()); 
+                message = "Joined group successfully";
+            }
+        }
+        else{
+            gm = new GroupMembership(userId, groupId);
+            if(group.getVisibility() == Visibility.PRIVATE && gm.getStatus() != GroupMembershipStatus.INVITED){
+                gm.setStatus(GroupMembershipStatus.REQUESTED);
+                gm.setJoinedAt(null);
+                // alert the owner that someone has requested to join
+
+                message = "Group is private. An invite request has been seen";
+            }
+            else{ 
+                message = "Joined group successfully";
+            }
+        }
+    
+        gmRepo.save(gm);
 
         // new member count
         List<GroupMembership> memberships = gmRepo.findAllByGroupIdAndStatus(groupId, GroupMembershipStatus.MEMBER);

@@ -461,7 +461,7 @@ public class CommunityService {
             newAttendee = existing.get();
 
             if(newAttendee.getStatus() == RSVPStatus.ATTENDING || newAttendee.getStatus() == RSVPStatus.REQUESTED)
-                throw new IllegalStateException("User is either already recorded as an attendant or an invite as already been requested");
+                throw new IllegalStateException("User is either already recorded as an attendant or an invite has already been requested");
 
             
             if(event.getVisibility() == Visibility.PRIVATE && newAttendee.getStatus() != RSVPStatus.INVITED){
@@ -472,7 +472,9 @@ public class CommunityService {
             else{
                 status = RSVPStatus.ATTENDING;
                 message = "User attendance successfully recorded.";
+                newAttendee.setRespondedAt(Instant.now());
             }
+            newAttendee.setStatus(status);
         }
         else{
             if(event.getVisibility() == Visibility.PRIVATE){
