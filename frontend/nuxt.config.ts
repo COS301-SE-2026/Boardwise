@@ -16,7 +16,48 @@ export default defineNuxtConfig({
     }
   },
 
-  modules: ['vuetify-nuxt-module'],
+  modules: ['vuetify-nuxt-module' , '@vite-pwa/nuxt'],
+
+  pwa: {
+    registerType: 'prompt',
+
+    manifest: {
+      id: '/',
+      name: 'Boardwise',
+      short_name: 'Boardwise',
+      description: 'A social platform for board game enthusiasts.',
+      lang: 'en',
+      theme_color: '#C7286E',
+      background_color: '#FBF6F0',
+      display: 'standalone',
+      start_url: '/',
+      scope: '/',
+      icons: [
+        {
+          src: '/icon-192.png',
+          sizes: '192x192',
+          type: 'image/png',
+          purpose: 'any'
+        },
+        {
+          src: '/icon-512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'any'
+        }
+      ]
+    },
+
+    workbox: {
+      navigateFallback: '/',
+      globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+      ignoreURLParametersMatching: [/^utm_/, /^fbclid$/, /^v$/]
+    },
+
+    devOptions: {
+      enabled: false
+    }
+  },
 
   vuetify: {
     moduleOptions: {
