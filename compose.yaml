@@ -18,7 +18,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 20s
+      start_period: 90s
 
   mongo-express:
     image: mongo-express:latest

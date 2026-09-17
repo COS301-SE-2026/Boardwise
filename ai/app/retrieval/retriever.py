@@ -3,6 +3,7 @@ import logging
 import numpy as np
 from fastapi import HTTPException
 
+from app.config import settings
 from app.retrieval.reranker import rerank_chunks
 from app.retrieval.vector_store import fetch_candidate_chunks
 from app.utils.logging_utils import sanitise_log_input
@@ -30,7 +31,7 @@ def retrieve_context(query: str, rulebook_id: str, ml_models: dict) -> list[dict
             [prefixed_query], normalize_embeddings=True
         )
 
-        truncated_query = query_embedding[:, :256]
+        truncated_query = query_embedding[:, : settings.TRUNCATE_DIMENSION]
 
         norms = np.linalg.norm(truncated_query, axis=1, keepdims=True)
         norms = np.maximum(norms, 1e-10)
