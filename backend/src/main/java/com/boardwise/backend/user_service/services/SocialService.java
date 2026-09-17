@@ -367,8 +367,15 @@ public class SocialService {
             query.with(Sort.by(Direction.ASC, "joinedAt"));
             query.limit(1);
             List<GroupMembership> oldestMember = db.find(query, GroupMembership.class);
-            group.setOwnerId(oldestMember.get(0).getUserId());
-            groupRepo.save(group);
+
+            if(oldestMember.size() >= 1){
+                group.setOwnerId(oldestMember.get(0).getUserId());
+                groupRepo.save(group);
+            }
+            else{
+                groupRepo.deleteById(group.getId());
+            }
+            
         }
 
         gmRepo.deleteByUserIdAndGroupId(userId, group.getId());
