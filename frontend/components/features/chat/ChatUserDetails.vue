@@ -67,13 +67,13 @@
                 <v-tab value="media">
                     Media
 
-                    <v-chip
+                    <BaseBadge
                         v-if="media.length"
                         size="x-small"
                         class="ms-2"
                     >
                         {{ media.length }}
-              </v-chip>
+                    </BaseBadge>
                 </v-tab>
 
                 <v-tab value="events">
@@ -184,18 +184,14 @@
                                     </h3>
 
                                     <div class="d-flex flex-wrap ga-2">
-                             <v-chip
+                                    <BaseBadge
                                             v-for="game in sharedGames"
                                             :key="game.id ?? game.title ?? game"
                                             color="primary"
                                             variant="tonal"
                                         >
-                                            {{
-                                                game.title ??
-                                          game.name ??
-                                    game
-                                            }}
-                                        </v-chip>
+                                            {{ game.title ?? game.name ?? game }}
+                                        </BaseBadge>
                                     </div>
                                 </section>
                             </template>
@@ -454,6 +450,7 @@ import { computed, ref } from 'vue'
 import { useDisplay } from 'vuetify'
 
 import BaseAvatar from '~/components/ui/BaseAvatar.vue'
+import BaseBadge from '~/components/ui/BaseBadge.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'

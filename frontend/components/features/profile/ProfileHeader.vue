@@ -28,14 +28,14 @@
               v-if="user.preferences?.visibility === 'public' && user.preferences.genres?.length > 0"
               class="d-flex flex-wrap ga-1"
             >
-              <v-chip
+              <BaseBadge
                 v-for="genre in user.preferences.genres"
                 :key="genre"
                 size="small"
-                class="genre-chip"
+                variant="default"
               >
                 {{ genre }}
-              </v-chip>
+              </BaseBadge>
               
             </div>
             
@@ -72,12 +72,13 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import EditProfileModal from './EditProfileModal.vue'
 import BaseButton from '~/components/ui/BaseButton.vue';
 import BaseAvatar from '~/components/ui/BaseAvatar.vue';
-
 import ChangeProfilePictureModal from './ChangeProfilePictureModal.vue';
 import BaseCard from '~/components/ui/BaseCard.vue';
+import BaseBadge from '~/components/ui/BaseBadge.vue';
 
 defineProps({
   user: { type: Object, required: true }
