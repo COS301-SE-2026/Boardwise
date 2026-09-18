@@ -16,5 +16,5 @@ COPY --from=builder /app/target/*.jar app.jar
 RUN chown -R pwuser:pwuser /app
 USER pwuser
 
-EXPOSE 8081
+EXPOSE 8082
 ENTRYPOINT ["java", "-jar", "app.jar"]
