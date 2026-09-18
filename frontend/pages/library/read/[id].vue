@@ -1,8 +1,5 @@
 <template>
   <PageContainer>
-    <BaseBackButton  :to="'/library'">
-      Back to Library
-    </BaseBackButton>
 
     <BaseLoadingState v-if="isLoading" />
 
@@ -27,7 +24,6 @@ import { useEditLock } from '~/composables/useEditLock'
 import { useStomp } from '~/composables/useStomp'
 
 import ReaderLayout from '~/components/features/library/ReaderLayout.vue'
-import BaseBackButton from '~/components/ui/BaseBackButton.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
