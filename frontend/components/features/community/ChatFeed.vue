@@ -72,7 +72,7 @@ onMounted(async () => {
 })
 </script>
 
-<styled scoped>
+<style scoped>
 .community-chat-feed {
   display: flex;
   flex-direction: column;
@@ -82,4 +82,4 @@ onMounted(async () => {
   min-height: 0;
   padding: 16px;
 }
-</styled>
+</style>

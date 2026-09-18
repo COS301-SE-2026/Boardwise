@@ -23,7 +23,7 @@ defineOptions({
   inheritAttrs: false
 })
 
-defineProps({
+const props = defineProps({
   placeholder: {
     type: String,
     default: ''
