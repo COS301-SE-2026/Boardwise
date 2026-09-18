@@ -216,6 +216,10 @@ def create_rulebook_text(
                 "index": chunk["index"],
                 "content": chunk["content"],
                 "charCount": len(chunk["content"]),
+                "type": chunk.get("type", "text"),
+                "needsReview": chunk.get("needsReview", False),
+                "confidence": chunk.get("confidence", 1.0),
+                "associatedImageUrls": chunk.get("associatedImageUrls", []),
                 "createdAt": now,
                 "updatedAt": now,
             }
