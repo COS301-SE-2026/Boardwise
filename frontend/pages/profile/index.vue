@@ -11,6 +11,7 @@
         :games="user.ownedGameCount"
         :friends="user.friendCount"
         :communities="user.groupCount"
+        :friends-delta="pendingFriendRequests ? `${pendingFriendRequests} pending invites` : ''"
         @open="openFriendsModal"
       />
 
@@ -71,9 +72,7 @@
     </template>
 
     <template v-else>
-      <v-container class="d-flex justify-center align-center" style="min-height: 60vh">
-        <v-progress-circular indeterminate color="primary" size="48" />
-      </v-container>
+      <BaseLoadingState />
     </template>
 
   </PageContainer>
@@ -105,6 +104,7 @@ import { useFriends } from '~/composables/useFriends'
 import { NotificationType } from "~/services/friendService";
 
 import { useRouter } from 'vue-router'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 
 const { fetchCurrentUser, removeGame } = useProfile();
 const { listings, fetchUserListing, loading } = useMarketplace();

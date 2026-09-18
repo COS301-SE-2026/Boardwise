@@ -4,7 +4,10 @@
     :label="label"
     :placeholder="placeholder"
     :rows="rows"
-    :aria-label="label || ariaLabel"
+    :aria-label="accessibleLabel"
+    :rules="rules"
+    :loading="loading"
+    :disabled="loading || disabled"
     variant="outlined"
     rounded="lg"
     :auto-grow="autoGrow"
@@ -14,9 +17,12 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
+
 defineOptions({
   inheritAttrs: false
 })
+
 defineProps({
   placeholder: {
     type: String,
@@ -37,8 +43,24 @@ defineProps({
   autoGrow:{
     type: Boolean,
     default: true
+  },
+  rules: {
+    type: Array,
+    default: () => []
+  },
+  loading: {
+    type: Boolean,
+    default: false
+  },
+  disabled: {
+    type: Boolean,
+    default: false
   }
 })
 
 const model = defineModel({ default: '' })
+const accessibleLabel = computed(() => {
+  if (props.label) return undefined
+  return props.ariaLabel || 'Text input'
+})
 </script>

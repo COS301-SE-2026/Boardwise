@@ -33,37 +33,3 @@ defineProps<{message: RagMessage }>()
 
 defineEmits<{ (e: 'retry', message: RagMessage ): void }>()
 </script>
-
-<style scoped>
-.rag-message { 
-    display: flex;
-    margin-bottom: var(--space-3, 12px); 
-}
-
-.rag-message.user { 
-    justify-content: flex-end; 
-}
-
-.rag-message.assistant { 
-    justify-content: flex-start; 
-}
-
-.rag-bubble { 
-    max-width: 80%; 
-    padding: var(--space-3, 12px) var(--space-4, 16px); 
-    overflow-wrap: break-word;
-}
-
-.rag-bubble-error { 
-    border: 1px solid rgb(var(--v-theme-error)); 
-}
-
-.rag-avatar {
-    flex-shrink: 0;
-    margin-right: var(--space-2, 8px);
-}
-
-.rag-retry-btn {
-    color: var(--color-error);
-}
-</style>

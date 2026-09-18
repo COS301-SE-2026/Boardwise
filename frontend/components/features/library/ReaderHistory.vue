@@ -10,9 +10,9 @@
         <div class="pa-6">
             <div class="d-flex justify-space-between align-center mb-6">
                 <h2>Edit History</h2>
-                <v-btn icon variant="text" @click="$emit('update:modelValue', false)">
+                <BaseButton icon variant="text" @click="$emit('update:modelValue', false)">
                 <v-icon>mdi-close</v-icon>
-                </v-btn>
+                </BaseButton>
             </div>
 
             <v-alert
@@ -25,9 +25,7 @@
                 {{ error }}
             </v-alert>
 
-            <div v-if="isLoading" class="d-flex justify-center my-6">
-                <v-progress-circular indeterminate color="primary"></v-progress-circular>
-            </div>
+            <BaseLoadingState v-if="isLoading" />
 
             <div v-if="edits.length" class="d-flex flex-column ga-4">
                 <div
@@ -78,6 +76,8 @@
 
 <script setup>
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 
 defineProps({
   modelValue: { type: Boolean, default: false },
@@ -103,27 +103,3 @@ const formatDate = (iso) => {
   })
 }
 </script>
-
-<style scoped>
-.history-entry {
-  border-left: 3px solid var(--color-border);
-}
-
-.diff-block {
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-
-.diff-old {
-  background: #ffeaea;
-  color: var(--color-error);
-  text-decoration: line-through;
-  padding: var(--space-2) var(--space-3);
-}
-
-.diff-new {
-  background: #eaffea;
-  color: var(--color-success);
-  padding: var(--space-2) var(--space-3);
-}
-</style>

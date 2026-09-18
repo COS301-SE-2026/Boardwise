@@ -24,8 +24,7 @@
 
             <div class="d-flex justify-center ga-4 flex-wrap">
                 <BaseButton 
-                    variant="outlined" 
-                    color="white"
+                    variant="secondary" 
                     @click="router.push('/library')"
                     >
 
@@ -33,8 +32,7 @@
                 </BaseButton>
 
                 <BaseButton
-                    variant="outlined"
-                    color="white"
+                    variant="secondary"
                     @click="router.push('/auth/signup')"
                 >
                     Get Started

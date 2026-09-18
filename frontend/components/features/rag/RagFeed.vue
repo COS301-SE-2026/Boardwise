@@ -8,9 +8,7 @@
             @retry="emit('retry', message)"
         />
 
-        <div v-if="isLoading" class="rag-message assistant">
-            <v-progress-circular data-test="v-progress-circular" size="20" color="primary" />
-        </div>
+        <BaseLoadingState v-if="isLoading" />
 
         <div v-if="!messages.length && !isLoading" class="rag-empty-state">
             Ask a question about this rulebook - answers are grounded in its actual text.
@@ -23,6 +21,7 @@
 </template>
 
 <script setup lang="ts">
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue';
 import RagMessage from './RagMessage.vue'
 import type { RagMessage as RagMessageType } from '~/composables/useRag'
 
@@ -36,17 +35,3 @@ const emit = defineEmits<{
     (e: 'retry', message: RagMessageType): void
 }>()
 </script>
-
-<style scoped>
-.rag-feed {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: var(--space-4, 16px);
-}
-
-.rag-empty-state {
-    font-size: var(--fs-body, 15px);
-    color: var(--color-text-muted);
-    line-height: var(--lh-normal, 1.5);
-}
-</style>

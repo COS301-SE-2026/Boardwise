@@ -6,9 +6,7 @@
     :chunks="rulebookText?.chunks ?? []"
   />
 
-  <div v-else-if="isLoading" class="d-flex justify-center align-center" style="height: 60vh;">
-    <v-progress-circular indeterminate color="primary" />
-  </div>
+  <BaseLoadingState v-if="isLoading" />
 
   <v-empty-state
     v-else
@@ -32,6 +30,7 @@ import ReaderLayout from '~/components/features/library/ReaderLayout.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 
 import { ref, onMounted } from 'vue';
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 
 const readerLayoutRef = ref(null);
 const route = useRoute()

@@ -2,13 +2,13 @@
     <PageContainer data-test="page-container">
         <Navbar data-test="navbar" />
 
-        <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
-            <v-progress-circular data-test="loading-spinner" indeterminate color="primary" size="48" />
-        </v-container>
+        <BaseLoadingState v-if="loading" />
 
-       <v-container v-else-if="!query" class="d-flex flex-column align-center justify-center" style="min-height: 60vh">
-        <p class="text-medium-emphasis">Start typing to search games, users, and rules.</p>
-       </v-container>
+       <BaseEmptyState
+            v-else-if="!query"
+            title="Search Boardwise"
+            message="Start typing to search games, users, and rules."
+        />
 
         <SearchResults 
             v-else
@@ -40,6 +40,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import { useSearch } from '~/composables/useSearch'
 import { useFriends } from '~/composables/useFriends'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
+import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
 const { sendFriendRequest } = useFriends();
 

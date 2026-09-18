@@ -17,9 +17,7 @@
       class="popular-carousel mt-4"
       cycle
     >
-      <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
-        <v-progress-circular indeterminate color="primary" size="48" />
-      </v-container>
+      <BaseLoadingState v-if="isLoading" />
 
       <v-carousel-item
         v-else
@@ -48,12 +46,9 @@
 
             <p>{{ rulebook.genre }}</p>
             
-            <v-btn 
-              color="primary"
-              rounded="pill"
-            >
+            <BaseCard>
               Read Rulebook
-            </v-btn>
+            </BaseCard>
           </div>
         </div>
       </v-carousel-item>
@@ -103,7 +98,7 @@ defineEmits(['select'])
   background: linear-gradient(
     to top,
     rgba(0,0,0,0.8),
-    rgba(0,0,0,0.35)
+    rgba(0,0,0,0.35),
     transparent
   );
 }

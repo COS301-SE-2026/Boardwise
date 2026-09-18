@@ -34,7 +34,7 @@ public class ListingServiceIntegrationTest extends BaseIntegrationTest {
 
     @Test
     void shouldStoreAndRetrieveListing(){
-        Listing listing = new Listing("rtickyv", "IamR3al", new ObjectId(), ItemType.FullBoardGame.getValue(), "sale", 50.0, "Hatfied", true, "title", Condition.FAIR.name(), "Monopoly", "gg", "desc", "image", ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(), List.of(Genres.ABSTRACT.getValue()), null);
+        Listing listing = new Listing("rtickyv", "IamR3al", new ObjectId(), ItemType.FullBoardGame.getValue(), "sale", 50.0, "Hatfied", true, "title", Condition.FAIR.name(), "Monopoly", "gg", "desc", "image", ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(), null);
         listingRepository.save(listing);
         List<ListingResponse> results = listingService.getAllActiveListings(null);
 

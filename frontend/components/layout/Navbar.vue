@@ -37,6 +37,11 @@
         <NuxtLink to="/marketplace" class="nav-link">Marketplace</NuxtLink>
         <NuxtLink to="/community" class="nav-link">Community</NuxtLink>
         <NuxtLink to="/events" class="nav-link">Events</NuxtLink>
+
+        <BaseButton icon variant="text" to="/notifications" aria-label="Notifications">
+          <v-icon size="26">mdi-bell-outline</v-icon>
+        </BaseButton>
+
         <v-menu 
           open-on-hover
           :close-on-content-click="false"
@@ -44,7 +49,7 @@
           offset="8"
         >
           <template #activator="{ props: menuProps }">
-            <v-btn 
+            <BaseButton
               icon
               variant="text"
               to="/profile"
@@ -52,7 +57,7 @@
               aria-label="Account menu"
             >
               <v-icon size="28">mdi-account-circle</v-icon>
-            </v-btn>
+            </BaseButton>
           </template>
 
           <v-list nav density="compact" min-width="200">
@@ -61,11 +66,11 @@
                     title="Chats"
                     to="/chats"
                 />
-                <!-- <v-list-item
+                <v-list-item
                     prepend-icon="mdi-cog-outline"
                     title="Settings"
                     to="/settings"
-                /> -->
+                />
                 <v-divider class="my-1" />
                 <v-list-item class="px-2">
                     <LogOutButton block />
@@ -83,14 +88,14 @@
       >
 
         <template #activator="{ props: menuProps }">
-          <v-btn 
+          <BaseButton 
             icon
             variant="text" 
             v-bind="menuProps" 
             aria-label="Search"
           >
             <v-icon size="26">mdi-magnify</v-icon>
-          </v-btn>
+          </BaseButton>
         </template>
 
         <!-- Search (Mobile) -->
@@ -109,12 +114,16 @@
         </v-card>
       </v-menu>
 
+      <BaseButton icon variant="text" to="/notifications" aria-label="Notifications">
+        <v-icon size="26">mdi-bell-outline</v-icon>
+      </BaseButton>
+
       <v-menu
         :close-on-content-click="false"
         location="bottom end"
       >
         <template #activator="{ props: menuProps }">
-          <v-btn 
+          <BaseButton
             icon
             variant="text"
             to="/profile"
@@ -122,7 +131,7 @@
             aria-label="Account menu"
           >
             <v-icon size="26">mdi-account-circle</v-icon>
-          </v-btn>
+          </BaseButton>
         </template>
 
         <v-list nav density="compact" min-width="200">
@@ -132,11 +141,11 @@
             to="/chats"
           />
 
-          <!-- <v-list-item 
+          <v-list-item 
             prepend-icon="mdi-cog-outline"
             title="Settings"
             to="/settings"
-          /> -->
+          />
 
           <v-divider class="my-1" />
             <v-list-item class="px-2">
@@ -170,6 +179,7 @@ import { useDisplay } from 'vuetify'
 import { useRouter } from 'vue-router'
 
 import LogOutButton from '~/components/features/auth/LogOutButton.vue'
+import BaseButton from '../ui/BaseButton.vue'
 
 const drawer = ref(false)
 
@@ -242,14 +252,15 @@ const { lgAndUp } = useDisplay()
   color: var(--color-text);
   text-decoration: none;
   font-weight: var(--fw-medium);
-  transition: color .2s;
+  transition: color 0.2s;
 }
 
 .nav-link:hover,
 .nav-link.router-link-active,
 .nav-link.router-link-exact-active {
-  color: var(--obsidian);
+  color: var(--color-primary);
   font-weight: var(--fw-bold);
+  text-decoration: none;
 }
 
 @media (max-width:1279px) {
@@ -268,16 +279,15 @@ const { lgAndUp } = useDisplay()
     font-size: 2rem;
   }
 
-  .mobile .v-btn {
-    width: 36px;
-    min-width: 36px;
-    height: 36px;
-  }
-
   .left {
     flex: 1;
     min-width: 0;
   }
+}
+.mobile {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 :deep(.v-field--outlined) {

@@ -63,15 +63,3 @@ const handleResetPassword = async (data) => {
     }
 }
 </script>
-
-<style scoped>
-.auth-page {
-    min-height: calc(100vh - 80px);
-    padding: 4rem 1.5rem;
-}
-
-.auth-wrapper {
-    width: 100%;
-    max-width: 520px;
-}
-</style>

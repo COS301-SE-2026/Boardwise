@@ -163,11 +163,3 @@ const statusColor = (status) => {
 }
 
 </script>
-
-<style scoped>
-.games-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 12px;
-}
-</style>

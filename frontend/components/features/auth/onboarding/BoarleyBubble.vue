@@ -10,20 +10,3 @@
 <script setup>
     import BaseAvatar from '~/components/ui/BaseAvatar.vue'
 </script>
-
-<style scoped>
-.boarley-bubble {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-3);
-}
-
-.boarley-bubble_text {
-    background: var(--color-surface-alt);
-    border-radius: var(--radius-md);
-    padding: var(--space-3) var(--space-4);
-    font-family: var(--font-body);
-    font-size: var(--fs-body);
-    color: var(--color-text);
-}
-</style>

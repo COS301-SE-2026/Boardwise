@@ -38,11 +38,7 @@
       aria-live="polite"
       aria-label="Loading community"
     >
-      <v-progress-circular
-        indeterminate
-        color="primary"
-        size="48"
-      />
+      <BaseSpinner size="lg" />
     </output>
 
     <BaseEmptyState
@@ -69,6 +65,7 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import { useCommunity } from '~/composables/useCommunity'
 import { useSnackBar } from '~/composables/useSnackbar'
 import { useCommunityChat } from '~/composables/useCommunityChat'
+import BaseSpinner from '~/components/ui/BaseSpinner.vue'
 
 
 

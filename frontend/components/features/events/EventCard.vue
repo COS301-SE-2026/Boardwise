@@ -1,76 +1,73 @@
 <template> 
-    <BaseCard 
-      class="cursor-pointer"
-      @click="$emit('click', event)"
-    >
-    <BaseImage
-        :src="event.imageUrl ?? '/default-event.png'"
-        :alt="event.name"
-    />
+    <BaseCard data-test="event-card" clickable class="h-100 d-flex flex-column" @click="$emit('click', event)">
+      <template #media>
+        <BaseImage
+            data-test="event-image"
+            :src="event.imageUrl ?? '/default-event.png'"
+            :alt="event.name"
+            height="200px"
+        />
 
-      <div class="pa-4 d-flex flex-column ga-2">
+        <v-chip
+          data-test="event-status-badge"
+          class="badge--absolute"
+          size="x-small"
+          :color="statusColor(event.eventStatus)"
+          variant="tonal"
+        >
+          {{ event.eventStatus }}
+        </v-chip>
+      </template>
 
-        <div class="d-flex justify-space-between align-center">
-          <p class="card-title">
-            {{ event.name }}
-          </p>
+      <p class="card-title" data-test="event-title">
+        {{ event.name }}
+      </p>
 
-          <v-chip
-            size="x-small"
-            :color="statusColor(event.eventStatus)"
-            variant="tonal"
-          >
-            {{  event.eventStatus  }}
-          </v-chip>
-        </div>
+      <p class="card-meta" data-test="event-datetime">
+        <v-icon size="16">mdi-calendar</v-icon>
+        {{ event.date }} : {{ event.startTime  }} - {{ event.endTime }}
+      </p>
 
-        <p class="card-meta">
-          <v-icon size="16">mdi-calendar</v-icon>
-          {{ event.date }} : {{ event.startTime  }} - {{ event.endTime }}
-        </p>
-
-        <p class="card-meta">
-          <v-icon size="16">mdi-map-marker</v-icon>
-          {{ event.location }}
-        </p>
+      <p class="card-meta" data-test="event-location">
+        <v-icon size="16">mdi-map-marker</v-icon>
+        {{ event.location }}
+      </p>
         
-        <p class="card-meta">
-          <v-icon size="16">mdi-account</v-icon>
-          Hosted By @{{ event.host.username }}
+      <p class="card-meta" data-test="event-host">
+        <v-icon size="16">mdi-account</v-icon>
+        Hosted By @{{ event.host.username }}
+      </p>
+
+      <div class="d-flex ga-1 flex-wrap">
+        <v-chip 
+          v-for="game in event.games.slice(0,2)"
+          :key="game.id"
+          size="x-small"
+          variant="tonal"
+          color="primary"
+        >
+          {{  game.title  }}
+        </v-chip>
+
+        <v-chip v-if="event.games.length > 2" size="x-small" variant="tonal">
+          <v-icon>mdi-plus</v-icon> {{  event.games.length -2 }}
+        </v-chip>
+      </div>
+
+      <div class="d-flex justify-space-between align-center">
+        <p class="card-meta" data-test="event-attendees">
+          <v-icon size="12">mdi-account-group</v-icon>
+          {{ event.attendeeCount }} attending
         </p>
 
-        <div class="d-flex ga-1 flex-wrap">
-          <v-chip 
-            v-for="game in event.games.slice(0,2)"
-            :key="game.id"
-            size="x-small"
-            variant="tonal"
-            color="primary"
-          >
-            {{  game.title  }}
-          </v-chip>
-
-          <v-chip v-if="event.games.length > 2" size="x-small" variant="tonal">
-            <v-icon>mdi-plus</v-icon> {{  event.games.length -2 }}
-          </v-chip>
-        </div>
-
-        <div class="d-flex justify-space-between align-center">
-
-          <p class="card-meta">
-            <v-icon size="12">mdi account-group</v-icon>
-              {{ event.attendeeCount }} attending
-          </p>
-
-          <v-chip 
-            size="x-small"
-            :color="rsvpColor(event.rsvpStatus)"
-            variant="tonal"
-          >
-            {{ event.rsvpStatus }}
-          </v-chip>
-        </div>
-
+        <v-chip
+          data-test="event-rsvp"
+          size="x-small"
+          :color="rsvpColor(event.rsvpStatus)"
+          variant="tonal"
+        >
+          {{ event.rsvpStatus }}
+        </v-chip>
       </div>
     </BaseCard>
 </template>

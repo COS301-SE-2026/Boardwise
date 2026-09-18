@@ -1,15 +1,15 @@
 <template>
     <BaseModal 
         :model-value="modelValue" 
+        title="Add games to your collection"
         @update:model-value="$emit('update:modelValue', $event)" 
         :max-width="760"
     >
         <div class="modal">
             <div class="d-flex align-center justify-space-between mb-4">
-                <h2>Add games to your collection</h2>
-                <v-btn icon variant="text" @click="$emit('update:modelValue', false)">
+                <BaseButton icon variant="text" @click="$emit('update:modelValue', false)">
                     <v-icon>mdi-close</v-icon>
-                </v-btn>
+                </BaseButton>
             </div>
 
             <BaseSearch 
@@ -22,10 +22,7 @@
                 v-if="searching"
                 class="d-flex justify-center pa-6"
             >
-                <v-progress-circular
-                    indeterminate
-                    color="primary"
-                />
+                <BaseSpinner size="sm" />
             </div>
 
             <div v-if="selectedGames.length" class="selected-bar mb-3">
@@ -78,14 +75,14 @@
             <BaseEmptyState 
                 v-if="!searchResults.length && search.trim() && !searching"
                 title="No games found"
-                description="Try searching for another board game."
+                message="Try searching for another board game."
             />
 
             <!-- Empty search -->
             <BaseEmptyState
                 v-if="!search.trim() && !searching"
                 title="Search for a game"
-                description="Search our game library to add a board game to your collection."
+                message="Search our game library to add a board game to your collection."
             />
 
 
@@ -95,13 +92,7 @@
                 </BaseButton>
 
                 <BaseButton :disabled="!selectedGames.length" @click="handleConfirm">
-                    <v-progress-circular
-                        v-if="adding"
-                        indeterminate
-                        size="16"
-                        width="2"
-                        class="mr-2"
-                    />
+                    <BaseSpinner v-if="adding" size="sm" class="mr-2" />
                     Add {{ selectedGames.length > 0 ? selectedGames.length : '' }} 
                     Game{{ selectedGames.length !== 1 ? 's' : '' }}
                 </BaseButton>
@@ -115,6 +106,7 @@ import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
+import BaseSpinner from '~/components/ui/BaseSpinner.vue'
 
 import { ref } from 'vue'
 import { useProfile } from '~/composables/useProfile'
