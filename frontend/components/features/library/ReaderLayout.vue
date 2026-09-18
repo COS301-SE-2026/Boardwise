@@ -30,8 +30,34 @@
       <ReaderProgress :current-page="activeChunkIndex" :total-pages="localChunks.length" />
     </div>
 
+    <!-- Mobile contents trigger -->
+     <div class="d-flex d-md-none mt-4 mb-2 px-3">
+      <v-chip
+        color="secondary"
+        prepend-icon="mdi-format-list-bulleted"
+        size="large"
+        @click="showContents = true"
+      >
+        Contents
+      </v-chip>
+
+      <v-navigation-drawer
+        v-model="showContents"
+        temporary
+        location="left"
+        width="300"
+      >
+        <ReaderSidebar
+          :pages="localChunks"
+          :current-page="activeChunkIndex"
+          :matching-chunks="matchingChunkIndices"
+          @change="(index) => { handlePageChange(index); showContents = false }"
+        />
+      </v-navigation-drawer>
+     </div>
+
     <v-row>
-      <v-col cols="12" md="3">
+      <v-col cols="12" md="3" class="d-none d-md-block">
         <ReaderSidebar
           :pages="localChunks"
           :current-page="activeChunkIndex"
@@ -45,7 +71,7 @@
           <!-- Document Header -->
           <BaseImage :src="rulebook?.coverUrl" :alt="rulebook?.title" height="280px" fit="cover" />
 
-          <div class="pa-10 pt-10 pb-2">
+          <div class="pa-4 pa-md-10 pt-4 pt-md-10 pb-2">
             <p class="text-caption text-uppercase font-weight-bold text-primary mb-2">
               {{ formattedGenres }}
             </p>
@@ -95,7 +121,7 @@
     />
 
     <AIFloatingButton @click="showRagPanel = true" />
-    <RagPanel v-model="showRagPanel" :rulebook="rulebook" />
+    <RagPanel v-model="showRagPanel" :rulebook="rulebook" :current-user="currentUser" />
 
   </div>
 </template>
@@ -120,6 +146,10 @@ import { useEditHistory } from '~/composables/useEditHistory'
 import { useSnackBar }  from '~/composables/useSnackbar'
 import { useLibrary } from '~/composables/useLibrary'
 import { useReaderSocket } from '~/composables/useReaderSocket'
+import { useProfile } from '~/composables/useProfile'
+
+const { fetchCurrentUser } = useProfile()
+const currentUser = ref(null)
 
 const props = defineProps({
   rulebook: Object,
@@ -132,6 +162,7 @@ const blockRefs = ref({})
 const searchQuery = ref('')
 const currentMatch = ref(0)
 const showRagPanel = ref(false)
+const showContents = ref(false)
 
 const setBlockRef = (el, chunkId) => {
   if(el){
@@ -482,7 +513,7 @@ const handleBeforeUnload = (e) => {
     }
 }
 
-onMounted(() => {
+onMounted( async () => {
     window.addEventListener('beforeunload', handleBeforeUnload);
     observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -504,6 +535,8 @@ onMounted(() => {
         if(block) observer.observe(block);
       });
     });
+
+    currentUser.value = await fetchCurrentUser()
 })
 
 onUnmounted(() => {

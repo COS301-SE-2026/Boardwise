@@ -9,11 +9,13 @@
       class="base-state__mascot base-state__mascot--loading"
     />
 
-    <p v-if="message" class="base-state__message">{{ message }}</p>
+    <p v-if="message" class="base-state__message">
+      {{ message }}
+    </p>
 
     <BaseSpinner size="sm"/>
 
-    <span class="sr-only">Loading</span>
+    <span class="sr-only">Loading{{ message ? `: ${message}` : '' }}</span>
   </div>
 </template>
 
