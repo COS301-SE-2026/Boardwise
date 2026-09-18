@@ -1498,7 +1498,7 @@ html[data-density="compact"] .rulebook-list {
 .chat-sidebar__title {
   margin: 0;
 
-  color: var(--color-text);
+  color: var(--color-primary);
 
   font-family: var(--font-display);
   font-size: var(--fs-h2);
