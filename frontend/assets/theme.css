@@ -775,11 +775,15 @@ a { color: var(--color-link); text-decoration: none; }
 .rag-panel {
   position: fixed;
   top: 80px;
-  right: 24px;
+  right: var(--space-6, 24px);
+  bottom: 96px;
 
-  width: min(460px, calc(100vw - 32px));
-  height: min(700px, calc(100vh - 104px));
-  max-height: calc(100vh - 104px);
+  width: min(420px, calc(100vw - 32px));
+  height: min(650px, calc(100vh - 120px));
+  max-height: calc(100vh - 140px);
+
+  display: flex;
+  flex-direction: column;
 
   z-index: 1000;
 }
@@ -799,9 +803,13 @@ a { color: var(--color-link); text-decoration: none; }
     flex: 0 0 auto;
 }
 
-.rag-close-btn {
-  color: var(--color-primary) !important;
-  opacity: 1 !important;
+.rag-close-btn .v-icon{
+  color: var(--color-text-muted) !important;
+}
+
+.rag-close-btn:hover .v-icon{
+    color: var(--color-primary) !important;
+    cursor: pointer;
 }
 
 @media (max-width: 480px) {

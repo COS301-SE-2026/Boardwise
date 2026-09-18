@@ -1,5 +1,5 @@
 <template>
-    <div class="rag-feed" role="log" aria-live="polite" aria-label="Conversation with Boarley">
+    <div ref="feedEl" class="rag-feed" role="log" aria-live="polite" aria-label="Conversation with Boarley">
         <RagMessage 
             data-test="rag-message"
             v-for="message in messages" 
@@ -22,11 +22,13 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch, nextTick } from 'vue'
+
 import BaseLoadingState from '~/components/ui/BaseLoadingState.vue';
 import RagMessage from './RagMessage.vue'
 import type { RagMessage as RagMessageType } from '~/composables/useRag'
 
-defineProps<{
+const props = defineProps<{
     messages: RagMessageType[]
     isLoading?: boolean
     hasNoResult?: boolean
@@ -36,4 +38,16 @@ defineProps<{
 const emit = defineEmits<{
     (e: 'retry', message: RagMessageType): void
 }>()
+
+const feedEl = ref<HTMLElement | null>(null)
+
+const scrollToBottom = async () => {
+    await nextTick()
+    if(feedEl.value) {
+        feedEl.value.scrollTop = feedEl.value.scrollHeight
+    }
+}
+
+watch(() => props.messages.length, scrollToBottom)
+watch(() => props.isLoading, scrollToBottom)
 </script>
