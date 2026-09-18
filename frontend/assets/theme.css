@@ -4649,3 +4649,10 @@ button:disabled,
   top: 0;
   z-index: 1000;
 }
+
+@media (min-width: 960px) {
+  .reader-sidebar {
+    position: sticky;
+    top: 80px;
+  }
+}
