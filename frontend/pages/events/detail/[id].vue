@@ -41,7 +41,6 @@ import EditEventModal from '~/components/features/events/EditEventModal.vue'
 
 import { useEvents } from '~/composables/useEvents'
 import { useSnackBar } from '~/composables/useSnackbar'
-import BaseSpinner from '~/components/ui/BaseSpinner.vue'
 import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 // import { useProfile } from '~/composables/useProfile'
 
