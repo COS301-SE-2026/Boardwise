@@ -37,9 +37,9 @@
         </div>
           
         <div class="flex-1-1">
-          <v-container v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
+          <div v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
             <MarketplaceLoadingState tab="Community Listings" />
-          </v-container>
+          </div>
 
           <MarketplaceEmptyState
             v-else-if="listings.length === 0"
@@ -110,13 +110,13 @@
           </div>
             
           <div class="flex-1-1">
-            <v-container 
+            <div
               v-if="retailLoading && retailResults.length === 0" 
               class="d-flex justify-center align-center flex-1-1"
               style="min-height: 60vh"
             >
               <MarketplaceLoadingState tab="Web" />
-            </v-container>
+            </div>
 
             <MarketplaceEmptyState
               v-else-if="filteredRetailResults.length === 0"

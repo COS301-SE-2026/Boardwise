@@ -29,63 +29,62 @@
 
       <ReaderProgress :current-page="activeChunkIndex" :total-pages="localChunks.length" />
     </div>
-    <v-container fluid style="max-width: 1200px;">
-      <v-row>
-        <v-col cols="12" md="3">
-          <ReaderSidebar
-            :pages="localChunks"
-            :current-page="activeChunkIndex"
-            :matching-chunks="matchingChunkIndices"
-            @change="handlePageChange"
-          />
-        </v-col>
 
-        <v-col cols="12" md="9">
-          <BaseCard flush class="pb-10">
-            <!-- Document Header -->
-            <BaseImage :src="rulebook?.coverUrl" :alt="rulebook?.title" height="280px" fit="cover" />
+    <v-row>
+      <v-col cols="12" md="3">
+        <ReaderSidebar
+          :pages="localChunks"
+          :current-page="activeChunkIndex"
+          :matching-chunks="matchingChunkIndices"
+          @change="handlePageChange"
+        />
+      </v-col>
 
-            <div class="pa-10 pt-10 pb-2">
-              <p class="text-caption text-uppercase font-weight-bold text-primary mb-2">
-                {{ formattedGenres }}
-              </p>
+      <v-col cols="12" md="9">
+        <BaseCard flush class="pb-10">
+          <!-- Document Header -->
+          <BaseImage :src="rulebook?.coverUrl" :alt="rulebook?.title" height="280px" fit="cover" />
 
-              <h1 class="text-h4 font-weight-bold mb-4">{{ rulebook?.title }}</h1>
+          <div class="pa-10 pt-10 pb-2">
+            <p class="text-caption text-uppercase font-weight-bold text-primary mb-2">
+              {{ formattedGenres }}
+            </p>
 
-              <div class="d-flex flex-wrap ga-4 mb-2">
-                <v-chip size="small" prepend-icon="mdi-account-group">{{ formattedPlayerCount }}</v-chip>
-                <v-chip size="small" prepend-icon="mdi-clock-outline">{{ rulebook?.duration }}</v-chip>
-                <v-chip size="small" prepend-icon="mdi-account">{{ rulebook?.minAge }}</v-chip>
-              </div>
+            <h1 class="text-h4 font-weight-bold mb-4">{{ rulebook?.title }}</h1>
 
-              <v-divider class="my-7 mb-6" />
+            <div class="d-flex flex-wrap ga-4 mb-2">
+              <v-chip size="small" prepend-icon="mdi-account-group">{{ formattedPlayerCount }}</v-chip>
+              <v-chip size="small" prepend-icon="mdi-clock-outline">{{ rulebook?.duration }}</v-chip>
+              <v-chip size="small" prepend-icon="mdi-account">{{ rulebook?.minAge }}</v-chip>
             </div>
 
-            <!-- Continuous Editor Canvas -->
-             <div class="px-10">
-              <transition-group name="block-list" tag="div" class="blocks-wrapper d-flex flex-column ga-4">
-                <ReaderBlock
-                  v-for="(chunk, i) in localChunks"
-                  :key="chunk.chunkId"
-                  :data-chunk-id="chunk.chunkId"
-                  :ref="(el) => setBlockRef(el, chunk.chunkId)"
-                  :chunk="chunk"
-                  :index="i"
-                  :is-editing="isEditing"
-                  :is-saving="isSaving"
-                  :search-query="searchQuery"
-                  :active-occurrence="activeOccurrenceIndex"
-                  @save="handleSave"
-                  @cancel="handleCancel"
-                  @delete="handleDelete"
-                  @insert="handleInsert"
-                />
-              </transition-group>
-            </div>
-          </BaseCard>
-        </v-col>
-      </v-row>
-    </v-container>
+            <v-divider class="my-7 mb-6" />
+          </div>
+
+          <!-- Continuous Editor Canvas -->
+            <div class="px-10">
+            <transition-group name="block-list" tag="div" class="blocks-wrapper d-flex flex-column ga-4">
+              <ReaderBlock
+                v-for="(chunk, i) in localChunks"
+                :key="chunk.chunkId"
+                :data-chunk-id="chunk.chunkId"
+                :ref="(el) => setBlockRef(el, chunk.chunkId)"
+                :chunk="chunk"
+                :index="i"
+                :is-editing="isEditing"
+                :is-saving="isSaving"
+                :search-query="searchQuery"
+                :active-occurrence="activeOccurrenceIndex"
+                @save="handleSave"
+                @cancel="handleCancel"
+                @delete="handleDelete"
+                @insert="handleInsert"
+              />
+            </transition-group>
+          </div>
+        </BaseCard>
+      </v-col>
+    </v-row>
 
     <ReaderHistory
       :model-value="showHistory"

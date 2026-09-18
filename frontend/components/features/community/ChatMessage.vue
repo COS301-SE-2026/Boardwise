@@ -78,16 +78,6 @@ const sender = computed(() => {
     ) ?? null
 })
 
-watch(
-  () => props.message.senderId,
-  (id) => {
-
-    sender.value = props.community.members.find((el) => el.id === id);
-  },
-  { immediate: true }
-)
-
-
 const formatSentAt = (sentAt) => {
     const date = new Date(sentAt);
     const hours = date.getHours();
