@@ -250,7 +250,7 @@
                             <BaseEmptyState
                              v-else
                                 title="No shared media"
-                                description="Photos and images shared in this conversation will appear here."
+                                message="Photos and images shared in this conversation will appear here."
                             />
                         </section>
                     </v-window-item>
@@ -335,7 +335,7 @@
                             <BaseEmptyState
                                 v-else
                                 title="No shared events"
-                                description="Events you both attend will appear here."
+                                message="Events you both attend will appear here."
                             />
                         </section>
                     </v-window-item>
@@ -403,7 +403,7 @@
                             <BaseEmptyState
                                 v-else
                                 title="No communities in common"
-                                description="Communities you both join will appear here."
+                                message="Communities you both join will appear here."
                      />
                         </section>
                     </v-window-item>
