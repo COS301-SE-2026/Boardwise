@@ -7,7 +7,7 @@
 
         <!-- Profile not found -->
         <template v-else-if="notFound">
-            <v-container
+            <div
                 class="d-flex justify-center align-center"
                 style="min-height: 60vh"
             >
@@ -15,7 +15,7 @@
                     title="Profile not found"
                     message="The user you're looking for doesn't exist or is no longer available."
                 />
-            </v-container>
+            </div>
         </template>
 
         <!-- Profile -->

@@ -466,6 +466,20 @@ a { color: var(--color-link); text-decoration: none; }
   outline-offset: 2px;
 }
 
+.page-shell {
+  min-height: 100dvh;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.page-shell__inner {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .container {
   width: 100%;
   max-width: var(--container-max);
@@ -1615,17 +1629,29 @@ html[data-density="compact"] .rulebook-list {
 /* ============================================================
    LAYOUT
    ============================================================ */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-4) 0 var(--space-1);
+}
+
 .page-header__title {
-  font-family: var(--font-display);
-  font-size: var(--fs-h2);
-  font-weight: var(--fw-bold);
-  color: var(--color-secondary);
   margin: 0;
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-size: var(--space-8);
+  line-height: 1;
 }
 
 .page-header__subtitle {
   color: var(--color-text-muted);
-  margin-top: var(--space-1);
+  font-size: 1.35rem;
+  font-family: var(--font-body);
+  margin-top: var(--space-3);
+  max-width: 650px;
 }
 
 /* ============================================================
@@ -3142,6 +3168,15 @@ html[data-density="compact"] .rulebook-list {
 /* -------------------------------------------------------------
    SECTION TITLE
    ------------------------------------------------------------- */
+.section {
+  margin-top: var(--space-8);
+}
+
+@media (max-width: 600px) {
+  .section {
+    margin-top: var(--space-6);
+  }
+}
 
 .section-title {
   padding:
