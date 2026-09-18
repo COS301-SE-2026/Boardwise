@@ -12,7 +12,8 @@ import pulumi_awsx as awsx
 RESOURCE_PREFIX = "boardwise"
 BOARDWISE_WWW_DOMAIN = "www.boardwise.games"
 BOARDWISE_BASE_DOMAIN = "boardwise.games"
-ALLOW_ALL_IP = "0.0.0.0/0"
+ALLOW_ALL_IPv4 = "0.0.0.0/0"
+ALLOW_ALL_IPv6 = "::/0"
 WOMM_EMAIL = "worksonmymachine67@gmail.com"
 
 # --- Set up budget, budget alerts and cost anomaly
@@ -110,7 +111,7 @@ route_table = aws.ec2.RouteTable(
     vpc_id=vpc.id,
     routes=[
         aws.ec2.RouteTableRouteArgs(
-            cidr_block=ALLOW_ALL_IP,
+            cidr_block=ALLOW_ALL_IPv4,
             gateway_id=igw.id
         )
     ],
@@ -160,7 +161,7 @@ caddy_sg = aws.ec2.SecurityGroup(
 caddy_ingress_http = aws.vpc.SecurityGroupIngressRule(
     "caddy-ingress-http",
     security_group_id=caddy_sg.id,
-    cidr_ipv4=ALLOW_ALL_IP,
+    cidr_ipv4=ALLOW_ALL_IPv4,
     from_port=80,
     to_port=80,
     ip_protocol="tcp"
@@ -169,7 +170,7 @@ caddy_ingress_http = aws.vpc.SecurityGroupIngressRule(
 caddy_ingress_icmp = aws.vpc.SecurityGroupIngressRule(
     "caddy-ingress-icmp",
     security_group_id=caddy_sg.id,
-    cidr_ipv4=ALLOW_ALL_IP,
+    cidr_ipv4=ALLOW_ALL_IPv4,
     from_port=8,
     to_port=0,
     ip_protocol="icmp"
@@ -178,7 +179,7 @@ caddy_ingress_icmp = aws.vpc.SecurityGroupIngressRule(
 caddy_ingress_https = aws.vpc.SecurityGroupIngressRule(
     "caddy-ingress-https",
     security_group_id=caddy_sg.id,
-    cidr_ipv4=ALLOW_ALL_IP,
+    cidr_ipv4=ALLOW_ALL_IPv4,
     from_port=443,
     to_port=443,
     ip_protocol="tcp"
@@ -187,14 +188,14 @@ caddy_ingress_https = aws.vpc.SecurityGroupIngressRule(
 caddy_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
     "caddy-egress-ipv4",
     security_group_id=caddy_sg.id,
-    cidr_ipv4=ALLOW_ALL_IP,
+    cidr_ipv4=ALLOW_ALL_IPv4,
     ip_protocol="-1"
 )
 
 caddy_egress_ipv6 = aws.vpc.SecurityGroupEgressRule(
     "caddy-egress-ipv6",
     security_group_id=caddy_sg.id,
-    cidr_ipv6="::/0",
+    cidr_ipv6=ALLOW_ALL_IPv6,
     ip_protocol="-1"
 )
 
@@ -219,7 +220,7 @@ spring_egress_ipv6 = aws.vpc.SecurityGroupEgressRule(
     "spring-sg-egress-ipv6",
     description="to allow spring backend to make requests to the outside [IPv6]",
     security_group_id=spring_sg.id,
-    cidr_ipv6="::/0",
+    cidr_ipv6=ALLOW_ALL_IPv6,
     ip_protocol="-1"
 )
 
@@ -227,13 +228,45 @@ spring_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
     "spring-sg-egress-ipv4",
     description="to allow spring backend to make requests to the outside [IPv4]",
     security_group_id=spring_sg.id,
-    cidr_ipv4=ALLOW_ALL_IP,
+    cidr_ipv4=ALLOW_ALL_IPv4,
+    ip_protocol="-1"
+)
+
+scraper_sg = aws.ec2.SecurityGroup(
+    "boardwise-scrapper-sg",
+    description="Only permit traffic from main spring boot backend and allow scrapper outgoing traffic",
+    vpc_id=vpc.id
+)
+
+spring_to_scraper = aws.vpc.SecurityGroupIngressRule(
+    "scraper-sg-ingress",
+    description="Permit traffic from Main spring boot backend",
+    security_group_id=scraper_sg.id,
+    referenced_security_group_id=spring_sg.id,
+    from_port=8082,
+    to_port=8082,
+    ip_protocol="tcp"
+)
+
+scraper_egress_ipv6 = aws.vpc.SecurityGroupEgressRule(
+    "scraper-sg-egress-ipv6",
+    description="to allow scraper service to make requests to the outside [IPv6]",
+    security_group_id=scraper_sg.id,
+    cidr_ipv6=ALLOW_ALL_IPv6,
+    ip_protocol="-1"
+)
+
+scraper_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
+    "scraper-sg-egress-ipv4",
+    description="to allow scraper service to make requests to the outside [IPv4]",
+    security_group_id=scraper_sg.id,
+    cidr_ipv4=ALLOW_ALL_IPv4,
     ip_protocol="-1"
 )
 
 python_sg = aws.ec2.SecurityGroup(
     "boardwise-python-sg",
-    description="Only permit traffic from Caddy instance and Spring boot",
+    description="Only permit traffic from Caddy instance, Main Spring boot and Scrapper",
     vpc_id=vpc.id
 )
 
@@ -257,11 +290,21 @@ spring_to_python = aws.vpc.SecurityGroupIngressRule(
     ip_protocol="tcp"
 )
 
+scrapper_to_python = aws.vpc.SecurityGroupIngressRule(
+    "python-sg-ingress-scraper",
+    description="Permit traffic from scraper service to python/fastapi backend",
+    security_group_id=python_sg.id,
+    referenced_security_group_id=scraper_sg.id,
+    from_port=8000,
+    to_port=8000,
+    ip_protocol="tcp"
+)
+
 python_egress_ipv6 = aws.vpc.SecurityGroupEgressRule(
     "python-sg-egress-ipv6",
     description="to allow python backend to make requests to the outside [IPv6]",
     security_group_id=python_sg.id,
-    cidr_ipv6="::/0",
+    cidr_ipv6=ALLOW_ALL_IPv6,
     ip_protocol="-1"
 )
 
@@ -269,7 +312,7 @@ python_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
     "python-sg-egress-ipv4",
     description="to allow python backend to make requests to the outside [IPv4]",
     security_group_id=python_sg.id,
-    cidr_ipv4=ALLOW_ALL_IP,
+    cidr_ipv4=ALLOW_ALL_IPv4,
     ip_protocol="-1"
 )
 
@@ -465,7 +508,7 @@ spring_instance = aws.ec2.Instance(
     user_data_replace_on_change=True
 )
 
-# Set up ecs &-ec2 instance for caddy
+
 
 caddy_setup_script = r"""#!/bin/bash
 yum update -y
