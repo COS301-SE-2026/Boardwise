@@ -21,12 +21,11 @@
 
     <!-- Desktop Search -->
     <div v-if="lgAndUp" class="center">
-      <v-text-field 
-        placeholder="Search games, users, rules..."
-        prepend-inner-icon="mdi-magnify"
-        class="search"
+      <BaseSearch
         v-model="searchQuery"
-        hide-details
+        placeholder="Search games, users, rules..."
+        aria-label="Search"
+        class="search"
         @keyup.enter="submitSearch(searchQuery)"
       />
     </div>
@@ -100,15 +99,12 @@
 
         <!-- Search (Mobile) -->
         <v-card class="pa-2" min-width="280">
-          <v-text-field
-            placeholder="Search..."
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            density="compact"
-            rounded="pill"
-            hide-details
-            autofocus
+          <BaseSearch
             v-model="mobileSearchQuery"
+            placeholder="Search..."
+            aria-label="Search"
+            rounded="pill"
+            autofocus
             @keyup.enter="submitSearch(mobileSearchQuery)"
           />
         </v-card>
@@ -180,6 +176,7 @@ import { useRouter } from 'vue-router'
 
 import LogOutButton from '~/components/features/auth/LogOutButton.vue'
 import BaseButton from '../ui/BaseButton.vue'
+import BaseSearch from '../ui/BaseSearch.vue'
 
 const drawer = ref(false)
 
