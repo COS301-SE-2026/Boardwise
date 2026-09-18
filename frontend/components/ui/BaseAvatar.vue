@@ -44,6 +44,7 @@ const imageError = ref(false)
 
 const sizeMap = {
   sm: '32',
+  smd: '46',
   md: '48',
   lg: '64',
   xl: '96',
