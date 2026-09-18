@@ -508,7 +508,40 @@ spring_instance = aws.ec2.Instance(
     user_data_replace_on_change=True
 )
 
+scraper_repo = awsx.ecr.Repository(f"{RESOURCE_PREFIX}-scraper-repo", force_delete=True)
 
+scraper_image = awsx.ecr.Image(
+    f"{RESOURCE_PREFIX}-scraper-image",
+    repository_url=scraper_repo.url,
+    context="../scrapers",
+    platform="linux/amd64"
+)
+
+# scraper_setup_script = r"""#!/bin/bash
+# yum update -y
+# yum install -y docker
+
+# systemctl enable --now docker
+
+# aws ecr get-login-password --region __REGION__ | docker login --username AWS --password-stdin __REGISTRY_URL__
+
+# docker run -d \
+#     --restart always \
+#     --name scrapers \
+#     -p 8082:8082 \
+#     -e PROD_DB_URL="__PROD_DB_URL__" \
+#     -e DB_NAME="__DB_NAME__" \
+#     -e JWT_SECRET="__JWT_SECRET__" \
+#     -e JWT_ALGORITHM="__JWT_ALGORITHM__" \
+#     -e R2_ACCOUNT_ID="__R2_ACCOUNT_ID__" \
+#     -e R2_BUCKET_RULEBOOKS="__R2_BUCKET_RULEBOOKS__" \
+#     -e R2_ACCESS_KEY="__R2_ACCESS_KEY__" \
+#     -e R2_SECRET_KEY="__R2_SECRET_KEY__" \
+#     -e HF_TOKEN="__HF_TOKEN__" \
+#     -e INTERNAL_SECRET="__INTERNAL_SECRET__" \
+#     -e CPU_CORES="__CPU_CORES__" \
+#     -e APP_ENV="__APP_ENV__" __IMAGE_URI__
+# """
 
 caddy_setup_script = r"""#!/bin/bash
 yum update -y
