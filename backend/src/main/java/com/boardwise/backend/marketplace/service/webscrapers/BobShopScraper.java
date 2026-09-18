@@ -32,10 +32,8 @@ public class BobShopScraper implements WebScraper {
 
     @Override
     public List<RetailSourceItemDTO> scrape(String toSearch) {
+        
         long start = System.currentTimeMillis();
-
-        System.out.println("BOBSHOP SCRAPER STARTED");
-
         if (toSearch == null || toSearch.isBlank()) {
             logger.info(" BOBSHOP Crashed while trying to search blank... " .concat(LocalDate.now().toString()));
             return null;
