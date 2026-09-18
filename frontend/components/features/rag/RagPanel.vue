@@ -9,10 +9,10 @@
             <div class="rag-panel__inner">
                 <div class="rag-header d-flex justify-space-between align-center pa-4">
                     <h3 class="text-subtitle-1 font-weight-bold mb-0">{{  rulebook?.title  }} - Ask AI</h3>
-                    <BaseButton icon="mdi-close" variant="text" size="small" aria-label="Close Ask AI panel" @click="close" />
+                    <BaseButton icon="mdi-close" variant="text" size="small" aria-label="Close Ask AI panel" class="rag-close-btn" @click="close" />
                 </div> 
 
-                <RagFeed data-test="rag-feed" :messages="messages" :is-loading="isLoading" :has-no-result="false" @retry="handleRetry" />
+                <RagFeed data-test="rag-feed" :messages="messages" :is-loading="isLoading" :has-no-result="false" :current-user="currentUser" @retry="handleRetry" />
                 <RagComposer data-test="rag-composer" :is-loading="isLoading" @send="handleSend" />
             </div>
         </v-card>
@@ -31,6 +31,7 @@ import { useRag } from '~/composables/useRag'
 const props = defineProps<{
     modelValue: boolean
     rulebook: { id: string, title: string } | null
+    currentUser?: { username?: string; profilePicture?: string } | null
 }> ()
 
 const emit = defineEmits<{

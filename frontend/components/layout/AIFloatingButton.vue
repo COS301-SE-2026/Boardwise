@@ -15,11 +15,11 @@
             class="boarley-fab__button"
             :class="{ 'boarley-fab__button--wiggle': wiggle }"
             icon
-            size="60"
+            size="56"
             aria-label="Ask Boarley about this rulebook"
             @click="handleClick"
             @mouseenter="playWiggle"
-            @animatonend="wiggle = false"
+            @animationend="wiggle = false"
         >
             <BaseAvatar src="/images/Boarley_cute.svg" alt="Boarley" size="smd" />
         </BaseButton>

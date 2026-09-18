@@ -95,7 +95,7 @@
     />
 
     <AIFloatingButton @click="showRagPanel = true" />
-    <RagPanel v-model="showRagPanel" :rulebook="rulebook" />
+    <RagPanel v-model="showRagPanel" :rulebook="rulebook" :current-user="currentUser" />
 
   </div>
 </template>
@@ -120,6 +120,10 @@ import { useEditHistory } from '~/composables/useEditHistory'
 import { useSnackBar }  from '~/composables/useSnackbar'
 import { useLibrary } from '~/composables/useLibrary'
 import { useReaderSocket } from '~/composables/useReaderSocket'
+import { useProfile } from '~/composables/useProfile'
+
+const { fetchCurrentUser } = useProfile()
+const currentUser = ref(null)
 
 const props = defineProps({
   rulebook: Object,
@@ -482,7 +486,7 @@ const handleBeforeUnload = (e) => {
     }
 }
 
-onMounted(() => {
+onMounted( async () => {
     window.addEventListener('beforeunload', handleBeforeUnload);
     observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -504,6 +508,8 @@ onMounted(() => {
         if(block) observer.observe(block);
       });
     });
+
+    currentUser.value = await fetchCurrentUser()
 })
 
 onUnmounted(() => {

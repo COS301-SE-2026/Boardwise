@@ -5,16 +5,17 @@
             v-for="message in messages" 
             :key="message.id" 
             :message="message" 
+            :current-user="currentUser"
             @retry="emit('retry', message)"
         />
 
-        <BaseLoadingState v-if="isLoading" />
+        <BaseLoadingState v-if="isLoading" size="compact" message="Boarley is thinking" />
 
         <div v-if="!messages.length && !isLoading" class="rag-empty-state">
             Ask a question about this rulebook - answers are grounded in its actual text.
         </div>
 
-        <div v-else-if="hasNoResult" data-test="rag-no-result" class="text-body-2 text-medium-emphasis rag-no-result">
+        <div v-else-if="hasNoResult" data-test="rag-no-result" class="rag-no-result text-body-2 text-medium-emphasis">
             I could not find anything relevant to that in this rulebook. Try rephrasing, or check you've selected the right game.
         </div>
     </div>
@@ -29,6 +30,7 @@ defineProps<{
     messages: RagMessageType[]
     isLoading?: boolean
     hasNoResult?: boolean
+    currentUser?: { username?: string; profilePicture?: string } | null
 }>()
 
 const emit = defineEmits<{
