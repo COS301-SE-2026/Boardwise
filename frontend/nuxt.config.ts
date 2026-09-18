@@ -30,7 +30,7 @@ export default defineNuxtConfig({
       theme_color: '#C7286E',
       background_color: '#FBF6F0',
       display: 'standalone',
-      start_url: '/',
+      start_url: '/library',
       scope: '/',
       icons: [
         {
