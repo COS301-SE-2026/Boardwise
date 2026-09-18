@@ -8,7 +8,7 @@
       <ProfileHeader :user="user" @saved="handleProfileUpdate" @pfp-change="handlePfpChange"/>
 
       <ProfileStats
-        :games="user.ownedGamesCount"
+        :games="user.ownedGameCount"
         :friends="user.friendCount"
         :communities="user.groupCount"
         @open="openFriendsModal"
