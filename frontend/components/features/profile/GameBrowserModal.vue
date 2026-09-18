@@ -53,12 +53,12 @@
                             <v-icon color="primary" size="28">mdi-check-circle</v-icon>
                         </div>
 
-                        <v-img
+                        <BaseImage
                             :width="131"
                             aspect-ratio="16/9"
                             cover
                             :src="game.imageUrl ?? '/default.png'"
-                        ></v-img>
+                        ></BaseImage>
                     </div>
 
                     <div class="gameCard_content">
@@ -107,6 +107,7 @@ import BaseSearch from '~/components/ui/BaseSearch.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import BaseSpinner from '~/components/ui/BaseSpinner.vue'
+import BaseImage from '~/components/ui/BaseImage.vue'
 
 import { ref } from 'vue'
 import { useProfile } from '~/composables/useProfile'
