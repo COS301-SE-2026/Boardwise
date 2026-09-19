@@ -128,7 +128,7 @@
           </p>
         </div>
 
-        <v-textarea
+        <BaseTextArea
           v-model="description"
           label="Description"
           placeholder="description"
@@ -168,7 +168,7 @@ import { useUserLocation } from '@/composables/useUserLocation';
 import { useBoardGames } from '~/composables/useBoardGames'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseButton from '~/components/ui/BaseButton.vue';
-
+import BaseTextArea from '~/components/ui/BaseTextArea.vue'
 const { city, suburb, lat, long, error: locationError, loading, findUserLocation } = useUserLocation();
 const {searchGames, games } = useBoardGames();
 

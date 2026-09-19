@@ -57,7 +57,7 @@
 
       <v-text-field v-model="location" label="Location" placeholder="e.g. Pretoria" variant="outlined" density="compact" hide-details />
 
-      <v-textarea v-model="description" label="Description" placeholder="description" variant ="outlined" density="compact" hide-details/>
+      <BaseTextArea v-model="description" label="Description" placeholder="description" variant ="outlined" density="compact" hide-details/>
 
       <div class="d-flex align-center ga-3">
         <BaseButton variant="outlined" color="primary" @click="triggerUpload">Upload Image</BaseButton>
