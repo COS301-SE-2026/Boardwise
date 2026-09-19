@@ -2,6 +2,7 @@
     <BaseEmptyState
       v-if="communities.length === 0"
       title="No communities yet"
+      message="Be the first to create a community"
       class="justify-center"
     />
 

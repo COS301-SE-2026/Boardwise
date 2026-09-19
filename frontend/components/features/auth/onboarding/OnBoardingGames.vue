@@ -10,15 +10,16 @@
         </p>
 
         <BaseGrid :columns="4" class="onboarding-class_game-grid">
-            <BaseTag
+            <v-chip
                 v-for="game in games"
                 :key="game.id"
-                :selected="selected.includes(game.id)"
-                clickable
+                :color="selected.includes(game.id) ? 'primary' : undefined"
+                :variant="selected.includes(game.id) ? 'elevated' : 'outlined'"
+                class="base-tag"
                 @click="toggleGame(game.id)"
             >
                 {{  game.title }}
-            </BaseTag>
+            </v-chip>
             <!-- <div v-for="game in games" :key="game.id">{{  game.title }}</div> -->
         </BaseGrid>
 

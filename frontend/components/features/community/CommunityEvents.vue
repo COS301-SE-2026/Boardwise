@@ -17,7 +17,7 @@
         <BaseEmptyState
             v-if="communityEvents.length === 0"
             title="No upcoming events"
-            description="This community hasn't scheduled any events yet."
+            message="This community hasn't scheduled any events yet."
         />
         
         <BaseButton

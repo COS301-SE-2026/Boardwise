@@ -8,22 +8,22 @@
       :src="sender.profilePicture ?? '/images/avatar.jpg'"
       :name="sender.username"
       size="sm"
-      class="chat-message-avatar"
+      class="chat-message__avatar"
     />
 
-    <div class="chat-message-content">
+    <div class="chat-message__content">
 
       <div class="d-flex ga-2 align-baseline" 
         :class="{ 'flex-row-reverse': isOwn }"
       >
-        <span class="text-subtitle-2 font-weight-bold">{{ sender?.username ?? 'User' }}</span>
-        <span class="text-caption text-medium-emphasis">{{ formatSentAt(message.sentAt) }}</span>
+        <span class="chat-message__sender">{{ sender?.username ?? 'User' }}</span>
+        <span class="chat-message__time">{{ formatSentAt(message.sentAt) }}</span>
       </div>
 
-      <div class="chat-message-bubble"
-        :class="{ 'chat-message-bubble--own': isOwn }"
+      <div class="chat-message__bubble"
+        :class="{ 'chat-message__bubble--own': isOwn }"
       >
-        <p class="chat-message-text">
+        <p class="chat-message__text">
           {{  message.message }}
         </p>
       </div>
@@ -34,7 +34,7 @@
       :src="sender.profilePicture ?? '/images/avatar.jpg'"
       :name="sender.username"
       size="sm"
-      class="chat-message-avatar"
+      class="chat-message__avatar"
     />
 
   </article>

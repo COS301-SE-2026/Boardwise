@@ -41,41 +41,42 @@
           <v-icon size="26">mdi-bell-outline</v-icon>
         </BaseButton>
 
-        <v-menu 
-          open-on-hover
-          :close-on-content-click="false"
-          location="bottom end"
-          offset="8"
+        <BaseDropdown 
+          aria-label="Account menu"
+          :menu-props="{
+            openOnHover: true,
+            closeOnContentClick: false,
+            location: 'bottom end',
+            offset: 8
+          }"
+          :list-props="{
+            nav: true,
+            density: 'compact',
+            minWidth: 200
+          }"
+          icon
+          variant="text"
+          to="/profile"
         >
-          <template #activator="{ props: menuProps }">
-            <BaseButton
-              icon
-              variant="text"
-              to="/profile"
-              v-bind="menuProps"
-              aria-label="Account menu"
-            >
+          <template #activator>
               <v-icon size="28">mdi-account-circle</v-icon>
-            </BaseButton>
           </template>
 
-          <v-list nav density="compact" min-width="200">
-                <v-list-item
-                    prepend-icon="mdi-chat-outline"
-                    title="Chats"
-                    to="/chats"
-                />
-                <v-list-item
-                    prepend-icon="mdi-cog-outline"
-                    title="Settings"
-                    to="/settings"
-                />
-                <v-divider class="my-1" />
-                <v-list-item class="px-2">
-                    <LogOutButton block />
-                </v-list-item>
-              </v-list>
-        </v-menu> 
+          <v-list-item
+              prepend-icon="mdi-chat-outline"
+              title="Chats"
+              to="/chats"
+          />
+          <v-list-item
+              prepend-icon="mdi-cog-outline"
+              title="Settings"
+              to="/settings"
+          />
+          <v-divider class="my-1" />
+          <v-list-item class="px-2">
+              <LogOutButton block />
+          </v-list-item>
+        </BaseDropdown> 
     </div>
 
     <!-- Mobile -->
@@ -114,24 +115,26 @@
         <v-icon size="26">mdi-bell-outline</v-icon>
       </BaseButton>
 
-      <v-menu
-        :close-on-content-click="false"
-        location="bottom end"
+      <BaseDropdown
+        aria-label="Account menu"
+        :menu-props="{
+          closeOnContentClick: false,
+          location: 'bottom end'
+        }"
+        :list-props="{
+          nav: true,
+          density: 'compact',
+          minWidth: 200
+        }"
+        icon
+        variant="text"
+        to="/profile"
       >
-        <template #activator="{ props: menuProps }">
-          <BaseButton
-            icon
-            variant="text"
-            to="/profile"
-            v-bind="menuProps"
-            aria-label="Account menu"
-          >
+        <template #activator>
             <v-icon size="26">mdi-account-circle</v-icon>
-          </BaseButton>
         </template>
 
-        <v-list nav density="compact" min-width="200">
-          <v-list-item 
+        <v-list-item 
             prepend-icon="mdi-chat-outline"
             title="Chats"
             to="/chats"
@@ -144,11 +147,10 @@
           />
 
           <v-divider class="my-1" />
-            <v-list-item class="px-2">
-              <LogOutButton block />
-            </v-list-item>
-        </v-list>
-      </v-menu>
+          <v-list-item class="px-2">
+            <LogOutButton block />
+          </v-list-item>
+      </BaseDropdown>
     </div>
   </div>
 </v-app-bar>
@@ -176,7 +178,7 @@ import { useRouter } from 'vue-router'
 
 import LogOutButton from '~/components/features/auth/LogOutButton.vue'
 import BaseButton from '../ui/BaseButton.vue'
-import BaseSearch from '../ui/BaseSearch.vue'
+import BaseDropdown from '../ui/BaseDropdown.vue'
 
 const drawer = ref(false)
 
