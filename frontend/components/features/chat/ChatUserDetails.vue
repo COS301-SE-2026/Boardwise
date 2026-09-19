@@ -9,81 +9,66 @@
             <header class="chat-user-details__header">
                 <div class="d-flex align-center ga-4">
                     <BaseAvatar
-               :src="conversation.avatar"
-               :name="conversation.name"
-               size="xl"
+                        :src="conversation.avatar"
+                        :name="conversation.name"
+                        size="xl"
                     />
 
                     <div class="flex-grow-1">
-               <h2 class="chat-user-details__name">
+                        <h2 class="chat-user-details__name">
                             {{ conversation.name }}
-                 </h2>
+                        </h2>
 
                         <p
-                            v-if="username"                    class="chat-user-details__username"
+                            v-if="username"
+                            class="chat-user-details__username"
                         >
                             @{{ username }}
-               </p>
+                        </p>
 
                         <div class="chat-user-details__status">
-                   <span
+                            <span
                              class="chat-user-details__status-dot"
-                          :class="{
-                                    'chat-user-details__status-dot--online':
+                            :class="{
+                                        'chat-user-details__status-dot--online':
                                         conversation.online
-                                }"
-                    aria-hidden="true"
-                            />
+                                    }"
+                            aria-hidden="true"
+                                    />
 
-                       {{ conversation.online ? 'Online' : 'Offline' }}
+                            {{ conversation.online ? 'Online' : 'Offline' }}
                         </div>
                     </div>
 
                     <BaseButton
                         variant="secondary"
                         aria-label="Close conversation details"
-                   @click="dialog = false"
+                        @click="dialog = false"
                     >
                         <v-icon
                             icon="mdi-close"
                             aria-hidden="true"
-               />
+                        />
                     </BaseButton>
                 </div>
             </header>
 
             <v-divider />
 
-            <v-tabs
-                v-model="activeTab"
-           color="primary"
+            <BaseTabs
+                :tabs="['overview', 'media', 'events', 'communities']"
+                :active-tab="activeTab"
+                aria-label="Details sections"
                 class="chat-user-details__tabs"
-                grow
+                @change="activeTab = $event"
             >
-                <v-tab value="overview">
-                    Overview
-                </v-tab>
-
-                <v-tab value="media">
+                <template #tab-media>
                     Media
-
-                    <BaseBadge
-                        v-if="media.length"
-                        size="x-small"
-                        class="ms-2"
-                    >
+                    <BaseBadge v-if="media.length" size="x-small" class="ms-2" variant="neutral" tone="tonal">
                         {{ media.length }}
                     </BaseBadge>
-                </v-tab>
-
-                <v-tab value="events">
-                    Events
-                </v-tab>
-
-     <v-tab value="communities">
-                    Communities
-                </v-tab>
-            </v-tabs>
+                </template>
+            </BaseTabs>
 
             <v-divider />
 
@@ -187,8 +172,8 @@
                                     <BaseBadge
                                             v-for="game in sharedGames"
                                             :key="game.id ?? game.title ?? game"
-                                            color="primary"
-                                            variant="tonal"
+                                            variant="primary"
+                                            tone="tonal"
                                         >
                                             {{ game.title ?? game.name ?? game }}
                                         </BaseBadge>

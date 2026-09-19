@@ -54,36 +54,20 @@
 
             <v-divider />
 
-            <v-tabs
-                v-model="activeTab"
-                color="primary"
+            <BaseTabs
+                :tabs="['overview', 'media', 'events', 'communities']"
+                :active-tab="activeTab"
+                aria-label="Details sections"
                 class="chat-user-details__tabs"
-                grow
+                @change="activeTab = $event"
             >
-                <v-tab value="overview">
-                    Overview
-                </v-tab>
-
-                <v-tab value="media">
+                <template #tab-media>
                     Media
-
-                    <BaseBadge
-                        v-if="media.length"
-                        size="x-small"
-                        class="ms-2"
-                    >
+                    <BaseBadge v-if="media.length" size="x-small" class="ms-2" variant="neutral" tone="tonal">
                         {{ media.length }}
                     </BaseBadge>
-                </v-tab>
-
-                <v-tab value="events">
-                    Events
-                </v-tab>
-
-                <v-tab value="communities">
-                    Communities
-                </v-tab>
-            </v-tabs>
+                </template>
+            </BaseTabs>
 
             <v-divider />
 
@@ -445,6 +429,7 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
+import BaseTabs from '~/components/ui/BaseTabs.vue'
 
 const props = defineProps({
     modelValue: {

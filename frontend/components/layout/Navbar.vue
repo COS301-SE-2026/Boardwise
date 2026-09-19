@@ -34,7 +34,7 @@
     <div v-if="lgAndUp" class="right">
         <NuxtLink to="/library" class="nav-link">Library</NuxtLink> 
         <NuxtLink to="/marketplace" class="nav-link">Marketplace</NuxtLink>
-        <NuxtLink to="/community" class="nav-link">Community</NuxtLink>
+        <NuxtLink to="/social" class="nav-link">Social</NuxtLink>
         <NuxtLink to="/events" class="nav-link">Events</NuxtLink>
 
         <BaseButton icon variant="text" to="/notifications" aria-label="Notifications">
@@ -164,7 +164,7 @@
   <v-list nav density="compact">
     <v-list-item prepend-icon="mdi-bookshelf" title="Library" to="/library" @click="drawer = false" />
     <v-list-item prepend-icon="mdi-store" title="Marketplace" to="/marketplace" @click="drawer = false" />
-    <v-list-item prepend-icon="mdi-account-group" title="Community" to="/community" @click="drawer = false" />
+    <v-list-item prepend-icon="mdi-account-group" title="Social" to="/social" @click="drawer = false" />
     <v-list-item prepend-icon="mdi-calendar" title="Events" to="/events" @click="drawer = false" />
   </v-list>
 </v-navigation-drawer>

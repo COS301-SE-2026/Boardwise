@@ -4,7 +4,7 @@
       <SectionTitle
         data-test="marketplace-title"
         title="Marketplace"
-        subtitle="Buy, Rent and List board games with the community"
+        subtitle="Buy, Rent and Sell board games and more with the community"
       />
 
       <BaseButton 

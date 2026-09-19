@@ -67,10 +67,13 @@
 
             <ProfileCommunities :communities="user.communities" />
 
-            <v-tabs v-model="activeTab" color="primary" class="mb-4">
-                <v-tab value="Games Owned">Games Owned</v-tab>
-                <v-tab value="Listings">Listings</v-tab>
-            </v-tabs>
+            <BaseTabs
+                :tabs="['Games Owned', 'Listings']"
+                :active-tabs="activeTab"
+                aria-label="Profile sections"
+                class="mb-4"
+                @change="activeTab=$event"
+            />
 
             <v-window v-model="activeTab">
                 <v-window-item value="Games Owned">
