@@ -16,9 +16,11 @@ import lombok.Setter;
 public class Preferences {
     private String visibility;
     private List<String> genres;
+    private Settings settings;
 
     public Preferences(){
         visibility = "public";
         genres = new ArrayList<>();
+        settings = new Settings();
     }
 }
