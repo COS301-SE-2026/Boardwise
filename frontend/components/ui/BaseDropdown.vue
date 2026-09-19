@@ -1,14 +1,19 @@
 <template>
-  <v-menu>
-    <template #activator="{ props: menuProps}">
-      <BaseButton v-bind="{ ...menuProps, ...$attrs }" variant="secondary"
-            :aria-label="ariaLabel || label"
+  <v-menu v-bind="menuProps">
+    <template #activator="{ props: actProps }">
+      <BaseButton 
+        v-bind="{ ...actProps, ...$attrs }" 
+        :variant="buttonVariant"
+        :aria-label="ariaLabel || label"
       >
-        {{ label }}
-        <v-icon end aria-hidden="true">mdi-chevron-down</v-icon>
+        <slot name="activator">
+          {{ label }}
+          <v-icon end aria-hidden="true">mdi-chevron-down</v-icon>
+        </slot>
       </BaseButton>
     </template>
-    <v-list rounded="lg" elevation="2">
+
+    <v-list rounded="lg" elevation="2" v-bind="listProps">
       <slot />
     </v-list>
   </v-menu>
@@ -16,6 +21,10 @@
 
 <script setup>
 import BaseButton from './BaseButton.vue';
+
+defineOptions({
+  inheritAttrs: false
+})
 
 defineProps({
   label: {
@@ -25,6 +34,17 @@ defineProps({
   ariaLabel: {
     type: String,
     default: ''
+  },
+  menuProps: {
+    type: Object,
+    default: () => ({})
+  },
+  listProps: {
+    type: Object,
+    default: () => ({})
   }
 })
+
+const attributes = useAttrs()
+const buttonVariant = computed(() => attributes.variant ?? 'secondary')
 </script>
