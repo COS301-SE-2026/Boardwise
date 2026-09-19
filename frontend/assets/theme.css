@@ -4675,3 +4675,98 @@ button:disabled,
     top: 80px;
   }
 }
+
+/* ================================================================
+    Add Games To Profile 
+  ================================================================= */
+
+
+.gamesGrid {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--space-4);
+}
+
+.gameCard {
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: .2s ease;
+
+  background: white;
+}
+
+.gameCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.gameCard_selected {
+  border-color: var(--color-primary);
+}
+
+.gameCard_owned {
+    cursor: not-allowed;
+    opacity: .75;
+}
+
+.gameCard_owned:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+
+.gameCard_image {
+    position: relative;
+}
+
+.gameCard_overlay {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+}
+
+.gameCard_ownedOverlay {
+    color: var(--color-text-muted);
+}
+
+.gameCard_content {
+    padding: var(--space-3);
+}
+
+.gameCard_title {
+    margin: 0;
+    font-weight: var(--fw-bold);
+    line-height: var(--lh-tight);
+}
+
+.gameCard_genre {
+    margin: var(--space-1) 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--fs-small);
+}
+
+.duplicate-warning {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin: var(--space-2) 0 0;
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+}
+
+.selected-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+@media (max-width: 600px) {
+  .gamesGrid {
+      grid-template-columns:
+          repeat(2, minmax(0, 1fr));
+  }
+}
