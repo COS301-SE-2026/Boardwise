@@ -220,10 +220,14 @@ onMounted(async () => {
     return;
   }
 
-  await fetchUserListing();
-  await getFriendRequests();
-  await getOwnFriendsList();
-  await refreshUser();
+  await Promise.all([
+    await fetchUserListing(),
+    await getFriendRequests(),
+    await getOwnFriendsList(),
+    await refreshUser(),
+  ]);
+
+
   listenForFriendNotifications((notification) => {
     if(notification.type === NotificationType.FRIEND_REQUEST){
         userFriendRequests.value?.requests.push(notification.request);
