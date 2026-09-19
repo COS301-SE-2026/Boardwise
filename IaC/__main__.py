@@ -386,6 +386,7 @@ docker run -d \
     -e HF_TOKEN="__HF_TOKEN__" \
     -e INTERNAL_SECRET="__INTERNAL_SECRET__" \
     -e CPU_CORES="__CPU_CORES__" \
+    -e SYSTEM_CONTRIBUTOR_ID="__SYSTEM_CONTRIBUTOR_ID__" \
     -e APP_ENV="__APP_ENV__" __IMAGE_URI__
 """
 python_user_data = python_image.image_uri.apply(
@@ -403,7 +404,8 @@ python_user_data = python_image.image_uri.apply(
                         .replace("__DB_NAME__", settings.MONGODB_DATABASE)
                         .replace("__PROD_DB_URL__", settings.MONGODB_URL)
                         .replace("__REGISTRY_URL__", image_uri.split('/')[0])
-                        .replace("__REGION__", aws.get_region().id)
+                        .replace("__REGION__", aws.get_region().region)
+                        .replace("__SYSTEM_CONTRIBUTOR_ID__", settings.SYSTEM_CONTRIBUTOR_ID)
                         .replace("__APP_ENV__", settings.APP_ENV)
 )
 
@@ -491,7 +493,7 @@ spring_user_data = pulumi.Output.all(
                         .replace("__JWT_SECRET__", settings.JWT_SECRET)
                         .replace("__PROD_DB_URL__", settings.MONGODB_URL)
                         .replace("__REGISTRY_URL__", args["image_uri"].split('/')[0])
-                        .replace("__REGION__", aws.get_region().id)
+                        .replace("__REGION__", aws.get_region().region)
                         .replace("__SPRING_PROFILES_ACTIVE__", settings.SPRING_PROFILES_ACTIVE)
 )
 
@@ -517,31 +519,52 @@ scraper_image = awsx.ecr.Image(
     platform="linux/amd64"
 )
 
-# scraper_setup_script = r"""#!/bin/bash
-# yum update -y
-# yum install -y docker
+scraper_setup_script = r"""#!/bin/bash
+yum update -y
+yum install -y docker
 
-# systemctl enable --now docker
+systemctl enable --now docker
 
-# aws ecr get-login-password --region __REGION__ | docker login --username AWS --password-stdin __REGISTRY_URL__
+aws ecr get-login-password --region __REGION__ | docker login --username AWS --password-stdin __REGISTRY_URL__
 
-# docker run -d \
-#     --restart always \
-#     --name scrapers \
-#     -p 8082:8082 \
-#     -e PROD_DB_URL="__PROD_DB_URL__" \
-#     -e DB_NAME="__DB_NAME__" \
-#     -e JWT_SECRET="__JWT_SECRET__" \
-#     -e JWT_ALGORITHM="__JWT_ALGORITHM__" \
-#     -e R2_ACCOUNT_ID="__R2_ACCOUNT_ID__" \
-#     -e R2_BUCKET_RULEBOOKS="__R2_BUCKET_RULEBOOKS__" \
-#     -e R2_ACCESS_KEY="__R2_ACCESS_KEY__" \
-#     -e R2_SECRET_KEY="__R2_SECRET_KEY__" \
-#     -e HF_TOKEN="__HF_TOKEN__" \
-#     -e INTERNAL_SECRET="__INTERNAL_SECRET__" \
-#     -e CPU_CORES="__CPU_CORES__" \
-#     -e APP_ENV="__APP_ENV__" __IMAGE_URI__
-# """
+docker run -d \
+    --restart always \
+    --name scrapers \
+    -p 8082:8082 \
+    -e PROD_DB_URL="__PROD_DB_URL__" \
+    -e INTERNAL_SECRET="__INTERNAL_SECRET__" \
+    -e SPRING_PROFILES_ACTIVE="__SPRING_PROFILES_ACTIVE__" \
+    -e RULEBOOK_PDF_API="__RULEBOOK_PDF_API__" \
+    -e PYTHON_API_BASE_URL="__PYTHON_API_BASE_URL__" __IMAGE_URI__
+"""
+
+scraper_user_data = pulumi.Output.all(
+    image_uri = scraper_image.image_uri,
+    python_ip = python_instance.private_ip
+).apply(
+    lambda args : scraper_setup_script
+                        .replace("__PROD_DB_URL__", settings.MONGODB_URL)
+                        .replace("__INTERNAL_SECRET__", settings.INTERNAL_WEBHOOK_SECRET)
+                        .replace("__SPRING_PROFILES_ACTIVE__", settings.SPRING_PROFILES_ACTIVE)
+                        .replace("__RULEBOOK_PDF_API__", settings.RULEBOOK_PDF_API)
+                        .replace("__PYTHON_API_BASE_URL__", f"http://{args['python_ip']}:8000/api/fa/") # NOSONAR
+                        .replace("__IMAGE_URI__", args['image_uri'])
+                        .replace("__REGISTRY_URL__", args["image_uri"].split('/')[0])
+                        .replace("__REGION__", aws.get_region().region)
+)
+
+scraper_instance = aws.ec2.Instance(
+    f"{RESOURCE_PREFIX}-scraper-service",
+    instance_type="m7i-flex.large",
+    ami=ami.value,
+    subnet_id=public_subnets[0].id,
+    vpc_security_group_ids=[scraper_sg.id],
+    user_data=scraper_user_data,
+    iam_instance_profile=backend_profile.name,
+    associate_public_ip_address=True,
+    tags={"Name": f"{RESOURCE_PREFIX}-scraper-service"},
+    user_data_replace_on_change=True
+)
 
 caddy_setup_script = r"""#!/bin/bash
 yum update -y
@@ -585,14 +608,14 @@ caddy_user_data = pulumi.Output.all(
 )
 
 caddy_instance = aws.ec2.Instance(
-    "boardwise-reverse-proxy",
+    f"{RESOURCE_PREFIX}-reverse-proxy",
     instance_type="t3.micro",
     ami=ami.value,
     vpc_security_group_ids=[caddy_sg.id],
     subnet_id=public_subnets[0].id,
     user_data=caddy_user_data,
     iam_instance_profile=backend_profile.name,
-    tags={"Name": "boardwise-reverse-proxy"},
+    tags={"Name": f"{RESOURCE_PREFIX}-reverse-proxy"},
     user_data_replace_on_change=True
 )
 
