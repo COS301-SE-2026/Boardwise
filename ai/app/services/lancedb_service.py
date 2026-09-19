@@ -12,13 +12,14 @@ _db = None
 _table = None
 
 
-def _build_schema() -> pa.Schema:
-    return pa.Schema(
+def _build_schema() -> pa.schema:
+    return pa.schema(
         [
             pa.field("chunkId", pa.string()),
             pa.field("rulebookId", pa.string()),
             pa.field("content", pa.string()),
-            pa.field("charCount", pa.string()),
+            pa.field("index", pa.int32()),
+            pa.field("charCount", pa.int32()),
             pa.field("vector", pa.list_(pa.float32(), settings.EMBEDDING_DIMENSIONS)),
             pa.field("createdAt", pa.timestamp("us")),
             pa.field("updatedAt", pa.timestamp("us")),
@@ -66,17 +67,29 @@ def ensure_indexes(force_recreate: bool = False) -> None:
         settings.LANCEDB_IVF_PARTITIONS,
     )
 
-    table.create_index(
-        metric="cosine",
-        vector_column_name="vector",
-        index_type="IVF_FLAT",
-        num_partitions=settings.LANCEDB_IVF_PARTITIONS,
-        replace=force_recreate,
-    )
+    try:
+        table.create_index(
+            metric="cosine",
+            vector_column_name="vector",
+            index_type="IVF_FLAT",
+            num_partitions=settings.LANCEDB_IVF_PARTITIONS,
+            replace=force_recreate,
+        )
+    except RuntimeError as e:
+        if "without training" in str(e) or "empty" in str(e).lower():
+            logger.warning(
+                "Skipped vector index creation: Table is empty or too small to train the index. "
+                "LanceDB will use exact KNN search instead"
+            )
+        else:
+            raise
 
     logger.info("Building FTS index on 'content'")
-    table.create_fts_index("content", replace=True)
-    logger.info("LanceDB indexes ready.")
+    try:
+        table.create_fts_index("content", replace=True)
+        logger.info("LanceDB indexes ready.")
+    except Exception as e:
+        logger.error(f"Failed to create FTS index: {e}.")
 
 
 def ping_lancedb() -> None:
@@ -86,14 +99,13 @@ def ping_lancedb() -> None:
 
 
 def is_index_ready() -> bool:
-    """Checks if the table exists and an index has been created on it"""
+    """Checks if the table exists and both vector and FTS indexes are present"""
     try:
         table = get_table()
-        indices = table.list_indices()
-        next(iter(indices))
-        return True
-    except StopIteration:
-        return False
+        indices = [idx.name for idx in table.list_indices()]
+        has_vector_idx = any("vector" in idx for idx in indices)
+        has_fts_idx = any("content" in idx for idx in indices)
+        return has_vector_idx and has_fts_idx
     except Exception:
         logger.exception("Failed LanceDB index readiness check.")
         return False
@@ -168,7 +180,7 @@ def query_vector(rulebook_id: str, query_vector: list[float], limit: int) -> lis
         table.search(query_vector, vector_column_name="vector")
         .where(f"rulebookId = '{rulebook_id}'", prefilter=True)
         .limit(limit)
-        .select(["chunkId", "content", "index", "charCount"])
+        .select(["chunkId", "content", "index", "charCount", "_distance"])
         .to_list()
     )
     return results
