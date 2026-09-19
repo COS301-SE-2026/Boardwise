@@ -19,6 +19,9 @@ const _useMarketplace = () =>{
     //storing listings
     const listings = ref<Array<ListingResponse>>([]); //listings in db
     
+    //store users listings
+    const userListings = ref<Array<ListingResponse>>([]); //listings in db  
+
     //checks if it loads
     const loading = ref(false);
     
@@ -33,11 +36,13 @@ const _useMarketplace = () =>{
 
     let lastSource: 'market' | 'user' = 'market'
 
-    const refresh = () =>
-    (lastSource === 'user'
-        ? fetchUserListing()
-        : fetchListings(activeFilters.value, true)
-    ).catch(() => {});
+    const refresh = () => {
+        firstPage.value = null
+        return Promise.allSettled([
+            fetchUserListing(),
+            fetchListings(activeFilters.value, true),
+        ])
+    }
 
     const fetchListings = async (filters?: {
         listingType?: string | null,
@@ -111,7 +116,7 @@ const _useMarketplace = () =>{
         lastSource = 'user'
         try {
             const res = await MarketplaceService.getUserListings();
-            listings.value = res ?? [];
+            userListings.value = res ?? [];
         } catch (err: any) {
             error.value = err.data?.message ?? 'Failed to fetch user listings';
             show('Failed to fetch user listings', 'error');
@@ -175,7 +180,15 @@ const _useMarketplace = () =>{
         error, 
         fetchListings, 
         fetchListingById, 
-        addListing, fetchUserListing, editListing, removeListing,page,loadMore,hasMore, }
+        addListing,
+        fetchUserListing,
+        editListing, 
+        removeListing,
+        page,
+        loadMore,
+        hasMore,
+        userListings
+     }
 }
 
 export const useMarketplace = createSharedComposable(_useMarketplace)

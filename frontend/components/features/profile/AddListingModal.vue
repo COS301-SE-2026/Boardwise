@@ -22,7 +22,7 @@
           variant="outlined"
           density="compact"
           hide-details="auto"
-          :rules="[requiredRule]"
+          :rules="[listingTitleRule]"
         />
 
         <v-autocomplete
@@ -39,6 +39,7 @@
           :rules="[requiredRule]"
           @update:search="onGameSearch"
         />
+
         <v-text-field
           v-model="version"
           label="Version"
@@ -46,7 +47,7 @@
           variant="outlined"
           density="compact"
           hide-details="auto"
-          :rules="[requiredRule]"
+          :rules="[versionRule]"
         />
 
         <v-select
@@ -96,6 +97,7 @@
               variant="outlined"
               hide-details="auto"
               :rules="[startDateRule]"
+              @keydown="blockManualDateEntry"
             />
             <v-date-input
               v-model="endDate"
@@ -103,6 +105,7 @@
               variant="outlined"
               hide-details="auto"
               :rules="[endDateRule]"
+              @keydown="blockManualDateEntry"
             />
           </div>
           <div v-else>
@@ -169,14 +172,13 @@ import { useBoardGames } from '~/composables/useBoardGames'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseButton from '~/components/ui/BaseButton.vue';
 import BaseTextArea from '~/components/ui/BaseTextArea.vue'
-const { city, suburb, lat, long, error: locationError, loading, findUserLocation } = useUserLocation();
-const {searchGames, games } = useBoardGames();
+
+const { city, suburb, error: locationError, loading, findUserLocation } = useUserLocation();
+const { searchGames, games, gamesLoading } = useBoardGames();
 
 onMounted(() => {
   searchGames()
 })
-
-
 
 let gameSearchTimeout
 const onGameSearch = (query) => {
@@ -230,16 +232,29 @@ watch(useCurrLocation, async (val) => {
   location.value = locationValue.value;
 });
 
-// validation rules 
 const requiredRule = (v) =>
   (v !== null && v !== undefined && String(v).trim() !== '') || 'This field is required';
 
+const listingTitleRule = (v) => {
+  const required = requiredRule(v);
+  if (required !== true) return required;
+  if (String(v).length < 3) return 'Title must be at least 3 characters';
+  if (String(v).length > 100) return 'Title cannot exceed 100 characters';
+  return true;
+};
+
+const versionRule = (v) => {
+  const required = requiredRule(v);
+  if (required !== true) return required;
+  if (String(v).length > 50) return 'Version cannot exceed 50 characters';
+  return true;
+};
 
 const priceRule = (v) => {
   if (v === null || v === undefined || v === '') return 'Enter an amount';
   const n = Number(v);
-  if (Number.isNaN(n)) return 'Enter a valid amount';
-  if (n < 0) return 'Amount cannot be negative';
+  if (!Number.isFinite(n)) return 'Enter a valid amount';
+  if (n <= 0) return 'Amount must be greater than 0';
   return true;
 };
 
@@ -247,6 +262,11 @@ const startOfDay = (d) => {
   const date = new Date(d);
   date.setHours(0, 0, 0, 0);
   return date;
+};
+
+const blockManualDateEntry = (e) => {
+  const allowed = ['Tab', 'Shift', 'Escape', 'Enter'];
+  if (!allowed.includes(e.key)) e.preventDefault();
 };
 
 const startDateRule = (v) => {
@@ -265,7 +285,7 @@ const endDateRule = (v) => {
   return true;
 };
 
-const MAX_FILE_SIZE = 100 * 1024 * 1024;
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 const triggerUpload = () => file_input.value.click();
@@ -278,7 +298,7 @@ const handleFileChange = (e) => {
   if (!ALLOWED_IMAGE_TYPES.includes(toUpload.type)) {
     fileError.value = 'Please upload a JPEG, PNG, WEBP or GIF image.';
   } else if (toUpload.size > MAX_FILE_SIZE) {
-    fileError.value = 'Image must be smaller than 5MB.';
+    fileError.value = `Image must be smaller than ${MAX_FILE_SIZE / 1024 / 1024}MB.`;
   }
 
   if (fileError.value) {
@@ -299,14 +319,16 @@ const closeModal = () => {
   gameTitle.value = '';
   version.value = '';
   description.value = '';
-  selectedCondition.value = '';
-  selectedItemType.value = '';
+  selectedCondition.value = null;
+  selectedItemType.value = null;
   listingType.value = 'sell';
   price.value = '';
   negotiable.value = false;
   location.value = '';
   fileName.value = '';
   file.value = null;
+  startDate.value = null;
+  endDate.value = null;
   useCurrLocation.value = false;
   submitError.value = '';
   fileError.value = '';
@@ -324,14 +346,6 @@ function getRentalPeriod() {
   return [fmt(startDate.value), fmt(endDate.value)];
 }
 
-function getValidItemType() {
-  return selectedItemType.value.toLowerCase();
-}
-
-function getValidCondition() {
-  return selectedCondition.value.toLowerCase();
-}
-
 const handleConfirm = async () => {
   submitError.value = '';
 
@@ -339,6 +353,11 @@ const handleConfirm = async () => {
   if (!valid) return;
 
   if (fileError.value) return;
+
+  if (!file.value) {
+    fileError.value = 'Please upload an image';
+    return;
+  }
 
   isLoading.value = true;
 
@@ -348,8 +367,8 @@ const handleConfirm = async () => {
       gameTitle: gameTitle.value,
       listingType: listingType.value === 'rent' ? 'rental' : 'sale',
       price: Number(price.value),
-      itemType: getValidItemType(),
-      condition: getValidCondition(),
+      itemType: selectedItemType.value.toLowerCase(),
+      condition: selectedCondition.value.toLowerCase(),
       version: version.value,
       location: location.value,
       description: description.value,
@@ -373,7 +392,7 @@ const handleConfirm = async () => {
 
 const conditions = ['New', 'Like New', 'Good', 'Fair'];
 
-const itemTypes = ["Merch", "Full Boardgame", "Partial Boardgame", "Pieces"];
+const itemTypes = ['Merch', 'Full Boardgame', 'Partial Boardgame', 'Pieces'];
 
 </script>
 

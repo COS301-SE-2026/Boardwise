@@ -39,7 +39,7 @@
 
         <v-window-item value="Listings">
           <ListingsSection 
-            :listings="listings"
+            :listings="userListings"
             :editable="true"
             @deleted="fetchUserListing" 
             @updated="fetchUserListing"
@@ -107,7 +107,7 @@ import { useRouter } from 'vue-router'
 import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 
 const { fetchCurrentUser, removeGame } = useProfile();
-const { listings, fetchUserListing, loading } = useMarketplace();
+const { userListings, fetchUserListing, loading } = useMarketplace();
 const {  isLoading, respondToFriendRequest, unfriendUser, getFriendRequests, getOwnFriendsList, userFriendList, listenForFriendNotifications, userFriendRequests } = useFriends()
 const { show } = useSnackBar();
 const router = useRouter();
