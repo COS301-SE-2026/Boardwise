@@ -56,3 +56,27 @@ def ping_r2_storage():
     except ClientError:
         logger.exception("R2 Connection failed")
         raise
+
+
+def download_from_r2(r2_key: str) -> bytes | None:
+    """
+    Downloads raw bytes from the R2 bucket for the given key.
+    Returns: The file bytes if successful, or None if the download fails.
+    """
+    if not r2_key:
+        logger.error("R2 download failed: No key provided.")
+        return None
+
+    try:
+        response = s3.get_object(Bucket=settings.R2_BUCKET_RULEBOOKS, Key=r2_key)
+        file_bytes = response["Body"].read()
+        logger.info("Successfully downloaded %s from R2.", r2_key)
+        return file_bytes
+    except ClientError as e:
+        logger.error(
+            "Failed to download %s from R2: %s", r2_key, e.response["Error"]["Message"]
+        )
+        return None
+    except Exception:
+        logger.exception("Unexpected error downloading %s from R2", r2_key)
+        return None

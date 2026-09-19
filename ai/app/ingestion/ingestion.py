@@ -63,7 +63,7 @@ def run_ingestion_pipeline(
         # =========== Stage 2: Extract ===========
         mongo_service.update_ingestion_job(job_id, "Extract", "Processing")
 
-        extract_success, extracted_text, extract_reason = extract_text(file_bytes)
+        extract_success, extracted_text, extract_reason, blocks_cache = extract_text(file_bytes, rulebook_id)
 
         if not extract_success:
             mongo_service.mark_pipeline_failed(
@@ -74,7 +74,7 @@ def run_ingestion_pipeline(
         # =========== Stage 3: Chunk ===========
         mongo_service.update_ingestion_job(job_id, "Chunk", "Processing")
 
-        chunk_success, chunk_list, chunk_reason = generate_chunks(extracted_text)
+        chunk_success, chunk_list, chunk_reason = generate_chunks(blocks_cache)
 
         if not chunk_success:
             mongo_service.mark_pipeline_failed(
@@ -101,6 +101,12 @@ def run_ingestion_pipeline(
 
         pdf_upload = r2_service.upload_to_r2(
             file_bytes, pdf_key, content_type="application/pdf"
+        )
+        debug_key = f"rulebooks/{rulebook_id}/raw_extracted.md"
+        r2_service.upload_to_r2(
+            extracted_text.encode("utf-8"),
+            debug_key,
+            content_type="text/markdown"
         )
 
         if not pdf_upload:
