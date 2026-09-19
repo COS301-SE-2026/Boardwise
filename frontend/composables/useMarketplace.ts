@@ -134,11 +134,13 @@ const _useMarketplace = () =>{
             await MarketplaceService.updateListing(id, listingData, image);
             await refresh()
             show('Successfully updated your listing!')
+            return true;
         } catch (err: any) {
             console.error('Status:', err.status);
             console.error('Response data:', err.response?.data);
             error.value = err.response?.data?.message ?? 'Failed to update listing';
             show('Could not update your listing, Try Again', 'error');
+            return false;
         } finally {
             loading.value = false;
         }

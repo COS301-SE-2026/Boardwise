@@ -17,15 +17,15 @@
 
       <ProfileCommunities :communities="user.communities" />
 
-      <v-tabs
-        v-model="activeTab"
-        color="primary"
-        class="mb-4"
-      >
-        <v-tab value="Games Owned">Games Owned</v-tab>
-        <v-tab value="Listings">Listings</v-tab>
-      </v-tabs>
+       <BaseTabs
+                :tabs="['Games Owned', 'Listings']"
+                :active-tab="activeTab"
+                aria-label="Details sections"
+                class="mb-4"
+                @change="activeTab = $event"
+            >
 
+      </BaseTabs>
       <v-window v-model="activeTab">
 
         <v-window-item value="Games Owned">
@@ -105,6 +105,7 @@ import { NotificationType } from "~/services/friendService";
 
 import { useRouter } from 'vue-router'
 import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
+import BaseTabs from '~/components/ui/BaseTabs.vue'
 
 const { fetchCurrentUser, removeGame } = useProfile();
 const { userListings, fetchUserListing, loading } = useMarketplace();
@@ -221,10 +222,10 @@ onMounted(async () => {
   }
 
   await Promise.all([
-    await fetchUserListing(),
-    await getFriendRequests(),
-    await getOwnFriendsList(),
-    await refreshUser(),
+    fetchUserListing(),
+    getFriendRequests(),
+    getOwnFriendsList(),
+    refreshUser(),
   ]);
 
 
