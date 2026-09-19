@@ -7,6 +7,10 @@ const { show } = useSnackBar()
 
 const _useMarketplace = () =>{
 
+    const firstPage = useState<{ listings: ListingResponse[]; hasMore: boolean } | null>(
+        'marketplace-first-page', () => null
+    )
+
     //page paramters
     const page = ref(0)
     const hasMore = ref(true)
@@ -27,6 +31,13 @@ const _useMarketplace = () =>{
         if (!loading.value && hasMore.value) fetchListings(activeFilters.value, false)
     }
 
+    let lastSource: 'market' | 'user' = 'market'
+
+    const refresh = () =>
+    (lastSource === 'user'
+        ? fetchUserListing()
+        : fetchListings(activeFilters.value, true)
+    ).catch(() => {});
 
     const fetchListings = async (filters?: {
         listingType?: string | null,
@@ -37,33 +48,45 @@ const _useMarketplace = () =>{
         page?: number,
         size?: number,
         gameTitle?: string | null,
-        listingTitle?: string| null
+        listingTitle?: string | null
+    }, reset = false) => {
+        lastSource = 'market'
 
-    }, reset = false)=> {
-        if(reset){
+        const isDefault = !filters || Object.values(filters).every(v => v == null)
+        const cached = reset && isDefault ? firstPage.value : null
+
+        if (reset) {
             activeFilters.value = filters ?? {}
-            page.value = 0;
-            listings.value = [];
-            hasMore.value = true;
+            page.value = 0
+            hasMore.value = true
+            listings.value = cached?.listings ?? []
         }
+
         if (!hasMore.value) return
-        loading.value = true;
+
+        loading.value = !cached
         try {
             const res = await MarketplaceService.getListings({
                 ...activeFilters.value,
                 page: page.value,
                 size: pageSize
-            });
-            listings.value = reset ? res.content : [...listings.value, ...res.content];
-            hasMore.value = !res.last;
-            page.value += 1;
-        } catch(err) {
-                show('Failed to find any listings!', 'error');
-                throw err;
+            })
+
+            listings.value = reset ? res.content : [...listings.value, ...res.content]
+            hasMore.value = !res.last
+            page.value += 1
+
+            if (reset && isDefault) {
+                firstPage.value = { listings: res.content, hasMore: !res.last }
+            }
+            
+        } catch (err) {
+            show('Failed to find any listings!', 'error')
+            throw err
         } finally {
-            loading.value = false;
+            loading.value = false
         }
-    };
+    }
 
     const addListing = async (listingData: any, image: File)=>{
         loading.value = true;
@@ -71,6 +94,7 @@ const _useMarketplace = () =>{
         try{
             await MarketplaceService.createListing(listingData,image);
             show('Listing successfully created!');
+            await refresh();
         }catch(err){
             console.error(err);
             show('Failed to create listing', 'error');
@@ -84,7 +108,7 @@ const _useMarketplace = () =>{
     const fetchUserListing = async () => {
         loading.value = true;
         error.value = null;
-
+        lastSource = 'user'
         try {
             const res = await MarketplaceService.getUserListings();
             listings.value = res ?? [];
@@ -98,10 +122,12 @@ const _useMarketplace = () =>{
     }
 
     const editListing = async (id: string, listingData: any, image?: File) => {
+        lastSource = 'user'
         loading.value = true;
         error.value = null;
         try {
             await MarketplaceService.updateListing(id, listingData, image);
+            await refresh()
             show('Successfully updated your listing!')
         } catch (err: any) {
             console.error('Status:', err.status);
@@ -118,6 +144,7 @@ const _useMarketplace = () =>{
         error.value = null;
         try {
             await MarketplaceService.deleteListing(id);
+            await refresh();
             show('Listing deleted successfully!');
         } catch (err: any) {
             error.value = err.data?.message ?? 'Failed to delete listing';

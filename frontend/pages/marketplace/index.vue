@@ -216,7 +216,6 @@ const handleAdd = async (data, image) => {
   await addListing(data, image);
   showCreateListing.value = false;
   communityPage.value = 1;
-  fetchListings(activeFilterState.value, true);
 }
 
 const showInlineLoading = computed(() => {
