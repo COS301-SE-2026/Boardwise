@@ -19,18 +19,14 @@
                 :conversation="selectedConversation"
                 :show-back="mobileConversationOpen"
                 :token="token"
-                @back="mobileConversationOpen = false"
+                @back="handleMobileBack"
             />
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import {
-    computed,
-    onMounted,
-    ref
-} from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 import ChatSidebar from './ChatSidebar.vue'
 import ChatWindow from './ChatWindow.vue'
@@ -51,7 +47,8 @@ const {
     currentChat,
     getChats,
     startNewConversation,
-    pendingChat
+    pendingChat,
+    sendDirectMessage
 } = usePrivateChat()
 
 const { onReconnectHook } = useStomp()
@@ -74,6 +71,11 @@ onMounted(async () => {
 
     if(route.query.newChat){
         await startNewConversation(route.query.newChat as string)
+        const listing = localStorage.getItem('queried-listing')
+        if(listing){
+            
+        }
+
         router.replace({ query: {} })
     }
 
@@ -127,10 +129,17 @@ const selectConversation = (id: string) => {
                     true :
                     convo.isOnline
     
+    convo.unread = convo.unread ? false : convo.unread
     convo.isOnline = online
     selectedId.value = id
     mobileConversationOpen.value = true
     currentChat.value = convo.isInvite ? null : convo
+}
+
+const handleMobileBack = () => {
+    if(currentChat.value)
+        currentChat.value = null
+    mobileConversationOpen.value = false
 }
 
 </script>

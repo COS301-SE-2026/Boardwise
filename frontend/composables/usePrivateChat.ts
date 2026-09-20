@@ -78,10 +78,6 @@ export const usePrivateChat = () => {
                 lastMessageTime.value
             );
 
-            currentChat.value = chats.value.find((el) => {
-                return el.id == targetId;
-            })
-
             messages.value = res.sort((a, b) => {
                 return new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime();
             });
@@ -114,7 +110,7 @@ export const usePrivateChat = () => {
                     unread: false
                 }
                 return newChat;
-            });
+            }).sort((a, b) =>  new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
             
             for(const chat of chats.value){
                 listenForPresence(chat.userId);
@@ -133,14 +129,14 @@ export const usePrivateChat = () => {
     const listenForMessages = () => {
         if(!token) return;
 
-        subscribe(dest, async (message: DirectMessageDTO) => {            
+        subscribe(dest, async (message: DirectMessageDTO) => {
             // check for that we have this chat open and that is a server echo or not
             const myUserId = jwtDecode<{sub: string}>(token).sub;
-            const fromPartner = message.senderId == currentChat.value?.userId;
-            const serverEcho = message.senderId == myUserId;
+            const fromPartner = message.senderId === currentChat.value?.userId;
+            const serverEcho = message.senderId === myUserId;
             
             if(fromPartner || serverEcho ){
-                
+
                 const eIdx = messages.value.findIndex((el) => {
                     return el.id === message.id && el.senderId === myUserId;
                 })
@@ -171,35 +167,35 @@ export const usePrivateChat = () => {
                 chats.value.splice(eId, 1);
                 convo.lastMessage = message.message;
                 convo.lastMessageAt = message.sentAt;
+                convo.unread = !fromPartner && !serverEcho;
                 chats.value.unshift(convo);
             }
             else{
-                
-                const convo: Conversation = {
-                    id: convoId,
-                    userId: message.senderId,
-                    username: "",
-                    profilePicture: "",
-                    isOnline: true,
-                    lastMessage: message.message,
-                    lastMessageAt: message.sentAt,
-                    unread: true
-                }
-
-                chats.value.unshift(convo);
-
+        
                 try{
+                    const convo: Conversation = {
+                        id: convoId,
+                        userId: message.senderId,
+                        username: "",
+                        profilePicture: "",
+                        isOnline: true,
+                        lastMessage: message.message,
+                        lastMessageAt: message.sentAt,
+                        unread: true
+                    }
+
                     const sender: ProfileResponse | undefined = await fetchUserById(convo.userId);
                 
                     if(sender){
                         convo.username = sender.username;
                         convo.profilePicture = sender.profilePicture;
                     }
+
+                    chats.value.unshift(convo);
                 }
                 catch(err){
                     console.error("[Private chat composable]: Making request for user data failed:", err);
                 }
-               
             }
         });
     }
@@ -293,7 +289,7 @@ export const usePrivateChat = () => {
             messages.value = [];
         }
         catch(err){
-            
+            show("Something went wrong when starting a conversation with this user", "error");
         }
 
     }

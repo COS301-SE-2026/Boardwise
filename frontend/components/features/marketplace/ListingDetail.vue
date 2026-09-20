@@ -61,9 +61,21 @@ const props = defineProps({
 
 const handleClick = () => {
   console.log('Listing.userId: ', props.listing.userId, props.listing)
+  const listing = {
+    listingId: props.listing.listingId,
+    listingImage: props.listing.imageUrl,
+    listingTitle: props.listing.listingTitle,
+    listingPrice: props.listing.price
+  }
+
+  const listingStr = JSON.stringify(listing)
+  localStorage.setItem('queried-listing', listingStr);
+
   router.push({
     path: '/chats',
-    query: { newChat: props.listing.userId }
+    query: { 
+      newChat: props.listing.userId
+    }
   })
 }
 </script>
