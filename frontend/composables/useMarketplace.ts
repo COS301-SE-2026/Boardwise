@@ -34,8 +34,6 @@ const _useMarketplace = () =>{
         if (!loading.value && hasMore.value) fetchListings(activeFilters.value, false)
     }
 
-    let lastSource: 'market' | 'user' = 'market'
-
     const refresh = () => {
         firstPage.value = null
         return Promise.allSettled([
@@ -55,7 +53,6 @@ const _useMarketplace = () =>{
         gameTitle?: string | null,
         listingTitle?: string | null
     }, reset = false) => {
-        lastSource = 'market'
 
         const isDefault = !filters || Object.values(filters).every(v => v == null)
         const cached = reset && isDefault ? firstPage.value : null
@@ -113,7 +110,6 @@ const _useMarketplace = () =>{
     const fetchUserListing = async () => {
         loading.value = true;
         error.value = null;
-        lastSource = 'user'
         try {
             const res = await MarketplaceService.getUserListings();
             userListings.value = res ?? [];
@@ -127,7 +123,6 @@ const _useMarketplace = () =>{
     }
 
     const editListing = async (id: string, listingData: any, image?: File) => {
-        lastSource = 'user'
         loading.value = true;
         error.value = null;
         try {
