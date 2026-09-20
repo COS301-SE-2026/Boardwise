@@ -54,6 +54,7 @@ import com.boardwise.backend.user_service.enums.NotificationType;
 import com.boardwise.backend.user_service.events.FriendEvent;
 import com.boardwise.backend.user_service.events.payload.FriendEventPayload;
 import com.boardwise.backend.user_service.models.*;
+import com.boardwise.backend.user_service.models.user_preferences.Preferences;
 import com.boardwise.backend.user_service.repository.FriendShipRepository;
 import com.boardwise.backend.user_service.repository.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repository.GroupRepository;
