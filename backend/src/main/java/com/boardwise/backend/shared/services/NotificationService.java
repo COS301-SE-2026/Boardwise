@@ -5,17 +5,8 @@ import org.springframework.messaging.simp.user.SimpUser;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import com.boardwise.backend.user_service.dtos.notifications.ChatNotification;
-import com.boardwise.backend.user_service.dtos.notifications.FriendConfirmationNotification;
-import com.boardwise.backend.user_service.dtos.notifications.FriendRequestNotification;
-import com.boardwise.backend.user_service.dtos.notifications.InviteNotification;
 import com.boardwise.backend.user_service.dtos.notifications.NotificationDTO;
 import com.boardwise.backend.user_service.enums.NotificationType;
-import com.boardwise.backend.user_service.models.ChatMessageData;
-import com.boardwise.backend.user_service.models.EventInviteData;
-import com.boardwise.backend.user_service.models.FriendConfirmationData;
-import com.boardwise.backend.user_service.models.FriendRequestData;
-import com.boardwise.backend.user_service.models.NotificationData;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -71,15 +62,5 @@ public class NotificationService {
     public Boolean isOnline(String userId){
         SimpUser user = userRegistry.getUser(userId);
         return user != null && !user.getSessions().isEmpty();
-    }
-
-    private NotificationData makeNotificationData(NotificationDTO notification){
-        return switch(notification){
-            case ChatNotification dto -> new ChatMessageData(dto.senderId(), dto.message());
-            case FriendConfirmationNotification dto -> new FriendConfirmationData(dto.friend());
-            case FriendRequestNotification dto -> new FriendRequestData(dto.request());
-            case InviteNotification dto -> new EventInviteData(dto.host(), dto.event());
-            default -> null;
-        };
     }
 }
