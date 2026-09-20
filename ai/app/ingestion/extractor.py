@@ -1,3 +1,4 @@
+import base64
 import io
 import json
 import logging
@@ -37,7 +38,7 @@ def extract_text(file_bytes: bytes, rulebook_id: str) -> tuple[bool, str, str, d
                 "extractorVersion": "tier2-v1",
                 "blocks": [],
             }
-            
+
             used_tier3 = False
 
             if _fails_quality_check(md_dicts):
@@ -75,6 +76,29 @@ def extract_text(file_bytes: bytes, rulebook_id: str) -> tuple[bool, str, str, d
         return (False, "", "Internal error occurred during text extraction.", {})
 
 
+def _extract_text_from_raw_block(raw_block: dict) -> str:
+    """Helper to extract plain text from a PyMuPDF text block for caption heuristics."""
+    if raw_block.get("type") != 0:
+        return ""
+
+    lines = raw_block.get("lines", [])
+    if not isinstance(lines, list):
+        return ""
+
+    content_lines = []
+    for line in lines:
+        if not isinstance(line, dict):
+            continue
+        span_texts = []
+        for span in line.get("spans", []):
+            if isinstance(span, dict):
+                span_texts.append(span.get("text", ""))
+        content_lines.append("".join(span_texts))
+
+    # Join with spaces instead of newlines for a beter caption preview
+    return " ".join(content_lines).strip()
+
+
 def _map_to_blocks(page_dict: dict[str, Any], rulebook_id: str) -> list[dict]:
     """Transforms a page dictionary into the block-level schema"""
     blocks = []
@@ -86,6 +110,32 @@ def _map_to_blocks(page_dict: dict[str, Any], rulebook_id: str) -> list[dict]:
     if not isinstance(raw_blocks, list):
         raw_blocks = []
 
+    # Calculate the median font size for the page such that a baseline size can be established
+    font_sizes = []
+    for raw_block in raw_blocks:
+        if isinstance(raw_block, dict) and raw_block.get("type") == 0:
+            for line in raw_block.get("lines", []):
+                if isinstance(line, dict):
+                    for span in line.get("spans", []):
+                        if isinstance(span, dict) and "size" in span:
+                            font_sizes.append(span["size"])
+
+    if font_sizes:
+        font_sizes.sort()
+        median_size = font_sizes[len(font_sizes) // 2]
+    else:
+        median_size = 11.0  # Fallback
+
+    def _block_sort_key(block: Any) -> tuple[float, float]:
+        if isinstance(block, dict):
+            bbox = block.get("bbox")
+            if isinstance(bbox, (list, tuple)) and len(bbox) >= 2:
+                return ((float(bbox[1])), float(bbox[0]))
+        # Invalid blocks pushed to the end
+        return ((float("inf")), float("inf"))
+
+    raw_blocks.sort(key=_block_sort_key)
+
     for order, raw_block in enumerate(raw_blocks):
         if not isinstance(raw_block, dict):
             continue
@@ -96,39 +146,99 @@ def _map_to_blocks(page_dict: dict[str, Any], rulebook_id: str) -> list[dict]:
         confidence = 1.0
         image_url = None
         heading_level = None
+        block_max_size = 0.0
 
         if raw_block.get("type") == 1:  # Image block in pymupdf
             block_type = "image"
             image_bytes = raw_block.get("image")
             image_ext = raw_block.get("ext", "png")
 
-            image_key = f"rulebooks/{rulebook_id}/pending_image_{block_id}.{image_ext}"
+            image_key = f"rulebooks/{rulebook_id}/images/{page_num}_{order}.{image_ext}"
             image_url = f"{settings.R2_RULEBOOKS_URL}{image_key}"
             confidence = 0.95
 
             if image_bytes:
                 upload_to_r2(image_bytes, image_key, f"image/{image_ext}")
 
+            caption_text = ""
+
+            # Look ahead to next block
+            if (order + 1) < len(raw_blocks):
+                next_text = _extract_text_from_raw_block(raw_blocks[order + 1])
+
+                # Checking if it looks like a caption (short text or is explicitly labeled)
+                if next_text and (
+                    len(next_text) < 200
+                    or next_text.lower().startswith(("fig", "image", "table"))
+                ):
+                    caption_text = next_text
+
+            # Look behind (above) if nothing was found below
+            if not caption_text and (order - 1 >= 0):
+                prev_text = _extract_text_from_raw_block(raw_blocks[order - 1])
+                if prev_text and (
+                    len(prev_text) < 200
+                    or prev_text.lower().startswith(("fig", "image", "table"))
+                ):
+                    caption_text = prev_text
+
+            content = caption_text if caption_text else f"[Image on page {page_num}]"
+
         elif raw_block.get("type") == 0:  # Text block
             lines = raw_block.get("lines", [])
             if isinstance(lines, list):
-                content = "\n".join(
-                    "".join(
-                        span.get("text", "")
-                        for span in line.get("spans", [])
-                        if isinstance(span, dict)
-                    )
-                    for line in lines
-                    if isinstance(line, dict)
-                )
+                content_lines = []
+                for line in lines:
+                    if not isinstance(line, dict):
+                        continue
 
-            if content.startswith("#"):
-                block_type = "heading"
-                match = re.match(r"^#+", content)
-                heading_level = len(match.group(0)) if match else 1
-            elif "|" in content and content.count("|") > 3:
-                block_type = "table"
-                confidence = 0.7
+                    span_texts = []
+                    for span in line.get("spans", []):
+                        if isinstance(span, dict):
+                            span_texts.append(span.get("text", ""))
+                            size = span.get("size", 0.0)
+                            block_max_size = max(block_max_size, size)
+
+                    content_lines.append("".join(span_texts))
+                content = "\n".join(content_lines)
+
+            pre_assigned = raw_block.get("pre_assigned_type")
+            if pre_assigned:
+                block_type = pre_assigned
+                if block_type == "heading":
+                    heading_level = 2
+                elif block_type == "table":
+                    confidence = 0.7
+            else:
+                # Determining if it is a heading based on font size threshold
+                if block_max_size > (median_size + 1.5):
+                    block_type = "heading"
+                    if block_max_size > median_size + 6.0:
+                        heading_level = 1
+                    elif block_max_size > median_size + 3.0:
+                        heading_level = 2
+                    else:
+                        heading_level = 3
+                elif "|" in content and content.count("|") > 3:
+                    block_type = "table"
+                    confidence = 0.7
+                elif block_type == "paragraph" and content.strip():
+                    # Check for standard bullets or numbering patterns at the start of the block
+                    list_pattern = r"^\s*([\u2022\u25E6\u25A0\*\-\·\▪]|\d+[\.\)])\s+"
+                    if re.match(list_pattern, content):
+                        block_type = "list"
+
+            if block_type == "paragraph" and content.strip():
+                content_upper = content.upper()
+                is_short = len(content) < 100
+
+                has_trademark = any(s in content for s in ["™", "®", "©"])
+                is_toc = content_upper in ["CONTENTS", "TABLE OF CONTENTS"]
+                # Catches short, all-caps lines usually found on the first few pages
+                is_title_caps = is_short and content.isupper() and page_num <= 3
+
+                if has_trademark or is_toc or is_title_caps:
+                    block_type = "decorative"
 
         if block_type == "table":
             pass
@@ -191,9 +301,9 @@ def _escalate_to_tier_3(file_bytes: bytes) -> list[dict]:
         logger.error("Unstructured api url is absent")
         return []
     headers = {}
-    
-    if hasattr(settings, "INTERNAL_WEBHOOK_SECRET") and settings.INTERNAL_WEBHOOK_SECRET:
-        headers["unstructured-api-key"] = settings.INTERNAL_WEBHOOK_SECRET
+
+    if hasattr(settings, "UNSTRUCTURED_API_KEY") and settings.UNSTRUCTURED_API_KEY:
+        headers["unstructured-api-key"] = settings.UNSTRUCTURED_API_KEY
 
     try:
         response = requests.post(
@@ -202,7 +312,11 @@ def _escalate_to_tier_3(file_bytes: bytes) -> list[dict]:
             files={
                 "files": ("rulebook.pdf", io.BytesIO(file_bytes), "application/pdf")
             },
-            data={"strategy": "hi_res", "pdf_infer_table_structure": "true"},
+            data={
+                "strategy": "hi_res",
+                "pdf_infer_table_structure": "true",
+                "extract_image_block_to_payload": "true",
+            },
             timeout=120,
         )
         response.raise_for_status()
@@ -213,16 +327,41 @@ def _escalate_to_tier_3(file_bytes: bytes) -> list[dict]:
             page_num = el.get("metadata", {}).get("page_number", 1)
 
             if page_num not in pages:
-                pages[page_num] = {"text": "", "blocks": []}
-
-            mapped_type = 1 if el.get("type") == "Image" else 0
-
-            pages[page_num]["blocks"].append(
-                {
-                    "type": mapped_type,
-                    "lines": [{"spans": [{"text": el.get("text", "")}]}],
+                pages[page_num] = {
+                    "text": "",
+                    "blocks": [],
+                    "metadata": {"page": page_num},
                 }
-            )
+
+            unstructured_type = el.get("type")
+            mapped_type = 1 if unstructured_type == "Image" else 0
+
+            type_mapping = {
+                "Title": "heading",
+                "Table": "table",
+                "ListItem": "list",
+                "Image": "image",
+            }
+            pre_assigned = type_mapping.get(unstructured_type, "paragraph")
+
+            block_dict = {
+                "type": mapped_type,
+                "pre_assigned_type": pre_assigned,
+                "lines": [{"spans": [{"text": el.get("text", "")}]}],
+            }
+
+            if mapped_type == 1:
+                b64_image = el.get("metadata", {}).get("image_base64")
+                if b64_image:
+                    try:
+                        block_dict["image"] = base64.b64decode(b64_image)
+                        block_dict["ext"] = "jpeg"
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to decode Tier-3 image payload on page {page_num}: {e}"
+                        )
+
+            pages[page_num]["blocks"].append(block_dict)
 
         return [pages[p] for p in sorted(pages.keys())]
     except requests.exceptions.Timeout:

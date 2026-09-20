@@ -16,6 +16,7 @@ class Settings:
     JWT_ALGORITHM: str | None = os.getenv("JWT_ALGORITHM", "HS512")
     R2_ACCOUNT_ID: str | None = os.getenv("R2_ACCOUNT_ID")
     R2_BUCKET_RULEBOOKS: str | None = os.getenv("R2_BUCKET_RULEBOOKS")
+    R2_RULEBOOKS_URL: str | None = os.getenv("R2_RULEBOOKS_PUBLIC_PROD_URL")
     R2_ACCESS_KEY: str | None = os.getenv("R2_ACCESS_KEY")
     R2_SECRET_KEY: str | None = os.getenv("R2_SECRET_KEY")
     R2_ENDPOINT_URL: str = (f"https://{os.getenv('R2_ACCOUNT_ID')}.r2.cloudflarestorage.com")
@@ -28,6 +29,8 @@ class Settings:
     EMBEDDING_DIMENSIONS: int = int(os.getenv("EMBEDDING_DIMENSIONS", "512"))
     LANCEDB_IVF_PARTITIONS: int = int(os.getenv("LANCEDB_IVF_PARTITIONS", "256"))
     LANCEDB_CANDIDATES: int = int(os.getenv("LANCEDB_CANDIDATES", "25"))
+    UNSTRUCTURED_API_URL: str | None = (os.getenv("UNSTRUCTURED_PROD_URL") if environment == "prod" else os.getenv("UNSTRUCTURED_DEV_URL"))
+    UNSTRUCTURED_API_KEY: str | None = os.getenv("INTERNAL_SECRET")
 
 
 settings = Settings()
