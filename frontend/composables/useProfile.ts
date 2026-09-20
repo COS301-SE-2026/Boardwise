@@ -185,9 +185,37 @@ export const useProfile = () => {
         } finally {
             isLoading.value = false;
         }
-
-
     };
 
-    return { isLoading, fetchCurrentUser, fetchUserById, updateProfile, updateProfilePicture, addGame, removeGame, searchGames ,addExistingGame, createGame, error }
+    const fetchUserPresence = async (userId: string) => {
+        isLoading.value = true;
+        error.value = ''
+        try {
+            const res = await userService.getUserPresence(userId);
+            return res.isOnline;
+        } catch (err: any) {
+            error.value = "Failed to add game";
+            if (err.response?.status === 401) {
+                router.push('/auth/signin');
+            }
+            throw err;
+        } finally {
+            isLoading.value = false;
+        }
+    }
+
+    return { 
+        isLoading, 
+        fetchCurrentUser, 
+        fetchUserPresence, 
+        fetchUserById, 
+        updateProfile, 
+        updateProfilePicture, 
+        addGame, 
+        removeGame, 
+        searchGames,
+        addExistingGame, 
+        createGame, 
+        error 
+    }
 }

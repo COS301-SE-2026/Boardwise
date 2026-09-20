@@ -1,5 +1,6 @@
 import { useStomp } from '~/composables/useStomp';
 import { useProfile } from '~/composables/useProfile';
+import { useSnackBar } from '~/composables/useSnackbar';
 import { onUnmounted, computed } from 'vue';
 import { type DirectMessageDTO, ChatService } from '~/services/chatService';
 import { jwtDecode } from 'jwt-decode';
@@ -37,10 +38,12 @@ const messages = ref<Array<DirectMessageDTO>>([]);
 const watchedPresenceUsers = new Set<string>();
 
 export const usePrivateChat = () => {
+    const { show } = useSnackBar();
     const { isConnected, subscribe, unsubscribe, sendPrivateMessage } = useStomp();
-    const { fetchUserById } = useProfile();
+    const { fetchUserById, fetchUserPresence } = useProfile();
     const dest = "/user/queue/chat";
     const token = localStorage.getItem("access_token");
+    const pendingChat = ref<Conversation | null>(null);
 
     const lastMessageTime = computed(() =>{
         if(messages.value.length === 0) return null;
@@ -105,22 +108,13 @@ export const usePrivateChat = () => {
 
         try{
             const response = await ChatService.getConversations();
-            const fetchedChats = response.map((el) => {                
+            chats.value = response.map((el) => {                
                 const newChat: Conversation = {
                     ...el,
                     unread: false
                 }
                 return newChat;
             });
-
-            const unsavedChats = chats.value.filter( el => 
-                !fetchedChats.some((fetched) => fetched.id === el.id) &&
-                (!el.lastMessage || el.lastMessage === "")
-            );
-
-            chats.value = [...unsavedChats, ...fetchedChats].sort((a, b) => 
-                new Date(a.lastMessageAt).getTime() - new Date(b.lastMessageAt).getTime()
-            );
             
             for(const chat of chats.value){
                 listenForPresence(chat.userId);
@@ -233,6 +227,13 @@ export const usePrivateChat = () => {
     const sendDirectMessage = (msg: DirectMessageDTO) => {
         if(!token) return;
 
+        if(pendingChat.value && pendingChat.value.id === currentChat.value?.id){
+            pendingChat.value.lastMessage = msg.message;
+            pendingChat.value.lastMessageAt = msg.sentAt;
+            chats.value.unshift(pendingChat.value);
+            pendingChat.value = null;
+        }
+
         messages.value.push(msg);
         messages.value.sort((a, b) => {
             return new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime();
@@ -252,34 +253,49 @@ export const usePrivateChat = () => {
         if(!senderId) return;
 
         const convoId = generateConversationId(senderId, receiverId);
-        let chat = chats.value.find((el) => {
+        let chat: Conversation | undefined = chats.value.find((el) => {
             return el.id === convoId;
-        })  
+        });  
 
         if(chat){
-            chats.value = chats.value.filter((el) => el.id !== convoId)
-            chats.value.unshift(chat)
+            chats.value = chats.value.filter((el) => el.id !== convoId);
+            chats.value.unshift(chat);
+            currentChat.value = chat;
+            pendingChat.value = null;
+            messages.value = [];
+            return;
         }
-        else{
-            const { fetchUserById } = useProfile();
-            const sender: ProfileResponse | undefined = await fetchUserById(receiverId);
 
-            if(!sender) return;
+        try{
+            const receiver: ProfileResponse | undefined = await fetchUserById(receiverId);
+        
+            if(!receiver) {
+                show("That user is no longer on boardwise", "info");
+                return;
+            }
+
+            const receiverOnline: boolean = await fetchUserPresence(receiverId);
+            listenForPresence(receiverId);
 
             chat = {
                 id: convoId,
                 userId: receiverId,
-                username: sender.username,
-                profilePicture: sender.profilePicture,
-                isOnline: false,
+                username: receiver.username,
+                profilePicture: receiver.profilePicture,
+                isOnline: receiverOnline,
                 lastMessage: "",
                 lastMessageAt: new Date().toISOString(),
                 unread: false
-            }
-            chats.value.unshift(chat);
+            };
+
+            pendingChat.value = chat;
+            currentChat.value = chat;
+            messages.value = [];
         }
-        currentChat.value = chat;
-        messages.value = [];
+        catch(err){
+            
+        }
+
     }
 
     if(isConnected.value){
@@ -313,6 +329,7 @@ export const usePrivateChat = () => {
         messages,
         generateConversationId,
         startNewConversation,
-        currentChat 
+        currentChat,
+        pendingChat 
     };
 }

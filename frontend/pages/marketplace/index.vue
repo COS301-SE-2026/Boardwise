@@ -51,7 +51,7 @@
           />
 
           <template v-else>
-            <ListingGrid data-test="listing-grid" :listings="pagedListings" />
+            <ListingGrid data-test="listing-grid" :listings="listings" />
 
             <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
               <span class="card-meta">

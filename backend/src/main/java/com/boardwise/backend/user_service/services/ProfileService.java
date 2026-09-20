@@ -25,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.boardwise.backend.shared.dtos.GameInventoryDTO;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
+import com.boardwise.backend.shared.services.NotificationService;
 import com.boardwise.backend.shared.dtos.OtherGameDTO;
 import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.user_service.dtos.notifications.CommunityMessageNotification;
@@ -34,6 +35,7 @@ import com.boardwise.backend.user_service.dtos.FriendDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestDTO;
 import com.boardwise.backend.user_service.dtos.notifications.FriendRequestNotification;
 import com.boardwise.backend.user_service.dtos.response.FriendRequestResponseDTO;
+import com.boardwise.backend.user_service.dtos.response.PresenceResponseDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestsDTO;
 import com.boardwise.backend.user_service.dtos.FriendsListDTO;
 import com.boardwise.backend.user_service.dtos.notifications.InviteNotification;
@@ -78,6 +80,7 @@ public class ProfileService {
     private final GeoApiContext geoContext;
     private final MongoTemplate template;
     private final NotificationRepository notifRepo;
+    private final NotificationService notifService;
     private final ApplicationEventPublisher eventPublisher;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
@@ -707,6 +710,16 @@ public class ProfileService {
         return new NotificationsDTO(
             "Missed user notifications retrieved",
             notifications
+        );
+    }
+
+    public PresenceResponseDTO getUserPresence(String userId){
+        if(!userRepo.existsById(userId))
+            throw new NoSuchElementException("User with id:" +  userId + "does not exist.");
+
+        return new PresenceResponseDTO(
+            "User presence successfully retrieved",
+            notifService.isOnline(userId)
         );
     }
 

@@ -50,7 +50,8 @@ const {
     chats,
     currentChat,
     getChats,
-    startNewConversation
+    startNewConversation,
+    pendingChat
 } = usePrivateChat()
 
 const { onReconnectHook } = useStomp()
@@ -77,7 +78,7 @@ onMounted(async () => {
     }
 
     if(currentChat.value){
-        selectConversation(currentChat.value.id)
+        selectConversation(currentChat.value.id) 
     }
 
     onReconnectHook(async () => await getChats())
@@ -106,12 +107,20 @@ const conversations = computed(() => {
 })
 
 const selectedId = ref<string | null>(null)
-const selectedConversation = computed(() =>
-    conversations.value.find((c) => c.id === selectedId.value) ?? null
-)
+const selectedConversation = computed(() =>{
+    if(pendingChat.value?.id === selectedId.value){
+        return pendingChat.value
+    }
+
+    return conversations.value.find((c) => c.id === selectedId.value)
+}
+    
+) 
 
 const selectConversation = (id: string) => {
-    const convo = conversations.value.find((el) => el.id === id)
+
+    const convo = (pendingChat.value?.id === id ? pendingChat.value : null) ?? 
+                    conversations.value.find((el) => el.id === id)
     if(!convo) return
 
     const online = (convo.username === 'Invites' && inviteCount.value > 0) ? 
@@ -123,4 +132,5 @@ const selectConversation = (id: string) => {
     mobileConversationOpen.value = true
     currentChat.value = convo.isInvite ? null : convo
 }
+
 </script>
