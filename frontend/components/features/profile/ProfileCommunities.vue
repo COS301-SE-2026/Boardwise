@@ -5,7 +5,7 @@
       <SectionTitle
         title="Active Communities"
       />
-      <NuxtLink to="/social/community" class="see-all">Explore Communities ></NuxtLink>
+      <NuxtLink to="/social" class="see-all">Explore Communities ></NuxtLink>
     </div>
 
     <div class="pills-row">
