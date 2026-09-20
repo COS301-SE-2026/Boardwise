@@ -85,7 +85,6 @@ services:
       - PROD_DB_URL=${PROD_DB_URL}
       - RULEBOOK_PDF_API=${RULEBOOK_PDF_API}
       - PYTHON_API_BASE_URL=${PYTHON_API_BASE_URL}
-
     ports: 
       - 8082:8082
 

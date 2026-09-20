@@ -1,7 +1,6 @@
 package com.boardwise.scrapers.services.rulebook_scrapers;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -19,12 +18,6 @@ import java.util.stream.Stream;
 import jakarta.annotation.PreDestroy;
 
 import org.bson.types.ObjectId;
-import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.cos.COSDictionary;
-import org.apache.pdfbox.cos.COSName;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
-import org.apache.pdfbox.pdmodel.PDPage;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -35,6 +28,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
 import com.boardwise.scrapers.dtos.RulebookOrgItemDTO;
@@ -46,6 +41,7 @@ import com.boardwise.scrapers.repositories.BoardGameRepository;
 import com.boardwise.scrapers.repositories.RulebookRepository;
 import com.boardwise.scrapers.repositories.UserRepository;
 import com.boardwise.scrapers.repositories.UserRepository.GameOwnershipCount;
+import com.boardwise.scrapers.services.utils.PdfSanitiser;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
@@ -100,7 +96,7 @@ public class RuleBookOrgScraper {
         this.pythonUploadClient = pythonUploadClient;
     }
 
-    @Scheduled(initialDelayString = "30s", fixedRateString = "10h")
+    @Scheduled(initialDelayString = "30s", fixedRateString = "2h")
     public void scrapeRulebooksForExistingGames() {
 
         long currentRulebookCount = rulebookRepository.count();
@@ -256,39 +252,10 @@ public class RuleBookOrgScraper {
         return cleaned.isEmpty() ? "rulebook" : cleaned;
     }
 
-    /**
-     * Strips active content and, for Playwright captures, drops the leading
-     * site-chrome page. Single load/save pass.
-     */
-    private byte[] cleanPdf(byte[] pdfBytes, boolean dropFirstPage) throws IOException {
-        try (PDDocument doc = Loader.loadPDF(pdfBytes)) {
-            PDDocumentCatalog catalog = doc.getDocumentCatalog();
-            COSDictionary catalogDict = catalog.getCOSObject();
-            catalogDict.removeItem(COSName.getPDFName("AA"));
-            catalogDict.removeItem(COSName.getPDFName("OpenAction"));
-
-            for (PDPage page : doc.getPages()) {
-                page.getCOSObject().removeItem(COSName.getPDFName("AA"));
-            }
-
-            if (dropFirstPage && doc.getNumberOfPages() > 1) {
-                doc.removePage(0);
-            }
-
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            doc.save(out);
-            return out.toByteArray();
-        }
-    }
-
     public List<RulebookPdfDTO> scrapeForPdfs(String boardgame) {
         return scrapeForPdfs(boardgame, null);
     }
 
-    /**
-     * @param gameId the boardgame's Mongo _id, so a successful upload can be recorded
-     *               against it. Pass null if unknown (no Rulebook row will be written).
-     */
     public List<RulebookPdfDTO> scrapeForPdfs(String boardgame, String gameId) {
         try {
             String requestUrl = "?search=" + URLEncoder.encode(boardgame, StandardCharsets.UTF_8) + "&language=en";
@@ -357,7 +324,7 @@ public class RuleBookOrgScraper {
                 return null;
             }
 
-            pdfBytes = cleanPdf(pdfBytes, true);
+            pdfBytes = PdfSanitiser.sanitise(pdfBytes, true);
             String safeTitle = sanitizeFilename(cleanTitle);
 
             if (!uploadToPythonService(boardgame, safeTitle, pdfBytes, "en")) {
@@ -401,7 +368,7 @@ public class RuleBookOrgScraper {
                     continue;
                 }
 
-                pdfBytes = cleanPdf(pdfBytes, false);
+                pdfBytes = PdfSanitiser.sanitise(pdfBytes, false);
                 String safeTitle = sanitizeFilename(stripRulebookSuffix(rulebook.name()));
 
                 if (uploadToPythonService(boardgame, safeTitle, pdfBytes, rulebook.language())) {
@@ -472,6 +439,18 @@ public class RuleBookOrgScraper {
                     .body(body)
                     .retrieve()
                     .body(String.class);
+            return true;
+        }catch (HttpServerErrorException.ServiceUnavailable e) {
+            logger.warning("Ingestion queue full, backing off");
+            try { Thread.sleep(60_000); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+            return false;
+        }
+         catch (ResourceAccessException e) {
+            if (e.getCause() instanceof java.net.ConnectException || e.getCause() instanceof java.net.http.HttpConnectTimeoutException) {
+            logger.log(Level.SEVERE, "Could not reach Python service for '" + title + "'", e);
+            return false;
+        }
+            logger.log(Level.WARNING, "Response lost for '" + title + "'; assuming ingestion continues", e);
             return true;
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to upload '" + title + "' to Python service", e);

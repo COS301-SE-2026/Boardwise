@@ -17,4 +17,4 @@ RUN chown -R pwuser:pwuser /app
 USER pwuser
 
 EXPOSE 8082
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Djdk.httpclient.keepalive.timeout=4", "-jar", "app.jar"]

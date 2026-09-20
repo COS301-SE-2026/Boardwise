@@ -24,6 +24,18 @@ from app.retrieval.retriever import retrieve_context
 from app.schemas import Citation, QueryRequest, QueryResponse, UploadResponse
 from app.services import mongo_service
 from app.utils.logging_utils import sanitise_log_input
+from concurrent.futures import ThreadPoolExecutor
+import threading 
+
+_ingest_slots = threading.BoundedSemaphore(4) 
+
+_ingest_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="ingestion")
+
+def _run_ingestion(**kwargs):
+    try:
+        run_ingestion_pipeline(**kwargs)
+    finally:
+        _ingest_slots.release()
 
 logger = logging.getLogger(__name__)
 
@@ -208,6 +220,9 @@ async def internal_upload_rulebooks(
     Auth is via X-Internal-Token instead of a user JWT; uploads are attributed
     to a fixed system contributor.
     """
+    if not _ingest_slots.acquire(blocking=False):
+        raise HTTPException(status_code=503, detail="Ingestion queue full.")
+
     if file.content_type != "application/pdf":
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
@@ -251,8 +266,8 @@ async def internal_upload_rulebooks(
     embedding_model = request.app.state.ml_models["embedding_model"]
     safe_filename = file.filename or "untitled_rulebook.pdf"
 
-    background_tasks.add_task(
-        run_ingestion_pipeline,
+    _ingest_executor.submit(
+        _run_ingestion,
         file_bytes=file_bytes,
         filename=safe_filename,
         rulebook_id=rulebook_id,
@@ -267,6 +282,8 @@ async def internal_upload_rulebooks(
         rulebook_id=rulebook_id,
         job_id=job_id,
     )
+
+
 @router.post(
     "/{rulebook_id}/query",
     response_model=QueryResponse,
