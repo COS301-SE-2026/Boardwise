@@ -3,7 +3,6 @@ package com.boardwise.scrapers.services.rulebook_scrapers;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -17,7 +16,6 @@ import java.util.stream.Stream;
 
 import jakarta.annotation.PreDestroy;
 
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -70,6 +68,10 @@ public class RuleBookOrgScraper {
     private static final long MAX_PDF_BYTES = 50L * 1024 * 1024;
     private static final long SCRAPE_DELAY_MS = 1500L;
 
+    private static final long BACKOFF_MS = 120_000L;
+    private static final int MAX_ATTEMPTS = 6; 
+
+
     private static final Pattern VERSION_SUFFIX = Pattern.compile(
         "(?i)\\s*(\\(.*?\\)|\\b\\d+(st|nd|rd|th)?\\s*(edition|ed\\.?)\\b|\\b(edition|ed\\.?)\\b|\\b(19|20)\\d{2}\\b)\\s*"
     );
@@ -96,7 +98,7 @@ public class RuleBookOrgScraper {
         this.pythonUploadClient = pythonUploadClient;
     }
 
-    @Scheduled(initialDelayString = "30s", fixedRateString = "2h")
+    @Scheduled(initialDelayString = "30s", fixedDelayString = "30m")
     public void scrapeRulebooksForExistingGames() {
 
         long currentRulebookCount = rulebookRepository.count();
@@ -383,34 +385,6 @@ public class RuleBookOrgScraper {
         return results;
     }
 
-    private void recordRulebook(String gameId, String title, String language) {
-        if (gameId == null) {
-            return;
-        }
-
-        try {
-            Instant now = Instant.now();
-
-            Rulebook rulebook = Rulebook.builder()
-                    .gameId(new ObjectId(gameId))
-                    .title(title)
-                    .language(language)
-                    .status("Processing")
-                    .version(1L)
-                    .uploadedAt(now)
-                    .updatedAt(now)
-                    .build();
-
-            rulebookRepository.save(rulebook);
-
-            if (existingRulebookGameIdsCache != null) {
-                existingRulebookGameIdsCache.add(gameId);
-            }
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to record rulebook for gameId " + gameId, e);
-        }
-    }
-
     private void resetToSearch(Page page, String boardgame) {
         page.navigate("https://" + URL);
         page.getByPlaceholder("search for a board game").fill(boardgame);
@@ -427,38 +401,52 @@ public class RuleBookOrgScraper {
         };
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("title", title);
+        body.add("title", boardgame);
         body.add("language", language);
         body.add("file", fileResource);
 
-        try {
-            pythonUploadClient.post()
-                    .uri("vault/rulebooks/internal/upload")
-                    .header("X-Internal-Token", internalSecret)
-                    .contentType(MediaType.MULTIPART_FORM_DATA)
-                    .body(body)
-                    .retrieve()
-                    .body(String.class);
-            return true;
-        }catch (HttpServerErrorException.ServiceUnavailable e) {
-            logger.warning("Ingestion queue full, backing off");
-            try { Thread.sleep(60_000); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
-            return false;
+        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            try {
+                pythonUploadClient.post()
+                        .uri("vault/rulebooks/internal/upload")
+                        .header("X-Internal-Token", internalSecret)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .body(body)
+                        .retrieve()
+                        .body(String.class);
+                return true;
+            } catch (HttpServerErrorException.ServiceUnavailable e) {
+                logger.warning("Ingestion queue full for '" + title + "' (attempt " + attempt + "/" + MAX_ATTEMPTS + ")");
+                if (attempt == MAX_ATTEMPTS) {
+                    return false;
+                }
+                try {
+                    Thread.sleep(BACKOFF_MS);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    return false;
+                }
+            } catch (ResourceAccessException e) {
+                if (e.getCause() instanceof java.net.ConnectException || e.getCause() instanceof java.net.http.HttpConnectTimeoutException) {
+                    logger.log(Level.SEVERE, "Could not reach Python service for '" + title + "'", e);
+                    return false;
+                }
+                logger.log(Level.WARNING, "Response lost for '" + title + "'; assuming ingestion continues", e);
+                return true;
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Failed to upload '" + title + "' to Python service", e);
+                return false;
+            }
         }
-         catch (ResourceAccessException e) {
-            if (e.getCause() instanceof java.net.ConnectException || e.getCause() instanceof java.net.http.HttpConnectTimeoutException) {
-            logger.log(Level.SEVERE, "Could not reach Python service for '" + title + "'", e);
-            return false;
-        }
-            logger.log(Level.WARNING, "Response lost for '" + title + "'; assuming ingestion continues", e);
-            return true;
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to upload '" + title + "' to Python service", e);
-            return false;
-        }
+
+        return false;
+    }
+        
+    private void recordRulebook(String gameId, String title, String language){
+        if(gameId != null && existingRulebookGameIdsCache != null) existingRulebookGameIdsCache.add(gameId);
     }
 
-    private boolean processSingleGame(Boardgame game) {
+    public synchronized boolean processSingleGame(Boardgame game) {
         if (game.getTitle() == null || game.getId() == null) {
             return false;
         }

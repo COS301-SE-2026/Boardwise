@@ -27,15 +27,9 @@ from app.utils.logging_utils import sanitise_log_input
 from concurrent.futures import ThreadPoolExecutor
 import threading 
 
-_ingest_slots = threading.BoundedSemaphore(4) 
+_ingest_slots = threading.BoundedSemaphore(5) 
 
 _ingest_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="ingestion")
-
-def _run_ingestion(**kwargs):
-    try:
-        run_ingestion_pipeline(**kwargs)
-    finally:
-        _ingest_slots.release()
 
 logger = logging.getLogger(__name__)
 
@@ -174,6 +168,12 @@ async def upload_rulebook(
         job_id=job_id
     )
 
+def _run_ingestion(**kwargs):
+    try:
+        run_ingestion_pipeline(**kwargs)
+    finally:
+        _ingest_slots.release()
+
 @router.post(
     "/internal/upload",
     response_model=UploadResponse,
@@ -198,7 +198,6 @@ async def upload_rulebook(
     },
 )
 async def internal_upload_rulebooks(
-    background_tasks: BackgroundTasks,
     request: Request,
     title: Annotated[
         str,
@@ -223,57 +222,62 @@ async def internal_upload_rulebooks(
     if not _ingest_slots.acquire(blocking=False):
         raise HTTPException(status_code=503, detail="Ingestion queue full.")
 
-    if file.content_type != "application/pdf":
-        raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail="Only PDF files are allowed.",
-        )
-
-    max_bytes = settings.MAX_FILE_SIZE_MB * 1024 * 1024
-    chunk_size = 1024 * 1024
-    file_bytes = bytearray()
-
-    while chunk := await file.read(chunk_size):
-        file_bytes.extend(chunk)
-        if len(file_bytes) > max_bytes:
+    try:
+        if file.content_type != "application/pdf":
             raise HTTPException(
-                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-                detail=f"File exceeds {settings.MAX_FILE_SIZE_MB}MB limit.",
+                status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                detail="Only PDF files are allowed.",
             )
 
-    file_bytes = bytes(file_bytes)
+        max_bytes = settings.MAX_FILE_SIZE_MB * 1024 * 1024
+        chunk_size = 1024 * 1024
+        file_bytes = bytearray()
 
-    if not file_bytes or not file_bytes.startswith(b"%PDF"):
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail="The uploaded file is empty or corrupted.",
+        while chunk := await file.read(chunk_size):
+            file_bytes.extend(chunk)
+            if len(file_bytes) > max_bytes:
+                raise HTTPException(
+                    status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+                    detail=f"File exceeds {settings.MAX_FILE_SIZE_MB}MB limit.",
+                )
+
+        file_bytes = bytes(file_bytes)
+
+        if not file_bytes or not file_bytes.startswith(b"%PDF"):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="The uploaded file is empty or corrupted.",
+            )
+
+        try:
+            rulebook_id, job_id = mongo_service.create_rulebook_and_job(
+                title=title,
+                edition=edition,
+                contributor_id=settings.SYSTEM_CONTRIBUTOR_ID,
+                language=language,
+            )
+        except ValueError as e:
+            logger.warning("Internal upload rejected: %s", str(e))
+            raise HTTPException(status_code=400, detail="Upload rejected") from e
+        except Exception as e:
+            logger.exception("Failed to initialise internal upload.")
+            raise HTTPException(status_code=500, detail="An internal server error occurred.") from e
+
+        embedding_model = request.app.state.ml_models["embedding_model"]
+        safe_filename = file.filename or "untitled_rulebook.pdf"
+
+        _ingest_executor.submit(
+            _run_ingestion,
+            file_bytes=file_bytes,
+            filename=safe_filename,
+            rulebook_id=rulebook_id,
+            job_id=job_id,
+            embedding_model=embedding_model,
         )
 
-    try:
-        rulebook_id, job_id = mongo_service.create_rulebook_and_job(
-            title=title,
-            edition=edition,
-            contributor_id=settings.SYSTEM_CONTRIBUTOR_ID,
-            language=language,
-        )
-    except ValueError as e:
-        logger.warning("Internal upload rejected: %s", str(e))
-        raise HTTPException(status_code=400, detail="Upload rejected") from e
-    except Exception as e:
-        logger.exception("Failed to initialise internal upload.")
-        raise HTTPException(status_code=500, detail="An internal server error occurred.") from e
-
-    embedding_model = request.app.state.ml_models["embedding_model"]
-    safe_filename = file.filename or "untitled_rulebook.pdf"
-
-    _ingest_executor.submit(
-        _run_ingestion,
-        file_bytes=file_bytes,
-        filename=safe_filename,
-        rulebook_id=rulebook_id,
-        job_id=job_id,
-        embedding_model=embedding_model,
-    )
+    except BaseException:
+        _ingest_slots.release()
+        raise
 
     logger.info("Internal rulebook upload accepted.")
 
