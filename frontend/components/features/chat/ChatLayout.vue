@@ -27,6 +27,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { jwtDecode } from 'jwt-decode'
 
 import ChatSidebar from './ChatSidebar.vue'
 import ChatWindow from './ChatWindow.vue'
@@ -71,9 +72,31 @@ onMounted(async () => {
 
     if(route.query.newChat){
         await startNewConversation(route.query.newChat as string)
-        const listing = localStorage.getItem('queried-listing')
-        if(listing){
-            
+        const listingStr = localStorage.getItem('queried-listing')
+        if(listingStr){
+ 
+            const listing = JSON.parse(listingStr);
+            const id = crypto.randomUUID()
+            const senderId = jwtDecode(props.token).sub ?? ""
+            const receiverId = listing.listingOwner
+            const message = JSON.stringify({
+                type: 'LISTING_QUERY',
+                listingId: listing.listingId,
+                listingImage: listing.listingImage,
+                listingTitle: listing.listingTitle,
+                listingPrice: listing.listingPrice,
+            })
+            const sentAt = new Date().toISOString();
+            const listingMessage = {
+                id,
+                senderId,
+                receiverId,
+                message,
+                sentAt
+            }
+
+            sendDirectMessage(listingMessage)
+            localStorage.removeItem('queried-listing')
         }
 
         router.replace({ query: {} })

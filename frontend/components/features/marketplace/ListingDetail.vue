@@ -60,12 +60,12 @@ const props = defineProps({
 })
 
 const handleClick = () => {
-  console.log('Listing.userId: ', props.listing.userId, props.listing)
   const listing = {
     listingId: props.listing.listingId,
     listingImage: props.listing.imageUrl,
     listingTitle: props.listing.listingTitle,
-    listingPrice: props.listing.price
+    listingPrice: props.listing.price,
+    listingOwner: props.listing.userId
   }
 
   const listingStr = JSON.stringify(listing)

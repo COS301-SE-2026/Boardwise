@@ -5,6 +5,7 @@ import { onUnmounted, computed } from 'vue';
 import { type DirectMessageDTO, ChatService } from '~/services/chatService';
 import { jwtDecode } from 'jwt-decode';
 import type { ProfileResponse } from '~/services/userService';
+import { ms } from 'vuetify/iconsets/ms';
 
 export interface DirectMessage{ // send
     id: string,
@@ -108,6 +109,7 @@ export const usePrivateChat = () => {
             chats.value = response.map((el) => {                
                 const newChat: Conversation = {
                     ...el,
+                    lastMessage: getMessagePreview(el.lastMessage),
                     unread: false
                 }
                 return newChat;
@@ -166,7 +168,7 @@ export const usePrivateChat = () => {
             if(eId !== -1 && chats.value[eId]){
                 const convo: Conversation = chats.value[eId];
                 chats.value.splice(eId, 1);
-                convo.lastMessage = message.message;
+                convo.lastMessage = getMessagePreview(message.message);
                 convo.lastMessageSender = message.senderId;
                 convo.lastMessageAt = message.sentAt;
                 convo.unread = !fromPartner && !serverEcho;
@@ -181,7 +183,7 @@ export const usePrivateChat = () => {
                         username: "",
                         profilePicture: "",
                         isOnline: true,
-                        lastMessage: message.message,
+                        lastMessage: getMessagePreview(message.message),
                         lastMessageSender: message.senderId,
                         lastMessageAt: message.sentAt,
                         unread: true
@@ -227,10 +229,17 @@ export const usePrivateChat = () => {
         if(!token) return;
 
         if(pendingChat.value && pendingChat.value.id === currentChat.value?.id){
-            pendingChat.value.lastMessage = msg.message;
+            pendingChat.value.lastMessage = getMessagePreview(msg.message);
             pendingChat.value.lastMessageAt = msg.sentAt;
             chats.value.unshift(pendingChat.value);
             pendingChat.value = null;
+        }
+        else{
+            const existing = chats.value.find((el) => el.id === currentChat.value?.id);
+            if(existing){
+                existing.lastMessage = getMessagePreview(msg.message);
+                existing.lastMessageAt = msg.sentAt;
+            }
         }
 
         messages.value.push(msg);
@@ -296,6 +305,21 @@ export const usePrivateChat = () => {
             show("Something went wrong when starting a conversation with this user", "error");
         }
 
+    }
+
+    const getMessagePreview = (rawMessage: string) => {
+        if(!rawMessage) return '';
+
+        try{
+            const listingMessage = JSON.parse(rawMessage);
+            if(listingMessage && typeof listingMessage === 'object' && listingMessage.type === 'LISTING_QUERY'){
+                return `Enquired about listing: ${listingMessage.listingTitle ?? 'a listing'}`;
+            }
+            return rawMessage;
+        }
+        catch{
+            return rawMessage;
+        }
     }
 
     if(isConnected.value){
