@@ -12,7 +12,7 @@
       <NuxtLink
         v-for="community in communities"
         :key="community.id"
-        :to="`/community/${community.id}`"
+        :to="`/social/community/${community.id}`"
         class="community-pill text-decoration-none"
       >
         <BaseAvatar 
