@@ -37,24 +37,32 @@ def extract_text(file_bytes: bytes, rulebook_id: str) -> tuple[bool, str, str, d
                 "extractorVersion": "tier2-v1",
                 "blocks": [],
             }
+            
+            used_tier3 = False
 
             if _fails_quality_check(md_dicts):
                 tier3_result = _escalate_to_tier_3(file_bytes)
                 md_dicts = cast(list[dict[str, Any]], tier3_result)
                 blocks_cache["extractorVersion"] = "tier3-v1"
+                used_tier3 = True
 
-            flat_text = ""
             for page_num, page_dict in enumerate(md_dicts):
-                flat_text += str(page_dict.get("text", "")) + "\n"
+                if not used_tier3:
+                    raw_page = pdf_document[page_num]
+                    raw_dict = raw_page.get_text("dict")
 
-                raw_page = pdf_document[page_num]
-                raw_dict = raw_page.get_text("dict")
+                    page_dict["blocks"] = (
+                        raw_dict.get("blocks", []) if isinstance(raw_dict, dict) else []
+                    )
 
-                page_dict["blocks"] = (
-                    raw_dict.get("blocks", []) if isinstance(raw_dict, dict) else []
-                )
+                blocks_cache["blocks"].extend(_map_to_blocks(page_dict, rulebook_id))
 
-                blocks_cache["blocks"].extend(_map_to_blocks(page_dict))
+            flat_text_pieces = []
+            for block in blocks_cache["blocks"]:
+                content = block.get("content")
+                if content:
+                    flat_text_pieces.append(str(content))
+            flat_text = "\n".join(flat_text_pieces)
 
             cache_key = f"rulebooks/{rulebook_id}/blocks_v1.json"
             upload_to_r2(
@@ -67,7 +75,7 @@ def extract_text(file_bytes: bytes, rulebook_id: str) -> tuple[bool, str, str, d
         return (False, "", "Internal error occurred during text extraction.", {})
 
 
-def _map_to_blocks(page_dict: dict[str, Any]) -> list[dict]:
+def _map_to_blocks(page_dict: dict[str, Any], rulebook_id: str) -> list[dict]:
     """Transforms a page dictionary into the block-level schema"""
     blocks = []
 
@@ -91,10 +99,16 @@ def _map_to_blocks(page_dict: dict[str, Any]) -> list[dict]:
 
         if raw_block.get("type") == 1:  # Image block in pymupdf
             block_type = "image"
-            image_url = (
-                f"https://{settings.R2_BUCKET_RULEBOOKS}/pending_image_{block_id}.png"
-            )
+            image_bytes = raw_block.get("image")
+            image_ext = raw_block.get("ext", "png")
+
+            image_key = f"rulebooks/{rulebook_id}/pending_image_{block_id}.{image_ext}"
+            image_url = f"{settings.R2_RULEBOOKS_URL}{image_key}"
             confidence = 0.95
+
+            if image_bytes:
+                upload_to_r2(image_bytes, image_key, f"image/{image_ext}")
+
         elif raw_block.get("type") == 0:  # Text block
             lines = raw_block.get("lines", [])
             if isinstance(lines, list):
@@ -116,7 +130,11 @@ def _map_to_blocks(page_dict: dict[str, Any]) -> list[dict]:
                 block_type = "table"
                 confidence = 0.7
 
-        if block_type != "image" and not content.strip():
+        if block_type == "table":
+            pass
+        elif block_type != "image" and (
+            not content.strip() or _is_ocr_gibberish(content)
+        ):
             continue
 
         blocks.append(
@@ -165,14 +183,22 @@ def _fails_quality_check(md_dicts: list[dict]) -> bool:
 
 def _escalate_to_tier_3(file_bytes: bytes) -> list[dict]:
     """
-    Extraction path reserved for rulebooks failing the quality check
+    Extraction path reserved for rulebooks failing the quality check.
     """
 
-    local_api_url = "http://unstructured-api:8000/general/v0/general"
+    api_url = settings.UNSTRUCTURED_API_URL
+    if not api_url:
+        logger.error("Unstructured api url is absent")
+        return []
+    headers = {}
+    
+    if hasattr(settings, "INTERNAL_WEBHOOK_SECRET") and settings.INTERNAL_WEBHOOK_SECRET:
+        headers["unstructured-api-key"] = settings.INTERNAL_WEBHOOK_SECRET
 
     try:
         response = requests.post(
-            local_api_url,
+            api_url,
+            headers=headers,
             files={
                 "files": ("rulebook.pdf", io.BytesIO(file_bytes), "application/pdf")
             },
@@ -209,6 +235,52 @@ def _escalate_to_tier_3(file_bytes: bytes) -> list[dict]:
             "Tier 3 connection dropped. The Docker container likely hit its memory limit."
         )
         return []
+    except requests.exceptions.HTTPError as e:
+        logger.error(
+            f"Tier 3 API returned an HTTP error(likely an OOM crash inside the container): {e}"
+        )
+        return []
     except Exception:
         logger.exception("Unexpected error communicating with local Unstructured API.")
         return []
+
+
+def _is_ocr_gibberish(text: str) -> bool:
+    """Determines if OCR extracted text is just random characters"""
+    text = text.strip()
+    if not text:
+        return True
+
+    # Fail on OCR noise characters that are easiest to detect
+    if any(char in text for char in "@~^°¢¤¥§\\"):
+        return True
+
+    # Check for mid-word non-alphanumerics (e.g., "l@DQe", "a#b")
+    if re.search(r"[a-zA-Z][^a-zA-Z0-9\s.,!?:;\'\"()\-/][a-zA-Z]", text):
+        return True
+
+    # Check for OCR casing errors (lowercase immediately followed by uppercase, e.g. "aN", "dOO")
+    if re.search(r"\b[a-z]+[A-Z]+", text):
+        return True
+
+    # Check for micro-line vertical token stacking (3+ lines averaging < 6 characters)
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if len(lines) >= 3 and (sum(len(line) for line in lines) / len(lines)) < 6:
+        return True
+
+    # Checking the special character to normal alphanumeric character ratio (Higher than 0.15 = gibberish)
+    special_chars = len(re.findall(r"[^a-zA-Z0-9\s.,!?:;\'\"()\-/]", text))
+    if len(text) > 0 and (special_chars / len(text)) > 0.15:
+        return True
+
+    # Checking for vowel-less tokens longer than 2 characters (e.g, "SS")
+    words = [re.sub(r"[^a-zA-Z]", "", w) for w in text.split()]
+    words = [w for w in words if len(w) >= 3]
+    if words:
+        vowelless = [w for w in words if not re.search(r"[aeiouyAEIOUY]", w)]
+
+        # If more than 1/4 of the significant words lack vowels, it's probably noise
+        if (len(vowelless) / len(words)) > 0.25:
+            return True
+
+    return False
