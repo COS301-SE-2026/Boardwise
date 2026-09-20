@@ -170,6 +170,49 @@ const _useMarketplace = () =>{
         }
     }
 
+    const getOtherUsersListings = async (id: string) =>{
+        loading.value = true;
+        try{
+            const res = await MarketplaceService.getOtherUsersListings(id);
+            return res;
+        }
+        catch(err: any){
+            error.value = err.data?.message ?? 'Failed to fetch other users listings'
+            show('Failed to fetch other users listing','error');
+            return null;
+        }
+        finally{
+            loading.value = false;
+        }
+    }
+
+    const rentOutListing = async(id: string) =>{
+        loading.value = true;
+        try{
+            const res = await MarketplaceService.rentOutListing(id);
+            await refresh();
+            return res;
+        }catch(err:any){
+            show('Failed to rent out listing','error');
+            return  null;
+        }finally{
+            loading.value = false;
+        }
+    }
+
+    const returnRentedOutListing = async (id: string) =>{
+        loading.value = true;
+        try{
+            const res = await MarketplaceService.returnRentedOutListing(id);
+            await refresh();
+            return res;
+        }catch(err:any){
+            show('Failed to rent out listing','error');
+            return  null;
+        }finally{
+            loading.value = false;
+        }
+    }
 
     return { 
         listings, 
@@ -184,7 +227,10 @@ const _useMarketplace = () =>{
         page,
         loadMore,
         hasMore,
-        userListings
+        userListings,
+        getOtherUsersListings,
+        rentOutListing,
+        returnRentedOutListing
      }
 }
 

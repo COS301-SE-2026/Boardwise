@@ -113,9 +113,12 @@ export const MarketplaceService = {
     rentOutListing(id: string){
         const { $api } = useNuxtApp();
         return $api<any>(`marketplace/listings/${id}/rent`,{method: "PUT"});
-    }
+    },
 
     //RETURN RENTED LISTING
-    
+    returnRentedOutListing(id: string ){
+        const { $api } = useNuxtApp();
+        return $api<any>(`marketplace/listings/${id}/rent`,{method: "PUT"});
+    }
 
 }
