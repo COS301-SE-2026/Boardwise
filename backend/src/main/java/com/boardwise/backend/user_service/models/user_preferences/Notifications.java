@@ -1,8 +1,14 @@
 package com.boardwise.backend.user_service.models.user_preferences;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data 
+@AllArgsConstructor 
+@Getter 
+@Setter 
+@EqualsAndHashCode 
 public class Notifications {
 
     private boolean eventRSVPs;

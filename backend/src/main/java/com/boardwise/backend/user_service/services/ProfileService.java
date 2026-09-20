@@ -55,6 +55,7 @@ import com.boardwise.backend.user_service.events.FriendEvent;
 import com.boardwise.backend.user_service.events.payload.FriendEventPayload;
 import com.boardwise.backend.user_service.models.*;
 import com.boardwise.backend.user_service.models.user_preferences.Preferences;
+import com.boardwise.backend.user_service.models.user_preferences.Settings;
 import com.boardwise.backend.user_service.repository.FriendShipRepository;
 import com.boardwise.backend.user_service.repository.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repository.GroupRepository;
@@ -248,12 +249,10 @@ public class ProfileService {
         }
 
         if(profileUpdateData.preferences() != null){
-            String visibility = profileUpdateData.preferences().getVisibility() == null ? 
-                                user.getPreferences().getVisibility() : 
-                                profileUpdateData.preferences().getVisibility();
+           
 
             PreferencesRequestDTO dto = new PreferencesRequestDTO(
-                visibility,
+                profileUpdateData.preferences().getSettings().getPrivacy().getVisibility(),
                 profileUpdateData.preferences().getGenres()
             );
             Map<String, Object> prefs = updateOrSetPreferences(token, dto);
@@ -288,17 +287,17 @@ public class ProfileService {
     ){
         String userId = jwtService.extractUserId(token).toString();
         User user = userRepo.findById(userId).get();
+
+        Settings settings = user.getPreferences().getSettings();
         
-        if(user.getPreferences() == null){
-            user.setPreferences(new Preferences());    
-        }
         
-        if(!prefData.visibility().equalsIgnoreCase(user.getPreferences().getVisibility()))
-            user.getPreferences().setVisibility(prefData.visibility());
+        if(prefData.visibility() != null && prefData.visibility() != settings.getPrivacy().getVisibility())
+            settings.getPrivacy().setVisibility(prefData.visibility());
             
         if(prefData.genres() != null)
             user.getPreferences().setGenres(prefData.genres());
 
+        user.getPreferences().setSettings(settings);
         User updatedUser = userRepo.save(user);
 
         Map<String, Object> data = new HashMap<>();
