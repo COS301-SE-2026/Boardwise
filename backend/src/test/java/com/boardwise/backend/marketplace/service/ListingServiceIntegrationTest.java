@@ -13,7 +13,6 @@ import static org.assertj.core.api.Assertions.*;
 import com.boardwise.backend.BaseIntegrationTest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
 import com.boardwise.backend.marketplace.enums.Condition;
-import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.marketplace.enums.ItemType;
 import com.boardwise.backend.marketplace.enums.ListingStatus;
 import com.boardwise.backend.marketplace.models.Listing;
