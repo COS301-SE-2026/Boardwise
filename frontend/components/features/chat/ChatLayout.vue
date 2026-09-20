@@ -101,7 +101,8 @@ const conversations = computed(() => {
             unread: Boolean(inviteCount.value),
             isOnline: inviteCount.value > 0,
             isInvite: true,
-            lastMessageAt: new Date().toISOString()
+            lastMessageAt: new Date().toISOString(),
+            lastMessageSender: 'invites'
         },
 
         ...chats.value

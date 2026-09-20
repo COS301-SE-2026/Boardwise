@@ -18,6 +18,7 @@ export interface Conversation{
     username: string,
     profilePicture: string,
     lastMessage: string,
+    lastMessageSender: string,
     lastMessageAt: string,
     isOnline: boolean,
     unread: boolean;
@@ -166,6 +167,7 @@ export const usePrivateChat = () => {
                 const convo: Conversation = chats.value[eId];
                 chats.value.splice(eId, 1);
                 convo.lastMessage = message.message;
+                convo.lastMessageSender = message.senderId;
                 convo.lastMessageAt = message.sentAt;
                 convo.unread = !fromPartner && !serverEcho;
                 chats.value.unshift(convo);
@@ -180,6 +182,7 @@ export const usePrivateChat = () => {
                         profilePicture: "",
                         isOnline: true,
                         lastMessage: message.message,
+                        lastMessageSender: message.senderId,
                         lastMessageAt: message.sentAt,
                         unread: true
                     }
@@ -280,6 +283,7 @@ export const usePrivateChat = () => {
                 profilePicture: receiver.profilePicture,
                 isOnline: receiverOnline,
                 lastMessage: "",
+                lastMessageSender: "",
                 lastMessageAt: new Date().toISOString(),
                 unread: false
             };
