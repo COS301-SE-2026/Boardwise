@@ -1,5 +1,5 @@
 <template>
-  <header class="community-chat-header">
+<header class="community-chat-header__actions">
     <button
       type="button"
       class="community-chat-header__identity community-chat-header__details-trigger"
@@ -8,22 +8,19 @@
     >
       <BaseImage
         :src="community.imageUrl"
-        :alt="`${community.name} community image`"
+        :alt="community.name"
         width="56"
         height="56"
         class="community-chat-header__image"
       />
 
       <div class="community-chat-header__content">
-        <div class="community-chat-header__title-row">
+        <div class="d-flex align-center flex-wrap ga-2">
           <h1 class="community-chat-header__title">
             {{ community.name }}
           </h1>
 
-          <BaseBadge
-            class="community-chat-header__visibility"
-            :variant="community.visibility"
-          >
+          <BaseBadge :variant="community.visibility">
             {{ community.visibility }}
           </BaseBadge>
         </div>
@@ -35,16 +32,15 @@
             aria-hidden="true"
           />
 
-          {{ community.memberCount }}
-          {{ community.memberCount === 1 ? 'member' : 'members' }}
+          {{ community.memberCount }} members
         </p>
       </div>
-      <v-icon
+      <!-- <v-icon
         icon="mdi-chevron-right"
         class="community-chat-header__chevron"
         aria-hidden="true"
-      />
-    </button>
+      /> -->
+</button>
 
       <div v-if="community.isOwner" class="community-chat-header__actions">
       <BaseButton
