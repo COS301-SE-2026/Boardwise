@@ -135,7 +135,7 @@ def write_chunks(chunks: list[dict]) -> None:
             "type": chunk.get("type", "text"),
             "needsReview": bool(chunk.get("needsReview", False)),
             "confidence": float(chunk.get("confidence", 1.0)),
-            "associatedImageUrls": chunk.get("associatedImageUrls") or [],
+            "associatedImageUrls": chunk.get("associatedImageUrls", []),
             "createdAt": chunk.get("createdAt", datetime.now(timezone.utc)),
             "updatedAt": chunk.get("updatedAt", datetime.now(timezone.utc)),
         }

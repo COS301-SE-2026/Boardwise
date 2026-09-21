@@ -1,6 +1,7 @@
 import logging
 
 from bson import ObjectId
+from sentence_transformers import SentenceTransformer
 
 from app.ingestion.vectoriser import vectorise_chunks
 from app.services import lancedb_service, mongo_service
@@ -8,7 +9,22 @@ from app.services import lancedb_service, mongo_service
 logger = logging.getLogger(__name__)
 
 
-def reconcile_rulebook(rulebook_id: str, embedding_model) -> None:
+def run_reconciliation_sweep(embedding_model) -> None:
+    """Cron job to detect and repair orphaned chunks"""
+    db = mongo_service.get_db()
+    query = {"status": "Ready"}
+    rulebook_ids = [str(r["_id"]) for r in db["RULEBOOK"].find(query, {"_id": 1})]
+
+    logger.info("Starting reconciliation sweep for %d rulebooks.", len(rulebook_ids))
+    for rulebook_id in rulebook_ids:
+        try:
+            _reconcile_rulebook(rulebook_id, embedding_model)
+        except Exception:
+            logger.exception("Reconciliation failed for rulebook %s", rulebook_id)
+    logger.info("Reconciliation sweep complete.")
+
+
+def _reconcile_rulebook(rulebook_id: str, embedding_model) -> None:
     """
     Detects and repairs orphaned chunks
     """
@@ -36,6 +52,10 @@ def reconcile_rulebook(rulebook_id: str, embedding_model) -> None:
                     "rulebookId": rulebook_id,
                     "index": doc["index"],
                     "content": doc["content"],
+                    "type": doc.get("type", "text"),
+                    "needsReview": doc.get("needsReview", False),
+                    "confidence": doc.get("confidence", 1.0),
+                    "associatedImageUrls": doc.get("associatedImageUrls", []),
                     "charCount": doc["charCount"],
                     "createdAt": doc["createdAt"],
                     "updatedAt": doc["updatedAt"],
@@ -60,3 +80,12 @@ def reconcile_rulebook(rulebook_id: str, embedding_model) -> None:
 
     if not mongo_orphans and not lancedb_orphans:
         logger.info("Rulebooks %s has been reconcile.", rulebook_id)
+
+if __name__ == "__main__":
+    model = SentenceTransformer(
+        "nomic-ai/nomic-embed-text-v1.5",
+        device="cpu",
+        revision="e9b6763023c676ca8431644204f50c2b100d9aab",
+        trust_remote_code=True,
+    )
+    run_reconciliation_sweep(model)

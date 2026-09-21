@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from sentence_transformers import SentenceTransformer
 
-from app.ingestion.chunker import generate_chunks
+from app.ingestion.chunker import filter_out_decorative_chunks, generate_chunks
 from app.ingestion.extractor import extract_text
 from app.ingestion.sanitiser import sanitise_pdf
 from app.ingestion.vectoriser import vectorise_chunks
@@ -84,7 +84,7 @@ def run_ingestion_pipeline(
             )
             return
 
-        chunk_list = [c for c in chunk_list if c.get("type") != "decorative"]
+        chunk_list = filter_out_decorative_chunks(chunk_list)
 
         if not chunk_list:
             mongo_service.mark_pipeline_failed(

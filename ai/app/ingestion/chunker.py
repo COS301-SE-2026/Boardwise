@@ -49,6 +49,9 @@ def generate_chunks(
 
     return (True, chunks, "")
 
+def filter_out_decorative_chunks(chunk_list: list[dict]) -> list[dict]:
+    """Filters out decorative chunks"""
+    return [c for c in chunk_list if c.get("type") != "decorative"]
 
 def _chunk_section(
     section_blocks: list[dict],
