@@ -84,10 +84,12 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 import { ref, watch } from 'vue'
 
 import { useProfile } from '~/composables/useProfile'
+import { useBoardGames } from '~/composables/useBoardGames'
 import { useSnackBar } from '~/composables/useSnackbar';
 
 
-const { updateProfile, isLoading, error, getGenres } = useProfile();
+const { updateProfile, isLoading, error } = useProfile();
+const { searchGenres } = useBoardGames();
 const { show } = useSnackBar();
 
 const open = defineModel()
@@ -121,7 +123,7 @@ const loadUserData = () => {
 
 const loadGenres = async () => {
   try {
-    const res = await getGenres()
+    const res = await searchGenres()
     genres.value = res
   } catch (err)
   {

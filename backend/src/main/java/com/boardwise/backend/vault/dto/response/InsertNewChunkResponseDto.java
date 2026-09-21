@@ -1,16 +1,15 @@
 package com.boardwise.backend.vault.dto.response;
 
-import java.time.Instant;
-
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder
-public class InsertNewChunkResponseDto {
-    private boolean inserted;
-    private long newVersion;
+@SuperBuilder
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+public class InsertNewChunkResponseDto extends BaseColabResponseDto {
     private String chunkId;
     private int actualIndex;
-    private Instant insertedAt;
 }

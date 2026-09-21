@@ -53,9 +53,9 @@ interface Preferences{
 }
 
 export enum FriendStatus{
-    REQUESTED,
-    ACCEPTED,
-    DECLINED 
+    REQUESTED = "REQUESTED",
+    ACCEPTED = "ACCEPTED",
+    DECLINED = "DECLINED"
 }
 export interface ProfileResponse{
     id: string
@@ -71,7 +71,7 @@ export interface ProfileResponse{
     communities: Array<Community>;
     preferences: Preferences;
     createdAt: string;
-    status: FriendStatus;
+    status: FriendStatus | null;
 }
 
 interface ProfileUpdateResponse{
@@ -90,6 +90,7 @@ export interface ProfileSearchResponse {
     username: string;
     fullName: string;
     profilePicture: string;
+    status: FriendStatus | null
 }
 
 interface GenresResponse {
@@ -108,12 +109,12 @@ interface BulkAddResponse {
 export const userService = {
     getCurrentUser(){
         const { $api } = useNuxtApp();
-        return $api<ProfileResponse>("/users/");
+        return $api<ProfileResponse>("users/");
     },
 
     getUser(id: string){
         const { $api } = useNuxtApp();
-        return $api<ProfileResponse>("/users/" + id);
+        return $api<ProfileResponse>("users/" + id);
     },
     
     updateProfile(user: {
@@ -129,7 +130,7 @@ export const userService = {
                                 null;
 
         const { $api } = useNuxtApp();
-        return $api<ProfileUpdateResponse>('/users/', {
+        return $api<ProfileUpdateResponse>('users/', {
             method: 'PATCH',
             body: {
                 firstName,
@@ -145,7 +146,7 @@ export const userService = {
         const formData = new FormData();
         formData.append("profilePicture", newPfp);
 
-        return $api<ProfilePictureResponse>("/users/profilePicture", {
+        return $api<ProfilePictureResponse>("users/profilePicture", {
             method: 'POST',
             body: formData
         });
@@ -154,7 +155,7 @@ export const userService = {
     searchForBoardGame(game: string){
         const { $api } = useNuxtApp();
 
-        return $api<BoardgameSearchResponse>('/boardgames/',{
+        return $api<BoardgameSearchResponse>('boardgames/',{
             params: {
                 query: game
             }
@@ -164,7 +165,7 @@ export const userService = {
     addExistingGameToInventory(gameId: string){
         const { $api } = useNuxtApp();
         
-        return $api<InventoryUpdateResponse>(`/users/gameInventory/${gameId}`, {
+        return $api<InventoryUpdateResponse>(`users/gameInventory/${gameId}`, {
             method: 'POST'
         });
     },
@@ -176,7 +177,7 @@ export const userService = {
         formData.append('gameInfo', new Blob([JSON.stringify(gameInfo)], { type: 'application/json' }));
         formData.append('gameImage', gameImage);
 
-        return $api<InventoryUpdateResponse>('/users/gameInventory', {
+        return $api<InventoryUpdateResponse>('users/gameInventory', {
             method: 'POST',
             body: formData
         });
@@ -185,14 +186,14 @@ export const userService = {
     removeGameFromInventory(gameId: string) {
         const { $api } = useNuxtApp();
 
-        return $api<InventoryUpdateResponse>(`/users/gameInventory/${gameId}`, {
+        return $api<InventoryUpdateResponse>(`users/gameInventory/${gameId}`, {
             method: 'DELETE'
         });
     },
 
     getGenres(query?: string) {
         const { $api } = useNuxtApp();
-        return $api<GenresResponse>('/boardgames/genres', {
+        return $api<GenresResponse>('boardgames/genres', {
             params: query ? { query } : undefined
         });
     },
@@ -200,7 +201,7 @@ export const userService = {
     //Search for Users
     searchForUser(query: string){
         const { $api } = useNuxtApp();
-        return $api<ProfileSearchResponse[]>('/users/',{
+        return $api<ProfileSearchResponse[]>('users/',{
             params:{
                 search: query
             }
@@ -214,7 +215,7 @@ export const userService = {
         formData.append('gameInfo', new Blob([JSON.stringify(gameInfo)], { type: 'application/json' }));
         formData.append('gameImage', gameImage);
 
-        return $api<CreateBoardgameResponse>('/boardgames/', {
+        return $api<CreateBoardgameResponse>('boardgames/', {
             method: 'POST',
             body: formData
         });

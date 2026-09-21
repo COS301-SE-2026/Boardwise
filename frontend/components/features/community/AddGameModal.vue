@@ -20,7 +20,7 @@
           
         <div class="d-flex justify-end ga-3">
             <BaseButton
-                variant="secodary"
+                variant="secondary"
                 @click="closeModal"
             >
                 Cancel

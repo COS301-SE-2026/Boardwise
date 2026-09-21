@@ -11,6 +11,7 @@ from app.config import settings
 from app.routers import internal, job, rulebook
 from app.services import mongo_service, r2_service
 from app.utils.init_vector_index import initialise_vector_index
+from app.scripts.seed_system_user import seed_system_user
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -64,6 +65,14 @@ async def lifespan(app: FastAPI):
         logger.info("Local LLM model loaded successfully.")
 
         app.state.ml_models = ml_models
+
+        mongo_service.ping_database()
+        logger.info("MongoDB connection verified.")
+
+        seed_system_user()
+        logger.info("System user check complete.")
+
+        r2_service.ping_r2_storage()
     except Exception:
         logger.exception("FATAL BOOT ERROR: Infrastructure check failed")
         raise
@@ -103,9 +112,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(rulebook.router, prefix="/api/vault/rulebooks")
-app.include_router(job.router, prefix="/api/vault/jobs")
-app.include_router(internal.router, prefix="/api/vault/internal")
+app.include_router(rulebook.router, prefix="/api/fa/vault/rulebooks")
+app.include_router(job.router, prefix="/api/fa/vault/jobs")
+app.include_router(internal.router, prefix="/api/fa/vault/internal")
 
 
 @app.get("/api/fa/health", tags=["System"])

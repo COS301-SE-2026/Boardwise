@@ -1,19 +1,25 @@
 import { createSharedComposable } from "@vueuse/core";
-import { FriendService, type FriendListDTO, type FriendRequestsDTO, type ProfileResponseDTO} from "~/services/friendService";
-const { show } = useSnackBar()
+import { onUnmounted } from "vue";
+import { FriendService, type FriendListDTO, type FriendRequestsDTO, type ProfileResponseDTO, type FriendRequestNotification, type FriendConfirmationNotification, type UnfriendNotification } from "~/services/friendService";
+
+
+const { subscribe, unsubscribe } = useStomp();
+const { show } = useSnackBar();
 
 
 const _useFriends=()=>{
     const isLoading = ref(false);
     const userFriendList = ref<FriendListDTO>()
     const userFriendRequests = ref<FriendRequestsDTO>();
+    const otherFriendList = ref<FriendListDTO>();
     const profile = ref<ProfileResponseDTO>();
+    const dest = '/user/queue/notification';
+    const token = localStorage.getItem("access_token");
 
     const getOwnFriendsList = async ()=>{
         isLoading.value = true;
         try{
-            userFriendList.value = await  FriendService.getOwnFriendsList();
-            console.log("Yay we got friendLists");
+            userFriendList.value = await FriendService.getOwnFriendsList();
         }
         catch(err){
             console.log(err);
@@ -28,8 +34,7 @@ const _useFriends=()=>{
 
         isLoading.value = true;
         try{
-            userFriendRequests.value = await  FriendService.getFriendRequests();
-            return userFriendRequests.value;
+            userFriendRequests.value = await FriendService.getFriendRequests();
         }
         catch(err){
             console.log(err);
@@ -60,29 +65,11 @@ const _useFriends=()=>{
         isLoading.value = true
         try{
             profile.value = await FriendService.getOtherUserProfile(userId);
-            show("Successfully Fetched account", "success");
+            // show("Successfully Fetched account", "success");
         }
         catch(err){
             console.log(err);
-            show("Could not fetch Profile", "error");
-        }
-        finally{
-            isLoading.value = false;
-        }
-    }
-
-    const otherFriendList = ref<FriendListDTO|null>();
-    const getOtherUserFriendList = async (userId: string) =>{
-        isLoading.value = true
-        try{
-            otherFriendList.value = await  FriendService.getOtherUserFriendsList(userId);
-            show("Successfully Fetched account", "success");
-            return otherFriendList.value;
-
-        }
-        catch(err){
-            console.log(err);
-            show("Could not fetch Profile", "error");
+            // show("Could not fetch Profile", "error");
         }
         finally{
             isLoading.value = false;
@@ -90,12 +77,10 @@ const _useFriends=()=>{
     }
 
     const getUserFriendsList = async (userId: string) =>{
-         isLoading.value = true
+        isLoading.value = true
         try{
             otherFriendList.value = await  FriendService.getUserFriendsList(userId);
             show("Successfully Fetched account", "success");
-            return otherFriendList.value;
-
         }
         catch(err){
             console.log(err);
@@ -139,19 +124,29 @@ const _useFriends=()=>{
         }
     }
 
+    // websocket stuff 
+    const listenForFriendNotifications = (handler: (notification : FriendRequestNotification | FriendConfirmationNotification | UnfriendNotification) => void) => {
+        if(!token) return;
+
+        subscribe(dest, handler);
+    }
+
+    onUnmounted(() => unsubscribe(dest));
+
     return {
         unfriendUser, 
         getOwnFriendsList, 
         getFriendRequests, 
         sendFriendRequest, 
-        getOtherUserProfile, 
-        getOtherUserFriendList, 
+        getOtherUserProfile,
         getUserFriendsList , 
         isLoading, 
         otherFriendList, 
         profile,
         userFriendList,
-        respondToFriendRequest
+        userFriendRequests,
+        respondToFriendRequest,
+        listenForFriendNotifications
     };
 }
 

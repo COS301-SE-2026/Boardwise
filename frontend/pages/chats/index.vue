@@ -13,8 +13,10 @@ import ChatLayout from '~/components/features/chat/ChatLayout.vue';
 import Navbar from '~/components/layout/Navbar.vue';
 import PageContainer from '~/components/layout/PageContainer.vue';
 
+
 const router = useRouter()
 const token = ref("")
+
 
 onMounted(() => {
     if(!localStorage.getItem("access_token"))

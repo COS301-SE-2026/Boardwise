@@ -2,7 +2,6 @@ package com.boardwise.backend.marketplace.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -111,8 +110,9 @@ public class ListingControllerTest{
         //ARRANGE
         when(listingService.getAllActiveListings(anyString())).thenReturn(List.of(buildDefaultResponse()));
         //ACT & ASSERT
-         mockMvc.perform(get("/api/sb/marketplace/listings"))
-               .andExpect(status().isOk());
+         mockMvc.perform(get("/api/sb/marketplace/listings")
+            .header("Authorization", "Bearer valid-test-token"))
+            .andExpect(status().isOk());
     }
 
     @Test
@@ -122,8 +122,9 @@ public class ListingControllerTest{
         //ARRANGE
         when(listingService.getAllActiveListings(anyString())).thenReturn(List.of());
         //ACT & ASSERT
-         mockMvc.perform(get("/api/sb/marketplace/listings"))
-               .andExpect(status().isAccepted());
+         mockMvc.perform(get("/api/sb/marketplace/listings")
+            .header("Authorization", "Bearer valid-test-token"))
+            .andExpect(status().isNoContent());
     }
 
     @Test
@@ -433,7 +434,7 @@ public void getPersonalizedRetailListings_200() throws Exception{
     when(retailService.getPersonalizedRetailListings("valid-test-token", 0)).thenReturn(fakeObjs);
 
     //ACT & ASSERT
-    mockMvc.perform(get("/api/marketplace/listings/personalised")
+    mockMvc.perform(get("/api/sb/marketplace/listings/personalised")
             .header("Authorization", "Bearer valid-test-token"))
         .andExpect(status().isOk());
 }
@@ -447,7 +448,7 @@ public void getPersonalizedRetailListings_500() throws Exception{
         .thenThrow(new RuntimeException("boom"));
 
     //ACT & ASSERT
-    mockMvc.perform(get("/api/marketplace/listings/personalised")
+    mockMvc.perform(get("/api/sb/marketplace/listings/personalised")
             .header("Authorization", "Bearer valid-test-token"))
         .andExpect(status().isInternalServerError());
 }

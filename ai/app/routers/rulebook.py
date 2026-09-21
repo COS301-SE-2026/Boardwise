@@ -15,7 +15,8 @@ from fastapi import (
 )
 
 from app.config import settings
-from app.dependencies import verify_index_ready, verify_jwt
+from app.dependencies import verify_index_ready, verify_internal_token, verify_jwt 
+from app.scripts.seed_system_user import seed_system_user
 from app.generation.llm import generate_answer
 from app.generation.prompt import build_chat_messages
 from app.ingestion.ingestion import run_ingestion_pipeline
@@ -27,9 +28,10 @@ from app.utils.logging_utils import sanitise_log_input
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/api/fa/vault/rulebooks",
     tags=["rulebooks"]
 )
+
+SAFE_TEXT_PATTERN = r"^[\w\s\-.,&'\(\)!?]+$"
 
 @router.post(
     "/upload",
@@ -160,11 +162,114 @@ async def upload_rulebook(
         job_id=job_id
     )
 
+@router.post(
+    "/internal/upload",
+    response_model=UploadResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    responses={
+        400: {
+            "description": "Bad Request",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Upload rejected"}
+                }
+            },
+        },
+        500: {
+            "description": "Internal Server Error",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "An internal server error occurred."}
+                }
+            },
+        },
+    },
+)
+async def internal_upload_rulebooks(
+    background_tasks: BackgroundTasks,
+    request: Request,
+    title: Annotated[
+        str,
+        Form(min_length=1, max_length=150, strip_whitespace=True, pattern=SAFE_TEXT_PATTERN),
+    ],
+    language: Annotated[
+        str,
+        Form(min_length=2, max_length=10, strip_whitespace=True, pattern=r"^[a-zA-Z\-]+$"),
+    ],
+    file: Annotated[UploadFile, File()],
+    _token: Annotated[str, Depends(verify_internal_token)],
+    edition: Annotated[
+        str | None,
+        Form(max_length=150, strip_whitespace=True, pattern=r"^[\w\s\-.,&'\(\)!?]*$"),
+    ] = None,
+):
+    """
+    Internal-only variant of /upload for service-to-service calls (e.g. the scraper).
+    Auth is via X-Internal-Token instead of a user JWT; uploads are attributed
+    to a fixed system contributor.
+    """
+    if file.content_type != "application/pdf":
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Only PDF files are allowed.",
+        )
 
+    max_bytes = settings.MAX_FILE_SIZE_MB * 1024 * 1024
+    chunk_size = 1024 * 1024
+    file_bytes = bytearray()
+
+    while chunk := await file.read(chunk_size):
+        file_bytes.extend(chunk)
+        if len(file_bytes) > max_bytes:
+            raise HTTPException(
+                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+                detail=f"File exceeds {settings.MAX_FILE_SIZE_MB}MB limit.",
+            )
+
+    file_bytes = bytes(file_bytes)
+
+    if not file_bytes or not file_bytes.startswith(b"%PDF"):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="The uploaded file is empty or corrupted.",
+        )
+
+    try:
+        rulebook_id, job_id = mongo_service.create_rulebook_and_job(
+            title=title,
+            edition=edition,
+            contributor_id=settings.SYSTEM_CONTRIBUTOR_ID,
+            language=language,
+        )
+    except ValueError as e:
+        logger.warning("Internal upload rejected: %s", str(e))
+        raise HTTPException(status_code=400, detail="Upload rejected") from e
+    except Exception as e:
+        logger.exception("Failed to initialise internal upload.")
+        raise HTTPException(status_code=500, detail="An internal server error occurred.") from e
+
+    embedding_model = request.app.state.ml_models["embedding_model"]
+    safe_filename = file.filename or "untitled_rulebook.pdf"
+
+    background_tasks.add_task(
+        run_ingestion_pipeline,
+        file_bytes=file_bytes,
+        filename=safe_filename,
+        rulebook_id=rulebook_id,
+        job_id=job_id,
+        embedding_model=embedding_model,
+    )
+
+    logger.info("Internal rulebook upload accepted.")
+
+    return UploadResponse(
+        message="Rulebook upload accepted. Ingestion has started.",
+        rulebook_id=rulebook_id,
+        job_id=job_id,
+    )
 @router.post(
     "/{rulebook_id}/query",
     response_model=QueryResponse,
-    dependencies=[Depends(verify_jwt)],
     responses={
         500: {
             "description": "Internal Server Error",

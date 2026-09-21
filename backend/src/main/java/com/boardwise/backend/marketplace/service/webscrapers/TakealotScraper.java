@@ -76,6 +76,11 @@ public class TakealotScraper implements WebScraper {
 
             for(Locator card : cards){
 
+                String title = card.locator("[data-ref='panel-content'] h4").innerText();
+                if(!title.toLowerCase().contains("boardgame") ||!title.toLowerCase().contains("board game")){
+                    continue;
+                }
+                
                 String priceRaw = card.locator("[data-ref='price'] .currency").innerText();
 
                 Locator listPriceLoc = card.locator("[data-ref='list-price'] .currency");
@@ -83,7 +88,8 @@ public class TakealotScraper implements WebScraper {
                 
                 String imageUrl = card.locator("[data-ref='product-image']").getAttribute("src");
 
-                String title = card.locator("[data-ref='panel-content'] h4").innerText();
+
+
                 String url = card.locator("a[title='Go to product details']").getAttribute("href");
 
                 // Jaro-Winkler - similarity between 2 sequences

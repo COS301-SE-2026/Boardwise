@@ -1,15 +1,16 @@
 <template>
-  <BaseGrid cols="220px" gap="var(--space-6)">
+  <BaseGrid>
 
     <ProfileListingCard
       v-for="listing in listings"
       :key="listing.listingId"
       :listing="listing"
+      :editable="editable"
       @deleted="$emit('deleted')"
       @updated="$emit('updated')"
     />
 
-    <AddListingCard @click="$emit('add-listing')" />
+    <AddListingCard v-if="editable" @click="$emit('add-listing')" />
 
   </BaseGrid>
 </template>
@@ -22,7 +23,8 @@ import AddListingCard     from './AddListingCard.vue'
 const emit = defineEmits(['add-listing', 'deleted', 'updated'])
 
 defineProps({
-  listings: { type: Array, default: () => [] }
+  listings: { type: Array, default: () => [] },
+  editable: { type: Boolean, default: false }
 })
 
 

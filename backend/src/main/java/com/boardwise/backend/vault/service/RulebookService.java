@@ -4,7 +4,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.Collection;
 import java.util.Collections;
 
 import org.bson.types.ObjectId;
@@ -55,7 +54,7 @@ public class RulebookService {
     private final BoardGameRepository boardgameRepository;
     private final JWTService jwtService;
 
-    @Value("${r2.rulebooks.public-dev-url}")
+    @Value("${r2.rulebooks.public-url}")
     private String r2PublicDomain;
 
     @Value("${r2.bucket-rulebooks}")

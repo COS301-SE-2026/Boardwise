@@ -2,36 +2,27 @@
     <PageContainer>
         <!-- Loading -->
         <template v-if="loading">
-            <v-container
-                class="d-flex justify-center align center"
-                style="min-height: 60vh"
-            >
-                <v-progress-circular
-                    indeterminate
-                    color="primary"
-                    size="48"
-                />
-            </v-container>
+            <BaseLoadingState />
         </template>
 
         <!-- Profile not found -->
         <template v-else-if="notFound">
-            <v-container
+            <div
                 class="d-flex justify-center align-center"
                 style="min-height: 60vh"
             >
                 <BaseEmptyState
                     title="Profile not found"
-                    description="The user you're looking for doesn't exist or is no longer available."
+                    message="The user you're looking for doesn't exist or is no longer available."
                 />
-            </v-container>
+            </div>
         </template>
 
         <!-- Profile -->
         <template v-else-if="user">
             <Navbar />
 
-            <v-card flat class="profile-header pa-10 w-100 mb-6">
+            <BaseCard flush class="profile-header pa-10 w-100 mb-6">
                 <div class="d-flex justify-space-between align-center flex-wrap ga-6">
                     <div class="d-flex align-center ga-6 flex-wrap profle-info">
                         <BaseAvatar 
@@ -47,13 +38,25 @@
                             <p v-if="user.bio" class="profile-bio ma-0">{{ user.bio }}</p>
                         </div>
                     </div>
+
+                    <div class="d-flex ga-1">
+                        <BaseButton 
+                            @click="handleClick(route.params.id as string)" 
+                            :variant="'primary'"
+                            size="small"
+                            v-if="user.status === FriendStatus.ACCEPTED"
+                        >
+                            <p>Message</p>
+                        </BaseButton>
+                        
+                        <FriendActionButton
+                            :status="user.status"
+                            @add="handleAdd"
+                            @remove="handleRemove"
+                        />
+                    </div>
                 </div>
-                <FriendActionButton
-                    :status="user.status"
-                    @add="handleAdd"
-                    @remove="handleRemove"
-                />
-            </v-card>
+            </BaseCard>
 
             <ProfileStats
                 :games="user.ownedGameCount"
@@ -64,10 +67,13 @@
 
             <ProfileCommunities :communities="user.communities" />
 
-            <v-tabs v-model="activeTab" color="primary" class="mb-4">
-                <v-tab value="Games Owned">Games Owned</v-tab>
-                <v-tab value="Listings">Listings</v-tab>
-            </v-tabs>
+            <BaseTabs
+                :tabs="['Games Owned', 'Listings']"
+                :active-tabs="activeTab"
+                aria-label="Profile sections"
+                class="mb-4"
+                @change="activeTab=$event"
+            />
 
             <v-window v-model="activeTab">
                 <v-window-item value="Games Owned">
@@ -75,7 +81,7 @@
                 </v-window-item>
 
                 <v-window-item value="Listings">
-                    <ListingsSection :listings="listings" />
+                    <ListingsSection :listings="listings" :editable="false" />
                 </v-window-item>
             </v-window>
         </template>
@@ -84,6 +90,8 @@
             v-model="showFriendsModal"
             :username="user?.username ?? ''"
             :loading="isLoading"
+            :friends="otherFriendList?.friends"
+            :mutuals="otherFriendList?.mutuals"
             @remove="onModalRemove"
         />
     </PageContainer>
@@ -91,10 +99,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import Navbar from '~/components/layout/Navbar.vue';
 import BaseAvatar from '~/components/ui/BaseAvatar.vue';
+import BaseButton from '~/components/ui/BaseButton.vue';
+import BaseCard from '~/components/ui/BaseCard.vue';
 import PageContainer from '~/components/layout/PageContainer.vue';
 
 import ProfileStats from '~/components/features/profile/ProfileStats.vue';
@@ -107,17 +117,20 @@ import FriendActionButton from '~/components/features/people/FriendActionButton.
 
 import { useProfile } from '~/composables/useProfile'
 import { useFriends } from '~/composables/useFriends'
-import { useMarketplace } from '~/composables/useMarketplace'
 import { FriendStatus } from '~/services/userService';
 import type { ProfileResponse } from '~/services/userService'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue';
 
 const route = useRoute()
+const router = useRouter()
 const { fetchUserById } = useProfile()
-const { listings, fetchUserListing } = useMarketplace()
+
 const {  
     isLoading, 
     sendFriendRequest, 
-    unfriendUser
+    unfriendUser,
+    otherFriendList,
+    getUserFriendsList,
 } = useFriends()
 
 const loading = ref(true)
@@ -125,12 +138,13 @@ const notFound = ref(false)
 
 const user = ref<ProfileResponse | null>(null)
 const activeTab = ref('Games Owned')
+const listings = ref([])
 const showFriendsModal = ref(false)
 
 const games = computed(() => user.value?.games ?? [])
 
 const loadProfile = async (id: string) => {
-    isLoading.value = true
+    loading.value = true
     notFound.value = false
     user.value = null
 
@@ -143,13 +157,21 @@ const loadProfile = async (id: string) => {
         }
 
         user.value = profile
-        await fetchUserListing();
+        await getUserFriendsList(id)
+        // gotta add fetching other user listings
     } catch (err) {
         console.error('Failed to load profile:', err)
         notFound.value = true
     } finally {
         loading.value = false
     }
+}
+
+const handleClick = (id: string) => {
+  router.push({
+    path: '/chats',
+    query: { newChat: id }
+  })
 }
 
 const openFriendsModal = async () => {

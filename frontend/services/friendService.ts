@@ -35,6 +35,7 @@ export enum NotificationType {
     EVENT_INVITE = 'EVENT_INVITE',
     FRIEND_REQUEST = 'FRIEND_REQUEST',
     FRIEND_CONFIRMATION = 'FRIEND_CONFIRMATION',
+    UNFRIEND = 'UNFRIEND'
 }
 
 export interface EventHostInfo {
@@ -63,6 +64,11 @@ export interface FriendRequestNotification {
 export interface FriendConfirmationNotification {
     type: NotificationType.FRIEND_CONFIRMATION
     friend: FriendDTO
+}
+
+export interface UnfriendNotification {
+    type: NotificationType.UNFRIEND
+    friendId: string
 }
 
 export type NotificationItem =
@@ -99,7 +105,7 @@ export interface ProfileResponseDTO{
     ownedGameCount:number
     games:GameInventoryDTO[]
     communities: Map<string,string>[]
-    status: FriendStatus
+    status: FriendStatus | null
     preferences: Preferences
     createdAt: string
 }

@@ -63,10 +63,10 @@ public class Rulebook {
     private Instant lockExpiresAt;
 
     @Field("undoStack")
-    private List<Long> undoStack;
+    private List<ObjectId> undoStack;
 
     @Field("redoStack")
-    private List<Long> redoStack;
+    private List<ObjectId> redoStack;
 
     @Field("uploadedAt")
     private Instant uploadedAt;

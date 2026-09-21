@@ -142,12 +142,12 @@ public class ProfileControllerUnitTests {
 
         @Test
         @WithMockUser
-        @DisplayName("GET /api/users/friends returns 200 with Friends List")
+        @DisplayName("GET /api/sb/users/friends returns 200 with Friends List")
         void getOwnFriendsListReturns200() throws Exception{
             when(service.getOwnFriendsList(anyString()))
                 .thenReturn(getOwnFriendsListDTO());
 
-            mockMvc.perform(get("/api/users/friends")
+            mockMvc.perform(get("/api/sb/users/friends")
                     .header("Authorization", "Bearer " + fakeToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value("User friends list successfully retrieved"))
@@ -158,13 +158,13 @@ public class ProfileControllerUnitTests {
 
         @Test
         @WithMockUser
-        @DisplayName("GET /api/users/{userId}/friends returns 200 with Friends List")
+        @DisplayName("GET /api/sb/users/{userId}/friends returns 200 with Friends List")
         void getOtherUserFriendsListReturns200() throws Exception{
             when(service.getUserFriendsList(anyString(), eq("some-existent-id")))
                 .thenReturn(getFriendsListDTO());
 
             // Just pretend friend 3 is requesting owner's friends list
-            mockMvc.perform(get("/api/users/some-existent-id/friends")
+            mockMvc.perform(get("/api/sb/users/some-existent-id/friends")
                     .header("Authorization", "Bearer " + fakeToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value("User friends list successfully retrieved"))
@@ -179,14 +179,14 @@ public class ProfileControllerUnitTests {
 
         @Test
         @WithMockUser
-        @DisplayName("GET /api/users/{userId}/friends returns 404 with reason for failure message")
+        @DisplayName("GET /api/sb/users/{userId}/friends returns 404 with reason for failure message")
         void getOtherUserFriendsListReturns404() throws Exception{
             String fakeNonExistentId = "some-non-existent-id";
             when(service.getUserFriendsList(anyString(), eq(fakeNonExistentId)))
                 .thenThrow(new NoSuchElementException("User associated with id: " + fakeNonExistentId + " does not exist."));
 
             // Just pretend friend 3 is requesting owner's friends list
-            mockMvc.perform(get("/api/users/" + fakeNonExistentId + "/friends")
+            mockMvc.perform(get("/api/sb/users/" + fakeNonExistentId + "/friends")
                     .header("Authorization", "Bearer " + fakeToken))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.message").value("User associated with id: " + fakeNonExistentId + " does not exist."));

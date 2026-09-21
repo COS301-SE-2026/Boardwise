@@ -23,7 +23,7 @@ public class R2StorageService {
     @Value("${r2.bucket-profiles}")
     private String bucketName;
     
-    @Value("${r2.dev-url}") // <-- for when we have domain [CHANGE ME DURING PROD.]
+    @Value("${r2.profiles.public-url}")
     private String publicUrl;
 
     public String uploadFile(MultipartFile file, String folder) throws IOException {

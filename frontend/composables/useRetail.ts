@@ -1,10 +1,15 @@
 import { ref, computed } from 'vue'
+import { createSharedComposable } from '@vueuse/core'
 import { RetailService, type RetailListings, type PageImplRetailPage } from '~/services/retailService'
+import { useSnackBar } from './useSnackbar'
 
-// Re-export so components can keep importing RetailResult from useRetail
 export type RetailResult = RetailListings
 
-export const useRetail = () => {
+const RETAIL_CACHE_TTL_MS = 5 * 60 * 1000
+
+const _useRetail = () => {
+    const { show } = useSnackBar()
+
     const retailResults = ref<RetailResult[]>([])
     const retailLoading = ref(false)
     const retailError = ref<string | null>(null)
@@ -15,10 +20,23 @@ export const useRetail = () => {
     const isLastRetailPage = ref(false)
     const hasMoreRetail = computed(() => !isLastRetailPage.value)
 
+    // Cache bookkeeping
+    const lastFetchedAt = ref(0)
 
+    const isCacheFresh = () =>
+        retailResults.value.length > 0 &&
+        Date.now() - lastFetchedAt.value < RETAIL_CACHE_TTL_MS
+
+    const invalidateRetailCache = () => {
+        lastFetchedAt.value = 0
+    }
 
     const fetchPersonalisedListings = async (reset = false) => {
         if (reset) {
+            // Already have fresh results from a recent fetch — skip the network call.
+            if (isCacheFresh()) {
+                return
+            }
             persPage.value = 0
             retailResults.value = []
             isLastRetailPage.value = false
@@ -31,16 +49,15 @@ export const useRetail = () => {
 
         retailLoading.value = true
         retailError.value = null
-        const { show } = useSnackBar()
 
         try {
-            const res: PageImplRetailPage = await RetailService.getPersonalisedListings(persPage.value);
-            
-            retailResults.value = reset ? (res?.content ?? []): [...retailResults.value, ...(res?.content ?? [])]
+            const res: PageImplRetailPage = await RetailService.getPersonalisedListings(persPage.value)
+
+            retailResults.value = reset ? (res?.content ?? []) : [...retailResults.value, ...(res?.content ?? [])]
             totalElements.value = res?.totalElements ?? 0
             isLastRetailPage.value = res?.last ?? true
             persPage.value = (res?.number ?? persPage.value) + 1
-            console.log(retailResults);
+            lastFetchedAt.value = Date.now()
             return res
         }
         catch (err: any) {
@@ -59,6 +76,7 @@ export const useRetail = () => {
         persPage.value = 0
         totalElements.value = 0
         isLastRetailPage.value = false
+        invalidateRetailCache()
     }
 
     return {
@@ -69,6 +87,9 @@ export const useRetail = () => {
         totalElements,
         hasMoreRetail,
         clearRetail,
-        fetchPersonalisedListings
+        fetchPersonalisedListings,
+        invalidateRetailCache
     }
 }
+
+export const useRetail = createSharedComposable(_useRetail)

@@ -19,7 +19,7 @@ def test_get_job_status_success_for_valid_job_id(mock_mongo, client, mock_auth):
     }
 
     # Act
-    response = client.get(f"/api/vault/jobs/{mock_job_id}")
+    response = client.get(f"/api/fa/vault/jobs/{mock_job_id}")
 
     # Assert
     assert response.status_code == 200
@@ -34,7 +34,7 @@ def test_get_job_status_fails_for_invalid_job_id(client, mock_auth):
     mock_job_id = "definitely_invalid"
 
     # Act
-    response = client.get(f"/api/vault/jobs/{mock_job_id}")
+    response = client.get(f"/api/fa/vault/jobs/{mock_job_id}")
 
     # Assert
     assert response.status_code == 400
@@ -51,7 +51,7 @@ def test_get_job_status_fails_for_job_id_that_does_not_exist(
     mock_mongo.get_ingestion_job.return_value = None
 
     # Act
-    response = client.get(f"/api/vault/jobs/{mock_job_id}")
+    response = client.get(f"/api/fa/vault/jobs/{mock_job_id}")
 
     # Assert
     assert response.status_code == 404

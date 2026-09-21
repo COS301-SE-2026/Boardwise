@@ -6,7 +6,7 @@
       class="base-filter-group"
     >
       <v-expansion-panel>
-        <v-expansion-panel-title class="text-body-2 font-weight-bold">
+        <v-expansion-panel-title class="base-filter-group__title">
           {{ title }}
         </v-expansion-panel-title>
         <v-expansion-panel-text>

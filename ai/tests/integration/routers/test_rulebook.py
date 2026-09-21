@@ -6,7 +6,7 @@ from bson import ObjectId
 
 
 class TestUploadRulebook:
-    """Groups all integration tests for POST /api/vault/rulebooks/upload"""
+    """Groups all integration tests for POST /api/fa/vault/rulebooks/upload"""
 
     def test_upload_rejects_non_pdf(self, client, mock_auth):
         """Proves the Gateway rejects invalid file types instantly."""
@@ -15,7 +15,7 @@ class TestUploadRulebook:
         data = {"title": "Hack", "language": "en"}
 
         # Act
-        response = client.post("/api/vault/rulebooks/upload", data=data, files=files)
+        response = client.post("/api/fa/vault/rulebooks/upload", data=data, files=files)
 
         # Assert
         assert response.status_code == 415
@@ -38,7 +38,7 @@ class TestUploadRulebook:
         data = {"title": "Catan", "language": "en"}
 
         # Act
-        response = client.post("/api/vault/rulebooks/upload", data=data, files=files)
+        response = client.post("/api/fa/vault/rulebooks/upload", data=data, files=files)
 
         # Assert
         assert response.status_code == 202
@@ -57,7 +57,7 @@ class TestUploadRulebook:
         data = {"title": "Dune", "language": "en"}
 
         # Act
-        response = client.post("/api/vault/rulebooks/upload", data=data, files=files)
+        response = client.post("/api/fa/vault/rulebooks/upload", data=data, files=files)
 
         # Assert
         assert response.status_code == 413
@@ -71,7 +71,7 @@ class TestUploadRulebook:
         data = {"title": "Dune", "language": "en"}
 
         # Act
-        response = client.post("/api/vault/rulebooks/upload", data=data, files=files)
+        response = client.post("/api/fa/vault/rulebooks/upload", data=data, files=files)
 
         # Assert
         assert response.status_code == 422
@@ -95,7 +95,7 @@ class TestUploadRulebook:
 
             # Act
             response = client.post(
-                "/api/vault/rulebooks/upload",
+                "/api/fa/vault/rulebooks/upload",
                 data=data,
                 files=dummy_file,
                 headers={"Authorization": "Bearer fake_token"},
@@ -122,7 +122,7 @@ class TestUploadRulebook:
         data = {"title": "Catan", "language": "en"}
 
         # Act
-        response = client.post("/api/vault/rulebooks/upload", data=data, files=files)
+        response = client.post("/api/fa/vault/rulebooks/upload", data=data, files=files)
 
         # Assert
         assert response.status_code == 400
@@ -145,7 +145,7 @@ class TestUploadRulebook:
         data = {"title": "Catan", "language": "en"}
 
         # Act
-        response = client.post("/api/vault/rulebooks/upload", data=data, files=files)
+        response = client.post("/api/fa/vault/rulebooks/upload", data=data, files=files)
 
         # Assert
         assert response.status_code == 500
@@ -159,7 +159,7 @@ class TestUploadRulebook:
 @patch("app.routers.rulebook.build_chat_messages")
 @patch("app.routers.rulebook.retrieve_context")
 class TestQueryRulebook:
-    """Groups all integration tests for POST /api/vault/rulebooks/{rulebookId}/query"""
+    """Groups all integration tests for POST /api/fa/vault/rulebooks/{rulebookId}/query"""
 
     def test_query_rulebook_valid_request_returns_200_with_answer(
         self,
@@ -187,7 +187,7 @@ class TestQueryRulebook:
 
         # Act
         response = client.post(
-            f"/api/vault/rulebooks/{rulebook_id}/query", json=payload
+            f"/api/fa/vault/rulebooks/{rulebook_id}/query", json=payload
         )
 
         # Assert

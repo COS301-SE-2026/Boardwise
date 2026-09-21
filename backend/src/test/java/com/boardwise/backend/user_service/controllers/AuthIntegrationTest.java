@@ -39,7 +39,7 @@ public class AuthIntegrationTest extends BaseIntegrationTest {
                         "emailAddress": "test@mock.com"
                     }
                     """;
-            mockMvc.perform(post("/api/auth/forgotPassword")
+            mockMvc.perform(post("/api/sb/auth/forgotPassword")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonPayload))
                 .andExpect(status().isOk());
@@ -76,7 +76,7 @@ public class AuthIntegrationTest extends BaseIntegrationTest {
                         "password": "NewStrongPa$$123!"
                     }
                     """.formatted(token);
-            mockMvc.perform(post("/api/auth/resetPassword")
+            mockMvc.perform(post("/api/sb/auth/resetPassword")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonPayload))
                     .andExpect(status().isOk());
@@ -102,7 +102,7 @@ public class AuthIntegrationTest extends BaseIntegrationTest {
                         "password": "NewStrongPa$$123!"
                     }
                     """.formatted(token);
-            mockMvc.perform(post("/api/auth/resetPassword")
+            mockMvc.perform(post("/api/sb/auth/resetPassword")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonPayload))
                     .andExpect(status().isBadRequest());
@@ -122,7 +122,7 @@ public class AuthIntegrationTest extends BaseIntegrationTest {
                         "password": "short"
                     }
                     """.formatted(token);
-            mockMvc.perform(post("/api/auth/resetPassword")
+            mockMvc.perform(post("/api/sb/auth/resetPassword")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonPayload))
                     .andExpect(status().isBadRequest());

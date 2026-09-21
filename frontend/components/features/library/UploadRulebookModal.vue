@@ -29,17 +29,17 @@
                 @click="selectGame(game)"
               >
                 <div class="titleResult_thumb">
-                  <v-img
+                  <BaseImage
                     width="48"
                     height="48"
                     cover
                     :src="game.imageUrl ?? '/default.png'"
-                  ></v-img>
+                  ></BaseImage>
                 </div>
                 <div class="titleResult_info">
                   <p class="text-body-2 mb-0">{{ game.title }}</p>
                   <p class="text-caption mb-0" style="color: var(--color-text-muted)">
-                    {{ game.genre?.[0] ?? '' }}
+                    {{ game.genres?.[0] ?? '' }}
                   </p>
                 </div>
               </div>
@@ -48,13 +48,13 @@
         </template>
 
         <div v-else class="selectedGameCard">
-          <v-img
+          <BaseImage
             width="40"
             height="40"
             cover
             :src="selectedGame.imageUrl ?? '/default.png'"
             class="selectedGameCard_thumb"
-          ></v-img>
+          ></BaseImage>
           <span class="text-body-2 flex-1-1">{{ selectedGame.title }}</span>
           <BaseButton variant="secondary" size="small" @click="clearSelection">
             Clear selection
@@ -113,6 +113,7 @@ import BaseSearch from '~/components/ui/BaseSearch.vue'
 import AddCustomGameModal from '~/components/features/shared/AddCustomGameModal.vue'
 import { useBoardGames } from '~/composables/useBoardGames'
 import { useDebounceFn } from '@vueuse/core'
+import BaseImage from '~/components/ui/BaseImage.vue'
 
 const { games, isLoading: gamesLoading, searchGames } = useBoardGames()
 

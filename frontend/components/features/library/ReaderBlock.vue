@@ -1,9 +1,7 @@
 <template>
-    <v-card
-        elevation="0"
+    <BaseCard
         class="block-wrapper pa-4 mb-2"
-        :class="{'bg-grey-lighten-4': isEditing}"
-        rounded="lg"
+        :class="{'block-wrapper--editing': isEditing}"
     >
     <!-- Read view -->
         <div v-if="!isEditing" class="text-body-1 text-medium-emphasis" style="line-height: 1.9;" v-html="parsedContent"></div>
@@ -41,7 +39,7 @@
                         color="primary"
                         prepend-icon="mdi-plus"
                         :disabled="isSaving"
-                        @click="$emit('insert-below', index + 1)"
+                        @click="$emit('insert', index + 1)"
                     >
                         Add Below
                     </BaseButton>
@@ -68,7 +66,7 @@
                 </div>
             </div>
         </div>
-    </v-card>
+    </BaseCard>
 </template>
 
 <script setup>
@@ -77,6 +75,7 @@ import {marked} from 'marked'
 import DOMPurify from 'dompurify'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseTextArea from '~/components/ui/BaseTextArea.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
 
 const props = defineProps({
     chunk: {type: Object, required: true},
@@ -87,7 +86,7 @@ const props = defineProps({
     activeOccurrence: { type: Number, default: -1 }
 })
 
-const emit = defineEmits(['save', 'cancel', 'insert-below', 'delete'])
+const emit = defineEmits(['save', 'cancel', 'insert', 'delete'])
 
 marked.use({
     gfm: true,
@@ -99,7 +98,9 @@ const draftContent = ref(props.chunk?.content ?? '')
 const isDirty = computed(() => draftContent.value !== (props.chunk?.content ?? ''))
 
 watch(() => props.chunk?.content, (newContent) => {
-    draftContent.value = newContent ?? ''
+    if(!isDirty.value){
+        draftContent.value = newContent ?? ''
+    }
 })
 
 const handleSave = () => {
@@ -144,16 +145,3 @@ const parsedContent = computed(() => {
     return cleanHtml
 })
 </script>
-
-<style scoped>
-.search-highlight {
-  background: #fff176;
-  border-radius: 2px;
-  padding: 0 2px;
-}
-
-.search-highlight--active {
-  background: #ffb300;
-  outline: 2px solid #e65100;
-}
-</style>

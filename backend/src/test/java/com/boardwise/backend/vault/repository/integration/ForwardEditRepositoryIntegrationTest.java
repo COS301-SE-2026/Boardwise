@@ -27,24 +27,24 @@ public class ForwardEditRepositoryIntegrationTest extends VaultIntegrationTest {
     @Test
     void AtomicCommitForwardEditShouldSucceedWhenGivenAValidRulebook(){
         // Arrange
-        List<Long> undoStack = new ArrayList<>();
-        for (long i = 0; i < 50; i++) {
-            undoStack.add(i);
+        List<ObjectId> undoStack = new ArrayList<>();
+        for (int i = 0; i < 50; i++) {
+            undoStack.add(new ObjectId());
         }
-        List<Long> redoStack = List.of(50L,51L,52L);
+        List<ObjectId> redoStack = List.of(new ObjectId(),new ObjectId(),new ObjectId());
         ObjectId rulebookId = new ObjectId();
 
-        Long newVersion = 53L;
         Rulebook rulebook = Rulebook.builder().id(rulebookId).undoStack(undoStack).redoStack(redoStack).build();
         rulebookRepository.save(rulebook);
+        ObjectId eventId = new ObjectId();
         
         // Act
-        rulebookRepository.atomicCommitForwardEdit(rulebookId, newVersion);
+        rulebookRepository.atomicCommitForwardEdit(rulebookId, eventId);
         Rulebook fetched = rulebookRepository.findById(rulebookId).orElse(null);
 
         // Assert
-        assertEquals(newVersion, fetched.getUndoStack().getLast(), "The last appened element to the undo stack should be the new version");
-        assertEquals(1L, fetched.getUndoStack().getFirst(), "The first element should match exactly as appending the new version should discard the 50th element");
+        assertEquals(eventId, fetched.getUndoStack().getLast(), "The last appened element to the undo stack should be the new version");
+        assertEquals(undoStack.get(1), fetched.getUndoStack().getFirst(), "The first element should match exactly as appending the new version should discard the 50th element");
         assertTrue(fetched.getRedoStack().isEmpty(), "Redo stack should be empty after every forward edit.");
     }
 

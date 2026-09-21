@@ -5,12 +5,7 @@
         :disabled="status === FriendStatus.REQUESTED"
         @click="handleClick"
     >
-        <v-progress-circular
-            indeterminate
-            color="primary"
-            size="48"
-            v-if="isLoading"
-        />
+        <BaseSpinner v-if="isLoading" size="sm" />
         <p v-else>{{ label }}</p>
   </BaseButton>
 </template>
@@ -20,11 +15,12 @@ import { computed } from 'vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import { FriendStatus } from '~/services/userService'
 import { useFriends } from '~/composables/useFriends';
+import BaseSpinner from '~/components/ui/BaseSpinner.vue';
 
 const { isLoading } = useFriends()
 
 const props = defineProps<{
-    status: FriendStatus
+    status: FriendStatus | null
 }>()
 
 const emit = defineEmits<{
@@ -50,7 +46,6 @@ const variant = computed(() => {
 })
 
 const handleClick = () => {
-    console.log("you clicked the friend action button")
     if(props.status === FriendStatus.ACCEPTED) emit('remove')
     else emit('add')
 }

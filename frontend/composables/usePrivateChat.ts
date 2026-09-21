@@ -23,14 +23,22 @@ export interface Conversation{
     isInvite?: boolean
 }
 
+interface PresenceNotification{
+    type: "PRESENCE",
+    userId: string,
+    isOnline: boolean
+}
+
 const error = ref<string>('');
 const isLoading = ref<boolean>(false);
 const chats = ref<Array<Conversation>>([]);
 const currentChat = ref<Conversation | null | undefined>(null);
 const messages = ref<Array<DirectMessageDTO>>([]);
+const watchedPresenceUsers = new Set<string>();
 
 export const usePrivateChat = () => {
     const { isConnected, subscribe, unsubscribe, sendPrivateMessage } = useStomp();
+    const { fetchUserById } = useProfile();
     const dest = "/user/queue/chat";
     const token = localStorage.getItem("access_token");
 
@@ -54,8 +62,16 @@ export const usePrivateChat = () => {
         try{
             if(!token) throw new Error("User is not authenticated");
 
+            const userId = jwtDecode(token).sub
+
+            const isSameChat = messages.value.length > 0 && 
+                (messages.value[0]?.senderId === targetId || messages.value[0]?.receiverId === targetId);
+
+            if(!isSameChat)
+                messages.value = [];
+            
             const res = await ChatService.getMissedPrivateMessage(
-                targetId, 
+                generateConversationId(targetId, userId as string), 
                 lastMessageTime.value
             );
 
@@ -65,7 +81,7 @@ export const usePrivateChat = () => {
 
             messages.value = res.sort((a, b) => {
                 return new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime();
-            })
+            });
         }
         catch(err: any){
             if(err.message.includes("authenticated")){
@@ -83,9 +99,9 @@ export const usePrivateChat = () => {
         }
     }
 
-    const getChats = async () => {
+    const getChats = async (messageReceipt: boolean = false) => {
         error.value = '';
-        isLoading.value = true;
+        isLoading.value = !messageReceipt;
 
         try{
             const response = await ChatService.getConversations();
@@ -95,15 +111,20 @@ export const usePrivateChat = () => {
                     unread: false
                 }
                 return newChat;
-            })
+            });
 
             const unsavedChats = chats.value.filter( el => 
                 !fetchedChats.some((fetched) => fetched.id === el.id) &&
                 (!el.lastMessage || el.lastMessage === "")
-            )
+            );
 
-            chats.value = [...unsavedChats, ...fetchedChats]
+            chats.value = [...unsavedChats, ...fetchedChats].sort((a, b) => 
+                new Date(a.lastMessageAt).getTime() - new Date(b.lastMessageAt).getTime()
+            );
             
+            for(const chat of chats.value){
+                listenForPresence(chat.userId);
+            }
         }
         catch(err: any){
             error.value = err.data?.message || "Could not retrieve chats."
@@ -149,7 +170,7 @@ export const usePrivateChat = () => {
             // check if they have spoken before
             const convoId = generateConversationId(message.senderId, message.receiverId);
             const eId: number = chats.value.findIndex((el) => {
-                return el.id === generateConversationId(message.senderId, message.receiverId)
+                return el.id === convoId
             })  
             if(eId !== -1 && chats.value[eId]){
                 const convo: Conversation = chats.value[eId];
@@ -159,7 +180,7 @@ export const usePrivateChat = () => {
                 chats.value.unshift(convo);
             }
             else{
-                const { fetchUserById } = useProfile();
+                
                 const convo: Conversation = {
                     id: convoId,
                     userId: message.senderId,
@@ -171,16 +192,42 @@ export const usePrivateChat = () => {
                     unread: true
                 }
 
-                const sender: ProfileResponse | undefined = await fetchUserById(convo.userId);
+                chats.value.unshift(convo);
+
+                try{
+                    const sender: ProfileResponse | undefined = await fetchUserById(convo.userId);
                 
-                if(sender){
-                    convo.username = sender.username;
-                    convo.profilePicture = sender.profilePicture;
-                    chats.value.unshift(convo);
+                    if(sender){
+                        convo.username = sender.username;
+                        convo.profilePicture = sender.profilePicture;
+                    }
                 }
-                
+                catch(err){
+                    console.error("[Private chat composable]: Making request for user data failed:", err);
+                }
+               
             }
         });
+    }
+
+    const listenForPresence = (userId: string) => {
+        if(watchedPresenceUsers.has(userId)){
+            console.warn(`[usePrivateChat]: "/topic/presence/${userId}" already subscribed to.`)
+            return;
+        } 
+
+        watchedPresenceUsers.add(userId);
+        subscribe(`/topic/presence/${userId}`, (presence: PresenceNotification) => {
+            console.log("[usePrivateChat] Presence Notification received!!!")
+            
+            const cIdx = chats.value.findIndex((el) => el.userId === presence.userId);
+            if(cIdx !== -1 && chats.value[cIdx]){
+                chats.value[cIdx].isOnline = presence.isOnline;
+            }
+            if(currentChat.value?.userId === presence.userId){
+                currentChat.value.isOnline = presence.isOnline;
+            }
+        })
     }
 
     const sendDirectMessage = (msg: DirectMessageDTO) => {
@@ -224,7 +271,7 @@ export const usePrivateChat = () => {
                 userId: receiverId,
                 username: sender.username,
                 profilePicture: sender.profilePicture,
-                isOnline: true,
+                isOnline: false,
                 lastMessage: "",
                 lastMessageAt: new Date().toISOString(),
                 unread: false
@@ -247,7 +294,13 @@ export const usePrivateChat = () => {
         })
     }
     
-    onUnmounted(() => unsubscribe(dest));
+    onUnmounted(() => { 
+        unsubscribe(dest);
+        for(const userId of watchedPresenceUsers){
+            unsubscribe(`/topic/presence/${userId}`);
+        }
+        watchedPresenceUsers.clear();
+    });
 
     return { 
         isConnected, 
