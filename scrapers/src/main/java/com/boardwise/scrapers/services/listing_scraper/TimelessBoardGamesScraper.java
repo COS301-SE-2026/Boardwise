@@ -16,15 +16,15 @@ import org.springframework.stereotype.Service;
 import com.boardwise.scrapers.dtos.TimelessBoardGamesResDTO;
 
 @Service
-public class TimelessBoardGames {
+public class TimelessBoardGamesScraper {
     private static final String URL = "https://www.timelessboardgames.co.za/";
     private static final String RETAILER = "Timeless Board Games";
     private static final int MAX_PAGES = 5;
     private static final long PAGE_DELAY_MS = 500;
 
-    private final Logger logger = Logger.getLogger(TimelessBoardGames.class.getName());
+    private final Logger logger = Logger.getLogger(TimelessBoardGamesScraper.class.getName());
 
-    public TimelessBoardGames() {}
+    public TimelessBoardGamesScraper() {}
 
     public List<TimelessBoardGamesResDTO> scrapeForBoardgame(String boardgame) {
         List<TimelessBoardGamesResDTO> results = new ArrayList<>();

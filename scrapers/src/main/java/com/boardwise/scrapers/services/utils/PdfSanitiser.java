@@ -22,8 +22,6 @@ public class PdfSanitiser {
     private static final COSName NAMES = COSName.getPDFName("Names");
     private static final COSName JAVASCRIPT = COSName.getPDFName("Javascript");
     private static final COSName EMBEDDED_FILES = COSName.getPDFName("EmbeddedFiles");
-    private static final COSName ACRO_FORM = COSName.getPDFName("AcroForm");
-    private static final COSName XFA = COSName.getPDFName("XFA");
     private static final COSName OUTLINES = COSName.getPDFName("Outlines");
     private static final COSName A = COSName.getPDFName("A");
     private static final COSName S = COSName.getPDFName("S");
@@ -70,7 +68,8 @@ public class PdfSanitiser {
             return out.toByteArray();
         }
     }
-        private static void cleanPage(PDPage page) throws IOException{
+        
+    private static void cleanPage(PDPage page) throws IOException{
             page.getCOSObject().removeItem(AA);
 
             List<PDAnnotation> annotations = page.getAnnotations();

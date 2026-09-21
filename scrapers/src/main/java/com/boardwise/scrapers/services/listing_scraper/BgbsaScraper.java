@@ -14,7 +14,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
-import com.boardwise.scrapers.dtos.LevelUpStoreResDTO;
+import com.boardwise.scrapers.dtos.BgbsaDTO;
 
 @Service
 public class BgbsaScraper {
@@ -31,9 +31,8 @@ public class BgbsaScraper {
 
     public BgbsaScraper() {}
 
-    public List<LevelUpStoreResDTO> scrapeForBoardgame() {
-        String boardgame = "Catan";
-        List<LevelUpStoreResDTO> results = new ArrayList<>();
+    public List<BgbsaDTO> scrapeForBoardgame(String boardgame) {
+        List<BgbsaDTO> results = new ArrayList<>();
         if (boardgame == null || boardgame.isBlank()) {
             return results;
         }
@@ -49,7 +48,7 @@ public class BgbsaScraper {
 
             for (Element link : listingLinks) {
                 try {
-                    LevelUpStoreResDTO item = parseListing(link, normalizedTerm);
+                    BgbsaDTO item = parseListing(link, normalizedTerm);
                     if (item != null) {
                         results.add(item);
                     }
@@ -64,7 +63,7 @@ public class BgbsaScraper {
         return results;
     }
 
-    private LevelUpStoreResDTO parseListing(Element link, String normalizedTerm) {
+    private BgbsaDTO parseListing(Element link, String normalizedTerm) {
         String fullText = link.text().trim();
         if (fullText.isBlank()) {
             return null;
@@ -84,7 +83,7 @@ public class BgbsaScraper {
         String href = link.absUrl("href");
         String imageUrl = fetchImageForListing(href);
 
-        return new LevelUpStoreResDTO(title, "BGBSA", price, false, null, href, imageUrl);
+        return new BgbsaDTO(title, "BGBSA", price, false, null, href, imageUrl);
     }
 
     private String fetchImageForListing(String listingUrl) {

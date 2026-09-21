@@ -12,24 +12,26 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Service;
 
-import com.boardwise.scrapers.dtos.LevelUpStoreResDTO;
+import com.boardwise.scrapers.dtos.TableTopGuruResDTO;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
-public class LevelUpStore {
-    private static final String URL = "https://levelupstore.co.za/";
+public class TableTopGuruScraper {
+    private static final String URL = "https://tabletopguru.co.za/";
+    private static final String RETAILER = "Tabletop Guru";
+    private static final boolean SKIP_PRE_LOVED = true;
 
-    private final Logger logger = Logger.getLogger(LevelUpStore.class.getName());
+    private final Logger logger = Logger.getLogger(TableTopGuruScraper.class.getName());
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public LevelUpStore() {}
+    public TableTopGuruScraper() {}
 
-    public List<LevelUpStoreResDTO> scrapeForBoardgame(String boardgame) {
-        List<LevelUpStoreResDTO> results = new ArrayList<>();
-        String query = URLEncoder.encode(boardgame, StandardCharsets.UTF_8);
+    public List<TableTopGuruResDTO> scrapeForBoardgame(String boardgame) {
+        List<TableTopGuruResDTO> results = new ArrayList<>();
+        String query = URLEncoder.encode( boardgame, StandardCharsets.UTF_8);
 
-        String searchUrl = URL + "search/suggest.json?q=" + query + "&resources%5Btype%5D=product&resources%5Blimit%5D=10";
+        String searchUrl = URL + "search/suggest.json?q=" + query+ "&resources%5Btype%5D=product&resources%5Blimit%5D=10";
 
         try {
             Connection.Response res = Jsoup.connect(searchUrl)
@@ -43,7 +45,7 @@ public class LevelUpStore {
 
             for (JsonNode p : products) {
                 try {
-                    LevelUpStoreResDTO item = parseProduct(p);
+                    TableTopGuruResDTO item = parseProduct(p);
                     if (item != null) {
                         results.add(item);
                     }
@@ -57,9 +59,13 @@ public class LevelUpStore {
         return results;
     }
 
-    private LevelUpStoreResDTO parseProduct(JsonNode p) {
+    private TableTopGuruResDTO parseProduct(JsonNode p) {
         String title = p.path("title").asText();
-        
+
+        if (SKIP_PRE_LOVED && title.toLowerCase().contains("pre-loved")) {
+            return null;
+        }
+
         String path = p.path("url").asText().split("\\?")[0];
         String url = URL + path.replaceFirst("^/", "");
 
@@ -68,9 +74,7 @@ public class LevelUpStore {
             imageUrl = p.path("image").asText("");
         }
 
-        if (!p.path("available").asBoolean(true)) {
-            return null;
-        }
+        boolean isAvailable = p.path("available").asBoolean(true);
 
         Double price = parsePrice(p.path("price"));
         Double compareAt = parsePrice(p.path("compare_at_price_max"));
@@ -79,16 +83,16 @@ public class LevelUpStore {
         Double originalPrice = isOnSale ? compareAt : price;
         Double salePrice = isOnSale ? price : null;
 
-        return new LevelUpStoreResDTO(title,"Level Up Store", originalPrice, isOnSale, salePrice, url, imageUrl);
+        return new TableTopGuruResDTO(title, RETAILER, url, isAvailable, isOnSale, originalPrice, salePrice, imageUrl);
     }
 
     private Double parsePrice(JsonNode node) {
         if (node.isMissingNode() || node.isNull()) {
             return null;
         }
-        String cleaned = node.asText().replaceAll("[^0-9.]", "");
+        String cleaned = node.asText().replaceAll("[^0-9.]", ""); 
         return cleaned.isEmpty() ? null : Double.valueOf(cleaned);
     }
 
-    
+
 }
