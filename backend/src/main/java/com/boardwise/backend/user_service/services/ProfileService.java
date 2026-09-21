@@ -174,7 +174,11 @@ public class ProfileService {
         User subject = userRepo.findById(userId).get();
 
         String cleanQuery = AuthService.sanitize(query);
-        Criteria searchCriteria = Criteria.where("username").regex(cleanQuery, "i");
+        Criteria searchCriteria = new Criteria().orOperator(
+            Criteria.where("username").regex(cleanQuery, "i"),
+            Criteria.where("firstName").regex(cleanQuery, "i"),
+            Criteria.where("lastName").regex(cleanQuery, "i")
+        );
         Query dbQuery = new Query(searchCriteria);
         List<User> matches = template.find(dbQuery, User.class);
 

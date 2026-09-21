@@ -8,9 +8,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.springframework.data.domain.Limit;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -27,7 +31,6 @@ import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.dtos.*;
 import com.boardwise.backend.shared.model.*;
-import com.boardwise.backend.shared.repository.BoardGameSearch;
 import com.boardwise.backend.user_service.services.AuthService;
 import com.boardwise.backend.user_service.services.R2StorageService;
 
@@ -40,7 +43,7 @@ public class BoardGameService {
     private final BoardGameRepository gameRepo;
     private final R2StorageService bucket;
     private final RestClient client;
-    private final BoardGameSearch gameSearch;
+    private final MongoTemplate db;
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
 
 
@@ -188,13 +191,17 @@ public class BoardGameService {
     public Map<String, Object> getBoardgames(String query){
         Map<String, Object> result = new HashMap<>();
         List<Boardgame> dbGames;
+        int resultLimit = 12;
 
         if(query == null){
-            Limit maxRecords = Limit.of(10);
+            Limit maxRecords = Limit.of(resultLimit);
             dbGames = gameRepo.findAllBy(maxRecords);
         }
         else{
-            dbGames = gameSearch.search(query, 10);
+            Criteria searchCrit = Criteria.where("title").regex(query);
+            Query searchQuery = new Query(searchCrit);
+            searchQuery.limit(resultLimit);
+            dbGames = db.find(searchQuery, Boardgame.class);
         }
 
         List<GameListDTO> games = new ArrayList<>();
