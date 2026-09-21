@@ -5,7 +5,6 @@ import { onUnmounted, computed } from 'vue';
 import { type DirectMessageDTO, ChatService } from '~/services/chatService';
 import { jwtDecode } from 'jwt-decode';
 import type { ProfileResponse } from '~/services/userService';
-import { ms } from 'vuetify/iconsets/ms';
 
 export interface DirectMessage{ // send
     id: string,
@@ -302,7 +301,9 @@ export const usePrivateChat = () => {
             messages.value = [];
         }
         catch(err){
-            show("Something went wrong when starting a conversation with this user", "error");
+            const errorMessage = "Something went wrong when starting a conversation with this user";
+            console.error(errorMessage, err);
+            show(errorMessage, "error");
         }
 
     }
