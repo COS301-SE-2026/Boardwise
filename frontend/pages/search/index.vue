@@ -70,7 +70,6 @@ function handleOpenProfile(person) {
 }
 
 const handleFriendAction =  async (person) => {
-    // TODO: wire to friend/social service once it exists
     person.isFriend = true
     return await sendFriendRequest(person.id);
 }

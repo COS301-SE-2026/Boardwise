@@ -9,80 +9,88 @@
       @create-community="showCreateCommunity = true"
     />
 
-    <!-- Mobile filter trigger -->
-<div class="d-flex d-md-none mt-6 mb-4">
-  <v-chip
-    color="secondary"
-    prepend-icon="mdi-filter-variant"
-    size="large"
-    :aria-expanded="showFilters"
-    aria-controls="community-mobile-filters"
-    @click="showFilters = true"
-  >
-    Filters
-  </v-chip>
+    <SocialTabs data-test="social-tabs" v-model="activeTab" />
 
-  <v-navigation-drawer
-    v-model="showFilters"
-    temporary
-    location="left"
-    width="300"
-  >
-    <div
-      id="community-mobile-filters"
-      class="pa-4"
-    >
-      <CommunityFilter
-        @filter="handleFilter"
-      />
-    </div>
-  </v-navigation-drawer>
-</div>
-
-<!-- Shared catalogue/results -->
-<div class="community-results-layout">
-
-  <!-- Desktop filters -->
-  <aside
-    class="community-results-layout__filters d-flex d-md-block"
-    aria-label="Community filters"
-  >
-    <CommunityFilter
-      @filter="handleFilter"
-    />
-  </aside>
-
-  <!-- One results area for desktop + mobile -->
-  <div class="community-results-layout__content">
-
-    <BaseLoadingState v-if="loading" />
-
-    <template v-else>
-      <CommunityGrid
-        :communities="pagedCommunities"
-      />
-
-      <template v-if="filteredCommunities.length > 0">
-        <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
-          <span class="card-meta">Page {{ communitiesPage }} of {{ communitiesTotalPages }}</span>
-        </div>
-
-        <BasePagination
-          v-if="communitiesTotalPages > 1"
-          class="mt-4"
-          :model-value="communitiesPage"
-          :total-pages="communitiesTotalPages"
-          @update:modelValue="goToCommunitiesPage"
-        />
-      </template>
+    <template v-if="activeTab === 'Friends'">
+      <!--TODO: Friends section -->
     </template>
-  </div>
-</div>
+    
+    <template v-else-if="activeTab === 'Communities'">
+      <!-- Mobile filter trigger -->
+      <div class="d-flex d-md-none mt-6 mb-4">
+        <v-chip
+          color="secondary"
+          prepend-icon="mdi-filter-variant"
+          size="large"
+          :aria-expanded="showFilters"
+          aria-controls="community-mobile-filters"
+          @click="showFilters = true"
+        >
+          Filters
+        </v-chip>
 
-    <CommunityCreateForm 
-      v-model="showCreateCommunity"
-      @confirm="handleCreate"
-    />
+        <v-navigation-drawer
+          v-model="showFilters"
+          temporary
+          location="left"
+          width="300"
+        >
+          <div
+            id="community-mobile-filters"
+            class="pa-4"
+          >
+            <CommunityFilter
+              @filter="handleFilter"
+            />
+          </div>
+        </v-navigation-drawer>
+      </div>
+
+      <!-- Shared catalogue/results -->
+      <div class="community-results-layout">
+
+        <!-- Desktop filters -->
+        <aside
+          class="community-results-layout__filters d-flex d-md-block"
+          aria-label="Community filters"
+        >
+          <CommunityFilter
+            @filter="handleFilter"
+          />
+        </aside>
+
+        <!-- One results area for desktop + mobile -->
+        <div class="community-results-layout__content">
+
+          <BaseLoadingState v-if="loading" />
+
+          <template v-else>
+            <CommunityGrid
+              :communities="pagedCommunities"
+            />
+
+            <template v-if="filteredCommunities.length > 0">
+              <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
+                <span class="card-meta">Page {{ communitiesPage }} of {{ communitiesTotalPages }}</span>
+              </div>
+
+              <BasePagination
+                v-if="communitiesTotalPages > 1"
+                class="mt-4"
+                :model-value="communitiesPage"
+                :total-pages="communitiesTotalPages"
+                @update:modelValue="goToCommunitiesPage"
+              />
+            </template>
+          </template>
+        </div>
+      </div>
+
+          <CommunityCreateForm 
+            v-model="showCreateCommunity"
+            @confirm="handleCreate"
+          />
+    </template>
 
   </PageContainer>
 </template>
@@ -104,6 +112,7 @@ import ExploreSearch from '~/components/features/community/ExploreSearch.vue'
 import CommunityGrid from '~/components/features/community/CommunityGrid.vue'
 import CommunityCreateForm from '~/components/features/community/CommunityCreateForm.vue'
 import CommunityFilter from '~/components/features/community/CommunityFilter.vue'
+import SocialTabs from '~/components/features/social/SocialTabs.vue'
 import type { GroupInfo } from '~/services/communityService'
 
 import { useCommunity } from '~/composables/useCommunity'
@@ -115,6 +124,7 @@ const CARD_PAGE_SIZE = 6
 const { getAllCommunities, searchForCommunity, loading } = useCommunity()
 const { show } = useSnackBar()
 
+const activeTab = ref('Friends')
 const searchQuery = ref('')
 const showCreateCommunity = ref(false)
 const communities = ref<Array<GroupInfo>>([])
@@ -140,6 +150,7 @@ const handleCreate = (newCommunity: GroupInfo) => {
   communities.value.push(newCommunity)
   show("Your community is ready. Welcome to the table!")
 }
+
 
 const handleFilter = ({
   types,

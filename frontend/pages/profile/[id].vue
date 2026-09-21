@@ -7,7 +7,7 @@
 
         <!-- Profile not found -->
         <template v-else-if="notFound">
-            <v-container
+            <div
                 class="d-flex justify-center align-center"
                 style="min-height: 60vh"
             >
@@ -15,7 +15,7 @@
                     title="Profile not found"
                     message="The user you're looking for doesn't exist or is no longer available."
                 />
-            </v-container>
+            </div>
         </template>
 
         <!-- Profile -->
@@ -67,10 +67,13 @@
 
             <ProfileCommunities :communities="user.communities" />
 
-            <v-tabs v-model="activeTab" color="primary" class="mb-4">
-                <v-tab value="Games Owned">Games Owned</v-tab>
-                <v-tab value="Listings">Listings</v-tab>
-            </v-tabs>
+            <BaseTabs
+                :tabs="['Games Owned', 'Listings']"
+                :active-tabs="activeTab"
+                aria-label="Profile sections"
+                class="mb-4"
+                @change="activeTab=$event"
+            />
 
             <v-window v-model="activeTab">
                 <v-window-item value="Games Owned">

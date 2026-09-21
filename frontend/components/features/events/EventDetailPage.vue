@@ -20,9 +20,9 @@
 
             <div class="d-flex justify-space-between align-center">
                 <h2 class="text-h5 font-weight-bold">{{ event.name }}</h2>
-                <v-chip :color="statusColor(event.eventStatus)"  variant="tonal" size="small">
+                <BaseBadge :variant="statusColor(event.eventStatus)"  tone="tonal" size="small">
                     {{ event.eventStatus }}
-                </v-chip>
+                </BaseBadge>
             </div>
 
             <p class="text-body-2 text-medium-emphasis">
@@ -141,6 +141,7 @@ import { useRouter } from '#vue-router'
 import BaseCard from '~/components/ui/BaseCard.vue';
 import BaseImage from '~/components/ui/BaseImage.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
+import BaseBadge from '~/components/ui/BaseBadge.vue';
 
 const router = useRouter()
 
@@ -159,7 +160,7 @@ const statusColor = (status) => {
   if (status === 'OPEN')         return 'success'
   if (status === 'FULLY_BOOKED') return 'warning'
   if (status === 'CANCELLED')    return 'error'
-  return 'grey'
+  return 'neutral'
 }
 
 </script>

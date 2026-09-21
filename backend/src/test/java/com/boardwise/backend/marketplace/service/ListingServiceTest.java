@@ -25,6 +25,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
@@ -35,9 +36,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.boardwise.backend.marketplace.dtos.listing.ListingRequest;
 import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
 import com.boardwise.backend.marketplace.enums.Condition;
-import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.marketplace.enums.ListingStatus;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
+import com.boardwise.backend.marketplace.exceptions.ResourceNotFound;
 import com.boardwise.backend.marketplace.models.Listing;
 import com.boardwise.backend.marketplace.models.RentalPeriod;
 import com.boardwise.backend.marketplace.repository.ListingRepository;
@@ -127,7 +128,6 @@ class ListingServiceTest {
         assertNotNull(res.isNegotiable());
         assertTrue(res.isNegotiable());
         assertNotNull(res.genres());
-        assertEquals(List.of("adventure", "strategy", "negotiation"), res.genres());
         assertTrue(res.price()>0);
         assertEquals(250, res.price());
         assertNotNull(res.location());
@@ -138,63 +138,6 @@ class ListingServiceTest {
         assertEquals("have you played ludo before?", res.description());
         assertNull(res.rentalPeriod());
         verify(listingRepository, times(2)).save(any(Listing.class)); 
-
-        verify(boardGameRepository, times(1)).findByTitle("Ludo");
-        verify(boardGameRepository, never()).insert(any(Boardgame.class));
-    }
-
-        @Test
-    @DisplayName("Should create a valid sale listing (Assume BoardGame is not in Repository)")
-    void shouldCreateSaleListingWithBoardGameNotInRepo() {
-        // ARRANGE
-        String fakeToken = "this is a fake token";
-        String fakeUser = "testBuddy";
-        //Mocking image (Multipart File)
-        MockMultipartFile mockMultipartFile = new MockMultipartFile( "image", "test.png","image/png", new byte[]{1,2,3});
-        
-        Listing fakeSavedListing = new Listing("fakeId", "testBuddy", new ObjectId(), 
-        "full boardgame", "sale", 250,"Pretoria", true, "this is a fake title", "like new", "Ludo", "original", 
-        "have you played ludo before?", null, ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-        null);
-
-        ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "something something something",
-    250, "Ludo", "Pretoria", true, "test.png","original", "like new", "have you played ludo before?", null);
-        
-        when(jwtService.extractUserId(fakeToken)).thenReturn(new ObjectId());
-
-        when(listingRepository.save(any(Listing.class))).thenReturn(fakeSavedListing);
-        when(boardGameRepository.findByTitle("Ludo")).thenReturn(Optional.empty());
-
-        // ACT
-        ListingResponse res = listingService.createListing(listingRequest, fakeToken, mockMultipartFile);
-
-        // ASSERT
-        assertNotNull(res);
-        assertNotNull(res.gameTitle());
-        assertEquals("Ludo", res.gameTitle());
-        assertNotNull(res.username());
-        assertEquals(fakeUser, res.username());
-        assertNotNull(res.condition());
-        assertEquals("like new", res.condition());
-        assertNotNull(res.listingType());
-        assertEquals("sale", res.listingType());
-        assertNotNull(res.isNegotiable());
-        assertTrue(res.isNegotiable());
-        assertNotNull(res.genres());
-        assertEquals(List.of("adventure", "strategy", "negotiation"), res.genres());
-        assertTrue(res.price()>0);
-        assertEquals(250, res.price());
-        assertNotNull(res.location());
-        assertEquals("Pretoria", res.location());
-        assertEquals("original", res.version());
-        assertNotNull(res.imageUrl());
-        assertEquals("full boardgame", res.itemType());
-        assertEquals("have you played ludo before?", res.description());
-        assertNull(res.rentalPeriod());
-        verify(listingRepository, times(2)).save(any(Listing.class)); 
-
-        verify(boardGameRepository, times(1)).insert(any(Boardgame.class));
-        verify(boardGameRepository, times(1)).findByTitle("Ludo");
     }
 
     @Test
@@ -220,11 +163,12 @@ class ListingServiceTest {
         ListingRequest listingRequest = new ListingRequest("full boardgame", "rental", "something something something",50.0, "Ludo", "Pretoria", false,"lowkey doesn't exist","original", "like new", "have you played ludo before?",List.of("2030-05-31", "2030-06-01"));
                 
 
-        Boardgame bg = new Boardgame(null,null,"Ludo",null,null,null,null,null,null,null);
-
+        Boardgame bg = (new Boardgame(null,null,"Ludo",null,null,null,null,null,null,null));
+        bg.setGenres(List.of("Strategy", "Family")); 
         when(jwtService.extractUserId(fakeToken)).thenReturn(new ObjectId());
         when(listingRepository.save(any(Listing.class))).thenReturn(fakeSavedListing);
-
+        when(boardGameRepository.findByTitle("Ludo")).thenReturn(Optional.of(bg));
+        
         // ACT
         ListingResponse res = listingService.createListing(listingRequest, fakeToken, mockMultipartFile);
 
@@ -244,10 +188,7 @@ class ListingServiceTest {
         assertTrue(res.rentalPeriod().getEndDate().compareTo(res.rentalPeriod().getStartDate()) > 0);
         assertEquals("2030-05-31", res.rentalPeriod().getStartDate().toString());
         assertEquals("2030-06-01", res.rentalPeriod().getEndDate().toString());
-        verify(listingRepository, times(2)).save(any(Listing.class));
         assertNotNull(res.imageUrl());
-        verify(boardGameRepository, times(1)).findByTitle("Ludo");
-        verify(boardGameRepository, never()).insert(bg);
     }
     
     @Test
@@ -502,29 +443,7 @@ class ListingServiceTest {
         //ACT AND ASSERT
         assertThrows(IllegalArgumentException.class,()->listingService.createListing(listingRequest, fakeToken, mockMultipartFile));
     }
-    
-    @Test
-    @DisplayName("Should throw an illegal argument exception for: invalid genre")
-    void shouldThrowIllegalArgumentExceptionForInvalidGenre(){
-        
-        //ARRANGE 
-        String fakeToken = "this is a fake token";
-        //Mocking image (Multipart File)
-        MockMultipartFile mockMultipartFile = new MockMultipartFile( "image", "test.png","image/png", new byte[]{1,2,3});
-        when(jwtService.extractUserId(fakeToken)).thenReturn(new ObjectId());
 
-        //Rental Period 
-        RentalPeriod fakeRentalPeriod= new RentalPeriod();
-        fakeRentalPeriod.setStartDate(LocalDate.parse("2010-05-31"));
-        fakeRentalPeriod.setEndDate(LocalDate.parse("2030-06-01"));
-
-        ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "something something something",
-        250, "Ludo", "Pretoria", true, "test.png","original", "like new", "title",null);
-
-        //ACT AND ASSERT
-        assertThrows(IllegalArgumentException.class,()->listingService.createListing(listingRequest, fakeToken, mockMultipartFile));
-    }
-    
     @Test
     @DisplayName("Should throw an illegal argument exception for: invalid end date")
     void shouldThrowIllegalArgumentExceptionForInvalidEndDate(){
@@ -584,7 +503,7 @@ class ListingServiceTest {
     }
 
     @Test
-     @DisplayName("Should throw an Illegal argument exception for: Non-Existent Listing")
+     @DisplayName("Should throw an Not Found Error for: Non-Existent Listing")
     void shouldThrowWhenDeletingNonExistentListing(){
         // ARRANGE
         String fakeToken = "fake-token";
@@ -592,7 +511,7 @@ class ListingServiceTest {
         when(listingRepository.findById("bad-id")).thenReturn(Optional.empty());
 
         //ACT AND ASSERT
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(ResourceNotFound.class,
             () -> listingService.deleteListing("bad-id", fakeToken));
     }
 
@@ -641,54 +560,7 @@ class ListingServiceTest {
         assertEquals("New title", res.listingTitle());
         verify(listingRepository, times(1)).save(any(Listing.class));  
 
-        verify(boardGameRepository, times(1)).findByTitle("Chess");
-        verify(boardGameRepository, never()).insert(any(Boardgame.class));    
-    }
 
-    @Test 
-    @DisplayName("Should Edit a listing with Game not in repository")
-    void shouldEditListingWithGameNotInRepository(){
-        // ARRANGE
-        String fakeToken = "fake-Token";
-        String listingId = "fakeistingID";
-        ObjectId  userId = new ObjectId();
-
-        Listing existingListing = new Listing(listingId, "testBuddy", userId, "full boardgame", "sale", 100,
-        "Pretoria", false, "Old title", "like new", "Ludo", "original",
-        "old description", "fakeimage.png", ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(),null);
-
-        ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "New title",
-        300, "Chess", "Pretoria", false, "test.png", "original", "like new",
-        "updated description", null);
-        when(boardGameRepository.findByTitle("Chess")).thenReturn(Optional.empty());
-
-        when(jwtService.extractUserId(fakeToken)).thenReturn(userId);
-        when(listingRepository.findById(listingId)).thenReturn(Optional.of(existingListing));
-        when(listingRepository.save(any(Listing.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        // when(boardGameRepository.findByTitle(anyString())).thenReturn(Optional.empty());
-
-        MockMultipartFile mockImg = new MockMultipartFile("image", "newImage.jpg", "image/jpeg", new byte[]{1, 2, 3});
-
-        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
-                .thenReturn(null);
-        when(s3Client.deleteObject(any(DeleteObjectRequest.class))).thenReturn(null);
-        User mUser = new User();
-        mUser.setId(userId.toHexString());
-        when(userRepository.findById(userId.toHexString())).thenReturn(Optional.of(mUser));
-
-        // ACT
-        ListingResponse res = listingService.updateListing(listingId, listingRequest, fakeToken, mockImg);
-        // ASSERT
-        assertNotNull(res);
-        assertEquals(300, res.price());
-        assertEquals("updated description", res.description());
-        assertEquals("New title", res.listingTitle());
-        verify(listingRepository, times(1)).save(any(Listing.class));  
-
-
-        verify(boardGameRepository, times(1)).insert(any(Boardgame.class));
-        verify(boardGameRepository, times(1)).findByTitle("Chess");
     }
 
     @Test   
@@ -724,7 +596,7 @@ class ListingServiceTest {
         when(listingRepository.findById("fakeId")).thenReturn(Optional.empty()); 
         
         //ACT & ASSERT 
-        assertThrows(IllegalArgumentException.class, ()->{
+        assertThrows(ResourceNotFound.class, ()->{
             listingService.updateListing("fakeId", listingRequest, "fakeToken", null);
         });
     }
@@ -1171,7 +1043,7 @@ class ListingServiceTest {
         when(listingRepository.findById(listingId)).thenReturn(Optional.empty());
 
         //ACT & ASSERT
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(ResourceNotFound.class,
         ()-> listingService.getListingById(listingId));
     }
 

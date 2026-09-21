@@ -8,15 +8,15 @@
             height="200px"
         />
 
-        <v-chip
+        <BaseBadge
           data-test="event-status-badge"
-          class="badge--absolute"
+          absolute
           size="x-small"
-          :color="statusColor(event.eventStatus)"
-          variant="tonal"
+          tone="tonal"
+          :variant="statusColor(event.eventStatus)"
         >
           {{ event.eventStatus }}
-        </v-chip>
+        </BaseBadge>
       </template>
 
       <p class="card-title" data-test="event-title">
@@ -39,19 +39,19 @@
       </p>
 
       <div class="d-flex ga-1 flex-wrap">
-        <v-chip 
+        <BaseBadge 
           v-for="game in event.games.slice(0,2)"
           :key="game.id"
           size="x-small"
-          variant="tonal"
-          color="primary"
+          tone="tonal"
+          variant="primary"
         >
           {{  game.title  }}
-        </v-chip>
+        </BaseBadge>
 
-        <v-chip v-if="event.games.length > 2" size="x-small" variant="tonal">
+        <BaseBadge v-if="event.games.length > 2" size="x-small" tone="tonal" variant="default">
           <v-icon>mdi-plus</v-icon> {{  event.games.length -2 }}
-        </v-chip>
+        </BaseBadge>
       </div>
 
       <div class="d-flex justify-space-between align-center">
@@ -60,19 +60,20 @@
           {{ event.attendeeCount }} attending
         </p>
 
-        <v-chip
+        <BaseBadge
           data-test="event-rsvp"
           size="x-small"
-          :color="rsvpColor(event.rsvpStatus)"
-          variant="tonal"
+          tone="tonal"
+          :variant="rsvpColor(event.rsvpStatus)"
         >
           {{ event.rsvpStatus }}
-        </v-chip>
+        </BaseBadge>
       </div>
     </BaseCard>
 </template>
 
 <script setup> 
+import BaseBadge from '~/components/ui/BaseBadge.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
 
@@ -89,13 +90,13 @@ const statusColor = (status) => {
   if (status == 'OPEN') return 'success'
   if (status == 'FULLY_BOOKED') return 'warning'
   if (status == 'CANCELLED') return 'error'
-  return 'grey'
+  return 'neutral'
 }
 
 const rsvpColor = (status) => {
   if (status == 'ATTENDING') return 'success'
   if (status == 'INVITED') return 'warning'
   if (status == 'NOT_ATTENDING') return 'error'
-  return 'grey'
+  return 'neutral'
 }
 </script>

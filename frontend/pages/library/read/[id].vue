@@ -1,24 +1,21 @@
 <template>
-  <ReaderLayout
-    ref="readerLayoutRef"
-    v-if="currentRulebook"
-    :rulebook="currentRulebook"
-    :chunks="rulebookText?.chunks ?? []"
-  />
+  <PageContainer>
 
-  <BaseLoadingState v-if="isLoading" />
+    <BaseLoadingState v-if="isLoading" />
 
-  <v-empty-state
-    v-else
-    title="Rulebook not found"
-    icon="mdi-book-off-outline"
-  >
-    <template #actions>
-      <BaseButton @click="router.push('/library')">
-        ← Back to Library
-      </BaseButton>
-    </template>
-  </v-empty-state>
+    <ReaderLayout
+      v-else-if="currentRulebook"
+      ref="readerLayoutRef"
+      :rulebook="currentRulebook"
+      :chunks="rulebookText?.chunks ?? []"
+    />
+
+    <BaseEmptyState
+      v-else
+      title="Rulebook not found"
+      message="This rulebook may have been removed or the link is incorrect."
+    />
+  </PageContainer>
 </template>
 
 <script setup>
@@ -27,7 +24,8 @@ import { useEditLock } from '~/composables/useEditLock'
 import { useStomp } from '~/composables/useStomp'
 
 import ReaderLayout from '~/components/features/library/ReaderLayout.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
+import PageContainer from '~/components/layout/PageContainer.vue'
+import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
 import { ref, onMounted } from 'vue';
 import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'

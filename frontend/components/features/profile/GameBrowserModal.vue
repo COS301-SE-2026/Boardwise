@@ -1,17 +1,10 @@
 <template>
     <BaseModal 
-        :model-value="modelValue" 
+        v-model="open"
         title="Add games to your collection"
-        @update:model-value="$emit('update:modelValue', $event)" 
         :max-width="760"
     >
         <div class="modal">
-            <div class="d-flex align-center justify-space-between mb-4">
-                <BaseButton icon variant="text" @click="$emit('update:modelValue', false)">
-                    <v-icon>mdi-close</v-icon>
-                </BaseButton>
-            </div>
-
             <BaseSearch 
                 v-model="search"
                 placeholder="Search our game library..."
@@ -44,7 +37,7 @@
                     <div class="gameCard_image">
                         <div 
                             v-if="isOwned(game)"
-                            class="gameCard_overlay" gameCard_ownedOverlay
+                            class="gameCard_overlay gameCard_ownedOverlay"
                         >
                             <v-icon size="28">mdi-check-circle</v-icon>
                         </div>
@@ -53,12 +46,12 @@
                             <v-icon color="primary" size="28">mdi-check-circle</v-icon>
                         </div>
 
-                        <v-img
+                        <BaseImage
                             :width="131"
                             aspect-ratio="16/9"
                             cover
                             :src="game.imageUrl ?? '/default.png'"
-                        ></v-img>
+                        ></BaseImage>
                     </div>
 
                     <div class="gameCard_content">
@@ -84,9 +77,10 @@
                 title="Search for a game"
                 message="Search our game library to add a board game to your collection."
             />
+        </div>
 
-
-            <div class="d-flex justify-space-between align-center">
+        <template #actions>
+            <div class="d-flex justify-space-between align-center w-100">
                 <BaseButton variant="secondary" @click="$emit('add-custom')">
                     + Add unlisted game
                 </BaseButton>
@@ -97,7 +91,7 @@
                     Game{{ selectedGames.length !== 1 ? 's' : '' }}
                 </BaseButton>
             </div>
-        </div>
+        </template>
     </BaseModal>
 </template>
 
@@ -107,23 +101,21 @@ import BaseSearch from '~/components/ui/BaseSearch.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import BaseSpinner from '~/components/ui/BaseSpinner.vue'
+import BaseImage from '~/components/ui/BaseImage.vue'
 
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useProfile } from '~/composables/useProfile'
 // import { userService } from '~/services/userService'
 
 const props = defineProps({
-    modelValue: {
-        type: Boolean,
-        default: false
-    },
     games: { 
         type: Array,
         default: () => []
     }
 })
 
-const emit = defineEmits(['update:modelValue', 'confirm', 'add-custom'])
+const emit = defineEmits(['confirm', 'add-custom'])
+const open = defineModal({ type: Boolean, default: false })
 
 const { searchGames, addExistingGame, addGame } = useProfile()
 
@@ -200,7 +192,7 @@ const handleConfirm = async () => {
         search.value = ''
         searchResults.value = []
 
-        emit('update:modelValue', false)
+        open.value = false
     } catch (err)
     {
         console.error('Failed to add games', err)
@@ -211,107 +203,3 @@ const handleConfirm = async () => {
 }
 
 </script>
-
-<style scoped>
-.gamesGrid {
-    display: grid;
-    grid-template-columns:
-        repeat(auto-fill, minmax(150px, 1fr));
-    gap: var(--space-4);
-}
-
-.gameCard {
-  cursor: pointer;
-  border: 2px solid transparent;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  transition: .2s ease;
-
-  background: white;
-}
-
-.gameCard:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.gameCard_selected {
-  border-color: var(--color-primary);
-}
-
-.gameCard_owned {
-    cursor: not-allowed;
-    opacity: .75;
-}
-
-.gameCard_owned:hover {
-    transform: none;
-    box-shadow: none;
-}
-
-
-.gameCard_image {
-    position: relative;
-}
-
-.gameCard_overlay {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    z-index: 2;
-}
-
-.gameCard_ownedOverlay {
-    color: var(--color-text-muted);
-}
-
-.gameCard_content {
-    padding: var(--space-3);
-}
-
-.gameCard_title {
-    margin: 0;
-    font-weight: var(--fw-bold);
-    line-height: var(--lh-tight);
-}
-
-.gameCard_genre {
-    margin: var(--space-1) 0 0;
-    color: var(--color-text-muted);
-    font-size: var(--fs-small);
-}
-
-.duplicate-warning {
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
-    margin: var(--space-2) 0 0;
-    font-size: var(--fs-small);
-    color: var(--color-text-muted);
-}
-
-.selected-bar {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-}
-
-.modal-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: var(--space-3);
-}
-
-@media (max-width: 600px) {
-    .gamesGrid {
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-    }
-
-    .modal-actions {
-        flex-direction: column;
-        align-items: stretch;
-    }
-}
-</style>

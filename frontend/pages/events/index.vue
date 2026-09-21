@@ -100,7 +100,7 @@
       </div>
     </div>
 
-    <CreateEvent v-model="showCreateEvent"   :on-submit="handleCreateEvent"  @created="handleCreateEvent" />
+    <CreateEventModal v-model="showCreateEvent"   :on-submit="handleCreateEvent"  @created="handleCreateEvent" />
 
     <EditEventModal
       v-model="showEditEvent"
@@ -127,7 +127,7 @@ import BasePagination from '~/components/ui/BasePagination.vue'
 
 import EventFilter from '~/components/features/events/EventFilter.vue'
 import EventGrid from '~/components/features/events/EventGrid.vue'
-import CreateEvent from '~/components/features/events/CreateEvent.vue'
+import CreateEventModal from '~/components/features/events/CreateEventModal.vue'
 import { useEvents } from '~/composables/useEvents'
 import { useSnackBar } from '~/composables/useSnackbar'
 import { ref, computed, onMounted, watch } from 'vue'

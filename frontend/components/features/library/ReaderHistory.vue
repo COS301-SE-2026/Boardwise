@@ -66,9 +66,9 @@
             </div>
 
             <BaseEmptyState
-            v-else-if="!error"
-            title="No edits yet"
-            message="Changes made to this rulebook will appear here" 
+                v-else-if="!error"
+                title="No edits yet"
+                message="Changes made to this rulebook will appear here" 
             />
         </div>
     </v-navigation-drawer>
