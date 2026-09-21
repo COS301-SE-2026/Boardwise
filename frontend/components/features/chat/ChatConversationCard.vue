@@ -16,7 +16,7 @@
                     <div class="chat-conversation-card__avatar">
                         <BaseAvatar
                             :src="conversation.profilePicture"
-                            :name="conversation.username"
+                            :name="conversation.username + 'profile picture'"
                             size="lg"
                         />
 
@@ -44,7 +44,7 @@
 
                         <div class="d-flex align-center ga-2 mt-1">
                             <p class="chat-conversation-card__preview">
-                                {{ conversation.lastMessage }}
+                                {{ conversation.lastMessageSender === myUserId ? 'You' : conversation.username }}: {{ conversation.lastMessage }}
                             </p>
 
                             <span
@@ -52,7 +52,6 @@
                                 class="chat-unread-count"
                                 :aria-label="`${conversation.unread ? 'unread' : 'read'} message`"
                             >
-                                <!-- {{ conversation.unread }} -->
                             </span>
                         </div>
                     </div>
@@ -64,6 +63,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { jwtDecode } from 'jwt-decode'
 
 import BaseAvatar from '~/components/ui/BaseAvatar.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
@@ -82,6 +82,7 @@ const props = defineProps({
 
 defineEmits(['select'])
 
+
 const conversationLabel = computed(() => {
     
     const status = props.conversation.isOnline
@@ -90,4 +91,8 @@ const conversationLabel = computed(() => {
 
     return `${props.conversation.username}${status}`
 })
+
+const token = localStorage.getItem("access_token")
+const myUserId = jwtDecode(token).sub
+
 </script>

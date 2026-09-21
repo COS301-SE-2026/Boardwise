@@ -1,5 +1,6 @@
 import { useStomp } from '~/composables/useStomp';
 import { useProfile } from '~/composables/useProfile';
+import { useSnackBar } from '~/composables/useSnackbar';
 import { onUnmounted, computed } from 'vue';
 import { type DirectMessageDTO, ChatService } from '~/services/chatService';
 import { jwtDecode } from 'jwt-decode';
@@ -17,6 +18,7 @@ export interface Conversation{
     username: string,
     profilePicture: string,
     lastMessage: string,
+    lastMessageSender: string,
     lastMessageAt: string,
     isOnline: boolean,
     unread: boolean;
@@ -37,10 +39,12 @@ const messages = ref<Array<DirectMessageDTO>>([]);
 const watchedPresenceUsers = new Set<string>();
 
 export const usePrivateChat = () => {
+    const { show } = useSnackBar();
     const { isConnected, subscribe, unsubscribe, sendPrivateMessage } = useStomp();
-    const { fetchUserById } = useProfile();
+    const { fetchUserById, fetchUserPresence } = useProfile();
     const dest = "/user/queue/chat";
     const token = localStorage.getItem("access_token");
+    const pendingChat = ref<Conversation | null>(null);
 
     const lastMessageTime = computed(() =>{
         if(messages.value.length === 0) return null;
@@ -75,10 +79,6 @@ export const usePrivateChat = () => {
                 lastMessageTime.value
             );
 
-            currentChat.value = chats.value.find((el) => {
-                return el.id == targetId;
-            })
-
             messages.value = res.sort((a, b) => {
                 return new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime();
             });
@@ -105,22 +105,14 @@ export const usePrivateChat = () => {
 
         try{
             const response = await ChatService.getConversations();
-            const fetchedChats = response.map((el) => {                
+            chats.value = response.map((el) => {                
                 const newChat: Conversation = {
                     ...el,
+                    lastMessage: getMessagePreview(el.lastMessage),
                     unread: false
                 }
                 return newChat;
-            });
-
-            const unsavedChats = chats.value.filter( el => 
-                !fetchedChats.some((fetched) => fetched.id === el.id) &&
-                (!el.lastMessage || el.lastMessage === "")
-            );
-
-            chats.value = [...unsavedChats, ...fetchedChats].sort((a, b) => 
-                new Date(a.lastMessageAt).getTime() - new Date(b.lastMessageAt).getTime()
-            );
+            }).sort((a, b) =>  new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
             
             for(const chat of chats.value){
                 listenForPresence(chat.userId);
@@ -139,14 +131,14 @@ export const usePrivateChat = () => {
     const listenForMessages = () => {
         if(!token) return;
 
-        subscribe(dest, async (message: DirectMessageDTO) => {            
+        subscribe(dest, async (message: DirectMessageDTO) => {
             // check for that we have this chat open and that is a server echo or not
             const myUserId = jwtDecode<{sub: string}>(token).sub;
-            const fromPartner = message.senderId == currentChat.value?.userId;
-            const serverEcho = message.senderId == myUserId;
+            const fromPartner = message.senderId === currentChat.value?.userId;
+            const serverEcho = message.senderId === myUserId;
             
             if(fromPartner || serverEcho ){
-                
+
                 const eIdx = messages.value.findIndex((el) => {
                     return el.id === message.id && el.senderId === myUserId;
                 })
@@ -175,37 +167,39 @@ export const usePrivateChat = () => {
             if(eId !== -1 && chats.value[eId]){
                 const convo: Conversation = chats.value[eId];
                 chats.value.splice(eId, 1);
-                convo.lastMessage = message.message;
+                convo.lastMessage = getMessagePreview(message.message);
+                convo.lastMessageSender = message.senderId;
                 convo.lastMessageAt = message.sentAt;
+                convo.unread = !fromPartner && !serverEcho;
                 chats.value.unshift(convo);
             }
             else{
-                
-                const convo: Conversation = {
-                    id: convoId,
-                    userId: message.senderId,
-                    username: "",
-                    profilePicture: "",
-                    isOnline: true,
-                    lastMessage: message.message,
-                    lastMessageAt: message.sentAt,
-                    unread: true
-                }
-
-                chats.value.unshift(convo);
-
+        
                 try{
+                    const convo: Conversation = {
+                        id: convoId,
+                        userId: message.senderId,
+                        username: "",
+                        profilePicture: "",
+                        isOnline: true,
+                        lastMessage: getMessagePreview(message.message),
+                        lastMessageSender: message.senderId,
+                        lastMessageAt: message.sentAt,
+                        unread: true
+                    }
+
                     const sender: ProfileResponse | undefined = await fetchUserById(convo.userId);
                 
                     if(sender){
                         convo.username = sender.username;
                         convo.profilePicture = sender.profilePicture;
                     }
+
+                    chats.value.unshift(convo);
                 }
                 catch(err){
                     console.error("[Private chat composable]: Making request for user data failed:", err);
                 }
-               
             }
         });
     }
@@ -233,6 +227,20 @@ export const usePrivateChat = () => {
     const sendDirectMessage = (msg: DirectMessageDTO) => {
         if(!token) return;
 
+        if(pendingChat.value && pendingChat.value.id === currentChat.value?.id){
+            pendingChat.value.lastMessage = getMessagePreview(msg.message);
+            pendingChat.value.lastMessageAt = msg.sentAt;
+            chats.value.unshift(pendingChat.value);
+            pendingChat.value = null;
+        }
+        else{
+            const existing = chats.value.find((el) => el.id === currentChat.value?.id);
+            if(existing){
+                existing.lastMessage = getMessagePreview(msg.message);
+                existing.lastMessageAt = msg.sentAt;
+            }
+        }
+
         messages.value.push(msg);
         messages.value.sort((a, b) => {
             return new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime();
@@ -252,34 +260,67 @@ export const usePrivateChat = () => {
         if(!senderId) return;
 
         const convoId = generateConversationId(senderId, receiverId);
-        let chat = chats.value.find((el) => {
+        let chat: Conversation | undefined = chats.value.find((el) => {
             return el.id === convoId;
-        })  
+        });  
 
         if(chat){
-            chats.value = chats.value.filter((el) => el.id !== convoId)
-            chats.value.unshift(chat)
+            chats.value = chats.value.filter((el) => el.id !== convoId);
+            chats.value.unshift(chat);
+            currentChat.value = chat;
+            pendingChat.value = null;
+            messages.value = [];
+            return;
         }
-        else{
-            const { fetchUserById } = useProfile();
-            const sender: ProfileResponse | undefined = await fetchUserById(receiverId);
 
-            if(!sender) return;
+        try{
+            const receiver: ProfileResponse | undefined = await fetchUserById(receiverId);
+        
+            if(!receiver) {
+                show("That user is no longer on boardwise", "info");
+                return;
+            }
+
+            const receiverOnline: boolean = await fetchUserPresence(receiverId);
+            listenForPresence(receiverId);
 
             chat = {
                 id: convoId,
                 userId: receiverId,
-                username: sender.username,
-                profilePicture: sender.profilePicture,
-                isOnline: false,
+                username: receiver.username,
+                profilePicture: receiver.profilePicture,
+                isOnline: receiverOnline,
                 lastMessage: "",
+                lastMessageSender: "",
                 lastMessageAt: new Date().toISOString(),
                 unread: false
-            }
-            chats.value.unshift(chat);
+            };
+
+            pendingChat.value = chat;
+            currentChat.value = chat;
+            messages.value = [];
         }
-        currentChat.value = chat;
-        messages.value = [];
+        catch(err){
+            const errorMessage = "Something went wrong when starting a conversation with this user";
+            console.error(errorMessage, err);
+            show(errorMessage, "error");
+        }
+
+    }
+
+    const getMessagePreview = (rawMessage: string) => {
+        if(!rawMessage) return '';
+
+        try{
+            const listingMessage = JSON.parse(rawMessage);
+            if(listingMessage && typeof listingMessage === 'object' && listingMessage.type === 'LISTING_QUERY'){
+                return `Enquired about listing: ${listingMessage.listingTitle ?? 'a listing'}`;
+            }
+            return rawMessage;
+        }
+        catch{
+            return rawMessage;
+        }
     }
 
     if(isConnected.value){
@@ -313,6 +354,7 @@ export const usePrivateChat = () => {
         messages,
         generateConversationId,
         startNewConversation,
-        currentChat 
+        currentChat,
+        pendingChat 
     };
 }

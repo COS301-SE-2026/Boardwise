@@ -41,7 +41,7 @@
 
                     <div class="d-flex ga-1">
                         <BaseButton 
-                            @click="handleClick(route.params.id as string)" 
+                            @click="handleMessageClick(route.params.id as string)" 
                             :variant="'primary'"
                             size="small"
                             v-if="user.status === FriendStatus.ACCEPTED"
@@ -167,7 +167,7 @@ const loadProfile = async (id: string) => {
     }
 }
 
-const handleClick = (id: string) => {
+const handleMessageClick = (id: string) => {
   router.push({
     path: '/chats',
     query: { newChat: id }

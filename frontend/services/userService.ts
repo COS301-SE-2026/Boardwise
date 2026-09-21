@@ -97,6 +97,7 @@ interface GenresResponse {
     message: string;
     genres: string[];
 }
+
 interface CreateBoardgameResponse {
     message: string;
 }
@@ -104,6 +105,11 @@ interface BulkAddResponse {
     message: string;
     ownedGamesCount: number;
     games: GameInventory[];
+}
+
+interface PresenceResponseDTO{
+    message: string,
+    isOnline: boolean
 }
 
 export const userService = {
@@ -228,5 +234,10 @@ export const userService = {
             method: 'POST',
             body: payload
         });
+    },
+
+    getUserPresence(userId: string){
+        const { $api } = useNuxtApp();
+        return $api<PresenceResponseDTO>(`users/${userId}/presence`);
     }
 }
