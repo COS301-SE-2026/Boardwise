@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import org.bson.types.ObjectId;
 import org.springframework.context.ApplicationEventPublisher;
@@ -174,10 +175,12 @@ public class ProfileService {
         User subject = userRepo.findById(userId).get();
 
         String cleanQuery = AuthService.sanitize(query);
+        Pattern pattern = Pattern.compile(Pattern.quote(cleanQuery), Pattern.CASE_INSENSITIVE);
+
         Criteria searchCriteria = new Criteria().orOperator(
-            Criteria.where("username").regex(cleanQuery, "i"),
-            Criteria.where("firstName").regex(cleanQuery, "i"),
-            Criteria.where("lastName").regex(cleanQuery, "i")
+            Criteria.where("username").regex(pattern),
+            Criteria.where("firstName").regex(pattern),
+            Criteria.where("lastName").regex(pattern)
         );
         Query dbQuery = new Query(searchCriteria);
         List<User> matches = template.find(dbQuery, User.class);
