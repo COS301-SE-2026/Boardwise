@@ -35,9 +35,9 @@
       </div>
 
       <div v-if="listing.genres?.length" data-test="listing-genre" class="d-flex flex-wrap ga-2">
-        <v-chip v-for="genre in listing.genres" :key="genre" size="small">
+        <BaseBadge v-for="genre in listing.genres" :key="genre" variant="default">
           {{ genre }}
-        </v-chip>
+        </BaseBadge>
       </div>
 
       <p class="description" data-test="listing-description">{{ listing.description ?? 'No description provided.' }}</p>

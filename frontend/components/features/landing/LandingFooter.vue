@@ -33,7 +33,7 @@
                             >Marketplace
                             
                         </NuxtLink>
-                        <NuxtLink to="/community"
+                        <NuxtLink to="/social/community"
                             class="text-decoration-none text-medium-emphasis"
                         >Communities
 

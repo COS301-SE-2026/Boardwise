@@ -62,23 +62,23 @@
                     aria-live="polite"
                     aria-atomic="true"
                 >
-                    <v-chip
+                    <BaseBadge
                         v-if="hasChanges"
-                        color="warning"
-                        variant="tonal"
+                        variant="warning"
+                        tone="tonal"
                         prepend-icon="mdi-pencil-outline"
                     >
                         Unsaved changes
-                    </v-chip>
+                    </BaseBadge>
 
-                    <v-chip
+                    <BaseBadge
                         v-else-if="saveStatus === 'saved'"
-                        color="success"
-                        variant="tonal"
+                        variant="success"
+                        tone="tonal"
                         prepend-icon="mdi-check-circle-outline"
                     >
                         Changes saved
-                    </v-chip>
+                    </BaseBadge>
 
                     <span
                         v-else
@@ -108,6 +108,7 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 import SettingsPreferenceRow from './SettingsPreferenceRow.vue'
 
 import { getPrivacy } from '~/services/settingsService'
+import BaseBadge from '~/components/ui/BaseBadge.vue'
 
 const emit = defineEmits(['save'])
 

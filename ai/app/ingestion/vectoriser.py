@@ -4,6 +4,7 @@ import numpy as np
 from bson import ObjectId
 from sentence_transformers import SentenceTransformer
 
+from app.config import settings
 from app.services import mongo_service
 from app.utils.logging_utils import sanitise_log_input
 
@@ -24,13 +25,13 @@ def vectorise_chunks(
         texts = []
         for chunk in chunks:
             metadata = chunk.get("metadata", {})
-            
+
             if metadata:
                 meta_to_embed = " > ".join(metadata.values())
                 combined_text = f"Section: {meta_to_embed}\n{chunk['content']}"
             else:
                 combined_text = chunk["content"]
-            
+
             # Nomic v1.5 requires the 'search_document: ' prefix for documents stored in a DB
             texts.append(f"search_document: {combined_text}")
 
@@ -38,7 +39,7 @@ def vectorise_chunks(
             model.encode(texts, normalize_embeddings=True, convert_to_numpy=True)
         )
 
-        truncated_embeddings = embeddings[:, :256]
+        truncated_embeddings = embeddings[:, : settings.TRUNCATE_DIMENSION]
 
         # Re-normalize after truncation to maintain cosine/hamming similarity accuracy
         norms = np.linalg.norm(truncated_embeddings, axis=1, keepdims=True)

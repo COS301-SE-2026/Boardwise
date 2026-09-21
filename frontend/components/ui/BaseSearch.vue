@@ -8,7 +8,7 @@
     variant="outlined"
     density="compact"
     hide-details
-    rounded="xl"
+    :rounded="rounded"
     autocomplete="off"
     class="base-search"
     @update:model-value="$emit('update:modelValue', $event)"
@@ -28,6 +28,10 @@ defineProps({
   ariaLabel: {
     type: String,
     default: 'Search'
+  },
+  rounded: {
+    type: [String, Boolean, Number],
+    default: 'xl'
   }
 })
 

@@ -14,6 +14,7 @@ class Settings:
     R2_BUCKET_RULEBOOKS: str | None = os.getenv("R2_BUCKET_RULEBOOKS")
     R2_ACCESS_KEY: str | None = os.getenv("R2_ACCESS_KEY")
     R2_SECRET_KEY: str | None = os.getenv("R2_SECRET_KEY")
+    SYSTEM_CONTRIBUTOR_ID: str| None = os.getenv("SYSTEM_CONTRIBUTOR_ID")
     R2_ENDPOINT_URL: str = (
         f"https://{ os.getenv('R2_ACCOUNT_ID') }.r2.cloudflarestorage.com"
     )
@@ -21,6 +22,6 @@ class Settings:
     HF_TOKEN: str | None = os.getenv("HF_TOKEN")
     INTERNAL_WEBHOOK_SECRET: str | None = os.getenv("INTERNAL_SECRET")
     CPU_CORES: int = int(os.getenv("CPU_CORES", "1"))
-
+    TRUNCATE_DIMENSION: int = 256
 
 settings = Settings()

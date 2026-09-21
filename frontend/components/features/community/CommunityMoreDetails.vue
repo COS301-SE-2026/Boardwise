@@ -56,7 +56,7 @@
                         <v-icon
                             icon="mdi-close"
                             aria-hidden="true"
-               />
+                        />
                     </BaseButton>
             </header>
 
@@ -330,13 +330,15 @@ const visibilityIcon = computed(() =>
     : 'mdi-earth'
 )
 
-const ownerName = computed(() =>
-  props.community.owner?.username ??
-  props.community.owner?.name ??
-  props.community.ownerUsername ??
-  props.community.createdBy ??
-  'Not available'
-)
+const ownerName = computed(() =>{
+  const owner = props.community.owner
+
+  return (
+    (typeof owner === 'string' ? owner : owner?.username ?? owner?.name) ||
+    props.community.ownerUsername ||
+    'Not available'
+  )
+})
 
 const createdDate = computed(() => {
   const value =

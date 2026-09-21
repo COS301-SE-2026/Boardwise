@@ -3,6 +3,7 @@
     :model-value="activeTab"
     :aria-label="ariaLabel"
     class="base-tag-group"
+    mandatory
     @update:model-value="$emit('change', $event)"
   >
     <v-btn

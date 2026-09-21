@@ -77,8 +77,12 @@ public class BobShopScraper implements WebScraper {
 
             for (Locator card : cards) {
                 // data from DOM
-                String classAttr = card.getAttribute("class");
                 String title = card.locator("div.product-card-title").innerText();
+                if(!title.toLowerCase().contains("boardgame") ||!title.toLowerCase().contains("board game")){
+                    continue;
+                }
+                String classAttr = card.getAttribute("class");
+
                 String url = card.getAttribute("href");
 
                 // Price extraction

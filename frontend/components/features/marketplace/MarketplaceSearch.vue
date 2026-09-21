@@ -8,10 +8,6 @@
         @update:model-value="$emit('search', $event)"
       />      
     </div>
-
-    <BaseButton data-test="create-listing-button" variant="primary" prepend-icon="mdi-plus" @click="$emit('create-listing')"> 
-        Create Listing
-    </BaseButton>
   </div>
 </template>
 
@@ -19,7 +15,6 @@
 import { ref } from 'vue'
 
 import BaseSearch from '~/components/ui/BaseSearch.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
 
 const search = ref('')
 

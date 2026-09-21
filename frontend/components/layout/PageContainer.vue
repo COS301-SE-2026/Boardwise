@@ -1,15 +1,7 @@
 <template>
-  <v-main>
-    <v-container fluid class="container">
+  <v-main class="page-shell">
+    <v-container fluid class="container page-shell__inner">
       <slot />
     </v-container>
   </v-main>
 </template>
-
-<style scoped>
-.container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 24px;
-}
-</style>

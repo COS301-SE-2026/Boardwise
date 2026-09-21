@@ -46,7 +46,7 @@
       />
     </button>
 
-      <div v-if="community.isOwner" class="community-chat-header__actions">
+    <div v-if="community.isOwner" class="community-chat-header__actions">
       <BaseButton
         variant="secondary"
         @click="showEdit = true"
@@ -59,7 +59,7 @@
 
         Edit
       </BaseButton>
-      </div>
+    </div>
 
     <CommunityEditModal
       v-model="showEdit"
