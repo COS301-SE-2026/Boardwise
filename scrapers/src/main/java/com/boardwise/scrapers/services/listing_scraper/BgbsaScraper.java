@@ -21,13 +21,22 @@ public class BgbsaScraper {
 
     private static final String URL = "https://www.bgbsa.co.za/";
     private static final String LISTINGS_URL = URL + "listings";
-    private static final long DETAIL_FETCH_DELAY_MS = 500L;
+    private static final String RETAILER = "BGBSA";
+    private static final int PAGE_SIZE = 50;         
+    private static final int MAX_PAGES = 25;         
+    private static final long PAGE_DELAY_MS = 300L;
+    private static final long INDEX_TTL_MS = 10 * 60 * 1000L;
 
     private final Logger logger = Logger.getLogger(BgbsaScraper.class.getName());
 
     private static final Pattern LISTING_TEXT = Pattern.compile(
         "^(.*?)\\s*\\((\\d+(?:\\.\\d+)?)\\)\\s*R([\\d,]+\\.\\d{2})(?:\\s*\\(Bundle:\\s*\\d+\\s*items?\\))?$"
     );
+
+    private record Listing(String title, String normalizedTitle, Double price, String url, String imageUrl) {}
+
+    private volatile List<Listing> index = List.of();
+    private volatile long indexLoadedAt = 0;
 
     public BgbsaScraper() {}
 
@@ -37,72 +46,85 @@ public class BgbsaScraper {
             return results;
         }
 
-        try {
-            Document doc = Jsoup.connect(LISTINGS_URL)
-                    .userAgent("Mozilla/5.0")
-                    .timeout(15_000)
-                    .get();
-
-            Elements listingLinks = doc.select("a[href*='/listings/']");
-            String normalizedTerm = normalize(boardgame);
-
-            for (Element link : listingLinks) {
-                try {
-                    BgbsaDTO item = parseListing(link, normalizedTerm);
-                    if (item != null) {
-                        results.add(item);
-                    }
-                } catch (Exception e) {
-                    logger.log(Level.WARNING, "Skipping bad listing from " + LISTINGS_URL, e);
-                }
+        String term = normalize(boardgame);
+        for (Listing l : getIndex()) {
+            if (l.normalizedTitle().contains(term)) {
+                results.add(new BgbsaDTO(l.title(), RETAILER, l.price(), false, null, l.url(), l.imageUrl()));
             }
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Failed to scrape " + LISTINGS_URL, e);
         }
-        System.out.println("BGBSA SCRAPER" + results);
         return results;
     }
 
-    private BgbsaDTO parseListing(Element link, String normalizedTerm) {
-        String fullText = link.text().trim();
-        if (fullText.isBlank()) {
-            return null;
+    private List<Listing> getIndex() {
+        if (isFresh()) {
+            return index;
         }
+        synchronized (this) {   
+            if (isFresh()) {
+                return index;
+            }
+            List<Listing> loaded = loadAllPages();
+            if (!loaded.isEmpty()) {
+                index = loaded;
+                indexLoadedAt = System.currentTimeMillis();
+            }
+            return index;
+        }
+    }
 
-        Matcher m = LISTING_TEXT.matcher(fullText);
+    private boolean isFresh() {
+        return System.currentTimeMillis() - indexLoadedAt < INDEX_TTL_MS;
+    }
+
+    private List<Listing> loadAllPages() {
+        List<Listing> all = new ArrayList<>();
+
+        for (int page = 1; page <= MAX_PAGES; page++) {
+            try {
+                Document doc = Jsoup.connect(LISTINGS_URL + "?page=" + page)
+                        .userAgent("Mozilla/5.0")
+                        .timeout(15_000)
+                        .get();
+
+                Elements links = doc.select("a[href*='/listings/']");
+                for (Element link : links) {
+                    try {
+                        Listing l = parseListing(link);
+                        if (l != null) {
+                            all.add(l);
+                        }
+                    } catch (Exception e) {
+                        logger.log(Level.WARNING, "Skipping bad listing on page " + page, e);
+                    }
+                }
+
+                if (links.size() < PAGE_SIZE) {
+                    break;  // last page
+                }
+                Thread.sleep(PAGE_DELAY_MS);
+
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "Failed to scrape " + LISTINGS_URL + " page " + page, e);
+                break;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        return all;
+    }
+
+    private Listing parseListing(Element link) {
+        Matcher m = LISTING_TEXT.matcher(link.text().trim());
         if (!m.matches()) {
             return null;
         }
 
         String title = m.group(1).trim();
-        if (!normalize(title).contains(normalizedTerm)) {
-            return null;
-        }
+        Element img = link.selectFirst("img[src*='/storage/']");
+        String imageUrl = img != null ? img.absUrl("src") : "";
 
-        Double price = parsePrice(m.group(3));
-        String href = link.absUrl("href");
-        String imageUrl = fetchImageForListing(href);
-
-        return new BgbsaDTO(title, "BGBSA", price, false, null, href, imageUrl);
-    }
-
-    private String fetchImageForListing(String listingUrl) {
-        try {
-            Thread.sleep(DETAIL_FETCH_DELAY_MS);
-            Document detail = Jsoup.connect(listingUrl)
-                    .userAgent("Mozilla/5.0")
-                    .timeout(15_000)
-                    .get();
-
-            Element img = detail.selectFirst("img[src*='/storage/'][src*='conversions']");
-            return img != null ? img.absUrl("src") : "";
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return "";
-        } catch (IOException e) {
-            logger.log(Level.WARNING, "Failed to fetch detail page for image: " + listingUrl, e);
-            return "";
-        }
+        return new Listing(title, normalize(title), parsePrice(m.group(3)), link.absUrl("href"), imageUrl);
     }
 
     private Double parsePrice(String rawPrice) {
