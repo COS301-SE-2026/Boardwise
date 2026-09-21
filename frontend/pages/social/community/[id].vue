@@ -103,7 +103,6 @@ import PageContainer from '~/components/layout/PageContainer.vue'
 import CommunityBanner from '~/components/features/community/CommunityBanner.vue'
 import CommunityMoreDetails from '~/components/features/community/CommunityMoreDetails.vue'
 import CommunityChats from '~/components/features/community/CommunityChats.vue'
-import CommunityMoreDetails from '~/components/features/community/CommunityMoreDetails.vue'
 
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'

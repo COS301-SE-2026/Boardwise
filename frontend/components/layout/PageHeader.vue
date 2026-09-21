@@ -14,10 +14,3 @@ defineProps({
   subtitle: String
 })
 </script>
-
-<script setup>
-defineProps({
-  title: { type: String, required: true },
-  subtitle: String
-})
-</script>

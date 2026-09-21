@@ -1,0 +1,85 @@
+/* Boardwise mobile-first foundation. Vuetify's even spacing steps form an 8px grid. */
+:root {
+  --space-unit: 8px;
+  --touch-target: 48px;
+  --page-gutter: 16px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #__nuxt, .v-application, .v-application__wrap { min-width: 0; width: 100%; }
+body { margin: 0; }
+img, video, canvas, svg { max-width: 100%; }
+img, video { object-fit: contain; }
+main, section, article, .v-container, .v-col, .v-card, .v-card-text, .v-window, .v-window-item { min-width: 0; }
+p, h1, h2, h3, h4, label, .v-card-title, .v-list-item-title { overflow-wrap: anywhere; }
+.v-card-title { white-space: normal; }
+.v-btn, .base-button, .v-tab, .v-list-item--link, .v-expansion-panel-title,
+.v-chip--link, .base-tag--clickable { min-height: var(--touch-target); }
+.v-btn--icon, .base-input__password-toggle { min-width: var(--touch-target); width: var(--touch-target); height: var(--touch-target); }
+.v-field__input { min-height: var(--touch-target); font-size: 1rem; }
+.v-selection-control { min-height: var(--touch-target); }
+.v-btn__content { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.base-card, .base-input, .base-search, .base-image, .base-filter-group { min-width: 0; max-width: 100%; }
+.base-search { width: 100%; }
+.base-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--base-grid-gap, 24px); width: 100%; min-width: 0; align-items: stretch; }
+.base-grid > * { min-width: 0; }
+.base-filter-sidebar { width: 100%; max-width: 100%; flex-shrink: 0; }
+.base-tag-group { height: auto !important; flex-wrap: wrap; max-width: 100%; }
+.base-tag { max-width: 100%; height: auto; }
+.base-tag .v-chip__content { white-space: normal; overflow-wrap: anywhere; }
+.base-tabs { max-width: 100%; }
+.base-modal__header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.base-modal__title { min-width: 0; overflow-wrap: anywhere; }
+.v-dialog--fullscreen > .v-overlay__content { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+.v-dialog .v-card-actions { flex-wrap: wrap; gap: 8px; }
+.v-navigation-drawer { max-width: 100vw; }
+.boardwise-page { padding-bottom: max(24px, env(safe-area-inset-bottom)) !important; }
+.marketplace-layout > .base-grid { flex: 1; min-width: 0; }
+.community-results-layout__content { width: 100%; }
+/* Detail routes have no sidebar; never hide the main content at a breakpoint. */
+.community-layout { display: flex; flex-direction: column; width: 100%; height: calc(100dvh - 104px); min-height: 400px; }
+.community-layout__main { display: flex; flex-direction: column; width: 100%; height: 100%; min-width: 0; min-height: 0; }
+.community-layout__mobile-back { display: inline-flex; flex-shrink: 0; align-self: flex-start; margin: 0 0 8px; }
+.community-layout__main .community-chat-window { flex: 1 1 0; width: 100%; height: auto; min-height: 0; }
+.community-chat-window__body, .community-chat-content { min-height: 0; min-width: 0; }
+.community-chat-join { flex-wrap: wrap; }
+.community-chat-header__identity { min-width: 0; }
+/* Chat keeps a single active pane on mobile, both panes from md. */
+.chat-layout { display: flex; width: 100%; min-width: 0; height: calc(100dvh - 128px); min-height: 400px; }
+.chat-layout__sidebar { display: flex; width: 100%; min-width: 0; }
+.chat-layout__window { display: none; min-width: 0; min-height: 0; }
+.chat-layout--conversation-open .chat-layout__sidebar { display: none; }
+.chat-layout--conversation-open .chat-layout__window { display: flex; flex: 1; width: 100%; }
+.chat-layout__window > *, .chat-layout__sidebar > * { width: 100%; min-width: 0; }
+.chat-feed, .community-chat-feed { overflow-wrap: anywhere; }
+.reader-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 16px; background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
+.reader-toolbar__title { min-width: 0; flex: 1 1 160px; }
+.reader-toolbar__actions { width: 100%; min-width: 0; }
+.reader-toolbar__search { flex: 1 1 224px; min-width: 0; width: 100%; }
+.reader-contents > summary { cursor: pointer; padding: 16px; min-height: 48px; color: var(--color-secondary); font-weight: 700; }
+.reader-contents { width: 100%; }
+.blocks-wrapper { min-width: 0; overflow-wrap: anywhere; }
+.blocks-wrapper img { height: auto; }
+.blocks-wrapper pre, .blocks-wrapper table { display: block; max-width: 100%; overflow-x: auto; }
+/* Installation remains dismissible and sits above bottom safe areas. */
+.pwa-install { position: fixed; z-index: 2300; inset-inline: 16px; bottom: max(16px, env(safe-area-inset-bottom)); max-width: 640px; margin-inline: auto; padding: 16px; display: flex; flex-wrap: wrap; gap: 16px; background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); border-radius: 24px; box-shadow: var(--shadow-lg); }
+.pwa-install__copy { flex: 1 1 240px; min-width: 0; }
+.pwa-install__copy p { margin: 8px 0 0; }
+.pwa-install__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.pwa-offline { position: sticky; bottom: 0; z-index: 2400; padding: 16px; background: var(--color-surface); color: var(--color-text); border-top: 2px solid var(--color-warning); }
+.pwa-offline a { display: inline-flex; align-items: center; min-height: 48px; padding-inline: 8px; color: var(--color-primary); }
+@media (min-width: 600px) {
+  :root { --page-gutter: 24px; }
+  .base-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--base-grid-min, 280px)), 1fr)); }
+}
+@media (min-width: 960px) {
+  .base-grid { grid-template-columns: var(--base-grid-columns); }
+  .base-filter-sidebar { width: 256px; }
+  .community-layout { height: calc(100dvh - 144px); min-height: 480px; }
+  .chat-layout { display: grid; grid-template-columns: minmax(256px, 320px) minmax(0, 1fr); gap: 24px; }
+  .chat-layout .chat-layout__sidebar, .chat-layout .chat-layout__window { display: flex; width: 100%; }
+  .reader-toolbar__actions { flex: 1 1 560px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .base-card, .base-button, .base-tag, .v-btn { transition: none !important; }
+  .base-card:hover, .base-button:hover { transform: none; }
+}
