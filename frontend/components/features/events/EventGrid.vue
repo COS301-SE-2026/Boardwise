@@ -1,23 +1,17 @@
 <template>
-    <v-row class="mt-8">
-        <v-col 
+    <BaseGrid data-test="event-grid">
+        <EventCard
             v-for="event in events"
             :key="event.id"
-            cols="12"
-            sm="6"
-            md="4"
-            lg="3"
-        >
-            <EventCard
-                :event="event"
-                @click="$emit('select', event)"
-            />
-        </v-col>
-    </v-row>
+            :event="event"
+            @click="$emit('select', event)"
+        />
+    </BaseGrid>
 </template>
 
 <script setup>
 import EventCard from './EventCard.vue'
+import BaseGrid from '~/components/ui/BaseGrid.vue'
 
 defineProps({
     events: {

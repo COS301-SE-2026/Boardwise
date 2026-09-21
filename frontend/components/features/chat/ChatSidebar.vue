@@ -62,17 +62,7 @@
 
         <div class="chat-sidebar__results">
 
-            <v-container
-                v-if="isLoading"
-                class="d-flex justify-center align center"
-                style="min-height: 60vh"
-            >
-                <v-progress-circular
-                    indeterminate
-                    color="primary"
-                    size="48"
-                />
-            </v-container>
+            <BaseLoadingState v-if="isLoading" />
 
             <ChatConversationList
                 v-else-if="filteredConversations.length"
@@ -85,7 +75,7 @@
                 v-else
                 class="mt-8"
                 title="No conversations found"
-                :description="emptyDescription"
+                :message="emptyDescription"
             />
         </div>
     </BaseCard>
@@ -100,6 +90,7 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 
 import ChatConversationList from './ChatConversationList.vue'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 
 const props = defineProps({
     conversations: {
@@ -165,20 +156,3 @@ const emptyDescription = computed(() => {
     return 'Your conversations will appear here.'
 })
 </script>
-
-<style scoped>
-.chat-sidebar :deep(.base-search) {
-  height: 48px;
-}
-
-.chat-sidebar :deep(.v-field) {
-  min-height: 48px !important;
-  height: 48px !important;
-}
-
-.chat-sidebar :deep(.v-field__input) {
-  min-height: 48px !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-}
-</style>

@@ -35,14 +35,9 @@
           {{ community.memberCount }} members
         </p>
       </div>
-      <!-- <v-icon
-        icon="mdi-chevron-right"
-        class="community-chat-header__chevron"
-        aria-hidden="true"
-      /> -->
-</button>
+    </button>
 
-      <div v-if="community.isOwner" class="community-chat-header__actions">
+    <div v-if="community.isOwner" class="community-chat-header__actions">
       <BaseButton
         variant="secondary"
         @click="showEdit = true"
@@ -55,7 +50,7 @@
 
         Edit
       </BaseButton>
-      </div>
+    </div>
 
     <CommunityEditModal
       v-model="showEdit"

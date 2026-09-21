@@ -24,11 +24,8 @@
                             v-if="conversation.isOnline"
                             class="chat-online-indicator"
                             aria-hidden="true"
-                        />
+                        ></span>
 
-                        <span class="sr-only">
-                            {{ conversation.isOnline ? 'Online' : 'Offline' }}
-                        </span>
                     </div>
 
                     <div class="chat-conversation-card__content">
@@ -86,10 +83,7 @@ const props = defineProps({
 defineEmits(['select'])
 
 const conversationLabel = computed(() => {
-    // const unread = props.conversation.unread
-    //     ? `, ${props.conversation.unread} unread`
-    //     : ''
-
+    
     const status = props.conversation.isOnline
         ? ', online'
         : ', offline'

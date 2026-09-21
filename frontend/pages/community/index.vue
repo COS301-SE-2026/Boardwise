@@ -10,29 +10,29 @@
     />
 
     <!-- Mobile filter trigger -->
-<div class="d-flex d-md-none mt-6 mb-4">
-  <v-chip
-    color="secondary"
-    prepend-icon="mdi-filter-variant"
-    size="large"
-    :aria-expanded="showFilters"
-    aria-controls="community-mobile-filters"
-    @click="showFilters = true"
-  >
-    Filters
-  </v-chip>
+    <div class="d-flex d-md-none mt-6 mb-4">
+      <v-chip
+        color="secondary"
+        prepend-icon="mdi-filter-variant"
+        size="large"
+        :aria-expanded="showFilters"
+        aria-controls="community-mobile-filters"
+        @click="showFilters = true"
+      >
+        Filters
+      </v-chip>
 
-  <v-navigation-drawer
-    v-model="showFilters"
-    temporary
-    location="left"
-    width="300"
-  >
-    <div
-      id="community-mobile-filters"
-      class="pa-4"
-    >
-      <CommunityFilter
+      <v-navigation-drawer
+        v-model="showFilters"
+        temporary
+        location="left"
+        width="300"
+      >
+        <div
+          id="community-mobile-filters"
+          class="pa-4"
+        >
+          <CommunityFilter
         @filter="handleFilter"
       />
     </div>
@@ -118,7 +118,6 @@ const selectedCategories = ref<string[]>([])
 
 onMounted(async () => {
   communities.value = await getAllCommunities()
-  console.log(communities.value)
 })
 const showFilters = ref(false)
 const delaySearch = useDebounceFn( async (query) => {
