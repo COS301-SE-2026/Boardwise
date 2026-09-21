@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Limit;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -39,7 +41,7 @@ public class BoardGameService {
 
     private final BoardGameRepository gameRepo;
     private final R2StorageService bucket;
-    private final RestClient client;
+    private final @Qualifier("bggRestClient")RestClient client;
     private final BoardGameSearch gameSearch;
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
 

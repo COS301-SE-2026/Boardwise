@@ -3,7 +3,9 @@ package com.boardwise.scrapers.services.listing_scraper;
 import com.boardwise.scrapers.repositories.ScrapeCacheRepository;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -51,6 +53,7 @@ public class RetailScraper {
     private static final long SCRAPER_TIMEOUT_SECONDS = 30;
     private final ConcurrentHashMap<String, ReentrantLock> termLocks = new ConcurrentHashMap<>();
     private static final int NUM_OF_GAMES = 50;
+    
 
     private final ExecutorService scheduledExecutor = Executors.newFixedThreadPool(2);
     private final ExecutorService recommendedRunnerExecutor = Executors.newSingleThreadExecutor();
@@ -82,7 +85,7 @@ public class RetailScraper {
         this.scrapeCacheRepository = scrapeCacheRepository;
     }
 
-@Scheduled(fixedDelayString = "${scrape.cache.refresh.interval.ms:3600000}", initialDelayString = "${scrape.cache.refresh.interval.ms:3600000}")
+    @Scheduled(fixedDelayString = "${scrape.cache.refresh.interval.ms:3600000}", initialDelayString = "${scrape.cache.refresh.interval.ms:3600000}")
     public void scheduledRecommendedScraper(){
         runRecommendedScraper();
     }
@@ -91,6 +94,7 @@ public class RetailScraper {
     public void onApplicationReady(){
         recommendedRunnerExecutor.submit(this::runRecommendedScraper);
     }
+    
     
     private void runRecommendedScraper(){
         List<GameOwnershipCount> topOwned = userRepository.findMostOwnedGameIds(NUM_OF_GAMES);
@@ -120,6 +124,32 @@ public class RetailScraper {
             logger.info(() -> "Dispatched after: " + took + " ms");
         }
     }
+    
+    private String normalise(String boardgame){
+        return boardgame.trim().toLowerCase().replaceAll("\\s+", " ");
+    }
+
+    public Map<String, List<RetailSourceItemDTO>> scrapeForBoardgames(List<String> boardgames) {
+        Map<String, CompletableFuture<List<RetailSourceItemDTO>>> futures = new LinkedHashMap<>();
+
+        for (String b : boardgames) {
+            if (b == null || b.isBlank()) continue;
+            String key = normalise(b);
+            futures.computeIfAbsent(b, ignored ->
+                cache.get(key, (k, e) -> loadFromMongoOrScrape(k))
+                    .exceptionally(ex ->{
+                        logger.log(Level.WARNING, "Failed to load listings for " + b, ex);
+                        return List.of();
+                    }));
+        }
+
+        CompletableFuture.allOf(futures.values().toArray(new CompletableFuture[0])).join();
+
+        Map<String, List<RetailSourceItemDTO>> results = new LinkedHashMap<>();
+        futures.forEach((game, future) -> results.put(game, future.join()));
+        return results;
+    }
+
 
     private List<Boardgame> getGloballyPopularGames(int count) {
         List<GameOwnershipCount> topOwned = userRepository.findMostOwnedGameIds(count);
@@ -146,7 +176,7 @@ public class RetailScraper {
             return List.of();
         }
 
-        String key = boardgame.trim().toLowerCase().replaceAll("\\s+", " ");
+        String key = normalise(boardgame);
 
         return cache.get(key, (k,e) -> loadFromMongoOrScrape(k)).join();
     }

@@ -8,5 +8,5 @@ public record RetailSourceItemDTO(
         String retailer,
         String url,// site based URL
         Double price,
-        String imageUrl, // image
-        float JaroWinklerSimilarityScore){}
+        String imageUrl // image
+){}

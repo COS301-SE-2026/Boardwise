@@ -19,57 +19,13 @@ COPY src src
 RUN ./mvnw clean package -DskipTests
 
 # ==========================================
-# Stage 2:(New) Runtime image, I'm sorry Karabo - bandilem-git
+# Stage 2: Runtime image
 # ==========================================
 FROM eclipse-temurin:21-jre-jammy
 
-RUN sed -i 's|http://archive.ubuntu.com/ubuntu/|https://mirrors.edge.kernel.org/ubuntu/|g' /etc/apt/sources.list && \
-    sed -i 's|http://security.ubuntu.com/ubuntu/|https://mirrors.edge.kernel.org/ubuntu/|g' /etc/apt/sources.list && \
-    apt-get update && apt-get install -y --no-install-recommends --fix-missing \
-    passwd \
-    libglib2.0-0 \
-    libnss3 \
-    libnspr4 \
-    libatk1.0-0 \
-    libatk-bridge2.0-0 \
-    libcups2 \
-    libdrm2 \
-    libxkbcommon0 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxfixes3 \
-    libxrandr2 \
-    libgbm1 \
-    libasound2 \
-    libpango-1.0-0 \
-    libpangocairo-1.0-0 \
-    libcairo2 \
-    libcairo-gobject2 \
-    libx11-6 \
-    libx11-xcb1 \
-    libxcursor1 \
-    libgtk-3-0 \
-    libgdk-pixbuf-2.0-0 \
-    libxext6 \
-    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 COPY --from=builder /build/target/*.jar app.jar
-
-ENV PLAYWRIGHT_BROWSERS_PATH=/app/playwright-browsers
-
-RUN java -Dloader.main=com.microsoft.playwright.CLI \
-    -cp app.jar org.springframework.boot.loader.launch.PropertiesLauncher \
-    install chromium
-
-RUN java -Dloader.main=com.microsoft.playwright.CLI \
-    -cp app.jar org.springframework.boot.loader.launch.PropertiesLauncher \
-    install firefox webkit
-    
-RUN groupadd -r spring && useradd -r -g spring spring \
-    && chown -R spring:spring /app
-
-USER spring
 
 # Document the port the app listens on
 EXPOSE 8080

@@ -226,16 +226,16 @@ public class ListingController {
     }
 
     @GetMapping("/listings/personalised")
-    public ResponseEntity<Page<RetailSourceItemDTO>> getPersonalizedRetailItems(
+    public ResponseEntity<Map<String, List<RetailSourceItemDTO>>> getPersonalizedRetailItems(
         @RequestHeader("Authorization") String token,
         @RequestParam(required = false, defaultValue = "0") Integer page) {
         try {
-            Page<RetailSourceItemDTO> results = retailService.getPersonalizedRetailListings(token.replace("Bearer ", ""), page);
+            Map<String, List<RetailSourceItemDTO>> results =
+                retailService.getPersonalisedRetailListings(token.replace("Bearer ", ""), page);
 
             return ResponseEntity.ok(results);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(null);
+            return ResponseEntity.internalServerError().build();
         }
-
     }
 }

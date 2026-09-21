@@ -1,5 +1,6 @@
 package com.boardwise.backend.shared.config;
 
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,7 +8,6 @@ import org.springframework.web.client.RestClient;
 
 @Configuration
 public class RestClientConfig {
-
     @Bean
     public RestClient bggRestClient(
         @Value("${bgg.token}") String token,
@@ -17,5 +17,15 @@ public class RestClientConfig {
                 .baseUrl(baseUrl)
                 .defaultHeader("Authorization", "Bearer " + token)
                 .build();
+    }
+
+    @Bean 
+    public RestClient scraperRestClient(
+    @Value("${scraper.url}") 
+    String scraperUrl
+    ){
+        return RestClient.builder()
+        .baseUrl(scraperUrl)
+        .build();
     }
 }
