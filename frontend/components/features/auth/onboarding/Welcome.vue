@@ -1,5 +1,7 @@
 <template>
     <div class="onboarding-setup">
+        <OnboardingProgress :current="1" :total="4" />
+
         <img src="/images/main.svg" alt="Boardwise"  class="onboarding-step_logo" />
         <h1 class="onboardoing-step_title">Welcome {{  username  }} to Boardwise!</h1>
 
@@ -14,8 +16,9 @@
 </template>
 
 <script setup>
-import BoarleyBubble from './BoarleyBubble.vue';
-import BaseButton from '~/components/ui/BaseButton.vue';
+import BoarleyBubble from './BoarleyBubble.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
+import OnboardingProgress from './OnboardingProgress.vue'
 
 defineProps({
     username: { 

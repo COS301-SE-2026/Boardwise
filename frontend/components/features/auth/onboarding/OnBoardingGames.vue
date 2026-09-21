@@ -1,6 +1,7 @@
 <template>
     <div class="onboarding-step">
         <OnboardingProgress :current="3" :total="4" />
+        
         <BoarleyBubble>
             Which games do you own or play often? Search or filter by genres below.
         </BoarleyBubble>
