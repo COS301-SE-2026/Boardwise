@@ -30,7 +30,7 @@ class Settings:
     LANCEDB_IVF_PARTITIONS: int = int(os.getenv("LANCEDB_IVF_PARTITIONS", "256"))
     LANCEDB_CANDIDATES: int = int(os.getenv("LANCEDB_CANDIDATES", "25"))
     UNSTRUCTURED_API_URL: str | None = (os.getenv("UNSTRUCTURED_PROD_URL") if environment == "prod" else os.getenv("UNSTRUCTURED_DEV_URL"))
-    UNSTRUCTURED_API_KEY: str | None = os.getenv("INTERNAL_SECRET")
+    UNSTRUCTURED_API_KEY: str | None = os.getenv("UNSTRUCTURED_API_KEY")
 
 
 settings = Settings()

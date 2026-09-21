@@ -12,8 +12,8 @@ def fetch_candidate_chunks(
 ) -> list[dict]:
     """
     Executes a hybrid search (Vector + FTS) againts LanceDB.
-    Fuses results using Reciprocal Rank Fusion (RFF), excludes decorative/unverifiable
-    chunk types, and penalises low-confidence chunks.
+    Fuses results using Reciprocal Rank Fusion (RFF), and penalises
+    penalises low-confidence, decorative, or needs-review chunks.
     """
     try:
         candidates = getattr(settings, "LANCEDB_CANDIDATES", 25)
@@ -31,12 +31,6 @@ def fetch_candidate_chunks(
             for rank, chunk in enumerate(results, start=1):
                 chunk_id = chunk["chunkId"]
 
-                chunk_type = chunk.get("type", "text")
-                needs_review = chunk.get("needsReview", False)
-
-                if chunk_type in ["decorative", "image-heavy"] or needs_review:
-                    continue
-
                 if chunk_id not in chunk_map:
                     chunk_map[chunk_id] = chunk
                     rrf_scores[chunk_id] = 0.0
@@ -50,8 +44,14 @@ def fetch_candidate_chunks(
         for chunk_id, rrf_score in rrf_scores.items():
             chunk = chunk_map[chunk_id]
             confidence = float(chunk.get("confidence", 1.0))
+            
+            penalty_multiplier = 1.0
+            if chunk.get("type") == "decorative":
+                penalty_multiplier *= 0.5
+            if chunk.get("needsReview", False):
+                penalty_multiplier *= 0.8
 
-            hybrid_score = rrf_score * confidence
+            hybrid_score = rrf_score * confidence * penalty_multiplier
             chunk["hybridRankScore"] = hybrid_score
 
             fused_candidates.append(chunk)

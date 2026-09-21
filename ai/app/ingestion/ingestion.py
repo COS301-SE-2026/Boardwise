@@ -63,7 +63,9 @@ def run_ingestion_pipeline(
         # =========== Stage 2: Extract ===========
         mongo_service.update_ingestion_job(job_id, "Extract", "Processing")
 
-        extract_success, extracted_text, extract_reason, blocks_cache = extract_text(file_bytes, rulebook_id)
+        extract_success, extracted_text, extract_reason, blocks_cache = extract_text(
+            file_bytes, rulebook_id
+        )
 
         if not extract_success:
             mongo_service.mark_pipeline_failed(
@@ -79,6 +81,17 @@ def run_ingestion_pipeline(
         if not chunk_success:
             mongo_service.mark_pipeline_failed(
                 rulebook_id, job_id, "Chunk", chunk_reason
+            )
+            return
+
+        chunk_list = [c for c in chunk_list if c.get("type") != "decorative"]
+
+        if not chunk_list:
+            mongo_service.mark_pipeline_failed(
+                rulebook_id,
+                job_id,
+                "Chunk",
+                "All chunks classified as decorative thus there is nothing to index",
             )
             return
 
@@ -104,9 +117,7 @@ def run_ingestion_pipeline(
         )
         debug_key = f"rulebooks/{rulebook_id}/raw_extracted.md"
         r2_service.upload_to_r2(
-            extracted_text.encode("utf-8"),
-            debug_key,
-            content_type="text/markdown"
+            extracted_text.encode("utf-8"), debug_key, content_type="text/markdown"
         )
 
         if not pdf_upload:
@@ -122,12 +133,10 @@ def run_ingestion_pipeline(
             chunk["updatedAt"] = current_time
 
         # Finalisation
-        # A
         mongo_service.store_rulebook_text_and_pdf_key(
             rulebook_id, pdf_key, vectorised_chunks
         )
 
-        # B
         lancedb_success, lancedb_reason = _write_chunks_to_lancedb_with_retry(
             vectorised_chunks
         )
@@ -136,8 +145,8 @@ def run_ingestion_pipeline(
             mongo_service.mark_pipeline_failed(
                 rulebook_id, job_id, "Store", lancedb_reason
             )
+            return
 
-        # C
         mongo_service.mark_rulebook_ready(rulebook_id, job_id)
 
         logger.info("Pipeline completed successfully for rulebook %s", rulebook_id)

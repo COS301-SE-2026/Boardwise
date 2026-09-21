@@ -91,6 +91,10 @@ def background_vectorise_and_update(
             content=content,
             index=existing["index"],
             embedding=final_embedding,
+            chunk_type=existing.get("type", "text"),
+            needs_review=existing.get("needsReview", False),
+            confidence=existing.get("confidence", 1.0),
+            associated_image_urls=existing.get("associatedImageUrls", [])
         )
 
         logger.info(

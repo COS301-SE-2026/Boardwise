@@ -21,6 +21,10 @@ def _build_schema() -> pa.schema:
             pa.field("index", pa.int32()),
             pa.field("charCount", pa.int32()),
             pa.field("vector", pa.list_(pa.float32(), settings.EMBEDDING_DIMENSIONS)),
+            pa.field("type", pa.string()),
+            pa.field("needsReview", pa.bool_()),
+            pa.field("confidence", pa.float32()),
+            pa.field("associatedImageUrls", pa.list_(pa.string())),
             pa.field("createdAt", pa.timestamp("us")),
             pa.field("updatedAt", pa.timestamp("us")),
         ]
@@ -128,8 +132,12 @@ def write_chunks(chunks: list[dict]) -> None:
             "index": int(chunk["index"]),
             "charCount": int(chunk["charCount"]),
             "vector": chunk["embedding"],
+            "type": chunk.get("type", "text"),
+            "needsReview": bool(chunk.get("needsReview", False)),
+            "confidence": float(chunk.get("confidence", 1.0)),
+            "associatedImageUrls": chunk.get("associatedImageUrls") or [],
             "createdAt": chunk.get("createdAt", datetime.now(timezone.utc)),
-            "updatedAt": chunk.get("updateAt", datetime.now(timezone.utc)),
+            "updatedAt": chunk.get("updatedAt", datetime.now(timezone.utc)),
         }
         for chunk in chunks
     ]
@@ -139,9 +147,17 @@ def write_chunks(chunks: list[dict]) -> None:
 
 
 def upsert_chunk(
-    chunk_id: str, rulebook_id: str, content: str, index: int, embedding: list[float]
+    chunk_id: str,
+    rulebook_id: str,
+    content: str,
+    index: int,
+    embedding: list[float],
+    chunk_type: str = "text",
+    needs_review: bool = False,
+    confidence: float = 1.0,
+    associated_image_urls: list[str] | None = None,
 ) -> None:
-    """Upserts a single chunk's vector + content."""
+    """Upserts a single chunk's vector, content and metadata."""
     table = get_table()
     now = datetime.now(timezone.utc)
 
@@ -154,6 +170,10 @@ def upsert_chunk(
                 "index": int(index),
                 "charCount": len(content),
                 "vector": embedding,
+                "type": chunk_type,
+                "needsReview": needs_review,
+                "confidence": float(confidence),
+                "associatedImageUrls": associated_image_urls or [],
                 "createdAt": now,
                 "updatedAt": now,
             }
@@ -180,7 +200,12 @@ def query_vector(rulebook_id: str, query_vector: list[float], limit: int) -> lis
         table.search(query_vector, vector_column_name="vector")
         .where(f"rulebookId = '{rulebook_id}'", prefilter=True)
         .limit(limit)
-        .select(["chunkId", "content", "index", "charCount", "_distance"])
+        .select(
+            [
+                "chunkId", "content","index", "charCount", "type", "needsReview",
+                "confidence", "associatedImageUrls", "_distance", "_score",
+            ]
+        )
         .to_list()
     )
     return results
@@ -195,7 +220,12 @@ def query_fts(rulebook_id: str, query_text: str, limit: int) -> list[dict]:
         table.search(query_text, query_type="fts")
         .where(f"rulebookId = '{rulebook_id}'", prefilter=True)
         .limit(limit)
-        .select(["chunkId", "content", "index", "charCount"])
+        .select(
+            [
+                "chunkId", "content", "index", "charCount", "type",
+                "needsReview", "confidence", "associatedImageUrls",
+            ]
+        )
         .to_list()
     )
     return results
