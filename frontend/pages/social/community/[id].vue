@@ -6,18 +6,15 @@
       class="community-detail-page"
     >
     <div
-        class="community-layout"
-        :class="{
-          'community-layout--community-open':
-            mobileCommunityOpen
-        }"
+        class="community-detail-layout"
+
       >
 
-        <main class="community-layout__main">
+        <main class="community-detail-layout__main">
           <BaseButton
             variant="secondary"
             class="community-layout__mobile-back"
-            @click="mobileCommunityOpen = false"
+            @click="router.push('/social')"
           >
             <v-icon
               icon="mdi-arrow-left"

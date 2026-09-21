@@ -239,7 +239,26 @@
                         />
                     </section>
                     </v-window-item>
+            <v-window-item value="events">
+            <section
+                class="community-more-details__section"
+                aria-label="Community events"
+            >
+                <BaseEmptyState
+                title="Community events aren’t available here yet"
+                message="Visit the Events page to discover upcoming gaming events."
+                />
 
+                <div class="d-flex justify-center mt-4">
+                <BaseButton
+                    to="/events"
+                    @click="dialog = false"
+                >
+                    Browse events
+                </BaseButton>
+                </div>
+            </section>
+            </v-window-item>
         </v-window>
     </div>
       <template v-if="community.isMember && !community.isOwner">
@@ -273,6 +292,7 @@ import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseBadge from '~/components/ui/BaseBadge.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
 
+import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import MemberList from './MemberList.vue'
 
 const props = defineProps({
