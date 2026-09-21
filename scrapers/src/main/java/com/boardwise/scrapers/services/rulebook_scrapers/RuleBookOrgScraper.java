@@ -8,11 +8,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.annotation.PreDestroy;
 
@@ -70,6 +72,8 @@ public class RuleBookOrgScraper {
 
     private static final long BACKOFF_MS = 120_000L;
     private static final int MAX_ATTEMPTS = 6; 
+
+    private final Set<String> noRulebookCache = ConcurrentHashMap.newKeySet();
 
 
     private static final Pattern VERSION_SUFFIX = Pattern.compile(
@@ -129,7 +133,7 @@ public class RuleBookOrgScraper {
 
             if (currentId == null || processedThisRun.contains(currentId)) continue;
 
-            if (hasExistingRulebook(currentId)) {
+            if (hasExistingRulebook(currentId) || noRulebookCache.contains(currentId)) {
                 processedThisRun.add(currentId);
                 continue;
             }
@@ -142,6 +146,8 @@ public class RuleBookOrgScraper {
                 if (processSingleGame(game.get())) {
                     existingRulebookGameIdsCache.add(currentId);
                     currentRulebookCount++;
+                } else {
+                    noRulebookCache.add(currentId);
                 }
             }
         }
@@ -152,32 +158,33 @@ public class RuleBookOrgScraper {
 
         Query query = new Query();
         query.fields().include("_id", "title");
-        query.cursorBatchSize(500);
 
-        try (Stream<Boardgame> stream = mongoTemplate.stream(query, Boardgame.class)) {
-            final long[] rulebookCount = {currentRulebookCount};
+        List<Boardgame> games = mongoTemplate.find(query, Boardgame.class);
 
-            stream.forEach(entity -> {
-                if (rulebookCount[0] >= MAXNUMRULEBOOKS) {
-                    return;
-                }
+        long rulebookCount = currentRulebookCount;
 
-                String id = entity.getId();
+        for (Boardgame entity : games) {
+            if (rulebookCount >= MAXNUMRULEBOOKS) {
+                break;
+            }
 
-                if (id == null || processedThisRun.contains(id) || hasExistingRulebook(id)) {
-                    return;
-                }
+            String id = entity.getId();
 
-                processedThisRun.add(id);
+            if (id == null || processedThisRun.contains(id) || hasExistingRulebook(id) || noRulebookCache.contains(id)) {
+                continue;
+            }
 
-                if (processSingleGame(entity)) {
-                    existingRulebookGameIdsCache.add(id);
-                    rulebookCount[0]++;
-                }
-            });
+            processedThisRun.add(id);
+
+            if (processSingleGame(entity)) {
+                existingRulebookGameIdsCache.add(id);
+                rulebookCount++;
+            } else {
+                noRulebookCache.add(id);
+            }
         }
     }
-
+        
     private synchronized void refreshCaches() {
         existingRulebookGameIdsCache = null;
         existingGameTitlesCache = null;
