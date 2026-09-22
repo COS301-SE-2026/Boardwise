@@ -22,7 +22,7 @@
           variant="outlined"
           density="compact"
           hide-details="auto"
-          :rules="[listingTitleRule]"
+          :rules="[requiredRule, listingTitleRule]"
         />
 
         <v-autocomplete
@@ -47,7 +47,7 @@
           variant="outlined"
           density="compact"
           hide-details="auto"
-          :rules="[versionRule]"
+          :rules="[requiredRule, versionRule]"
         />
 
         <v-select
@@ -96,6 +96,7 @@
               label="Start Date"
               variant="outlined"
               hide-details="auto"
+              @keydown="blockManualDateEntry"
               :rules="[startDateRule]"
               @keydown="blockManualDateEntry"
             />
@@ -104,6 +105,7 @@
               label="End Date"
               variant="outlined"
               hide-details="auto"
+              @keydown="blockManualDateEntry"
               :rules="[endDateRule]"
               @keydown="blockManualDateEntry"
             />
@@ -138,7 +140,7 @@
           variant="outlined"
           density="compact"
           hide-details="auto"
-          :rules="[requiredRule]"
+          :rules="[requiredRule, descriptionRule]"
         />
 
         <div class="d-flex flex-column ga-1">
@@ -170,8 +172,7 @@
 import { useUserLocation } from '@/composables/useUserLocation';
 import { useBoardGames } from '~/composables/useBoardGames'
 import BaseCard from '~/components/ui/BaseCard.vue'
-import BaseButton from '~/components/ui/BaseButton.vue';
-import BaseTextArea from '~/components/ui/BaseTextArea.vue'
+import BaseTextArea from '~/components/ui/BaseTextArea.vue';
 
 const { city, suburb, error: locationError, loading, findUserLocation } = useUserLocation();
 const { searchGames, games, gamesLoading } = useBoardGames();
@@ -223,6 +224,7 @@ const locationValue = computed(() =>
 );
 
 watch(useCurrLocation, async (val) => {
+
   if (!val) return;
   await findUserLocation();
   if (locationError.value) {
@@ -230,6 +232,8 @@ watch(useCurrLocation, async (val) => {
     return;
   }
   location.value = locationValue.value;
+  console.log("location: ", location.value);
+
 });
 
 const requiredRule = (v) =>
@@ -253,6 +257,7 @@ const versionRule = (v) => {
 const priceRule = (v) => {
   if (v === null || v === undefined || v === '') return 'Enter an amount';
   const n = Number(v);
+  if (Number.isNaN(n)) return 'Enter a valid amount';
   if (!Number.isFinite(n)) return 'Enter a valid amount';
   if (n <= 0) return 'Amount must be greater than 0';
   return true;
@@ -264,10 +269,14 @@ const startOfDay = (d) => {
   return date;
 };
 
+// blocks typed keystrokes in the date fields while still letting the calendar picker open/close and tabbing work
 const blockManualDateEntry = (e) => {
   const allowed = ['Tab', 'Shift', 'Escape', 'Enter'];
-  if (!allowed.includes(e.key)) e.preventDefault();
+  if (!allowed.includes(e.key)) {
+    e.preventDefault();
+  }
 };
+
 
 const startDateRule = (v) => {
   if (listingType.value !== 'rent') return true;
@@ -279,9 +288,35 @@ const endDateRule = (v) => {
   if (listingType.value !== 'rent') return true;
   if (!v) return 'End date is required';
   if (startOfDay(v) < startOfDay(new Date())) return 'End date cannot be in the past';
-  if (startDate.value && startOfDay(v) < startOfDay(startDate.value)) {
-    return 'End date must be after start date';
-  }
+  if (startDate.value) {
+    const start = startOfDay(startDate.value);
+    const end = startOfDay(v);
+    if (end < start) return 'End date must be after start date';
+    }
+  return true;
+};
+
+const listingTitleRule = (v) => {
+  const required = requiredRule(v);
+  if (required !== true) return required;
+
+  if (String(v).length < 3) return 'Title must be at least 3 characters';
+  if (String(v).length > 100) return 'Title cannot exceed 100 characters';
+
+  return true;
+};
+
+const versionRule = (v) => {
+  const required = requiredRule(v);
+  if (required !== true) return required;
+
+  if (String(v).length > 50) return 'Version cannot exceed 50 characters';
+  return true;
+};
+
+const descriptionRule = (v) => {
+  const required = requiredRule(v);
+  if (required !== true) return required;
   return true;
 };
 
@@ -302,9 +337,6 @@ const handleFileChange = (e) => {
   }
 
   if (fileError.value) {
-    e.target.value = '';
-    fileName.value = '';
-    file.value = null;
     return;
   }
 

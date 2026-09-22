@@ -19,24 +19,25 @@
     
     <p class="card-title">{{ listing.gameTitle }}</p>
 
-    <p
-      class="price ma-0"
-      :style="{ color: listing.listingType === 'rental' ? 'var(--rent)' : 'var(--sale)' }"
-    >
-      R{{ listing.price }}
-      <span v-if="listing.listingType === 'rental'" class="period">
-        {{
-          listing.rentalPeriod
-            ? `(${listing.rentalPeriod.startDate} – ${listing.rentalPeriod.endDate})`
-            : 'week'
-        }}
-      </span>
-    </p>
+      <p
+        class="price ma-0"
+        :style="{ color: listing.listingType === 'rental' ? 'var(--rent)' : 'var(--sale)' }"
+      >
+        R{{ listing.price }}
+        <span v-if="listing.listingType === 'rental'" class="period">
+          {{
+            listing.rentalPeriod
+              ? `(${listing.rentalPeriod.startDate} – ${listing.rentalPeriod.endDate})`
+              : 'week'
+          }}
+        </span>
+      </p>
 
-    <template v-if="editable" #actions>
-      <BaseButton size="small" @click.stop="showEdit = true">Edit</BaseButton>
-      <BaseButton size="small" variant="secondary" @click.stop="showDelete = true">Delete</BaseButton>
-    </template>
+      <div v-if="editable" class="d-flex ga-2 mt-1">
+        <v-btn size="small" color="primary" variant="tonal" @click.stop="showEdit = true">Edit</v-btn>
+        <v-btn size="small" color="error"   variant="tonal" @click.stop="showDelete = true">Delete</v-btn>
+      </div>
+    </v-card-text>
 
     <EditListingModal   v-model="showEdit"   :listing="listing" @saved="$emit('updated', listing.listingId)"  />
     <DeleteListingModal v-model="showDelete" :listing="listing" @confirm="handleDelete"  />
