@@ -350,6 +350,22 @@ def mark_rulebook_ready(rulebook_id: str, job_id: str) -> None:
     logger.info("Marked rulebook %s Ready and job %s Completed.", rulebook_id, job_id)
 
 
+def mark_rulebook_pending_review(rulebook_id: str, job_id: str, reason: str) -> None:
+    """
+    Marks the rulebook 'PendingReview' and the job 'Processing'.
+    Called only if the rulebook fails the quality check
+    """
+    with client.start_session() as session, session.start_transaction():
+        update_rulebook_status(rulebook_id, "PendingReview", 1, session=session)
+        update_ingestion_job(job_id, "Store", "Processing", reason, session=session)
+
+    logger.info(
+        "Marked rulebook %s as 'PendingReview' and job %s as 'Processing'.",
+        rulebook_id,
+        job_id,
+    )
+
+
 def mark_pipeline_failed(
     rulebook_id: str, job_id: str, stage: str, reason: str
 ) -> None:

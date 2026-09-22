@@ -146,8 +146,12 @@ def run_ingestion_pipeline(
                 rulebook_id, job_id, "Store", lancedb_reason
             )
             return
-
-        mongo_service.mark_rulebook_ready(rulebook_id, job_id)
+        
+        quality_summary = blocks_cache.get("qualitySummary", {"outcome": "ready"})
+        if quality_summary.get("outcome") == "pending_review":
+            mongo_service.mark_rulebook_pending_review(rulebook_id, job_id, quality_summary.get("reason", ""))
+        else:
+            mongo_service.mark_rulebook_ready(rulebook_id, job_id)
 
         logger.info("Pipeline completed successfully for rulebook %s", rulebook_id)
     except Exception:

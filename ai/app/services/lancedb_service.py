@@ -203,7 +203,7 @@ def query_vector(rulebook_id: str, query_vector: list[float], limit: int) -> lis
         .select(
             [
                 "chunkId", "content","index", "charCount", "type", "needsReview",
-                "confidence", "associatedImageUrls", "_distance", "_score",
+                "confidence", "associatedImageUrls", "_distance",
             ]
         )
         .to_list()

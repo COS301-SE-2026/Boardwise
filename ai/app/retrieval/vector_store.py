@@ -16,7 +16,7 @@ def fetch_candidate_chunks(
     penalises low-confidence, decorative, or needs-review chunks.
     """
     try:
-        candidates = getattr(settings, "LANCEDB_CANDIDATES", 25)
+        candidates = max(getattr(settings, "LANCEDB_CANDIDATES", 60), limit * 2)
 
         vector_results = lancedb_service.query_vector(
             rulebook_id, query_vector, candidates

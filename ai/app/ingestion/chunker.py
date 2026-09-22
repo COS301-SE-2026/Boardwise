@@ -1,4 +1,5 @@
 import logging
+import re
 
 from bson import ObjectId
 
@@ -25,14 +26,18 @@ def generate_chunks(
 
     sections: list[list[dict]] = []
     current_section: list[dict] = []
+    current_section_kind = None  # None | aside
 
     for block in raw_blocks:
-        if block.get("type") == "heading":
-            if current_section:
-                sections.append(current_section)
-            current_section = [block]
-        else:
-            current_section.append(block)
+        block_kind = "aside" if block.get("type") == "aside" else None
+        is_heading = block.get("type") == "heading"
+
+        if (is_heading or block_kind != current_section_kind) and current_section:
+            sections.append(current_section)
+            current_section = []
+
+        current_section.append(block)
+        current_section_kind = block_kind
     if current_section:
         sections.append(current_section)
 
@@ -49,9 +54,14 @@ def generate_chunks(
 
     return (True, chunks, "")
 
+
 def filter_out_decorative_chunks(chunk_list: list[dict]) -> list[dict]:
-    """Filters out decorative chunks"""
+    """
+    Filters out decorative chunks (trademark lines, all-caps title-page noise
+    and any chunk that is still over 50% throwaway image content)
+    """
     return [c for c in chunk_list if c.get("type") != "decorative"]
+
 
 def _chunk_section(
     section_blocks: list[dict],
@@ -94,11 +104,14 @@ def _chunk_section(
             chunks.append(
                 _roll_up_chunk(current_chunk_blocks, rulebook_id, len(chunks))
             )
-            current_chunk_blocks = []
-            current_char_count = 0
-            added_len = (
-                block_len  # Reset because this is now the first block in the queue
-            )
+
+            overlap_block = current_chunk_blocks[-1:] if current_chunk_blocks else []
+            current_chunk_blocks = overlap_block
+            current_char_count = sum(
+                len(b.get("content", "")) for b in current_chunk_blocks
+            ) + len(overlap_block)
+
+            added_len = block_len + (1 if current_chunk_blocks else 0)
 
         current_chunk_blocks.append(block)
         current_char_count += added_len
@@ -118,7 +131,7 @@ def _roll_up_chunk(blocks: list, rulebook_id: str, index: int) -> dict:
         "content": content,
         "charCount": len(content),
         "type": _determine_chunk_type(blocks),
-        "needsReview": any(b.get("confidence", 1.0) < 0.8 for b in blocks),
+        "needsReview": any(b.get("confidence", 1.0) < 0.8 or b.get("forceReview", False) for b in blocks),
         "confidence": min([b.get("confidence", 1.0) for b in blocks] or [1.0]),
         "associatedImageUrls": [b["imageUrl"] for b in blocks if b.get("imageUrl")],
     }
@@ -141,6 +154,10 @@ def _determine_chunk_type(blocks: list[dict]) -> str:
 
     if "table" in types_present:
         return "table" if len(types_present) == 1 else "mixed"
+    
+    aside_count = sum(1 for b in blocks if b.get("type") == "aside")
+    if aside_count > 0 and (aside_count / total_blocks) >= 0.5:
+        return "aside"
 
     image_count = sum(1 for b in blocks if b.get("type") == "image")
     if image_count > 0 and (image_count / total_blocks) >= 0.5:
@@ -153,32 +170,39 @@ def _determine_chunk_type(blocks: list[dict]) -> str:
 
 
 def _split_large_block(block_text, max_chars=950) -> list:
-    """Helper function to handle oversized blocks"""
-    sentences = block_text.replace("\n", " ").split(". ")
+    """Helper function to handle oversized blocks using sentence-aware boundaries and 1-sentence overlap"""
+    sentences = [
+        s.strip()
+        for s in re.split(r"(?<=[.!?])\s+", block_text.replace("\n", " "))
+        if s.strip()
+    ]
     sub_chunks = []
-    current_chunk = ""
+    current_sentences = []
+    current_len = 0
 
     for sentence in sentences:
-        sentence = sentence.strip()
-        if not sentence:
-            continue
-
-        if not sentence.endswith("."):
-            sentence += "."
-
-        if len(current_chunk) + len(sentence) + 1 <= max_chars:
-            current_chunk += sentence + " "
+        if current_len + len(sentence) + 1 <= max_chars:
+            current_sentences.append(sentence)
+            current_len += len(sentence) + 1
         else:
-            if current_chunk:
-                sub_chunks.append(current_chunk.strip())
+            if current_sentences:
+                sub_chunks.append(" ".join(current_sentences))
 
-            # Handling the rare edge case where a single sentence is longer than max_chars
+            # Carry over the last sentence of the previous sub-chunk
+            overlap = [current_sentences[-1]] if current_sentences else []
+
             if len(sentence) > max_chars:
+                # Handling the rare edge case where a single sentence is longer than max_chars
                 sub_chunks.append(sentence[:max_chars])
-                current_chunk = sentence[max_chars:] + " "
+                current_sentences = [sentence[max_chars:]]
+                current_len = len(current_sentences[0]) + 1
             else:
-                current_chunk = sentence + " "
-    if current_chunk:
-        sub_chunks.append(current_chunk.strip())
+                current_sentences = overlap + [sentence]
+                current_len = sum(len(s) for s in current_sentences) + len(
+                    current_sentences
+                )
+
+    if current_sentences:
+        sub_chunks.append(" ".join(current_sentences).strip())
 
     return sub_chunks
