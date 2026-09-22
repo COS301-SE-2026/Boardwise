@@ -1,17 +1,28 @@
 <template>
     <PageContainer>
-        <div class="onboarding-page">
+        <div ref="pageRef" class="onboarding-page" :class="{ 'onboarding-page--wide': step > 1 }">
+
             <Welcome
                 v-if="step === 1"
                 :username="user?.username"
                 @continue="step = 2"
+                @skip="step = 4"
+            />
+
+            <OnboardingGenres
+                v-else-if="step === 2"
+                :genres="genreOptions"
+                @continue="handleGenresSelected"
+                @skip="step = 4"
             />
 
             <OnBoardingGames
-                v-else-if="step === 2"
+                v-else-if="step === 3"
                 :games="games"
+                :selected-genres="pickedGenres"
+                :is-submitting="isSubmitting"
                 @continue="handleGamesSelected"
-                @skip="step = 3"
+                @skip="step = 4"
             />
 
             <Complete
@@ -23,35 +34,47 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted } from 'vue'
 
-import Complete from '~/components/features/auth/onboarding/Complete.vue';
-import OnBoardingGames from '~/components/features/auth/onboarding/OnBoardingGames.vue';
-import Welcome from '~/components/features/auth/onboarding/Welcome.vue';
-import PageContainer from '~/components/layout/PageContainer.vue';
-import { userService } from '~/services/userService';
+import Complete from '~/components/features/auth/onboarding/Complete.vue'
+import OnBoardingGames from '~/components/features/auth/onboarding/OnBoardingGames.vue'
+import OnboardingGenres from "~/components/features/auth/onboarding/OnboardingGenres.vue"
+import Welcome from '~/components/features/auth/onboarding/Welcome.vue'
+import PageContainer from '~/components/layout/PageContainer.vue'
+
+import { userService } from '~/services/userService'
 
 const router = useRouter()
 const { user } = useAuth()
 
+const pageRef = ref(null)
 const step = ref(1)
 const isSubmitting = ref(false)
 const errorMessages = ref('')
+const selectedGenreIds = ref([])
 
-const { games, searchGames } = useBoardGames()
+const { games, genres, searchGames, searchGenres } = useBoardGames()
+
+const pickedGenres = computed(() => 
+    genreOptions.value.filter(g => selectedGenreIds.value.includes(g.id))
+)
+
+watch(step, async () => {
+    await nextTick()
+    pageRef.value?.querySelector('h1')?.focus()
+})
 
 onMounted(() => {
     handleGetGames()
 })
 
 async function handleGetGames(){
-    try{
-        await searchGames();
-        console.log("Games Array: ", games.value)
-    }catch(err){
-        console.error('Failed to fetch boardgames: ', err);
-        errorMessages.value = 'Failed to fetch games'
-    }
+    await Promise.all([searchGames(), searchGenres()])
+}
+
+async function handleGenresSelected(ids) {
+    selectedGenreIds.value = ids
+    step.value = 3
 }
 
 async function handleGamesSelected(selectedIds) {
@@ -60,7 +83,7 @@ async function handleGamesSelected(selectedIds) {
 
     try{
         await userService.addGamesToInventory({ knownGameIds: selectedIds})
-        step.value = 3
+        step.value = 4
     }catch(err){
         console.error('Failed to save game inventory: ', err);
         errorMessages.value = 'Failed to save your games. Please try again.'
@@ -69,13 +92,3 @@ async function handleGamesSelected(selectedIds) {
     }
 }
 </script>
-
-<style scoped>
-.onboarding-page {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: 1 1 auto;
-    padding: 4rem 1.5rem;
-}
-</style>

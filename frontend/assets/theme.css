@@ -3097,6 +3097,130 @@ html[data-density="compact"] .rulebook-list {
 
   width: 100%;
 }
+/* -------------------------------------------------------------
+   ONBOARDING
+   ------------------------------------------------------------- */
+.onboarding-page {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+ 
+  padding: var(--space-10) var(--space-6);
+ 
+  background:
+    radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--rosewood) 22%, transparent), transparent 40%),
+    radial-gradient(circle at 85% 85%, color-mix(in srgb, var(--rosewood) 16%, transparent), transparent 40%);
+}
+ 
+.onboarding-page--wide {
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: var(--space-6) var(--space-4) 0;
+}
+ 
+.onboarding-page__error {
+  margin: 0;
+  color: var(--color-error);
+  font-weight: var(--fw-medium);
+  text-align: center;
+}
+
+/* ===================== WELCOME ============================== */
+.onboarding-welcome__avatar {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--space-4);
+}
+
+.onboarding-welcome__role {
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-bold);
+    padding: 2px 10px;
+    border-radius: var(--radius-pill);
+}
+
+.onboarding-welcome__features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+    width: 100%;
+    margin: var(--space-6) 0;
+}
+
+.onboarding-feature-card {
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    text-align: left;
+}
+
+.onboarding-feature-card__icon {
+    color: var(--color-primary);
+    margin-bottom: var(--space-2);
+}
+
+.onboarding-feature-card__eyebrow {
+    display: block;
+    font-size: var(--fs-small);
+    font-weight: var(--fw-bold);
+    color: var(--color-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: var(--space-1);
+}
+
+.onboarding-feature-card__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-h4);
+    margin: 0 0 var(--space-2);
+}
+
+.onboarding-feature-card__desc {
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+.onboarding-welcome__skip {
+    display: block;
+    margin: var(--space-3) auto 0;
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: var(--fs-small);
+    cursor: pointer;
+    text-align: center;
+}
+
+.onboarding-welcome__skip:hover {
+    color: var(--color-primary);
+}
+
+.onboarding-welcome__footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    margin-top: var(--space-6);
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+}
+
+@media (max-width: 768px) {
+    .onboarding-welcome__features {
+        grid-template-columns: 1fr;
+    }
+}
 
 /* -------------------------------------------------------------
    BLOCK WRAPPER
