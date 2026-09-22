@@ -179,6 +179,14 @@ def _run_ingestion(**kwargs):
     response_model=UploadResponse,
     status_code=status.HTTP_202_ACCEPTED,
     responses={
+        503:{
+            "description": "Ingestion queue full",
+            "content": {
+                "application/json":{
+                    "example":{"detail": "Ingestion queue full."}
+                }
+            },
+        },
         400: {
             "description": "Bad Request",
             "content": {
