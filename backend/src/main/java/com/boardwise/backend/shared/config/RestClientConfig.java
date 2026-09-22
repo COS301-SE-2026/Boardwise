@@ -21,7 +21,7 @@ public class RestClientConfig {
 
     @Bean 
     public RestClient scraperRestClient(
-    @Value("${scraper.url}") 
+    @Value("${scraper.service.url}") 
     String scraperUrl
     ){
         return RestClient.builder()

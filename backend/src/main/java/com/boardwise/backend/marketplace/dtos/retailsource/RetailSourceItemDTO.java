@@ -1,5 +1,6 @@
 package com.boardwise.backend.marketplace.dtos.retailsource;
 
+
 import lombok.Builder;
 
 @Builder
@@ -8,5 +9,10 @@ public record RetailSourceItemDTO(
         String retailer,
         String url,// site based URL
         Double price,
-        String imageUrl // image
-){}
+        String imageUrl,
+        MatchType matchType
+){
+        public RetailSourceItemDTO withMatchType(MatchType type) {
+                return new RetailSourceItemDTO(retailTitle, retailer, url, price, imageUrl, type);
+        }
+}

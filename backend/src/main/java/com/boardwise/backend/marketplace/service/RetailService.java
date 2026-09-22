@@ -19,7 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
+import com.boardwise.backend.marketplace.dtos.retailsource.BoardgamesRequest;
 import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
+import com.boardwise.backend.marketplace.dtos.retailsource.ScrapeResultsDTO;
 import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
@@ -50,24 +52,7 @@ public class RetailService {
         this.scraperClient = scraperclient;
     }
 
-    private Page<RetailSourceItemDTO> paginate(List<RetailSourceItemDTO> overall, Integer pageNum) {
-        int page = (pageNum == null || pageNum < 0) ? 0 : pageNum;
-        Pageable pageable = PageRequest.of(page, PAGESIZE);
- 
-        int start = (int) pageable.getOffset();
-        if (start >= overall.size()) {
-            return new PageImpl<>(new ArrayList<>(), pageable, overall.size());
-        }
-        int end = Math.min(start + pageable.getPageSize(), overall.size());
-        return new PageImpl<>(overall.subList(start, end), pageable, overall.size());
-    }
-
-    private Page<RetailSourceItemDTO> emptyPage(Integer pageNum) {
-        int page = (pageNum == null || pageNum < 0) ? 0 : pageNum;
-        return new PageImpl<>(new ArrayList<>(), PageRequest.of(page, PAGESIZE), 0);
-    }
-
-    private final int NUM_SUGGESTED_GAMES= 5;
+    private final int NUM_SUGGESTED_GAMES= 10;
     private int getNumGamesToScrapeFor(List<String> ls){
         int numGamesToSearchFor = NUM_SUGGESTED_GAMES - ls.size();
 
@@ -136,6 +121,7 @@ public class RetailService {
         List<String> titles = boardGameRepository.findAllById(gameIds)
             .stream()
             .map(Boardgame::getTitle)
+            .limit(NUM_SUGGESTED_GAMES)
             .toList();
 
         Map<String, List<RetailSourceItemDTO>> allListings = fetchListingsFromScraper(titles);
@@ -163,18 +149,16 @@ public class RetailService {
 
     private Map<String, List<RetailSourceItemDTO>> fetchListingsFromScraper(List<String> boardgameTitles) {
         try {
-            return scraperClient.get()
-                .uri(uriBuilder -> {
-                    var b = uriBuilder.path("/internal/retail/listings");
-                    boardgameTitles.forEach(title -> b.queryParam("boardgames", title));
-                    return b.build();
-                })
+            ScrapeResultsDTO response = scraperClient.post()
+                .uri("/listings")
+                .body( new BoardgamesRequest(boardgameTitles))
                 .retrieve()
-                .body(new ParameterizedTypeReference<Map<String, List<RetailSourceItemDTO>>>() {});
+                .body(ScrapeResultsDTO.class);
+
+            return response.results();
         } catch (RestClientException e) {
             logger.warning("Failed to fetch personalized listings: " + e.getMessage());
             return Map.of();
         }
     }
-
 }

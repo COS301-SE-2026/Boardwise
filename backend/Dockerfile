@@ -8,6 +8,7 @@ WORKDIR /build
 COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
+COPY lombok.config .
 
 # Make the wrapper executable and download dependencies
 # (This step is cached by Docker unless pom.xml changes, speeding up future builds)

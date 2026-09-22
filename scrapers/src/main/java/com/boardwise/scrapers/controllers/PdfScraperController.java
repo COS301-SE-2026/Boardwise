@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 
 @RestController
-@RequestMapping("api/pdfscraper")
+@RequestMapping("internal/pdfscraper")
 public class PdfScraperController {
     private final Logger logger = Logger.getLogger(PdfScraperController.class.getName());
     private final PdfService pdfService;

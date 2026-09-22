@@ -119,7 +119,7 @@ public class RetailScraper {
         for (Boardgame bg : games) {
             logger.info(() -> "Scraping for: " + bg.getTitle() + " boardgames");
             long start = System.currentTimeMillis();
-            scheduledExecutor.submit(() -> scrapeForBoardgame(bg.getTitle() + " Boardgame"));
+            scheduledExecutor.submit(() -> scrapeForBoardgame(bg.getTitle()));
             long took = System.currentTimeMillis() - start;
             logger.info(() -> "Dispatched after: " + took + " ms");
         }
@@ -141,6 +141,7 @@ public class RetailScraper {
                         logger.log(Level.WARNING, "Failed to load listings for " + b, ex);
                         return List.of();
                     }));
+
         }
 
         CompletableFuture.allOf(futures.values().toArray(new CompletableFuture[0])).join();
@@ -175,6 +176,8 @@ public class RetailScraper {
         if(boardgame == null || boardgame.isBlank()){
             return List.of();
         }
+        logger.info(() -> "Started scraping: " + boardgame);
+
 
         String key = normalise(boardgame);
 
@@ -285,7 +288,7 @@ public class RetailScraper {
                 }
 
                 List<RetailSourceItemDTO> results = scrapeAll(boardgame).join();
-
+                logger.info(() -> "Finished scraping '" + boardgame + "': " + results.size() + " results");
                 ScrapeCache existing = recheck.orElse(null);
                 ScrapeCache toSave = ScrapeCache.builder()
                     .id(existing != null ? existing.getId() : null)
@@ -311,7 +314,7 @@ public class RetailScraper {
 
     public void prewarmListings(String gameTitle) {
         if (gameTitle == null || gameTitle.isBlank()) return;
-        scheduledExecutor.submit(() -> scrapeForBoardgame(gameTitle + " Boardgame"));
+        scheduledExecutor.submit(() -> scrapeForBoardgame(gameTitle));
     }
     
     @PreDestroy 

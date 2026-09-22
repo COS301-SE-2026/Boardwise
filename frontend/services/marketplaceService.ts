@@ -22,7 +22,6 @@ export interface ListingResponse {
 }
 
 
-
 export const MarketplaceService = {
     //GET ALL LISTINGS
     getListings(filters:{
