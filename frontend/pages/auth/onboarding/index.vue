@@ -55,6 +55,11 @@ const selectedGenreIds = ref([])
 
 const { games, genres, searchGames, searchGenres } = useBoardGames()
 
+// TODO: Make the genre selection according to the popularity
+const genreOptions = computed(() => 
+    genres.value.map(name => ({ id:name, label:name }))
+)
+
 const pickedGenres = computed(() => 
     genreOptions.value.filter(g => selectedGenreIds.value.includes(g.id))
 )
