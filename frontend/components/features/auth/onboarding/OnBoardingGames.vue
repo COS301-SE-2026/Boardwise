@@ -4,7 +4,7 @@
         <div class="onboarding-games__topbar">
             <div class="onboarding-games__nav">
                 <button type="button" class="onboarding-games__back" @click="$emit('back')">
-                    <v-icon size="16">mdi-arrorw-left</v-icon>
+                    <v-icon size="16">mdi-arror-left</v-icon>
                     Back to Genres
                 </button>
 
@@ -29,7 +29,7 @@
 
         <BaseSearch 
             v-model="searchQuery"
-            placeholder="Search tabeltop games, expansions, or designers..."
+            placeholder="Search tabletop games, expansions, or designers..."
             class="onboarding-search"
         />
 

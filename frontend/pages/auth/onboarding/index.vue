@@ -69,6 +69,7 @@ watch(step, async () => {
     pageRef.value?.querySelector('h1')?.focus()
 })
 
+// TODO: Make the games a selection of popularity or based on genres
 onMounted(() => {
     handleGetGames()
 })
