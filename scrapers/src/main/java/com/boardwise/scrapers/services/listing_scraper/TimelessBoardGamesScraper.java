@@ -70,7 +70,7 @@ public class TimelessBoardGamesScraper {
     private TimelessBoardGamesResDTO parseCard(Element card) {
         Element link = card.selectFirst("p.w3-medium a");
         if (link == null) {
-            return null; 
+            return null;
         }
 
         String title = link.text();
@@ -84,24 +84,28 @@ public class TimelessBoardGamesScraper {
         Double salePrice = null;
         boolean isOnSale = false;
 
-        Element priceEl = card.selectFirst("p.w3-small");
-        if (priceEl != null && !priceEl.text().isBlank()) {
-            Double current = parsePrice(priceEl.ownText());
+        Element priceEl = card.select("p.w3-medium").stream()
+                .filter(p -> p.selectFirst("a") == null)
+                .filter(p -> !p.ownText().isBlank() || p.selectFirst("strike") != null)
+                .findFirst()
+                .orElse(null);
+
+        if (priceEl != null) {
             Element strike = priceEl.selectFirst("strike");
             if (strike != null) {
                 isOnSale = true;
                 originalPrice = parsePrice(strike.text());
-                salePrice = current;
+                salePrice = parsePrice(priceEl.ownText());
             } else {
-                originalPrice = current;
+                originalPrice = parsePrice(priceEl.ownText());
             }
         }
 
-        TimelessBoardGamesResDTO toRet= new TimelessBoardGamesResDTO(title, RETAILER, url, isAvailable, isOnSale, originalPrice, salePrice, imageUrl);
+        TimelessBoardGamesResDTO toRet = new TimelessBoardGamesResDTO(
+                title, RETAILER, url, isAvailable, isOnSale, originalPrice, salePrice, imageUrl);
         System.out.println(toRet);
-        return  toRet;
+        return toRet;
     }
-
     private Double parsePrice(String raw) {
         String cleaned = raw.replaceAll("[^0-9.]", ""); 
         return cleaned.isEmpty() ? null : Double.valueOf(cleaned);
