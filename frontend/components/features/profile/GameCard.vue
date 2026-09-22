@@ -13,7 +13,7 @@
       {{ decodedCategory }}
     </p>
 
-    <RemoveGameModal v-if="removable" v-model="openDelete" @confirm="handleRemove()" ></RemoveGameModal>
+    <RemoveGameModal v-model="openDelete" @confirm="handleRemove()" ></RemoveGameModal>
   </BaseCard>
 </template>
 
@@ -29,7 +29,6 @@ const props = defineProps({
   title: String,
   category: String,
   image: String,
-  removable: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['remove'])

@@ -33,14 +33,12 @@
 
         <div class="carousel-caption">
           <div class="carousel-content">
-            <v-chip
-              color="primary"
-              size="small"
-              variant="flat"
+            <BaseBadge
+              variant="primary"
               class="mb-3"
             >
               Popular
-            </v-chip>
+            </BaseBadge>
 
             <h2>{{  rulebook.title }}</h2>
 
@@ -59,7 +57,10 @@
 <script setup>
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
+import BaseBadge from '~/components/ui/BaseBadge.vue';
+import BaseButton from '~/components/ui/BaseButton.vue'
 import { useLibrary } from '~/composables/useLibrary';
+import BaseCard from '~/components/ui/BaseCard.vue';
 
 const { isLoading } = useLibrary()
 

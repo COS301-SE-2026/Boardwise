@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.client.match.MockRestRequestMatchers;
@@ -23,7 +24,6 @@ import org.springframework.web.client.RestClient;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.user_service.services.R2StorageService;
-import com.boardwise.backend.shared.repository.BoardGameSearch;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -31,7 +31,7 @@ import com.boardwise.backend.shared.repository.BoardGameSearch;
 public class BoardGameServiceUnitTest {
 
     private BoardGameRepository gameRepo;
-    private BoardGameSearch gameSearch;
+    private MongoTemplate db;
     private R2StorageService bucket;
     private MockRestServiceServer mockServer;
     private BoardGameService service;
@@ -45,7 +45,7 @@ public class BoardGameServiceUnitTest {
     void setUp(){
         gameRepo = mock(BoardGameRepository.class);
         bucket = mock(R2StorageService.class);
-        gameSearch = mock(BoardGameSearch.class);
+        db = mock(MongoTemplate.class);
 
         RestClient.Builder builder = RestClient.builder();
         mockServer = MockRestServiceServer.bindTo(builder).build();
@@ -54,7 +54,7 @@ public class BoardGameServiceUnitTest {
                                         .defaultHeader("Authorization", "Bearer some-valid-token")
                                         .build();
 
-        service = new BoardGameService(gameRepo, bucket, testClient, gameSearch);
+        service = new BoardGameService(gameRepo, bucket, testClient, db);
     }
 
     @Test

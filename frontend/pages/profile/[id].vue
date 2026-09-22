@@ -7,7 +7,7 @@
 
         <!-- Profile not found -->
         <template v-else-if="notFound">
-            <v-container
+            <div
                 class="d-flex justify-center align-center"
                 style="min-height: 60vh"
             >
@@ -15,7 +15,7 @@
                     title="Profile not found"
                     message="The user you're looking for doesn't exist or is no longer available."
                 />
-            </v-container>
+            </div>
         </template>
 
         <!-- Profile -->
@@ -41,7 +41,7 @@
 
                     <div class="d-flex ga-1">
                         <BaseButton 
-                            @click="handleClick(route.params.id as string)" 
+                            @click="handleMessageClick(route.params.id as string)" 
                             :variant="'primary'"
                             size="small"
                             v-if="user.status === FriendStatus.ACCEPTED"
@@ -67,14 +67,17 @@
 
             <ProfileCommunities :communities="user.communities" />
 
-            <v-tabs v-model="activeTab" color="primary" class="mb-4">
-                <v-tab value="Games Owned">Games Owned</v-tab>
-                <v-tab value="Listings">Listings</v-tab>
-            </v-tabs>
+            <BaseTabs
+                :tabs="['Games Owned', 'Listings']"
+                :active-tabs="activeTab"
+                aria-label="Profile sections"
+                class="mb-4"
+                @change="activeTab=$event"
+            />
 
             <v-window v-model="activeTab">
                 <v-window-item value="Games Owned">
-                    <GamesOwnedSection :games="games" :editable="false" />
+                    <GamesOwnedSection :games="games" />
                 </v-window-item>
 
                 <v-window-item value="Listings">
@@ -164,7 +167,7 @@ const loadProfile = async (id: string) => {
     }
 }
 
-const handleClick = (id: string) => {
+const handleMessageClick = (id: string) => {
   router.push({
     path: '/chats',
     query: { newChat: id }

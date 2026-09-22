@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.boardwise.backend.shared.dtos.GameInventoryDTO;
 import com.boardwise.backend.user_service.enums.FriendStatus;
-import com.boardwise.backend.user_service.models.Preferences;
+import com.boardwise.backend.user_service.models.user_preferences.Preferences;
 
 public record ProfileResponseDTO(
     String id,

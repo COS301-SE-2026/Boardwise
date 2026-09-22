@@ -17,21 +17,20 @@
 
       <ProfileCommunities :communities="user.communities" />
 
-      <v-tabs
-        v-model="activeTab"
-        color="primary"
-        class="mb-4"
-      >
-        <v-tab value="Games Owned">Games Owned</v-tab>
-        <v-tab value="Listings">Listings</v-tab>
-      </v-tabs>
+       <BaseTabs
+                :tabs="['Games Owned', 'Listings']"
+                :active-tab="activeTab"
+                aria-label="Details sections"
+                class="mb-4"
+                @change="activeTab = $event"
+            >
 
+      </BaseTabs>
       <v-window v-model="activeTab">
 
         <v-window-item value="Games Owned">
           <GamesOwnedSection
             :games="games"
-            :editable="true"
             @add-game="showBrowser = true"
             @remove-game="handleRemoveGame"
           />
@@ -39,7 +38,7 @@
 
         <v-window-item value="Listings">
           <ListingsSection 
-            :listings="listings"
+            :listings="userListings"
             :editable="true"
             @deleted="fetchUserListing" 
             @updated="fetchUserListing"
@@ -105,9 +104,10 @@ import { NotificationType } from "~/services/friendService";
 
 import { useRouter } from 'vue-router'
 import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
+import BaseTabs from '~/components/ui/BaseTabs.vue'
 
 const { fetchCurrentUser, removeGame } = useProfile();
-const { listings, fetchUserListing, loading } = useMarketplace();
+const { userListings, fetchUserListing, loading } = useMarketplace();
 const {  isLoading, respondToFriendRequest, unfriendUser, getFriendRequests, getOwnFriendsList, userFriendList, listenForFriendNotifications, userFriendRequests } = useFriends()
 const { show } = useSnackBar();
 const router = useRouter();
@@ -220,10 +220,14 @@ onMounted(async () => {
     return;
   }
 
-  await fetchUserListing();
-  await getFriendRequests();
-  await getOwnFriendsList();
-  await refreshUser();
+  await Promise.all([
+    fetchUserListing(),
+    getFriendRequests(),
+    getOwnFriendsList(),
+    refreshUser(),
+  ]);
+
+
   listenForFriendNotifications((notification) => {
     if(notification.type === NotificationType.FRIEND_REQUEST){
         userFriendRequests.value?.requests.push(notification.request);

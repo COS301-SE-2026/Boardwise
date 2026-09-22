@@ -1,44 +1,39 @@
 <template> 
-    <v-container 
-        fluid
-        class="auth-page d-flex align-center justify-center"
-    >
-        <div class="auth-wrapper">
-            <AuthForm 
-                title="Sign In"
-                buttonText="Sign In"
-                :fields="fields"
-                @submit="handleSignIn"
-            >
-            
-                <template #after-fields>
-                    <p class="text-end text-body-2 forgot-link">
-                        <NuxtLink to="/auth/forgotpassword" class="text-primary">
-                            Forgot Password?
-                        </NuxtLink>
-                    </p>
-                </template>
+    <div class="auth-wrapper">
+        <AuthForm 
+            title="Sign In"
+            buttonText="Sign In"
+            :fields="fields"
+            @submit="handleSignIn"
+        >
+        
+            <template #after-fields>
+                <p class="text-end text-body-2 forgot-link">
+                    <NuxtLink to="/auth/forgotpassword" class="text-primary">
+                        Forgot Password?
+                    </NuxtLink>
+                </p>
+            </template>
 
-            </AuthForm>
+        </AuthForm>
 
-            <v-alert 
-                v-if="error"
-                type="error"
-                variant="tonal"
-                class="mt-4"
-                density="compact"
-            >
-                {{ error }}
-            </v-alert>
+        <v-alert 
+            v-if="error"
+            type="error"
+            variant="tonal"
+            class="mt-4"
+            density="compact"
+        >
+            {{ error }}
+        </v-alert>
 
-            <p class="text-center text-body-2 mt-4 text-medium-emphasis">
-                Don’t have an account?
-                <NuxtLink to="/auth/signup" class="text-primary font-weight-bold ml-1">
-                    Sign Up
-                </NuxtLink>
-            </p>
-        </div>
-    </v-container>
+        <p class="text-center text-body-2 mt-4 text-medium-emphasis">
+            Don’t have an account?
+            <NuxtLink to="/auth/signup" class="text-primary font-weight-bold ml-1">
+                Sign Up
+            </NuxtLink>
+        </p>
+    </div>
 </template>
 
 <script setup>

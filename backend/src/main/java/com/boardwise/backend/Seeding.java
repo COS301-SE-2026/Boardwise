@@ -474,6 +474,7 @@ public class Seeding {
                 Conversation convo = new Conversation(
                     convoId,
                     participants.stream().map((p) -> p.getId()).toList(),
+                    participants.get(1).getId(),
                     lastMessage,
                     LASTMESSAGEAT
                 );

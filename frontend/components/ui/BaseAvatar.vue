@@ -1,12 +1,12 @@
 <template>
   <v-avatar :size="sizeMap[size] || sizeMap.md" clas="base-avatar">
-    <v-img 
+    <BaseImage 
       v-if="src && !imageError"
       :src="src"
       :alt="resolvedAlt"
       cover
       @error="imageError = true"
-    ></v-img>
+    ></BaseImage>
 
     <span
       v-else
@@ -20,6 +20,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import BaseImage from '~/components/ui/BaseImage.vue'
 
 const props = defineProps({
   src: {
@@ -44,6 +45,7 @@ const imageError = ref(false)
 
 const sizeMap = {
   sm: '32',
+  smd: '46',
   md: '48',
   lg: '64',
   xl: '96',

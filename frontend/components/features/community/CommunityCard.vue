@@ -36,6 +36,6 @@ const props = defineProps({
 const router = useRouter()
 
 const navigateToCommunity = () => {
-  router.push(`/community/${props.community.id}`)
+  router.push(`/social/community/${props.community.id}`)
 }
 </script>

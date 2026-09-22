@@ -1,5 +1,5 @@
 <template>
-  <BaseCard class="reader-sidebar" style="position: sticky; top: 80px;">
+  <BaseCard class="reader-sidebar">
 
     <p class="text-caption text-uppercase font-weight-bold text-medium-emphasis mb-3">
       Contents
