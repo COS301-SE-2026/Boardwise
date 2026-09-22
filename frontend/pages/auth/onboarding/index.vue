@@ -27,6 +27,7 @@
 
             <Complete
                 v-else
+                :games="games.filter(game => selectedGameIds.includes(game.id))"
                 @finished="router.push('/library')"
             />
         </div>
@@ -51,6 +52,8 @@ const pageRef = ref(null)
 const step = ref(1)
 const isSubmitting = ref(false)
 const errorMessages = ref('')
+
+const selectedGameIds = ref([])
 const selectedGenreIds = ref([])
 
 const { games, genres, searchGames, searchGenres } = useBoardGames()
@@ -89,6 +92,7 @@ async function handleGamesSelected(selectedIds) {
 
     try{
         await userService.addGamesToInventory({ knownGameIds: selectedIds})
+        selectedGameIds.value = selectedIds
         step.value = 4
     }catch(err){
         console.error('Failed to save game inventory: ', err);

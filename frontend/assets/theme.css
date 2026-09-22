@@ -3102,16 +3102,6 @@ html[data-density="compact"] .rulebook-list {
    ONBOARDING 
    ============================================================= */
 
-.onboarding-step_final {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-6);
-    max-width: 720px;
-    width: 100%;
-}
-
 .onboarding-step {
     text-align: center;
     display: flex;
@@ -3197,6 +3187,12 @@ html[data-density="compact"] .rulebook-list {
   align-items: stretch;
   justify-content: flex-start;
   padding: var(--space-6) var(--space-4) 0;
+}
+
+.onboarding-page--wide .onboarding-step_final {
+    width: 100%;
+    max-width: 920px;
+    margin: 0 auto;
 }
  
 .onboarding-page__error {
@@ -3958,6 +3954,466 @@ html[data-density="compact"] .rulebook-list {
       flex-direction: column;
       align-items: stretch;
   }
+}
+
+/* ================= ONBOARDING — FINAL / COMPLETE ========================== */
+
+.onboarding-step_final {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+
+    width: 100%;
+    max-width: 920px;
+
+    gap: var(--space-4);
+
+    margin: 0 auto;
+
+    text-align: left;
+}
+
+/* Header */
+
+.onboarding-final__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    width: 100%;
+}
+
+.onboarding-final__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    color: var(--color-primary);
+
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: var(--fw-bold);
+
+    line-height: 1;
+    letter-spacing: 0.04em;
+}
+
+.onboarding-final__step {
+    color: var(--color-text-muted);
+
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: var(--fw-bold);
+}
+
+.onboarding-step_final .onboarding-progress {
+    width: 100%;
+}
+
+/* Hero */
+.onboarding-final__hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+  gap: var(--space-8);
+  padding: var(--space-7);
+  border-radius: var(--radius-lg);
+
+  background:
+    linear-gradient(110deg, 
+    color-mix(in srgb, 
+    var(--color-primary) 12%, 
+    var(--color-surface)), 
+    color-mix(in srgb, var(--rosewood) 14%, 
+    var(--color-surface)));
+
+  box-shadow: var(--shadow-sm);
+}
+
+.onboarding-final__hero-content {
+    min-width: 0;
+    max-width: 620px;
+}
+
+.onboarding-final__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+
+  background:
+    color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  color: var(--color-primary);
+
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: var(--fw-bold);
+  line-height: 1;
+}
+
+/* Hero heading */
+.onboarding-final__title {
+  margin: var(--space-3) 0 var(--space-2);
+
+  color: var(--color-secondary);
+
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 38px);
+  font-weight: var(--fw-bold);
+  line-height: 1.05;
+}
+
+.onboarding-final__title span {
+  color: var(--color-primary);
+}
+
+/* Hero description */
+
+.onboarding-final__description {
+  max-width: 570px;
+  margin: 0;
+  color: var(--color-text-muted);
+
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  line-height: 1.55;
+}
+
+/* Boarley */
+.onboarding-final__avatar {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+
+  width: 100px;
+  height: 100px;
+
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.onboarding-final__avatar-badge {
+  position: absolute;
+
+  right: -7px;
+  bottom: -7px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 25px;
+  height: 25px;
+
+  border: 3px solid var(--color-surface);
+  border-radius: 50%;
+
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+
+  box-shadow: var(--shadow-sm);
+}
+
+/* ================ FAST-TRACK RECOMMENDATION =================== */
+.onboarding-final__recommendation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+
+  gap: var(--space-8);
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-alt);
+  box-shadow: var(--shadow-sm);
+}
+
+.onboarding-final__recommendation-copy {
+  min-width: 0;
+  max-width: 570px;
+}
+
+.onboarding-final__recommendation-eyebrow {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: var(--color-accent);
+
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: var(--fw-bold);
+
+  line-height: 1;
+  letter-spacing: 0.05em;
+}
+
+.onboarding-final__recommendation h2 {
+  margin: 0 0 var(--space-2);
+  color: var(--color-secondary);
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-bold);
+  line-height: 1.15;
+}
+
+.onboarding-final__recommendation p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ================== ACTION BUTTONS =========================== */
+.onboarding-final__actions {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 220px;
+  width: 220px;
+  gap: var(--space-2);
+}
+
+.onboarding-final__primary-button {
+  width: 100%;
+}
+
+.onboarding-final__secondary-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  min-height: 38px;
+
+  gap: 6px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface);
+  color: var(--color-secondary);
+
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: var(--fw-bold);
+
+  cursor: pointer;
+
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.onboarding-final__secondary-button:hover {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  transform: translateY(-1px);
+}
+
+.onboarding-final__secondary-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ================== ONBOARDING FINAL COLLECTION ===================== */
+.onboarding-final__collection {
+    width: 100%;
+}
+
+.onboarding-final__collection-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: var(--space-6);
+  margin-bottom: var(--space-3);
+}
+
+.onboarding-final__collection-eyebrow {
+  display: block;
+  margin-bottom: 3px;
+
+  color: var(--color-primary);
+
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: var(--fw-bold);
+
+  line-height: 1;
+  letter-spacing: 0.04em;
+}
+
+.onboarding-final__collection-header h2 {
+  margin: 0;
+  color: var(--color-secondary);
+  font-family: var(--font-display);
+  font-size: var(--fs-h4);
+  font-weight: var(--fw-bold);
+  line-height: 1.15;
+}
+
+.onboarding-final__collection-header p {
+  max-width: 380px;
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-family: var(--font-body);
+  font-size: 10px;
+  line-height: 1.45;
+  text-align: right;
+}
+
+/* ================== ONBOARDING FINAL GAME CARDS ===================== */
+.onboarding-final__game-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  gap: var(--space-4);
+}
+
+.onboarding-final__game-card {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.onboarding-final__game-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Game image */
+.onboarding-final__game-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 52px;
+  width: 52px;
+  height: 52px;
+
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-alt);
+}
+
+.onboarding-final__game-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Game information */
+.onboarding-final__game-info {
+  min-width: 0;
+}
+
+.onboarding-final__game-card h3 {
+  overflow: hidden;
+  margin: 3px 0 2px;
+
+  color: var(--color-secondary);
+
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: var(--fw-bold);
+  line-height: 1.2;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.onboarding-final__game-card p {
+  overflow: hidden;
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-family: var(--font-body);
+  font-size: 9px;
+  line-height: 1.35;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.onboarding-final__verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+
+  color: var(--color-success);
+
+  font-family: var(--font-body);
+  font-size: 8px;
+  font-weight: var(--fw-bold);
+  line-height: 1;
+}
+
+/* SKIPPED SELECTION OR EMPTY COLLECTION */
+.onboarding-final__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  min-height: 110px;
+  gap: var(--space-2);
+  padding: var(--space-6);
+
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.onboarding-final__empty p {
+  margin: 0;
+  font-size: var(--fs-small);
+}
+
+/* ================== ONBOARDING FINAL ENTER BUTTON ===================== */
+
+.onboarding-final__finish {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  margin-top: var(--space-1);
+}
+
+.onboarding-final__finish-button {
+  min-width: 180px;
 }
 
 /* -------------------------------------------------------------
@@ -5596,5 +6052,87 @@ button:disabled,
   .gamesGrid {
       grid-template-columns:
           repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* RESPONSIVENESS CHANGES /*
+
+/* ===============================================================================
+   RESPONSIVE - TABLET
+=============================================================================== */
+
+@media (max-width: 768px) {
+
+  .onboarding-step_final {
+    max-width: 100%;
+  }
+
+  .onboarding-final__hero {
+    padding: var(--space-6);
+    gap: var(--space-5);
+  }
+
+  .onboarding-final__recommendation {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-5);
+  }
+
+  .onboarding-final__actions {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .onboarding-final__collection-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .onboarding-final__collection-header p {
+    max-width: 100%;
+    text-align: left;
+  }
+
+  .onboarding-final__game-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===============================================================================
+   RESPONSIVE - MOBILE
+=============================================================================== */
+@media (max-width: 500px) {
+  .onboarding-step_final {
+    gap: var(--space-3);
+  }
+
+  .onboarding-final__hero {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    padding: var(--space-5);
+  }
+
+  .onboarding-final__avatar {
+    align-self: center;
+  }
+
+  .onboarding-final__title {
+    font-size: 28px;
+  }
+
+  .onboarding-final__recommendation {
+    padding: var(--space-5);
+  }
+
+  .onboarding-final__collection-header h2 {
+    font-size: 18px;
+  }
+
+  .onboarding-final__finish {
+    justify-content: stretch;
+  }
+
+  .onboarding-final__finish-button {
+    width: 100%;
   }
 }
