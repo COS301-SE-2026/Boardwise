@@ -11,8 +11,8 @@
 </template>
 
 <script setup>
-import BaseAvatar from '~/components/ui/BaseAvatar.vue';
-import BaseButton from '~/components/ui/BaseButton.vue';
+import BaseAvatar from '~/components/ui/BaseAvatar.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
 
 defineEmits(['finished'])
 </script>

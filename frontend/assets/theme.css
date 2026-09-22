@@ -3097,9 +3097,87 @@ html[data-density="compact"] .rulebook-list {
 
   width: 100%;
 }
-/* -------------------------------------------------------------
-   ONBOARDING
-   ------------------------------------------------------------- */
+
+/* =============================================================
+   ONBOARDING 
+   ============================================================= */
+
+.onboarding-step_final {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-6);
+    max-width: 720px;
+    width: 100%;
+}
+
+.onboarding-step {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-6);
+    max-width: 720px;
+    width: 100%;
+}
+
+.onboarding-step_hint {
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+}
+
+.onboarding-class_game-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+    width: 100%;
+}
+
+@media (max-width: 899px) {
+    .onboarding-class_game-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 599px) {
+    .onboarding-class_game-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.onboarding-step_actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+}
+
+.onboarding-step_skip {
+    color: var(--color-text-muted);
+    font-size: var(--fs-small);
+}
+
+.onboarding-setup {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-6);
+    width: 100%;
+    max-width: 720px;
+}
+
+.onboarding-step_logo {
+    width: clamp(220px, 35vw, 320px);
+}
+.onboarding-step_cta {
+    align-self: center;
+    padding: var(--space-3) var(--space-8);
+}
+
+/* ================== ONBOARDING PAGE ===================== */
 .onboarding-page {
   display: flex;
   flex: 1 1 auto;
@@ -3128,7 +3206,173 @@ html[data-density="compact"] .rulebook-list {
   text-align: center;
 }
 
-/* =============== ONBOARDING CARD =========================== */
+/* =============== ONBOARDING SEARCH ========================= */
+.onboarding-search {
+    width: 100%;
+    max-width: 500px;
+}
+
+/* =============== ONBOARDING PROGRESS ======================= */
+.onboarding-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.onboarding-progress__label {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+}
+
+.onboarding-progress__track {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 1;
+  height: 8px;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-alt);
+  color: var(--color-primary); 
+}
+
+.onboarding-progress__track::-webkit-progress-bar {
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-pill);
+}
+
+.onboarding-progress__track::-webkit-progress-value {
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+  transition: width var(--transition-base);
+}
+
+.onboarding-progress__track::-moz-progress-bar {
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+}
+
+/* =============== ONBOARDING GENRES ========================= */
+.onboarding-genre-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    justify-content: center;
+}
+
+.onboarding-genre-tab {
+    background: var(--color-surface-alt);
+    border: none;
+    border-radius: var(--radius-pill);
+    padding: 6px 14px;
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+    color: var(--color-text-muted);
+    cursor: pointer;
+}
+
+.onboarding-genre-tab--active {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+}
+
+/* =============== ONBOARDING GAMES ========================== */
+.onboarding-games_body {
+    width: 100%;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.onboarding-game-card {
+    text-align: left;
+}
+
+.onboarding-game-card__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-body);
+    margin: 0 0 2px;
+    color: var(--color-text);
+}
+
+.onboarding-game-card__desc {
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+.onboarding-game-card__add {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-pill);
+    padding: 6px 12px;
+    font-size: var(--fs-small);
+    font-weight: var(--fw-bold);
+    color: var(--color-text);
+    cursor: pointer;
+    width: 100%;
+}
+
+.onboarding-game-card__add--selected {
+    background: var(--color-secondary);
+    border-color: var(--color-secondary);
+    color: var(--color-text-inverse);
+}
+
+/* =============== ONBOARDING GAMES: topbar ========================== */
+
+.onboarding-games__topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    width: 100%;
+}
+
+.onboarding-games__nav {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+}
+
+.onboarding-games__back {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--color-secondary);
+    font-weight: var(--fw-bold);
+    font-size: var(--fs-small);
+    cursor: pointer;
+}
+
+.onboarding-games__back:hover {
+    text-decoration: underline;
+}
+
+.onboarding-games__skip-link {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--color-text-muted);
+    font-size: var(--fs-small);
+    cursor: pointer;
+}
+
+.onboarding-games__skip-link:hover {
+    text-decoration: underline;
+}
+
+/* ================== ONBOARDING CARD ========================= */
 .onboarding-card {
     background: var(--color-surface);
     border-radius: var(--radius-lg);
@@ -3148,6 +3392,70 @@ html[data-density="compact"] .rulebook-list {
     .onboarding-card {
         padding: var(--space-4);
     }
+}
+
+/* ================= ONBOARDING GAMES: card badges ============= */
+.onboarding-game-card__media {
+    position: relative;
+}
+
+.onboarding-game-card__badge {
+    position: absolute;
+    top: var(--space-2);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+    font-weight: var(--fw-bold);
+    color: var(--color-text-inverse);
+}
+
+.onboarding-game-card__badge--wizard {
+    right: var(--space-2);
+    background: var(--color-primary);
+}
+
+/* ============== ONBOARDING GAMES: sticky footer ============= */
+.onboarding-games__footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+
+    width: 100%;
+    margin-top: var(--space-4);
+    padding: var(--space-4);
+
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.onboarding-games__footer-status,
+.onboarding-game__footer-status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.onboarding-games__footer-title {
+    margin: 0;
+    font-weight: var(--fw-bold);
+    font-size: var(--fs-body);
+    color: var(--color-text);
+}
+
+.onboarding-games__footer-subtitle {
+    margin: 0;
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
 }
 
 /* ===================== WELCOME ============================== */
@@ -3245,9 +3553,15 @@ html[data-density="compact"] .rulebook-list {
 
 /* =================== GENRES SELECTION ======================== */
 .onboarding-genre-grid {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--space-3);
+}
+
+@media (max-width: 599px) {
+  .onboarding-genre-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .onboarding-eyebrow {
@@ -4873,71 +5187,6 @@ button:disabled,
         right: var(--space-4, 16px);
         bottom: var(--space-4, 16px);
     }
-}
-
-/* =============================================================
-   ONBOARDING 
-   ============================================================= */
-
-.onboarding-step_final {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-6);
-    max-width: 720px;
-    width: 100%;
-}
-
-.onboarding-step {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-6);
-    max-width: 720px;
-    width: 100%;
-}
-
-.onboarding-step_hint {
-    font-size: var(--fs-small);
-    color: var(--color-text-muted);
-}
-
-.onboarding-class_game-grid {
-    max-height: 320px;
-    overflow-y: auto;
-}
-
-.onboarding-step_actions {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-3);
-    margin-top: var(--space-4);
-}
-
-.onboarding-step_skip {
-    color: var(--color-text-muted);
-    font-size: var(--fs-small);
-}
-
-.onboarding-setup {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-6);
-    width: 100%;
-    max-width: 720px;
-}
-
-.onboarding-step_logo {
-    width: clamp(220px, 35vw, 320px);
-}
-.onboarding-step_cta {
-    align-self: center;
-    padding: var(--space-3) var(--space-8);
 }
 
 /* ================================================================
