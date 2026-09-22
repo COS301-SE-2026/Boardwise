@@ -50,7 +50,6 @@ public class BoardGameService {
     private final BoardGameRepository gameRepo;
     private final R2StorageService bucket;
     private final @Qualifier("bggRestClient") RestClient client;
-    private final BoardGameSearch gameSearch;
     private final MongoTemplate db;
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
     private final String defaultImageKey = "rulebooks/default_cover.png"; 

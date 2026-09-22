@@ -21,7 +21,7 @@ import com.boardwise.backend.marketplace.dtos.retailsource.ScrapeResultsDTO;
 import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
-import com.boardwise.backend.user_service.models.Preferences;
+import com.boardwise.backend.user_service.models.user_preferences.*;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repository.UserRepository;
 import com.boardwise.backend.user_service.repository.UserRepository.GameOwnershipCount;
