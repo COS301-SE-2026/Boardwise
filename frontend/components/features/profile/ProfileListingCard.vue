@@ -1,21 +1,23 @@
 <template>
-  <BaseCard class="profile-listing-card" @click="openListing">
+  <BaseCard data-test="profile-listing-card" clickable @click="openListing">
 
-    <div class="image-container">
-      <img 
+    <template #media>
+      <BaseImage
         :src="listing.imageUrl ?? '/images/default-listing.png'"
         :alt="listing.gameTitle"
+        height="200px"
       />
+
       <BaseBadge
-        class="badge"
+        class="badge--absolute"
         :variant="listing.listingType === 'rental' ? 'rent' : 'sale'"
       >
         {{ listing.listingType === 'rental' ? 'For Rent' : 'For Sale' }}
       </BaseBadge>
-    </div>
+    </template>
 
-    <v-card-text class="d-flex flex-column ga-2 pa-4">
-      <h3>{{ listing.gameTitle }}</h3>
+    
+    <p class="card-title">{{ listing.gameTitle }}</p>
 
       <p
         class="price ma-0"
@@ -30,25 +32,6 @@
           }}
         </span>
       </p>
-
-      <!-- <div v-if="editable" class="actions">
-
-        <BaseButton
-          size="sm"
-          @click="showEdit = true"
-        >
-          Edit
-        </BaseButton>
-
-        <BaseButton
-          size="sm"
-          variant="secondary"
-          @click="showDelete = true"
-        >
-          Delete
-        </BaseButton>
-
-      </div> -->
 
       <div v-if="editable" class="d-flex ga-2 mt-1">
         <v-btn size="small" color="primary" variant="tonal" @click.stop="showEdit = true">Edit</v-btn>
@@ -65,11 +48,14 @@
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseBadge from '~/components/ui/BaseBadge.vue'
+import BaseImage from '~/components/ui/BaseImage.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
+
 import EditListingModal from './EditListingModal.vue'
 import DeleteListingModal from './DeleteListingModal.vue'
 import { useMarketplace } from '~/composables/useMarketplace'
 
-const {removeListing} = useMarketplace();
+const { removeListing } = useMarketplace();
 
 const props = defineProps({
   listing: { type: Object, required: true },
@@ -94,58 +80,9 @@ const emit = defineEmits(['deleted','updated']);
 </script>
 
 <style scoped>
-.profile-listing-card {
-  cursor:     pointer;
-  overflow: hidden;
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
-  width: 100%;
-}
-:deep(.badge) {
-  color: white;
-}
-
-.profile-listing-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md) !important;
-}
-
-.image-container {
-  position: relative;
-  height: 200px;
-  overflow: hidden;
-  background: var(--color-surface-alt);
-}
-
-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.badge {
-  position: absolute;
-  top:  var(--space-2);
-  left: var(--space-2);
-}
-
-h3 {
-  margin: 0;
-  font-size: var(--fs-body);
-}
 
 .price {
   font-weight: var(--fw-bold);
   font-size: var(--fs-body);
-}
-
-.period {
-  font-size: var(--fs-small);
-  font-weight: var(--fw-regular);
-  color: var(--color-text-muted);
-}
-
-.meta {
-  font-size: var(--fs-small);
-  color: var(--color-text-muted);
 }
 </style>

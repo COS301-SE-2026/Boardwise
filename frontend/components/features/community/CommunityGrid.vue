@@ -2,14 +2,11 @@
     <BaseEmptyState
       v-if="communities.length === 0"
       title="No communities yet"
+      message="Be the first to create a community"
       class="justify-center"
     />
 
-  <BaseGrid
-    v-else
-    cols="280px"
-    gap="20px"
-  >
+  <BaseGrid v-else>
     <CommunityCard
       v-for="community in communities"
       :key="community.id"

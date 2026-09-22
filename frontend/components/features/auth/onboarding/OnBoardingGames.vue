@@ -10,15 +10,16 @@
         </p>
 
         <BaseGrid :columns="4" class="onboarding-class_game-grid">
-            <BaseTag
+            <v-chip
                 v-for="game in games"
                 :key="game.id"
-                :selected="selected.includes(game.id)"
-                clickable
+                :color="selected.includes(game.id) ? 'primary' : undefined"
+                :variant="selected.includes(game.id) ? 'elevated' : 'outlined'"
+                class="base-tag"
                 @click="toggleGame(game.id)"
             >
                 {{  game.title }}
-            </BaseTag>
+            </v-chip>
             <!-- <div v-for="game in games" :key="game.id">{{  game.title }}</div> -->
         </BaseGrid>
 
@@ -71,39 +72,3 @@ function toggleGame(id) {
     }
 }
 </script>
-
-<style scoped> 
-.onboarding-step {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-6);
-    max-width: 720px;
-    width: 100%;
-}
-
-.onboarding-step_hint {
-    font-size: var(--fs-small);
-    color: var(--color-text-muted);
-}
-
-.onboarding-class_game-grid {
-    max-height: 320px;
-    overflow-y: auto;
-}
-
-.onboarding-step_actions {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-3);
-    margin-top: var(--space-4);
-}
-
-.onboarding-step_skip {
-    color: var(--color-text-muted);
-    font-size: var(--fs-small);
-}
-
-</style>

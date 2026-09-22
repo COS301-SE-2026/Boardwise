@@ -2,21 +2,26 @@
   <div class="mt-6">
 
     <div class="d-flex justify-space-between align-center mb-3">
-      <h3 class="section-title ma-0">Active Communities</h3>
-      <NuxtLink to="/community" class="see-all">Explore Communities ></NuxtLink>
+      <SectionTitle
+        title="Active Communities"
+      />
+      <NuxtLink to="/social" class="see-all">Explore Communities ></NuxtLink>
     </div>
 
     <div class="pills-row">
       <NuxtLink
         v-for="community in communities"
         :key="community.id"
-        :to="`/community/${community.id}`"
+        :to="`/social/community/${community.id}`"
         class="community-pill text-decoration-none"
       >
-        <v-avatar size="36" class="community-avatar">
-          <v-img :src="community.image" :alt="community.name" cover />
-        </v-avatar>
-
+        <BaseAvatar 
+          :src="community.image"
+          :name="community.name"
+          size="sm"
+          class="community-avatar"
+        />
+        
         <div class="pill-text">
           <span class="pill-name">{{ community.name }}</span>
           <span v-if="community.memberCount" class="pill-meta">{{ community.memberCount }} members</span>
@@ -28,6 +33,8 @@
 </template>
 
 <script setup>
+import SectionTitle from '~/components/ui/SectionTitle.vue';
+
 defineProps({
   communities: {
     type: Array,
@@ -38,12 +45,12 @@ defineProps({
 </script>
 
 <style scoped>
-.section-title {
+/* .section-title {
   font-family: var(--font-display);
   font-size:   var(--fs-h4);
   font-weight: var(--fw-regular);
   color:       var(--color-secondary);
-}
+} */
 
 .see-all {
   font-family:     var(--font-body);

@@ -1,102 +1,169 @@
 <template>
   <v-dialog v-model="open" max-width="500">
-    <BaseCard class="pa-6 d-flex flex-column ga-5" style="background: var(--color-surface) !important; overflow-y: auto;">
-      <h2>Create Listing</h2>
+    <BaseCard class="pa-6" style="background: var(--color-surface) !important; overflow-y: auto;">
+      <v-form ref="formRef" v-model="formValid" class="d-flex flex-column ga-5">
+        <h2>Create Listing</h2>
 
-      <v-text-field v-model="listingTitle" label="Listing Title" placeholder="Listing title" variant="outlined" density="compact" hide-details />
+        <v-alert
+          v-if="submitError"
+          type="error"
+          variant="tonal"
+          density="compact"
+          closable
+          @click:close="submitError = ''"
+        >
+          {{ submitError }}
+        </v-alert>
 
-      <v-autocomplete
-        v-model="gameTitle"
-        label="Game Title"
-        :items="games"
-        :loading="gamesLoading"
-        item-title="title"
-        item-value="title"
-        no-filter
-        variant="outlined"
-        density="compact"
-        hide-details
-        @update:search="onGameSearch"
-      />
-      <v-text-field v-model="version" label="Version" placeholder="e.g. Original" variant ="outlined" density="compact" hide-details/>
-
-      <v-autocomplete
-        v-model="selectedGenres"
-        label="Genres"
-        :items="genres"
-        :loading="genresLoading"
-        multiple
-        chips
-        no-filter
-        closable-chips
-        variant="outlined"
-        density="compact"
-        clear-on-select="true"
-        hide-details
-        @update:search="onGenreSearch"
-      />
-
-      <v-select v-model="selectedCondition" 
-      label="Condition"
-      :items="conditions">
-    </v-select>
-
-      <v-select v-model="selectedItemType" 
-      label="Item Type"
-      :items="itemTypes">
-    </v-select>
-
-     <div class="d-flex">
-        <v-btn-toggle v-model="listingType" color="primary" variant="outlined" mandatory divided>
-          <v-btn value="sell">Sell</v-btn>
-          <v-btn value="rent">Rent</v-btn>
-        </v-btn-toggle>
-      </div>
-
-
-      <v-text-field  v-model="price" label="Amount" prefix="R" placeholder="e.g. 650" type="number" variant="outlined" density="compact" hide-details />
-
-      <div class="RentalPeriod">
-        <div v-if="listingType === 'rent'">
-            <v-date-input v-model ="startDate" label="Start Date" variant="outlined"></v-date-input>
-            <v-date-input  v-model ="endDate" label="End Date" variant="outlined"></v-date-input>
-        </div>
-        <div v-else>
-              <v-checkbox v-model="negotiable" label="Open to negotiation" color="primary" density="compact" hide-details />
-        </div>
-      </div>
-
-
-      <div class="location">
-        <v-switch label="Use current location" v-model="useCurrLocation" />
         <v-text-field
-          v-model="location"
-          label="Location"
-          placeholder="e.g. Pretoria"
+          v-model="listingTitle"
+          label="Listing Title"
+          placeholder="Listing title"
           variant="outlined"
           density="compact"
-          hide-details
-          :loading="useCurrLocation && loading"
-          :readonly="useCurrLocation && loading"
+          hide-details="auto"
+          :rules="[requiredRule, listingTitleRule]"
         />
-        <p v-if="useCurrLocation && locationError" class="text-error text-caption mt-1">
-          Couldn't get your location, please enter it manually.
-        </p>
-      </div>
 
-      <v-textarea v-model="description" label="Description" placeholder="description" variant ="outlined" density="compact" hide-details/>
+        <v-autocomplete
+          v-model="gameTitle"
+          label="Game Title"
+          :items="games"
+          :loading="gamesLoading"
+          item-title="title"
+          item-value="title"
+          no-filter
+          variant="outlined"
+          density="compact"
+          hide-details="auto"
+          :rules="[requiredRule]"
+          @update:search="onGameSearch"
+        />
 
-      <div class="d-flex align-center ga-3">
-        <v-btn variant="outlined" color="primary" @click="triggerUpload">Upload Image</v-btn>
-        <label for="image-upload" class="text-grey text-body-2">{{ fileName || '···' }}</label>
-        <input id="image-upload" ref="file_input" type="file" accept="image/*" class="hidden-input" @change="handleFileChange" />
-      </div>
+        <v-text-field
+          v-model="version"
+          label="Version"
+          placeholder="e.g. Original"
+          variant="outlined"
+          density="compact"
+          hide-details="auto"
+          :rules="[requiredRule, versionRule]"
+        />
 
-      <div class="d-flex justify-end ga-3">
-        <v-btn variant="outlined" color="primary" @click="closeModal">Cancel</v-btn>
-        <v-btn color="primary" @click="handleConfirm" :loading="isLoading">Create Listing</v-btn>
-      </div>
+        <v-select
+          v-model="selectedCondition"
+          label="Condition"
+          :items="conditions"
+          variant="outlined"
+          density="compact"
+          hide-details="auto"
+          :rules="[requiredRule]"
+        />
 
+        <v-select
+          v-model="selectedItemType"
+          label="Item Type"
+          :items="itemTypes"
+          variant="outlined"
+          density="compact"
+          hide-details="auto"
+          :rules="[requiredRule]"
+        />
+
+        <div class="d-flex">
+          <v-btn-toggle v-model="listingType" color="primary" variant="secondary" mandatory divided>
+            <BaseButton value="sell">Sell</BaseButton>
+            <BaseButton value="rent">Rent</BaseButton>
+          </v-btn-toggle>
+        </div>
+
+        <v-text-field
+          v-model="price"
+          label="Amount"
+          prefix="R"
+          placeholder="e.g. 650"
+          type="number"
+          variant="outlined"
+          density="compact"
+          hide-details="auto"
+          :rules="[priceRule]"
+        />
+
+        <div class="RentalPeriod">
+          <div v-if="listingType === 'rent'" class="d-flex flex-column ga-3">
+            <v-date-input
+              v-model="startDate"
+              label="Start Date"
+              variant="outlined"
+              hide-details="auto"
+              @keydown="blockManualDateEntry"
+              :rules="[startDateRule]"
+              @keydown="blockManualDateEntry"
+            />
+            <v-date-input
+              v-model="endDate"
+              label="End Date"
+              variant="outlined"
+              hide-details="auto"
+              @keydown="blockManualDateEntry"
+              :rules="[endDateRule]"
+              @keydown="blockManualDateEntry"
+            />
+          </div>
+          <div v-else>
+            <v-checkbox v-model="negotiable" label="Open to negotiation" color="primary" density="compact" hide-details />
+          </div>
+        </div>
+
+        <div class="location">
+          <v-switch label="Use current location" v-model="useCurrLocation" />
+          <v-text-field
+            v-model="location"
+            label="Location"
+            placeholder="e.g. Pretoria"
+            variant="outlined"
+            density="compact"
+            hide-details="auto"
+            :loading="useCurrLocation && loading"
+            :readonly="useCurrLocation && loading"
+            :rules="[requiredRule]"
+          />
+          <p v-if="useCurrLocation && locationError" class="text-error text-caption mt-1">
+            Couldn't get your location, please enter it manually.
+          </p>
+        </div>
+
+        <BaseTextArea
+          v-model="description"
+          label="Description"
+          placeholder="description"
+          variant="outlined"
+          density="compact"
+          hide-details="auto"
+          :rules="[requiredRule, descriptionRule]"
+        />
+
+        <div class="d-flex flex-column ga-1">
+          <div class="d-flex align-center ga-3">
+            <BaseButton variant="secondary" color="primary" @click="triggerUpload">Upload Image</BaseButton>
+            <label for="image-upload" class="text-grey text-body-2">{{ fileName || '···' }}</label>
+            <input
+              id="image-upload"
+              ref="file_input"
+              type="file"
+              accept="image/*"
+              class="hidden-input"
+              @change="handleFileChange"
+            />
+          </div>
+          <p v-if="fileError" class="text-error text-caption">{{ fileError }}</p>
+        </div>
+
+        <div class="d-flex justify-end ga-3">
+          <BaseButton variant="secondary" color="primary" :disabled="isLoading" @click="closeModal">Cancel</BaseButton>
+          <BaseButton @click="handleConfirm" :loading="isLoading" :disabled="isLoading">Create Listing</BaseButton>
+        </div>
+      </v-form>
     </BaseCard>
   </v-dialog>
 </template>
@@ -105,20 +172,14 @@
 import { useUserLocation } from '@/composables/useUserLocation';
 import { useBoardGames } from '~/composables/useBoardGames'
 import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseTextArea from '~/components/ui/BaseTextArea.vue';
 
-const { city, suburb, lat, long, error: locationError, loading, findUserLocation } = useUserLocation();
-const { searchGenres, genres, searchGames, games, isLoading: genresLoading } = useBoardGames();
+const { city, suburb, error: locationError, loading, findUserLocation } = useUserLocation();
+const { searchGames, games, gamesLoading } = useBoardGames();
 
-onMounted(() =>{ 
-  searchGenres()
+onMounted(() => {
   searchGames()
 })
-
-let genreSearchTimeout
-const onGenreSearch = (query) => {
-  clearTimeout(genreSearchTimeout)
-  genreSearchTimeout = setTimeout(() => searchGenres(query), 300)
-}
 
 let gameSearchTimeout
 const onGameSearch = (query) => {
@@ -128,7 +189,7 @@ const onGameSearch = (query) => {
 
 const isLoading = ref(false);
 
-const open =  defineModel({
+const open = defineModel({
   type: Boolean,
   default: false,
 });
@@ -140,25 +201,30 @@ const description = ref('');
 const listingType = ref('sell');
 const negotiable = ref(false);
 const price = ref(0);
-const location= ref('');
+const location = ref('');
 const fileName = ref('');
-const file_input= ref(null);
-const file= ref(null);
+const file_input = ref(null);
+const file = ref(null);
 const version = ref('');
 const useCurrLocation = ref(false);
 
-const selectedGenres = ref([]);
 const selectedCondition = ref(null);
 const selectedItemType = ref(null);
 
 const startDate = ref(null);
 const endDate = ref(null);
 
+const formRef = ref(null);
+const formValid = ref(true);
+const submitError = ref('');
+const fileError = ref('');
+
 const locationValue = computed(() =>
   [city.value, suburb.value].filter(Boolean).join(', ')
 );
 
 watch(useCurrLocation, async (val) => {
+
   if (!val) return;
   await findUserLocation();
   if (locationError.value) {
@@ -166,119 +232,199 @@ watch(useCurrLocation, async (val) => {
     return;
   }
   location.value = locationValue.value;
+  console.log("location: ", location.value);
+
 });
+
+const requiredRule = (v) =>
+  (v !== null && v !== undefined && String(v).trim() !== '') || 'This field is required';
+
+const listingTitleRule = (v) => {
+  const required = requiredRule(v);
+  if (required !== true) return required;
+  if (String(v).length < 3) return 'Title must be at least 3 characters';
+  if (String(v).length > 100) return 'Title cannot exceed 100 characters';
+  return true;
+};
+
+const versionRule = (v) => {
+  const required = requiredRule(v);
+  if (required !== true) return required;
+  if (String(v).length > 50) return 'Version cannot exceed 50 characters';
+  return true;
+};
+
+const priceRule = (v) => {
+  if (v === null || v === undefined || v === '') return 'Enter an amount';
+  const n = Number(v);
+  if (Number.isNaN(n)) return 'Enter a valid amount';
+  if (!Number.isFinite(n)) return 'Enter a valid amount';
+  if (n <= 0) return 'Amount must be greater than 0';
+  return true;
+};
+
+const startOfDay = (d) => {
+  const date = new Date(d);
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+// blocks typed keystrokes in the date fields while still letting the calendar picker open/close and tabbing work
+const blockManualDateEntry = (e) => {
+  const allowed = ['Tab', 'Shift', 'Escape', 'Enter'];
+  if (!allowed.includes(e.key)) {
+    e.preventDefault();
+  }
+};
+
+
+const startDateRule = (v) => {
+  if (listingType.value !== 'rent') return true;
+  if (!v) return 'Start date is required';
+  return startOfDay(v) >= startOfDay(new Date()) || 'Start date cannot be in the past';
+};
+
+const endDateRule = (v) => {
+  if (listingType.value !== 'rent') return true;
+  if (!v) return 'End date is required';
+  if (startOfDay(v) < startOfDay(new Date())) return 'End date cannot be in the past';
+  if (startDate.value) {
+    const start = startOfDay(startDate.value);
+    const end = startOfDay(v);
+    if (end < start) return 'End date must be after start date';
+    }
+  return true;
+};
+
+const listingTitleRule = (v) => {
+  const required = requiredRule(v);
+  if (required !== true) return required;
+
+  if (String(v).length < 3) return 'Title must be at least 3 characters';
+  if (String(v).length > 100) return 'Title cannot exceed 100 characters';
+
+  return true;
+};
+
+const versionRule = (v) => {
+  const required = requiredRule(v);
+  if (required !== true) return required;
+
+  if (String(v).length > 50) return 'Version cannot exceed 50 characters';
+  return true;
+};
+
+const descriptionRule = (v) => {
+  const required = requiredRule(v);
+  if (required !== true) return required;
+  return true;
+};
+
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 const triggerUpload = () => file_input.value.click();
 
 const handleFileChange = (e) => {
+  fileError.value = '';
   const toUpload = e.target.files[0];
-  if (toUpload) {
-    fileName.value = toUpload.name;
-    file.value = toUpload;
+  if (!toUpload) return;
+
+  if (!ALLOWED_IMAGE_TYPES.includes(toUpload.type)) {
+    fileError.value = 'Please upload a JPEG, PNG, WEBP or GIF image.';
+  } else if (toUpload.size > MAX_FILE_SIZE) {
+    fileError.value = `Image must be smaller than ${MAX_FILE_SIZE / 1024 / 1024}MB.`;
   }
-}
-function getValidGenres(){
-  return selectedGenres.value.map(g => g.toLowerCase());
+
+  if (fileError.value) {
+    return;
+  }
+
+  fileName.value = toUpload.name;
+  file.value = toUpload;
 }
 
 const closeModal = () => {
   isLoading.value = false;
   open.value = false;
   listingTitle.value = '';
-  gameTitle.value ='';
+  gameTitle.value = '';
   version.value = '';
   description.value = '';
-  selectedCondition.value='';
-  selectedGenres.value =[];
-  selectedItemType.value='';
+  selectedCondition.value = null;
+  selectedItemType.value = null;
   listingType.value = 'sell';
   price.value = '';
   negotiable.value = false;
   location.value = '';
   fileName.value = '';
   file.value = null;
+  startDate.value = null;
+  endDate.value = null;
   useCurrLocation.value = false;
+  submitError.value = '';
+  fileError.value = '';
+  formRef.value?.resetValidation();
 }
 
-
 function getRentalPeriod() {
-  const fmt = (d) => {// reformat data
-    const date = new Date(d);// date
-    const y = date.getFullYear();// this year
-    const m = String(date.getMonth() + 1).padStart(2, '0');//format as MM
-    const day = String(date.getDate()).padStart(2, '0'); // format as DD
+  const fmt = (d) => {
+    const date = new Date(d);
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
   }
   return [fmt(startDate.value), fmt(endDate.value)];
 }
 
-function getValidItemType(){
-  return selectedItemType.value.toLowerCase();
-}
-
-function getValidCondition(){
-  return selectedCondition.value.toLowerCase();
-}
-
-
 const handleConfirm = async () => {
-  if (!selectedItemType.value|| !gameTitle.value || !listingTitle.value || !location.value ||!version.value ||
-      price.value < 0 || !selectedCondition.value|| !description.value || !selectedGenres.value){
-        isLoading.value = false;
-        return;
-  }
+  submitError.value = '';
 
-  if(listingType.value === 'rent' ){
-    if(!startDate.value || !endDate.value){
-      return;
-    }
-    // date validation
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  const { valid } = await formRef.value.validate();
+  if (!valid) return;
 
-    const a = new Date(startDate.value);
-    a.setHours(0, 0, 0, 0);
+  if (fileError.value) return;
 
-    const b = new Date(endDate.value);
-    b.setHours(0, 0, 0, 0);
-
-    //start is before today
-
-    if (a < today) return;
-
-    //end date is before today
-    if (b < today) return;
+  if (!file.value) {
+    fileError.value = 'Please upload an image';
+    return;
   }
 
   isLoading.value = true;
 
-  try{
-    emit('confirm', {
+  try {
+    const payload = {
       listingTitle: listingTitle.value,
       gameTitle: gameTitle.value,
-      listingType: listingType.value === 'rent' ? 'rental' : 'sale', 
+      listingType: listingType.value === 'rent' ? 'rental' : 'sale',
       price: Number(price.value),
-      itemType: getValidItemType(),
-      condition:getValidCondition(),
+      itemType: selectedItemType.value.toLowerCase(),
+      condition: selectedCondition.value.toLowerCase(),
       version: version.value,
       location: location.value,
       description: description.value,
-      genres: getValidGenres(),
       isNegotiable: negotiable.value,
       rentalPeriod: listingType.value === 'rent' ? getRentalPeriod() : null,
-    }, file.value)
+    };
 
-    closeModal();
-  }
-  finally{
-    isLoading.value = false
+    emit('confirm', payload, file.value, (errorMessage) => {
+      isLoading.value = false;
+      if (errorMessage) {
+        submitError.value = errorMessage;
+      } else {
+        closeModal();
+      }
+    });
+  } catch (err) {
+    isLoading.value = false;
+    submitError.value = err?.message || 'Something went wrong building your listing. Please try again.';
   }
 }
 
-
 const conditions = ['New', 'Like New', 'Good', 'Fair'];
 
-const itemTypes  = ["Merch", "Full Boardgame","Partial Boardgame","Pieces"];
+const itemTypes = ['Merch', 'Full Boardgame', 'Partial Boardgame', 'Pieces'];
 
 </script>
 

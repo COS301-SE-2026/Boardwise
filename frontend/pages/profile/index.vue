@@ -8,29 +8,29 @@
       <ProfileHeader :user="user" @saved="handleProfileUpdate" @pfp-change="handlePfpChange"/>
 
       <ProfileStats
-        :games="user.ownedGamesCount"
+        :games="user.ownedGameCount"
         :friends="user.friendCount"
         :communities="user.groupCount"
+        :friends-delta="pendingFriendRequests ? `${pendingFriendRequests} pending invites` : ''"
         @open="openFriendsModal"
       />
 
       <ProfileCommunities :communities="user.communities" />
 
-      <v-tabs
-        v-model="activeTab"
-        color="primary"
-        class="mb-4"
-      >
-        <v-tab value="Games Owned">Games Owned</v-tab>
-        <v-tab value="Listings">Listings</v-tab>
-      </v-tabs>
+       <BaseTabs
+                :tabs="['Games Owned', 'Listings']"
+                :active-tab="activeTab"
+                aria-label="Details sections"
+                class="mb-4"
+                @change="activeTab = $event"
+            >
 
+      </BaseTabs>
       <v-window v-model="activeTab">
 
         <v-window-item value="Games Owned">
           <GamesOwnedSection
             :games="games"
-            :editable="true"
             @add-game="showBrowser = true"
             @remove-game="handleRemoveGame"
           />
@@ -38,7 +38,7 @@
 
         <v-window-item value="Listings">
           <ListingsSection 
-            :listings="listings"
+            :listings="userListings"
             :editable="true"
             @deleted="fetchUserListing" 
             @updated="fetchUserListing"
@@ -71,9 +71,7 @@
     </template>
 
     <template v-else>
-      <v-container class="d-flex justify-center align-center" style="min-height: 60vh">
-        <v-progress-circular indeterminate color="primary" size="48" />
-      </v-container>
+      <BaseLoadingState />
     </template>
 
   </PageContainer>
@@ -102,12 +100,15 @@ import { useProfile } from '~/composables/useProfile'
 import { useSnackBar } from '~/composables/useSnackbar'
 import { useMarketplace } from '~/composables/useMarketplace'
 import { useFriends } from '~/composables/useFriends'
+import { NotificationType } from "~/services/friendService";
 
 import { useRouter } from 'vue-router'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
+import BaseTabs from '~/components/ui/BaseTabs.vue'
 
 const { fetchCurrentUser, removeGame } = useProfile();
-const { listings, fetchUserListing, loading } = useMarketplace();
-const {  isLoading, respondToFriendRequest, unfriendUser, getFriendRequests, getOwnFriendsList, userFriendList } = useFriends()
+const { userListings, fetchUserListing, loading } = useMarketplace();
+const {  isLoading, respondToFriendRequest, unfriendUser, getFriendRequests, getOwnFriendsList, userFriendList, listenForFriendNotifications, userFriendRequests } = useFriends()
 const { show } = useSnackBar();
 const router = useRouter();
 const activeTab = ref('Games Owned');
@@ -186,11 +187,13 @@ const handlePfpChange = (newPfp) => {
 const onRespond = async (id, action) => {
     try {
         await respondToFriendRequest(id, action)
-        await refreshUser()
-        await fetchUserListing()
-        await getFriendRequests()
-        await getOwnFriendsList()
-        showFriendsModal.value = false
+        if(action === 'accept'){
+          user.value.friendCount++
+          const idx = userFriendRequests.value.requests.findIndex((el) => el.id === id);
+          const friendRequest = userFriendRequests.value.requests[idx]
+          userFriendRequests.value.requests.splice(idx, 1)
+          userFriendList.value.friends.push(friendRequest.sender)
+        }
 
     } catch (err) {
         console.error('Failed to respond to friend request:', err)
@@ -201,10 +204,10 @@ const handleRemove = async (id) => {
     if (!user.value) return
     try {
         await unfriendUser(id)
-        await refreshUser()
-        await fetchUserListing()
-        await getOwnFriendsList()
-        showFriendsModal.value = false
+        const idx = userFriendList.value?.friends.findIndex((el) => el.id === id);
+        userFriendList.value?.friends.splice(idx, 1);
+        user.value.friendCount--;
+
     } catch (err) {
         console.error('Failed to send friend request:', err)
     }
@@ -217,9 +220,27 @@ onMounted(async () => {
     return;
   }
 
-  await fetchUserListing();
-  await getFriendRequests();
-  await getOwnFriendsList();
-  await refreshUser();
+  await Promise.all([
+    fetchUserListing(),
+    getFriendRequests(),
+    getOwnFriendsList(),
+    refreshUser(),
+  ]);
+
+
+  listenForFriendNotifications((notification) => {
+    if(notification.type === NotificationType.FRIEND_REQUEST){
+        userFriendRequests.value?.requests.push(notification.request);
+    }
+    else if(notification.type === NotificationType.FRIEND_CONFIRMATION){
+        userFriendList.value?.friends.push(notification.friend);
+        user.value.friendCount++;
+    }
+    else if(notification.type === NotificationType.UNFRIEND){
+      const idx = userFriendList.value?.friends.findIndex((el) => el.id === notification.friendId);
+      userFriendList.value?.friends.splice(idx, 1);
+      user.value.friendCount--;
+    }
+  });
 });
 </script>

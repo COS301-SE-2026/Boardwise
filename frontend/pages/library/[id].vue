@@ -2,9 +2,7 @@
   <PageContainer>
     <Navbar />
 
-    <div v-if="isLoading" class="d-flex justify-center mt-12">
-      <v-progress-circular indeterminate color="primary" />
-    </div>
+    <BaseLoadingState v-if="isLoading" />
 
     <template v-else>
       <RulebookDetailsHero

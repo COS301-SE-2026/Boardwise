@@ -1,10 +1,15 @@
 <template>
-  <v-tabs :model-value="activeTab" color="primary" @update:model-value="$emit('change', $event)">
-    <v-tab v-for="tab in tabs" :key="tab" :value="tab">{{ tab }}</v-tab>
-  </v-tabs>
+  <BaseTabs
+    :tabs="tabs"
+    :model-value="activeTab" 
+    color="primary" 
+    @update:model-value="$emit('change', $event)">
+  </BaseTabs>
 </template>
 
 <script setup>
+import BaseTabs from '~/components/ui/BaseTabs.vue';
+
 defineProps({
   activeTab: String
 })
