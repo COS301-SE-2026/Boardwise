@@ -1,5 +1,4 @@
 <template>
-  <v-dialog v-model="open" max-width="500">
     <BaseCard class="pa-6" style="background: var(--color-surface) !important; overflow-y: auto;">
       <v-form ref="formRef" v-model="formValid" class="d-flex flex-column ga-5">
         <h2>Create Listing</h2>
@@ -98,8 +97,8 @@
               hide-details="auto"
               @keydown="blockManualDateEntry"
               :rules="[startDateRule]"
-              @keydown="blockManualDateEntry"
             />
+
             <v-date-input
               v-model="endDate"
               label="End Date"
@@ -107,7 +106,6 @@
               hide-details="auto"
               @keydown="blockManualDateEntry"
               :rules="[endDateRule]"
-              @keydown="blockManualDateEntry"
             />
           </div>
           <div v-else>
@@ -165,14 +163,13 @@
         </div>
       </v-form>
     </BaseCard>
-  </v-dialog>
 </template>
 
 <script setup>
-import { useUserLocation } from '@/composables/useUserLocation';
+import { useUserLocation } from '@/composables/useUserLocation'
 import { useBoardGames } from '~/composables/useBoardGames'
 import BaseCard from '~/components/ui/BaseCard.vue'
-import BaseTextArea from '~/components/ui/BaseTextArea.vue';
+import BaseTextArea from '~/components/ui/BaseTextArea.vue'
 
 const { city, suburb, error: locationError, loading, findUserLocation } = useUserLocation();
 const { searchGames, games, gamesLoading } = useBoardGames();
@@ -296,23 +293,7 @@ const endDateRule = (v) => {
   return true;
 };
 
-const listingTitleRule = (v) => {
-  const required = requiredRule(v);
-  if (required !== true) return required;
-
-  if (String(v).length < 3) return 'Title must be at least 3 characters';
-  if (String(v).length > 100) return 'Title cannot exceed 100 characters';
-
-  return true;
-};
-
-const versionRule = (v) => {
-  const required = requiredRule(v);
-  if (required !== true) return required;
-
-  if (String(v).length > 50) return 'Version cannot exceed 50 characters';
-  return true;
-};
+ 
 
 const descriptionRule = (v) => {
   const required = requiredRule(v);

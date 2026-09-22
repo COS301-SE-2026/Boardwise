@@ -1,22 +1,22 @@
 <template>
-  <v-dialog v-model="open" max-width="500">
-    <BaseCard class="pa-6" style="background: var(--color-surface) !important; overflow-y: auto;">
-      <v-form ref="formRef" class="d-flex flex-column ga-5">
-
-      <h2 class="ma-0">Edit Listing</h2>
-
-      <v-form ref="form" v-model="formValid">
+  <BaseModal 
+    title="Editing Listing" 
+    v-model="open"
+    max-width="600" 
+    :loading="saving"
+  >
+      <v-form ref="form" class="d-flex flex-column ga-5">
         <div class="d-flex flex-column ga-5">
 
-          <v-text-field
+          <!-- Listing Title -->
+          <BaseInput 
             v-model="listing_title"
             label="Listing Title"
             placeholder="Listing title"
-            variant="outlined"
-            density="compact"
             :rules="[rules.required, rules.listingTitle]"
           />
 
+          <!-- Game -->
           <v-autocomplete
             v-model="game_title"
             label="Game Title"
@@ -31,16 +31,15 @@
             @update:search="onGameSearch"
           />
 
-          <v-text-field
+          <!-- Version -->
+          <BaseInput 
             v-model="version"
             label="Version"
             placeholder="e.g. Original"
-            variant="outlined"
-            density="compact"
-            hide-details="auto"
             :rules="[rules.required, rules.version]"
           />
 
+          <!-- Genres -->
           <v-autocomplete
             v-model="selected_genres"
             label="Genres"
@@ -55,6 +54,7 @@
             @update:search="onGenreSearch"
           />
 
+          <!-- Condition -->
           <v-select
             v-model="selected_condition"
             label="Condition"
@@ -64,6 +64,7 @@
             :rules="[rules.required]"
           />
 
+          <!-- Item Type -->
           <v-select
             v-model="selected_item_type"
             label="Item Type"
@@ -73,6 +74,7 @@
             :rules="[rules.required]"
           />
 
+          <!-- Listing Type -->
           <div class="d-flex">
             <v-btn-toggle v-model="listing_type" color="primary" variant="outlined" mandatory divided>
               <v-btn value="sell">Sell</v-btn>
@@ -80,7 +82,8 @@
             </v-btn-toggle>
           </div>
 
-          <v-text-field
+          <!-- Price -->
+          <BaseInput
             v-model="price"
             label="Amount"
             prefix="R"
@@ -95,7 +98,8 @@
             @paste="blockNegativePaste"
           />
 
-          <div class="RentalPeriod">
+          <!-- Rental Period -->
+          <div class="rental-period">
             <div v-if="listing_type === 'rent'" class="d-flex flex-column ga-5">
               <v-date-input
                 v-model="start_date"
@@ -104,6 +108,7 @@
                 @keydown="blockManualDateEntry"
                 :rules="[rules.required, rules.startNotPast]"
               />
+
               <v-date-input
                 v-model="end_date"
                 label="End Date"
@@ -112,59 +117,60 @@
                 :rules="[rules.required, rules.endAfterStart]"
               />
             </div>
-            <div v-else>
-              <v-checkbox v-model="negotiable" label="Open to negotiation" color="primary" density="compact" hide-details />
-            </div>
+
+            <v-checkbox v-else v-model="negotiable" label="Open to negotiation" color="primary" density="compact" hide-details />
           </div>
 
+          <!-- Location -->
           <v-text-field
             v-model="location"
             label="Location"
             placeholder="e.g. Pretoria"
-            variant="outlined"
-            density="compact"
             :rules="[rules.required]"
           />
 
+          <!-- Description -->
           <BaseTextArea
             v-model="description"
             label="Description"
             placeholder="description"
-            variant="outlined"
-            density="compact"
             :rules="[rules.required, rules.description]"
           />
 
+          <!-- Image -->
           <div class="d-flex flex-column ga-1">
             <div class="d-flex align-center ga-3">
-              <v-btn variant="outlined" color="primary" @click="triggerUpload">Upload Image</v-btn>
-              <label for="edit-image-upload" class="text-grey text-body-2">{{ file_name || '···' }}</label>
+              <BaseButton variant="outlined" color="primary" @click="triggerUpload">Upload Image</BaseButton>
+
+              <span class="text-grey text-body-2">{{ file_name || 'No image selected' }}</span>
+
               <input id="edit-image-upload" ref="file_input" type="file" accept="image/*" class="hidden-input" @change="handleFileChange" />
             </div>
-            <p v-if="fileError" class="text-error text-caption">{{ fileError }}</p>
+
+            <p v-if="fileError" class="text-error text-caption ma-0">{{ fileError }}</p>
+            <div v-if="saveError" class="text-error text-body-2">{{ saveError }}</div>
           </div>
-
-          <div v-if="saveError" class="text-error text-body-2">{{ saveError }}</div>
-
-          <div class="d-flex justify-end ga-3">
-            <v-btn variant="outlined" color="primary" @click="closeModal">Cancel</v-btn>
-            <v-btn color="primary" :loading="saving" @click="handleSave">Edit Listing</v-btn>
-          </div>
-
         </div>
       </v-form>
 
-    </BaseCard>
-  </v-dialog>
+      <template #actions>
+        <BaseButton variant="secondary" :disabled="saving" @click="closeModal">Cancel</BaseButton>
+        <BaseButton color="primary" :loading="saving" @click="handleSave">Edit Listing</BaseButton>
+      </template>
+  </BaseModal>
 </template>
 
 <script setup>
-import BaseCard from '~/components/ui/BaseCard.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
+
+import BaseInput from '~/components/ui/BaseInput.vue'
+import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseTextArea from '~/components/ui/BaseTextArea.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
+
 import { useMarketplace } from '~/composables/useMarketplace'
 import { useBoardGames } from '~/composables/useBoardGames'
-import BaseTextArea from '~/components/ui/BaseTextArea.vue'
+
 const { editListing } = useMarketplace()
 
 const { searchGenres, genres, isLoading: genresLoading } = useBoardGames()
@@ -188,11 +194,12 @@ const onGameSearch = (query) => {
 }
 
 const open = defineModel()
-const props = defineProps({ listing: Object })
+const props = defineProps({ listing: { type: Object, required: true }})
 const emit  = defineEmits(['saved'])
 
 const form = ref(null)
 const formValid = ref(false)
+
 const saving = ref(false)
 const saveError = ref('')
 const fileError = ref('')
@@ -212,6 +219,7 @@ const version = ref('')
 
 const selected_condition = ref(null)
 const selected_item_type = ref(null)
+const selected_genres = ref(null)
 
 const start_date = ref(null)
 const end_date = ref(null)
