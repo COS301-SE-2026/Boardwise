@@ -129,7 +129,7 @@
             <template v-else>
               <RetailerGrid 
                 data-test="retailer-grid" 
-                :retailers="filteredRetailResults" 
+                :retailers="pagedRetailResults" 
               />
 
               <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
