@@ -11,13 +11,13 @@
             Welcome {{  username  }} to Boardwise!
         </h1>
 
-        <BoarleyBubble>
+        <BoarleyBubble :show-avatar="false">
             My name is Boarley. I'll helping you start your journey through Boardwise!
         </BoarleyBubble>
 
         <div class="onboarding-welcome__features">
             <div 
-                v-for="feature in feautures"
+                v-for="feature in features"
                 :key="feature.title"
                 class="onboarding-feature-card"
             >
