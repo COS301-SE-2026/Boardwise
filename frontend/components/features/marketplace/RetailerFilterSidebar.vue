@@ -2,41 +2,16 @@
   <BaseFilterSidebar data-test="retailer-filter-sidebar" @reset="resetFilters">
 
     <BaseFilterGroup title="Retailer">
-       <v-checkbox
-            v-for="r in retailerOptions"
-            :key="r"
-            :data-test="`retailer-${r.toLowerCase()}`"
-            :label="r"
-            :value="r"
-            v-model="selectedRetailers"
-            density="compact"
-            color="primary"
-            hide-details
-        />
+      <BaseFilterCheckboxGroup v-model="selectedRetailers" :options="retailerOptions" />
     </BaseFilterGroup>
 
     <BaseFilterGroup title="Price Range">
-      <div class="d-flex ga-2">
-        <v-text-field
-          data-test="retailer-min-price"
-          v-model="filters.minPrice"
-          placeholder="Min"
-          prefix="R"
-          type="number"
-          density="compact"
-          hide-details
-        />
-
-        <v-text-field
-          data-test="retailer-max-price"
-          v-model="filters.maxPrice"
-          placeholder="Max"
-          prefix="R"
-          type="number"
-          density="compact"
-          hide-details
-        />
-      </div>
+      <BaseFilterPriceRange 
+        :min="filters.minPrice"
+        :max="filters.maxPrice"
+        @update:min="filters.minPrice = $event"
+        @update:max="filters.maxPrice = $event"
+      />
     </BaseFilterGroup>
 
   </BaseFilterSidebar>
@@ -46,6 +21,8 @@
 import { ref, reactive, watch } from 'vue'
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue'
 import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue'
+import BaseFilterCheckboxGroup from '~/components/ui/Filters/BaseFilterCheckboxGroup.vue'
+import BaseFilterPriceRange from '~/components/ui/Filters/BaseFilterPriceRange.vue'
 
 const props = defineProps({
     retailerOptions: { type: Array, default: () => []}

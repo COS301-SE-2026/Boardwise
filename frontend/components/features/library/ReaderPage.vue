@@ -1,6 +1,8 @@
 <template>
-  <v-card rounded="xl" elevation="1">
-    <BaseImage :src="rulebook?.coverUrl" :alt="rulebook?.title" height="280px" fit="cover" />
+  <BaseCard flush>
+    <template #media>
+      <BaseImage :src="rulebook?.coverUrl" :alt="rulebook?.title" height="280px" fit="cover" />
+    </template>
 
     <div class="pa-10">
       <p class="text-caption text-uppercase font-weight-bold text-primary mb-2">
@@ -57,26 +59,24 @@
           <div class="d-flex ga-2">
             <v-tooltip text="Delete this section" location="top">
               <template #activator="{ props: tooltipProps }">
-                <v-btn 
+                <BaseButton
                   v-bind="tooltipProps"
-                  color="error"
-                  variant="text"
+                  variant="error"
                   :disabled="isSaving"
                   @click="$emit('delete')"
                 >
                   <v-icon start>mdi-delete</v-icon> Delete
-                </v-btn>
+                </BaseButton>
               </template>
             </v-tooltip>
             
-            <v-btn
+            <BaseButton
               variant="text"
-              color="primary"
               :disabled="isSaving"
               @click="$emit('insert')"
             >
               <v-icon start>mdi-plus</v-icon> Add Section Below
-            </v-btn>
+            </BaseButton>
           </div>
 
           <div class="d-flex justify-end ga-3">
@@ -92,7 +92,7 @@
         </div>
       </template>
     </div>
-  </v-card>
+  </BaseCard>
 </template>
 
 <script setup>
@@ -100,14 +100,15 @@ import { ref, computed, watch } from 'vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
 import BaseTextArea from '~/components/ui/BaseTextArea.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
 
 const props = defineProps({
   rulebook: Object,
   page: Object,
   isFirst: Boolean,
   isLast: Boolean, 
-  isEditing:       { type: Boolean, default: false },
-  isSaving:        { type: Boolean, default: false },
+  isEditing: { type: Boolean, default: false },
+  isSaving: { type: Boolean, default: false },
   searchQuery: {
     type: String,
     default: ''
@@ -179,16 +180,3 @@ const handleCancel = () => {
 }
 
 </script>
-
-<style scoped>
-.search-highlight {
-  background: #fff176;
-  border-radius: 2px;
-  padding: 0 2px;
-}
-
-.search-highlight--active {
-  background: #ffb300;
-  outline: 2px solid #e65100;
-}
-</style>

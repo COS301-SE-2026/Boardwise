@@ -14,12 +14,9 @@
             {{  message  }}
         </p>
 
-        <v-progress-circular
+        <BaseSpinner
             v-if="inline"
-            indeterminate
-            color="primary"
-            size="20"
-            width="2"
+            size="sm"
             class="mt-1"
         />
 
@@ -32,6 +29,7 @@
 <script setup>
 import { computed } from 'vue'
 import BaseImage from '~/components/ui/BaseImage.vue';
+import BaseSpinner from '~/components/ui/BaseSpinner.vue';
 
 const props = defineProps ({
     tab: { type: String, default: 'Community Listings' },

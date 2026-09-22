@@ -36,7 +36,7 @@ describe('RagFeed.vue', () => {
 
     it('shows loading indicator when isLoading is true', () => {
         const wrapper = mountFeed({ messages, isLoading: true })
-        expect(wrapper.find('[data-test="v-progress-circular"]').exists()).toBe(true)
+        expect(wrapper.find('[data-test="rag-loading-spinner"]').exists()).toBe(true)
     })
 
     it('does not show empty state while loading with no messages', () => {
@@ -46,7 +46,7 @@ describe('RagFeed.vue', () => {
 
     it('shows no-result state when hasNoResultis true and messages exist', () => {
         const wrapper = mountFeed({ messages, hasNoResult: true })
-        expect(wrapper.find('[data-test="reg-no-result"]').exists()).toBe(true)
+        expect(wrapper.find('[data-test="rag-no-result"]').exists()).toBe(true)
     })
 
     it('forwards retry event from a message ', async () => {

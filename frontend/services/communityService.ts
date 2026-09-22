@@ -9,7 +9,7 @@ export interface GroupInfo{
     memberCount: number;
 }
 
-interface Member{
+export interface Member{
     id: string
     username: string;
     profilePicture: string;

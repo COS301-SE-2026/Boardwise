@@ -1,7 +1,7 @@
 <template>
   <BaseEmptyState
     title="Nothing here yet"
-    description="Start adding games or listings to your profile."
+    message="Start adding games or listings to your profile."
   />
 </template>
 

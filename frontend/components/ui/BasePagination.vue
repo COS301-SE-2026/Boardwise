@@ -1,46 +1,48 @@
 <template> 
-    <BaseButton 
-        variant="ghost"
-        size="sm"
-        class="base-pagination__arrow"
-        data-test="pagination-prev"
-        :disabled="modelValue <= 1"
-        aria-label="Previous page"
-        @click="goTo(modelValue - 1)"
-    >
-        <v-icon size="18">mdi-chevron-left</v-icon>  
-    </BaseButton>
+    <div class="base-pagination">
+        <BaseButton 
+            variant="ghost"
+            size="sm"
+            class="base-pagination__arrow"
+            data-test="pagination-prev"
+            :disabled="modelValue <= 1"
+            aria-label="Previous page"
+            @click="goTo(modelValue - 1)"
+        >
+            <v-icon size="18">mdi-chevron-left</v-icon>  
+        </BaseButton>
 
-        <ul class="base-pagination__list">
-            <li v-for="(page, i) in pages" :key="`${page}-$[i]`">
-                <span v-if="page === ELLIPSIS" class="base-pagination__ellipsis">...</span>
+            <ul class="base-pagination__list">
+                <li v-for="(page, i) in pages" :key="`${page}-${i}`">
+                    <span v-if="page === ELLIPSIS" class="base-pagination__ellipsis">...</span>
 
-                <BaseButton 
-                    v-else
-                    variant="page === modelValue ? 'primary' : 'ghost'"
-                    size="sm"
-                    class="base-pagination__page"
-                    :data-test="`pagination-page-{page}`"
-                    :ari-current="page === modelValue ? 'page' : undefined"
-                    :aria-label="`Page ${page}`"
-                    @click="goTo(page)"
-                >
-                    <v-icon size="18">mdi-chevron-left</v-icon>  
-                </BaseButton>
-            </li>
-        </ul>
+                    <BaseButton 
+                        v-else
+                        :variant="page === modelValue ? 'primary' : 'ghost'"
+                        size="sm"
+                        class="base-pagination__page"
+                        :data-test="`pagination-page-${page}`"
+                        :aria-current="page === modelValue ? 'page' : undefined"
+                        :aria-label="`Page ${page}`"
+                        @click="goTo(page)"
+                    >
+                        {{ page }}
+                    </BaseButton>
+                </li>
+            </ul>
 
-    <BaseButton 
-        variant="ghost"
-        size="sm"
-        class="base-pagination__arrow"
-        data-test="pagination-next"
-        :disabled="modelValue <= 1"
-        aria-label="Next page"
-        @click="goTo(modelValue + 1)"
-    >
-        <v-icon size="18">mdi-chevron-right</v-icon>  
-    </BaseButton>
+        <BaseButton 
+            variant="ghost"
+            size="sm"
+            class="base-pagination__arrow"
+            data-test="pagination-next"
+            :disabled="modelValue >= totalPages"
+            aria-label="Next page"
+            @click="goTo(modelValue + 1)"
+        >
+            <v-icon size="18">mdi-chevron-right</v-icon>  
+        </BaseButton>
+    </div>
 </template>
 
 <script setup>
@@ -92,43 +94,3 @@ const pages = computed(() => {
     return result
 })
 </script>
-
-<style scoped>
-.base-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-}
-
-.base-pagination__list {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.base-pagination__page {
-  min-width: 40px !important;
-  padding: 0 !important;
-}
-
-.base-pagination__arrow {
-  gap: var(--space-1);
-}
-
-.base-pagination__ellipsis {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  min-width: 40px;
-  min-height: 40px;
-
-  color: var(--color-text-muted);
-  font-weight: var(--fw-bold);
-}
-</style>
