@@ -1,18 +1,17 @@
 <template>
-  <BaseGrid data-test="games-grid">
+  <BaseGrid data-test="games-grid" class="games-owned-grid">
 
-    <AddGameCard v-if="editable" @add-game="$emit('add-game')" />
+    <AddGameCard @add-game="$emit('add-game')" />
 
     <GameCard
       v-for="game in games"
       :key="game.id"
+      :id="game.id"
       :title="game.title"
       :category="game.genres?.[0] ?? ''"
       :image="game.imageUrl"
       @remove="$emit('remove-game', game.id)"
     />
-
-    <AddGameCard @add-game="$emit('add-game')" />
 
   </BaseGrid>
 </template>

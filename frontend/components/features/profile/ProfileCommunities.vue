@@ -1,19 +1,23 @@
 <template>
-  <div class="mt-6">
+  <section class="communities-section">
 
-    <div class="d-flex justify-space-between align-center mb-3">
+    <div class="section-heading">
       <SectionTitle
         title="Active Communities"
       />
-      <NuxtLink to="/social" class="see-all">Explore Communities ></NuxtLink>
+
+      <NuxtLink to="/social" class="see-all">
+        Explore Communities
+        <v-icon size="16">mdi-arrow-right</v-icon>
+      </NuxtLink>
     </div>
 
-    <div class="pills-row">
+    <div v-if="communities?.length" class="communities-row">
       <NuxtLink
         v-for="community in communities"
         :key="community.id"
         :to="`/social/community/${community.id}`"
-        class="community-pill text-decoration-none"
+        class="community-pill"
       >
         <BaseAvatar 
           :src="community.image"
@@ -29,11 +33,19 @@
       </NuxtLink>
     </div>
 
-  </div>
+    <BaseEmptyState
+      v-else
+      title="No active communities"
+      message="Join a community to see it here."
+    />
+
+  </section>
 </template>
 
 <script setup>
-import SectionTitle from '~/components/ui/SectionTitle.vue';
+import SectionTitle from '~/components/ui/SectionTitle.vue'
+import BaseAvatar from '~/components/ui/BaseAvatar.vue'
+import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
 defineProps({
   communities: {
@@ -45,13 +57,6 @@ defineProps({
 </script>
 
 <style scoped>
-/* .section-title {
-  font-family: var(--font-display);
-  font-size:   var(--fs-h4);
-  font-weight: var(--fw-regular);
-  color:       var(--color-secondary);
-} */
-
 .see-all {
   font-family:     var(--font-body);
   font-size:       var(--fs-body-lg);
