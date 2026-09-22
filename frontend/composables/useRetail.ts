@@ -15,8 +15,6 @@ export const useRetail = () => {
     const isLastRetailPage = ref(false)
     const hasMoreRetail = computed(() => !isLastRetailPage.value)
 
-
-
     const fetchPersonalisedListings = async (reset = false) => {
         if (reset) {
             persPage.value = 0
@@ -34,13 +32,13 @@ export const useRetail = () => {
         const { show } = useSnackBar()
 
         try {
-            const res: PageImplRetailPage = await RetailService.getPersonalisedListings(persPage.value);
-            
-            retailResults.value = reset ? (res?.content ?? []): [...retailResults.value, ...(res?.content ?? [])]
+            const res: PageImplRetailPage = await RetailService.getPersonalisedListings(persPage.value)
+
+            retailResults.value = reset ? (res?.content ?? []) : [...retailResults.value, ...(res?.content ?? [])]
             totalElements.value = res?.totalElements ?? 0
             isLastRetailPage.value = res?.last ?? true
             persPage.value = (res?.number ?? persPage.value) + 1
-            console.log(retailResults);
+            console.log(retailResults)
             return res
         }
         catch (err: any) {

@@ -1,8 +1,15 @@
 package com.boardwise.backend.marketplace.dtos.retailsource;
 
 import java.util.List;
-import java.util.Map;
 
-public record ScrapeResultsDTO(Map<String, List<RetailSourceItemDTO>> results, List<String> boardgames) {
-    
-}
+public record ScrapeResultsDTO(
+        List<RetailSourceItemDTO> content,
+        int number,
+        int size,
+        long totalElements,
+        int totalPages,
+        boolean last,
+        boolean first,
+        int numberOfElements,
+        boolean empty
+) {}
