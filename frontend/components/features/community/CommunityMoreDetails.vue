@@ -54,36 +54,20 @@
 
             <v-divider />
 
-            <v-tabs
-                v-model="activeTab"
-                color="primary"
+            <BaseTabs
+                :tabs="['overview', 'media', 'events', 'communities']"
+                :active-tab="activeTab"
+                aria-label="Details sections"
                 class="chat-user-details__tabs"
-                grow
+                @change="activeTab = $event"
             >
-                <v-tab value="overview">
-                    Overview
-                </v-tab>
-
-                <v-tab value="media">
+                <template #tab-media>
                     Media
-
-                    <v-chip
-                        v-if="media.length"
-                        size="x-small"
-                        class="ms-2"
-                    >
+                    <BaseBadge v-if="media.length" size="x-small" class="ms-2" variant="neutral" tone="tonal">
                         {{ media.length }}
-                    </v-chip>
-                </v-tab>
-
-                <v-tab value="events">
-                    Events
-                </v-tab>
-
-                <v-tab value="communities">
-                    Communities
-                </v-tab>
-            </v-tabs>
+                    </BaseBadge>
+                </template>
+            </BaseTabs>
 
             <v-divider />
 
@@ -184,17 +168,17 @@
                                     </h3>
 
                                     <div class="d-flex flex-wrap ga-2">
-                                        <v-chip
+                                        <BaseBadge
                                             v-for="game in sharedGames"
                                             :key="game.id ?? game.title ?? game"
-                                            color="primary"
-                                            variant="tonal"
+                                            variant="primary"
+                                            tone="tonal"
                                         >
                                             {{  game.title ??
                                                 game.name ??
                                                 game
                                             }}
-                                        </v-chip>
+                                        </BaseBadge>
                                     </div>
                                 </section>
                             </template>
@@ -250,7 +234,7 @@
                             <BaseEmptyState
                              v-else
                                 title="No shared media"
-                                description="Photos and images shared in this conversation will appear here."
+                                message="Photos and images shared in this conversation will appear here."
                             />
                         </section>
                     </v-window-item>
@@ -333,7 +317,7 @@
                             <BaseEmptyState
                                 v-else
                                 title="No shared events"
-                                description="Events you both attend will appear here."
+                                message="Events you both attend will appear here."
                             />
                         </section>
                     </v-window-item>
@@ -359,7 +343,7 @@
                                 <NuxtLink
                                     v-for="community in communities"
                                     :key="community.id"
-                                    :to="`/community/${community.id}`"
+                                    :to="`/social/community/${community.id}`"
                                     class="chat-detail-link"
                                 >
                                     <BaseCard class="chat-detail-row pa-4">
@@ -395,7 +379,7 @@
                             <BaseEmptyState
                                 v-else
                                 title="No communities in common"
-                                description="Communities you both join will appear here."
+                                message="Communities you both join will appear here."
                             />
                         </section>
                     </v-window-item>
@@ -440,10 +424,12 @@ import { computed, ref } from 'vue'
 import { useDisplay } from 'vuetify'
 
 import BaseAvatar from '~/components/ui/BaseAvatar.vue'
+import BaseBadge from '~/components/ui/BaseBadge.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
+import BaseTabs from '~/components/ui/BaseTabs.vue'
 
 const props = defineProps({
     modelValue: {

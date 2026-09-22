@@ -1,6 +1,6 @@
 package com.boardwise.backend.user_service.dtos.request;
 
-import com.boardwise.backend.user_service.models.Preferences;
+import com.boardwise.backend.user_service.models.user_preferences.Preferences;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;

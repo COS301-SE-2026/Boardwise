@@ -1,5 +1,5 @@
 <template>
-  <BaseGrid cols="220px" gap="var(--space-6)">
+  <BaseGrid>
 
     <ProfileListingCard
       v-for="listing in listings"

@@ -4,10 +4,7 @@
     class="community-chat-feed"
 
   >
-    <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
-        <v-progress-circular indeterminate color="primary" size="48" />
-    </v-container>
-
+    <BaseLoadingState v-if="isLoading" />
 
     <template v-else-if="messages.length">
       <ChatMessage
@@ -35,6 +32,7 @@ import { useCommunityChat } from '~/composables/useCommunityChat'
 
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import ChatMessage from './ChatMessage.vue'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 
 const { isLoading } = useCommunityChat()
 
@@ -73,13 +71,3 @@ onMounted(async () => {
   scrollToBottom()
 })
 </script>
-
-.community-chat-feed {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  overflow-y: auto;
-  flex: 1 1 auto;
-  min-height: 0;
-  padding: 16px;
-}

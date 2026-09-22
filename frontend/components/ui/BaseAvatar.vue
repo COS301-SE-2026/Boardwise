@@ -1,20 +1,16 @@
 <template>
-  <!-- <v-avatar :size="sizeMap[size]">
-    <v-img v-if="src" :src="src" :alt="alt ?? name" />
-    <span v-else class="avatar-intials">{{  initials }}</span> -->
   <v-avatar :size="sizeMap[size] || sizeMap.md" clas="base-avatar">
-    <v-img 
+    <BaseImage 
       v-if="src && !imageError"
       :src="src"
       :alt="resolvedAlt"
       cover
       @error="imageError = true"
-    ></v-img>
+    ></BaseImage>
 
     <span
       v-else
       class="base-avatar__fallback"
-      role="img"
       :aria-label="fallbackLabel"
     >
       {{ initials }}
@@ -24,6 +20,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import BaseImage from '~/components/ui/BaseImage.vue'
 
 const props = defineProps({
   src: {
@@ -48,9 +45,12 @@ const imageError = ref(false)
 
 const sizeMap = {
   sm: '32',
+  smd: '46',
   md: '48',
   lg: '64',
-  xl: '96',}
+  xl: '96',
+  xxl: '80'
+}
 
 const initials = computed(() => {
   if (!props.name) return '?'

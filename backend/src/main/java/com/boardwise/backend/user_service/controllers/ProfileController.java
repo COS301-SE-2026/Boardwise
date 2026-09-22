@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.boardwise.backend.shared.dtos.OtherGameDTO;
 import com.boardwise.backend.user_service.dtos.response.FriendRequestResponseDTO;
+import com.boardwise.backend.user_service.dtos.response.PresenceResponseDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestsDTO;
 import com.boardwise.backend.user_service.dtos.FriendsListDTO;
 import com.boardwise.backend.user_service.dtos.notifications.NotificationsDTO;
@@ -87,6 +88,21 @@ public class ProfileController {
             Map<String, Object> res = new HashMap<>();
             res.put("message", "Something went wrong on our end.");
             return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/{userId}/presence")
+    public ResponseEntity<?> getUserPresence(
+        @PathVariable String userId
+    ){
+        try{
+            PresenceResponseDTO res = service.getUserPresence(userId);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(NoSuchElementException e){
+            Map<String, Object> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
     }
 
