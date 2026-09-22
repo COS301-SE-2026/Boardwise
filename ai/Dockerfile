@@ -39,6 +39,7 @@ RUN pip install --upgrade --no-cache-dir --only-binary :all: pip==26.2 \
 
 # Copy the rest of the application code
 COPY --chown=fast:fast app/ ./app/
+COPY --chown=fast:fast scripts/ ./scripts/
 
 USER fast
 

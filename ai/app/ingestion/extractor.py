@@ -3,7 +3,7 @@ import io
 import json
 import logging
 import re
-import uuid
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, cast
 
 import pymupdf
@@ -12,6 +12,7 @@ import requests
 
 from app.config import settings
 from app.services.r2_service import upload_to_r2
+from app.utils import block_mapper
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,7 @@ def extract_text(file_bytes: bytes, rulebook_id: str) -> tuple[bool, str, str, d
                 "blocks": [],
             }
 
+            pending_uploads: list[tuple[bytes, str, str]] = []
             used_tier3 = False
 
             if _fails_quality_check(md_dicts):
@@ -47,16 +49,91 @@ def extract_text(file_bytes: bytes, rulebook_id: str) -> tuple[bool, str, str, d
                 blocks_cache["extractorVersion"] = "tier3-v1"
                 used_tier3 = True
 
+            seen_image_hashes: set[str] = set()
+            page_quality: list[dict] = []
+
             for page_num, page_dict in enumerate(md_dicts):
+                escalate_page = False
+                escalation_reason = ""
+
                 if not used_tier3:
                     raw_page = pdf_document[page_num]
                     raw_dict = raw_page.get_text("dict")
-
-                    page_dict["blocks"] = (
+                    raw_blocks_list = (
                         raw_dict.get("blocks", []) if isinstance(raw_dict, dict) else []
                     )
 
-                blocks_cache["blocks"].extend(_map_to_blocks(page_dict, rulebook_id))
+                    escalate_page, escalation_reason = _assess_page(
+                        raw_page, raw_blocks_list
+                    )
+
+                    escalated_page_dict = None
+                    if escalate_page and settings.UNSTRUCTURED_API_URL:
+                        escalated_page_dict = _extract_single_page_via_tier3(
+                            file_bytes, page_num
+                        )
+
+                    if escalated_page_dict is not None:
+                        page_dict = escalated_page_dict
+                        page_dict["metadata"] = {"page": page_num + 1}
+                        confidence_override = 0.9
+                    else:
+                        boxed_regions = _detect_boxed_regions(raw_page)
+                        _tag_boxed_blocks(raw_blocks_list, boxed_regions)
+                        page_dict["blocks"] = _reorder_blocks_by_column(
+                            raw_blocks_list, raw_page
+                        )
+                        confidence_override = 0.6 if escalate_page else None
+
+                    page_quality.append(
+                        {
+                            "page": page_num + 1,
+                            "escalated": escalated_page_dict is not None,
+                            "flagged": escalate_page,
+                            "reason": escalation_reason,
+                        }
+                    )
+                else:
+                    page_blocks = page_dict.get("blocks", [])
+                    page_has_issues = any(
+                        b.get("type") == 0
+                        and (
+                            not any(
+                                span.get("text", "").strip()
+                                for line in b.get("lines", [])
+                                for span in line.get("spans", [])
+                            )
+                        )
+                        for b in page_blocks
+                        if isinstance(b, dict)
+                    )
+                    escalate_page = page_has_issues
+                    confidence_override = 0.6 if page_has_issues else None
+
+                    page_quality.append(
+                        {
+                            "page": page_num + 1,
+                            "escalated": True,
+                            "flagged": page_has_issues,
+                            "reason": "tier3_fallback_flagged"
+                            if page_has_issues
+                            else "tier3_fallback",
+                        }
+                    )
+
+                blocks_cache["blocks"].extend(
+                    block_mapper.map_to_blocks(
+                        page_dict=page_dict,
+                        rulebook_id=rulebook_id,
+                        pending_uploads=pending_uploads,
+                        seen_image_hashes=seen_image_hashes,
+                        image_base_url=settings.R2_RULEBOOKS_URL or "",
+                        confidence_override=confidence_override,
+                        force_review=escalate_page,
+                    )
+                )
+
+            _flush_pending_uploads(pending_uploads)
 
             flat_text_pieces = []
             for block in blocks_cache["blocks"]:
@@ -64,6 +141,11 @@ def extract_text(file_bytes: bytes, rulebook_id: str) -> tuple[bool, str, str, d
                 if content:
                     flat_text_pieces.append(str(content))
             flat_text = "\n".join(flat_text_pieces)
+
+            blocks_cache["pageQuality"] = page_quality
+            blocks_cache["qualitySummary"] = _summarize_extraction_quality(
+                blocks_cache, page_quality
+            )
 
             cache_key = f"rulebooks/{rulebook_id}/blocks_v1.json"
             upload_to_r2(
@@ -76,191 +158,220 @@ def extract_text(file_bytes: bytes, rulebook_id: str) -> tuple[bool, str, str, d
         return (False, "", "Internal error occurred during text extraction.", {})
 
 
-def _extract_text_from_raw_block(raw_block: dict) -> str:
-    """Helper to extract plain text from a PyMuPDF text block for caption heuristics."""
-    if raw_block.get("type") != 0:
-        return ""
+def _reorder_blocks_by_column(
+    raw_blocks: list[dict], page: "pymupdf.Page"
+) -> list[dict]:
+    """Reorders PyMuPDF's raw text/image blocks into visual reading order"""
+    blocks = [b for b in raw_blocks if isinstance(b, dict) and b.get("bbox")]
+    if not blocks:
+        return raw_blocks
 
-    lines = raw_block.get("lines", [])
-    if not isinstance(lines, list):
-        return ""
+    try:
+        from pymupdf4llm.helpers.multi_column import column_boxes
 
-    content_lines = []
-    for line in lines:
-        if not isinstance(line, dict):
+        columns = column_boxes(page, footer_margin=40, no_image_text=False)
+    except Exception:
+        logger.warning(
+            "column_boxes unavailable or failed; using fallback column heuristic.",
+            exc_info=True,
+        )
+        return _reorder_blocks_by_column_fallback(raw_blocks, page.rect.width)
+
+    if not columns:
+        return sorted(blocks, key=lambda b: (b["bbox"][1], b["bbox"][0]))
+
+    def column_index(b: dict) -> int:
+        x0, y0, x1, y1 = b["bbox"]
+        cx = (x0 + x1) / 2
+        cy = (y0 + y1) / 2
+        for i, col_rect in enumerate(columns):
+            if col_rect.x0 <= cx <= col_rect.x1 and col_rect.y0 <= cy <= col_rect.y1:
+                return i
+
+        # If a block falls ouside every detected column, it will be placed on the x-axis by nearest column center such that it is not lost.
+        return min(
+            range(len(columns)),
+            key=lambda i: abs(((columns[i].x0 + columns[i].x1) / 2) - cx),
+        )
+
+    return sorted(blocks, key=lambda b: (column_index(b), b["bbox"][1], b["bbox"][0]))
+
+
+def _reorder_blocks_by_column_fallback(
+    raw_blocks: list[dict], page_width: float
+) -> list[dict]:
+    """
+    Fallback reading-order heuristic, used only if pymupdf4llm's column_boxes() is unavailable or raises an exception.
+    Handles the common 2-column case of rulebooks.
+    """
+    blocks = [b for b in raw_blocks if isinstance(b, dict) and b.get("bbox")]
+    if not blocks or page_width <= 0:
+        return raw_blocks
+
+    blocks = sorted(blocks, key=lambda b: b["bbox"][1])
+
+    FULL_WIDTH_RATIO = 0.75
+    GAP_MIN_FRACTION = 0.06
+
+    def block_width(b: dict) -> float:
+        x0, _, x1, _ = b["bbox"]
+        return x1 - x0
+
+    bands: list[tuple[str, list[dict]]] = []
+    current_band: list[dict] = []
+    for b in blocks:
+        if block_width(b) / page_width >= FULL_WIDTH_RATIO:
+            if current_band:
+                bands.append(("cols", current_band))
+                current_band = []
+            bands.append(("full", [b]))
+        else:
+            current_band.append(b)
+    if current_band:
+        bands.append(("cols", current_band))
+
+    ordered: list[dict] = []
+    for kind, band_blocks in bands:
+        if kind == "full":
+            ordered.extend(band_blocks)
             continue
-        span_texts = []
-        for span in line.get("spans", []):
-            if isinstance(span, dict):
-                span_texts.append(span.get("text", ""))
-        content_lines.append("".join(span_texts))
+        x_centers = sorted((b["bbox"][0] + b["bbox"][2]) / 2 for b in band_blocks)
 
-    # Join with spaces instead of newlines for a beter caption preview
-    return " ".join(content_lines).strip()
-
-
-def _map_to_blocks(page_dict: dict[str, Any], rulebook_id: str) -> list[dict]:
-    """Transforms a page dictionary into the block-level schema"""
-    blocks = []
-
-    metadata = page_dict.get("metadata", {})
-    page_num = metadata.get("page", 1) if isinstance(metadata, dict) else 1
-
-    raw_blocks = page_dict.get("blocks", [])
-    if not isinstance(raw_blocks, list):
-        raw_blocks = []
-
-    # Calculate the median font size for the page such that a baseline size can be established
-    font_sizes = []
-    for raw_block in raw_blocks:
-        if isinstance(raw_block, dict) and raw_block.get("type") == 0:
-            for line in raw_block.get("lines", []):
-                if isinstance(line, dict):
-                    for span in line.get("spans", []):
-                        if isinstance(span, dict) and "size" in span:
-                            font_sizes.append(span["size"])
-
-    if font_sizes:
-        font_sizes.sort()
-        median_size = font_sizes[len(font_sizes) // 2]
-    else:
-        median_size = 11.0  # Fallback
-
-    def _block_sort_key(block: Any) -> tuple[float, float]:
-        if isinstance(block, dict):
-            bbox = block.get("bbox")
-            if isinstance(bbox, (list, tuple)) and len(bbox) >= 2:
-                return ((float(bbox[1])), float(bbox[0]))
-        # Invalid blocks pushed to the end
-        return ((float("inf")), float("inf"))
-
-    raw_blocks.sort(key=_block_sort_key)
-
-    for order, raw_block in enumerate(raw_blocks):
-        if not isinstance(raw_block, dict):
+        boundary = None
+        if len(x_centers) > 1:
+            gaps = [
+                (x_centers[i] - x_centers[i - 1], (x_centers[i] + x_centers[i - 1]) / 2)
+                for i in range(1, len(x_centers))
+            ]
+            max_gap, midpoint = max(gaps, key=lambda g: g[0])
+            if max_gap > page_width * GAP_MIN_FRACTION:
+                boundary = midpoint
+        if boundary is None:
+            ordered.extend(
+                sorted(band_blocks, key=lambda b: (b["bbox"][1], b["bbox"][0]))
+            )
             continue
 
-        block_id = f"blk_{uuid.uuid4().hex[:8]}"
-        block_type = "paragraph"
-        content = ""
-        confidence = 1.0
-        image_url = None
-        heading_level = None
-        block_max_size = 0.0
+        left_col = sorted(
+            (b for b in band_blocks if (b["bbox"][0] + b["bbox"][2]) / 2 < boundary),
+            key=lambda b: b["bbox"][1],
+        )
+        right_col = sorted(
+            (b for b in band_blocks if (b["bbox"][0] + b["bbox"][2]) / 2 >= boundary),
+            key=lambda b: b["bbox"][1],
+        )
+        ordered.extend(left_col)
+        ordered.extend(right_col)
 
-        if raw_block.get("type") == 1:  # Image block in pymupdf
-            block_type = "image"
-            image_bytes = raw_block.get("image")
-            image_ext = raw_block.get("ext", "png")
+    return ordered
 
-            image_key = f"rulebooks/{rulebook_id}/images/{page_num}_{order}.{image_ext}"
-            image_url = f"{settings.R2_RULEBOOKS_URL}{image_key}"
-            confidence = 0.95
 
-            if image_bytes:
-                upload_to_r2(image_bytes, image_key, f"image/{image_ext}")
+def _assess_page(raw_page: "pymupdf.Page", raw_blocks: list[dict]) -> tuple[bool, str]:
+    """
+    Run before reordering to flag pages that fail geometry-based column extraction
+    such that they can be escalated to Tier-3 individually.
+    Returns (needs_escalation, reason)
+    """
+    text_blocks = [
+        b
+        for b in raw_blocks
+        if isinstance(b, dict) and b.get("type") == 0 and b.get("bbox")
+    ]
 
-            caption_text = ""
+    if not text_blocks:
+        return (False, "")  # e.g. a full page diagram has nothing to reorder
 
-            # Look ahead to next block
-            if (order + 1) < len(raw_blocks):
-                next_text = _extract_text_from_raw_block(raw_blocks[order + 1])
+    page_area = raw_page.rect.width * raw_page.rect.height
+    if page_area <= 0:
+        return (False, "")
 
-                # Checking if it looks like a caption (short text or is explicitly labeled)
-                if next_text and (
-                    len(next_text) < 200
-                    or next_text.lower().startswith(("fig", "image", "table"))
-                ):
-                    caption_text = next_text
+    text_area = sum(
+        max(0.0, (b["bbox"][2] - b["bbox"][0]) * (b["bbox"][3] - b["bbox"][1]))
+        for b in text_blocks
+    )
 
-            # Look behind (above) if nothing was found below
-            if not caption_text and (order - 1 >= 0):
-                prev_text = _extract_text_from_raw_block(raw_blocks[order - 1])
-                if prev_text and (
-                    len(prev_text) < 200
-                    or prev_text.lower().startswith(("fig", "image", "table"))
-                ):
-                    caption_text = prev_text
+    text_density = text_area / page_area
 
-            content = caption_text if caption_text else f"[Image on page {page_num}]"
+    # Sparse text scattered over a uncovered page suggests that text is sitting ontop of an illustration/ art rather than a clean text layout
+    if text_density < 0.06 and len(text_blocks) >= 4:
+        return (True, "low_text_density")
 
-        elif raw_block.get("type") == 0:  # Text block
-            lines = raw_block.get("lines", [])
-            if isinstance(lines, list):
-                content_lines = []
-                for line in lines:
-                    if not isinstance(line, dict):
-                        continue
+    widths = [b["bbox"][2] - b["bbox"][0] for b in text_blocks]
+    mean_width = sum(widths) / len(widths)
+    if mean_width > 0:
+        width_variance = sum((w - mean_width) ** 2 for w in widths) / len(widths)
+        width_cv = (width_variance**0.5) / mean_width
 
-                    span_texts = []
-                    for span in line.get("spans", []):
-                        if isinstance(span, dict):
-                            span_texts.append(span.get("text", ""))
-                            size = span.get("size", 0.0)
-                            block_max_size = max(block_max_size, size)
+        # High variance in block widths suggests an icon grid, reference table, or sidebar-heavy page rather than clean flowing columns.
+        if width_cv > 0.9 and len(text_blocks) >= 6:
+            return (True, "irregular_block_widths")
 
-                    content_lines.append("".join(span_texts))
-                content = "\n".join(content_lines)
+    return (False, "")
 
-            pre_assigned = raw_block.get("pre_assigned_type")
-            if pre_assigned:
-                block_type = pre_assigned
-                if block_type == "heading":
-                    heading_level = 2
-                elif block_type == "table":
-                    confidence = 0.7
-            else:
-                # Determining if it is a heading based on font size threshold
-                if block_max_size > (median_size + 1.5):
-                    block_type = "heading"
-                    if block_max_size > median_size + 6.0:
-                        heading_level = 1
-                    elif block_max_size > median_size + 3.0:
-                        heading_level = 2
-                    else:
-                        heading_level = 3
-                elif "|" in content and content.count("|") > 3:
-                    block_type = "table"
-                    confidence = 0.7
-                elif block_type == "paragraph" and content.strip():
-                    # Check for standard bullets or numbering patterns at the start of the block
-                    list_pattern = r"^\s*([\u2022\u25E6\u25A0\*\-\·\▪]|\d+[\.\)])\s+"
-                    if re.match(list_pattern, content):
-                        block_type = "list"
 
-            if block_type == "paragraph" and content.strip():
-                content_upper = content.upper()
-                is_short = len(content) < 100
+def _detect_boxed_regions(raw_page: "pymupdf.Page") -> list["pymupdf.Rect"]:
+    """
+    Detects filled/stroked rectangles on the page(callout boxes, sidebars, FAQ inserts)
+    via PyMuPDF's vector drawing data such that their text is not spliced mid-sentence
+    into the surrounding column flow during column reordering.
+    """
+    try:
+        drawings = raw_page.get_drawings()
+    except Exception:
+        logger.warning(
+            "get_drawings() failed for boxed-region detection", exc_info=True
+        )
+        return []
 
-                has_trademark = any(s in content for s in ["™", "®", "©"])
-                is_toc = content_upper in ["CONTENTS", "TABLE OF CONTENTS"]
-                # Catches short, all-caps lines usually found on the first few pages
-                is_title_caps = is_short and content.isupper() and page_num <= 3
+    regions = []
+    page_area = raw_page.rect.width * raw_page.rect.height
+    for d in drawings:
+        rect = d.get("rect")
+        if rect is None:
+            continue
 
-                if has_trademark or is_toc or is_title_caps:
-                    block_type = "decorative"
+        area = rect.width * rect.height
 
-        if block_type == "table":
-            pass
-        elif block_type != "image" and (
-            not content.strip() or _is_ocr_gibberish(content)
+        # Skip tiny shapes (bullets, underlines, table-cell, boarders) and anything close to a full-page (that would be a background and not a callout).
+        if (
+            area < settings.MIN_BOXED_REGION_AREA_PX
+            or rect.height < settings.MIN_BOXED_REGION_HEIGHT_PT
+            or (page_area > 0 and area / page_area > 0.85)
         ):
             continue
 
-        blocks.append(
-            {
-                "blockId": block_id,
-                "order": order,
-                "type": block_type,
-                "content": content.strip(),
-                "confidence": confidence,
-                "sourcePage": page_num,
-                "imageUrl": image_url,
-                "headingLevel": heading_level,
-            }
-        )
+        if d.get("fill") is not None or d.get("color") is not None:
+            regions.append(rect)
 
-    return blocks
+    return regions
+
+
+def _tag_boxed_blocks(
+    raw_blocks: list[dict], boxed_regions: list["pymupdf.Rect"]
+) -> None:
+    """
+    Sets pre_assigned_type='aside' on text blocks whose bbox sits inside a detected boxed region.
+    """
+    if not boxed_regions:
+        return
+
+    for b in raw_blocks:
+        if not isinstance(b, dict) or b.get("type") != 0 or not b.get("bbox"):
+            continue
+
+        x0, y0, x1, y1 = b["bbox"]
+        block_area = max(0.0, (x1 - x0) * (y1 - y0))
+        if block_area == 0:
+            continue
+
+        for region in boxed_regions:
+            intersection = pymupdf.Rect(x0, y0, x1, y1) & region
+            if intersection.is_empty:
+                continue
+            overlap_ratio = (intersection.width * intersection.height) / block_area
+            if overlap_ratio > 0.7:
+                b["pre_assigned_type"] = "aside"
+                break
 
 
 def _fails_quality_check(md_dicts: list[dict]) -> bool:
@@ -289,6 +400,30 @@ def _fails_quality_check(md_dicts: list[dict]) -> bool:
     return (
         total_chars > 0 and (mixed_up_chars / total_chars) > 0.15
     )  # True if high proportion of mixed up characters are present
+
+
+def _extract_single_page_via_tier3(file_bytes: bytes, page_num: int) -> dict | None:
+    """
+    Escalates a single difficult page to the Tier-3 Unstructured API
+    Returns the escalated page's dict or None if isolation/ escalation failed
+    """
+    try:
+        with pymupdf.open(stream=file_bytes, filetype="pdf") as src:
+            single_page_doc = pymupdf.open()
+            single_page_doc.insert_pdf(src, from_page=page_num, to_page=page_num)
+            single_page_bytes = single_page_doc.tobytes()
+            single_page_doc.close()
+    except Exception:
+        logger.warning(
+            "Failed to isolate page %d for Tier-3 escalation", page_num, exc_info=True
+        )
+        return None
+
+    pages = _escalate_to_tier_3(single_page_bytes)
+    if not pages:
+        return None
+
+    return pages[0]
 
 
 def _escalate_to_tier_3(file_bytes: bytes) -> list[dict]:
@@ -384,42 +519,59 @@ def _escalate_to_tier_3(file_bytes: bytes) -> list[dict]:
         return []
 
 
-def _is_ocr_gibberish(text: str) -> bool:
-    """Determines if OCR extracted text is just random characters"""
-    text = text.strip()
-    if not text:
-        return True
+def _flush_pending_uploads(pending_uploads: list[tuple[bytes, str, str]]) -> None:
+    def _do_upload(item):
+        image_bytes, image_key, content_type = item
+        try:
+            upload_to_r2(image_bytes, image_key, content_type)
+        except Exception:
+            logger.warning("Image upload failed for %s", image_key)
 
-    # Fail on OCR noise characters that are easiest to detect
-    if any(char in text for char in "@~^°¢¤¥§\\"):
-        return True
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        executor.map(_do_upload, pending_uploads)
 
-    # Check for mid-word non-alphanumerics (e.g., "l@DQe", "a#b")
-    if re.search(r"[a-zA-Z][^a-zA-Z0-9\s.,!?:;\'\"()\-/][a-zA-Z]", text):
-        return True
 
-    # Check for OCR casing errors (lowercase immediately followed by uppercase, e.g. "aN", "dOO")
-    if re.search(r"\b[a-z]+[A-Z]+", text):
-        return True
+PENDING_REVIEW_CHAR_RATIO_THRESHOLD = 0.30
 
-    # Check for micro-line vertical token stacking (3+ lines averaging < 6 characters)
-    lines = [line.strip() for line in text.splitlines() if line.strip()]
-    if len(lines) >= 3 and (sum(len(line) for line in lines) / len(lines)) < 6:
-        return True
 
-    # Checking the special character to normal alphanumeric character ratio (Higher than 0.15 = gibberish)
-    special_chars = len(re.findall(r"[^a-zA-Z0-9\s.,!?:;\'\"()\-/]", text))
-    if len(text) > 0 and (special_chars / len(text)) > 0.15:
-        return True
+def _summarize_extraction_quality(blocks_cache: dict, page_quality: list[dict]) -> dict:
+    """
+    Produces the final extraction verdict: 'ready' or 'pending_review'
+    """
+    blocks = blocks_cache.get("blocks", [])
+    scorable_blocks = [b for b in blocks if b.get("type") != "decorative"]
 
-    # Checking for vowel-less tokens longer than 2 characters (e.g, "SS")
-    words = [re.sub(r"[^a-zA-Z]", "", w) for w in text.split()]
-    words = [w for w in words if len(w) >= 3]
-    if words:
-        vowelless = [w for w in words if not re.search(r"[aeiouyAEIOUY]", w)]
+    total_chars = sum(len(b.get("content", "")) for b in scorable_blocks)
+    if total_chars == 0:
+        return {
+            "outcome": "pending_review",
+            "reason": "No scorable text content was extracted.",
+            "flaggedCharRatio": 1.0,
+            "flaggedPages": [pq["page"] for pq in page_quality if pq.get("flagged")],
+        }
 
-        # If more than 1/4 of the significant words lack vowels, it's probably noise
-        if (len(vowelless) / len(words)) > 0.25:
-            return True
+    flagged_chars = sum(
+        len(b.get("content", ""))
+        for b in scorable_blocks
+        if b.get("forceReview") or b.get("confidence", 1.0) < 0.7
+    )
+    flagged_ratio = flagged_chars / total_chars
+    flagged_pages = [pq["page"] for pq in page_quality if pq.get("flagged")]
 
-    return False
+    if flagged_ratio > PENDING_REVIEW_CHAR_RATIO_THRESHOLD:
+        return {
+            "outcome": "pending_review",
+            "reason": (
+                f"{flagged_ratio:.0%} of extracted content is low-confidence "
+                f"or was flagged during extraction (pages: {flagged_pages})."
+            ),
+            "flaggedCharRatio": flagged_ratio,
+            "flaggedPages": flagged_pages,
+        }
+
+    return {
+        "outcome": "ready",
+        "reason": "",
+        "flaggedCharRatio": flagged_ratio,
+        "flaggedPages": flagged_pages,
+    }

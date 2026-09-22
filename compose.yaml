@@ -39,8 +39,6 @@ services:
     build: ./backend/
     restart: on-failure
     environment:
-      - DEV_FRONTEND_BASE=${DEV_FRONTEND_BASE}
-      - SMTP_HOST=${SMTP_HOST}
       - DEV_FAST_API_BASE=${DEV_FAST_API_BASE}
       - INTERNAL_SECRET=${INTERNAL_SECRET}
       - DEV_DB_URL=${DEV_DB_URL}
@@ -80,6 +78,7 @@ services:
     restart: on-failure
     environment:
       - DEV_DB_URL=${DEV_DB_URL}
+      - PROD_DB_URL=${PROD_DB_URL}
       - DB_NAME=${DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_ALGORITHM=${JWT_ALGORITHM}
@@ -91,6 +90,11 @@ services:
       - INTERNAL_SECRET=${INTERNAL_SECRET}
       - CPU_CORES=${CPU_CORES}
       - APP_ENV=${APP_ENV}
+      - EMBEDDING_DIMENSIONS=${EMBEDDING_DIMENSIONS}
+      - R2_RULEBOOKS_PUBLIC_PROD_URL=${R2_RULEBOOKS_PUBLIC_PROD_URL}
+      - UNSTRUCTURED_PROD_URL=${UNSTRUCTURED_PROD_URL}
+      - UNSTRUCTURED_DEV_URL=${UNSTRUCTURED_DEV_URL}
+      - UNSTRUCTURED_API_KEY=${UNSTRUCTURED_API_KEY}
     ports:
       - 8000:8000
     depends_on:
@@ -139,15 +143,15 @@ services:
       resources:
         limits:
           cpus: "2.0"
-          memory: "4g"
+          memory: "8g"
         reservations:
           memory: "1g"
     healthcheck:
-      test: ["CMD","curl", "-f", "http://localhost:8000/general/docs"]
+      test: ["CMD","curl", "-f", "http://localhost:8000/healthcheck"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 20s
+      start_period: 180s
 
 volumes:
   db:
