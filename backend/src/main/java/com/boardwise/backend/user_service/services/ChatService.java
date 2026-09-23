@@ -63,6 +63,7 @@ public class ChatService {
         Conversation conversation = new Conversation(
             convoId,
             List.of(senderId, message.receiverId()),
+            senderId,
             message.message(),
             messageTime
         );
@@ -216,6 +217,7 @@ public class ChatService {
                     user.getUsername(),
                     user.getProfilePicture(),
                     convo.getLastMessage(),
+                    convo.getLastMessageSender(),
                     convo.getLastMessageAt(),
                     notifService.isOnline(userId)
                 );
@@ -228,6 +230,7 @@ public class ChatService {
                     "Boardwise user",
                     null,
                     convo.getLastMessage(),
+                    convo.getLastMessageSender(),
                     convo.getLastMessageAt(),
                     false
                 );

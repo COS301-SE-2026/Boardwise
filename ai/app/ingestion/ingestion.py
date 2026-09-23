@@ -1,15 +1,40 @@
 import logging
+import time
 from datetime import datetime, timezone
 
 from sentence_transformers import SentenceTransformer
 
-from app.ingestion.chunker import generate_chunks
+from app.ingestion.chunker import filter_out_decorative_chunks, generate_chunks
 from app.ingestion.extractor import extract_text
 from app.ingestion.sanitiser import sanitise_pdf
 from app.ingestion.vectoriser import vectorise_chunks
-from app.services import mongo_service, r2_service
+from app.services import lancedb_service, mongo_service, r2_service
 
 logger = logging.getLogger(__name__)
+
+LANCEDB_WRITE_MAX_RETRIES = 3
+LANCEDB_WRITE_BASE_DELAY_SECONDS = 1.0
+
+
+def _write_chunks_to_lancedb_with_retry(chunks: list[dict]) -> tuple[bool, str]:
+    """Returns (success, failure_reason)"""
+    for attempt in range(LANCEDB_WRITE_MAX_RETRIES):
+        try:
+            lancedb_service.write_chunks(chunks)
+            return (True, "")
+        except Exception as error:
+            is_last_attempt = attempt == LANCEDB_WRITE_MAX_RETRIES - 1
+            logger.warning(
+                "LanceDB write attempt %d/%d failed: %s",
+                attempt + 1,
+                LANCEDB_WRITE_MAX_RETRIES,
+                error,
+            )
+            if is_last_attempt:
+                logger.exception("LanceDB write exhausted retries.")
+                return (False, "Failed to write vectors to LanceDB after retries.")
+            time.sleep(LANCEDB_WRITE_BASE_DELAY_SECONDS * (2**attempt))
+    return (False, "Failed to write vectors to LanceDB.")
 
 
 def run_ingestion_pipeline(
@@ -38,7 +63,9 @@ def run_ingestion_pipeline(
         # =========== Stage 2: Extract ===========
         mongo_service.update_ingestion_job(job_id, "Extract", "Processing")
 
-        extract_success, extracted_text, extract_reason = extract_text(file_bytes)
+        extract_success, extracted_text, extract_reason, blocks_cache = extract_text(
+            file_bytes, rulebook_id
+        )
 
         if not extract_success:
             mongo_service.mark_pipeline_failed(
@@ -49,11 +76,22 @@ def run_ingestion_pipeline(
         # =========== Stage 3: Chunk ===========
         mongo_service.update_ingestion_job(job_id, "Chunk", "Processing")
 
-        chunk_success, chunk_list, chunk_reason = generate_chunks(extracted_text)
+        chunk_success, chunk_list, chunk_reason = generate_chunks(blocks_cache)
 
         if not chunk_success:
             mongo_service.mark_pipeline_failed(
                 rulebook_id, job_id, "Chunk", chunk_reason
+            )
+            return
+
+        chunk_list = filter_out_decorative_chunks(chunk_list)
+
+        if not chunk_list:
+            mongo_service.mark_pipeline_failed(
+                rulebook_id,
+                job_id,
+                "Chunk",
+                "All chunks classified as decorative thus there is nothing to index",
             )
             return
 
@@ -70,12 +108,16 @@ def run_ingestion_pipeline(
             )
             return
 
-        # =========== Stage5: Storage & Finalisation ===========
+        # =========== Stage 5: Storage & Finalisation ===========
         # Storage
         pdf_key = r2_service.generate_pdf_key(rulebook_id, filename)
 
         pdf_upload = r2_service.upload_to_r2(
             file_bytes, pdf_key, content_type="application/pdf"
+        )
+        debug_key = f"rulebooks/{rulebook_id}/raw_extracted.md"
+        r2_service.upload_to_r2(
+            extracted_text.encode("utf-8"), debug_key, content_type="text/markdown"
         )
 
         if not pdf_upload:
@@ -91,9 +133,25 @@ def run_ingestion_pipeline(
             chunk["updatedAt"] = current_time
 
         # Finalisation
-        mongo_service.finalise_rulebook_ingestion(
-            rulebook_id, job_id, pdf_key, vectorised_chunks
+        mongo_service.store_rulebook_text_and_pdf_key(
+            rulebook_id, pdf_key, vectorised_chunks
         )
+
+        lancedb_success, lancedb_reason = _write_chunks_to_lancedb_with_retry(
+            vectorised_chunks
+        )
+
+        if not lancedb_success:
+            mongo_service.mark_pipeline_failed(
+                rulebook_id, job_id, "Store", lancedb_reason
+            )
+            return
+        
+        quality_summary = blocks_cache.get("qualitySummary", {"outcome": "ready"})
+        if quality_summary.get("outcome") == "pending_review":
+            mongo_service.mark_rulebook_pending_review(rulebook_id, job_id, quality_summary.get("reason", ""))
+        else:
+            mongo_service.mark_rulebook_ready(rulebook_id, job_id)
 
         logger.info("Pipeline completed successfully for rulebook %s", rulebook_id)
     except Exception:

@@ -73,9 +73,6 @@ public class Listing {
     @Field("updatedAt")
     private LocalDateTime updatedAt;
 
-    @Field("genres")
-    private List<String> genres;
-
     @Field("rentalPeriod")
     private RentalPeriod rentalPeriod;
 }

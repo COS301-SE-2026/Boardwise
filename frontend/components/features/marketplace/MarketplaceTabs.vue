@@ -1,13 +1,17 @@
 <template>
-  <v-tabs data-test="marketplace-tabs" :model-value="modelValue" color="primary" @update:model-value="$emit('update:modelValue', $event)">
-    <v-tab v-for="tab in tabs" :key="tab" :value="tab">
-      {{ tab }}
-    </v-tab>
-  </v-tabs>
+  <BaseTabs 
+    data-test="marketplace-tabs" 
+    :model-value="modelValue" 
+    :tabs="tabs"
+    color="primary"
+    @update:model-value="$emit('update:modelValue', $event)"
+    >
+  </BaseTabs>
 </template>
 
 <script setup>
 
+import BaseTabs from '~/components/ui/BaseTabs.vue';
 defineProps({
   modelValue: {
     type: String,

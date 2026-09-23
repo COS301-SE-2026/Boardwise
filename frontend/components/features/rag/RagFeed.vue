@@ -1,52 +1,53 @@
 <template>
-    <div class="rag-feed" role="log" aria-live="polite" aria-label="Conversation with Boarley">
+    <div ref="feedEl" class="rag-feed" role="log" aria-live="polite" aria-label="Conversation with Boarley">
         <RagMessage 
             data-test="rag-message"
             v-for="message in messages" 
             :key="message.id" 
             :message="message" 
+            :current-user="currentUser"
             @retry="emit('retry', message)"
         />
 
-        <div v-if="isLoading" class="rag-message assistant">
-            <v-progress-circular data-test="v-progress-circular" size="20" color="primary" />
-        </div>
+        <BaseLoadingState v-if="isLoading" size="compact" message="Boarley is thinking" />
 
         <div v-if="!messages.length && !isLoading" class="rag-empty-state">
             Ask a question about this rulebook - answers are grounded in its actual text.
         </div>
 
-        <div v-else-if="hasNoResult" data-test="rag-no-result" class="text-body-2 text-medium-emphasis rag-no-result">
+        <div v-else-if="hasNoResult" data-test="rag-no-result" class="rag-no-result text-body-2 text-medium-emphasis">
             I could not find anything relevant to that in this rulebook. Try rephrasing, or check you've selected the right game.
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+import { ref, watch, nextTick } from 'vue'
+
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue';
 import RagMessage from './RagMessage.vue'
 import type { RagMessage as RagMessageType } from '~/composables/useRag'
 
-defineProps<{
+const props = defineProps<{
     messages: RagMessageType[]
     isLoading?: boolean
     hasNoResult?: boolean
+    currentUser?: { username?: string; profilePicture?: string } | null
 }>()
 
 const emit = defineEmits<{
     (e: 'retry', message: RagMessageType): void
 }>()
+
+const feedEl = ref<HTMLElement | null>(null)
+
+const scrollToBottom = async () => {
+    await nextTick()
+    if(feedEl.value) {
+        feedEl.value.scrollTop = feedEl.value.scrollHeight
+    }
+}
+
+watch(() => props.messages.length, scrollToBottom)
+watch(() => props.isLoading, scrollToBottom)
 </script>
-
-<style scoped>
-.rag-feed {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: var(--space-4, 16px);
-}
-
-.rag-empty-state {
-    font-size: var(--fs-body, 15px);
-    color: var(--color-text-muted);
-    line-height: var(--lh-normal, 1.5);
-}
-</style>

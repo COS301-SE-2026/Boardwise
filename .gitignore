@@ -17,6 +17,7 @@ mongodb-errors.txt
 *.cpython*
 test-results
 
-#ignore for backend
 # Temporary Igngore
-refactorNotes.md
+ai/eval
+ai/backups
+ai/data
