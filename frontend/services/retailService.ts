@@ -13,6 +13,15 @@ export interface sortJsonStructure {
     unsorted: boolean
 }
 
+export interface ScrapedRetailItemResponse {
+    retailTitle: string;
+    price: number;
+    url: string;
+    storeName: string;
+    imageUrl?: string;
+    matchType: 'EXACT' | 'RELATED';
+}
+
 export interface pageableStructure {
     sort: sortJsonStructure
     offset: number

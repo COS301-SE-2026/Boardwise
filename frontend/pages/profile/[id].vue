@@ -41,7 +41,7 @@
 
                     <div class="d-flex ga-1">
                         <BaseButton 
-                            @click="handleClick(route.params.id as string)" 
+                            @click="handleMessageClick(route.params.id as string)" 
                             :variant="'primary'"
                             size="small"
                             v-if="user.status === FriendStatus.ACCEPTED"
@@ -77,7 +77,7 @@
 
             <v-window v-model="activeTab">
                 <v-window-item value="Games Owned">
-                    <GamesOwnedSection :games="games" :editable="false" />
+                    <GamesOwnedSection :games="games" />
                 </v-window-item>
 
                 <v-window-item value="Listings">
@@ -167,7 +167,7 @@ const loadProfile = async (id: string) => {
     }
 }
 
-const handleClick = (id: string) => {
+const handleMessageClick = (id: string) => {
   router.push({
     path: '/chats',
     query: { newChat: id }

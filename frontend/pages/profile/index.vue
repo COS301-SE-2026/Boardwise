@@ -31,7 +31,6 @@
         <v-window-item value="Games Owned">
           <GamesOwnedSection
             :games="games"
-            :editable="true"
             @add-game="showBrowser = true"
             @remove-game="handleRemoveGame"
           />

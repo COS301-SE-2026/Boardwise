@@ -60,7 +60,7 @@
     </div>
 
     <!-- Desktop -->
-    <div class="d-none d-md-flex ga-6 mt-6 align-start">
+    <div class="d-flex d-md-flex ga-6 mt-6 align-start">
       <EventFilter 
         :events="events" 
         @filter="handleFilter" 

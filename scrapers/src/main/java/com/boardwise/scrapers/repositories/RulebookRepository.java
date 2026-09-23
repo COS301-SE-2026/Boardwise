@@ -10,4 +10,5 @@ public interface RulebookRepository extends MongoRepository<Rulebook, ObjectId>{
     boolean existsByGameIdAndStatusNot(ObjectId gameId, String status);
     
     List<Rulebook> findByStatusNot(String status);
+    List<Rulebook> findByGameId(ObjectId gameId);
 }

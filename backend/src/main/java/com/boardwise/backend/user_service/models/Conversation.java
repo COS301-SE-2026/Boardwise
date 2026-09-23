@@ -18,6 +18,7 @@ public class Conversation {
     @Id
     private String id;
     private List<String> participantIds;
+    private String lastMessageSender;
     private String lastMessage;
     private Instant lastMessageAt;
 }

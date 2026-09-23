@@ -9,9 +9,10 @@
       :title="game.title"
       :category="game.genres?.[0] ?? ''"
       :image="game.imageUrl"
-      :removeable="editable"
       @remove="$emit('remove-game', game.id)"
     />
+
+    <AddGameCard @add-game="$emit('add-game')" />
 
   </BaseGrid>
 </template>
@@ -22,8 +23,7 @@ import GameCard from './GameCard.vue'
 import AddGameCard from './AddGameCard.vue'
 
 defineProps({
-  games: { type: Array, default: () => [] },
-  editable: { type: Boolean, default: false }
+  games: { type: Array, default: () => [] }
 })
 
 defineEmits(['add-game','remove-game'])

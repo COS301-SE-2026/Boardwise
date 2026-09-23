@@ -226,16 +226,18 @@ public class ListingController {
     }
 
     @GetMapping("/listings/personalised")
-    public ResponseEntity<Page<RetailSourceItemDTO>> getPersonalizedRetailItems(
+    public ResponseEntity<Page<RetailSourceItemDTO>>getPersonalizedRetailItems(
         @RequestHeader("Authorization") String token,
         @RequestParam(required = false, defaultValue = "0") Integer page) {
         try {
-            Page<RetailSourceItemDTO> results = retailService.getPersonalizedRetailListings(token.replace("Bearer ", ""), page);
+            Page<RetailSourceItemDTO>  results =
+                retailService.getPersonalisedRetailListings(token.replace("Bearer ", ""), page);
 
             return ResponseEntity.ok(results);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(null);
-        }
 
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "personalised listings failed", e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

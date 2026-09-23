@@ -2,11 +2,11 @@ import logging
 from typing import Annotated
 
 import jwt
-from fastapi import Depends, HTTPException, Security, status
+from fastapi import Depends, HTTPException, Path, Security, status
 from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 
 from app.config import settings
-from app.services import mongo_service
+from app.services import lancedb_service, mongo_service
 
 bearer_scheme = HTTPBearer()
 
@@ -57,42 +57,28 @@ def verify_jwt(
         ) from e
 
 
-def verify_index_ready():
+def verify_index_ready(rulebook_id: str = Path(...)):
     """
-    FastAPI dependency to ensure the vector index is queryable.
+    FastAPI dependency to ensure the LanceDB vector index is queryable
+    and that the requested rulebook has vectors available.
     Returns True if ready
     Raises a 503 Service Unavailable if not ready.
     """
-    db = mongo_service.get_db()
-    collection = db["RULEBOOK_TEXT"]
-
-    try:
-        indices = list(collection.list_search_indexes())
-
-        for index in indices:
-            if index.get("name") == "vector_index":
-                if index.get("status") == "READY" and index.get("queryable") is True:
-                    return True
-
-                logger.warning(
-                    "Vector index is present but not ready: %s", index.get("status")
-                )
-                raise HTTPException(
-                    status_code=503,
-                    detail="The rulebook search index is currently syncing. Please try again in a few moments.",
-                )
-
-        logger.error("Vector index 'vector_index' does not exist.")
+    if not lancedb_service.is_index_ready():
+        logger.warning("LanceDB index is not globally ready.")
         raise HTTPException(
-            status_code=500, detail="Search infrustructure is misconfigured."
+            status_code=503,
+            detail="The rulebook search index is currently syncing. Please try again in a few moments.",
         )
-    except HTTPException:
-        raise
-    except Exception:
-        logger.exception("Failed to verify index status.")
+
+    if not lancedb_service.rulebook_has_vectors(rulebook_id):
+        logger.warning("LanceDB vectors are missing for rulebook %s", rulebook_id)
         raise HTTPException(
-            status_code=500, detail="Database connection error while verifying index."
+            status_code=503,
+            detail="The rulebook search data is currently syncing. Please try again in a few moments.",
         )
+
+    return True
 
 
 internal_key_header = APIKeyHeader(name="X-Internal-Token", auto_error=True)

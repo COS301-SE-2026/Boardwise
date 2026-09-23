@@ -146,7 +146,7 @@ watch(
             return
         }
 
-        await getMissedMessages(id);
+        await getMissedMessages(props.conversation.userId);
     },
     {
         immediate: true

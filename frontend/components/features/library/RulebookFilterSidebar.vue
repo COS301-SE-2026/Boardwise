@@ -5,10 +5,6 @@
       <BaseFilterPills v-model="selectedGenre" :options="presetGenres" />
     </BaseFilterGroup>
 
-    <BaseFilterGroup title="Language" :default-open="true">
-      <BaseFilterCheckboxGroup v-model="selectedLanguages" :options="languages" />
-    </BaseFilterGroup>
-
     <BaseFilterGroup title="Player Count" :default-open="true">
       <BaseFilterNumberField v-model.number="filters.playerCount" placeholder="e.g. 4 players" :min="1" />
     </BaseFilterGroup>
@@ -45,14 +41,7 @@ const presetGenres = [
   'strategy'
 ]
 
-const languages = [
-  'English',
-  'French',
-  'Spanish'
-]
-
 const selectedGenre = ref('all')
-const selectedLanguages = ref([])
 
 const filters = reactive({
   playerCount: '',
@@ -61,15 +50,13 @@ const filters = reactive({
 })
 
 watch(
-  [selectedGenre, selectedLanguages, filters],
+  [selectedGenre, filters],
   () => {
     emit('filter', {
       genre:
         selectedGenre.value === 'all'
           ? null
           : selectedGenre.value,
-
-      languages: selectedLanguages.value,
 
       playerCount: filters.playerCount,
       duration: filters.duration,
@@ -83,8 +70,6 @@ watch(
 
 const resetFilters = () => {
   selectedGenre.value = 'all'
-  selectedLanguages.value = []
-
   filters.playerCount = ''
   filters.duration = ''
   filters.minAge = ''

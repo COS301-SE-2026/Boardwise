@@ -43,6 +43,7 @@ import { useStomp } from '~/composables/useStomp'
 
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 import ChatMessage from './ChatMessage.vue'
 
 
