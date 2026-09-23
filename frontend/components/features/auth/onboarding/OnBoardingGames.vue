@@ -20,8 +20,7 @@
             >
                 {{  game.title }}
             </v-chip>
-            <!-- <div v-for="game in games" :key="game.id">{{  game.title }}</div> -->
-        </BaseGrid>
+          </BaseGrid>
 
         <div class="onboarding-step_actions">
             <BaseButton
