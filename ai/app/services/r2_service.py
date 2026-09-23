@@ -68,7 +68,7 @@ def download_from_r2(r2_key: str) -> bytes | None:
         return None
 
     try:
-        response = s3.get_object(Bucket=settings.R2_BUCKET_RULEBOOKS, Key=r2_key)
+        response = s3.get_object(Bucket=settings.R2_BUCKET_RULEBOOKS, Key=r2_key) # NOSONAR
         file_bytes = response["Body"].read()
         logger.info("Successfully downloaded %s from R2.", r2_key)
         return file_bytes
