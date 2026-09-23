@@ -2,6 +2,7 @@ package com.boardwise.backend.shared.controllers;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,18 @@ public class BoardGameController {
         Map<String, Object> res = service.getBoardgames(query);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
+
+    @GetMapping("/available/genres")
+    public ResponseEntity<?> getAvailablBoardgameGenres() {
+        List<String> uniqueGenres = service.getGenresFromAllAvailableBoardgames(); 
+        return ResponseEntity.ok(uniqueGenres);
+    }
+
+    @GetMapping("/genres")
+    public  ResponseEntity<?> getTopNGenres(@RequestParam(defaultValue = "10") int top) {
+        return ResponseEntity.ok(service.getGlobalTopGenresFromPrefrences(top));
+    }
+    
 
     @GetMapping("/genres")
     public ResponseEntity<?> getGenresList(
