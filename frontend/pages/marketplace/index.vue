@@ -203,7 +203,7 @@ const showRetailFilters = ref(false)
 const showCreateListing = ref(false)
 
 const {listings, loading, fetchListings, addListing, loadMore, hasMore} = useMarketplace();
-const {retailResults, retailLoading, hasMoreRetail, fetchPersonalisedListings} = useRetail()
+const {retailResults, retailLoading, hasMoreRetail, fetchPersonalisedListings, personalisedListings } = useRetail()
 
 onMounted(async () => {
   if(!localStorage.getItem('access_token')){
@@ -245,7 +245,7 @@ const delaySearch = useDebounceFn((query) => {
 
 watch(activeTab, (tab) => {
   if(tab === 'Web' && retailResults.value.length === 0) {
-    fetchPersonalisedListings(true);
+    fetchPersonalisedListings();
   }
 })
 
