@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.TextCriteria;
+import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import com.boardwise.backend.shared.model.Boardgame;
@@ -23,5 +24,7 @@ public interface BoardGameRepository extends MongoRepository<Boardgame, String>{
 
     List<Boardgame> findByGenresIn(List<String> genres, Limit limit);
 
+    List<Boardgame> findByGenresIn(String game);
 
+    Optional<Boardgame> findFirstByTitle(String title);
 }

@@ -6,7 +6,8 @@ export const useBoardGames = () => {
     const genres = ref<string[]>([])
     const isLoading = ref<boolean>(false)
     const error = ref<string>('')
-
+    const topNgenres = ref<string[]>([])
+    
     const searchGames = async (query?: string) => {
         isLoading.value = true
         error.value = ''
@@ -48,6 +49,20 @@ export const useBoardGames = () => {
         }
     }
 
+    const getTopNGenresFromUsersPreferences = async (top:number) =>{
+        isLoading.value = true;
+        try{
+            const res = await BoardGameService.getTopNGenresFromUsersPreferences(top);
+            topNgenres.value = res;
+            return res
+        }
+        catch(err: any){
+            error.value = err;
+        }
+        finally{
+            isLoading.value = false;
+        }
+    }
     return {
         games,
         genres,
@@ -55,6 +70,8 @@ export const useBoardGames = () => {
         error,
         searchGames,
         searchGenres,
-        addBoardgame
+        addBoardgame,
+        getTopNGenresFromUsersPreferences,
+        topNgenres
     }
 }

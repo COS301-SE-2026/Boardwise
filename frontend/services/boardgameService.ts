@@ -60,5 +60,16 @@ export const BoardGameService = {
             method: 'POST',
             body: formData
         })
+    },
+
+    // GET /api/boargames/genres?top=n
+    getTopNGenresFromUsersPreferences(top?:number){
+        const { $api } = useNuxtApp();
+        return $api<string[]>('boardgames/genres',{
+            method: 'GET',
+            query: top ? { top } : {}
+        })
     }
+
+    
 }

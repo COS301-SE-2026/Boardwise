@@ -215,8 +215,11 @@ def create_rulebook_text(
                 "rulebookId": rulebook_obj_id,
                 "index": chunk["index"],
                 "content": chunk["content"],
-                "embedding": chunk.get("embedding", []),
                 "charCount": len(chunk["content"]),
+                "type": chunk.get("type", "text"),
+                "needsReview": chunk.get("needsReview", False),
+                "confidence": chunk.get("confidence", 1.0),
+                "associatedImageUrls": chunk.get("associatedImageUrls", []),
                 "createdAt": now,
                 "updatedAt": now,
             }
@@ -225,6 +228,19 @@ def create_rulebook_text(
     result = db["RULEBOOK_TEXT"].insert_many(chunks_to_insert, session=session)
 
     return [str(inserted_id) for inserted_id in result.inserted_ids]
+
+
+def get_rulebook_text_chunk(chunk_id: str) -> dict | None:
+    """Fetches a single RULEBOOK_TEXT document"""
+    db = get_db()
+    doc = db["RULEBOOK_TEXT"].find_one({"_id": ObjectId(chunk_id)})
+
+    if not doc:
+        return None
+
+    doc["chunkId"] = str(doc.pop("_id"))
+    doc["rulebookId"] = str(doc["rulebookId"])
+    return doc
 
 
 def is_token_valid(jti: str) -> bool:
@@ -267,7 +283,7 @@ def get_ingestion_job(job_id: str) -> dict | None:
                 ),
             )
             doc = db["INGESTION_JOB"].find_one({"_id": ObjectId(safe_job_id)})
-            
+
             if not doc:
                 return None
 
@@ -304,21 +320,50 @@ def create_rulebook_and_job(
     return (rulebook_id, job_id)
 
 
-def finalise_rulebook_ingestion(
-    rulebook_id: str, job_id: str, r2_pdf_key: str, chunks_list: list[dict]
+def store_rulebook_text_and_pdf_key(
+    rulebook_id: str, r2_pdf_key: str, chunks_list: list[dict]
 ) -> None:
     """
-    Atomically applies all post-R2-upload Mongo writes: sets the rulebook's
-    r2PdfKey, stores the text chunks, marks the rulebook as 'Ready', and marks
-    the job as 'Completed'. Assumes that the R2 upload was successful.
+    Atomically applies the Mongo-only half of finalisation
+    (r2Pdfkey and text chunks) without marking the rulebook
+    'Ready' or the job 'Complete'
     """
     with client.start_session() as session, session.start_transaction():
         update_rulebook_r2_pdf_key(rulebook_id, r2_pdf_key, session=session)
         create_rulebook_text(rulebook_id, chunks_list, session=session)
+
+    logger.info(
+        "Stored rulebook text and PDF key for rulebook %s. Vectors will still undergo LanceDB write.",
+        rulebook_id,
+    )
+
+
+def mark_rulebook_ready(rulebook_id: str, job_id: str) -> None:
+    """
+    Second half of finalisation: marks the rulebook 'Ready' and the job 'Completed'.
+    Called only after a successful LanceDB vector write for the rulebook
+    """
+    with client.start_session() as session, session.start_transaction():
         update_rulebook_status(rulebook_id, "Ready", 1, session=session)
         update_ingestion_job(job_id, "Store", "Completed", session=session)
 
-    logger.info("Finalised ingestion for rulebook %s.", rulebook_id)
+    logger.info("Marked rulebook %s Ready and job %s Completed.", rulebook_id, job_id)
+
+
+def mark_rulebook_pending_review(rulebook_id: str, job_id: str, reason: str) -> None:
+    """
+    Marks the rulebook 'PendingReview' and the job 'Processing'.
+    Called only if the rulebook fails the quality check
+    """
+    with client.start_session() as session, session.start_transaction():
+        update_rulebook_status(rulebook_id, "PendingReview", 1, session=session)
+        update_ingestion_job(job_id, "Store", "Processing", reason, session=session)
+
+    logger.info(
+        "Marked rulebook %s as 'PendingReview' and job %s as 'Processing'.",
+        rulebook_id,
+        job_id,
+    )
 
 
 def mark_pipeline_failed(

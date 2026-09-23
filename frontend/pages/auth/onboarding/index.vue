@@ -56,7 +56,7 @@ const errorMessages = ref('')
 const selectedGameIds = ref([])
 const selectedGenreIds = ref([])
 
-const { games, genres, searchGames, searchGenres } = useBoardGames()
+const { games, genres, searchGames, searchGenres,  } = useBoardGames()
 
 // TODO: Make the genre selection according to the popularity
 const genreOptions = computed(() => 

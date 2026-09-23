@@ -13,6 +13,4 @@ public abstract class BaseIntegrationTest extends SharedMongoContainer {
     @MockitoBean
     protected MyUserDetailsService userDetailsService;
 
-    @MockitoBean
-    protected SearchIndexInitializer searchIndexInitializer;
 }

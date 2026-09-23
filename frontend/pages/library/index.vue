@@ -216,7 +216,7 @@ const handleSearch = (query) => {
 const handleFilter = (filters) => {
   activeFilterState.value = {
     genre: filters.genre,
-    languages: filters.languages,
+    languages: "English",
     playerCount: filters.playerCount,
     duration: filters.duration,
     minAge: filters.minAge,
