@@ -17,6 +17,5 @@ public record ListingRequest(
         @NotBlank String version, 
         @NotBlank String condition,
         @NotBlank String description,
-        @NotEmpty List<String> genres,
         List<String> rentalPeriod) {
 }

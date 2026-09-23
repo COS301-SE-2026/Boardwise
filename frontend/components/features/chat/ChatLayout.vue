@@ -19,18 +19,15 @@
                 :conversation="selectedConversation"
                 :show-back="mobileConversationOpen"
                 :token="token"
-                @back="mobileConversationOpen = false"
+                @back="handleMobileBack"
             />
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import {
-    computed,
-    onMounted,
-    ref
-} from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { jwtDecode } from 'jwt-decode'
 
 import ChatSidebar from './ChatSidebar.vue'
 import ChatWindow from './ChatWindow.vue'
@@ -50,7 +47,9 @@ const {
     chats,
     currentChat,
     getChats,
-    startNewConversation
+    startNewConversation,
+    pendingChat,
+    sendDirectMessage
 } = usePrivateChat()
 
 const { onReconnectHook } = useStomp()
@@ -73,11 +72,38 @@ onMounted(async () => {
 
     if(route.query.newChat){
         await startNewConversation(route.query.newChat as string)
+        const listingStr = localStorage.getItem('queried-listing')
+        if(listingStr){
+ 
+            const listing = JSON.parse(listingStr);
+            const id = crypto.randomUUID()
+            const senderId = jwtDecode(props.token).sub ?? ""
+            const receiverId = listing.listingOwner
+            const message = JSON.stringify({
+                type: 'LISTING_QUERY',
+                listingId: listing.listingId,
+                listingImage: listing.listingImage,
+                listingTitle: listing.listingTitle,
+                listingPrice: listing.listingPrice,
+            })
+            const sentAt = new Date().toISOString();
+            const listingMessage = {
+                id,
+                senderId,
+                receiverId,
+                message,
+                sentAt
+            }
+
+            sendDirectMessage(listingMessage)
+            localStorage.removeItem('queried-listing')
+        }
+
         router.replace({ query: {} })
     }
 
     if(currentChat.value){
-        selectConversation(currentChat.value.id)
+        selectConversation(currentChat.value.id) 
     }
 
     onReconnectHook(async () => await getChats())
@@ -98,7 +124,8 @@ const conversations = computed(() => {
             unread: Boolean(inviteCount.value),
             isOnline: inviteCount.value > 0,
             isInvite: true,
-            lastMessageAt: new Date().toISOString()
+            lastMessageAt: new Date().toISOString(),
+            lastMessageSender: 'invites'
         },
 
         ...chats.value
@@ -106,21 +133,37 @@ const conversations = computed(() => {
 })
 
 const selectedId = ref<string | null>(null)
-const selectedConversation = computed(() =>
-    conversations.value.find((c) => c.id === selectedId.value) ?? null
-)
+const selectedConversation = computed(() =>{
+    if(pendingChat.value?.id === selectedId.value){
+        return pendingChat.value
+    }
+
+    return conversations.value.find((c) => c.id === selectedId.value)
+}
+    
+) 
 
 const selectConversation = (id: string) => {
-    const convo = conversations.value.find((el) => el.id === id)
+
+    const convo = (pendingChat.value?.id === id ? pendingChat.value : null) ?? 
+                    conversations.value.find((el) => el.id === id)
     if(!convo) return
 
     const online = (convo.username === 'Invites' && inviteCount.value > 0) ? 
                     true :
                     convo.isOnline
     
+    convo.unread = convo.unread ? false : convo.unread
     convo.isOnline = online
     selectedId.value = id
     mobileConversationOpen.value = true
     currentChat.value = convo.isInvite ? null : convo
 }
+
+const handleMobileBack = () => {
+    if(currentChat.value)
+        currentChat.value = null
+    mobileConversationOpen.value = false
+}
+
 </script>

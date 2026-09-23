@@ -13,13 +13,13 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.boardwise.backend.user_service.dtos.GroupCreationDTO;
-import com.boardwise.backend.user_service.dtos.GroupCreationResponseDTO;
+import com.boardwise.backend.user_service.dtos.request.GroupCreationDTO;
+import com.boardwise.backend.user_service.dtos.response.GroupCreationResponseDTO;
 import com.boardwise.backend.user_service.dtos.GroupDTO;
 import com.boardwise.backend.user_service.dtos.GroupInfo;
-import com.boardwise.backend.user_service.dtos.GroupMembershipResponseDTO;
-import com.boardwise.backend.user_service.dtos.GroupUpdateRequestDTO;
-import com.boardwise.backend.user_service.dtos.GroupUpdateResponseDTO;
+import com.boardwise.backend.user_service.dtos.response.GroupMembershipResponseDTO;
+import com.boardwise.backend.user_service.dtos.request.GroupUpdateRequestDTO;
+import com.boardwise.backend.user_service.dtos.response.GroupUpdateResponseDTO;
 import com.boardwise.backend.user_service.services.SocialService;
 
 import jakarta.servlet.http.HttpServletRequest;
