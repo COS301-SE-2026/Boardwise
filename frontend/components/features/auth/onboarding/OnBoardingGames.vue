@@ -47,7 +47,6 @@
 <script setup>
 import BoarleyBubble from './BoarleyBubble.vue';
 import BaseGrid from '~/components/ui/BaseGrid.vue';
-import BaseTag from '~/components/ui/BaseTag.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
 
 import { ref } from 'vue'

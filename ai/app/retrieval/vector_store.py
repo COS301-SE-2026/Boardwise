@@ -1,55 +1,70 @@
 import logging
 
-from bson import ObjectId
-
-from app.services import mongo_service
+from app.config import settings
+from app.services import lancedb_service
 from app.utils.logging_utils import sanitise_log_input
 
 logger = logging.getLogger(__name__)
 
 
 def fetch_candidate_chunks(
-    rulebook_id: str, query_vector: list[float], limit: int = 15
+    rulebook_id: str, query_text: str, query_vector: list[float], limit: int = 50
 ) -> list[dict]:
     """
-    Executes a vector search against MongoDB Atlas to find the most relevant rulebook chunks.
-    Filters by rulebookId and drops the raw vector from the response to preserve RAM.
+    Executes a hybrid search (Vector + FTS) againts LanceDB.
+    Fuses results using Reciprocal Rank Fusion (RFF), and penalises
+    penalises low-confidence, decorative, or needs-review chunks.
     """
     try:
-        pipeline = [
-            {
-                "$vectorSearch": {
-                    "index": "vector_index",
-                    "path": "embedding",
-                    "queryVector": query_vector,
-                    "numCandidates": 50,
-                    "limit": limit,
-                    "filter": {"rulebookId": ObjectId(rulebook_id)},
-                }
-            },
-            {
-                "$project": {
-                    "_id": 0,
-                    "chunkId": {"$toString": "$_id"},
-                    "content": 1,
-                    "index": 1,
-                    "charCount": 1,
-                    "score": {"$meta": "vectorSearchScore"},
-                }
-            },
-        ]
+        candidates = max(getattr(settings, "LANCEDB_CANDIDATES", 60), limit * 2)
 
-        db = mongo_service.get_db()
-        collection = db["RULEBOOK_TEXT"]
+        vector_results = lancedb_service.query_vector(
+            rulebook_id, query_vector, candidates
+        )
+        fts_results = lancedb_service.query_fts(rulebook_id, query_text, candidates)
 
-        results = list(collection.aggregate(pipeline))
+        k = 60
+        rrf_scores = {}
+        chunk_map = {}
+
+        def process_leg(results):
+            for rank, chunk in enumerate(results, start=1):
+                chunk_id = chunk["chunkId"]
+
+                if chunk_id not in chunk_map:
+                    chunk_map[chunk_id] = chunk
+                    rrf_scores[chunk_id] = 0.0
+
+                rrf_scores[chunk_id] += 1.0 / (k + rank)
+
+        process_leg(vector_results)
+        process_leg(fts_results)
+
+        fused_candidates = []
+        for chunk_id, rrf_score in rrf_scores.items():
+            chunk = chunk_map[chunk_id]
+            confidence = float(chunk.get("confidence", 1.0))
+            
+            penalty_multiplier = 1.0
+            if chunk.get("type") == "decorative":
+                penalty_multiplier *= 0.5
+            if chunk.get("needsReview", False):
+                penalty_multiplier *= 0.8
+
+            hybrid_score = rrf_score * confidence * penalty_multiplier
+            chunk["hybridRankScore"] = hybrid_score
+
+            fused_candidates.append(chunk)
+
+        fused_candidates.sort(key=lambda x: x["hybridRankScore"], reverse=True)
+        top_candidates = fused_candidates[:limit]
 
         logger.info(
-            "Successfully retrieved %d candidate chunks for rulebook %s",
-            len(results),
+            "Successfully retrieved %d fused candidate chunks for rulebook %s",
+            len(top_candidates),
             sanitise_log_input(rulebook_id),
         )
-        return results
+        return top_candidates
     except Exception:
         logger.exception(
             "Failed to execute vector search for rulebook %s",

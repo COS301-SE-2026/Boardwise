@@ -18,3 +18,5 @@ torch==2.13.0
 llama-cpp-python==0.3.35
 hf-xet==1.6.0
 setuptools==84.0.0
+lancedb==0.38.0
+pyarrow==25.0.1

@@ -68,11 +68,6 @@
       </div>
 
       <div>
-        <p class="text-caption font-weight-bold mb-2">Language</p>
-        <BaseInput v-model="language" placeholder="Language" />
-      </div>
-
-      <div>
         <p class="text-caption font-weight-bold mb-2">Rulebook Upload</p>
         <div class="d-flex align-center ga-3">
           <BaseButton variant="secondary" @click="triggerUpload">
@@ -162,7 +157,6 @@ const onCustomGameAdded = (game, submittedGame) => {
 }
 
 const edition = ref('')
-const language = ref('')
 const fileName = ref('')
 const fileInput = ref(null)
 const fileToUpload = ref(null)
@@ -170,7 +164,7 @@ const fileToUpload = ref(null)
 const triggerUpload = () => fileInput.value?.click()
 
 const isFormValid = computed(() => {
-  return selectedGame.value && language.value && fileToUpload.value
+  return selectedGame.value && fileToUpload.value
 })
 
 const handleFile = (e) => {
@@ -185,7 +179,6 @@ const resetForm = () => {
   search.value = ''
   selectedGame.value = null
   edition.value = ''
-  language.value = ''
   fileName.value = ''
   fileToUpload.value = null
   if (fileInput.value) {
@@ -205,7 +198,7 @@ const handleAdd = () => {
     title: selectedGame.value.title,
     gameId: selectedGame.value.id,
     edition: edition.value,
-    language: language.value,
+    language: "English",
     file: fileToUpload.value
   })
 }
