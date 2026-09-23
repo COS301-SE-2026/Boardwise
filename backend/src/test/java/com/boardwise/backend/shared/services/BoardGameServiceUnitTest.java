@@ -54,7 +54,7 @@ public class BoardGameServiceUnitTest {
                                         .defaultHeader("Authorization", "Bearer some-valid-token")
                                         .build();
 
-        service = new BoardGameService(gameRepo, bucket, testClient, gameSearch, null);
+        service = new BoardGameService(gameRepo, bucket, testClient, db);
     }
 
     @Test
