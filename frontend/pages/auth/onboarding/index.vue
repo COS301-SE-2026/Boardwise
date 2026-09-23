@@ -44,6 +44,8 @@ import Welcome from '~/components/features/auth/onboarding/Welcome.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 
 import { userService } from '~/services/userService'
+import { useBoardGames } from '~/composables/useBoardGames'
+
 
 const router = useRouter()
 const { user } = useAuth()
@@ -56,12 +58,15 @@ const errorMessages = ref('')
 const selectedGameIds = ref([])
 const selectedGenreIds = ref([])
 
-const { games, genres, searchGames, searchGenres,  } = useBoardGames()
+const { games, genres, searchGames, searchGenres,getTopNGenresFromUsersPreferences,topNgenres  } = useBoardGames()
 
 // TODO: Make the genre selection according to the popularity
-const genreOptions = computed(() => 
-    genres.value.map(name => ({ id:name, label:name }))
-)
+const genreOptions = ref([])
+
+async function loadTopNGenres(){// Based on the how many users have this set as a preference
+    await getTopNGenresFromUsersPreferences(10);
+    genreOptions.value = (topNgenres.value?? []).map(name=>({id:name, label: name}));
+}
 
 const pickedGenres = computed(() => 
     genreOptions.value.filter(g => selectedGenreIds.value.includes(g.id))
@@ -73,8 +78,12 @@ watch(step, async () => {
 })
 
 // TODO: Make the games a selection of popularity or based on genres
-onMounted(() => {
-    handleGetGames()
+onMounted(async () => {
+    await Promise.all([
+        loadTopNGenres(),
+        handleGetGames()
+
+    ]);
 })
 
 async function handleGetGames(){

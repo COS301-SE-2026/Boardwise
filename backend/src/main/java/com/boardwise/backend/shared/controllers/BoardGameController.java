@@ -43,9 +43,9 @@ public class BoardGameController {
         return ResponseEntity.ok(uniqueGenres);
     }
 
-    @GetMapping("/genres")
-    public  ResponseEntity<?> getTopNGenres(@RequestParam(defaultValue = "10") int top) {
-        return ResponseEntity.ok(service.getGlobalTopGenresFromPrefrences(top));
+    @GetMapping("/genres/top")
+    public  ResponseEntity<?> getTopNGenres(@RequestParam(defaultValue = "10") int n) {
+        return ResponseEntity.ok(service.getGlobalTopGenresFromPrefrences(n));
     }
     
 

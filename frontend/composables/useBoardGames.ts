@@ -49,12 +49,13 @@ export const useBoardGames = () => {
         }
     }
 
-    const getTopNGenresFromUsersPreferences = async (top:number) =>{
+    const getTopNGenresFromUsersPreferences = async (n: number) =>{
         isLoading.value = true;
         try{
-            const res = await BoardGameService.getTopNGenresFromUsersPreferences(top);
+            const res = await BoardGameService.getTopNGenresFromUsersPreferences(n);
             topNgenres.value = res;
-            return res
+            console.log("top ", n, "genres: ",topNgenres.value)
+            return topNgenres
         }
         catch(err: any){
             error.value = err;
