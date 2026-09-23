@@ -13,7 +13,7 @@
     </BaseCard>
 
     <!-- Friends -->
-    <BaseCard class="stat-card stat-card--button" @click="$emit('open')">
+    <button type="button" class="stat-card stat-card--button" @click="$emit('open')">
       <div class="stat-icon">
         <v-icon size="20">mdi-account-multiple</v-icon>
       </div>
@@ -23,7 +23,7 @@
         <span class="stat-label">Friends</span>
         <span v-if="friendsDelta" class="stat-delta">{{ friendsDelta }}</span>
       </div>
-    </BaseCard>
+    </button>
 
     <BaseCard flush class="stat-card">
       <div class="stat-icon">
@@ -52,3 +52,13 @@ defineProps({
 
 defineEmits(['open'])
 </script>
+
+<style scoped> 
+.stat-card--button { 
+  width: 100%; 
+  border: none; 
+  font: inherit; 
+  text-align: left; 
+  cursor: pointer; 
+} 
+</style>

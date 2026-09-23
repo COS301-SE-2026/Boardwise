@@ -3876,9 +3876,6 @@ games-owned-section {
   height: 100%;
 }
 
-/* ==========================================================
-   ADD GAME CARD
-   ========================================================== */
 .games-owned-grid .games-card {
   width: 100%;
   min-width: 0;
@@ -4077,10 +4074,12 @@ games-owned-section {
    PROFILE - COMMUNITIES
    ========================================================== */
 .communities-section {
+  width: 100%;
   margin-top: var(--space-6);
+  margin-bottom: var(--space-6);
 }
 
-.section-heaing {
+.section-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -4088,30 +4087,57 @@ games-owned-section {
   margin-bottom: var(--space-3);
 }
 
+.section-heading h2,
+.section-heading h3 {
+  margin: 0;
+
+  font-family: var(--font-heading);
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+
+  color: var(--color-secondary);
+}
+
 .see-all {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
 
+  flex-shrink: 0;
+
   font-size: var(--fs-small);
   font-weight: var(--fw-bold);
-  color: var(--color-primary);
 
+  color: var(--color-primary);
   text-decoration: none;
+
+  white-space: nowrap;
+  transition: 
+    color var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .see-all:hover {
   color: var(--color-primary-hover);
+  transform: translateX(2px);
 }
 
 .communities-row {
   display: flex;
+  align-items: center;
+
   gap: var(--space-3);
 
+  width: 100%;
+  min-width: 0;
+
   overflow-x: auto;
-  padding-bottom: var(--space-2);
+  overflow-y: hidden;
+  padding-bottom: var(--space-1) var(--space-1) var(--space-2);
 
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 .communities-row::-webkit-scrollbar {
@@ -4167,13 +4193,39 @@ games-owned-section {
   color: var(--color-text-muted);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 800px) {
   .communities-section {
     margin-top: var(--space-5);
   }
 
   .section-heading {
-    align-items: flex-end;
+    align-items: center;
+  }
+
+  .section-heading h2,
+  .section-heading h3 {
+    font-size: var(--fs-h3);
+  }
+
+  .community-pill {
+    flex-basis: 230px;
+  }
+}
+
+@media (max-width: 600px) {
+  .communities-section {
+    margin-top: var(--space-4);
+    margin-bottom: var(--space-5);
+  }
+
+  .section-heading {
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+
+  .section-heading h2,
+  .section-heading h3 {
+    font-size: var(--fs-body);
   }
 
   .see-all {
@@ -4181,7 +4233,12 @@ games-owned-section {
   }
 
   .community-pill {
-    min-width: 165px;
+    flex-basis: 220px;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .communities-row {
+    gap: var(--space-2);
   }
 }
 
