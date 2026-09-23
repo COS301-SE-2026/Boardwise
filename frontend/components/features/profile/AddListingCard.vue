@@ -1,12 +1,12 @@
 <template>
-  <BaseCard
-    class="add-card d-flex flex-column justify-center align-center"
-  >
-    <span class="text-h3 font-weight-bold">+</span>
-    <p class="mt-3">Add Listing</p>
-  </BaseCard>
+  <BaseAddCard
+   label="Add Listing"
+   @click="$emit('add-listing')"
+  />
 </template>
 
 <script setup>
-import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseAddCard from '~/components/ui/BaseAddCard.vue'
+
+defineEmits(['add-listing'])
 </script>

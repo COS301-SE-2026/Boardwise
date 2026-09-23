@@ -1,5 +1,5 @@
 <template>
-  <BaseCard data-test="profile-listing-card" clickable @click="openListing">
+  <BaseCard class="profile-listing-card" data-test="profile-listing-card" clickable @click="openListing">
 
     <template #media>
       <BaseImage

@@ -4206,6 +4206,178 @@ games-owned-section {
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   PROFILE / MARKETPLACE LISTING FORM
+   ========================================================= */
+
+.listing-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.listing-form__alert {
+  margin-bottom: 0.25rem;
+}
+
+.listing-form__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.listing-form__label {
+  margin: 0;
+  color: var(--obsidian);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+}
+
+.listing-type-toggle {
+  width: fit-content;
+  border: 1px solid var(--rosewood);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.listing-type-toggle .v-btn {
+  min-width: 110px;
+  border: 0;
+  color: var(--obsidian);
+  font-weight: var(--fw-bold);
+  text-transform: none;
+}
+
+.listing-type-toggle .v-btn.v-btn--active {
+  color: white;
+  background: var(--wildfire);
+}
+
+.listing-form__date-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.listing-form__upload {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.listing-form__file-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--obsidian);
+  font-size: var(--fs-small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.listing-form__file-name--empty {
+  color: var(--rosewood);
+}
+
+.listing-form__hint {
+  margin: -0.25rem 0 0;
+  color: var(--obsidian);
+  opacity: 0.65;
+  font-size: var(--fs-small);
+}
+
+.listing-form__field-error {
+  margin: -0.25rem 0 0;
+  color: var(--wildfire);
+  font-size: var(--fs-small);
+}
+
+.listing-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--rosewood);
+}
+
+
+/* =========================================================
+   PROFILE GAME / LISTING GRIDS
+   ========================================================= */
+
+.games-owned-grid,
+.profile-page .base-grid {
+  align-items: stretch;
+}
+
+.games-owned-grid > *,
+.profile-page .base-grid > * {
+  min-width: 0;
+}
+
+
+/* =========================================================
+   GAME CARDS
+   ========================================================= */
+
+.game-card .card-title {
+  margin: 0;
+  color: var(--obsidian);
+  font-weight: var(--fw-bold);
+}
+
+.game-card .card-meta {
+  margin: 0.2rem 0 0;
+  color: var(--obsidian);
+  opacity: 0.75;
+}
+
+
+/* =========================================================
+   PROFILE LISTING CARDS
+   ========================================================= */
+
+.profile-page .price {
+  margin-top: 0.25rem;
+}
+
+.profile-page .period {
+  color: var(--obsidian);
+  opacity: 0.7;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+  .listing-form__date-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .listing-form__upload {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .listing-form__actions {
+    flex-direction: column-reverse;
+  }
+
+  .listing-form__actions > * {
+    width: 100%;
+  }
+
+  .listing-type-toggle {
+    width: 100%;
+  }
+
+  .listing-type-toggle .v-btn {
+    flex: 1;
+  }
+}
    
 /* ==========================================================
    LANDING — RAG FEATURE

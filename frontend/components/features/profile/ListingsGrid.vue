@@ -1,5 +1,5 @@
 <template>
-  <BaseGrid>
+  <BaseGrid class="profile-listings-grid">
 
     <ProfileListingCard
       v-for="listing in listings"
@@ -26,6 +26,4 @@ defineProps({
   listings: { type: Array, default: () => [] },
   editable: { type: Boolean, default: false }
 })
-
-
 </script>
