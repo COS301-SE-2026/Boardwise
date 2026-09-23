@@ -2,44 +2,48 @@
   <BaseCard class="profile-listing-card" data-test="profile-listing-card" clickable @click="openListing">
 
     <template #media>
-      <BaseImage
-        :src="listing.imageUrl ?? '/images/default-listing.png'"
-        :alt="listing.gameTitle"
-        height="200px"
-      />
+      <div class="listing-listing-card_media">
+        <BaseImage
+          :src="listing.imageUrl ?? '/images/default-listing.png'"
+          :alt="listing.gameTitle"
+          height="200px"
+        />
 
-      <BaseBadge
-        class="badge--absolute"
-        :variant="listing.listingType === 'rental' ? 'rent' : 'sale'"
-      >
-        {{ listing.listingType === 'rental' ? 'For Rent' : 'For Sale' }}
-      </BaseBadge>
+        <BaseBadge
+          class="badge--absolute"
+          :variant="listing.listingType === 'rental' ? 'rent' : 'sale'"
+        >
+          {{ listing.listingType === 'rental' ? 'For Rent' : 'For Sale' }}
+        </BaseBadge>
+      </div>
     </template>
-
     
-    <p class="card-title">{{ listing.gameTitle }}</p>
+    <div class="profile-listing-card-content">
+      <p class="card-title">{{ listing.gameTitle }}</p>
 
-      <p
-        class="price ma-0"
-        :style="{ color: listing.listingType === 'rental' ? 'var(--rent)' : 'var(--sale)' }"
-      >
-        R{{ listing.price }}
-        <span v-if="listing.listingType === 'rental'" class="period">
-          {{
-            listing.rentalPeriod
-              ? `(${listing.rentalPeriod.startDate} – ${listing.rentalPeriod.endDate})`
-              : 'week'
-          }}
-        </span>
+      <p class="listing-price">
+        R {{  listing.price  }}
       </p>
 
-      <div v-if="editable" class="d-flex ga-2 mt-1">
+      <p
+        v-if="listing.listingType === 'rental'"
+        class="listing-period"
+      >
+        {{
+          listing.rentalPeriod
+            ? `(${listing.rentalPeriod.startDate} – ${listing.rentalPeriod.endDate})`
+            : 'Rental'
+        }}
+      </p>
+
+      <div v-if="editable" class="listing-actions">
         <v-btn size="small" color="primary" variant="tonal" @click.stop="showEdit = true">Edit</v-btn>
         <v-btn size="small" color="error"   variant="tonal" @click.stop="showDelete = true">Delete</v-btn>
       </div>
+    </div>
 
-      <EditListingModal   v-model="showEdit"   :listing="listing" @saved="$emit('updated', listing.listingId)"  />
-      <DeleteListingModal v-model="showDelete" :listing="listing" @confirm="handleDelete"  />
+    <EditListingModal v-model="showEdit" :listing="listing" @saved="$emit('updated', listing.listingId)"  />
+    <DeleteListingModal v-model="showDelete" :listing="listing" @confirm="handleDelete"  />
 
   </BaseCard>
 </template>

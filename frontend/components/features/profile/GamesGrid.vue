@@ -1,8 +1,6 @@
 <template>
   <BaseGrid data-test="games-grid" class="games-owned-grid">
-
-    <AddGameCard @add-game="$emit('add-game')" />
-
+    
     <GameCard
       v-for="game in games"
       :key="game.id"
@@ -12,6 +10,8 @@
       :image="game.imageUrl"
       @remove="$emit('remove-game', game.id)"
     />
+
+    <AddGameCard @add-game="$emit('add-game')" />
 
   </BaseGrid>
 </template>

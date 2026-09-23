@@ -1,5 +1,5 @@
 <template>
-  <BaseGrid class="profile-listings-grid">
+  <BaseGrid data-test="listings-grid" class="listings-grid">
 
     <ProfileListingCard
       v-for="listing in listings"
@@ -10,7 +10,10 @@
       @updated="$emit('updated')"
     />
 
-    <AddListingCard v-if="editable" @click="$emit('add-listing')" />
+    <AddListingCard 
+      v-if="editable" 
+      @add-listing="$emit('add-listing')" 
+    />
 
   </BaseGrid>
 </template>

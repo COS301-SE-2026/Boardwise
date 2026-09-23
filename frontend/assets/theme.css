@@ -4207,6 +4207,73 @@ games-owned-section {
   }
 }
 
+/* ========================================
+   Profile Listings
+   ======================================== */
+.profile-listing-card {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.listing-image-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+.listing-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.listing-card-content {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-md);
+  min-width: 0;
+}
+
+.listing-card-content .card-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  line-height: 1.25;
+  color: var(--color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.listing-price {
+  margin: var(--space-sm) 0 0;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  color: var(--sale);
+}
+
+.listing-period {
+  margin: var(--space-xs) 0 0;
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+}
+
+.listing-actions {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.listings-grid {
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+  display: grid !important;
+  align-items: start;
+}
+
 /* =========================================================
    PROFILE / MARKETPLACE LISTING FORM
    ========================================================= */
