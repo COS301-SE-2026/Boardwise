@@ -29,17 +29,17 @@
                 @click="selectGame(game)"
               >
                 <div class="titleResult_thumb">
-                  <v-img
+                  <BaseImage
                     width="48"
                     height="48"
                     cover
                     :src="game.imageUrl ?? '/default.png'"
-                  ></v-img>
+                  ></BaseImage>
                 </div>
                 <div class="titleResult_info">
                   <p class="text-body-2 mb-0">{{ game.title }}</p>
                   <p class="text-caption mb-0" style="color: var(--color-text-muted)">
-                    {{ game.genre?.[0] ?? '' }}
+                    {{ game.genres?.[0] ?? '' }}
                   </p>
                 </div>
               </div>
@@ -48,13 +48,13 @@
         </template>
 
         <div v-else class="selectedGameCard">
-          <v-img
+          <BaseImage
             width="40"
             height="40"
             cover
             :src="selectedGame.imageUrl ?? '/default.png'"
             class="selectedGameCard_thumb"
-          ></v-img>
+          ></BaseImage>
           <span class="text-body-2 flex-1-1">{{ selectedGame.title }}</span>
           <BaseButton variant="secondary" size="small" @click="clearSelection">
             Clear selection
@@ -65,11 +65,6 @@
       <div>
         <p class="text-caption font-weight-bold mb-2">Edition</p>
         <BaseInput v-model="edition" placeholder="Rulebook Edition (optional, eg. version 1)" />
-      </div>
-
-      <div>
-        <p class="text-caption font-weight-bold mb-2">Language</p>
-        <BaseInput v-model="language" placeholder="Language" />
       </div>
 
       <div>
@@ -113,6 +108,7 @@ import BaseSearch from '~/components/ui/BaseSearch.vue'
 import AddCustomGameModal from '~/components/features/shared/AddCustomGameModal.vue'
 import { useBoardGames } from '~/composables/useBoardGames'
 import { useDebounceFn } from '@vueuse/core'
+import BaseImage from '~/components/ui/BaseImage.vue'
 
 const { games, isLoading: gamesLoading, searchGames } = useBoardGames()
 
@@ -161,7 +157,6 @@ const onCustomGameAdded = (game, submittedGame) => {
 }
 
 const edition = ref('')
-const language = ref('')
 const fileName = ref('')
 const fileInput = ref(null)
 const fileToUpload = ref(null)
@@ -169,7 +164,7 @@ const fileToUpload = ref(null)
 const triggerUpload = () => fileInput.value?.click()
 
 const isFormValid = computed(() => {
-  return selectedGame.value && language.value && fileToUpload.value
+  return selectedGame.value && fileToUpload.value
 })
 
 const handleFile = (e) => {
@@ -184,7 +179,6 @@ const resetForm = () => {
   search.value = ''
   selectedGame.value = null
   edition.value = ''
-  language.value = ''
   fileName.value = ''
   fileToUpload.value = null
   if (fileInput.value) {
@@ -204,7 +198,7 @@ const handleAdd = () => {
     title: selectedGame.value.title,
     gameId: selectedGame.value.id,
     edition: edition.value,
-    language: language.value,
+    language: "English",
     file: fileToUpload.value
   })
 }

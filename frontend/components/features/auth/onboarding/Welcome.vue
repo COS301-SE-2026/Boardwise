@@ -26,23 +26,3 @@ defineProps({
 
 defineEmits(['continue'])
 </script>
-
-<style scoped>
-.onboarding-setup {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-6);
-    width: 100%;
-    max-width: 720px;
-}
-
-.onboarding-step_logo {
-    width: clamp(220px, 35vw, 320px);
-}
-.onboarding-step_cta {
-    align-self: center;
-    padding: var(--space-3) var(--space-8);
-}
-</style>

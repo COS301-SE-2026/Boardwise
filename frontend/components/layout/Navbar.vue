@@ -21,12 +21,11 @@
 
     <!-- Desktop Search -->
     <div v-if="lgAndUp" class="center">
-      <v-text-field 
-        placeholder="Search games, users, rules..."
-        prepend-inner-icon="mdi-magnify"
-        class="search"
+      <BaseSearch
         v-model="searchQuery"
-        hide-details
+        placeholder="Search games, users, rules..."
+        aria-label="Search"
+        class="search"
         @keyup.enter="submitSearch(searchQuery)"
       />
     </div>
@@ -35,43 +34,49 @@
     <div v-if="lgAndUp" class="right">
         <NuxtLink to="/library" class="nav-link">Library</NuxtLink> 
         <NuxtLink to="/marketplace" class="nav-link">Marketplace</NuxtLink>
-        <NuxtLink to="/community" class="nav-link">Community</NuxtLink>
+        <NuxtLink to="/social" class="nav-link">Social</NuxtLink>
         <NuxtLink to="/events" class="nav-link">Events</NuxtLink>
-        <v-menu 
-          open-on-hover
-          :close-on-content-click="false"
-          location="bottom end"
-          offset="8"
+
+        <BaseButton icon variant="text" to="/notifications" aria-label="Notifications">
+          <v-icon size="26">mdi-bell-outline</v-icon>
+        </BaseButton>
+
+        <BaseDropdown 
+          aria-label="Account menu"
+          :menu-props="{
+            openOnHover: true,
+            closeOnContentClick: false,
+            location: 'bottom end',
+            offset: 8
+          }"
+          :list-props="{
+            nav: true,
+            density: 'compact',
+            minWidth: 200
+          }"
+          icon
+          variant="text"
+          to="/profile"
         >
-          <template #activator="{ props: menuProps }">
-            <v-btn 
-              icon
-              variant="text"
-              to="/profile"
-              v-bind="menuProps"
-              aria-label="Account menu"
-            >
+          <template #activator>
               <v-icon size="28">mdi-account-circle</v-icon>
-            </v-btn>
           </template>
 
-          <v-list nav density="compact" min-width="200">
-                <v-list-item
-                    prepend-icon="mdi-chat-outline"
-                    title="Chats"
-                    to="/chats"
-                />
-                <!-- <v-list-item
-                    prepend-icon="mdi-cog-outline"
-                    title="Settings"
-                    to="/settings"
-                /> -->
-                <v-divider class="my-1" />
-                <v-list-item class="px-2">
-                    <LogOutButton block />
-                </v-list-item>
-              </v-list>
-        </v-menu> 
+          <v-list-item
+              prepend-icon="mdi-chat-outline"
+              title="Chats"
+              to="/chats"
+          />
+          <v-list-item
+              prepend-icon="mdi-cog-outline"
+              title="Settings"
+              to="/settings"
+          />
+          <v-divider class="my-1" />
+          <v-list-item class="px-2">
+              <LogOutButton block />
+          </v-list-item>
+        </BaseDropdown> 
     </div>
 
     <!-- Mobile -->
@@ -83,67 +88,69 @@
       >
 
         <template #activator="{ props: menuProps }">
-          <v-btn 
+          <BaseButton 
             icon
             variant="text" 
             v-bind="menuProps" 
             aria-label="Search"
           >
             <v-icon size="26">mdi-magnify</v-icon>
-          </v-btn>
+          </BaseButton>
         </template>
 
         <!-- Search (Mobile) -->
         <v-card class="pa-2" min-width="280">
-          <v-text-field
-            placeholder="Search..."
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            density="compact"
-            rounded="pill"
-            hide-details
-            autofocus
+          <BaseSearch
             v-model="mobileSearchQuery"
+            placeholder="Search..."
+            aria-label="Search"
+            rounded="pill"
+            autofocus
             @keyup.enter="submitSearch(mobileSearchQuery)"
           />
         </v-card>
       </v-menu>
 
-      <v-menu
-        :close-on-content-click="false"
-        location="bottom end"
+      <BaseButton icon variant="text" to="/notifications" aria-label="Notifications">
+        <v-icon size="26">mdi-bell-outline</v-icon>
+      </BaseButton>
+
+      <BaseDropdown
+        aria-label="Account menu"
+        :menu-props="{
+          closeOnContentClick: false,
+          location: 'bottom end'
+        }"
+        :list-props="{
+          nav: true,
+          density: 'compact',
+          minWidth: 200
+        }"
+        icon
+        variant="text"
+        to="/profile"
       >
-        <template #activator="{ props: menuProps }">
-          <v-btn 
-            icon
-            variant="text"
-            to="/profile"
-            v-bind="menuProps"
-            aria-label="Account menu"
-          >
+        <template #activator>
             <v-icon size="26">mdi-account-circle</v-icon>
-          </v-btn>
         </template>
 
-        <v-list nav density="compact" min-width="200">
-          <v-list-item 
+        <v-list-item 
             prepend-icon="mdi-chat-outline"
             title="Chats"
             to="/chats"
           />
 
-          <!-- <v-list-item 
+          <v-list-item 
             prepend-icon="mdi-cog-outline"
             title="Settings"
             to="/settings"
-          /> -->
+          />
 
           <v-divider class="my-1" />
-            <v-list-item class="px-2">
-              <LogOutButton block />
-            </v-list-item>
-        </v-list>
-      </v-menu>
+          <v-list-item class="px-2">
+            <LogOutButton block />
+          </v-list-item>
+      </BaseDropdown>
     </div>
   </div>
 </v-app-bar>
@@ -157,7 +164,7 @@
   <v-list nav density="compact">
     <v-list-item prepend-icon="mdi-bookshelf" title="Library" to="/library" @click="drawer = false" />
     <v-list-item prepend-icon="mdi-store" title="Marketplace" to="/marketplace" @click="drawer = false" />
-    <v-list-item prepend-icon="mdi-account-group" title="Community" to="/community" @click="drawer = false" />
+    <v-list-item prepend-icon="mdi-account-group" title="Social" to="/social" @click="drawer = false" />
     <v-list-item prepend-icon="mdi-calendar" title="Events" to="/events" @click="drawer = false" />
   </v-list>
 </v-navigation-drawer>
@@ -170,6 +177,8 @@ import { useDisplay } from 'vuetify'
 import { useRouter } from 'vue-router'
 
 import LogOutButton from '~/components/features/auth/LogOutButton.vue'
+import BaseButton from '../ui/BaseButton.vue'
+import BaseDropdown from '../ui/BaseDropdown.vue'
 
 const drawer = ref(false)
 
@@ -242,14 +251,15 @@ const { lgAndUp } = useDisplay()
   color: var(--color-text);
   text-decoration: none;
   font-weight: var(--fw-medium);
-  transition: color .2s;
+  transition: color 0.2s;
 }
 
 .nav-link:hover,
 .nav-link.router-link-active,
 .nav-link.router-link-exact-active {
-  color: var(--obsidian);
+  color: var(--color-primary);
   font-weight: var(--fw-bold);
+  text-decoration: none;
 }
 
 @media (max-width:1279px) {
@@ -268,16 +278,15 @@ const { lgAndUp } = useDisplay()
     font-size: 2rem;
   }
 
-  .mobile .v-btn {
-    width: 36px;
-    min-width: 36px;
-    height: 36px;
-  }
-
   .left {
     flex: 1;
     min-width: 0;
   }
+}
+.mobile {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 :deep(.v-field--outlined) {

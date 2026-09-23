@@ -2,36 +2,27 @@
     <PageContainer>
         <!-- Loading -->
         <template v-if="loading">
-            <v-container
-                class="d-flex justify-center align center"
-                style="min-height: 60vh"
-            >
-                <v-progress-circular
-                    indeterminate
-                    color="primary"
-                    size="48"
-                />
-            </v-container>
+            <BaseLoadingState />
         </template>
 
         <!-- Profile not found -->
         <template v-else-if="notFound">
-            <v-container
+            <div
                 class="d-flex justify-center align-center"
                 style="min-height: 60vh"
             >
                 <BaseEmptyState
                     title="Profile not found"
-                    description="The user you're looking for doesn't exist or is no longer available."
+                    message="The user you're looking for doesn't exist or is no longer available."
                 />
-            </v-container>
+            </div>
         </template>
 
         <!-- Profile -->
         <template v-else-if="user">
             <Navbar />
 
-            <v-card flat class="profile-header pa-10 w-100 mb-6">
+            <BaseCard flush class="profile-header pa-10 w-100 mb-6">
                 <div class="d-flex justify-space-between align-center flex-wrap ga-6">
                     <div class="d-flex align-center ga-6 flex-wrap profle-info">
                         <BaseAvatar 
@@ -50,7 +41,7 @@
 
                     <div class="d-flex ga-1">
                         <BaseButton 
-                            @click="handleClick(route.params.id as string)" 
+                            @click="handleMessageClick(route.params.id as string)" 
                             :variant="'primary'"
                             size="small"
                             v-if="user.status === FriendStatus.ACCEPTED"
@@ -65,7 +56,7 @@
                         />
                     </div>
                 </div>
-            </v-card>
+            </BaseCard>
 
             <ProfileStats
                 :games="user.ownedGameCount"
@@ -76,14 +67,17 @@
 
             <ProfileCommunities :communities="user.communities" />
 
-            <v-tabs v-model="activeTab" color="primary" class="mb-4">
-                <v-tab value="Games Owned">Games Owned</v-tab>
-                <v-tab value="Listings">Listings</v-tab>
-            </v-tabs>
+            <BaseTabs
+                :tabs="['Games Owned', 'Listings']"
+                :active-tabs="activeTab"
+                aria-label="Profile sections"
+                class="mb-4"
+                @change="activeTab=$event"
+            />
 
             <v-window v-model="activeTab">
                 <v-window-item value="Games Owned">
-                    <GamesOwnedSection :games="games" :editable="false" />
+                    <GamesOwnedSection :games="games" />
                 </v-window-item>
 
                 <v-window-item value="Listings">
@@ -110,6 +104,7 @@ import { useRoute, useRouter } from 'vue-router'
 import Navbar from '~/components/layout/Navbar.vue';
 import BaseAvatar from '~/components/ui/BaseAvatar.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
+import BaseCard from '~/components/ui/BaseCard.vue';
 import PageContainer from '~/components/layout/PageContainer.vue';
 
 import ProfileStats from '~/components/features/profile/ProfileStats.vue';
@@ -124,6 +119,7 @@ import { useProfile } from '~/composables/useProfile'
 import { useFriends } from '~/composables/useFriends'
 import { FriendStatus } from '~/services/userService';
 import type { ProfileResponse } from '~/services/userService'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue';
 
 const route = useRoute()
 const router = useRouter()
@@ -171,7 +167,7 @@ const loadProfile = async (id: string) => {
     }
 }
 
-const handleClick = (id: string) => {
+const handleMessageClick = (id: string) => {
   router.push({
     path: '/chats',
     query: { newChat: id }

@@ -27,7 +27,7 @@
 
         <v-col cols="12" md="6">
             <v-card flat border class="rule-card do pa-4 h-100">
-                <div class="rule-card-title dont-title mb-3">
+                <div class="rule-card-title do-title mb-3">
                     <v-icon>mdi-check</v-icon>
                     Do
                 </div>
@@ -64,7 +64,7 @@
 
         <v-col cols="12" md="6">
             <v-card flat border class="rule-card do pa-4 h-100">
-                <div class="rule-card-title dont-title mb-3">
+                <div class="rule-card-title do-title mb-3">
                     <v-icon>mdi-check</v-icon>
                     Do
                 </div>
@@ -84,7 +84,7 @@
     <v-row class="mt-2">
         <v-col cols="12" md="6">
             <v-card flat border class="rule-card do pa-4 h-100">
-                <div class="rule-card-title dont-title mb-3">
+                <div class="rule-card-title do-title mb-3">
                     <v-icon>mdi-check</v-icon>
                     Do
                 </div>

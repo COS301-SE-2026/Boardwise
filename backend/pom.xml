@@ -36,12 +36,6 @@
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>com.microsoft.playwright</groupId>
-			<artifactId>playwright</artifactId>
-			<version>1.59.0</version>
-		</dependency>
-
 		<!-- Spring Web -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

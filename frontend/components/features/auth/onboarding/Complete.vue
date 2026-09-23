@@ -16,15 +16,3 @@ import BaseButton from '~/components/ui/BaseButton.vue';
 
 defineEmits(['finished'])
 </script>
-
-<style scoped>
-.onboarding-step_final {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-6);
-    max-width: 720px;
-    width: 100%;
-}
-</style>

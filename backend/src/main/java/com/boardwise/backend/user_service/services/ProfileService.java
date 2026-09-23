@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import org.bson.types.ObjectId;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.boardwise.backend.shared.dtos.GameInventoryDTO;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
+import com.boardwise.backend.shared.services.NotificationService;
 import com.boardwise.backend.shared.dtos.OtherGameDTO;
 import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.user_service.dtos.notifications.CommunityMessageNotification;
@@ -34,6 +36,7 @@ import com.boardwise.backend.user_service.dtos.FriendDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestDTO;
 import com.boardwise.backend.user_service.dtos.notifications.FriendRequestNotification;
 import com.boardwise.backend.user_service.dtos.response.FriendRequestResponseDTO;
+import com.boardwise.backend.user_service.dtos.response.PresenceResponseDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestsDTO;
 import com.boardwise.backend.user_service.dtos.FriendsListDTO;
 import com.boardwise.backend.user_service.dtos.notifications.InviteNotification;
@@ -52,6 +55,8 @@ import com.boardwise.backend.user_service.enums.NotificationType;
 import com.boardwise.backend.user_service.events.FriendEvent;
 import com.boardwise.backend.user_service.events.payload.FriendEventPayload;
 import com.boardwise.backend.user_service.models.*;
+import com.boardwise.backend.user_service.models.user_preferences.Preferences;
+import com.boardwise.backend.user_service.models.user_preferences.Settings;
 import com.boardwise.backend.user_service.repository.FriendShipRepository;
 import com.boardwise.backend.user_service.repository.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repository.GroupRepository;
@@ -78,6 +83,7 @@ public class ProfileService {
     private final GeoApiContext geoContext;
     private final MongoTemplate template;
     private final NotificationRepository notifRepo;
+    private final NotificationService notifService;
     private final ApplicationEventPublisher eventPublisher;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
@@ -169,7 +175,13 @@ public class ProfileService {
         User subject = userRepo.findById(userId).get();
 
         String cleanQuery = AuthService.sanitize(query);
-        Criteria searchCriteria = Criteria.where("username").regex(cleanQuery, "i");
+        Pattern pattern = Pattern.compile(Pattern.quote(cleanQuery), Pattern.CASE_INSENSITIVE);
+
+        Criteria searchCriteria = new Criteria().orOperator(
+            Criteria.where("username").regex(pattern),
+            Criteria.where("firstName").regex(pattern),
+            Criteria.where("lastName").regex(pattern)
+        );
         Query dbQuery = new Query(searchCriteria);
         List<User> matches = template.find(dbQuery, User.class);
 
@@ -244,12 +256,10 @@ public class ProfileService {
         }
 
         if(profileUpdateData.preferences() != null){
-            String visibility = profileUpdateData.preferences().getVisibility() == null ? 
-                                user.getPreferences().getVisibility() : 
-                                profileUpdateData.preferences().getVisibility();
+           
 
             PreferencesRequestDTO dto = new PreferencesRequestDTO(
-                visibility,
+                profileUpdateData.preferences().getSettings().getPrivacy().getVisibility(),
                 profileUpdateData.preferences().getGenres()
             );
             Map<String, Object> prefs = updateOrSetPreferences(token, dto);
@@ -285,17 +295,17 @@ public class ProfileService {
     ){
         String userId = jwtService.extractUserId(token).toString();
         User user = userRepo.findById(userId).get();
+
+        Settings settings = user.getPreferences().getSettings();
         
-        if(user.getPreferences() == null){
-            user.setPreferences(new Preferences());    
-        }
         
-        if(!prefData.visibility().equalsIgnoreCase(user.getPreferences().getVisibility()))
-            user.getPreferences().setVisibility(prefData.visibility());
+        if(prefData.visibility() != null && prefData.visibility() != settings.getPrivacy().getVisibility())
+            settings.getPrivacy().setVisibility(prefData.visibility());
             
         if(prefData.genres() != null)
             user.getPreferences().setGenres(prefData.genres());
 
+        user.getPreferences().setSettings(settings);
         User updatedUser = userRepo.save(user);
 
         Map<String, Object> data = new HashMap<>();
@@ -708,6 +718,16 @@ public class ProfileService {
         return new NotificationsDTO(
             "Missed user notifications retrieved",
             notifications
+        );
+    }
+
+    public PresenceResponseDTO getUserPresence(String userId){
+        if(!userRepo.existsById(userId))
+            throw new NoSuchElementException("User with id:" +  userId + "does not exist.");
+
+        return new PresenceResponseDTO(
+            "User presence successfully retrieved",
+            notifService.isOnline(userId)
         );
     }
 

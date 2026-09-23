@@ -1,43 +1,16 @@
 <template>
-    <BaseFilterSidebar @resetFilters="resetFilters">
+    <BaseFilterSidebar @reset="resetFilters">
         
         <BaseFilterGroup title="Date">
-            <div
-                v-for="date in dates"
-                :key="date"
-                class="date-option"
-                :class="{ 'active': selectedDate === date }"
-                @click="selectedDate= date"
-            >
-                {{ date }}
-            </div>
+            <BaseFilterPills v-model="selectedDate" :options="dates" />
         </BaseFilterGroup>
-            <v-checkbox
-                v-for="game in games"
-                :key="game"
-                :label="game"
-                :value="game"
-                v-model="selectedGames"
-                density="compact"
-                color="primary"
-                hide-details
-            />    
-        <BaseFilterGroup title="Game">
-            <v-checkbox
-                v-model="filters.online"
-                label="Online"
-                density="compact"
-                color="primary"
-                hide-details
-            />
 
-            <v-checkbox
-                v-model="filters.inPerson"
-                label="In Person"
-                density="compact"
-                color="primary"
-                hide-details
-            />
+        <BaseFilterGroup title="Game Titles">
+            <BaseFilterCheckboxGroup v-model="selectedGames" :options="gameOptions" />
+        </BaseFilterGroup>
+
+        <BaseFilterGroup title="Format">
+            <BaseFilterCheckboxGroup v-model="selectedFormats" :options="['In-Person', 'Online']" />
         </BaseFilterGroup>
 
     </BaseFilterSidebar>
@@ -48,6 +21,8 @@ import { ref, reactive, watch} from 'vue';
 
 import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue';
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue';
+import BaseFilterPills from '~/components/ui/Filters/BaseFilterPills.vue';
+import BaseFilterCheckboxGroup from '~/components/ui/Filters/BaseFilterCheckboxGroup.vue';
 
 const emit = defineEmits(['filter'])
 
@@ -69,6 +44,9 @@ const games = [
 
 const selectedDate = ref('All')
 const selectedGames = ref([])
+const selectedFormats = ref([])
+
+const gameOptions = computed(() => games)
 
 const filters = reactive({
   online: false,
@@ -92,22 +70,3 @@ const resetFilters = () => {
   filters.inPerson = false
 }
 </script>
-
-<style scoped>
-.date-option {
-  padding: 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.date-option:hover {
-  background: var(--color-surface-hover);
-}
-
-.date-option.active {
-  background: var(--color-primary);
-  color: white;
-  font-weight: 600;
-}
-</style>

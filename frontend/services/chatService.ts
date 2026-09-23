@@ -12,6 +12,7 @@ export interface ConversationDTO{
     username: string,
     profilePicture: string,
     lastMessage: string,
+    lastMessageSender: string,
     lastMessageAt: string,
     isOnline: boolean
 }
