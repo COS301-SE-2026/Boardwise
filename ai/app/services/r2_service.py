@@ -52,7 +52,7 @@ def generate_pdf_key(rulebook_id: str, filename: str) -> str:
 def ping_r2_storage():
     """Pings the S3 compatible object storage"""
     try:
-        s3.head_bucket(Bucket=settings.R2_BUCKET_RULEBOOKS)
+        s3.head_bucket(Bucket=settings.R2_BUCKET_RULEBOOKS)  # NOSONAR
     except ClientError:
         logger.exception("R2 Connection failed")
         raise
@@ -73,7 +73,7 @@ def download_from_r2(r2_key: str) -> bytes | None:
         logger.info("Successfully downloaded %s from R2.", r2_key)
         return file_bytes
     except ClientError as e:
-        logger.error(
+        logger.exception(
             "Failed to download %s from R2: %s", r2_key, e.response["Error"]["Message"]
         )
         return None

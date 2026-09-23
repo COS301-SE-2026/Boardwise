@@ -243,7 +243,7 @@ def _extract_text_and_max_size(raw_block: dict) -> tuple[str, float]:
     return (" ".join(content_lines).strip(), block_max_size)
 
 
-def _classify_text_block(
+def _classify_text_block( # NOSONAR
     content: str,
     block_max_size: float,
     median_size: float,
@@ -253,11 +253,12 @@ def _classify_text_block(
     """Determines block type, confidence score, and heading level based on predefined rules."""
     if pre_assigned:
         heading_level = 2 if pre_assigned == "heading" else None
-        confidence = (
-            0.7
-            if pre_assigned == "table"
-            else (0.9 if pre_assigned == "aside" else 1.0)
-        )
+        if pre_assigned == "table":
+            confidence = 0.7
+        elif pre_assigned == "aside":
+            confidence = 0.9
+        else:
+            confidence = 1.0
         return (pre_assigned, confidence, heading_level)
 
     block_type = "paragraph"

@@ -2,6 +2,7 @@ import base64
 import io
 import json
 import logging
+import math
 import re
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, cast
@@ -118,7 +119,11 @@ def extract_text(file_bytes: bytes, rulebook_id: str) -> tuple[bool, str, str, d
                 page_quality.append(
                     {
                         "page": page_num + 1,
-                        "escalated": used_tier3 or (confidence_override == 0.9),
+                        "escalated": used_tier3
+                        or (
+                            confidence_override is not None
+                            and math.isclose(confidence_override, 0.9)
+                        ),
                         "flagged": escalate_page,
                         "reason": escalation_reason,
                     }
@@ -516,9 +521,9 @@ def _escalate_to_tier_3(file_bytes: bytes) -> list[dict]:
         logger.error(
             "Tier 3 connection dropped. The Docker container likely hit its memory limit."
         )
-    except requests.exceptions.HTTPError as e:
-        logger.error(
-            f"Tier 3 API returned an HTTP error(likely an OOM crash inside the container): {e}"
+    except requests.exceptions.HTTPError:
+        logger.exception(
+            "Tier 3 API returned an HTTP error(likely an OOM crash inside the container)"
         )
     except Exception:
         logger.exception("Unexpected error communicating with local Unstructured API.")

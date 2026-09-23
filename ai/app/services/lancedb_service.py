@@ -92,8 +92,8 @@ def ensure_indexes(force_recreate: bool = False) -> None:
     try:
         table.create_fts_index("content", replace=True)
         logger.info("LanceDB indexes ready.")
-    except Exception as e:
-        logger.error(f"Failed to create FTS index: {e}.")
+    except Exception:
+        logger.exception("Failed to create FTS index.")
 
 
 def ping_lancedb() -> None:
@@ -202,8 +202,15 @@ def query_vector(rulebook_id: str, query_vector: list[float], limit: int) -> lis
         .limit(limit)
         .select(
             [
-                "chunkId", "content","index", "charCount", "type", "needsReview",
-                "confidence", "associatedImageUrls", "_distance",
+                "chunkId",
+                "content",
+                "index",
+                "charCount",
+                "type",
+                "needsReview",
+                "confidence",
+                "associatedImageUrls",
+                "_distance",
             ]
         )
         .to_list()
@@ -222,8 +229,14 @@ def query_fts(rulebook_id: str, query_text: str, limit: int) -> list[dict]:
         .limit(limit)
         .select(
             [
-                "chunkId", "content", "index", "charCount", "type",
-                "needsReview", "confidence", "associatedImageUrls",
+                "chunkId",
+                "content",
+                "index",
+                "charCount",
+                "type",
+                "needsReview",
+                "confidence",
+                "associatedImageUrls",
             ]
         )
         .to_list()

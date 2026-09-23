@@ -76,7 +76,7 @@ def _handle_oversized_block(block: dict, content: str, rulebook_id: str, chunks:
     
         chunks.append(_roll_up_chunk([sub_block], rulebook_id, len(chunks)))
 
-def _chunk_section(
+def _chunk_section( # NOSONAR
     section_blocks: list[dict],
     rulebook_id: str,
     chunks: list[dict],

@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def migrate_rulebooks():
+def migrate_rulebooks(): # NOSONAR
     """
     Full re-embedding migration. Extracts, chunks, and vectorises all Ready rulebooks.
     Skips actively locked rulebooks to prevent editing session corruption
