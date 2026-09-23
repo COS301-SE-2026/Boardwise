@@ -6,8 +6,8 @@ onMounted(() => { sync(); window.addEventListener('online', sync); window.addEve
 onUnmounted(() => { window.removeEventListener('online', sync); window.removeEventListener('offline', sync) })
 </script>
 <template>
-  <div v-if="offline" class="pwa-offline" role="status">
+  <output v-if="offline" class="pwa-offline">
     You’re offline. Cached pages may open; chat, uploads and changes need a connection.
     <a href="/offline.html">Offline help</a>
-  </div>
+  </output>
 </template>

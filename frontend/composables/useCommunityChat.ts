@@ -1,6 +1,5 @@
 import { computed, onScopeDispose, ref, watch } from 'vue'
 import { createSharedComposable } from '@vueuse/core'
-import { jwtDecode } from 'jwt-decode'
 import { useRoute, useRouter } from 'vue-router'
 
 import { useStomp } from '~/composables/useStomp'
@@ -52,7 +51,7 @@ const _useCommunityChat = () => {
       return null
     }
 
-    return messages.value[messages.value.length - 1]?.sentAt ?? null
+    return messages.value.at(-1)?.sentAt
   })
 
   const sortMessages = () => {

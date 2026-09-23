@@ -304,7 +304,6 @@ watch(
     if (isRestrictedPrivateCommunity.value) {
       requestSent.value = false
       showPrivateCommunityModal.value = true
-      return
     }
   },
   { immediate: true }

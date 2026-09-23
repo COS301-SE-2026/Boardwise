@@ -24,13 +24,12 @@
         its discussions, members and other private information.
       </p>
 
-      <p
+      <output
         v-if="requested"
         class="private-community-modal__success"
-        role="status"
       >
         Your request has been sent to the community owner.
-      </p>
+      </output>
 
       <div class="private-community-modal__actions">
         <BaseButton

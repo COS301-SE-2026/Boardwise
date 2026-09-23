@@ -2857,6 +2857,10 @@ html[data-density="compact"] .rulebook-list {
   overflow-wrap: anywhere;
 }
 
+.pwa-offline {
+  display: block;
+}
+
 .community-chat-message--own .community-chat-message__content {
   align-items: flex-end;
 }
