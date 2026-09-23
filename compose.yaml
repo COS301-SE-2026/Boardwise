@@ -128,8 +128,8 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
-      unstructured-api:
-        condition: service_started
+      # unstructured-api:
+      #   condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/fa/health"]
       interval: 30s
@@ -163,25 +163,25 @@ services:
       scrapers:
         condition: service_started
   
-  unstructured-api:
-    image: quay.io/unstructured-io/unstructured-api:latest
-    container_name: unstructured-api
-    restart: unless-stopped
-    ports:
-      - 8888:8000
-    deploy:
-      resources:
-        limits:
-          cpus: "2.0"
-          memory: "8g"
-        reservations:
-          memory: "1g"
-    healthcheck:
-      test: ["CMD","curl", "-f", "http://localhost:8000/healthcheck"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 180s
+  # unstructured-api:
+  #   image: quay.io/unstructured-io/unstructured-api:latest
+  #   container_name: unstructured-api
+  #   restart: unless-stopped
+  #   ports:
+  #     - 8888:8000
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: "2.0"
+  #         memory: "8g"
+  #       reservations:
+  #         memory: "1g"
+  #   healthcheck:
+  #     test: ["CMD","curl", "-f", "http://localhost:8000/healthcheck"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 180s
 
 volumes:
   db:
