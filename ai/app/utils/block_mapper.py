@@ -6,6 +6,43 @@ from typing import Any
 from app.config import settings
 
 
+def _extract_valid_block_data(
+    raw_block: dict,
+    order: int,
+    raw_blocks: list[dict],
+    page_num: int,
+    rulebook_id: str,
+    seen_image_hashes: set[str],
+    pending_uploads: list[tuple[bytes, str, str]],
+    image_base_url: str,
+    median_size: float,
+) -> dict | None:
+    """Routes block processing by type and filters out OCR gibberish."""
+    raw_type = raw_block.get("type")
+
+    if raw_type == 1:  # Image block in pymupdf
+        return _process_image_block(
+            raw_block,
+            order,
+            raw_blocks,
+            page_num,
+            rulebook_id,
+            seen_image_hashes,
+            pending_uploads,
+            image_base_url,
+        )
+
+    if raw_type == 0:  # Text block
+        block_data = _process_text_block(raw_block, page_num, median_size)
+        if not block_data or (
+            _is_ocr_gibberish(block_data["content"])
+            and block_data["type"] not in ("decorative", "table")
+        ):
+            return None
+        return block_data
+    return None
+
+
 def map_to_blocks(
     page_dict: dict[str, Any],
     rulebook_id: str,
@@ -31,29 +68,20 @@ def map_to_blocks(
             continue
 
         block_id = f"blk_{uuid.uuid4().hex[:8]}"
-        raw_type = raw_block.get("type")
 
-        if raw_type == 1:  # Image block in pymupdf
-            block_data = _process_image_block(
-                raw_block,
-                order,
-                raw_blocks,
-                page_num,
-                rulebook_id,
-                seen_image_hashes,
-                pending_uploads,
-                image_base_url,
-            )
-            if not block_data:
-                continue
-        elif raw_type == 0:  # Text block
-            block_data = _process_text_block(raw_block, page_num, median_size)
-            if not block_data or (
-                _is_ocr_gibberish(block_data["content"])
-                and block_data["type"] not in ("decorative", "table")
-            ):
-                continue
-        else:
+        block_data = _extract_valid_block_data(
+            raw_block,
+            order,
+            raw_blocks,
+            page_num,
+            rulebook_id,
+            seen_image_hashes,
+            pending_uploads,
+            image_base_url,
+            median_size,
+        )
+
+        if not block_data:
             continue
 
         final_confidence = block_data["confidence"]
@@ -77,22 +105,32 @@ def map_to_blocks(
     return blocks
 
 
+def _extract_font_sizes(raw_block: dict) -> list[float]:
+    """Helper to extract font sizes from a single text block."""
+    sizes = []
+    if raw_block.get("type") != 0:
+        return sizes
+
+    for line in raw_block.get("lines", []):
+        if isinstance(line, dict):
+            for span in line.get("spans", []):
+                if isinstance(span, dict) and "size" in span:
+                    sizes.append(span["size"])
+    return sizes
+
+
 def _calculate_median_font_size(raw_blocks: list[dict]) -> float:
     """Calculates the baseline font size for the page to identify headings."""
     font_sizes = []
     for raw_block in raw_blocks:
-        if isinstance(raw_block, dict) and raw_block.get("type") == 0:
-            for line in raw_block.get("lines", []):
-                if isinstance(line, dict):
-                    for span in line.get("spans", []):
-                        if isinstance(span, dict) and "size" in span:
-                            font_sizes.append(span["size"])
+        if isinstance(raw_block, dict):
+            font_sizes.extend(_extract_font_sizes(raw_block))
 
-    if font_sizes:
-        font_sizes.sort()
-        return font_sizes[len(font_sizes) // 2]
+    if not font_sizes:
+        return 11.0  # Fallback
 
-    return 11.0  # Fallback
+    font_sizes.sort()
+    return font_sizes[len(font_sizes) // 2]
 
 
 def _process_image_block(
@@ -110,12 +148,19 @@ def _process_image_block(
     if bbox and len(bbox) == 4:
         bw = bbox[2] - bbox[0]
         bh = bbox[3] - bbox[1]
+
+        # Filtering out tiny icons and massive full-page background textures
         if bw < settings.MIN_IMAGE_DIMENSION_PX or bh < settings.MIN_IMAGE_DIMENSION_PX:
             # Too small to be a meaningful diagram/ illustration; skip it
             return None
 
+        if bw == 0 or bh == 0 or (bw / bh) > 8 or (bh / bw) > 8:
+            return None
+
+    image_ext = raw_block.get("ext", "png").lower()
+    if image_ext not in ["png", "jpeg", "jpg"]:
+        return None
     image_bytes = raw_block.get("image")
-    image_ext = raw_block.get("ext", "png")
     image_hash = hashlib.sha256(image_bytes).hexdigest() if image_bytes else None
 
     if image_hash:
@@ -141,33 +186,45 @@ def _process_image_block(
     }
 
 
+def _is_valid_caption(text: str) -> bool:
+    if not text:
+        return False
+    text_lower = text.lower()
+
+    if text_lower.startswith(("fig", "figure", "image", "table", "illus")):
+        return True
+
+    return len(text) < 60 and not text.endswith((".", "!", "?"))
+
+
 def _find_image_caption(order: int, raw_blocks: list[dict]) -> str:
     """Looks ahead and behind the image block to find associated captions."""
+
     if (order + 1) < len(raw_blocks):
         next_text = _extract_text_from_raw_block(raw_blocks[order + 1])
         # Checking if it looks like a caption (short text or is explicitly labeled)
-        if next_text and (
-            len(next_text) < 200
-            or next_text.lower().startswith(("fig", "image", "table"))
-        ):
+        # if next_text and (
+        #     len(next_text) < 200
+        #     or next_text.lower().startswith(("fig", "image", "table"))
+        # ):
+        if _is_valid_caption(next_text):
             return next_text
 
     # Look behind (above) if nothing was found below
     if order - 1 >= 0:
         prev_text = _extract_text_from_raw_block(raw_blocks[order - 1])
-        if prev_text and (
-            len(prev_text) < 200
-            or prev_text.lower().startswith(("fig", "image", "table"))
-        ):
+        # if prev_text and (
+        #     len(prev_text) < 200
+        #     or prev_text.lower().startswith(("fig", "image", "table"))
+        # ):
+        if _is_valid_caption(prev_text):
             return prev_text
 
     return ""
 
 
-def _process_text_block(
-    raw_block: dict, page_num: int, median_size: float
-) -> dict | None:
-    """Extracts text content, determines heading levels, and classifies the text block."""
+def _extract_text_and_max_size(raw_block: dict) -> tuple[str, float]:
+    """Extracts raw text content and calculates the maximum font size in the block."""
     content_lines = []
     block_max_size = 0.0
 
@@ -182,43 +239,47 @@ def _process_text_block(
                 size = span.get("size", 0.0)
                 block_max_size = max(block_max_size, size)
 
-        content_lines.append("".join(span_texts))
+        content_lines.append("".join(span_texts).strip())
+    return (" ".join(content_lines).strip(), block_max_size)
 
-    content = "\n".join(content_lines).strip()
-    if not content:
-        return None
+
+def _classify_text_block(
+    content: str,
+    block_max_size: float,
+    median_size: float,
+    pre_assigned: str | None,
+    page_num: int,
+) -> tuple[str, float, int | None]:
+    """Determines block type, confidence score, and heading level based on predefined rules."""
+    if pre_assigned:
+        heading_level = 2 if pre_assigned == "heading" else None
+        confidence = (
+            0.7
+            if pre_assigned == "table"
+            else (0.9 if pre_assigned == "aside" else 1.0)
+        )
+        return (pre_assigned, confidence, heading_level)
 
     block_type = "paragraph"
     confidence = 1.0
     heading_level = None
-    pre_assigned = raw_block.get("pre_assigned_type")
 
-    if pre_assigned:
-        block_type = pre_assigned
-        if block_type == "heading":
+    # Determining if it is a heading based on font size threshold
+    if block_max_size > (median_size + 1.5):
+        block_type = "heading"
+        if block_max_size > median_size + 6.0:
+            heading_level = 1
+        elif block_max_size > median_size + 3.0:
             heading_level = 2
-        elif block_type == "table":
-            confidence = 0.7
-        elif block_type == "aside":
-            confidence = 0.9
-    else:
-        # Determining if it is a heading based on font size threshold
-        if block_max_size > (median_size + 1.5):
-            block_type = "heading"
-            if block_max_size > median_size + 6.0:
-                heading_level = 1
-            elif block_max_size > median_size + 3.0:
-                heading_level = 2
-            else:
-                heading_level = 3
-        elif "|" in content and content.count("|") > 3:
-            block_type = "table"
-            confidence = 0.7
         else:
-            # Check for standard bullets or numbering patterns at the start of the block
-            list_pattern = r"^\s*([\u2022\u25E6\u25A0\*\-\·\▪]|\d+[\.\)])\s+"
-            if re.match(list_pattern, content):
-                block_type = "list"
+            heading_level = 3
+    elif "|" in content and content.count("|") > 3:
+        block_type = "table"
+        confidence = 0.7
+    elif re.match(
+        r"^\s*([\u2022\u25E6\u25A0\*\-\·\▪]|\d+[\.\)])\s+", content
+    ):  # Check for standard bullets or numbering patterns at the start of the block
+        block_type = "list"
 
     if block_type == "paragraph":
         has_trademark = any(s in content for s in ["™", "®", "©"])
@@ -227,6 +288,23 @@ def _process_text_block(
         is_title_caps = (len(content) < 100) and content.isupper() and page_num <= 3
         if has_trademark or is_toc or is_title_caps:
             block_type = "decorative"
+    return (block_type, confidence, heading_level)
+
+
+def _process_text_block(
+    raw_block: dict, page_num: int, median_size: float
+) -> dict | None:
+    """Extracts text content, determines heading levels, and classifies the text block."""
+
+    content, block_max_size = _extract_text_and_max_size(raw_block)
+    if not content:
+        return None
+
+    pre_assigned = raw_block.get("pre_assigned_type")
+
+    block_type, confidence, heading_level = _classify_text_block(
+        content, block_max_size, median_size, pre_assigned, page_num
+    )
 
     return {
         "type": block_type,

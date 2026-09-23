@@ -17,6 +17,62 @@ from app.utils import block_mapper
 logger = logging.getLogger(__name__)
 
 
+def _assess_and_refine_page(
+    page_num: int,
+    page_dict: dict,
+    pdf_document: "pymupdf.Document",
+    file_bytes: bytes,
+    used_tier3: bool,
+) -> tuple[dict, bool, str, float | None]:
+    """Evaluates page quality, triggers escalations, and refines layout properties."""
+    if not used_tier3:
+        raw_page = pdf_document[page_num]
+        raw_dict = raw_page.get_text("dict")
+        raw_blocks_list = (
+            raw_dict.get("blocks", []) if isinstance(raw_dict, dict) else []
+        )
+
+        escalate_page, escalation_reason = _assess_page(raw_page, raw_blocks_list)
+
+        escalated_page_dict = None
+        if escalate_page and settings.UNSTRUCTURED_API_URL:
+            escalated_page_dict = _extract_single_page_via_tier3(file_bytes, page_num)
+
+        if escalated_page_dict is not None:
+            page_dict = escalated_page_dict
+            page_dict["metadata"] = {"page": page_num + 1}
+            return (page_dict, True, escalation_reason, 0.9)
+
+        boxed_regions = _detect_boxed_regions(raw_page)
+        _tag_boxed_blocks(raw_blocks_list, boxed_regions)
+        page_dict["blocks"] = _reorder_blocks_by_column(raw_blocks_list, raw_page)
+        return (page_dict, True, escalation_reason, (0.6 if escalate_page else None))
+
+    page_blocks = page_dict.get("blocks", [])
+    page_has_issues = any(
+        b.get("type") == 0
+        and (
+            not any(
+                span.get("text", "").strip()
+                for line in b.get("lines", [])
+                for span in line.get("spans", [])
+            )
+        )
+        for b in page_blocks
+        if isinstance(b, dict)
+    )
+
+    escalation_reason = (
+        "tier3_fallback_flagged" if page_has_issues else "tier3_fallback"
+    )
+    return (
+        page_dict,
+        page_has_issues,
+        escalation_reason,
+        (0.6 if page_has_issues else None),
+    )
+
+
 def extract_text(file_bytes: bytes, rulebook_id: str) -> tuple[bool, str, str, dict]:
     """
     Extracts native Markdown (with automatic OCR fallback) from a PDF
@@ -53,74 +109,20 @@ def extract_text(file_bytes: bytes, rulebook_id: str) -> tuple[bool, str, str, d
             page_quality: list[dict] = []
 
             for page_num, page_dict in enumerate(md_dicts):
-                escalate_page = False
-                escalation_reason = ""
-
-                if not used_tier3:
-                    raw_page = pdf_document[page_num]
-                    raw_dict = raw_page.get_text("dict")
-                    raw_blocks_list = (
-                        raw_dict.get("blocks", []) if isinstance(raw_dict, dict) else []
+                page_dict, escalate_page, escalation_reason, confidence_override = (
+                    _assess_and_refine_page(
+                        page_num, page_dict, pdf_document, file_bytes, used_tier3
                     )
+                )
 
-                    escalate_page, escalation_reason = _assess_page(
-                        raw_page, raw_blocks_list
-                    )
-
-                    escalated_page_dict = None
-                    if escalate_page and settings.UNSTRUCTURED_API_URL:
-                        escalated_page_dict = _extract_single_page_via_tier3(
-                            file_bytes, page_num
-                        )
-
-                    if escalated_page_dict is not None:
-                        page_dict = escalated_page_dict
-                        page_dict["metadata"] = {"page": page_num + 1}
-                        confidence_override = 0.9
-                    else:
-                        boxed_regions = _detect_boxed_regions(raw_page)
-                        _tag_boxed_blocks(raw_blocks_list, boxed_regions)
-                        page_dict["blocks"] = _reorder_blocks_by_column(
-                            raw_blocks_list, raw_page
-                        )
-                        confidence_override = 0.6 if escalate_page else None
-
-                    page_quality.append(
-                        {
-                            "page": page_num + 1,
-                            "escalated": escalated_page_dict is not None,
-                            "flagged": escalate_page,
-                            "reason": escalation_reason,
-                        }
-                    )
-                else:
-                    page_blocks = page_dict.get("blocks", [])
-                    page_has_issues = any(
-                        b.get("type") == 0
-                        and (
-                            not any(
-                                span.get("text", "").strip()
-                                for line in b.get("lines", [])
-                                for span in line.get("spans", [])
-                            )
-                        )
-                        for b in page_blocks
-                        if isinstance(b, dict)
-                    )
-                    escalate_page = page_has_issues
-                    confidence_override = 0.6 if page_has_issues else None
-
-                    page_quality.append(
-                        {
-                            "page": page_num + 1,
-                            "escalated": True,
-                            "flagged": page_has_issues,
-                            "reason": "tier3_fallback_flagged"
-                            if page_has_issues
-                            else "tier3_fallback",
-                        }
-                    )
-
+                page_quality.append(
+                    {
+                        "page": page_num + 1,
+                        "escalated": used_tier3 or (confidence_override == 0.9),
+                        "flagged": escalate_page,
+                        "reason": escalation_reason,
+                    }
+                )
                 blocks_cache["blocks"].extend(
                     block_mapper.map_to_blocks(
                         page_dict=page_dict,
@@ -135,11 +137,11 @@ def extract_text(file_bytes: bytes, rulebook_id: str) -> tuple[bool, str, str, d
 
             _flush_pending_uploads(pending_uploads)
 
-            flat_text_pieces = []
-            for block in blocks_cache["blocks"]:
-                content = block.get("content")
-                if content:
-                    flat_text_pieces.append(str(content))
+            flat_text_pieces = [
+                str(b.get("content"))
+                for b in blocks_cache["blocks"]
+                if b.get("content")
+            ]
             flat_text = "\n".join(flat_text_pieces)
 
             blocks_cache["pageQuality"] = page_quality
@@ -171,9 +173,8 @@ def _reorder_blocks_by_column(
 
         columns = column_boxes(page, footer_margin=40, no_image_text=False)
     except Exception:
-        logger.warning(
-            "column_boxes unavailable or failed; using fallback column heuristic.",
-            exc_info=True,
+        logger.exception(
+            "column_boxes unavailable or failed; using fallback column heuristic."
         )
         return _reorder_blocks_by_column_fallback(raw_blocks, page.rect.width)
 
@@ -197,6 +198,58 @@ def _reorder_blocks_by_column(
     return sorted(blocks, key=lambda b: (column_index(b), b["bbox"][1], b["bbox"][0]))
 
 
+def _create_fallback_bands(
+    blocks: list[dict], page_width: float
+) -> list[tuple[str, list[dict]]]:
+    """Groups blocks into full-width or column-based bands."""
+    FULL_WIDTH_RATIO = 0.75
+    bands: list[tuple[str, list[dict]]] = []
+    current_band: list[dict] = []
+
+    for b in blocks:
+        x0, _, x1, _ = b["bbox"]
+        if (x1 - x0) / page_width >= FULL_WIDTH_RATIO:
+            if current_band:
+                bands.append(("cols", current_band))
+                current_band = []
+            bands.append(("full", [b]))
+        else:
+            current_band.append(b)
+    if current_band:
+        bands.append(("cols", current_band))
+
+    return bands
+
+
+def _split_column_band(band_blocks: list[dict], page_width: float) -> list[dict]:
+    """Splits a band of blocks into left and right columns if a significant gap exists."""
+    GAP_MIN_FRACTION = 0.06
+    x_centers = sorted((b["bbox"][0] + b["bbox"][2]) / 2 for b in band_blocks)
+    boundary = None
+
+    if len(x_centers) > 1:
+        gaps = [
+            (x_centers[i] - x_centers[i - 1], (x_centers[i] + x_centers[i - 1]) / 2)
+            for i in range(1, len(x_centers))
+        ]
+        max_gap, midpoint = max(gaps, key=lambda g: g[0])
+        if max_gap > page_width * GAP_MIN_FRACTION:
+            boundary = midpoint
+    if boundary is None:
+        return sorted(band_blocks, key=lambda b: (b["bbox"][1], b["bbox"][0]))
+
+    left_col = sorted(
+        (b for b in band_blocks if (b["bbox"][0] + b["bbox"][2]) / 2 < boundary),
+        key=lambda b: b["bbox"][1],
+    )
+    right_col = sorted(
+        (b for b in band_blocks if (b["bbox"][0] + b["bbox"][2]) / 2 >= boundary),
+        key=lambda b: b["bbox"][1],
+    )
+
+    return left_col + right_col
+
+
 def _reorder_blocks_by_column_fallback(
     raw_blocks: list[dict], page_width: float
 ) -> list[dict]:
@@ -209,59 +262,14 @@ def _reorder_blocks_by_column_fallback(
         return raw_blocks
 
     blocks = sorted(blocks, key=lambda b: b["bbox"][1])
-
-    FULL_WIDTH_RATIO = 0.75
-    GAP_MIN_FRACTION = 0.06
-
-    def block_width(b: dict) -> float:
-        x0, _, x1, _ = b["bbox"]
-        return x1 - x0
-
-    bands: list[tuple[str, list[dict]]] = []
-    current_band: list[dict] = []
-    for b in blocks:
-        if block_width(b) / page_width >= FULL_WIDTH_RATIO:
-            if current_band:
-                bands.append(("cols", current_band))
-                current_band = []
-            bands.append(("full", [b]))
-        else:
-            current_band.append(b)
-    if current_band:
-        bands.append(("cols", current_band))
+    bands = _create_fallback_bands(blocks, page_width)
 
     ordered: list[dict] = []
     for kind, band_blocks in bands:
         if kind == "full":
             ordered.extend(band_blocks)
-            continue
-        x_centers = sorted((b["bbox"][0] + b["bbox"][2]) / 2 for b in band_blocks)
-
-        boundary = None
-        if len(x_centers) > 1:
-            gaps = [
-                (x_centers[i] - x_centers[i - 1], (x_centers[i] + x_centers[i - 1]) / 2)
-                for i in range(1, len(x_centers))
-            ]
-            max_gap, midpoint = max(gaps, key=lambda g: g[0])
-            if max_gap > page_width * GAP_MIN_FRACTION:
-                boundary = midpoint
-        if boundary is None:
-            ordered.extend(
-                sorted(band_blocks, key=lambda b: (b["bbox"][1], b["bbox"][0]))
-            )
-            continue
-
-        left_col = sorted(
-            (b for b in band_blocks if (b["bbox"][0] + b["bbox"][2]) / 2 < boundary),
-            key=lambda b: b["bbox"][1],
-        )
-        right_col = sorted(
-            (b for b in band_blocks if (b["bbox"][0] + b["bbox"][2]) / 2 >= boundary),
-            key=lambda b: b["bbox"][1],
-        )
-        ordered.extend(left_col)
-        ordered.extend(right_col)
+        else:
+            ordered.extend(_split_column_band(band_blocks, page_width))
 
     return ordered
 
@@ -318,9 +326,7 @@ def _detect_boxed_regions(raw_page: "pymupdf.Page") -> list["pymupdf.Rect"]:
     try:
         drawings = raw_page.get_drawings()
     except Exception:
-        logger.warning(
-            "get_drawings() failed for boxed-region detection", exc_info=True
-        )
+        logger.exception("get_drawings() failed for boxed-region detection")
         return []
 
     regions = []
@@ -414,9 +420,7 @@ def _extract_single_page_via_tier3(file_bytes: bytes, page_num: int) -> dict | N
             single_page_bytes = single_page_doc.tobytes()
             single_page_doc.close()
     except Exception:
-        logger.warning(
-            "Failed to isolate page %d for Tier-3 escalation", page_num, exc_info=True
-        )
+        logger.exception("Failed to isolate page %d for Tier-3 escalation", page_num)
         return None
 
     pages = _escalate_to_tier_3(single_page_bytes)
@@ -424,6 +428,39 @@ def _extract_single_page_via_tier3(file_bytes: bytes, page_num: int) -> dict | N
         return None
 
     return pages[0]
+
+
+def _parse_tier3_element(el: dict, page_num: int) -> dict:
+    """Parse a single structured element returned from the Tier 3 API."""
+    unstructured_type = el.get("type")
+    mapped_type = 1 if unstructured_type == "Image" else 0
+
+    type_mapping: dict = {
+        "Title": "heading",
+        "Table": "table",
+        "ListItem": "list",
+        "Image": "image",
+    }
+
+    pre_assigned = type_mapping.get(unstructured_type, "paragraph")
+
+    block_dict = {
+        "type": mapped_type,
+        "pre_assigned_type": pre_assigned,
+        "lines": [{"spans": [{"text": el.get("text", "")}]}],
+    }
+
+    if mapped_type == 1:
+        b64_image = el.get("metadata", {}).get("image_base64")
+        if b64_image:
+            try:
+                block_dict["image"] = base64.b64decode(b64_image)
+                block_dict["ext"] = "jpeg"
+            except Exception as e:
+                logger.warning(
+                    f"Failed to decode Tier-3 image payload on page {page_num}: {e}"
+                )
+    return block_dict
 
 
 def _escalate_to_tier_3(file_bytes: bytes) -> list[dict]:
@@ -468,55 +505,25 @@ def _escalate_to_tier_3(file_bytes: bytes) -> list[dict]:
                     "metadata": {"page": page_num},
                 }
 
-            unstructured_type = el.get("type")
-            mapped_type = 1 if unstructured_type == "Image" else 0
-
-            type_mapping = {
-                "Title": "heading",
-                "Table": "table",
-                "ListItem": "list",
-                "Image": "image",
-            }
-            pre_assigned = type_mapping.get(unstructured_type, "paragraph")
-
-            block_dict = {
-                "type": mapped_type,
-                "pre_assigned_type": pre_assigned,
-                "lines": [{"spans": [{"text": el.get("text", "")}]}],
-            }
-
-            if mapped_type == 1:
-                b64_image = el.get("metadata", {}).get("image_base64")
-                if b64_image:
-                    try:
-                        block_dict["image"] = base64.b64decode(b64_image)
-                        block_dict["ext"] = "jpeg"
-                    except Exception as e:
-                        logger.warning(
-                            f"Failed to decode Tier-3 image payload on page {page_num}: {e}"
-                        )
-
-            pages[page_num]["blocks"].append(block_dict)
+            pages[page_num]["blocks"].append(_parse_tier3_element(el, page_num))
 
         return [pages[p] for p in sorted(pages.keys())]
     except requests.exceptions.Timeout:
         logger.error(
             "Tier 3 extraction timed out. The local Docker container was too slow."
         )
-        return []
     except requests.exceptions.ConnectionError:
         logger.error(
             "Tier 3 connection dropped. The Docker container likely hit its memory limit."
         )
-        return []
     except requests.exceptions.HTTPError as e:
         logger.error(
             f"Tier 3 API returned an HTTP error(likely an OOM crash inside the container): {e}"
         )
-        return []
     except Exception:
         logger.exception("Unexpected error communicating with local Unstructured API.")
-        return []
+
+    return []
 
 
 def _flush_pending_uploads(pending_uploads: list[tuple[bytes, str, str]]) -> None:

@@ -62,6 +62,19 @@ def filter_out_decorative_chunks(chunk_list: list[dict]) -> list[dict]:
     """
     return [c for c in chunk_list if c.get("type") != "decorative"]
 
+def _handle_oversized_block(block: dict, content: str, rulebook_id: str, chunks: list[dict], max_chunk_size: int) -> None:
+    """Process a single block that exceeds the maximum chunk size."""
+    sub_texts = _split_large_block(content, max_chars=max_chunk_size - 50)
+    
+    for index, sub_text in enumerate(sub_texts):
+        sub_block = block.copy()
+        sub_block["content"] = sub_text
+    
+        # Prevents image duplication by only attaching the image to the first sub-chunk
+        if index > 0 and "imageUrl" in sub_block:
+            sub_block.pop("imageUrl", None)
+    
+        chunks.append(_roll_up_chunk([sub_block], rulebook_id, len(chunks)))
 
 def _chunk_section(
     section_blocks: list[dict],
@@ -85,17 +98,7 @@ def _chunk_section(
                 current_chunk_blocks = []
                 current_char_count = 0
 
-            sub_texts = _split_large_block(content, max_chars=max_chunk_size - 50)
-
-            for index, sub_text in enumerate(sub_texts):
-                sub_block = block.copy()
-                sub_block["content"] = sub_text
-
-                # Prevents image duplication by only attaching the image to the first sub-chunk
-                if index > 0 and "imageUrl" in sub_block:
-                    sub_block.pop("imageUrl", None)
-
-                chunks.append(_roll_up_chunk([sub_block], rulebook_id, len(chunks)))
+            _handle_oversized_block(block, content, rulebook_id, chunks, max_chunk_size)
             continue
 
         # Adding 1 to account for the "\n" joiner used in _roll_up_chunk
