@@ -39,6 +39,10 @@ class Settings:
     SPRING_PROFILES_ACTIVE: str | None = os.getenv("SPRING_PROFILES_ACTIVE")
     RULEBOOK_PDF_API: str | None = os.getenv("RULEBOOK_PDF_API")
     SYSTEM_CONTRIBUTOR_ID: str | None = os.getenv("SYSTEM_CONTRIBUTOR_ID")
+    SCRAPER_SERVICE_URL: str | None = os.getenv("SCRAPER_SERVICE_URL")
+    EMBEDDING_DIMENSIONS: int = 512
+    UNSTRUCTURED_API_KEY: str | None = os.getenv("UNSTRUCTURED_API_KEY")
+
 
 
 settings = Settings()

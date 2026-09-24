@@ -30,9 +30,10 @@ public class BoardGameController {
 
     @GetMapping("/")
     public ResponseEntity<?> getGamesList(
-        @RequestParam(required = false) String query
+        @RequestParam(required = false) String query,
+        @RequestParam(required = false) Integer top
     ){
-        Map<String, Object> res = service.getBoardgames(query);
+        Map<String, Object> res = service.getBoardgames(query, top);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 

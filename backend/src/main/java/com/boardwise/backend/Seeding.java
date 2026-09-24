@@ -263,24 +263,24 @@ public class Seeding {
                 List<Boardgame> boardGames = List.of(
                         new Boardgame(null, null ,"Monopoly", "Classic property trading game.",
                                 "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Monopoly/Monopoly.png", 2, 8, 
-                                8, 120, List.of("Strategy", "Trading")),
+                                8, 120, List.of("strategy", "trading")),
                         new Boardgame(null, null ,"Scrabble", "Word building board game.",
                                 "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/listings/Scrabble/Scrabble.jpg", 2, 4, 
-                                10, 90, List.of("Word", "Abstract Strategy")),
+                                10, 90, List.of("word", "abstract strategy")),
                         new Boardgame(null,null,"Pandemic","Cooperative game to cure global disease",
                                 "https://cf.geekdo-images.com/S3ybV1LAp-8SnHIXLLjVqA__imagepage/img/kIBu-2Ljb_ml5n-S8uIbE6ehGFc=/fit-in/900x600/filters:no_upscale():strip_icc()/pic1534148.jpg",2,4,
-                                8, 45, List.of("Cooperative", "Strategy")),
+                                8, 45, List.of("cooperative", "strategy")),
                         new Boardgame(null, null,"Ticket to Ride","Railway route-building game.",
                                 "https://cf.geekdo-images.com/kdWYkW-7AqG63HhqPL6ekA__imagepage/img/AWsdGNNSuI78BaCPAVQpjrUneKY=/fit-in/900x600/filters:no_upscale():strip_icc()/pic8937637.jpg",2,5,
-                                8,45,List.of("Strategy","Trains","Transportation")),
+                                8,45,List.of("strategy","trains","transportation")),
                         new Boardgame(null, null, "Chess", "Classic two-player strategy game played on an 8x8 board.", "https://new.uschess.org/sites/default/files/styles/1080px_wide_scale/public/media/images/2024_cover_image.png.webp?itok=xUbyXJ_i", 2,2,
-                                5,90,List.of("Abstract Strategy", "Classic")),
+                                5,90,List.of("abstract strategy", "classic")),
                         new Boardgame(null, null, "Dune", "Imagine you can control the forces of a noble family, guild, or religious order on a barren planet which is the only source for the most valuable substance in the known universe.\r\n\r\n" + //
                                 "Imagine you can rewrite the script for one of the most famous science fiction books of all time. Welcome to the acclaimed 40-year-old board game which allows you to recreate the incredible world of Frank Herbert’s DUNE.\r\n\r\n" + //
                                 "In DUNE you will become the leader of one of six great factions. Each wishes to control the most valuable resource in the universe - melange, the mysterious spice only found at great cost on the planet DUNE. As Duke Leto Atreides says “All fades before melange. A handful of spice will buy a home on Tupile. It cannot be manufactured, it must be mined on Arrakis. It is unique and it has true geriatric properties.” And without melange space travel would be impossible. Only by ingesting the addictive drug can the Guild Steersman continue to experience visions of the future, enabling them to plot a safe path through hyperspace.\r\n\r\n" + //
                                 "Who will control DUNE? Become one of the characters and their forces from the book and . . . You decide!",
                                 "https://cf.geekdo-images.com/2fgPg6Be--w97zoycObUgg__itemrep@2x/img/ZsDXzpzkk7nPzYHGfvUesFV20Mc=/fit-in/492x600/filters:strip_icc()/pic4815198.jpg",
-                                2, 6, 14,150,List.of("Bluffing","Fighting","Negotiation","Novel-based","Political","Science Fiction","Wargame"))
+                                2, 6, 14,150,List.of("bluffing","fighting","negotiation","novel-based","political","science fiction","wargame"))
                 );
                 boardGameRepository.saveAll(boardGames);
                 System.out.println("Seeded " + boardGames.size() + " board games");
@@ -379,8 +379,8 @@ public class Seeding {
                     .name("Monopoly Marathon")
                     .description("For all those who have a deep appreciation for Monopoly. We come together to play endless Monopoly.")
                     .eventImg("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTqaRxggdV-L056ZTh9f7LKcpIoVcP4v53iKXGheeGmiw&s=10")
-                    .startDateTime(LocalDateTime.of(2026, 8, 1, 17, 30))
-                    .endDateTime(LocalDateTime.of(2026, 8, 1, 21, 30))
+                    .startDateTime(LocalDateTime.of(2026, 11, 1, 17, 30))
+                    .endDateTime(LocalDateTime.of(2026, 11, 1, 21, 30))
                     .locationText(locations.get(0))
                     .location(getPoint(locations.get(0), geoApiContext))
                     .creatorId(hosts.get(0).getId())
@@ -395,8 +395,8 @@ public class Seeding {
                     .name("Dune Dune Ddduunnnneeee")
                     .description("Did y'all catch the pun in the event name? No... Welp, doesn't matter cause we're playing DUNE tonight. Come join, all are welcome.")
                     .eventImg("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxK9bxTqFLwoD6FsdgHwKptKZP-C6FT1Zdbjm5ZFN9Yg&s=10")
-                    .startDateTime(LocalDateTime.of(2026, 7, 29, 14, 15))
-                    .endDateTime(LocalDateTime.of(2026, 7, 29, 19, 45))
+                    .startDateTime(LocalDateTime.of(2026, 11, 29, 14, 15))
+                    .endDateTime(LocalDateTime.of(2026, 11, 29, 19, 45))
                     .locationText(locations.get(1))
                     .location(getPoint(locations.get(1), geoApiContext))
                     .creatorId(hosts.get(1).getId())
@@ -411,8 +411,8 @@ public class Seeding {
                     .name("Scrabble storm")
                     .description("For all you wordy word involved beings. Let's come together and make our own dictionary.")
                     .eventImg("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4Vli4TuzztmpIsJCpCzS85Bc-wTouRRnjGuffq488YQ&s=10")
-                    .startDateTime(LocalDateTime.of(2026, 7, 28, 10, 30))
-                    .endDateTime(LocalDateTime.of(2026, 7, 28, 12, 15))
+                    .startDateTime(LocalDateTime.of(2026, 11, 28, 10, 30))
+                    .endDateTime(LocalDateTime.of(2026, 11, 28, 12, 15))
                     .locationText(locations.get(2))
                     .location(getPoint(locations.get(2), geoApiContext))
                     .creatorId(hosts.get(2).getId())

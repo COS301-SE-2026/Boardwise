@@ -2,6 +2,7 @@ package com.boardwise.backend.shared.services;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,6 +20,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Limit;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -36,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import com.boardwise.backend.marketplace.enums.Genres;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
+import com.boardwise.backend.shared.services.scoring.PopularityScorer;
 import com.boardwise.backend.shared.dtos.*;
 import com.boardwise.backend.shared.model.*;
 import com.boardwise.backend.user_service.services.AuthService;
@@ -51,8 +54,10 @@ public class BoardGameService {
     private final R2StorageService bucket;
     private final @Qualifier("bggRestClient") RestClient client;
     private final MongoTemplate db;
+    private final PopularityScorer scorer;
+
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
-    private final String defaultImageKey = "rulebooks/default_cover.png"; 
+    private final String defaultImageKey = "/rulebooks/default_cover.png"; 
     @Value("${r2.rulebooks.public-url}")
     private String r2BaseUrl;
 
@@ -66,7 +71,7 @@ public class BoardGameService {
                         .mapToObj(Integer::toString)
                         .collect(Collectors.joining(","));
 
-        String requestUrl = "/thing?id=" + ids + "&subtype=boardgame";
+        String requestUrl = "/thing?id=" + ids + "&subtype=boardgame&stats=1";
         String response = client.get()
                             .uri(requestUrl)
                             .retrieve()
@@ -78,6 +83,8 @@ public class BoardGameService {
 
             List<Boardgame> boardgames = new ArrayList<>();
             NodeList nodeList = document.getElementsByTagName("item");
+            List<Boardgame> nullGames = gameRepo.findAllByBggIdNull(); // user provided games
+            
             for(int i = 0; i < nodeList.getLength(); i++){
                 boolean updateEntry = false;
                 Node node = nodeList.item(i);
@@ -91,13 +98,24 @@ public class BoardGameService {
                 int bggId = Integer.parseInt(preBggId);
                 
                 Element element = ((Element) node);
-                Boardgame game = parseGame(element);
+                Boardgame game = BggDataParser.parseGame(element);
+                String imageURL = game.getImageURL() == null ? (r2BaseUrl + defaultImageKey) : game.getImageURL();
+                game.setImageURL(imageURL);
                 game.setBggId(bggId);
+
+                BggStats stats = BggDataParser.parseStats(element);
+                game.setYearPublished(BggDataParser.parseYearPublished(element));
+                if(stats != null){
+                    game.setStats(stats);
+                    game.setPopularityScore(scorer.score(game));
+                    game.setLastStatsRefreshedAt(Instant.now());
+                }
                 
 
-                List<Boardgame> nullGames = gameRepo.findAllByBggIdNull(); // user provided games
                 for(Boardgame nullGame : nullGames){
-                    if(game.getTitle().contains(nullGame.getTitle()) || nullGame.getTitle().contains(game.getTitle())){
+                    String nullTitle = nullGame.getTitle().trim().toLowerCase();
+                    String newGameTitle = game.getTitle().trim().toLowerCase();
+                    if(nullTitle.equals(newGameTitle)){
                         // update nullGame
                         updateEntry = true;
                         
@@ -112,6 +130,7 @@ public class BoardGameService {
                         nullGame.setGenres(game.getGenres());
 
                         gameRepo.save(nullGame);
+                        break;
                     }
                 }
 
@@ -127,15 +146,21 @@ public class BoardGameService {
         }
     }
 
-    public Map<String, Object> getBoardgames(String query){
+    public Map<String, Object> getBoardgames(String query, Integer top){
         Map<String, Object> result = new HashMap<>();
         List<Boardgame> dbGames;
         int resultLimit = 12;
 
-        if(query == null){
+        if(query == null && top == null){
             Limit maxRecords = Limit.of(resultLimit);
             dbGames = gameRepo.findAllBy(maxRecords);
         }
+        else if(query == null && top != null){
+            Query topQuery = new Query();
+            topQuery.limit(top);
+            topQuery.with(Sort.by(Sort.Direction.DESC, "popularityScore"));
+            dbGames = db.find(topQuery, Boardgame.class);
+        } 
         else{
             Pattern pattern = Pattern.compile(Pattern.quote(query), Pattern.CASE_INSENSITIVE);
             Criteria searchCrit = Criteria.where("title").regex(pattern);
@@ -203,7 +228,7 @@ public class BoardGameService {
                 return results;
 
             String ids = String.join(",", bestResults);
-            requestUrl = "/thing?id=" + ids + "&subtype=boardgame";
+            requestUrl = "/thing?id=" + ids + "&subtype=boardgame&stats=1";
             response = client.get()
                             .uri(requestUrl)
                             .retrieve()
@@ -213,7 +238,17 @@ public class BoardGameService {
             NodeList nodeList = document.getElementsByTagName("item");
             for(int k = 0; k < nodeList.getLength(); k++){
                 Element element = ((Element) nodeList.item(k));
-                Boardgame game = parseGame(element);
+                Boardgame game = BggDataParser.parseGame(element);
+                String imageURL = game.getImageURL() == null ? (r2BaseUrl + defaultImageKey) : game.getImageURL();
+                game.setImageURL(imageURL);
+
+                BggStats stats = BggDataParser.parseStats(element);
+                game.setYearPublished(BggDataParser.parseYearPublished(element));
+                if(stats != null){
+                    game.setStats(stats);
+                    game.setPopularityScore(scorer.score(game));
+                    game.setLastStatsRefreshedAt(Instant.now());
+                }
                 results.add(game);
             }
             // send to async task
@@ -287,84 +322,6 @@ public class BoardGameService {
         result.put("message", "Genres successfully retrieved.");
         result.put("genres", genres);
         return result;
-    }
-
-    private Boardgame parseGame(Element element){
-        String gameTitle = element.getElementsByTagName("name")
-                                            .item(0)
-                                            .getAttributes()
-                                            .getNamedItem("value")
-                                            .getNodeValue();
-
-        Node preGameDesc = element.getElementsByTagName("description")
-                                            .item(0);
-                                            
-        System.out.println("[BoardGameService]: preGameDesc value: " + preGameDesc);
-
-        String gameDesc = preGameDesc != null ? preGameDesc.getTextContent() : null;
-        // get game Image
-        Node preGameImage = element.getElementsByTagName("image")
-                                            .item(0);
-                                            
-        String gameImage = preGameImage != null ? preGameImage.getTextContent() : (r2BaseUrl + defaultImageKey);
-
-        // get game minimum players
-        Node preMinNode = element.getElementsByTagName("minplayers")
-                                    .item(0);
-
-        String preMin = preMinNode != null ? preMinNode.getAttributes().getNamedItem("value").getNodeValue() : null;
-                            
-        int minPlayers = preMin != null ? Integer.parseInt(preMin) : 2; // assume minPlayers is 2, if API does not have this value
-        
-        // get game maximum players
-        Node preMaxNode = element.getElementsByTagName("maxplayers")
-                                    .item(0);
-                                    
-        String preMax = preMaxNode != null ? preMaxNode.getAttributes().getNamedItem("value").getNodeValue() : null;
-                                
-        int maxPlayers = preMax != null ? Integer.parseInt(preMax) : minPlayers;   // assumes maxPlayers = minPlayers, if API does not provide this value
-
-        // get game duration
-        Node preDurationNode = element.getElementsByTagName("playingtime")
-                                    .item(0);
-
-        String preDuration = preDurationNode != null ? preDurationNode.getAttributes().getNamedItem("value").getNodeValue() : null;
-                                
-        int duration = preDuration != null ? Integer.parseInt(preDuration) : 60; // assumes 1 hour (60 min.) if value not given by api
-
-        // get game minimum age recommendation
-        Node preMinAgeNode = element.getElementsByTagName("minage")
-                                    .item(0);
-
-        String preMinAge = preMinAgeNode != null ? preMinAgeNode.getAttributes().getNamedItem("value").getNodeValue() : null;
-
-        int minAge = preMinAge != null ? Integer.parseInt(preMinAge) : 8; // assume 8 year old is the minimum age
-
-        NodeList gameGenres = element.getElementsByTagName("link");
-        List<String> genres = new ArrayList<>();
-        for(int j = 0; j < gameGenres.getLength(); j++){
-            Node genreNode = gameGenres.item(j);
-            Node type = genreNode.getAttributes()
-                            .getNamedItem("type");
-            
-            if(type != null && type.getNodeValue().equals("boardgamecategory")){
-                String genre = genreNode.getAttributes().getNamedItem("value").getNodeValue();
-                genres.add(genre.toLowerCase());
-            }
-        }
-        // API game data object
-        return new Boardgame(
-            null,
-            null,
-            gameTitle,
-            gameDesc,
-            gameImage,
-            minPlayers,
-            maxPlayers,
-            minAge,
-            duration,
-            genres
-        );
     }
 
     private List<Boardgame> saveSearchedBoardgames(List<Boardgame> candidates){
