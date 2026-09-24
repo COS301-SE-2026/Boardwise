@@ -5,6 +5,7 @@ from typing import Any
 
 from bson import ObjectId
 from pymongo import MongoClient
+from pymongo.errors import DuplicateKeyError
 
 from app.config import settings
 
@@ -458,18 +459,24 @@ def create_setup_wizard(rulebook_id: str, session=None) -> str:
 def get_or_create_setup_wizard(rulebook_id: str) -> dict:
     """
     Returns the SETUP_WIZARD document for a rulebook, creating one
-    (atomically, with the Rulenppk.setupWizardId backref) if none exists
+    (atomically, with the Rulebook.setupWizardId backref) if none exists
     """
 
     existing = get_setup_wizard_by_rulebookId(rulebook_id)
     if existing:
         return existing
-    
-    with client.start_session() as session, session.start_transaction():
-        create_setup_wizard(rulebook_id, session=session)
+
+    try:
+
+        with client.start_session() as session:
+            session.start_transaction(
+                lambda s: create_setup_wizard(rulebook_id, session = s)
+            )
+    except DuplicateKeyError: 
+            logger.info("Lost setup wizard create race for rule '%s';  re-fetching.", rulebook_id)
+            create_setup_wizard(rulebook_id, session=session)
 
     doc = get_setup_wizard_by_rulebookId(rulebook_id)
-
     if not doc:
-        raise ValueError(f"Setup wizard for rulebook '${rulebook_id}' not found after creation.") 
+        raise ValueError(f"Setup wizard for rulebook '{rulebook_id}' not found after creation.") 
     return doc
