@@ -5303,3 +5303,24 @@ button:disabled,
   margin-top: var(--space-6);
   justify-content: center;
 }
+
+@media (max-width: 900px) {
+  .game-architect-selection-layout,
+  .game-architect-review-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .game-architect-selection-summary,
+  .game-architect-review-summary {
+    order: -1;
+  }
+
+  .game-architect-entry__content {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .game-architect-entry__content .base-button {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
