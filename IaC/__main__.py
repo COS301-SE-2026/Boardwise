@@ -344,7 +344,7 @@ python_image = awsx.ecr.Image(
     f"{RESOURCE_PREFIX}-python-image",
     repository_url=python_repo.url,
     context="../ai",
-    platform="linux/amd64",
+    platform="linux/amd64"
 )
 
 python_setup_script = r"""#!/bin/bash
@@ -421,7 +421,7 @@ spring_image = awsx.ecr.Image(
     f"{RESOURCE_PREFIX}-spring-image",
     repository_url=spring_repo.url,
     context="../backend",
-    platform="linux/amd64",
+    platform="linux/amd64"
 )
 
 spring_setup_script = r"""#!/bin/bash
@@ -485,9 +485,7 @@ spring_user_data = pulumi.Output.all(
         .replace("__R2_RULEBOOKS_PUBLIC_URL__", settings.R2_RULEBOOKS_PUBLIC_URL)
         .replace("__R2_BUCKET_LISTINGS__", settings.R2_BUCKET_LISTINGS)
         .replace("__R2_BUCKET_PROFILES__", settings.R2_BUCKET_PROFILES)
-        .replace(
-            "__PROD_FAST_API_BASE__", f"http://{args['python_ip']}:8000/api/fa/"
-        )  # NOSONAR
+        .replace("__PROD_FAST_API_BASE__", f"http://{args['python_ip']}:8000/api/fa/")  # NOSONAR
         .replace("__INTERNAL_SECRET__", settings.INTERNAL_WEBHOOK_SECRET)
         .replace("__R2_SECRET_KEY__", settings.R2_SECRET_KEY)
         .replace("__R2_ACCESS_KEY__", settings.R2_ACCESS_KEY)
@@ -521,7 +519,7 @@ scraper_image = awsx.ecr.Image(
     f"{RESOURCE_PREFIX}-scraper-image",
     repository_url=scraper_repo.url,
     context="../scrapers",
-    platform="linux/amd64",
+    platform="linux/amd64"
 )
 
 scraper_setup_script = r"""#!/bin/bash
@@ -551,9 +549,7 @@ scraper_user_data = pulumi.Output.all(
         .replace("__INTERNAL_SECRET__", settings.INTERNAL_WEBHOOK_SECRET)
         .replace("__SPRING_PROFILES_ACTIVE__", settings.SPRING_PROFILES_ACTIVE)
         .replace("__RULEBOOK_PDF_API__", settings.RULEBOOK_PDF_API)
-        .replace(
-            "__PYTHON_API_BASE_URL__", f"http://{args['python_ip']}:8000/api/fa/"
-        )  # NOSONAR
+        .replace("__PYTHON_API_BASE_URL__", f"http://{args['python_ip']}:8000/api/fa/")  # NOSONAR
         .replace("__IMAGE_URI__", args["image_uri"])
         .replace("__REGISTRY_URL__", args["image_uri"].split("/")[0])
         .replace("__REGION__", aws.get_region().region)
