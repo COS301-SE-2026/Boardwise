@@ -1,11 +1,21 @@
 http://localhost {
+
+    # Spring endpoints
+    @spring_api {
+        path /api/sb/* /swagger-ui* /v3/api-docs*
+    }
+
     # Route requests to spring
-    handle /api/sb/* {
+    handle @spring_api {
         reverse_proxy backend:8080
     }
 
     # Route requests to python
-    handle /api/fa/* {
+    @fastapi {
+        path /api/fa/* /docs /redocs /openapi.json
+    }
+    
+    handle @fastapi {
         reverse_proxy ai-gateway:8000
     }
 }
