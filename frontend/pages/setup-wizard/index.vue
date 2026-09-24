@@ -2,21 +2,26 @@
     <PageContainer>
         <Navbar />
 
-        <div>
+        <div class="setup-hub-hero"> 
             <BaseBackButton to="/library">Back to Library</BaseBackButton>
+
+            <span class="setup-hub__eyebrow">
+            <span class="setup-hub__eyebrow-dot" />
+                RAG-Powered Tabletop Setup Wizard
+            </span>
+
             <SectionTitle 
                 title="Setup Wizard Hub"
                 subtitle="Get from unboxing to first roll in minutes, with step-by-step guidance grounded in official rulebooks."
             />
-        </div>
-        
 
-        <BaseSearch
-            v-model="searchQuery"
-            placeholder="Search your library or find a setup guide..."
-            aria-label="Search setup guides"
-            class="setup-hub__search"
-        />
+            <BaseSearch
+                v-model="searchQuery"
+                placeholder="Search your library or find a setup guide..."
+                aria-label="Search setup guides"
+                class="setup-hub__search"
+            />
+        </div>
 
         <ActiveSetupBanner
             v-if="activeSetup"
@@ -62,6 +67,21 @@
             </BaseGrid>
         </div>
 
+        <div class="section setup-hub__how">
+                <div class="setup-hub__how-header">
+                <span class="setup-hub__eyebrow setup-hub__eyebrow--muted">Zero Rulebook Headaches</span>
+                <h2 class="section-title__heading">How Boarley RAG Setup Works</h2>
+            </div>
+
+            <BaseGrid cols="280px" gap="24px">
+                <BaseCard v-for="step in howItWorks" :key="step.title">
+                    <div class="setup-hub__how-number">{{ step.number }}</div>
+                    <h3 class="card-title">{{ step.title }}</h3>
+                    <p class="card-meta">{{ step.body }}</p>
+                </BaseCard>
+            </BaseGrid>
+        </div>
+
     </PageContainer>
 </template>
 
@@ -77,16 +97,22 @@ import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 import BaseGrid from '~/components/ui/BaseGrid.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+import BaseBackButton from '~/components/ui/BaseBackButton.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
 
 import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 import BaseErrorState from '~/components/ui/BaseErrorState.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
-
 import SetupGameCard from '~/components/features/setup-wizard/SetupGameCard.vue'
 import ActiveSetupBanner from '~/components/features/setup-wizard/ActiveSetupBanner.vue'
 import { useActiveSetup } from '~/composables/useSetupWizard'
-import BaseBackButton from '~/components/ui/BaseBackButton.vue'
+
+const howItWorks = [
+  { number: 1, title: 'Physical Board Guidance', body: 'Interactive diagrams show exactly where every tile, card deck, and token sits.' },
+  { number: 2, title: 'Micro-Task Checklists', body: 'Verify each phase in seconds with zero rulebook flipping.' },
+  { number: 3, title: 'Instant Grounded RAG', body: 'Ask natural questions and get exact citations from the official rulebook.' }
+]
 
 const router = useRouter()
 const { games, isLoading, error, searchGames } = useBoardGames()
