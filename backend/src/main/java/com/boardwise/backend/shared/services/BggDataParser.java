@@ -54,8 +54,8 @@ public final class BggDataParser {
                 .id(null)
                 .bggId(null)
                 .title(rawAttr(item, "name"))
-                .description(rawAttr(item, "description"))
-                .imageURL(rawAttr(item, "image"))
+                .description(tagTextContent(item, "description"))
+                .imageURL(tagTextContent(item, "image"))
                 .minPlayers(intAttr(item, "minplayers"))
                 .maxPlayers(intAttr(item, "maxplayers"))
                 .minAge(intAttr(item, "minage"))
@@ -66,6 +66,14 @@ public final class BggDataParser {
 
     public static Integer parseYearPublished(Element item) {
         return intAttr(item, "yearpublished");
+    }
+
+    private static String tagTextContent(Element item, String tag){
+        NodeList nodes = item.getElementsByTagName(tag);
+        if(nodes.getLength() == 0)
+            return null;
+
+        return nodes.item(0).getTextContent();
     }
 
     private static String rawAttr(Element item, String tag) {
