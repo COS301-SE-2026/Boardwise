@@ -136,48 +136,46 @@ import BaseGrid from '~/components/ui/BaseGrid.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
 
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
-    games: { type: Array, required: true }, 
+    games: { type: Array, required: true },
     selectedGenres: { type: Array, default: () => [] },
-    minRequired: {type: Number, default: 5 },
+    minRequired: { type: Number, default: 5 },
     isSubmitting: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['continue', 'skip', 'back', 'select-tab'])
+const emit = defineEmits(['continue', 'skip', 'back', 'select-tab', 'search'])
 
 const selected = ref([])
 const searchQuery = ref('')
 const activeTab = ref('all')
+
+let timer
+watch(searchQuery, (q) => {
+    clearTimeout(timer)
+    timer = setTimeout(() => emit('search', q.trim()), 300)
+})
+onBeforeUnmount(() => clearTimeout(timer))
+
+const filteredGames = computed(() => props.games)
 
 const genreTabs = computed(() => [
     { id: 'all', label: 'All Games' },
     ...props.selectedGenres.map(g => ({ id: g.id, label: g.label }))
 ])
 
-const filteredGames = computed(() => {
-    let result = props.games 
-
-    if(searchQuery.value.trim()) {
-        const q = searchQuery.value.trim().toLowerCase()
-        result = result.filter(g => g.title.toLowerCase().includes(q))
-    }
-    
-    return result
-})
-
 function toggleGame(id) {
     const i = selected.value.indexOf(id)
-    if(i === -1) {
+    if (i === -1) {
         selected.value.push(id)
     } else {
         selected.value.splice(i, 1)
     }
 }
 
-function selectTab(id){
-    activeTab.value = id;
-    emit('select-tab', id);
+function selectTab(id) {
+    activeTab.value = id
+    emit('select-tab', id)
 }
 </script>

@@ -18,10 +18,11 @@
 
             <OnBoardingGames
                 v-else-if="step === 3"
-                :games="topGamesInDBBasedOnGenres"
+                :games="displayedGames"
                 :selected-genres="pickedGenres"
                 :is-submitting="isSubmitting"
                 @select-tab="handleTabChange"
+                @search="handleSearch"
                 @continue="handleGamesSelected"
                 @skip="step = 4"
                 @back="step = 2"
@@ -48,7 +49,6 @@ import PageContainer from '~/components/layout/PageContainer.vue'
 import { userService } from '~/services/userService'
 import { useBoardGames } from '~/composables/useBoardGames'
 
-
 const router = useRouter()
 const { user } = useAuth()
 
@@ -57,27 +57,38 @@ const step = ref(1)
 const isSubmitting = ref(false)
 const errorMessages = ref('')
 
+const searchTerm = ref('')
 const selectedGameIds = ref([])
 const selectedGenreIds = ref([])
+const genreOptions = ref([])
+const seenGames = ref({})
 
-const { games, topUserGames, searchGames, searchGenres, getTopNGenresFromUsersPreferences, topNgenres, getPopularBoardgamesFromUserPrefrences, getPopularGamesBasedOnGenres,topGamesInDBBasedOnGenres   } = useBoardGames()
+const {
+    games,
+    searchGames,
+    searchGenres,
+    getTopNGenresFromUsersPreferences,
+    topNgenres,
+    getPopularBoardgamesFromUserPrefrences,
+    getPopularGamesBasedOnGenres,
+    topGamesInDBBasedOnGenres
+} = useBoardGames()
 
-const seenGames = ref({});
-
-watch(topGamesInDBBasedOnGenres, (list) => {
-    (list ?? []).forEach(g => { seenGames.value[g.id] = g })
+// remember every game we've shown, so the Complete step can find them
+watch([topGamesInDBBasedOnGenres, games], ([top, found]) => {
+    [...(top ?? []), ...(found ?? [])].forEach(g => { seenGames.value[g.id] = g })
 }, { immediate: true, deep: true })
 
-// TODO: Make the genre selection according to the popularity
-const genreOptions = ref([])
+const displayedGames = computed(() =>
+    searchTerm.value ? games.value : topGamesInDBBasedOnGenres.value
+)
 
-async function loadTopNGenres(){// Based on the how many users have this set as a preference
-    await getTopNGenresFromUsersPreferences(10);
-    genreOptions.value = (topNgenres.value?? []).map(name=>({id:name, label: name}));
-}
-
-const pickedGenres = computed(() => 
+const pickedGenres = computed(() =>
     genreOptions.value.filter(g => selectedGenreIds.value.includes(g.id))
+)
+
+const selectedGames = computed(() =>
+    selectedGameIds.value.map(id => seenGames.value[id]).filter(Boolean)
 )
 
 watch(step, async () => {
@@ -85,28 +96,37 @@ watch(step, async () => {
     pageRef.value?.querySelector('h1')?.focus()
 })
 
-// TODO: Make the games a selection of popularity or based on genres
 onMounted(async () => {
     await Promise.all([
         loadTopNGenres(),
         handleGetGames(),
         getPopularBoardgamesFromUserPrefrences()
-    ]);
+    ])
 })
 
-async function handleGetGames(){
+async function loadTopNGenres() {
+    await getTopNGenresFromUsersPreferences(10)
+    genreOptions.value = (topNgenres.value ?? []).map(name => ({ id: name, label: name }))
+}
+
+async function handleGetGames() {
     await Promise.all([searchGames(), searchGenres()])
 }
 
+async function handleSearch(q) {
+    searchTerm.value = q
+    if (q) await searchGames(q)
+}
+
 async function handleTabChange(tab) {
+    searchTerm.value = ''
     const genres = tab === 'all' ? selectedGenreIds.value : [tab]
     await getPopularGamesBasedOnGenres(genres)
 }
 
-const selectedGames = computed (()=> selectedGameIds.value.map(id=> seenGames.value[id]).filter(Boolean))
 async function handleGenresSelected(ids) {
     selectedGenreIds.value = ids
-    await getPopularGamesBasedOnGenres(ids);
+    await getPopularGamesBasedOnGenres(ids)
     step.value = 3
 }
 
@@ -114,14 +134,14 @@ async function handleGamesSelected(selectedIds) {
     isSubmitting.value = true
     errorMessages.value = ''
 
-    try{
-        await userService.addGamesToInventory({ knownGameIds: selectedIds})
+    try {
+        await userService.addGamesToInventory({ knownGameIds: selectedIds })
         selectedGameIds.value = selectedIds
         step.value = 4
-    }catch(err){
-        console.error('Failed to save game inventory: ', err);
+    } catch (err) {
+        console.error('Failed to save game inventory: ', err)
         errorMessages.value = 'Failed to save your games. Please try again.'
-    }finally{
+    } finally {
         isSubmitting.value = false
     }
 }
