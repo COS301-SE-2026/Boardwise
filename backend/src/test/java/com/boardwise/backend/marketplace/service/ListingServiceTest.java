@@ -99,11 +99,10 @@ class ListingServiceTest {
         Listing fakeSavedListing = new Listing("fakeId", "testBuddy", new ObjectId(), 
         "full boardgame", "sale", 250,"Pretoria", true, "this is a fake title", "like new", "Ludo", "original", 
         "have you played ludo before?", null, ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy", "negotiation"), null);
+        null);
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "something something something",
-    250, "Ludo", "Pretoria", true, "test.png","original", "like new", "have you played ludo before?", 
-        List.of("adventure", "strategy", "negotiation"), null);
+    250, "Ludo", "Pretoria", true, "test.png","original", "like new", "have you played ludo before?", null);
 
         Boardgame bg = new Boardgame(null,null,"Ludo",null,null,null,null,null,null,null);
         
@@ -156,11 +155,10 @@ class ListingServiceTest {
         Listing fakeSavedListing = new Listing("fakeId", "testBuddy", new ObjectId(), 
         "full boardgame", "sale", 250,"Pretoria", true, "this is a fake title", "like new", "Ludo", "original", 
         "have you played ludo before?", null, ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy", "negotiation"), null);
+        null);
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "something something something",
-    250, "Ludo", "Pretoria", true, "test.png","original", "like new", "have you played ludo before?", 
-        List.of("adventure", "strategy", "negotiation"), null);
+    250, "Ludo", "Pretoria", true, "test.png","original", "like new", "have you played ludo before?", null);
         
         when(jwtService.extractUserId(fakeToken)).thenReturn(new ObjectId());
 
@@ -216,10 +214,10 @@ class ListingServiceTest {
         Listing fakeSavedListing = new Listing("fakeId", "testBuddy", new ObjectId(), "full boardgame", "rental", 50,
         "Pretoria", false, "this is a fake title","like new", "Ludo", "original", "have you played ludo before?", null,
         ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy", "negotiation"), fakeRentalPeriod);
+        fakeRentalPeriod);
 
 
-        ListingRequest listingRequest = new ListingRequest("full boardgame", "rental", "something something something",50.0, "Ludo", "Pretoria", false,"lowkey doesn't exist","original", "like new", "have you played ludo before?", List.of("adventure", "strategy", "negotiation"),List.of("2030-05-31", "2030-06-01"));
+        ListingRequest listingRequest = new ListingRequest("full boardgame", "rental", "something something something",50.0, "Ludo", "Pretoria", false,"lowkey doesn't exist","original", "like new", "have you played ludo before?",List.of("2030-05-31", "2030-06-01"));
                 
 
         Boardgame bg = new Boardgame(null,null,"Ludo",null,null,null,null,null,null,null);
@@ -238,7 +236,6 @@ class ListingServiceTest {
         assertEquals("like new", res.condition());
         assertEquals("rental", res.listingType());
         assertTrue(res.genres().size() > 0);
-        assertEquals(List.of("adventure", "strategy", "negotiation"), res.genres());
         assertEquals(50, res.price());
         assertEquals("Pretoria", res.location());
         assertEquals("original", res.version());
@@ -264,11 +261,10 @@ class ListingServiceTest {
         Listing fakeSavedListing = new Listing("fakeId", "testBuddy", new ObjectId(), 
         "full boardgame", "sale", 250,"Pretoria", true, "this is a fake title", "like new", "Ludo", "original", 
         "have you played ludo before?", null, ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy", "negotiation"), null);
+        null);
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "something something something",
-    250, "Ludo", "Pretoria", true, null,"original", "like new", "have you played ludo before?", 
-        List.of("adventure", "strategy", "negotiation"), null);
+    250, "Ludo", "Pretoria", true, null,"original", "like new", "have you played ludo before?", null);
 
         when(jwtService.extractUserId(fakeToken)).thenReturn(new ObjectId());
         
@@ -298,10 +294,10 @@ class ListingServiceTest {
         Listing fakeSavedListing = new Listing("fakeId", "testBuddy", new ObjectId(), "full boardgame", "rental", 50,
         "Pretoria", false, "this is a fake title","like new", "Ludo", "original", "have you played ludo before?", null,
         ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy", "negotiation"), fakeRentalPeriod);
+        fakeRentalPeriod);
 
 
-        ListingRequest listingRequest = new ListingRequest("full boardgame", "rental", "something something something",50.0, "Ludo", "Pretoria", false,"lowkey doesn't exist","original", "like new", "have you played ludo before?", List.of("adventure", "strategy", "negotiation"),List.of("2030-05-31", "2030-06-01"));
+        ListingRequest listingRequest = new ListingRequest("full boardgame", "rental", "something something something",50.0, "Ludo", "Pretoria", false,"lowkey doesn't exist","original", "like new", "have you played ludo before?",List.of("2030-05-31", "2030-06-01"));
                 
 
         when(jwtService.extractUserId(fakeToken)).thenReturn(new ObjectId());
@@ -329,8 +325,7 @@ class ListingServiceTest {
         fakeRentalPeriod.setEndDate(LocalDate.parse("2030-06-01"));
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "rental", "something something something",
-        250, "Ludo", "Pretoria", true, "test.png","original", "like new", "have you played ludo before?", 
-        List.of("adventure", "strategy", "negotiation"),List.of(fakeRentalPeriod.getStartDate().toString(),fakeRentalPeriod.getEndDate().toString()));
+        250, "Ludo", "Pretoria", true, "test.png","original", "like new", "have you played ludo before?",List.of(fakeRentalPeriod.getStartDate().toString(),fakeRentalPeriod.getEndDate().toString()));
 
         //ACT AND ASSERT
         assertThrows(IllegalArgumentException.class,()->listingService.createListing(listingRequest, fakeToken, mockMultipartFile));
@@ -352,7 +347,7 @@ class ListingServiceTest {
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "rental", "something something something",
         250, "Ludo", "Pretoria", true, "test.png","original", "like new", "have you played ludo before?", 
-        List.of("adventure", "strategy", "negotiation"),List.of(fakeRentalPeriod.getStartDate().toString(),fakeRentalPeriod.getEndDate().toString()));
+        List.of(fakeRentalPeriod.getStartDate().toString(),fakeRentalPeriod.getEndDate().toString()));
 
         //ACT AND ASSERT
         assertThrows(IllegalArgumentException.class,()->listingService.createListing(listingRequest, fakeToken, mockMultipartFile));
@@ -374,7 +369,7 @@ class ListingServiceTest {
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "rental", "something something something",
         250, "Ludo", "Pretoria", true, "test.png","original", "like new", "have you played ludo before?", 
-        List.of("adventure", "strategy", "negotiation"),List.of(fakeRentalPeriod.getStartDate().toString(),fakeRentalPeriod.getEndDate().toString()));
+       List.of(fakeRentalPeriod.getStartDate().toString(),fakeRentalPeriod.getEndDate().toString()));
 
         //ACT AND ASSERT
         assertThrows(IllegalArgumentException.class,()->listingService.createListing(listingRequest, fakeToken, mockMultipartFile));
@@ -391,7 +386,7 @@ class ListingServiceTest {
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "rental", "something something something",
         250, "Ludo", "Pretoria", true, "test.png","original", "like new", "have you played ludo before?", 
-        List.of("adventure", "strategy", "negotiation"),null);
+       null);
 
         //ACT AND ASSERT
         assertThrows(IllegalArgumentException.class,()->listingService.createListing(listingRequest, fakeToken, mockMultipartFile));
@@ -413,7 +408,7 @@ class ListingServiceTest {
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "rental", "something something something",
         250, "Ludo", "Pretoria", true, "test.png","original", "like new", "have you played ludo before?", 
-        List.of("adventure", "strategy", "negotiation"),List.of(fakeRentalPeriod.getStartDate().toString(),fakeRentalPeriod.getEndDate().toString(),"2015-02-20"));
+       List.of(fakeRentalPeriod.getStartDate().toString(),fakeRentalPeriod.getEndDate().toString(),"2015-02-20"));
         
         //ACT AND ASSERT
         assertThrows(IllegalArgumentException.class,()->listingService.createListing(listingRequest, fakeToken, mockMultipartFile));
@@ -435,7 +430,7 @@ class ListingServiceTest {
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "borrow", "something something something",
         250, "Ludo", "Pretoria", true, "test.png","original", "like new", "have you played ludo before?", 
-        List.of("adventure", "strategy", "negotiation"),List.of(fakeRentalPeriod.getStartDate().toString(),fakeRentalPeriod.getEndDate().toString()));
+       List.of(fakeRentalPeriod.getStartDate().toString(),fakeRentalPeriod.getEndDate().toString()));
 
         //ACT AND ASSERT
         assertThrows(IllegalArgumentException.class,()->listingService.createListing(listingRequest, fakeToken, mockMultipartFile));
@@ -458,7 +453,7 @@ class ListingServiceTest {
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "something something something",
         250, "Ludo", "Pretoria", true, "test.png","original", "like new", "", 
-        List.of("adventure", "strategy", "negotiation"),null);
+       null);
 
         //ACT AND ASSERT
         assertThrows(IllegalArgumentException.class,()->listingService.createListing(listingRequest, fakeToken, mockMultipartFile));
@@ -481,7 +476,7 @@ class ListingServiceTest {
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "something something something",
         -250, "Ludo", "Pretoria", true, "test.png","original", "like new", "ludo game title i guess", 
-        List.of("adventure", "strategy", "negotiation"),null);
+       null);
 
         //ACT AND ASSERT
         assertThrows(IllegalArgumentException.class,()->listingService.createListing(listingRequest, fakeToken, mockMultipartFile));
@@ -502,8 +497,7 @@ class ListingServiceTest {
         fakeRentalPeriod.setEndDate(LocalDate.parse("2030-06-01"));
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "something something something",
-        250, "Ludo", "Pretoria", true, "test.png","original", "likenew", "AAAA", 
-        List.of("adventure", "strategy", "negotiation"),null);
+        250, "Ludo", "Pretoria", true, "test.png","original", "likenew", "AAAA",null);
 
         //ACT AND ASSERT
         assertThrows(IllegalArgumentException.class,()->listingService.createListing(listingRequest, fakeToken, mockMultipartFile));
@@ -525,8 +519,7 @@ class ListingServiceTest {
         fakeRentalPeriod.setEndDate(LocalDate.parse("2030-06-01"));
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "something something something",
-        250, "Ludo", "Pretoria", true, "test.png","original", "like new", "title", 
-        List.of("fakeGenre", "strategy", "negotiation"),null);
+        250, "Ludo", "Pretoria", true, "test.png","original", "like new", "title",null);
 
         //ACT AND ASSERT
         assertThrows(IllegalArgumentException.class,()->listingService.createListing(listingRequest, fakeToken, mockMultipartFile));
@@ -547,8 +540,7 @@ class ListingServiceTest {
         fakeRentalPeriod.setEndDate(LocalDate.parse("2010-06-01"));
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "rental", "something something something",
-        250, "Ludo", "Pretoria", true, "test.png","original", "like new", "have you played ludo before?", 
-        List.of("adventure", "strategy", "negotiation"),List.of(fakeRentalPeriod.getStartDate().toString(),fakeRentalPeriod.getEndDate().toString()));
+        250, "Ludo", "Pretoria", true, "test.png","original", "like new", "have you played ludo before?",List.of(fakeRentalPeriod.getStartDate().toString(),fakeRentalPeriod.getEndDate().toString()));
 
         //ACT AND ASSERT
         assertThrows(IllegalArgumentException.class,()->listingService.createListing(listingRequest, fakeToken, mockMultipartFile));
@@ -564,8 +556,7 @@ class ListingServiceTest {
     
         Listing fakeListing = new Listing(listingId, "testBuddy", userId, "full boardgame", "sale", 100, "Pretoria", false, "A title", 
         "like new", "ludo", "version", "description", "fakeimage.png", 
-        ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(), 
-        List.of(Genres.ADVENTURE.getValue(),Genres.ANCIENT.getValue(), Genres.EDUCATIONAL.getValue()),null);
+        ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),null);
         when(jwtService.extractUserId(fakeToken)).thenReturn(userId);
         when(listingRepository.findById(listingId)).thenReturn(Optional.of(fakeListing));
         // ACT
@@ -582,7 +573,7 @@ class ListingServiceTest {
         String listingId = "listing-123";
 
         Listing fakeListing = new Listing(listingId, "otherUser", new ObjectId(), "full boardgame", "sale", 100, "Pretoria", false, "A title","like new", "Ludo", "original", "description", null, 
-        ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(),List.of("strategy"), null);
+        ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(), null);
         when(listingRepository.findById(listingId)).thenReturn(Optional.of(fakeListing));
 
         //ACT AND ASSERT
@@ -617,12 +608,11 @@ class ListingServiceTest {
         Listing existingListing = new Listing(listingId, "testBuddy", userId, "full boardgame", "sale", 100,
         "Pretoria", false, "Old title", "like new", "Ludo", "original",
         "old description", "fakeimage.png", ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy"), null);
+        LocalDateTime.now(), LocalDateTime.now(), null);
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "New title",
         300, "Chess", "Pretoria", false, "test.png", "original", "like new",
-        "updated description", List.of("adventure", "strategy"), null);
+        "updated description",  null);
 
         Boardgame chessGame = new Boardgame(null, null, "Chess", null, null, null, null,null, null, null);
         when(boardGameRepository.findByTitle("Chess")).thenReturn(Optional.of(chessGame));
@@ -666,12 +656,11 @@ class ListingServiceTest {
         Listing existingListing = new Listing(listingId, "testBuddy", userId, "full boardgame", "sale", 100,
         "Pretoria", false, "Old title", "like new", "Ludo", "original",
         "old description", "fakeimage.png", ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy"), null);
+        LocalDateTime.now(), LocalDateTime.now(),null);
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "New title",
         300, "Chess", "Pretoria", false, "test.png", "original", "like new",
-        "updated description", List.of("adventure", "strategy"), null);
+        "updated description", null);
         when(boardGameRepository.findByTitle("Chess")).thenReturn(Optional.empty());
 
         when(jwtService.extractUserId(fakeToken)).thenReturn(userId);
@@ -711,14 +700,12 @@ class ListingServiceTest {
         Listing existingListing = new Listing("fakeId", "testBuddy", id, "full boardgame", "sale", 100,
                 "Pretoria", false, "Old title", "like new", "Ludo", "original",
                 "old description", "fakeimage.png", ListingStatus.AVAILABLE,
-                LocalDateTime.now(), LocalDateTime.now(),
-                List.of("adventure", "strategy"), null);
+                LocalDateTime.now(), LocalDateTime.now(), null);
 
         ObjectId altId = new ObjectId();
 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "something something something",
-        250, "Ludo", "Pretoria", true, "test.png","original", "like new", "AAAA", 
-        List.of("adventure", "strategy", "negotiation"),null);
+        250, "Ludo", "Pretoria", true, "test.png","original", "like new", "AAAA", null);
         when(listingRepository.findById("fakeId")).thenReturn(Optional.of(existingListing)); 
         when(jwtService.extractUserId("fakeToken")).thenReturn(altId);
         
@@ -733,9 +720,7 @@ class ListingServiceTest {
     void shouldThrowWhenUpdatingNonExistentListing(){
         //ARRANGE 
         ListingRequest listingRequest = new ListingRequest("full boardgame", "sale", "something something something",
-        250, "Ludo", "Pretoria", true, "test.png","original", "like new", "AAAA", 
-
-        List.of("adventure", "strategy", "negotiation"),null);
+        250, "Ludo", "Pretoria", true, "test.png","original", "like new", "AAAA", null);
         when(listingRepository.findById("fakeId")).thenReturn(Optional.empty()); 
         
         //ACT & ASSERT 
@@ -758,40 +743,11 @@ class ListingServiceTest {
         rp.setEndDate(LocalDate.now().plusDays(60));
         Listing cmpListing = new Listing(listingId, fakeUsername, userId,"assets", "rental", 3210, "pretoria",
          false,"MONOPOLY: whole bunch of nonsense", "fair","Monopoly", "Original","some monopoly",defaultIMG,
-         ListingStatus.AVAILABLE, LocalDateTime.now(),  LocalDateTime.now(), List.of(Genres.GAME_SYSTEM.getValue()),rp);
+         ListingStatus.AVAILABLE, LocalDateTime.now(),  LocalDateTime.now(),rp);
 
         when(jwtService.extractUserId(fakeToken)).thenReturn(userId);
         ListingRequest req = new ListingRequest("invalid", "rental", "MONOPOLY: whole bunch of nonsense", 3210, "Monopoly", "pretoria", 
-        false,defaultIMG, "Original","fair", "some monopoly",  
-        List.of(Genres.GAME_SYSTEM.getValue()),List.of(rp.getStartDate().toString(),rp.getEndDate().toString()));
-
-        when(listingRepository.findById(listingId)).thenReturn(Optional.of(cmpListing));
-        //ACT && ASSERT 
-        assertThrows(IllegalArgumentException.class, ()->{
-            listingService.updateListing(listingId, req, fakeToken, null);
-        });
-    }
-
-    @Test
-    @DisplayName("Edit Listing should throw an IllegalArgumentException on invalid Genres")
-    void shouldThrowForInvalidGenreOnUpdate(){
-        //ARRANGE
-        String fakeToken = "fake-token";
-        String fakeUsername = "testBuddy";
-        String listingId = "listingId";
-        ObjectId userId = new ObjectId();
-        //RentalPeriod 
-        RentalPeriod rp = new RentalPeriod();
-        rp.setStartDate(LocalDate.now());
-        rp.setEndDate(LocalDate.now().plusDays(60));
-        Listing cmpListing = new Listing(listingId, fakeUsername, userId,"assets", "rental", 3210, "pretoria",
-         false,"MONOPOLY: whole bunch of nonsense", "fair","Monopoly", "Original","some monopoly",defaultIMG,
-         ListingStatus.AVAILABLE, LocalDateTime.now(),  LocalDateTime.now(), List.of(Genres.GAME_SYSTEM.getValue()),rp);
-
-        when(jwtService.extractUserId(fakeToken)).thenReturn(userId);
-        ListingRequest req = new ListingRequest("assets", "rental", "MONOPOLY: whole bunch of nonsense", 3210, "Monopoly", "pretoria", 
-        false,defaultIMG, "Original","fair", "some monopoly",  
-        List.of("Fake Genre"),List.of(rp.getStartDate().toString(),rp.getEndDate().toString()));
+        false,defaultIMG, "Original","fair", "some monopoly" ,List.of(rp.getStartDate().toString(),rp.getEndDate().toString()));
 
         when(listingRepository.findById(listingId)).thenReturn(Optional.of(cmpListing));
         //ACT && ASSERT 
@@ -814,12 +770,12 @@ class ListingServiceTest {
         rp.setEndDate(LocalDate.now().plusDays(60));
         Listing cmpListing = new Listing(listingId, fakeUsername, userId,"assets", "rental", 3210, "pretoria",
          false,"MONOPOLY: whole bunch of nonsense", "fair","Monopoly", "Original","some monopoly",defaultIMG,
-         ListingStatus.AVAILABLE, LocalDateTime.now(),  LocalDateTime.now(), List.of(Genres.GAME_SYSTEM.getValue()),rp);
+         ListingStatus.AVAILABLE, LocalDateTime.now(),  LocalDateTime.now(),rp);
 
         when(jwtService.extractUserId(fakeToken)).thenReturn(userId);
         ListingRequest req = new ListingRequest("assets", "rental", "MONOPOLY: whole bunch of nonsense", 3210, "Monopoly", "pretoria", 
         false,defaultIMG, "Original","fair", "some monopoly",  
-        List.of(Genres.GAME_SYSTEM.getValue()),List.of(LocalDate.now().minusDays(55).toString(),LocalDate.now().plusDays(81).toString()));
+        List.of(LocalDate.now().minusDays(55).toString(),LocalDate.now().plusDays(81).toString()));
 
         when(listingRepository.findById(listingId)).thenReturn(Optional.of(cmpListing));
         //ACT && ASSERT 
@@ -842,12 +798,11 @@ class ListingServiceTest {
         rp.setEndDate(LocalDate.now().plusDays(60));
         Listing cmpListing = new Listing(listingId, fakeUsername, userId,"assets", "rental", 3210, "pretoria",
          false,"MONOPOLY: whole bunch of nonsense", "fair","Monopoly", "Original","some monopoly",defaultIMG,
-         ListingStatus.AVAILABLE, LocalDateTime.now(),  LocalDateTime.now(), List.of(Genres.GAME_SYSTEM.getValue()),rp);
+         ListingStatus.AVAILABLE, LocalDateTime.now(),  LocalDateTime.now(),rp);
 
         when(jwtService.extractUserId(fakeToken)).thenReturn(userId);
         ListingRequest req = new ListingRequest("assets", "rental", "MONOPOLY: whole bunch of nonsense", 3210, "Monopoly", "pretoria", 
-        false,defaultIMG, "Original","fair", "some monopoly",  
-        List.of(Genres.GAME_SYSTEM.getValue()),List.of(rp.getStartDate().toString(),rp.getStartDate().minusDays(5).toString()));
+        false,defaultIMG, "Original","fair", "some monopoly",List.of(rp.getStartDate().toString(),rp.getStartDate().minusDays(5).toString()));
 
         when(listingRepository.findById(listingId)).thenReturn(Optional.of(cmpListing));
         //ACT && ASSERT 
@@ -873,7 +828,7 @@ class ListingServiceTest {
 
         Listing cmpListing = new Listing(listingId, fakeUsername, userId,"assets", "rental", 3210, "pretoria",
          false,"MONOPOLY: whole bunch of nonsense", "fair","Monopoly", "Original","some monopoly",defaultIMG,
-         ListingStatus.AVAILABLE, LocalDateTime.now(),  LocalDateTime.now(), List.of(Genres.GAME_SYSTEM.getValue()),rp);
+         ListingStatus.AVAILABLE, LocalDateTime.now(),  LocalDateTime.now(),rp);
 
         when(jwtService.extractUserId(fakeToken)).thenReturn(userId);
         
@@ -882,7 +837,7 @@ class ListingServiceTest {
     
         ListingRequest req = new ListingRequest("assets", "rental", "MONOPOLY: whole bunch of nonsense", 3210, "Monopoly", "pretoria",
         false, defaultIMG, "Original", "fair", "some monopoly", 
-        List.of(Genres.GAME_SYSTEM.getValue()), List.of(rp.getStartDate().toString(), rp.getEndDate().toString()));
+        List.of(rp.getStartDate().toString(), rp.getEndDate().toString()));
         when(listingRepository.save(any(Listing.class))).thenAnswer(invocation->invocation.getArgument(0));
         when(listingRepository.findById(listingId)).thenReturn(Optional.of(cmpListing));
         
@@ -919,10 +874,10 @@ class ListingServiceTest {
         rp.setEndDate(LocalDate.now().plusDays(60));
         Listing cmpListing = new Listing(listingId, fakeUsername, userId,"assets", "rental", 3210, "pretoria",
          false,"MONOPOLY: whole bunch of nonsense", "fair","Monopoly", "Original","some monopoly",defaultIMG,
-         ListingStatus.AVAILABLE, LocalDateTime.now(),  LocalDateTime.now(), List.of(Genres.GAME_SYSTEM.getValue()),rp);
+         ListingStatus.AVAILABLE, LocalDateTime.now(),  LocalDateTime.now(), rp);
 
         ListingRequest req = new ListingRequest(token, listingId, listingId, cmpListing.getPrice(), cmpListing.getGameTitle(), cmpListing.getLocation(), cmpListing.getIsNegotiable(),null, cmpListing.getVersion(), cmpListing.getCondition(),
-         cmpListing.getDescription(), cmpListing.getGenres(), List.of(cmpListing.getRentalPeriod().getStartDate().toString(),cmpListing.getRentalPeriod().getEndDate().toString()));
+         cmpListing.getDescription(), List.of(cmpListing.getRentalPeriod().getStartDate().toString(),cmpListing.getRentalPeriod().getEndDate().toString()));
         when(jwtService.extractUserId(token)).thenReturn(userId);
         when(listingRepository.findById(listingId)).thenReturn(Optional.of(cmpListing));
         
@@ -939,8 +894,7 @@ class ListingServiceTest {
         Listing fakeListing = new Listing("fakeId", "testBuddy", new ObjectId(), "full boardgame", "sale", 250,
         "Pretoria", true, "fake title", "like new", "Monopoly", "original",
         "have you played ludo before?", null, ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy"), null);
+        LocalDateTime.now(), LocalDateTime.now(), null);
         
         when(mongoTemplate.find(any(Query.class),eq(Listing.class))).thenReturn(List.of(fakeListing));
 
@@ -960,8 +914,7 @@ class ListingServiceTest {
         Listing fakeListing = new Listing("fakeId", "testBuddy", new ObjectId(), "full boardgame", "sale", 250,
         "Pretoria", true, "fake title", "like new", "Ludo", "original",
         "have you played ludo before?", null, ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy"), null);
+        LocalDateTime.now(), LocalDateTime.now(), null);
         
         when(mongoTemplate.find(any(Query.class),eq(Listing.class))).thenReturn(List.of(fakeListing));
 
@@ -981,8 +934,7 @@ class ListingServiceTest {
         Listing fakeListing = new Listing("fakeId", "testBuddy", new ObjectId(), "full boardgame", "sale", 250,
         "Pretoria", true, "fake title", "fair", "Ludo", "original",
         "have you played ludo before?", null, ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy"), null);
+        LocalDateTime.now(), LocalDateTime.now(), null);
         
         RentalPeriod rp  = new RentalPeriod();
         rp.setStartDate(LocalDate.now().plusDays(50));
@@ -991,14 +943,12 @@ class ListingServiceTest {
         Listing fakeListing_1 = new Listing("fakeId_2", "sumwon", new ObjectId(), "partial boardgame", "rental", 3850,
         "Pretoria", true, "titles dont have to be unique", "like new", "Ludo", "original",
         "have you played ludo before?", null, ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy"),rp);
+        LocalDateTime.now(), LocalDateTime.now(), rp);
         
         Listing fakeListing_2 = new Listing("fakeId_3", "sumwonElse", new ObjectId(), "full boardgame", "sale", 250,
         "Pretoria", true, "fake title", "like new", "Ludo", "original",
         "have you played ludo before?", null, ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy"), null);
+        LocalDateTime.now(), LocalDateTime.now(), null);
         
         when(mongoTemplate.find(any(Query.class),eq(Listing.class))).thenReturn(List.of(fakeListing,fakeListing_1, fakeListing_2));
 
@@ -1016,8 +966,7 @@ class ListingServiceTest {
         Listing fakeListing = new Listing("fakeId", "testBuddy", new ObjectId(), "full boardgame", "sale", 150,
         "Pretoria", true, "fake title", "like new", "Ludo", "original",
         "have you played ludo before?", null, ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy"), null);
+        LocalDateTime.now(), LocalDateTime.now(), null);
 
         when(mongoTemplate.find(any(Query.class), eq(Listing.class))).thenReturn(List.of(fakeListing));
         
@@ -1037,8 +986,7 @@ class ListingServiceTest {
         Listing fakeListing = new Listing("fakeId", "testBuddy", new ObjectId(), "full boardgame", "sale", 550,
         "Pretoria", true, "fake title", "like new", "Ludo", "original",
         "have you played ludo before?", null, ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy"), null);
+        LocalDateTime.now(), LocalDateTime.now(), null);
 
         when(mongoTemplate.find(any(Query.class), eq(Listing.class))).thenReturn(List.of(fakeListing));
 
@@ -1058,8 +1006,7 @@ class ListingServiceTest {
         Listing fakeListing = new Listing("fakeId", "testBuddy", new ObjectId(), "full boardgame", "sale", 250,
         "Pretoria", true, "fake title", "like new", "Ludo", "original",
         "have you played ludo before?", null, ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy"), null);
+        LocalDateTime.now(), LocalDateTime.now(), null);
 
         when(mongoTemplate.find(any(Query.class), eq(Listing.class))).thenReturn(List.of(fakeListing));
 
@@ -1079,12 +1026,12 @@ class ListingServiceTest {
         Listing l1 = new Listing("id1", "testBuddy", new ObjectId(), "full boardgame", "sale", 250,
         "Pretoria", false, "title1", "like new", "Ludo", "original",
         "desc", defaultIMG, ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(), List.of(Genres.ADVENTURE.getValue()), null);
+        LocalDateTime.now(), LocalDateTime.now(),null);
 
         Listing l2 = new Listing("id2", "testBuddy", new ObjectId(), "full boardgame", "sale", 300,
         "Pretoria", false, "title2", "like new", "Chess", "original",
         "desc", defaultIMG, ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(), List.of(Genres.ADVENTURE.getValue()), null);
+        LocalDateTime.now(), LocalDateTime.now(), null);
 
         when(mongoTemplate.find(any(Query.class), eq(Listing.class))).thenReturn(List.of(l1, l2));
         
@@ -1119,20 +1066,17 @@ class ListingServiceTest {
         Listing fakeListing = new Listing("fakeId", "testBuddy", new ObjectId(), "full boardgame", "sale", 250,
         "Pretoria", true, "fake title", "like new", "Ludo", "original",
         "have you played ludo before?", null, ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy"), null);
+        LocalDateTime.now(), LocalDateTime.now(), null);
 
         Listing fakeListing_1 = new Listing("fakeId_2", "SomeoneElse", new ObjectId(), "partial boardgame", "sale", 250,
         "Pretoria", true, "fake title", "like new", "Ludo", "original",
         "have you played ludo before?", null, ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy"), null);
+        LocalDateTime.now(), LocalDateTime.now(), null);
 
         Listing fakeListing_2 = new Listing("fakeId_3", "anotherPerson", new ObjectId(), "pieces", "sale", 250,
         "Pretoria", true, "fake title", "like new", "Ludo", "original",
         "have you played ludo before?", null, ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy"), null);
+        LocalDateTime.now(), LocalDateTime.now(), null);
 
         when(listingRepository.findByStatus(ListingStatus.AVAILABLE)).thenReturn(List.of(fakeListing, fakeListing_1, fakeListing_2));
 
@@ -1155,20 +1099,17 @@ class ListingServiceTest {
         Listing fakeListing = new Listing("fakeId", "testBuddy", fakeUserId, "full boardgame", "sale", 250,
         "Pretoria", true, "fake title", "like new", "Ludo", "original",
         "have you played ludo before?", null, ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy"), null);
+        LocalDateTime.now(), LocalDateTime.now(), null);
 
         Listing fakeListing_1 = new Listing("fakeId", "testBuddy", fakeUserId, "partial boardgame", "sale", 250,
         "Pretoria", true, "fake title", "like new", "Ludo", "original",
         "have you played ludo before?", null, ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy"), null);
+        LocalDateTime.now(), LocalDateTime.now(), null);
 
         Listing fakeListing_2 = new Listing("fakeId", "testBuddy", fakeUserId, "pieces", "sale", 250,
         "Pretoria", true, "fake title", "like new", "Ludo", "original",
         "have you played ludo before?", null, ListingStatus.AVAILABLE,
-        LocalDateTime.now(), LocalDateTime.now(),
-        List.of("adventure", "strategy"), null);
+        LocalDateTime.now(), LocalDateTime.now(), null);
 
         when (jwtService.extractUserId(fakeToken)).thenReturn(fakeUserId);
         when(listingRepository.findByUserId(fakeUserId)).thenReturn(List.of(fakeListing, fakeListing_1, fakeListing_2));
@@ -1208,8 +1149,7 @@ class ListingServiceTest {
         Listing fakeListing = new Listing(listingId, "fakeUsername", new ObjectId(), "pieces", "sale", 4289,
     "Pretoria", true, "fakeTitle", Condition.FAIR.getValue(), "Ludo", "Original",
     "fake description", "", ListingStatus.AVAILABLE,
-            LocalDateTime.now(), LocalDateTime.now(),
-            List.of(Genres.ANCIENT.getValue()), null);
+            LocalDateTime.now(), LocalDateTime.now(), null);
                     
         when(listingRepository.findById(listingId)).thenReturn(Optional.of(fakeListing));
         //ACT 

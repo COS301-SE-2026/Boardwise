@@ -1,14 +1,12 @@
 <template>
-  <BaseAddCard 
-    label="Add Listing"
-    @click="showAdd = true"
+  <BaseAddCard
+   label="Add Listing"
+   @click="$emit('add-listing')"
   />
 </template>
 
 <script setup>
 import BaseAddCard from '~/components/ui/BaseAddCard.vue'
 
-import { ref } from 'vue'
-
-const showAdd = ref(false)
+defineEmits(['add-listing'])
 </script>
