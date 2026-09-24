@@ -17,6 +17,8 @@
 
       <ProfileCommunities :communities="user.communities" />
 
+      <GameArchitectEntryCard source="profile" class="mb-6" />
+
        <BaseTabs
                 :tabs="['Games Owned', 'Listings']"
                 :active-tab="activeTab"
@@ -86,7 +88,7 @@ import { ref, onMounted, computed } from 'vue'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
-
+import GameArchitectEntryCard from '~/components/features/game-architect/GameArchitectEntryCard.vue'
 import ProfileHeader from '~/components/features/profile/ProfileHeader.vue'
 import ProfileStats from '~/components/features/profile/ProfileStats.vue'
 import ProfileCommunities from '~/components/features/profile/ProfileCommunities.vue'
