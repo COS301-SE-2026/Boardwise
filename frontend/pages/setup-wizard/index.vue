@@ -96,6 +96,6 @@ watch(searchQuery, (q) => delaySearch(q))
 
 const goToWizard = (gameOrId: any) => {
     const id = typeof gameOrId === 'string' ? gameOrId : gameOrId.id 
-    router.push('/setup-wizard/${id}')
+    router.push(`/setup-wizard/${id}`)
 }
 </script>
