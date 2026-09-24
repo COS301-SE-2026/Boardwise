@@ -4863,3 +4863,32 @@ button:disabled,
   padding: 0;
   list-style: none;
 }
+
+.game-architect-progress__item--active,
+.game-architect-progress__item--complete,
+.game-architect-progress li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  text-align: center;
+}
+
+.game-architect-progress li:not(:last-child)::after {
+  position: absolute;
+  z-index: 0;
+  top: 19px;
+  left: calc(50% + 22px);
+  width: calc(100% - 44px);
+  height: 2px;
+  content: '';
+  background: var(--color-border-strong);
+}
+
+.game-architect-progress__item--complete:not(:last-child)::after {
+  background: var(--color-primary);
+}
