@@ -15,6 +15,7 @@ BOARDWISE_BASE_DOMAIN = "boardwise.games"
 ALLOW_ALL_IPv4 = "0.0.0.0/0"
 ALLOW_ALL_IPv6 = "::/0"
 WOMM_EMAIL = "worksonmymachine67@gmail.com"
+INSTANCE_PLATFORM = "linux/amd64"
 
 # --- Set up budget, budget alerts and cost anomaly
 # Budget to measure how much of our credits are being used
@@ -364,7 +365,7 @@ python_image = awsx.ecr.Image(
     f"{RESOURCE_PREFIX}-python-image",
     repository_url=python_repo.url,
     context="../ai",
-    platform="linux/amd64"
+    platform=INSTANCE_PLATFORM
 )
 
 python_setup_script = r"""#!/bin/bash
@@ -451,7 +452,7 @@ scraper_image = awsx.ecr.Image(
     f"{RESOURCE_PREFIX}-scraper-image",
     repository_url=scraper_repo.url,
     context="../scrapers",
-    platform="linux/amd64"
+    platform=INSTANCE_PLATFORM
 )
 
 scraper_setup_script = r"""#!/bin/bash
@@ -506,7 +507,7 @@ spring_image = awsx.ecr.Image(
     f"{RESOURCE_PREFIX}-spring-image",
     repository_url=spring_repo.url,
     context="../backend",
-    platform="linux/amd64"
+    platform=INSTANCE_PLATFORM
 )
 
 spring_setup_script = r"""#!/bin/bash
@@ -565,7 +566,7 @@ spring_user_data = pulumi.Output.all(
                         .replace("__R2_BUCKET_LISTINGS__", settings.R2_BUCKET_LISTINGS)
                         .replace("__R2_BUCKET_PROFILES__", settings.R2_BUCKET_PROFILES)
                         .replace("__PROD_FAST_API_BASE__", f"http://{args['python_ip']}:8000/api/fa/") # NOSONAR
-                        .replace("__SCRAPER_SERVICE_URL__", f"http://{args['scraper_ip']}:8082/internal/retail/")
+                        .replace("__SCRAPER_SERVICE_URL__", f"http://{args['scraper_ip']}:8082/internal/retail/") # NOSONAR
                         .replace("__INTERNAL_SECRET__", settings.INTERNAL_WEBHOOK_SECRET)
                         .replace("__R2_SECRET_KEY__", settings.R2_SECRET_KEY)
                         .replace("__R2_ACCESS_KEY__", settings.R2_ACCESS_KEY)
