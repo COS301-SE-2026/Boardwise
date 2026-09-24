@@ -316,6 +316,8 @@ python_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
     ip_protocol="-1"
 )
 
+# make unstructured instance security group. Allow traffic from python
+
 # set up backend
 ami = aws.ssm.get_parameter(
     name="/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
@@ -354,6 +356,8 @@ backend_profile = aws.iam.InstanceProfile(
     role=backend_role.name
 )
 
+# Make unstructured instance
+
 python_repo = awsx.ecr.Repository(f"{RESOURCE_PREFIX}-python-repo", force_delete=True)
 
 python_image = awsx.ecr.Image(
@@ -387,6 +391,9 @@ docker run -d \
     -e INTERNAL_SECRET="__INTERNAL_SECRET__" \
     -e CPU_CORES="__CPU_CORES__" \
     -e SYSTEM_CONTRIBUTOR_ID="__SYSTEM_CONTRIBUTOR_ID__" \
+    -e UNSTRUCTURED_API_KEY="__UNSTRUCTURED_API_KEY__" \
+    -e UNSTRUCTURED_PROD_URL="__UNSTRUCTURED_PROD_URL__" \
+    -e EMBEDDING_DIMENSIONS="__EMBEDDING_DIMENSIONS__" \
     -e APP_ENV="__APP_ENV__" __IMAGE_URI__
 """
 python_user_data = python_image.image_uri.apply(
@@ -406,6 +413,9 @@ python_user_data = python_image.image_uri.apply(
                         .replace("__REGISTRY_URL__", image_uri.split('/')[0])
                         .replace("__REGION__", aws.get_region().region)
                         .replace("__SYSTEM_CONTRIBUTOR_ID__", settings.SYSTEM_CONTRIBUTOR_ID)
+                        .replace("__UNSTRUCTURED_API_KEY__", settings.UNSTRUCTURED_API_KEY)
+                        .replace("__UNSTRUCTURED_PROD_URL__", "make instance then inser value")
+                        .replace("__EMBEDDING_DIMENSIONS__", settings.EMBEDDING_DIMENSIONS)
                         .replace("__APP_ENV__", settings.APP_ENV)
 )
 
@@ -420,81 +430,6 @@ python_instance = aws.ec2.Instance(
     iam_instance_profile=backend_profile.name,
     associate_public_ip_address=True,
     user_data_replace_on_change=True
-)
-
-spring_repo = awsx.ecr.Repository(f"{RESOURCE_PREFIX}-spring-repo", force_delete=True)
-spring_image = awsx.ecr.Image(
-    f"{RESOURCE_PREFIX}-spring-image",
-    repository_url=spring_repo.url,
-    context="../backend",
-    platform="linux/amd64"
-)
-
-spring_setup_script = r"""#!/bin/bash
-yum update -y
-yum install -y docker
-
-systemctl enable --now docker
-
-aws ecr get-login-password --region __REGION__ | docker login --username AWS --password-stdin __REGISTRY_URL__
-
-docker run -d \
-    --restart always \
-    --name spring-backend \
-    -p 8080:8080 \
-    -e PROD_DB_URL="__PROD_DB_URL__" \
-    -e JWT_SECRET="__JWT_SECRET__" \
-    -e JWT_ALGORITHM="__JWT_ALGORITHM__" \
-    -e R2_ACCOUNT_ID="__R2_ACCOUNT_ID__" \
-    -e R2_BUCKET_RULEBOOKS="__R2_BUCKET_RULEBOOKS__" \
-    -e R2_ACCESS_KEY="__R2_ACCESS_KEY__" \
-    -e R2_SECRET_KEY="__R2_SECRET_KEY__" \
-    -e INTERNAL_SECRET="__INTERNAL_SECRET__" \
-    -e PROD_FAST_API_BASE="__PROD_FAST_API_BASE__" \
-    -e R2_BUCKET_PROFILES="__R2_BUCKET_PROFILES__" \
-    -e R2_BUCKET_LISTINGS="__R2_BUCKET_LISTINGS__" \
-    -e R2_RULEBOOKS_PUBLIC_PROD_URL="__R2_RULEBOOKS_PUBLIC_PROD_URL__" \
-    -e R2_LISTINGS_PROD_ENDPOINT="__R2_LISTINGS_PROD_ENDPOINT__" \
-    -e R2_PROD_URL="__R2_PROD_URL__" \
-    -e BGG_TOKEN="__BGG_TOKEN__" \
-    -e BGG_URL="__BGG_URL__" \
-    -e PROD_FRONTEND_BASE="__PROD_FRONTEND_BASE__" \
-    -e GOOGLE_MAP_API_KEY="__GOOGLE_MAP_API_KEY__" \
-    -e SMTP_HOST="__SMTP_HOST__" \
-    -e SMTP_USERNAME="__SMTP_USERNAME__" \
-    -e SMTP_PASSWORD="__SMTP_PASSWORD__" \
-    -e SPRING_PROFILES_ACTIVE="__SPRING_PROFILES_ACTIVE__" __IMAGE_URI__
-"""
-spring_user_data = pulumi.Output.all(
-    image_uri = spring_image.image_uri,
-    python_ip = python_instance.private_ip
-).apply(
-    lambda args : spring_setup_script
-                        .replace("__IMAGE_URI__", args['image_uri'])
-                        .replace("__SMTP_PASSWORD__", settings.SMTP_PASSWORD if settings.SMTP_PASSWORD is not None else "")
-                        .replace("__SMTP_USERNAME__", settings.SMTP_USERNAME if settings.SMTP_USERNAME is not None else "")
-                        .replace("__SMTP_HOST__", settings.SMTP_HOST if settings.SMTP_HOST is not None else "")
-                        .replace("__GOOGLE_MAP_API_KEY__", settings.GOOGLE_MAP_API_KEY)
-                        .replace("__PROD_FRONTEND_BASE__", f"https://{BOARDWISE_BASE_DOMAIN}/")
-                        .replace("__BGG_URL__", settings.BGG_URL)
-                        .replace("__BGG_TOKEN__", settings.BGG_TOKEN)
-                        .replace("__R2_PROD_URL__", settings.R2_PROD_URL)
-                        .replace("__R2_LISTINGS_PROD_ENDPOINT__", settings.R2_LISTINGS_PROD_URL)
-                        .replace("__R2_RULEBOOKS_PUBLIC_PROD_URL__", settings.R2_RULEBOOKS_PUBLIC_PROD_URL)
-                        .replace("__R2_BUCKET_LISTINGS__", settings.R2_BUCKET_LISTINGS)
-                        .replace("__R2_BUCKET_PROFILES__", settings.R2_BUCKET_PROFILES)
-                        .replace("__PROD_FAST_API_BASE__", f"http://{args['python_ip']}:8000/api/fa/") # NOSONAR
-                        .replace("__INTERNAL_SECRET__", settings.INTERNAL_WEBHOOK_SECRET)
-                        .replace("__R2_SECRET_KEY__", settings.R2_SECRET_KEY)
-                        .replace("__R2_ACCESS_KEY__", settings.R2_ACCESS_KEY)
-                        .replace("__R2_BUCKET_RULEBOOKS__", settings.R2_BUCKET_RULEBOOKS)
-                        .replace("__R2_ACCOUNT_ID__", settings.R2_ACCOUNT_ID)
-                        .replace("__JWT_ALGORITHM__", settings.JWT_ALGORITHM)
-                        .replace("__JWT_SECRET__", settings.JWT_SECRET)
-                        .replace("__PROD_DB_URL__", settings.MONGODB_URL)
-                        .replace("__REGISTRY_URL__", args["image_uri"].split('/')[0])
-                        .replace("__REGION__", aws.get_region().region)
-                        .replace("__SPRING_PROFILES_ACTIVE__", settings.SPRING_PROFILES_ACTIVE)
 )
 
 spring_instance = aws.ec2.Instance(
@@ -564,6 +499,84 @@ scraper_instance = aws.ec2.Instance(
     associate_public_ip_address=True,
     tags={"Name": f"{RESOURCE_PREFIX}-scraper-service"},
     user_data_replace_on_change=True
+)
+
+spring_repo = awsx.ecr.Repository(f"{RESOURCE_PREFIX}-spring-repo", force_delete=True)
+spring_image = awsx.ecr.Image(
+    f"{RESOURCE_PREFIX}-spring-image",
+    repository_url=spring_repo.url,
+    context="../backend",
+    platform="linux/amd64"
+)
+
+spring_setup_script = r"""#!/bin/bash
+yum update -y
+yum install -y docker
+
+systemctl enable --now docker
+
+aws ecr get-login-password --region __REGION__ | docker login --username AWS --password-stdin __REGISTRY_URL__
+
+docker run -d \
+    --restart always \
+    --name spring-backend \
+    -p 8080:8080 \
+    -e PROD_DB_URL="__PROD_DB_URL__" \
+    -e JWT_SECRET="__JWT_SECRET__" \
+    -e JWT_ALGORITHM="__JWT_ALGORITHM__" \
+    -e R2_ACCOUNT_ID="__R2_ACCOUNT_ID__" \
+    -e R2_BUCKET_RULEBOOKS="__R2_BUCKET_RULEBOOKS__" \
+    -e R2_ACCESS_KEY="__R2_ACCESS_KEY__" \
+    -e R2_SECRET_KEY="__R2_SECRET_KEY__" \
+    -e INTERNAL_SECRET="__INTERNAL_SECRET__" \
+    -e PROD_FAST_API_BASE="__PROD_FAST_API_BASE__" \
+    -e R2_BUCKET_PROFILES="__R2_BUCKET_PROFILES__" \
+    -e R2_BUCKET_LISTINGS="__R2_BUCKET_LISTINGS__" \
+    -e R2_RULEBOOKS_PUBLIC_PROD_URL="__R2_RULEBOOKS_PUBLIC_PROD_URL__" \
+    -e R2_LISTINGS_PROD_ENDPOINT="__R2_LISTINGS_PROD_ENDPOINT__" \
+    -e R2_PROD_URL="__R2_PROD_URL__" \
+    -e BGG_TOKEN="__BGG_TOKEN__" \
+    -e BGG_URL="__BGG_URL__" \
+    -e PROD_FRONTEND_BASE="__PROD_FRONTEND_BASE__" \
+    -e GOOGLE_MAP_API_KEY="__GOOGLE_MAP_API_KEY__" \
+    -e SMTP_HOST="__SMTP_HOST__" \
+    -e SMTP_USERNAME="__SMTP_USERNAME__" \
+    -e SMTP_PASSWORD="__SMTP_PASSWORD__" \
+    -e SCRAPER_SERVICE_URL="__SCRAPER_SERVICE_URL__" \
+    -e SPRING_PROFILES_ACTIVE="__SPRING_PROFILES_ACTIVE__" __IMAGE_URI__
+"""
+spring_user_data = pulumi.Output.all(
+    image_uri = spring_image.image_uri,
+    python_ip = python_instance.private_ip,
+    scraper_ip = scraper_instance.private_ip
+).apply(
+    lambda args : spring_setup_script
+                        .replace("__IMAGE_URI__", args['image_uri'])
+                        .replace("__SMTP_PASSWORD__", settings.SMTP_PASSWORD if settings.SMTP_PASSWORD is not None else "")
+                        .replace("__SMTP_USERNAME__", settings.SMTP_USERNAME if settings.SMTP_USERNAME is not None else "")
+                        .replace("__SMTP_HOST__", settings.SMTP_HOST if settings.SMTP_HOST is not None else "")
+                        .replace("__GOOGLE_MAP_API_KEY__", settings.GOOGLE_MAP_API_KEY)
+                        .replace("__PROD_FRONTEND_BASE__", f"https://{BOARDWISE_BASE_DOMAIN}/")
+                        .replace("__BGG_URL__", settings.BGG_URL)
+                        .replace("__BGG_TOKEN__", settings.BGG_TOKEN)
+                        .replace("__R2_PROD_URL__", settings.R2_PROD_URL)
+                        .replace("__R2_LISTINGS_PROD_ENDPOINT__", settings.R2_LISTINGS_PROD_URL)
+                        .replace("__R2_RULEBOOKS_PUBLIC_PROD_URL__", settings.R2_RULEBOOKS_PUBLIC_PROD_URL)
+                        .replace("__R2_BUCKET_LISTINGS__", settings.R2_BUCKET_LISTINGS)
+                        .replace("__R2_BUCKET_PROFILES__", settings.R2_BUCKET_PROFILES)
+                        .replace("__PROD_FAST_API_BASE__", f"http://{args['python_ip']}:8000/api/fa/") # NOSONAR
+                        .replace("__SCRAPER_SERVICE_URL__", f"http://{args['scraper_ip']}:8082/internal/retail/")
+                        .replace("__INTERNAL_SECRET__", settings.INTERNAL_WEBHOOK_SECRET)
+                        .replace("__R2_SECRET_KEY__", settings.R2_SECRET_KEY)
+                        .replace("__R2_ACCESS_KEY__", settings.R2_ACCESS_KEY)
+                        .replace("__R2_BUCKET_RULEBOOKS__", settings.R2_BUCKET_RULEBOOKS)
+                        .replace("__R2_ACCOUNT_ID__", settings.R2_ACCOUNT_ID)
+                        .replace("__JWT_ALGORITHM__", settings.JWT_ALGORITHM)
+                        .replace("__JWT_SECRET__", settings.JWT_SECRET)
+                        .replace("__PROD_DB_URL__", settings.MONGODB_URL)
+                        .replace("__REGISTRY_URL__", args["image_uri"].split('/')[0])
+                        .replace("__REGION__", aws.get_region().region)
+                        .replace("__SPRING_PROFILES_ACTIVE__", settings.SPRING_PROFILES_ACTIVE)
 )
 
 caddy_setup_script = r"""#!/bin/bash
