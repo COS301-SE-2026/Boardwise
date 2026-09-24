@@ -1,15 +1,13 @@
 <template>
-  <v-dialog v-model="open" max-width="500">
-    <BaseCard class="pa-6" style="background: var(--color-surface) !important; overflow-y: auto;">
-      <v-form ref="formRef" v-model="formValid" class="d-flex flex-column ga-5">
-        <h2>Create Listing</h2>
-
+    <BaseModal v-model="open" title="Create Listing" max-width="700" :loading="isLoading">
+      <v-form ref="formRef" v-model="formValid" class="listing-form" @submmit.prevent="handleConfirm">
         <v-alert
           v-if="submitError"
           type="error"
           variant="tonal"
           density="compact"
           closable
+          class="listing-form__alert"
           @click:close="submitError = ''"
         >
           {{ submitError }}
@@ -18,11 +16,12 @@
         <v-text-field
           v-model="listingTitle"
           label="Listing Title"
-          placeholder="Listing title"
+          placeholder="e.g Catan - Complete Set"
           variant="outlined"
-          density="compact"
+          density="comfortable"
           hide-details="auto"
-          :rules="[listingTitleRule]"
+          :rules="[requiredRule, listingTitleRule]"
+          :disabled="isLoading"
         />
 
         <v-autocomplete
@@ -34,9 +33,10 @@
           item-value="title"
           no-filter
           variant="outlined"
-          density="compact"
+          density="comfortable"
           hide-details="auto"
           :rules="[requiredRule]"
+          :disabled="isLoading"
           @update:search="onGameSearch"
         />
 
@@ -45,9 +45,10 @@
           label="Version"
           placeholder="e.g. Original"
           variant="outlined"
-          density="compact"
+          density="comfortable"
           hide-details="auto"
-          :rules="[versionRule]"
+          :rules="[requiredRule, versionRule]"
+          :disabled="isLoading"
         />
 
         <v-select
@@ -55,9 +56,10 @@
           label="Condition"
           :items="conditions"
           variant="outlined"
-          density="compact"
+          density="comfortable"
           hide-details="auto"
           :rules="[requiredRule]"
+          :disabled="isLoading"
         />
 
         <v-select
@@ -68,12 +70,14 @@
           density="compact"
           hide-details="auto"
           :rules="[requiredRule]"
+          :disabled="isLoading"
         />
 
-        <div class="d-flex">
-          <v-btn-toggle v-model="listingType" color="primary" variant="secondary" mandatory divided>
-            <BaseButton value="sell">Sell</BaseButton>
-            <BaseButton value="rent">Rent</BaseButton>
+        <div class="listing-form__section">
+          <p class="listing-form__label">Listing Type</p>
+          <v-btn-toggle class="listing-type-toggle" v-model="listingType" mandatory divided :disabled="isLoading">
+            <v-btn value="sell">Sell</v-btn>
+            <v-btn value="rent">Rent</v-btn>
           </v-btn-toggle>
         </div>
 
@@ -83,95 +87,150 @@
           prefix="R"
           placeholder="e.g. 650"
           type="number"
+          min="0"
+          step="1"
           variant="outlined"
-          density="compact"
+          density="comfortable"
           hide-details="auto"
           :rules="[priceRule]"
+          :disabled="isLoading"
+          @keydown="blockNegativeKeys"
+          @paste="blockNegativePaste"
         />
 
-        <div class="RentalPeriod">
-          <div v-if="listingType === 'rent'" class="d-flex flex-column ga-3">
-            <v-date-input
-              v-model="startDate"
-              label="Start Date"
-              variant="outlined"
-              hide-details="auto"
-              :rules="[startDateRule]"
-              @keydown="blockManualDateEntry"
-            />
-            <v-date-input
-              v-model="endDate"
-              label="End Date"
-              variant="outlined"
-              hide-details="auto"
-              :rules="[endDateRule]"
-              @keydown="blockManualDateEntry"
-            />
-          </div>
-          <div v-else>
-            <v-checkbox v-model="negotiable" label="Open to negotiation" color="primary" density="compact" hide-details />
-          </div>
+        <div class="listing-form__section">
+          <template v-if="listingType === 'rent'">
+            <p class="listing-form__label">
+              Rental Period
+            </p>
+            <div class="listing-form__date-grid">
+
+              <v-date-input
+                v-model="startDate"
+                label="Start Date"
+                variant="outlined"
+                density="comfortable"
+                hide-details="auto"
+                :min="today"
+                :disabled="isLoading"
+                @keydown="blockManualDateEntry"
+                :rules="[startDateRule]"
+              />
+
+              <v-date-input
+                v-model="endDate"
+                label="End Date"
+                variant="outlined"
+                density="comfortable"
+                hide-details="auto"
+                :min="today"
+                :disabled="isLoading"
+                @keydown="blockManualDateEntry"
+                :rules="[endDateRule]"
+              />
+            </div>
+          </template>
+
+          <v-checkbox 
+            v-else 
+            v-model="negotiable" 
+            label="Open to negotiation" 
+            color="primary" 
+            density="compact" 
+            hide-details 
+            :disabled="isLoading"
+          />
         </div>
 
-        <div class="location">
-          <v-switch label="Use current location" v-model="useCurrLocation" />
+        <div class="listing-form__section">
+          <v-switch 
+            v-model="useCurrLocation"
+            label="Use current location" 
+            color="primary"
+            density="compact"
+            hide-details
+            :disabled="isLoading"
+          />
+
           <v-text-field
             v-model="location"
             label="Location"
             placeholder="e.g. Pretoria"
             variant="outlined"
-            density="compact"
+            density="comfortable"
             hide-details="auto"
             :loading="useCurrLocation && loading"
             :readonly="useCurrLocation && loading"
             :rules="[requiredRule]"
+            :disabled="isLoading"
           />
-          <p v-if="useCurrLocation && locationError" class="text-error text-caption mt-1">
-            Couldn't get your location, please enter it manually.
+
+          <p 
+            v-if="useCurrLocation && locationError" 
+            class="listing-form__field-error"
+          >
+              Couldn't get your location, please enter it manually.
           </p>
         </div>
 
         <BaseTextArea
           v-model="description"
           label="Description"
-          placeholder="description"
+          placeholder="Tell buyers about the game's condition, controls and anything else they should know."
           variant="outlined"
-          density="compact"
+          density="comfortable"
           hide-details="auto"
-          :rules="[requiredRule]"
+          :rules="[requiredRule, descriptionRule]"
+          :disabled="isLoading"
         />
 
-        <div class="d-flex flex-column ga-1">
-          <div class="d-flex align-center ga-3">
-            <BaseButton variant="secondary" color="primary" @click="triggerUpload">Upload Image</BaseButton>
-            <label for="image-upload" class="text-grey text-body-2">{{ fileName || '···' }}</label>
+        <div class="listing-form__section">
+          <p class="listing-form__label">
+            Listing Image
+          </p>
+
+          <div class="listing-form__upload">
+            <BaseButton variant="secondary" color="primary" type="button" @click="triggerUpload" :disabled="isLoading">Upload Image</BaseButton>
+
+            <span class="listing-form__file-name" :class="{ 'listing-form__file-name--empty' : !fileName }">
+              {{ fileName || 'No image selected' }}
+            </span>
+
+            <label for="image-upload" class="sr-only">Upload listing image</label>
+
             <input
               id="image-upload"
-              ref="file_input"
+              ref="fileInput"
               type="file"
               accept="image/*"
               class="hidden-input"
+              :disabled="isLoading"
               @change="handleFileChange"
             />
           </div>
-          <p v-if="fileError" class="text-error text-caption">{{ fileError }}</p>
+
+          <p class="listing-form__hint">
+            JPEG, PNG, WEBP or GIF · Maximum 50 MB
+          </p>
+
+          <p v-if="fileError" class="listing-form__field-error">{{ fileError }}</p>
         </div>
 
-        <div class="d-flex justify-end ga-3">
-          <BaseButton variant="secondary" color="primary" :disabled="isLoading" @click="closeModal">Cancel</BaseButton>
-          <BaseButton @click="handleConfirm" :loading="isLoading" :disabled="isLoading">Create Listing</BaseButton>
+        <div class="listing-form__actions">
+          <BaseButton variant="secondary" type="button" :disabled="isLoading" @click="closeModal">Cancel</BaseButton>
+          <BaseButton type="submit" @click="handleConfirm" :loading="isLoading" :disabled="isLoading">Create Listing</BaseButton>
         </div>
       </v-form>
-    </BaseCard>
-  </v-dialog>
+    </BaseModal>
 </template>
 
 <script setup>
-import { useUserLocation } from '@/composables/useUserLocation';
+import { useUserLocation } from '@/composables/useUserLocation'
 import { useBoardGames } from '~/composables/useBoardGames'
-import BaseCard from '~/components/ui/BaseCard.vue'
-import BaseButton from '~/components/ui/BaseButton.vue';
+
+import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseTextArea from '~/components/ui/BaseTextArea.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
 
 const { city, suburb, error: locationError, loading, findUserLocation } = useUserLocation();
 const { searchGames, games, gamesLoading } = useBoardGames();
@@ -230,6 +289,8 @@ watch(useCurrLocation, async (val) => {
     return;
   }
   location.value = locationValue.value;
+  console.log("location: ", location.value);
+
 });
 
 const requiredRule = (v) =>
@@ -253,6 +314,7 @@ const versionRule = (v) => {
 const priceRule = (v) => {
   if (v === null || v === undefined || v === '') return 'Enter an amount';
   const n = Number(v);
+  if (Number.isNaN(n)) return 'Enter a valid amount';
   if (!Number.isFinite(n)) return 'Enter a valid amount';
   if (n <= 0) return 'Amount must be greater than 0';
   return true;
@@ -264,10 +326,14 @@ const startOfDay = (d) => {
   return date;
 };
 
+// blocks typed keystrokes in the date fields while still letting the calendar picker open/close and tabbing work
 const blockManualDateEntry = (e) => {
   const allowed = ['Tab', 'Shift', 'Escape', 'Enter'];
-  if (!allowed.includes(e.key)) e.preventDefault();
+  if (!allowed.includes(e.key)) {
+    e.preventDefault();
+  }
 };
+
 
 const startDateRule = (v) => {
   if (listingType.value !== 'rent') return true;
@@ -279,14 +345,24 @@ const endDateRule = (v) => {
   if (listingType.value !== 'rent') return true;
   if (!v) return 'End date is required';
   if (startOfDay(v) < startOfDay(new Date())) return 'End date cannot be in the past';
-  if (startDate.value && startOfDay(v) < startOfDay(startDate.value)) {
-    return 'End date must be after start date';
-  }
+  if (startDate.value) {
+    const start = startOfDay(startDate.value);
+    const end = startOfDay(v);
+    if (end < start) return 'End date must be after start date';
+    }
+  return true;
+};
+
+ 
+
+const descriptionRule = (v) => {
+  const required = requiredRule(v);
+  if (required !== true) return required;
   return true;
 };
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
 const triggerUpload = () => file_input.value.click();
 
@@ -302,9 +378,6 @@ const handleFileChange = (e) => {
   }
 
   if (fileError.value) {
-    e.target.value = '';
-    fileName.value = '';
-    file.value = null;
     return;
   }
 

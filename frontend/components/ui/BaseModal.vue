@@ -44,12 +44,13 @@
 
 <script setup>
 import { useId } from 'vue'
+
 import BaseButton from './BaseButton.vue'
 import BaseLoadingState from './BaseLoadingState.vue'
 
 const props = defineProps({
   modelValue: {
-    type:Boolean,
+    type: Boolean,
     required: true  
   },
   title: {
@@ -74,7 +75,7 @@ const props = defineProps({
   }
 })
 
-defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue'])
 
 const titleId = useId()
 

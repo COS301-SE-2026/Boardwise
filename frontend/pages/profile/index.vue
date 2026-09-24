@@ -1,5 +1,5 @@
 <template>
-  <PageContainer>
+  <PageContainer class="profile-page">
 
     <!-- Profile loaded -->
     <template v-if="user">
@@ -17,38 +17,41 @@
 
       <ProfileCommunities :communities="user.communities" />
 
-       <BaseTabs
-                :tabs="['Games Owned', 'Listings']"
-                :active-tab="activeTab"
-                aria-label="Details sections"
-                class="mb-4"
-                @change="activeTab = $event"
-            >
+      <section class="profile-content">
+        <BaseTabs
+          :tabs="['Games Owned', 'Listings']"
+          :active-tab="activeTab"
+          aria-label="Details sections"
+          class="profile-tabs"
+          @change="activeTab = $event"
+        />
 
-      </BaseTabs>
-      <v-window v-model="activeTab">
+        <v-window v-model="activeTab" class="profile-window">
 
-        <v-window-item value="Games Owned">
-          <GamesOwnedSection
-            :games="games"
-            @add-game="showBrowser = true"
-            @remove-game="handleRemoveGame"
-          />
-        </v-window-item>
+          <v-window-item value="Games Owned">
+            <GamesOwnedSection
+              :games="games"
+              @add-game="showBrowser = true"
+              @remove-game="handleRemoveGame"
+            />
+          </v-window-item>
 
-        <v-window-item value="Listings">
-          <ListingsSection 
-            :listings="userListings"
-            :editable="true"
-            @deleted="fetchUserListing" 
-            @updated="fetchUserListing"
-          />
-        </v-window-item>
+          <v-window-item value="Listings">
+            <ListingsSection 
+              :listings="userListings"
+              :editable="true"
+              @deleted="fetchUserListing" 
+              @updated="fetchUserListing"
+            />
+          </v-window-item>
 
-      </v-window>
-
+        </v-window>
+      </section>
+      
+      <!-- Modals -->
       <GameBrowserModal
         v-model="showBrowser"
+        :games="games"
         @confirm="handleGamesAdded"
         @add-custom="openCustomModal"
       />
@@ -60,13 +63,13 @@
       />
 
       <FriendsModal
-          v-model="showFriendsModal"
-          :username="user?.username ?? ''"
-          :loading="isLoading"
-          :friends="userFriendList.friends"
-          :mutuals="userFriendList.mutuals"
-          @respond="onRespond"
-          @remove="handleRemove"
+        v-model="showFriendsModal"
+        :username="user?.username ?? ''"
+        :loading="isLoading"
+        :friends="userFriendList.friends"
+        :mutuals="userFriendList.mutuals"
+        @respond="onRespond"
+        @remove="handleRemove"
       />
     </template>
 
@@ -96,6 +99,7 @@ import GamesOwnedSection from '~/components/features/profile/GamesOwnedSection.v
 import ListingsSection from '~/components/features/profile/ListingsSection.vue'
 import GameBrowserModal from '~/components/features/profile/GameBrowserModal.vue'
 import AddCustomGameModal from '~/components/features/shared/AddCustomGameModal.vue'
+
 import { useProfile } from '~/composables/useProfile'
 import { useSnackBar } from '~/composables/useSnackbar'
 import { useMarketplace } from '~/composables/useMarketplace'
