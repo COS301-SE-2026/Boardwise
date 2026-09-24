@@ -5,6 +5,7 @@
     v-bind="$attrs"
     @click="handleClick"
   >
+    <v-icon>mdi-arrow-left</v-icon>
     <slot />
   </BaseButton>
 </template>
