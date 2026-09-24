@@ -93,6 +93,11 @@ export interface ProfileSearchResponse {
     status: FriendStatus | null
 }
 
+export interface GetUsersResponse {
+    message: string,
+    users: ProfileSearchResponse[]
+}
+
 interface GenresResponse {
     message: string;
     genres: string[];
@@ -121,6 +126,15 @@ export const userService = {
     getUser(id: string){
         const { $api } = useNuxtApp();
         return $api<ProfileResponse>("users/" + id);
+    },
+
+    getUsers(page?: number){
+        const { $api } = useNuxtApp();
+        return $api<GetUsersResponse>("users/", {
+            params: {
+                page
+            }
+        })
     },
     
     updateProfile(user: {
