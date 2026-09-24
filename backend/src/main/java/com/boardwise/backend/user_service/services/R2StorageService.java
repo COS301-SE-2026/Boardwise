@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Service
@@ -27,7 +28,16 @@ public class R2StorageService {
     private String publicUrl;
 
     public String uploadFile(MultipartFile file, String folder) throws IOException {
-        String encodedName = file.getOriginalFilename().replace(" ", "-");
+        final String ogFileName = file.getOriginalFilename();
+        if(
+            ogFileName.endsWith(".png") || ogFileName.endsWith(".jpg") || 
+            ogFileName.endsWith("jpeg") || ogFileName.endsWith(".GIF") || 
+            ogFileName.endsWith(".webp")
+        ){
+            throw new IllegalArgumentException("Uploaded file is not in a legal format."); 
+        }
+
+        String encodedName = ogFileName.replace(" ", "-");
         String fileName = folder + "/" + UUID.randomUUID() + "_" + encodedName;
         byte[] fileBytes = file.getBytes();
  
@@ -46,6 +56,24 @@ public class R2StorageService {
                 RequestBody.fromBytes(fileBytes));
 
         return fileName;
+    }
+
+    public void deleteFile(String fileUrl) {
+        if (fileUrl == null || fileUrl.isBlank() || fileUrl.contains("/seeded-data/")) { // i just hope no one names their file "seeded-data"
+            return;
+        }
+
+        if (fileUrl.contains(publicUrl)) {
+            fileUrl = fileUrl.substring(publicUrl.length());
+        }    
+
+        // request object
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                                                                    .bucket(bucketName)
+                                                                    .key(fileUrl)
+                                                                    .build();
+
+        s3Client.deleteObject(deleteObjectRequest);
     }
 
     public String getFileUrl(String fileName) {

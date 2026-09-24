@@ -8,7 +8,7 @@ ENV SENTENCE_TRANSFORMERS_HOME=/app/cache
 
 ARG EMBED_MODEL_REVISION=e9b6763023c676ca8431644204f50c2b100d9aab
 
-RUN groupadd -r fast && useradd -r -g fast -d /app fast
+RUN groupadd -g 1001 fast && useradd -u 1001 -g fast -m -d /app -s /bin/false fast
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -39,6 +39,7 @@ RUN pip install --upgrade --no-cache-dir --only-binary :all: pip==26.2 \
 
 # Copy the rest of the application code
 COPY --chown=fast:fast app/ ./app/
+COPY --chown=fast:fast scripts/ ./scripts/
 
 USER fast
 

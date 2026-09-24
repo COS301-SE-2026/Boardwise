@@ -35,4 +35,5 @@ jobs:
         run: ./mvnw -B test
         env:
           BGG_TOKEN: ${{ secrets.BGG_TOKEN }}
+          SCRAPER_SERVICE_URL: ${{ secrets.SCRAPER_SERVICE_URL }}
           BGG_URL: ${{ vars.BGG_URL || 'https://boardgamegeek.com/xmlapi2' }}

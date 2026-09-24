@@ -18,14 +18,27 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 20s
+      start_period: 90s
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${DB_USER}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${DB_PASSWORD}
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+    depends_on:
+      mongodb:
+        condition: service_healthy
 
   backend:
     build: ./backend/
     restart: on-failure
     environment:
-      - DEV_FRONTEND_BASE=${DEV_FRONTEND_BASE}
-      - SMTP_HOST=${SMTP_HOST}
       - DEV_FAST_API_BASE=${DEV_FAST_API_BASE}
       - INTERNAL_SECRET=${INTERNAL_SECRET}
       - DEV_DB_URL=${DEV_DB_URL}
@@ -40,14 +53,15 @@ services:
       - R2_DEV_URL=${R2_DEV_URL}
       - BGG_TOKEN=${BGG_TOKEN}
       - BGG_URL=${BGG_URL}
-      - R2_RULEBOOKS_PUBLIC_DEV_URL=${R2_RULEBOOKS_PUBLIC_DEV_URL}
+      - R2_RULEBOOKS_PUBLIC_URL=${R2_RULEBOOKS_PUBLIC_URL}
       - GOOGLE_MAP_API_KEY=${GOOGLE_MAP_API_KEY}
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_USERNAME=${SMTP_USERNAME}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - DEV_FRONTEND_BASE=${DEV_FRONTEND_BASE}
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
-      
+      - SCRAPER_SERVICE_URL=${SCRAPER_SERVICE_URL}
+      - SYSTEM_CONTRIBUTOR_ID=${SYSTEM_CONTRIBUTOR_ID}
     ports:
       - 8080:8080
     depends_on:
@@ -67,15 +81,20 @@ services:
       - INTERNAL_SECRET=${INTERNAL_SECRET}
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
       - DEV_DB_URL=${DEV_DB_URL}
-
+      - PROD_DB_URL=${PROD_DB_URL}
+      - RULEBOOK_PDF_API=${RULEBOOK_PDF_API}
+      - PYTHON_API_BASE_URL=${PYTHON_API_BASE_URL}
     ports: 
-      - 8081:8081
+      - 8082:8082
+
+    shm_size: "1gb"
+
     depends_on:
       mongodb:
         condition: service_healthy
 
     healthcheck:
-      test: ["CMD","curl","-f", "arg", "http://localhost:8081/api/sb/ws/auth/hello"]
+      test: ["CMD","curl","-f", "http://localhost:8082/api/sb/scrapper/hello"]
       interval: 30s
       timeout: 30s
       retries: 5
@@ -86,6 +105,7 @@ services:
     restart: on-failure
     environment:
       - DEV_DB_URL=${DEV_DB_URL}
+      - PROD_DB_URL=${PROD_DB_URL}
       - DB_NAME=${DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_ALGORITHM=${JWT_ALGORITHM}
@@ -97,11 +117,18 @@ services:
       - INTERNAL_SECRET=${INTERNAL_SECRET}
       - CPU_CORES=${CPU_CORES}
       - APP_ENV=${APP_ENV}
+      - SYSTEM_CONTRIBUTOR_ID=${SYSTEM_CONTRIBUTOR_ID}
+      - EMBEDDING_DIMENSIONS=${EMBEDDING_DIMENSIONS}
+      - R2_RULEBOOKS_PUBLIC_URL=${R2_RULEBOOKS_PUBLIC_URL}
+      - UNSTRUCTURED_DEV_URL=${UNSTRUCTURED_DEV_URL}
+      - DEV_FAST_API_BASE=${DEV_FAST_API_BASE}
     ports:
       - 8000:8000
     depends_on:
       mongodb:
         condition: service_healthy
+      # unstructured-api:
+      #   condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/fa/health"]
       interval: 30s
@@ -130,12 +157,34 @@ services:
     depends_on:
       backend:
         condition: service_started
-      ai-gateway:
-        condition: service_started
+      # ai-gateway:
+      #   condition: service_started
       scrapers:
         condition: service_started
+  
+  # unstructured-api:
+  #   image: quay.io/unstructured-io/unstructured-api:latest
+  #   container_name: unstructured-api
+  #   restart: unless-stopped
+  #   ports:
+  #     - 8888:8000
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: "2.0"
+  #         memory: "8g"
+  #       reservations:
+  #         memory: "1g"
+  #   healthcheck:
+  #     test: ["CMD","curl", "-f", "http://localhost:8000/healthcheck"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 180s
 
 volumes:
   db:
   configdb:
   mongot:
+  caddy_data:
+  caddy_config:

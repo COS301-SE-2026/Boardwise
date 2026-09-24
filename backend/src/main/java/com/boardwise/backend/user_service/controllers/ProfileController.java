@@ -22,28 +22,28 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.boardwise.backend.shared.dtos.OtherGameDTO;
-import com.boardwise.backend.user_service.dtos.FriendRequestResponseDTO;
+import com.boardwise.backend.user_service.dtos.response.FriendRequestResponseDTO;
+import com.boardwise.backend.user_service.dtos.response.PresenceResponseDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestsDTO;
 import com.boardwise.backend.user_service.dtos.FriendsListDTO;
-import com.boardwise.backend.user_service.dtos.NotificationsDTO;
-import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
-import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
-import com.boardwise.backend.user_service.dtos.ProfileResponseDTO;
-import com.boardwise.backend.user_service.dtos.UpdateProfileDTO;
+import com.boardwise.backend.user_service.dtos.notifications.NotificationsDTO;
+import com.boardwise.backend.user_service.dtos.request.PreferencesRequestDTO;
+import com.boardwise.backend.user_service.dtos.response.ProfilePictureResponseDTO;
+import com.boardwise.backend.user_service.dtos.response.ProfileResponseDTO;
+import com.boardwise.backend.user_service.dtos.request.UpdateProfileDTO;
 import com.boardwise.backend.user_service.dtos.request.BoardgameCollectionBulkAddDto;
+import com.boardwise.backend.user_service.dtos.response.BoardgameRulebookDto;
 import com.boardwise.backend.user_service.dtos.response.BulkAddResponseDTO;
 import com.boardwise.backend.user_service.services.ProfileService;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/sb/users")
+@RequiredArgsConstructor 
 public class ProfileController {
 
     private final ProfileService service;
-
-    ProfileController(ProfileService service) {
-        this.service = service;
-    }
 
     @GetMapping("/{userId}")
     public ResponseEntity<?> getOtherUserProfile(
@@ -67,14 +67,13 @@ public class ProfileController {
         }
     }
 
-    @GetMapping("/")
+    @GetMapping("/me")
     public ResponseEntity<?> getOwnProfile(
-        HttpServletRequest req,
-        @RequestParam(name = "search", required = false) String query
+        HttpServletRequest req
     ){
-        String token = extractToken(req);
         try{
-            var res = (query == null || query.isBlank()) ? service.getOwnProfile(token) : service.searchForUsers(query, token);
+            String token = extractToken(req);
+            var res = service.getOwnProfile(token);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(NoSuchElementException e){
@@ -87,6 +86,41 @@ public class ProfileController {
             Map<String, Object> res = new HashMap<>();
             res.put("message", "Something went wrong on our end.");
             return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<?> getAllUsers(
+        @RequestParam(name = "search", required = false) String query,
+        @RequestParam(required = false) Integer page,
+        HttpServletRequest req
+    ) {
+        Map<String, Object> res = new HashMap<>();
+        try{
+            String token = extractToken(req);
+            var data = service.getUsers(token, query, page);
+            res.put("message", "Users successfully retrieved");
+            res.put("results", data);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+
+    @GetMapping("/{userId}/presence")
+    public ResponseEntity<?> getUserPresence(
+        @PathVariable String userId
+    ){
+        try{
+            PresenceResponseDTO res = service.getUserPresence(userId);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(NoSuchElementException e){
+            Map<String, Object> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
     }
 
@@ -352,6 +386,12 @@ public class ProfileController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
     
+    @GetMapping("/gameInventory/read/{gameId}")
+    public ResponseEntity<BoardgameRulebookDto>getGameRulebookId(
+        @PathVariable String gameId
+    ){
+        return ResponseEntity.ok(service.getGameRulebookId(gameId));
+    }
 
     public static String extractToken(HttpServletRequest req){
         String header = req.getHeader("Authorization");

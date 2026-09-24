@@ -5,7 +5,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Request, status
 
 from app.dependencies import verify_internal_token
 from app.ingestion.vectoriser import background_vectorise_and_update
-from app.schemas import ReEmbedRequest
+from ai.app.schemas.schemas import ReEmbedRequest
 
 logger = logging.getLogger(__name__)
 
@@ -32,3 +32,10 @@ async def trigger_re_embed(
     )
 
     return {"status": "accepted", "message": "Re-embedding queued successfully."}
+
+
+@router.post("/lancedb/clear-cache", dependencies=[Depends(verify_internal_token)])
+async def clear_lancedb_cache():
+    """Webhook to force the API to drop its stale LanceDB table reference."""
+    lancedb_service.clear_table_cache()
+    return {"status": "success", "message": "Cache cleared."}

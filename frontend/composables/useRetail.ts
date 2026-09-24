@@ -22,13 +22,15 @@ const _useRetail = () => {
 
     // Cache bookkeeping
     const lastFetchedAt = ref(0)
+    const hasFetched = ref(false)
 
     const isCacheFresh = () =>
-        retailResults.value.length > 0 &&
+        hasFetched.value &&
         Date.now() - lastFetchedAt.value < RETAIL_CACHE_TTL_MS
 
     const invalidateRetailCache = () => {
         lastFetchedAt.value = 0
+        hasFetched.value = false
     }
 
     const fetchPersonalisedListings = async (reset = false) => {
@@ -53,11 +55,14 @@ const _useRetail = () => {
         try {
             const res: PageImplRetailPage = await RetailService.getPersonalisedListings(persPage.value)
 
-            retailResults.value = reset ? (res?.content ?? []) : [...retailResults.value, ...(res?.content ?? [])]
+            retailResults.value = reset
+                ? (res?.content ?? [])
+                : [...retailResults.value, ...(res?.content ?? [])]
             totalElements.value = res?.totalElements ?? 0
             isLastRetailPage.value = res?.last ?? true
             persPage.value = (res?.number ?? persPage.value) + 1
             lastFetchedAt.value = Date.now()
+            hasFetched.value = true
             return res
         }
         catch (err: any) {
