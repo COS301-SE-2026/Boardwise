@@ -104,6 +104,7 @@ import BaseGrid from '~/components/ui/BaseGrid.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import OnboardingProgress from './OnboardingProgress.vue'
 
+
 import { ref } from 'vue'
 
 const props = defineProps({

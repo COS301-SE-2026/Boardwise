@@ -18,16 +18,18 @@
 
             <OnBoardingGames
                 v-else-if="step === 3"
-                :games="games"
+                :games="topGamesInDBBasedOnGenres"
                 :selected-genres="pickedGenres"
                 :is-submitting="isSubmitting"
+                @select-tab="handleTabChange"
                 @continue="handleGamesSelected"
                 @skip="step = 4"
+                @back="step = 2"
             />
 
             <Complete
                 v-else
-                :games="games.filter(game => selectedGameIds.includes(game.id))"
+                :games="selectedGames"
                 @finished="router.push('/library')"
             />
         </div>
@@ -58,7 +60,13 @@ const errorMessages = ref('')
 const selectedGameIds = ref([])
 const selectedGenreIds = ref([])
 
-const { games, genres, searchGames, searchGenres,getTopNGenresFromUsersPreferences,topNgenres  } = useBoardGames()
+const { games, topUserGames, searchGames, searchGenres, getTopNGenresFromUsersPreferences, topNgenres, getPopularBoardgamesFromUserPrefrences, getPopularGamesBasedOnGenres,topGamesInDBBasedOnGenres   } = useBoardGames()
+
+const seenGames = ref({});
+
+watch(topGamesInDBBasedOnGenres, (list) => {
+    (list ?? []).forEach(g => { seenGames.value[g.id] = g })
+}, { immediate: true, deep: true })
 
 // TODO: Make the genre selection according to the popularity
 const genreOptions = ref([])
@@ -81,8 +89,8 @@ watch(step, async () => {
 onMounted(async () => {
     await Promise.all([
         loadTopNGenres(),
-        handleGetGames()
-
+        handleGetGames(),
+        getPopularBoardgamesFromUserPrefrences()
     ]);
 })
 
@@ -90,8 +98,15 @@ async function handleGetGames(){
     await Promise.all([searchGames(), searchGenres()])
 }
 
+async function handleTabChange(tab) {
+    const genres = tab === 'all' ? selectedGenreIds.value : [tab]
+    await getPopularGamesBasedOnGenres(genres)
+}
+
+const selectedGames = computed (()=> selectedGameIds.value.map(id=> seenGames.value[id]).filter(Boolean))
 async function handleGenresSelected(ids) {
     selectedGenreIds.value = ids
+    await getPopularGamesBasedOnGenres(ids);
     step.value = 3
 }
 

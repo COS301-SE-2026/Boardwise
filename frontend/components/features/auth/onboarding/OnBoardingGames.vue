@@ -4,7 +4,7 @@
         <div class="onboarding-games__topbar">
             <div class="onboarding-games__nav">
                 <button type="button" class="onboarding-games__back" @click="$emit('back')">
-                    <v-icon size="16">mdi-arror-left</v-icon>
+                    <v-icon size="16">mdi-arrow-left</v-icon>
                     Back to Genres
                 </button>
 
@@ -42,7 +42,7 @@
                 :class="{ 'onboarding-genre-tab--active': activeTab === tab.id }"
                 role="tab"
                 :aria-selected="activeTab === tab.id"
-                @click="activeTab = tab.id"
+                @click="selectTab(tab.id)"
             >
                 {{ tab.label }}
             </button>
@@ -145,7 +145,7 @@ const props = defineProps({
     isSubmitting: { type: Boolean, default: false },
 })
 
-defineEmits(['continue', 'skip', 'back'])
+const emit = defineEmits(['continue', 'skip', 'back', 'select-tab'])
 
 const selected = ref([])
 const searchQuery = ref('')
@@ -158,10 +158,6 @@ const genreTabs = computed(() => [
 
 const filteredGames = computed(() => {
     let result = props.games 
-
-    if(activeTab.value !== 'all') {
-        result = result.filter(g => g.genres?.includes(activeTab.value))
-    }
 
     if(searchQuery.value.trim()) {
         const q = searchQuery.value.trim().toLowerCase()
@@ -178,5 +174,10 @@ function toggleGame(id) {
     } else {
         selected.value.splice(i, 1)
     }
+}
+
+function selectTab(id){
+    activeTab.value = id;
+    emit('select-tab', id);
 }
 </script>

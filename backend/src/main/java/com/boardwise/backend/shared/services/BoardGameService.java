@@ -3,8 +3,10 @@ package com.boardwise.backend.shared.services;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Limit;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -43,6 +46,8 @@ import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.dtos.*;
 import com.boardwise.backend.shared.model.*;
 import com.boardwise.backend.user_service.models.User;
+import com.boardwise.backend.user_service.repository.UserRepository;
+import com.boardwise.backend.user_service.repository.UserRepository.GameOwnershipCount;
 import com.boardwise.backend.user_service.services.AuthService;
 import com.boardwise.backend.user_service.services.R2StorageService;
 
@@ -56,6 +61,7 @@ public class BoardGameService {
     private final R2StorageService bucket;
     private final @Qualifier("bggRestClient") RestClient client;
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
+    private  final UserRepository userRepository;
     private final String defaultImageKey = "rulebooks/default_cover.png"; 
     @Value("${r2.rulebooks.public-url}")
     private String r2BaseUrl;
@@ -336,6 +342,57 @@ public class BoardGameService {
         }
 
         return foundGenres.size() > n ? foundGenres.subList(0, n) : foundGenres;
+    }
+
+    public List<OnboardingDTO> getPopularGamesBasedOnGenres(GenreRequestDTO genres, int numElements){
+        final int TARGET = numElements;
+
+        List<String> topTenGenres = genres.genres().stream()
+                    .map(String::toLowerCase)
+                    .toList();
+
+        Map<String, OnboardingDTO> res = new LinkedHashMap<>();
+
+        for (GameOwnershipCount curr : userRepository.findMostOwnedGameIds(10)) {
+            if (curr == null || curr.getId() == null) continue;
+            if (res.size() >= TARGET) break;
+            if (res.containsKey(curr.getId())) continue;
+
+            Boardgame game = gameRepo.findById(curr.getId()).orElse(null);
+            if (game == null || game.getGenres() == null) continue;
+
+            boolean matches = game.getGenres().stream()
+                    .map(String::toLowerCase)
+                    .anyMatch(topTenGenres::contains);
+
+            if (matches) {
+                res.put(game.getId(), new OnboardingDTO(game.getId(), game.getTitle(), game.getImageURL()));
+            }
+        }
+
+            List<String> shuffledGenres = new ArrayList<>(topTenGenres);
+            Collections.shuffle(shuffledGenres);
+
+            for (String genre : shuffledGenres) {
+                if (res.size() >= TARGET) break;
+                for (Boardgame g : gameRepo.findByGenresIn(List.of(genre),Limit.of(TARGET))) {
+                    if (res.size() >= TARGET) break;
+                    res.putIfAbsent(g.getId(), new OnboardingDTO(g.getId(),g.getTitle(), g.getImageURL()));
+                }
+            }
+
+            if (res.size() < TARGET) {
+                for (Boardgame g : gameRepo.findAll(PageRequest.of(0, TARGET * 3)).getContent()) {
+                    if (res.size() >= TARGET) break;
+                    res.putIfAbsent(g.getId(), new OnboardingDTO(g.getId() ,g.getTitle(), g.getImageURL()));
+                }
+            }
+
+            return new ArrayList<>(res.values());
+    }
+    
+    public List<OnboardingDTO> getPopularGamesBasedOnUserPrefrencesAndTopTenGenres() {
+        return getPopularGamesBasedOnGenres(new GenreRequestDTO(this.getGlobalTopGenresFromPrefrences(10)), 8);
     }
     
     public Map<String, Object> getBoardgameGenres(String query){

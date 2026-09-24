@@ -23,6 +23,12 @@ export interface OtherGameInfo{
     genres: string[]
 }
 
+export interface OnboardingDTO{
+    id: string
+    title: string,
+    imageUrl:string
+}
+
 export interface AddBoardGameResponse{
     message: string
     data: BoardGame
@@ -69,7 +75,19 @@ export const BoardGameService = {
             method: 'GET',
             query: top ? { top } : {}
         })
-    }
+    },
 
+    getPopularBoardgamesFromUserPreferences(){
+        const { $api } = useNuxtApp();
+        return $api<OnboardingDTO[]>('boardgames/popular/user/games');
+    },
+
+    getPopularGamesBasedOnGenres(genres: string[] ){
+        const { $api } = useNuxtApp();
+        return $api<OnboardingDTO[]>('boardgames/popular/games/genre',{
+            method: 'POST',
+            body: genres? {genres} : {}
+        });
+    }
     
 }

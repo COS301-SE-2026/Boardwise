@@ -13,10 +13,13 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.boardwise.backend.shared.dtos.GenreRequestDTO;
 import com.boardwise.backend.shared.dtos.OtherGameDTO;
 import com.boardwise.backend.shared.services.BoardGameService;
+import com.google.maps.DirectionsApi.Response;
 
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RestController
@@ -48,7 +51,18 @@ public class BoardGameController {
         return ResponseEntity.ok(service.getGlobalTopGenresFromPrefrences(n));
     }
     
-
+    @GetMapping("/popular/user/games")//Generic
+    public ResponseEntity<?> getAllPopularGamesBasedonUserPreferences() {
+        return ResponseEntity.ok(service.getPopularGamesBasedOnUserPrefrencesAndTopTenGenres());
+    }
+    
+    @PostMapping("/popular/games/genre")
+    public ResponseEntity<?> getPopularGamesBasedOnGenres(@RequestBody (required = true) GenreRequestDTO genres) {
+        List<String> req = genres.genres();
+        if(req == null || req.isEmpty()) return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(service.getPopularGamesBasedOnGenres(genres, 8));
+    }
+    
     @GetMapping("/genres")
     public ResponseEntity<?> getGenresList(
         @RequestParam(required = false) String query

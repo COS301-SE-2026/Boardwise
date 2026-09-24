@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { BoardGameService, type BoardGame, type OtherGameInfo } from '~/services/boardgameService'
+import { BoardGameService, type BoardGame, type OnboardingDTO, type OtherGameInfo } from '~/services/boardgameService'
 
 export const useBoardGames = () => {
     const games = ref<BoardGame[]>([])
@@ -7,6 +7,8 @@ export const useBoardGames = () => {
     const isLoading = ref<boolean>(false)
     const error = ref<string>('')
     const topNgenres = ref<string[]>([])
+    const topUserGames = ref<OnboardingDTO[]>([]);
+    const topGamesInDBBasedOnGenres = ref<OnboardingDTO[]>([]);
     
     const searchGames = async (query?: string) => {
         isLoading.value = true
@@ -54,7 +56,6 @@ export const useBoardGames = () => {
         try{
             const res = await BoardGameService.getTopNGenresFromUsersPreferences(n);
             topNgenres.value = res;
-            console.log("top ", n, "genres: ",topNgenres.value)
             return topNgenres
         }
         catch(err: any){
@@ -64,6 +65,36 @@ export const useBoardGames = () => {
             isLoading.value = false;
         }
     }
+
+    const getPopularBoardgamesFromUserPrefrences = async () =>{
+        isLoading.value = true;
+        error.value = '';
+        try{    
+            topUserGames.value = await BoardGameService.getPopularBoardgamesFromUserPreferences();
+        }
+        catch(err: any){
+            error.value = err;
+        }
+        finally{
+            isLoading.value = false;
+        }
+    }
+
+    const getPopularGamesBasedOnGenres = async(genres :string[]) =>{// 
+        isLoading.value = true;
+        try{
+            topGamesInDBBasedOnGenres.value = await BoardGameService.getPopularGamesBasedOnGenres(genres);
+            console.log("Most popular games in db based on genres: ", topGamesInDBBasedOnGenres.value);
+
+        }
+        catch(err: any){
+            error.value = err;
+        }
+        finally{
+            isLoading.value = false;
+        }
+    }
+
     return {
         games,
         genres,
@@ -73,6 +104,10 @@ export const useBoardGames = () => {
         searchGenres,
         addBoardgame,
         getTopNGenresFromUsersPreferences,
-        topNgenres
+        topNgenres,
+        getPopularBoardgamesFromUserPrefrences,
+        topUserGames,// returns 8 games as requested
+        getPopularGamesBasedOnGenres,
+        topGamesInDBBasedOnGenres
     }
 }
