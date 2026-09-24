@@ -1,11 +1,10 @@
 <template>
-  <BaseGrid data-test="games-grid">
-
-    <AddGameCard v-if="editable" @add-game="$emit('add-game')" />
-
+  <BaseGrid data-test="games-grid" class="games-owned-grid">
+    
     <GameCard
       v-for="game in games"
       :key="game.id"
+      :id="game.id"
       :title="game.title"
       :category="game.genres?.[0] ?? ''"
       :image="game.imageUrl"

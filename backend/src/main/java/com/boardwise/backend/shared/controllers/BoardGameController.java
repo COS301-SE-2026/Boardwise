@@ -2,6 +2,7 @@ package com.boardwise.backend.shared.controllers;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,10 +13,13 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.boardwise.backend.shared.dtos.GenreRequestDTO;
 import com.boardwise.backend.shared.dtos.OtherGameDTO;
 import com.boardwise.backend.shared.services.BoardGameService;
+import com.google.maps.DirectionsApi.Response;
 
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RestController
@@ -37,6 +41,29 @@ public class BoardGameController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
+    @GetMapping("/available/genres")
+    public ResponseEntity<?> getAvailablBoardgameGenres() {
+        List<String> uniqueGenres = service.getGenresFromAllAvailableBoardgames(); 
+        return ResponseEntity.ok(uniqueGenres);
+    }
+
+    @GetMapping("/genres/top")
+    public  ResponseEntity<?> getTopNGenres(@RequestParam(defaultValue = "10") int n) {
+        return ResponseEntity.ok(service.getGlobalTopGenresFromPrefrences(n));
+    }
+    
+    @GetMapping("/popular/user/games")//Generic
+    public ResponseEntity<?> getAllPopularGamesBasedonUserPreferences() {
+        return ResponseEntity.ok(service.getPopularGamesBasedOnUserPrefrencesAndTopTenGenres());
+    }
+    
+    @PostMapping("/popular/games/genre")
+    public ResponseEntity<?> getPopularGamesBasedOnGenres(@RequestBody (required = true) GenreRequestDTO genres) {
+        List<String> req = genres.genres();
+        if(req == null || req.isEmpty()) return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(service.getPopularGamesBasedOnGenres(genres, 8));
+    }
+    
     @GetMapping("/genres")
     public ResponseEntity<?> getGenresList(
         @RequestParam(required = false) String query
