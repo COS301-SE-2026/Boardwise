@@ -8,6 +8,7 @@
       <RulebookSearch
         @upload="handleUploadRequest"
         @search="handleSearch"
+        @architect="openGameArchitect"
       />
     </div>
 
@@ -175,6 +176,21 @@ const activeFilterState = ref({})
 const showDetail = ref(false)
 const showUpload = ref(false)
 const selectedRulebook = ref(null)
+
+const openGameArchitect = () => {
+  if (!isAuthenticated.value) {
+    router.push({
+      path: '/auth/signin',
+      query: { redirect: '/game-architect?from=library' }
+    })
+    return
+  }
+
+  router.push({
+    path: '/game-architect',
+    query: { from: 'library' }
+  })
+}
 
 onMounted(() => { // Does stuff when component loads
   fetchFeaturedRulebooks();
