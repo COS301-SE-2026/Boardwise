@@ -144,7 +144,16 @@
 
               <span class="text-grey text-body-2">{{ file_name || 'No image selected' }}</span>
 
-              <input id="edit-image-upload" ref="file_input" type="file" accept="image/*" class="hidden-input" @change="handleFileChange" />
+              <label for="edit-image-upload" class="sr-only">Upload listing image</label>
+              <input 
+                id="edit-image-upload" 
+                ref="file_input" 
+                type="file"
+                accept="image/*" 
+                class="hidden-input" 
+                :disabled="isLoading"
+                @change="handleFileChange"
+              />
             </div>
 
             <p v-if="fileError" class="text-error text-caption ma-0">{{ fileError }}</p>
@@ -193,7 +202,7 @@ const onGameSearch = (query) => {
   gameSearchTimeout = setTimeout(() => searchGames(query), 300)
 }
 
-const open = defineModel()
+const open = defineModel({ type: Boolean, default: false })
 const props = defineProps({ listing: { type: Object, required: true }})
 const emit  = defineEmits(['saved'])
 
@@ -225,7 +234,7 @@ const start_date = ref(null)
 const end_date = ref(null)
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
 
 const startOfDay = (d) => {
   const date = new Date(d)
@@ -249,7 +258,7 @@ const blockNegativeKeys = (e) => {
 
 const blockNegativePaste = (e) => {
   const pasted = (e.clipboardData || window.clipboardData).getData('text')
-  if (!/^\d*\.?\d*$/.test(pasted)) {
+  if (!/^\d+(\.\d+)?$/.test(pasted)) {
     e.preventDefault()
   }
 }
@@ -408,4 +417,15 @@ const item_types = ["Merch", "Full Boardgame", "Partial Boardgame", "Pieces"]
 
 <style scoped>
 .hidden-input { display: none; }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 </style>

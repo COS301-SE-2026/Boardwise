@@ -1733,6 +1733,7 @@ html.reduce-motion *::after {
 
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .rulebook-list-item__arrow {
@@ -2860,7 +2861,7 @@ html[data-density="compact"] .rulebook-list {
   margin: 0;
   font-size: var(--fs-body-lg);
   line-height: 1.4;
-  word-break: break-word;
+  word-break: normal;
 }
 
 .community-chat-message--own .community-chat-message__content {
@@ -3926,6 +3927,7 @@ games-owned-section {
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 

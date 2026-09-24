@@ -196,6 +196,8 @@
               {{ fileName || 'No image selected' }}
             </span>
 
+            <label for="image-upload" class="sr-only">Upload listing image</label>
+
             <input
               id="image-upload"
               ref="fileInput"
@@ -361,7 +363,7 @@ const descriptionRule = (v) => {
 };
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
 const triggerUpload = () => file_input.value.click();
 
