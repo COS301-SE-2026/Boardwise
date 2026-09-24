@@ -67,7 +67,7 @@ public class BoardGameServiceUnitTest {
         when(gameRepo.findTopByBggIdNotNullOrderByBggIdDesc())
             .thenReturn(Optional.empty());
 
-        String requestUrl = baseUrl + "/thing?id=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20&subtype=boardgame";
+        String requestUrl = baseUrl + "/thing?id=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20&subtype=boardgame&stats=1";
         String mockResponse = """
             <?xml version="1.0" encoding="utf-8"?>
             <items termsofuse="https://boardgamegeek.com/xmlapi/termsofuse">
@@ -151,7 +151,7 @@ public class BoardGameServiceUnitTest {
                 null
             )));
 
-        String requestUrl = baseUrl + "/thing?id=421,422,423,424,425,426,427,428,429,430,431,432,433,434,435,436,437,438,439,440&subtype=boardgame";
+        String requestUrl = baseUrl + "/thing?id=421,422,423,424,425,426,427,428,429,430,431,432,433,434,435,436,437,438,439,440&subtype=boardgame&stats=1";
         String mockResponse = """
             <?xml version="1.0" encoding="utf-8"?>
             <items termsofuse="https://boardgamegeek.com/xmlapi/termsofuse">
