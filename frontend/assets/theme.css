@@ -5324,3 +5324,47 @@ button:disabled,
     justify-self: start;
   }
 }
+
+@media (max-width: 599px) {
+  .game-architect-shell {
+    padding: var(--space-4);
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+
+  .game-architect-action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .game-architect-option {
+    min-height: 0;
+  }
+
+  .game-architect-progress li span:last-child {
+    display: none;
+  }
+
+  .game-architect-game-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .game-architect-entry__content {
+    grid-template-columns: 1fr;
+  }
+
+  .game-architect-entry__icon {
+    display: none;
+  }
+
+  .rulebook-search__actions,
+  .game-architect-page__actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .rulebook-search__actions .base-button,
+  .game-architect-page__actions .base-button {
+    width: 100%;
+  }
+}
