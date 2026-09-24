@@ -32,3 +32,22 @@ const props = defineProps({
 
 const openPanels = ref(props.defaultOpen ? [0] : [])
 </script>
+
+<style scoped>
+.base-filter-group :deep(.v-expansion-panel) {
+  background: transparent;
+}
+
+.base-filter-group__title {
+  padding-inline: 0 !important;
+
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+}
+
+.base-filter-group :deep(.v-expansion-panel-text__wrapper) {
+  padding-inline: 0;
+}
+</style>
