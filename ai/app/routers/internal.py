@@ -5,7 +5,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Request, status
 
 from app.dependencies import verify_internal_token
 from app.ingestion.vectoriser import background_vectorise_and_update
-from app.schemas import ReEmbedRequest
+from ai.app.schemas.schemas import ReEmbedRequest
 
 logger = logging.getLogger(__name__)
 

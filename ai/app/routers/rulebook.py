@@ -21,7 +21,7 @@ from app.generation.llm import generate_answer
 from app.generation.prompt import build_chat_messages
 from app.ingestion.ingestion import run_ingestion_pipeline
 from app.retrieval.retriever import retrieve_context
-from app.schemas import Citation, QueryRequest, QueryResponse, UploadResponse
+from ai.app.schemas.schemas import Citation, QueryRequest, QueryResponse, UploadResponse
 from app.services import mongo_service
 from app.utils.logging_utils import sanitise_log_input
 from concurrent.futures import ThreadPoolExecutor
