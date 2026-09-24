@@ -20,6 +20,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Limit;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -56,7 +57,7 @@ public class BoardGameService {
     private final PopularityScorer scorer;
 
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
-    private final String defaultImageKey = "rulebooks/default_cover.png"; 
+    private final String defaultImageKey = "/rulebooks/default_cover.png"; 
     @Value("${r2.rulebooks.public-url}")
     private String r2BaseUrl;
 
@@ -145,15 +146,21 @@ public class BoardGameService {
         }
     }
 
-    public Map<String, Object> getBoardgames(String query){
+    public Map<String, Object> getBoardgames(String query, Integer top){
         Map<String, Object> result = new HashMap<>();
         List<Boardgame> dbGames;
         int resultLimit = 12;
 
-        if(query == null){
+        if(query == null && top == null){
             Limit maxRecords = Limit.of(resultLimit);
             dbGames = gameRepo.findAllBy(maxRecords);
         }
+        else if(query == null && top != null){
+            Query topQuery = new Query();
+            topQuery.limit(top);
+            topQuery.with(Sort.by(Sort.Direction.DESC, "popularityScore"));
+            dbGames = db.find(topQuery, Boardgame.class);
+        } 
         else{
             Pattern pattern = Pattern.compile(Pattern.quote(query), Pattern.CASE_INSENSITIVE);
             Criteria searchCrit = Criteria.where("title").regex(pattern);
