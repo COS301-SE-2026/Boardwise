@@ -4892,3 +4892,29 @@ button:disabled,
 .game-architect-progress__item--complete:not(:last-child)::after {
   background: var(--color-primary);
 }
+
+.game-architect-progress__number {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border-strong);
+  border-radius: 50%;
+}
+
+.game-architect-progress__item--active,
+.game-architect-progress__item--complete {
+  color: var(--color-secondary) !important;
+}
+
+.game-architect-progress__item--active .game-architect-progress__number,
+.game-architect-progress__item--complete .game-architect-progress__number {
+  color: var(--color-text-inverse);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
