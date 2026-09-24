@@ -4982,3 +4982,38 @@ button:disabled,
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-5);
 }
+
+.game-architect-option {
+  position: relative;
+  display: flex;
+  min-height: 250px;
+  padding: var(--space-6);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  color: var(--color-text);
+  text-align: left;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.game-architect-option:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.game-architect-option:focus-visible,
+.game-architect-game-card:focus-visible,
+.game-architect-surprise:focus-visible {
+  outline: 3px solid var(--rosewood);
+  outline-offset: 3px;
+}
+
+.game-architect-option--selected {
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface));
+  border-color: var(--color-primary);
+}
