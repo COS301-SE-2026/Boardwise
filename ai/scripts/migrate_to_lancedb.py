@@ -1,6 +1,8 @@
 import logging
 from datetime import datetime, timezone
 
+import requests
+from app.config import settings
 from app.ingestion.chunker import filter_out_decorative_chunks, generate_chunks
 from app.ingestion.extractor import extract_text
 from app.ingestion.vectoriser import vectorise_chunks
@@ -12,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def migrate_rulebooks(): # NOSONAR
+def migrate_rulebooks():  # NOSONAR
     """
     Full re-embedding migration. Extracts, chunks, and vectorises all Ready rulebooks.
     Skips actively locked rulebooks to prevent editing session corruption
@@ -124,6 +126,22 @@ def migrate_rulebooks(): # NOSONAR
 
     logger.info("Migration batch complete. Initiating LanceDB index rebuild")
     lancedb_service.ensure_indexes(force_recreate=True)
+
+    logger.info("Notifying API to clear table cache.")
+    try:
+        api_url = "http://localhost:8000/api/fa/vault/internal/lancedb/clear-cache"
+
+        if settings.INTERNAL_WEBHOOK_SECRET is None:
+            raise ValueError("INTERNAL_WEBHOOK_SECRET environment variable is not set")
+
+        response = requests.post(
+            api_url, headers={"X-Internal-Token": settings.INTERNAL_WEBHOOK_SECRET}
+        )
+        response.raise_for_status()
+        logger.info("Successfully cleared API cache.")
+    except Exception:
+        logger.exception("Failed to clear API cache")
+
     logger.info("Migration script finished.")
 
 
