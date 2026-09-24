@@ -62,6 +62,8 @@ import com.boardwise.backend.user_service.repository.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repository.GroupRepository;
 import com.boardwise.backend.user_service.repository.NotificationRepository;
 import com.boardwise.backend.user_service.repository.UserRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import com.google.maps.GeoApiContext;
 import com.google.maps.GeocodingApi;
 import com.google.maps.errors.ApiException;
@@ -81,7 +83,7 @@ public class ProfileService {
     private final BoardGameRepository gameRepo;
     private final R2StorageService bucket;
     private final GeoApiContext geoContext;
-    private final MongoTemplate template;
+    private final MongoTemplate db;
     private final NotificationRepository notifRepo;
     private final NotificationService notifService;
     private final ApplicationEventPublisher eventPublisher;
@@ -169,27 +171,40 @@ public class ProfileService {
         );
     }
 
-    public List<ProfileSearchResponse> searchForUsers(String query, String token){
+    public List<?> getUsers(String token, String query, Integer pageNum){
         List<ProfileSearchResponse> results = new ArrayList<>();
         String userId = jwtService.extractUserId(token).toString();
         User subject = userRepo.findById(userId).get();
 
-        String cleanQuery = AuthService.sanitize(query);
-        Pattern pattern = Pattern.compile(Pattern.quote(cleanQuery), Pattern.CASE_INSENSITIVE);
+        Criteria criteria;
+        Pageable page;
 
-        Criteria searchCriteria = new Criteria().orOperator(
-            Criteria.where("username").regex(pattern),
-            Criteria.where("firstName").regex(pattern),
-            Criteria.where("lastName").regex(pattern)
-        );
-        Query dbQuery = new Query(searchCriteria);
-        List<User> matches = template.find(dbQuery, User.class);
+        if(query == null){
+            int pageIdx = pageNum == null ? 0 : (pageNum - 1);
+            page = PageRequest.of(pageIdx, 10);
+            criteria = Criteria.where("");
+        }
+        else{
+            String cleanQuery = AuthService.sanitize(query);
+            Pattern pattern = Pattern.compile(Pattern.quote(cleanQuery), Pattern.CASE_INSENSITIVE);
 
+            criteria = new Criteria().orOperator(
+                Criteria.where("username").regex(pattern),
+                Criteria.where("firstName").regex(pattern),
+                Criteria.where("lastName").regex(pattern)
+            );
+        }
+        
+        Query dbQuery = new Query(criteria);
+        List<User> matches = db.find(dbQuery, User.class);
+        
         for(User user : matches){
             if(!user.getId().equals(subject.getId())){
                 Optional<Friendship> optional = fsRepo.findFriendShipBetweenUsers(userId, user.getId());
                 FriendStatus status = optional.isPresent() ? optional.get().getStatus() : null;
-                results.add(new ProfileSearchResponse(
+                
+                results.add(
+                    new ProfileSearchResponse(
                         user.getId(),
                         user.getUsername(),
                         user.getFirstName() + " " + user.getLastName(),

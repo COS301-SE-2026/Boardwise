@@ -66,14 +66,13 @@ public class ProfileController {
         }
     }
 
-    @GetMapping("/")
+    @GetMapping("/me")
     public ResponseEntity<?> getOwnProfile(
-        HttpServletRequest req,
-        @RequestParam(name = "search", required = false) String query
+        HttpServletRequest req
     ){
-        String token = extractToken(req);
         try{
-            var res = (query == null || query.isBlank()) ? service.getOwnProfile(token) : service.searchForUsers(query, token);
+            String token = extractToken(req);
+            var res = service.getOwnProfile(token);
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(NoSuchElementException e){
@@ -88,6 +87,26 @@ public class ProfileController {
             return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping("/")
+    public ResponseEntity<?> getAllUsers(
+        @RequestParam(name = "search", required = false) String query,
+        @RequestParam(required = false) Integer page,
+        HttpServletRequest req
+    ) {
+        Map<String, Object> res = new HashMap<>();
+        try{
+            String token = extractToken(req);
+            var data = service.getUsers(token, query, page);
+            res.put("message", "Users successfully retrieved");
+            res.put("results", data);
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        }
+        catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
 
     @GetMapping("/{userId}/presence")
     public ResponseEntity<?> getUserPresence(

@@ -16,8 +16,10 @@ public record OtherGameDTO(
     @Min(value = 1L, message = "\"minPlayers\" field must be a value greater than or equal to 1.")
     int minPlayers,
     @NotNull(message = "\"maxPlayers\" is a required field.")
+    @Min(value = 1L, message = "\"maxPlayers\" field must be a value greater than or equal to 1.")
     int maxPlayers,
     @NotNull(message = "\"minAge\" is a required field.")
+    @Min(value = 1L, message = "\"minAge\" field must be a value greater than or equal to 1.")
     int minAge,
     @NotNull(message = "\"duration\" is a required field.")
     @Min(value = 1L, message = "\"duration\" field must be a value greater than or equal to 1.")
@@ -28,7 +30,7 @@ public record OtherGameDTO(
 ) {
 
     public OtherGameDTO{
-        if(minPlayers >= maxPlayers)
-            throw new IllegalArgumentException("Minimum players must be less than maximum players.");
+        if(minPlayers > maxPlayers)
+            throw new IllegalArgumentException("Minimum players must be less than or equal to maximum players.");
     }
 }
