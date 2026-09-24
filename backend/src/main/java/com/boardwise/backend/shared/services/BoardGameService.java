@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -20,10 +22,15 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Limit;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.aggregation.StringOperators;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -41,6 +48,9 @@ import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.services.scoring.PopularityScorer;
 import com.boardwise.backend.shared.dtos.*;
 import com.boardwise.backend.shared.model.*;
+import com.boardwise.backend.user_service.models.User;
+import com.boardwise.backend.user_service.repository.UserRepository;
+import com.boardwise.backend.user_service.repository.UserRepository.GameOwnershipCount;
 import com.boardwise.backend.user_service.services.AuthService;
 import com.boardwise.backend.user_service.services.R2StorageService;
 
@@ -53,13 +63,15 @@ public class BoardGameService {
     private final BoardGameRepository gameRepo;
     private final R2StorageService bucket;
     private final @Qualifier("bggRestClient") RestClient client;
-    private final MongoTemplate db;
     private final PopularityScorer scorer;
 
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
+    private  final UserRepository userRepository;
     private final String defaultImageKey = "/rulebooks/default_cover.png"; 
     @Value("${r2.rulebooks.public-url}")
     private String r2BaseUrl;
+
+    private final MongoTemplate db;
 
     @Scheduled(fixedDelay = 6 * 1000)
     public void populateDatabase(){
@@ -297,6 +309,128 @@ public class BoardGameService {
         return result;
     }
 
+    public List<String> getGenresFromAllAvailableBoardgames(){
+        return db.query(Boardgame.class)
+            .distinct("genres")
+            .as(String.class)
+            .all();
+    }
+
+    public List<String> getGlobalTopGenresFromPrefrences(int n){
+        Aggregation prefAggregation = Aggregation.newAggregation(
+            Aggregation.unwind("preferences.genres"),
+            Aggregation.match(Criteria.where("preferences.genres").ne(null).ne("")),
+            Aggregation.project()
+                .and("preferences.genres").as("originalGenre")
+                .and(StringOperators.valueOf(StringOperators.valueOf("preferences.genres").trim()).toLower()).as("normalizedGenre"),
+            Aggregation.group("normalizedGenre")
+                .count().as("count")
+                .first("originalGenre").as("genre"),
+            Aggregation.sort(Sort.Direction.DESC, "count"),
+            Aggregation.project("genre", "count")
+        );
+
+        AggregationResults<org.bson.Document> prefResults = db.aggregate(
+            prefAggregation, db.getCollectionName(User.class), org.bson.Document.class
+        );
+
+        List<String> foundGenres = prefResults.getMappedResults().stream()
+                .map(doc -> doc.getString("genre"))
+                .collect(Collectors.toList());
+
+        if (foundGenres.size() >= n) {
+            return foundGenres.subList(0, n);
+        }
+
+        int x = n - foundGenres.size();
+
+        List<String> excludedNormalized = foundGenres.stream()
+                .map(g -> g.trim().toLowerCase())
+                .collect(Collectors.toList());
+
+        Aggregation randomAggregation = Aggregation.newAggregation(
+            Aggregation.unwind("genres"),
+            Aggregation.match(Criteria.where("genres").ne(null).ne("")),
+            Aggregation.project()
+                .and("genres").as("originalGenre")
+                .and(StringOperators.valueOf(StringOperators.valueOf("genres").trim()).toLower()).as("normalizedGenre"),
+            Aggregation.match(Criteria.where("normalizedGenre").nin(excludedNormalized)),
+            Aggregation.group("normalizedGenre")
+                .first("originalGenre").as("genre"),
+            Aggregation.sample(x),
+            Aggregation.project("genre")
+        );
+
+        AggregationResults<org.bson.Document> randomResults = db.aggregate(
+            randomAggregation, db.getCollectionName(Boardgame.class), org.bson.Document.class
+        );
+
+        List<String> randomGenres = randomResults.getMappedResults().stream()
+                .map(doc -> doc.getString("genre"))
+                .collect(Collectors.toList());
+
+        foundGenres.addAll(randomGenres);
+
+        if (foundGenres.size() < n) {
+            log.warn("Requested {} top genres but only {} distinct genres exist across user preferences and boardgames",
+                    n, foundGenres.size());
+        }
+
+        return foundGenres.size() > n ? foundGenres.subList(0, n) : foundGenres;
+    }
+
+    public List<OnboardingDTO> getPopularGamesBasedOnGenres(GenreRequestDTO genres, int numElements){
+        final int TARGET = numElements;
+        Map<String, OnboardingDTO> res = new LinkedHashMap<>();
+
+        
+        if(genres != null && genres.genres() != null && !genres.genres().isEmpty()){
+            List<String> targetGenres = genres.genres()
+                .stream()
+                .map(g -> g.trim())
+                .map(String::toLowerCase)
+                .toList();
+
+                List<Criteria> genreCriteria = targetGenres.stream()
+                    .map(g -> Criteria.where("genres").regex("^" + Pattern.quote(g)+"$","i"))
+                    .toList();
+
+            Criteria combinedCriteria = new Criteria().orOperator(genreCriteria.toArray(new Criteria[0]));
+            Query genreQuery = new Query(combinedCriteria);
+            genreQuery.with(Sort.by(Sort.Direction.DESC, "popularityScore"));
+            genreQuery.limit(TARGET * 2);
+
+            List<Boardgame> matchedGames = db.find(genreQuery,  Boardgame.class);
+
+            for(Boardgame game : matchedGames){
+                if(res.size() >= TARGET) break;
+                if(game.getId() != null){
+                    res.putIfAbsent(game.getId(), new OnboardingDTO(game.getId(), game.getTitle(), game.getImageURL()));
+                }
+            }
+        }
+
+        if (res.size() < TARGET) {
+            Query fallbackQuery = new Query();
+            fallbackQuery.with(Sort.by(Sort.Direction.DESC, "popularityScore"));
+            fallbackQuery.limit(TARGET * 3);
+
+            List<Boardgame> fallbackGames = db.find(fallbackQuery, Boardgame.class);
+            for (Boardgame game : fallbackGames) {
+                if (res.size() >= TARGET) break;
+                if (game.getId() != null) {
+                    res.putIfAbsent(game.getId(), new OnboardingDTO(game.getId(), game.getTitle(), game.getImageURL()));
+                }
+            }
+        }
+
+            return new ArrayList<>(res.values());
+    }
+    
+    public List<OnboardingDTO> getPopularGamesBasedOnUserPrefrencesAndTopTenGenres() {
+        return getPopularGamesBasedOnGenres(new GenreRequestDTO(this.getGlobalTopGenresFromPrefrences(10)), 8);
+    }
+    
     public Map<String, Object> getBoardgameGenres(String query){
         Map<String, Object> result = new HashMap<>();
         List<Genres> genres = new ArrayList<>();
