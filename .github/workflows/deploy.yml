@@ -75,7 +75,7 @@ jobs:
           INTERNAL_SECRET: ${{ secrets.INTERNAL_SECRET }}
           CPU_CORES: ${{ secrets.CPU_CORES }}
           R2_LISTINGS_PROD_ENDPOINT: ${{ secrets.R2_LISTINGS_ENDPOINT}}
-          R2_RULEBOOKS_PUBLIC_PROD_URL: ${{ secrets.R2_RULEBOOKS_PUBLIC_URL }}
+          R2_RULEBOOKS_PUBLIC_URL: ${{ secrets.R2_RULEBOOKS_PUBLIC_URL }}
           R2_PROD_URL: ${{ secrets.R2_PROD_URL }}
           BGG_TOKEN: ${{ secrets.BGG_TOKEN }}
           BGG_URL: ${{ secrets.BGG_URL }}
