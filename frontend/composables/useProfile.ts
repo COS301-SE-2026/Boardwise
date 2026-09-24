@@ -28,6 +28,28 @@ export const useProfile = () => {
         }
     }
 
+    const fetchUsers = async (page?: number) => {
+        isLoading.value = true;
+        error.value = ''
+        try{
+            const res = await userService.getUsers(page);
+            return res.users;
+        }
+        catch(err: any){
+            error.value = err.data?.message || "Failed to fetch users"
+            if(err.response?.status === 401){
+                localStorage.removeItem("access_token")
+                router.push('/auth/signin')
+                return;
+            }
+            throw err;
+                
+        }
+        finally{
+            isLoading.value = false
+        }
+    }
+
     const fetchUserById = async (userId: string) => {
         isLoading.value = true;
         error.value = ''
@@ -207,6 +229,7 @@ export const useProfile = () => {
     return { 
         isLoading, 
         fetchCurrentUser, 
+        fetchUsers,
         fetchUserPresence, 
         fetchUserById, 
         updateProfile, 

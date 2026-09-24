@@ -105,7 +105,7 @@ import BaseImage from '~/components/ui/BaseImage.vue'
 
 import { ref, watch } from 'vue'
 import { useProfile } from '~/composables/useProfile'
-// import { userService } from '~/services/userService'
+import { useDebounceFn } from '@vueuse/core'
 
 const props = defineProps({
     games: { 
@@ -151,9 +151,10 @@ async function handleSearch() {
     }
 }
 
+const delaySearch = useDebounceFn(() => handleSearch(), 400)
 
 watch(search, (_) => {
-    handleSearch()
+    delaySearch()
 })
 
 const toggleGame = (game) => {

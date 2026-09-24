@@ -24,7 +24,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.boardwise.backend.shared.dtos.GameInventoryDTO;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
@@ -50,7 +49,6 @@ import com.google.maps.GeoApiContext;
 import com.google.maps.GeocodingApi;
 import com.google.maps.errors.ApiException;
 import com.google.maps.model.GeocodingResult;
-
 import lombok.RequiredArgsConstructor;
 
 
@@ -126,14 +124,14 @@ public class CommunityService {
                 games.add(dto);
             }
 
-            if(event.getStatus() == EventStatus.OPEN){
+            if(event.getStatus() == EventStatus.OPEN && event.getStartDateTime().isAfter(LocalDateTime.now())){
                 RSVPStatus status = (attending || event.getCreatorId().equals(user.getId()))? 
                                     RSVPStatus.ATTENDING : 
                                     RSVPStatus.NOT_ATTENDING;
 
-            EventDTO dto = EventDTO.fromEntity(event, attendeeCount, status, hostInfo, isHost, games);
-            double score = computeSimilarity(userInventory, event.getGames());
-            scored.add(Map.entry(dto, score));
+                EventDTO dto = EventDTO.fromEntity(event, attendeeCount, status, hostInfo, isHost, games);
+                double score = computeSimilarity(userInventory, event.getGames());
+                scored.add(Map.entry(dto, score));
             }
         }
         if (!userInventory.isEmpty()) {
@@ -257,6 +255,7 @@ public class CommunityService {
 
         if(newImage != null){
             eventChanged = true;
+            bucket.deleteFile(event.getEventImg());
             String fileName = bucket.uploadFile(newImage, eventId);
             String imageUrl = bucket.getFileUrl(fileName);
             event.setEventImg(imageUrl);
@@ -277,7 +276,9 @@ public class CommunityService {
                     newGames.add(id);
                 }
             }
-            
+
+            boolean updateStart = newStart != null && !event.getStartDateTime().toLocalTime().equals(newStart);
+            boolean updateEnd = newEnd != null && !event.getEndDateTime().toLocalTime().equals(newEnd);
 
 
             if(newName != null && !event.getName().equals(newName)){
@@ -319,7 +320,23 @@ public class CommunityService {
                 event.setStartDateTime(startDateTime);
                 event.setEndDateTime(endDateTime);
             }
-            if(newStart != null && !event.getStartDateTime().toLocalTime().equals(newStart)){
+            if(updateStart && updateEnd){
+                LocalDateTime startDateTime = LocalDateTime.of(
+                    event.getStartDateTime().toLocalDate(), newStart
+                );
+
+                @SuppressWarnings("null")
+				boolean ifPlusOne = newEnd.isBefore(newStart);
+
+                LocalDateTime endDateTime = ifPlusOne ? 
+                                            LocalDateTime.of(startDateTime.toLocalDate().plusDays(1), newEnd) :
+                                            LocalDateTime.of(startDateTime.toLocalDate(), newEnd);
+                    
+                event.setStartDateTime(startDateTime);
+                event.setEndDateTime(endDateTime);
+                eventChanged = true;
+            }
+            if(updateStart){
                 LocalDateTime startDateTime = LocalDateTime.of(
                     event.getStartDateTime().toLocalDate(), newStart
                 );
@@ -331,7 +348,7 @@ public class CommunityService {
                 eventChanged = true;
                 
             }
-            if(newEnd != null && !event.getEndDateTime().toLocalTime().equals(newEnd)){
+            if(updateEnd){
                 LocalDateTime endDateTime = LocalDateTime.of(
                     event.getEndDateTime().toLocalDate(), newEnd
                 );
@@ -347,7 +364,7 @@ public class CommunityService {
                 eventChanged = true;
                 event.setVisibility(newVisibility);
             }
-            if(newGames.size() != 0){
+            if(newGames.size() > 0){
                 Set<String> newGameSet = new HashSet<>(newGames);
                 Set<String> oldGameSet = new HashSet<>(event.getGames());
 
@@ -426,19 +443,52 @@ public class CommunityService {
         return result;
     }
 
-    public Map<String, Object> rsvp(String token, String eventId) throws NoSuchElementException{
+    public Map<String, Object> rsvp(String token, String eventId) throws NoSuchElementException, IllegalStateException{
         User user = getUserFromToken(token);
         Event event = eventRepo.findById(eventId).get();
         Map<String, Object> result = new HashMap<>();
+        String message;
 
         if(event == null)
             throw new NoSuchElementException("Event with ID: " + eventId + " does not exist.");
 
 
         Optional<EventAttendee> existing = eaRepo.findByUserIdAndEventId(user.getId(), eventId);
-        EventAttendee newAttendee = existing
-            .map(ea -> { ea.setStatus(RSVPStatus.ATTENDING); return ea; })
-            .orElseGet(() -> new EventAttendee(user.getId(), eventId, RSVPStatus.ATTENDING));
+        EventAttendee newAttendee;
+        RSVPStatus status;
+
+        if(existing.isPresent()){
+            newAttendee = existing.get();
+
+            if(newAttendee.getStatus() == RSVPStatus.ATTENDING || newAttendee.getStatus() == RSVPStatus.REQUESTED)
+                throw new IllegalStateException("User is either already recorded as an attendant or an invite has already been requested");
+
+            
+            if(event.getVisibility() == Visibility.PRIVATE && newAttendee.getStatus() != RSVPStatus.INVITED){
+                status = RSVPStatus.REQUESTED;
+                message = "Event is private. An invite has been requested for this user";
+                // notify host
+            }
+            else{
+                status = RSVPStatus.ATTENDING;
+                message = "User attendance successfully recorded.";
+                newAttendee.setRespondedAt(Instant.now());
+            }
+            newAttendee.setStatus(status);
+        }
+        else{
+            if(event.getVisibility() == Visibility.PRIVATE){
+                status = RSVPStatus.REQUESTED;
+                message = "Event is private. An invite has been requested for this user";
+                // notify host
+
+            }
+            else{
+                status = RSVPStatus.ATTENDING;
+                message = "User attendance successfully recorded.";
+            }
+            newAttendee = new EventAttendee(user.getId(), eventId, status);
+        }
 
         newAttendee = eaRepo.save(newAttendee);
         EventAttendee forExample = new EventAttendee();
@@ -467,7 +517,7 @@ public class CommunityService {
         EventDTO data = EventDTO.fromEntity(event, attendeeCount, RSVPStatus.ATTENDING, hostInfo, isHost, games);
 
 
-        result.put("message", "User attendance successfully recorded.");
+        result.put("message", message);
         result.put("data", data);
 
         return result;

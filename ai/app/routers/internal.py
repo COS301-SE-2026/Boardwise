@@ -32,3 +32,10 @@ async def trigger_re_embed(
     )
 
     return {"status": "accepted", "message": "Re-embedding queued successfully."}
+
+
+@router.post("/lancedb/clear-cache", dependencies=[Depends(verify_internal_token)])
+async def clear_lancedb_cache():
+    """Webhook to force the API to drop its stale LanceDB table reference."""
+    lancedb_service.clear_table_cache()
+    return {"status": "success", "message": "Cache cleared."}

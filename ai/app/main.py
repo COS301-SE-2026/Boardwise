@@ -9,9 +9,9 @@ from sentence_transformers import CrossEncoder, SentenceTransformer
 
 from app.config import settings
 from app.routers import internal, job, rulebook
+from app.scripts.seed_system_user import seed_system_user
 from app.services import lancedb_service, mongo_service, r2_service
 from app.utils.init_lancedb_index import initialise_lancedb
-from app.scripts.seed_system_user import seed_system_user
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"

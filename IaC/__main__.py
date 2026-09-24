@@ -1,13 +1,14 @@
 """A Python Pulumi program"""
 
 import json
-import pulumi
-import os
 import mimetypes
-from config import settings
+import os
+
+import pulumi
 import pulumi_aws as aws
-import pulumi_cloudflare as cloudflare
 import pulumi_awsx as awsx
+import pulumi_cloudflare as cloudflare
+from config import settings
 
 RESOURCE_PREFIX = "boardwise"
 BOARDWISE_WWW_DOMAIN = "www.boardwise.games"
@@ -15,6 +16,7 @@ BOARDWISE_BASE_DOMAIN = "boardwise.games"
 ALLOW_ALL_IPv4 = "0.0.0.0/0"
 ALLOW_ALL_IPv6 = "::/0"
 WOMM_EMAIL = "worksonmymachine67@gmail.com"
+INSTANCE_PLATFORM = "linux/amd64"
 
 # --- Set up budget, budget alerts and cost anomaly
 # Budget to measure how much of our credits are being used
@@ -26,50 +28,42 @@ budget = aws.budgets.Budget(
     limit_unit="USD",
     time_unit="ANNUALLY",
     notifications=[
-        { # 50 % 
+        {  # 50 %
             "comparison_operator": "GREATER_THAN",
             "threshold": float(50),
             "threshold_type": "PERCENTAGE",
             "notification_type": "ACTUAL",
-            "subscriber_email_addresses": [
-                WOMM_EMAIL
-            ]
+            "subscriber_email_addresses": [WOMM_EMAIL],
         },
-        { # 75 %
+        {  # 75 %
             "comparison_operator": "GREATER_THAN",
             "threshold": float(75),
             "threshold_type": "PERCENTAGE",
             "notification_type": "ACTUAL",
-            "subscriber_email_addresses": [
-                WOMM_EMAIL
-            ]
+            "subscriber_email_addresses": [WOMM_EMAIL],
         },
-        { # 90 %
+        {  # 90 %
             "comparison_operator": "GREATER_THAN",
             "threshold": float(90),
             "threshold_type": "PERCENTAGE",
             "notification_type": "FORECASTED",
-            "subscriber_email_addresses": [
-                WOMM_EMAIL
-            ]
+            "subscriber_email_addresses": [WOMM_EMAIL],
         },
-        { # 100 % (when depleted)
+        {  # 100 % (when depleted)
             "comparison_operator": "EQUAL_TO",
             "threshold": float(100),
             "threshold_type": "PERCENTAGE",
             "notification_type": "ACTUAL",
-            "subscriber_email_addresses": [
-                WOMM_EMAIL
-            ]
-        }
-    ]
+            "subscriber_email_addresses": [WOMM_EMAIL],
+        },
+    ],
 )
 
 # Anomaly monitor to catch potential spikes in our expenditure
 anomaly_monitor = aws.costexplorer.AnomalyMonitor(
     f"{RESOURCE_PREFIX}-anomalies",
     monitor_type="DIMENSIONAL",
-    monitor_dimension="SERVICE"
+    monitor_dimension="SERVICE",
 )
 
 # Who to notify when anomalies occur
@@ -77,45 +71,37 @@ anomaly_subs = aws.costexplorer.AnomalySubscription(
     f"{RESOURCE_PREFIX}-anomaly-alerts",
     frequency="DAILY",
     monitor_arn_lists=[anomaly_monitor.arn],
-    subscribers=[{
-        "type": "EMAIL",
-        "address": WOMM_EMAIL
-    }],
+    subscribers=[{"type": "EMAIL", "address": WOMM_EMAIL}],
     threshold_expression={
         "dimension": {
             "key": "ANOMALY_TOTAL_IMPACT_ABSOLUTE",
             "match_options": ["GREATER_THAN_OR_EQUAL"],
-            "values": ["10.00"] # if anomalies cause a >=$10 spike
+            "values": ["10.00"],  # if anomalies cause a >=$10 spike
         }
-    }
+    },
 )
 
 # set up Virtual Private Cloud (Basically private network, this will allow our EC2 Instances to communicate only amongst each other and others... )
-vpc_ip_range = "10.0.0.0/16" # NOSONAR
+vpc_ip_range = "10.0.0.0/16"  # NOSONAR
 vpc = aws.ec2.Vpc(
     f"{RESOURCE_PREFIX}-vpc",
     cidr_block=vpc_ip_range,
     enable_dns_hostnames=True,
     enable_dns_support=True,
-    tags={"Name": f"{RESOURCE_PREFIX}-vpc"}
+    tags={"Name": f"{RESOURCE_PREFIX}-vpc"},
 )
 
 igw = aws.ec2.InternetGateway(
     f"{RESOURCE_PREFIX}-vpc-igw",
     vpc_id=vpc.id,
-    tags={"Name": f"{RESOURCE_PREFIX}-vpc-igw"}
+    tags={"Name": f"{RESOURCE_PREFIX}-vpc-igw"},
 )
 
 route_table = aws.ec2.RouteTable(
     f"{RESOURCE_PREFIX}-public-route-table",
     vpc_id=vpc.id,
-    routes=[
-        aws.ec2.RouteTableRouteArgs(
-            cidr_block=ALLOW_ALL_IPv4,
-            gateway_id=igw.id
-        )
-    ],
-    tags={"Name": f"{RESOURCE_PREFIX}-public-route-table"}
+    routes=[aws.ec2.RouteTableRouteArgs(cidr_block=ALLOW_ALL_IPv4, gateway_id=igw.id)],
+    tags={"Name": f"{RESOURCE_PREFIX}-public-route-table"},
 )
 
 azs = aws.get_availability_zones(state="available")
@@ -131,13 +117,13 @@ for i in range(2):
         cidr_block=f"10.0.{i}.0/24",
         availability_zone=az,
         map_public_ip_on_launch=True,
-        tags={"Name": f"boardwise-public-subnet-{i + 1}"}
+        tags={"Name": f"boardwise-public-subnet-{i + 1}"},
     )
 
     rta = aws.ec2.RouteTableAssociation(
         f"boardwise-public-rta-{i + 1}",
         subnet_id=public_subnet.id,
-        route_table_id=route_table.id
+        route_table_id=route_table.id,
     )
 
     public_subnets.append(public_subnet)
@@ -147,7 +133,7 @@ for i in range(2):
         vpc_id=vpc.id,
         cidr_block=f"10.0.{i + 10}.0/24",
         availability_zone=az,
-        tags={"Name": f"boardwise-private-subnet-{i + 1}"}
+        tags={"Name": f"boardwise-private-subnet-{i + 1}"},
     )
     private_subnets.append(private_subnet)
 
@@ -164,8 +150,8 @@ caddy_ingress_http = aws.vpc.SecurityGroupIngressRule(
     cidr_ipv4=ALLOW_ALL_IPv4,
     from_port=80,
     to_port=80,
-    ip_protocol="tcp"
-) 
+    ip_protocol="tcp",
+)
 
 caddy_ingress_icmp = aws.vpc.SecurityGroupIngressRule(
     "caddy-ingress-icmp",
@@ -173,7 +159,7 @@ caddy_ingress_icmp = aws.vpc.SecurityGroupIngressRule(
     cidr_ipv4=ALLOW_ALL_IPv4,
     from_port=8,
     to_port=0,
-    ip_protocol="icmp"
+    ip_protocol="icmp",
 )
 
 caddy_ingress_https = aws.vpc.SecurityGroupIngressRule(
@@ -182,28 +168,28 @@ caddy_ingress_https = aws.vpc.SecurityGroupIngressRule(
     cidr_ipv4=ALLOW_ALL_IPv4,
     from_port=443,
     to_port=443,
-    ip_protocol="tcp"
+    ip_protocol="tcp",
 )
 
 caddy_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
     "caddy-egress-ipv4",
     security_group_id=caddy_sg.id,
     cidr_ipv4=ALLOW_ALL_IPv4,
-    ip_protocol="-1"
+    ip_protocol="-1",
 )
 
 caddy_egress_ipv6 = aws.vpc.SecurityGroupEgressRule(
     "caddy-egress-ipv6",
     security_group_id=caddy_sg.id,
     cidr_ipv6=ALLOW_ALL_IPv6,
-    ip_protocol="-1"
+    ip_protocol="-1",
 )
 
 # set backend security groups
 spring_sg = aws.ec2.SecurityGroup(
     "boardwise-spring-sg",
     description="only permit traffic from Caddy instance and allow spring backend outgoing traffic",
-    vpc_id=vpc.id
+    vpc_id=vpc.id,
 )
 
 caddy_to_spring = aws.vpc.SecurityGroupIngressRule(
@@ -213,7 +199,7 @@ caddy_to_spring = aws.vpc.SecurityGroupIngressRule(
     referenced_security_group_id=caddy_sg.id,
     from_port=8080,
     to_port=8080,
-    ip_protocol="tcp"
+    ip_protocol="tcp",
 )
 
 spring_egress_ipv6 = aws.vpc.SecurityGroupEgressRule(
@@ -221,7 +207,7 @@ spring_egress_ipv6 = aws.vpc.SecurityGroupEgressRule(
     description="to allow spring backend to make requests to the outside [IPv6]",
     security_group_id=spring_sg.id,
     cidr_ipv6=ALLOW_ALL_IPv6,
-    ip_protocol="-1"
+    ip_protocol="-1",
 )
 
 spring_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
@@ -229,13 +215,13 @@ spring_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
     description="to allow spring backend to make requests to the outside [IPv4]",
     security_group_id=spring_sg.id,
     cidr_ipv4=ALLOW_ALL_IPv4,
-    ip_protocol="-1"
+    ip_protocol="-1",
 )
 
 scraper_sg = aws.ec2.SecurityGroup(
     "boardwise-scrapper-sg",
     description="Only permit traffic from main spring boot backend and allow scrapper outgoing traffic",
-    vpc_id=vpc.id
+    vpc_id=vpc.id,
 )
 
 spring_to_scraper = aws.vpc.SecurityGroupIngressRule(
@@ -245,7 +231,7 @@ spring_to_scraper = aws.vpc.SecurityGroupIngressRule(
     referenced_security_group_id=spring_sg.id,
     from_port=8082,
     to_port=8082,
-    ip_protocol="tcp"
+    ip_protocol="tcp",
 )
 
 scraper_egress_ipv6 = aws.vpc.SecurityGroupEgressRule(
@@ -253,7 +239,7 @@ scraper_egress_ipv6 = aws.vpc.SecurityGroupEgressRule(
     description="to allow scraper service to make requests to the outside [IPv6]",
     security_group_id=scraper_sg.id,
     cidr_ipv6=ALLOW_ALL_IPv6,
-    ip_protocol="-1"
+    ip_protocol="-1",
 )
 
 scraper_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
@@ -261,13 +247,13 @@ scraper_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
     description="to allow scraper service to make requests to the outside [IPv4]",
     security_group_id=scraper_sg.id,
     cidr_ipv4=ALLOW_ALL_IPv4,
-    ip_protocol="-1"
+    ip_protocol="-1",
 )
 
 python_sg = aws.ec2.SecurityGroup(
     "boardwise-python-sg",
     description="Only permit traffic from Caddy instance, Main Spring boot and Scrapper",
-    vpc_id=vpc.id
+    vpc_id=vpc.id,
 )
 
 caddy_to_python = aws.vpc.SecurityGroupIngressRule(
@@ -277,7 +263,7 @@ caddy_to_python = aws.vpc.SecurityGroupIngressRule(
     referenced_security_group_id=caddy_sg.id,
     from_port=8000,
     to_port=8000,
-    ip_protocol="tcp"
+    ip_protocol="tcp",
 )
 
 spring_to_python = aws.vpc.SecurityGroupIngressRule(
@@ -287,7 +273,7 @@ spring_to_python = aws.vpc.SecurityGroupIngressRule(
     referenced_security_group_id=spring_sg.id,
     from_port=8000,
     to_port=8000,
-    ip_protocol="tcp"
+    ip_protocol="tcp",
 )
 
 scrapper_to_python = aws.vpc.SecurityGroupIngressRule(
@@ -297,7 +283,7 @@ scrapper_to_python = aws.vpc.SecurityGroupIngressRule(
     referenced_security_group_id=scraper_sg.id,
     from_port=8000,
     to_port=8000,
-    ip_protocol="tcp"
+    ip_protocol="tcp",
 )
 
 python_egress_ipv6 = aws.vpc.SecurityGroupEgressRule(
@@ -305,7 +291,7 @@ python_egress_ipv6 = aws.vpc.SecurityGroupEgressRule(
     description="to allow python backend to make requests to the outside [IPv6]",
     security_group_id=python_sg.id,
     cidr_ipv6=ALLOW_ALL_IPv6,
-    ip_protocol="-1"
+    ip_protocol="-1",
 )
 
 python_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
@@ -313,8 +299,10 @@ python_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
     description="to allow python backend to make requests to the outside [IPv4]",
     security_group_id=python_sg.id,
     cidr_ipv4=ALLOW_ALL_IPv4,
-    ip_protocol="-1"
+    ip_protocol="-1",
 )
+
+# make unstructured instance security group. Allow traffic from python
 
 # set up backend
 ami = aws.ssm.get_parameter(
@@ -323,36 +311,37 @@ ami = aws.ssm.get_parameter(
 
 backend_role = aws.iam.Role(
     f"{RESOURCE_PREFIX}-backend-role",
-    assume_role_policy=json.dumps({
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Action": "sts:AssumeRole",
-                "Effect": "Allow",
-                "Principal": {
-                    "Service": "ec2.amazonaws.com"
+    assume_role_policy=json.dumps(
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Action": "sts:AssumeRole",
+                    "Effect": "Allow",
+                    "Principal": {"Service": "ec2.amazonaws.com"},
                 }
-            }
-        ]
-    })
+            ],
+        }
+    ),
 )
 
 rpa_ecr = aws.iam.RolePolicyAttachment(
     f"{RESOURCE_PREFIX}-ecr-policy",
     role=backend_role.name,
-    policy_arn="arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+    policy_arn="arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
 )
 
 rpa_ssm = aws.iam.RolePolicyAttachment(
     f"{RESOURCE_PREFIX}-ssm-policy",
     role=backend_role.name,
-    policy_arn="arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+    policy_arn="arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
 )
 
 backend_profile = aws.iam.InstanceProfile(
-    f"{RESOURCE_PREFIX}-backend-profile",
-    role=backend_role.name
+    f"{RESOURCE_PREFIX}-backend-profile", role=backend_role.name
 )
+
+# Make unstructured instance
 
 python_repo = awsx.ecr.Repository(f"{RESOURCE_PREFIX}-python-repo", force_delete=True)
 
@@ -360,7 +349,7 @@ python_image = awsx.ecr.Image(
     f"{RESOURCE_PREFIX}-python-image",
     repository_url=python_repo.url,
     context="../ai",
-    platform="linux/amd64"
+    platform=INSTANCE_PLATFORM
 )
 
 python_setup_script = r"""#!/bin/bash
@@ -371,9 +360,14 @@ systemctl enable --now docker
 
 aws ecr get-login-password --region __REGION__ | docker login --username AWS --password-stdin __REGISTRY_URL__
 
+mkdir -p /var/lib/lancedb
+chown 1001:1001 /var/lib/lancedb
+
 docker run -d \
     --restart always \
     --name ai-backend \
+    -v /var/lib/lancedb:/app/lancedb \
+    -e LANCEDB_URI="/app/lancedb" \
     -p 8000:8000 \
     -e PROD_DB_URL="__PROD_DB_URL__" \
     -e DB_NAME="__DB_NAME__" \
@@ -387,6 +381,9 @@ docker run -d \
     -e INTERNAL_SECRET="__INTERNAL_SECRET__" \
     -e CPU_CORES="__CPU_CORES__" \
     -e SYSTEM_CONTRIBUTOR_ID="__SYSTEM_CONTRIBUTOR_ID__" \
+    -e UNSTRUCTURED_API_KEY="__UNSTRUCTURED_API_KEY__" \
+    -e UNSTRUCTURED_PROD_URL="__UNSTRUCTURED_PROD_URL__" \
+    -e EMBEDDING_DIMENSIONS="__EMBEDDING_DIMENSIONS__" \
     -e APP_ENV="__APP_ENV__" __IMAGE_URI__
 """
 python_user_data = python_image.image_uri.apply(
@@ -406,6 +403,9 @@ python_user_data = python_image.image_uri.apply(
                         .replace("__REGISTRY_URL__", image_uri.split('/')[0])
                         .replace("__REGION__", aws.get_region().region)
                         .replace("__SYSTEM_CONTRIBUTOR_ID__", settings.SYSTEM_CONTRIBUTOR_ID)
+                        .replace("__UNSTRUCTURED_API_KEY__", settings.UNSTRUCTURED_API_KEY)
+                        .replace("__UNSTRUCTURED_PROD_URL__", "make instance then inser value")
+                        .replace("__EMBEDDING_DIMENSIONS__", settings.EMBEDDING_DIMENSIONS)
                         .replace("__APP_ENV__", settings.APP_ENV)
 )
 
@@ -415,11 +415,15 @@ python_instance = aws.ec2.Instance(
     ami=ami.value,
     subnet_id=public_subnets[0].id,
     vpc_security_group_ids=[python_sg.id],
+    root_block_device=aws.ec2.InstanceRootBlockDeviceArgs(
+        volume_size=30,
+        volume_type="gp3"
+    ),
     tags={"Name": f"{RESOURCE_PREFIX}-python-backend"},
     user_data=python_user_data,
     iam_instance_profile=backend_profile.name,
     associate_public_ip_address=True,
-    user_data_replace_on_change=True
+    user_data_replace_on_change=True,
 )
 
 spring_repo = awsx.ecr.Repository(f"{RESOURCE_PREFIX}-spring-repo", force_delete=True)
@@ -507,7 +511,7 @@ spring_instance = aws.ec2.Instance(
     user_data=spring_user_data,
     iam_instance_profile=backend_profile.name,
     associate_public_ip_address=True,
-    user_data_replace_on_change=True
+    user_data_replace_on_change=True,
 )
 
 scraper_repo = awsx.ecr.Repository(f"{RESOURCE_PREFIX}-scraper-repo", force_delete=True)
@@ -516,7 +520,7 @@ scraper_image = awsx.ecr.Image(
     f"{RESOURCE_PREFIX}-scraper-image",
     repository_url=scraper_repo.url,
     context="../scrapers",
-    platform="linux/amd64"
+    platform=INSTANCE_PLATFORM
 )
 
 scraper_setup_script = r"""#!/bin/bash
@@ -539,18 +543,18 @@ docker run -d \
 """
 
 scraper_user_data = pulumi.Output.all(
-    image_uri = scraper_image.image_uri,
-    python_ip = python_instance.private_ip
+    image_uri=scraper_image.image_uri, python_ip=python_instance.private_ip
 ).apply(
-    lambda args : scraper_setup_script
-                        .replace("__PROD_DB_URL__", settings.MONGODB_URL)
-                        .replace("__INTERNAL_SECRET__", settings.INTERNAL_WEBHOOK_SECRET)
-                        .replace("__SPRING_PROFILES_ACTIVE__", settings.SPRING_PROFILES_ACTIVE)
-                        .replace("__RULEBOOK_PDF_API__", settings.RULEBOOK_PDF_API)
-                        .replace("__PYTHON_API_BASE_URL__", f"http://{args['python_ip']}:8000/api/fa/") # NOSONAR
-                        .replace("__IMAGE_URI__", args['image_uri'])
-                        .replace("__REGISTRY_URL__", args["image_uri"].split('/')[0])
-                        .replace("__REGION__", aws.get_region().region)
+    lambda args: (
+        scraper_setup_script.replace("__PROD_DB_URL__", settings.MONGODB_URL)
+        .replace("__INTERNAL_SECRET__", settings.INTERNAL_WEBHOOK_SECRET)
+        .replace("__SPRING_PROFILES_ACTIVE__", settings.SPRING_PROFILES_ACTIVE)
+        .replace("__RULEBOOK_PDF_API__", settings.RULEBOOK_PDF_API)
+        .replace("__PYTHON_API_BASE_URL__", f"http://{args['python_ip']}:8000/api/fa/")  # NOSONAR
+        .replace("__IMAGE_URI__", args["image_uri"])
+        .replace("__REGISTRY_URL__", args["image_uri"].split("/")[0])
+        .replace("__REGION__", aws.get_region().region)
+    )
 )
 
 scraper_instance = aws.ec2.Instance(
@@ -563,7 +567,85 @@ scraper_instance = aws.ec2.Instance(
     iam_instance_profile=backend_profile.name,
     associate_public_ip_address=True,
     tags={"Name": f"{RESOURCE_PREFIX}-scraper-service"},
-    user_data_replace_on_change=True
+    user_data_replace_on_change=True,
+)
+
+spring_repo = awsx.ecr.Repository(f"{RESOURCE_PREFIX}-spring-repo", force_delete=True)
+spring_image = awsx.ecr.Image(
+    f"{RESOURCE_PREFIX}-spring-image",
+    repository_url=spring_repo.url,
+    context="../backend",
+    platform=INSTANCE_PLATFORM
+)
+
+spring_setup_script = r"""#!/bin/bash
+yum update -y
+yum install -y docker
+
+systemctl enable --now docker
+
+aws ecr get-login-password --region __REGION__ | docker login --username AWS --password-stdin __REGISTRY_URL__
+
+docker run -d \
+    --restart always \
+    --name spring-backend \
+    -p 8080:8080 \
+    -e PROD_DB_URL="__PROD_DB_URL__" \
+    -e JWT_SECRET="__JWT_SECRET__" \
+    -e JWT_ALGORITHM="__JWT_ALGORITHM__" \
+    -e R2_ACCOUNT_ID="__R2_ACCOUNT_ID__" \
+    -e R2_BUCKET_RULEBOOKS="__R2_BUCKET_RULEBOOKS__" \
+    -e R2_ACCESS_KEY="__R2_ACCESS_KEY__" \
+    -e R2_SECRET_KEY="__R2_SECRET_KEY__" \
+    -e INTERNAL_SECRET="__INTERNAL_SECRET__" \
+    -e PROD_FAST_API_BASE="__PROD_FAST_API_BASE__" \
+    -e R2_BUCKET_PROFILES="__R2_BUCKET_PROFILES__" \
+    -e R2_BUCKET_LISTINGS="__R2_BUCKET_LISTINGS__" \
+    -e R2_RULEBOOKS_PUBLIC_PROD_URL="__R2_RULEBOOKS_PUBLIC_PROD_URL__" \
+    -e R2_LISTINGS_PROD_ENDPOINT="__R2_LISTINGS_PROD_ENDPOINT__" \
+    -e R2_PROD_URL="__R2_PROD_URL__" \
+    -e BGG_TOKEN="__BGG_TOKEN__" \
+    -e BGG_URL="__BGG_URL__" \
+    -e PROD_FRONTEND_BASE="__PROD_FRONTEND_BASE__" \
+    -e GOOGLE_MAP_API_KEY="__GOOGLE_MAP_API_KEY__" \
+    -e SMTP_HOST="__SMTP_HOST__" \
+    -e SMTP_USERNAME="__SMTP_USERNAME__" \
+    -e SMTP_PASSWORD="__SMTP_PASSWORD__" \
+    -e SCRAPER_SERVICE_URL="__SCRAPER_SERVICE_URL__" \
+    -e SPRING_PROFILES_ACTIVE="__SPRING_PROFILES_ACTIVE__" __IMAGE_URI__
+"""
+spring_user_data = pulumi.Output.all(
+    image_uri = spring_image.image_uri,
+    python_ip = python_instance.private_ip,
+    scraper_ip = scraper_instance.private_ip
+).apply(
+    lambda args : spring_setup_script
+                        .replace("__IMAGE_URI__", args['image_uri'])
+                        .replace("__SMTP_PASSWORD__", settings.SMTP_PASSWORD if settings.SMTP_PASSWORD is not None else "")
+                        .replace("__SMTP_USERNAME__", settings.SMTP_USERNAME if settings.SMTP_USERNAME is not None else "")
+                        .replace("__SMTP_HOST__", settings.SMTP_HOST if settings.SMTP_HOST is not None else "")
+                        .replace("__GOOGLE_MAP_API_KEY__", settings.GOOGLE_MAP_API_KEY)
+                        .replace("__PROD_FRONTEND_BASE__", f"https://{BOARDWISE_BASE_DOMAIN}/")
+                        .replace("__BGG_URL__", settings.BGG_URL)
+                        .replace("__BGG_TOKEN__", settings.BGG_TOKEN)
+                        .replace("__R2_PROD_URL__", settings.R2_PROD_URL)
+                        .replace("__R2_LISTINGS_PROD_ENDPOINT__", settings.R2_LISTINGS_PROD_URL)
+                        .replace("__R2_RULEBOOKS_PUBLIC_PROD_URL__", settings.R2_RULEBOOKS_PUBLIC_PROD_URL)
+                        .replace("__R2_BUCKET_LISTINGS__", settings.R2_BUCKET_LISTINGS)
+                        .replace("__R2_BUCKET_PROFILES__", settings.R2_BUCKET_PROFILES)
+                        .replace("__PROD_FAST_API_BASE__", f"http://{args['python_ip']}:8000/api/fa/") # NOSONAR
+                        .replace("__SCRAPER_SERVICE_URL__", f"http://{args['scraper_ip']}:8082/internal/retail/") # NOSONAR
+                        .replace("__INTERNAL_SECRET__", settings.INTERNAL_WEBHOOK_SECRET)
+                        .replace("__R2_SECRET_KEY__", settings.R2_SECRET_KEY)
+                        .replace("__R2_ACCESS_KEY__", settings.R2_ACCESS_KEY)
+                        .replace("__R2_BUCKET_RULEBOOKS__", settings.R2_BUCKET_RULEBOOKS)
+                        .replace("__R2_ACCOUNT_ID__", settings.R2_ACCOUNT_ID)
+                        .replace("__JWT_ALGORITHM__", settings.JWT_ALGORITHM)
+                        .replace("__JWT_SECRET__", settings.JWT_SECRET)
+                        .replace("__PROD_DB_URL__", settings.MONGODB_URL)
+                        .replace("__REGISTRY_URL__", args["image_uri"].split('/')[0])
+                        .replace("__REGION__", aws.get_region().region)
+                        .replace("__SPRING_PROFILES_ACTIVE__", settings.SPRING_PROFILES_ACTIVE)
 )
 
 caddy_setup_script = r"""#!/bin/bash
@@ -599,12 +681,11 @@ docker run -d \
 """
 
 caddy_user_data = pulumi.Output.all(
-    spring_ip=spring_instance.private_ip,
-    python_ip=python_instance.private_ip
+    spring_ip=spring_instance.private_ip, python_ip=python_instance.private_ip
 ).apply(
-    lambda ips: caddy_setup_script
-                .replace("__SPRING_IP__", ips["spring_ip"])
-                .replace("__PYTHON_IP__", ips["python_ip"])
+    lambda ips: caddy_setup_script.replace("__SPRING_IP__", ips["spring_ip"]).replace(
+        "__PYTHON_IP__", ips["python_ip"]
+    )
 )
 
 caddy_instance = aws.ec2.Instance(
@@ -616,14 +697,14 @@ caddy_instance = aws.ec2.Instance(
     user_data=caddy_user_data,
     iam_instance_profile=backend_profile.name,
     tags={"Name": f"{RESOURCE_PREFIX}-reverse-proxy"},
-    user_data_replace_on_change=True
+    user_data_replace_on_change=True,
 )
 
 caddy_eip = aws.ec2.Eip(
     f"{RESOURCE_PREFIX}-caddy-eip",
     instance=caddy_instance.id,
     domain="vpc",
-    tags={"Name": f"{RESOURCE_PREFIX}-caddy-eip"}
+    tags={"Name": f"{RESOURCE_PREFIX}-caddy-eip"},
 )
 
 # set DNS stuff for backend [api.boardwise.games]
@@ -635,13 +716,13 @@ rp_record = cloudflare.DnsRecord(
     proxied=False,
     comment="Route traffic to Caddy (sits in front of backend)",
     content=caddy_eip.public_ip,
-    ttl=1
+    ttl=1,
 )
 
 # Time set up frontend
 bucket = aws.s3.Bucket(
     f"{RESOURCE_PREFIX}-frontend-bucket",
-    tags={"Name": f"{RESOURCE_PREFIX}-frontend-bucket"}
+    tags={"Name": f"{RESOURCE_PREFIX}-frontend-bucket"},
 )
 
 frontend_build_dir = "../frontend/.output/public"
@@ -653,7 +734,11 @@ for root, dirs, files in os.walk(frontend_build_dir):
         mime, _ = mimetypes.guess_type(abs_path)
         mime = mime if mime is not None else "application/octet-stream"
 
-        cache_control = "no-cache, no-store, must-revalidate" if file.endswith(".html") else "public, max-age=31536000, immutable"
+        cache_control = (
+            "no-cache, no-store, must-revalidate"
+            if file.endswith(".html")
+            else "public, max-age=31536000, immutable"
+        )
 
         obj = aws.s3.BucketObject(
             f"bucket-object-{key}",
@@ -661,7 +746,7 @@ for root, dirs, files in os.walk(frontend_build_dir):
             key=key,
             source=pulumi.FileAsset(abs_path),
             content_type=mime,
-            cache_control=cache_control
+            cache_control=cache_control,
         )
 
 # frontend DNS stuff
@@ -671,34 +756,46 @@ frontend_cert = aws.acm.Certificate(
     domain_name=BOARDWISE_BASE_DOMAIN,
     subject_alternative_names=[BOARDWISE_WWW_DOMAIN],
     validation_method="DNS",
-    opts=pulumi.ResourceOptions(provider=us_east_1)
+    opts=pulumi.ResourceOptions(provider=us_east_1),
 )
 
 cert_record_base = cloudflare.DnsRecord(
     f"{RESOURCE_PREFIX}-cert-record-base",
     zone_id=settings.CLOUDFLARE_ZONE_ID,
-    name=frontend_cert.domain_validation_options.apply(lambda opts: opts[0].resource_record_name),
-    type=frontend_cert.domain_validation_options.apply(lambda opts: opts[0].resource_record_type),
-    content=frontend_cert.domain_validation_options.apply(lambda opts: opts[0].resource_record_value),
+    name=frontend_cert.domain_validation_options.apply(
+        lambda opts: opts[0].resource_record_name
+    ),
+    type=frontend_cert.domain_validation_options.apply(
+        lambda opts: opts[0].resource_record_type
+    ),
+    content=frontend_cert.domain_validation_options.apply(
+        lambda opts: opts[0].resource_record_value
+    ),
     proxied=False,
-    ttl=1
+    ttl=1,
 )
 
 cert_record_www = cloudflare.DnsRecord(
     f"{RESOURCE_PREFIX}-cert-record-www",
     zone_id=settings.CLOUDFLARE_ZONE_ID,
-    name=frontend_cert.domain_validation_options.apply(lambda opts: opts[1].resource_record_name),
-    type=frontend_cert.domain_validation_options.apply(lambda opts: opts[1].resource_record_type),
-    content=frontend_cert.domain_validation_options.apply(lambda opts: opts[1].resource_record_value),
+    name=frontend_cert.domain_validation_options.apply(
+        lambda opts: opts[1].resource_record_name
+    ),
+    type=frontend_cert.domain_validation_options.apply(
+        lambda opts: opts[1].resource_record_type
+    ),
+    content=frontend_cert.domain_validation_options.apply(
+        lambda opts: opts[1].resource_record_value
+    ),
     proxied=False,
-    ttl=1
+    ttl=1,
 )
 
 cert_validation = aws.acm.CertificateValidation(
     f"{RESOURCE_PREFIX}-cert-validation",
     certificate_arn=frontend_cert.arn,
     validation_record_fqdns=[cert_record_base.name, cert_record_www.name],
-    opts=pulumi.ResourceOptions(provider=us_east_1)
+    opts=pulumi.ResourceOptions(provider=us_east_1),
 )
 
 # setting up cloudfront
@@ -707,7 +804,7 @@ oac = aws.cloudfront.OriginAccessControl(
     description="OAC for frontend bucket",
     origin_access_control_origin_type="s3",
     signing_behavior="always",
-    signing_protocol="sigv4"
+    signing_protocol="sigv4",
 )
 
 frontend_distro = aws.cloudfront.Distribution(
@@ -720,7 +817,7 @@ frontend_distro = aws.cloudfront.Distribution(
         aws.cloudfront.DistributionOriginArgs(
             domain_name=bucket.bucket_regional_domain_name,
             origin_id=bucket.id,
-            origin_access_control_id=oac.id
+            origin_access_control_id=oac.id,
         )
     ],
     default_cache_behavior=aws.cloudfront.DistributionDefaultCacheBehaviorArgs(
@@ -732,11 +829,11 @@ frontend_distro = aws.cloudfront.Distribution(
             query_string=False,
             cookies=aws.cloudfront.DistributionDefaultCacheBehaviorForwardedValuesCookiesArgs(
                 forward="none"
-            )
+            ),
         ),
         min_ttl=0,
         default_ttl=3600,
-        max_ttl=86400
+        max_ttl=86400,
     ),
     restrictions=aws.cloudfront.DistributionRestrictionsArgs(
         geo_restriction=aws.cloudfront.DistributionRestrictionsGeoRestrictionArgs(
@@ -746,47 +843,42 @@ frontend_distro = aws.cloudfront.Distribution(
     viewer_certificate=aws.cloudfront.DistributionViewerCertificateArgs(
         acm_certificate_arn=cert_validation.certificate_arn,
         ssl_support_method="sni-only",
-        minimum_protocol_version="TLSv1.2_2021"
+        minimum_protocol_version="TLSv1.2_2021",
     ),
     custom_error_responses=[
         aws.cloudfront.DistributionCustomErrorResponseArgs(
-            error_code=403,
-            response_code=200,
-            response_page_path="/index.html"
+            error_code=403, response_code=200, response_page_path="/index.html"
         ),
         aws.cloudfront.DistributionCustomErrorResponseArgs(
-            error_code=404,
-            response_code=200,
-            response_page_path="/index.html"
-        )
+            error_code=404, response_code=200, response_page_path="/index.html"
+        ),
     ],
-    opts=pulumi.ResourceOptions(depends_on=[bucket])
+    opts=pulumi.ResourceOptions(depends_on=[bucket]),
 )
 
 bucket_policy = aws.s3.BucketPolicy(
-    f'{RESOURCE_PREFIX}-bucket-policy',
+    f"{RESOURCE_PREFIX}-bucket-policy",
     bucket=bucket.id,
     policy=pulumi.Output.all(
-        bucket_arn=bucket.arn,
-        frontend_arn=frontend_distro.arn
+        bucket_arn=bucket.arn, frontend_arn=frontend_distro.arn
     ).apply(
-        lambda args: json.dumps({
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Action": "s3:GetObject",
-                    "Effect": "Allow",
-                    "Resource": f"{args['bucket_arn']}/*",
-                    "Principal": {"Service": "cloudfront.amazonaws.com"},
-                    "Condition": {
-                        "StringEquals": {
-                            "AWS:SourceArn": args['frontend_arn']
-                        }
+        lambda args: json.dumps(
+            {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Action": "s3:GetObject",
+                        "Effect": "Allow",
+                        "Resource": f"{args['bucket_arn']}/*",
+                        "Principal": {"Service": "cloudfront.amazonaws.com"},
+                        "Condition": {
+                            "StringEquals": {"AWS:SourceArn": args["frontend_arn"]}
+                        },
                     }
-                }
-            ]
-        })
-    )
+                ],
+            }
+        )
+    ),
 )
 
 base_dns_record = cloudflare.DnsRecord(
@@ -796,7 +888,7 @@ base_dns_record = cloudflare.DnsRecord(
     type="CNAME",
     content=frontend_distro.domain_name,
     proxied=False,
-    ttl=1
+    ttl=1,
 )
 
 www_dns_record = cloudflare.DnsRecord(
@@ -806,7 +898,7 @@ www_dns_record = cloudflare.DnsRecord(
     type="CNAME",
     content=frontend_distro.domain_name,
     proxied=False,
-    ttl=1
+    ttl=1,
 )
 
 pulumi.export("frontend_url", f"https://{BOARDWISE_BASE_DOMAIN}")

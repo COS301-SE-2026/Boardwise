@@ -93,6 +93,11 @@ export interface ProfileSearchResponse {
     status: FriendStatus | null
 }
 
+export interface GetUsersResponse {
+    message: string,
+    users: ProfileSearchResponse[]
+}
+
 interface GenresResponse {
     message: string;
     genres: string[];
@@ -112,15 +117,28 @@ interface PresenceResponseDTO{
     isOnline: boolean
 }
 
+interface BoardgameRulebookDto{
+    rulebookId: string
+}
+
 export const userService = {
     getCurrentUser(){
         const { $api } = useNuxtApp();
-        return $api<ProfileResponse>("users/");
+        return $api<ProfileResponse>("users/me");
     },
 
     getUser(id: string){
         const { $api } = useNuxtApp();
         return $api<ProfileResponse>("users/" + id);
+    },
+
+    getUsers(page?: number){
+        const { $api } = useNuxtApp();
+        return $api<GetUsersResponse>("users/", {
+            params: {
+                page
+            }
+        })
     },
     
     updateProfile(user: {
@@ -239,5 +257,10 @@ export const userService = {
     getUserPresence(userId: string){
         const { $api } = useNuxtApp();
         return $api<PresenceResponseDTO>(`users/${userId}/presence`);
+    },
+
+    getBoardgameRulebookId(gameId: string){
+        const {$api} = useNuxtApp();
+        return $api<BoardgameRulebookDto>(`gameInventory/read/${gameId}`);
     }
 }

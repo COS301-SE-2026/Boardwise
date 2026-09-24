@@ -27,4 +27,6 @@ public interface BoardGameRepository extends MongoRepository<Boardgame, String>{
 
     List<Boardgame> findByGenres(List<String> genres);
     Optional<Boardgame> findFirstByTitle(String title);
+    
+    List<Boardgame> findByBggIdNotNullOrderByLastStatsRefreshedAtAsc(Limit limit);
 }
