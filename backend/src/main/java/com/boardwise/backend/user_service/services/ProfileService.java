@@ -175,29 +175,29 @@ public class ProfileService {
         List<ProfileSearchResponse> results = new ArrayList<>();
         String userId = jwtService.extractUserId(token).toString();
         User subject = userRepo.findById(userId).get();
-
-        Criteria criteria;
-        Pageable page;
-
+        
+        
+        Query dbQuery = new Query();
+    
         if(query == null){
-            int pageIdx = pageNum == null ? 0 : (pageNum - 1);
-            page = PageRequest.of(pageIdx, 10);
-            criteria = Criteria.where("");
+            int pageIdx = pageNum == null ? 0 : Math.max(0, (pageNum - 1));
+            Pageable page = PageRequest.of(pageIdx, 10);
+            dbQuery.with(page);
         }
         else{
             String cleanQuery = AuthService.sanitize(query);
             Pattern pattern = Pattern.compile(Pattern.quote(cleanQuery), Pattern.CASE_INSENSITIVE);
 
-            criteria = new Criteria().orOperator(
+            Criteria criteria = new Criteria().orOperator(
                 Criteria.where("username").regex(pattern),
                 Criteria.where("firstName").regex(pattern),
                 Criteria.where("lastName").regex(pattern)
             );
+            
+            dbQuery.addCriteria(criteria);
         }
         
-        Query dbQuery = new Query(criteria);
         List<User> matches = db.find(dbQuery, User.class);
-        
         for(User user : matches){
             if(!user.getId().equals(subject.getId())){
                 Optional<Friendship> optional = fsRepo.findFriendShipBetweenUsers(userId, user.getId());
