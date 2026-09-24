@@ -22,8 +22,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && chown -R fast:fast /app
 
 ADD --chown=fast:fast \
-    "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf" \
-    /app/models/qwen2.5-0.5b-instruct-q4_k_m.gguf
+    "https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q4_k_m.gguf" \
+    /app/models/qwen2.5-3b-instruct-q4_k_m.gguf
 
 # Copy requirements file and install Python dependencies
 COPY --chown=fast:fast requirements.txt .

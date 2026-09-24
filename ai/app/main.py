@@ -59,8 +59,8 @@ async def lifespan(app: FastAPI):
         logger.info("Cross-encoder re-ranker model loaded successfully.")
 
         ml_models["local_llm"] = Llama(
-            model_path="/app/models/qwen2.5-0.5b-instruct-q4_k_m.gguf",
-            n_ctx=4096,
+            model_path="/app/models/qwen2.5-3b-instruct-q4_k_m.gguf",
+            n_ctx=8192,
             n_threads=settings.CPU_CORES,
             n_gpu_layers=0,
             verbose=False,
