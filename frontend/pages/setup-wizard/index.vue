@@ -6,7 +6,7 @@
             <BaseBackButton to="/library">Back to Library</BaseBackButton>
 
             <span class="setup-hub__eyebrow">
-            <span class="setup-hub__eyebrow-dot" />
+                <span class="setup-hub__eyebrow-dot" />
                 RAG-Powered Tabletop Setup Wizard
             </span>
 
@@ -23,12 +23,14 @@
             />
         </div>
 
-        <ActiveSetupBanner
-            v-if="activeSetup"
-            :game="activeSetup"
-            @resume="goToWizard(activeSetup.id)"
-            @restart="restartSetup"
-        />
+        <div class="active-banner">
+            <ActiveSetupBanner
+                v-if="activeSetup"
+                :game="activeSetup"
+                @resume="goToWizard(activeSetup.id)"
+                @restart="restartSetup"
+            />
+        </div>
 
         <div class="section">
             <div class="page-header">
