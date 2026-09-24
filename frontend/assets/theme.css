@@ -4830,3 +4830,36 @@ button:disabled,
           repeat(2, minmax(0, 1fr));
   }
 }}
+
+/* =============================================================
+   GAME ARCHITECT
+   ============================================================= */
+.game-architect-page {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.game-architect-page__back {
+  margin-bottom: var(--space-4);
+}
+
+.game-architect-shell {
+  padding: clamp(var(--space-5), 4vw, var(--space-10));
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.game-architect-progress {
+  margin-bottom: var(--space-10);
+}
+
+.game-architect-progress ol {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
