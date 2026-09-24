@@ -5368,3 +5368,15 @@ button:disabled,
     width: 100%;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .game-architect-option,
+  .game-architect-game-card {
+    transition: none;
+  }
+
+  .game-architect-option:hover,
+  .game-architect-game-card:hover:not(:disabled) {
+    transform: none;
+  }
+}
