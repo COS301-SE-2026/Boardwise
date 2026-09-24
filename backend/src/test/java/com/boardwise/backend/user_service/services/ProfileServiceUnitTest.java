@@ -27,7 +27,6 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.shared.services.NotificationService;
-import com.boardwise.backend.user_service.dtos.notifications.FriendConfirmationNotification;
 import com.boardwise.backend.user_service.dtos.FriendDTO;
 import com.boardwise.backend.user_service.dtos.notifications.FriendRequestNotification;
 import com.boardwise.backend.user_service.dtos.response.FriendRequestResponseDTO;
