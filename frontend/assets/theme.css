@@ -124,7 +124,7 @@
   /* ----------------------------------------------------------
      6. LAYOUT
      ---------------------------------------------------------- */
-  --container-max: 1400px; /* was 1200px */
+  --container-max: 1400px;
   --sidebar-width: 248px;
   --header-height: 64px;
 
@@ -2186,26 +2186,6 @@ html[data-density="compact"] .rulebook-list {
   background: var(--color-surface);
 }
 
-.chat-message__listing-card{
-  background: var(--color-surface-alt, #f5f5f5);
-  border: 1px solid var(--color-border-strong, #ddd);
-  border-radius: var(--radius-lg, 12px);
-  cursor: pointer;
-  max-width: 260px;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.chat-message__listing-card:hover{
-  background: var(--color-surface-hover, #ececec);
-  border-color: var(--color-primary, #7c3aed);
-}
-
-.chat-message__listing-card :deep(img){
-  flex-shrink: 0;
-  object-fit: cover;
-  border-radius: var(--radius-md, 8px);
-}
-
 .chat-message__bubble--own {
   border-color: var(--color-primary);
 
@@ -2217,15 +2197,6 @@ html[data-density="compact"] .rulebook-list {
 
   background: var(--color-primary);
   color: var(--color-text-inverse);
-}
-
-.chat-message__bubble--own .chat-message__listing-card{
-  background-color: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.chat-message__bubble--own .chat-message__listing-card:hover{
-  background: rgba(255, 255, 255, 0.25);
 }
 
 .chat-message__text {
@@ -3477,6 +3448,7 @@ html[data-density="compact"] .rulebook-list {
 
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 /* Game Add Button */
@@ -6610,71 +6582,6 @@ games-owned-section {
         right: var(--space-4, 16px);
         bottom: var(--space-4, 16px);
     }
-}
-
-/* =============================================================
-   ONBOARDING 
-   ============================================================= */
-
-.onboarding-step_final {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-6);
-    max-width: 720px;
-    width: 100%;
-}
-
-.onboarding-step {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-6);
-    max-width: 720px;
-    width: 100%;
-}
-
-.onboarding-step_hint {
-    font-size: var(--fs-small);
-    color: var(--color-text-muted);
-}
-
-.onboarding-class_game-grid {
-    max-height: 320px;
-    overflow-y: auto;
-}
-
-.onboarding-step_actions {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-3);
-    margin-top: var(--space-4);
-}
-
-.onboarding-step_skip {
-    color: var(--color-text-muted);
-    font-size: var(--fs-small);
-}
-
-.onboarding-setup {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-6);
-    width: 100%;
-    max-width: 720px;
-}
-
-.onboarding-step_logo {
-    width: clamp(220px, 35vw, 320px);
-}
-.onboarding-step_cta {
-    align-self: center;
-    padding: var(--space-3) var(--space-8);
 }
 
 /* ================================================================
