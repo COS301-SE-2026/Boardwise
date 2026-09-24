@@ -25,7 +25,7 @@
             <div class="wizard-layout__main">
                 <div class="wizard-layout__heading">
                     <div>
-                        <span class="wizard-layout__eyebrow">Phase 1: Inventory &amp; Preparation</span>
+                        <span class="wizard-layout__eyebrow">{{ currentStep?.phase }}</span>
                         <h1 class="page-header__title" style="font-size: var(--fs-h2);">{{ currentStep?.title }}</h1>
                         <p class="card-meta">{{ currentStep?.description }}</p>
                     </div>
@@ -71,6 +71,12 @@
             </div>
         </div>
 
+        <SetupCompleteModal
+            v-model="showCompleteModal"
+            :game-title="gameTitle"
+            @finish="finishSetup"
+        />
+
         <BaseModal v-model="showConfirmModal" title="Some items aren't confirmed" aria-label="Confirm proceeding with unchecked items">
             <p>You still have {{ checklist.length - checkedCount }} unconfirmed item(s). Continue anyway?</p>
             <template #actions>
@@ -83,7 +89,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
@@ -95,12 +101,14 @@ import BaseModal from '~/components/ui/BaseModal.vue'
 
 import ChecklistItemCard from '~/components/features/setup-wizard/ChecklistItemCard.vue'
 import WizardChatSidebar from '~/components/features/setup-wizard/WizardChatSidebar.vue'
+import SetupCompleteModal from '~/components/features/setup-wizard/SetupCompleteModal.vue'
 
 import { useBoardGames } from '~/composables/useBoardGames'
 import { useSetupChecklist, useActiveSetup } from '~/composables/useSetupWizard'
 import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 
 const route = useRoute()
+const router = useRouter()
 const gameId = route.params.id as string
 
 // TODO: replace with getGameById lookup
@@ -110,6 +118,7 @@ const { checklist, stepNumber, totalSteps, currentStep, checkedCount, allConfirm
 const { setActiveSetup, clearActiveSetup } = useActiveSetup()
 
 const showConfirmModal = ref(false)
+const showCompleteModal = ref(false)
 
 const game = computed(() => games.value.find((g: any) => String(g.id) === gameId))
 const gameTitle = computed(() => game.value?.title || 'Setup Guide')
@@ -142,13 +151,18 @@ const confirmNext = () => {
     advance()
 }
 
+const finishSetup = () => {
+    showCompleteModal.value = false
+    clearActiveSetup()
+    router.push('/setup-wizard')
+}
+
 const advance = () => {
     if (stepNumber.value < totalSteps) {
         nextStep()
         persistProgress()
     } else {
-        clearActiveSetup()
-        // TODO: no "setup complete" state designed yet
+        showCompleteModal.value = true
     }
 }
 </script>

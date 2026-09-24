@@ -5404,3 +5404,12 @@ button:disabled,
     order: -1;
   }
 }
+
+/* Setup Complete */
+.setup-complete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-4);
+}

@@ -11,17 +11,17 @@ export interface ChecklistItem {
     checked: boolean
 }
 
-export interface WizardStepDef { number: number; title: string, description: string }
+export interface WizardStepDef { number: number; phase: string, title: string, description: string }
 export interface ActiveSetup { id: string; title: string; coverImage?: string; step: number; totalSteps: number }
 
 // TODO: no backend for wizard 
 
 const MOCK_STEPS: WizardStepDef[] = [
-    { number: 1, title: 'Step 1: Check Your Components', description: 'Verify starting pieces before setting up the board.' },
-    { number: 2, title: 'Step 2: Tabletop Alignment & Placement', description: 'Follow spatial guidelines to lay hexes and frames seamlessly.' },
-    { number: 3, title: 'Step 3: Distribute Player Sets', description: 'Hand out roads, settlements and cities to each player.' },
-    { number: 4, title: 'Step 4: Prepare the Bank', description: 'Sort resource and development cards into their stacks.' },
-    { number: 5, title: 'Step 5: Final Checks', description: 'Confirm the robber, dice and tokens are placed and ready.' }
+    { number: 1, phase: 'Phase 1: Inventory & Preparation', title: 'Step 1: Check Your Components', description: 'Verify starting pieces before setting up the board.' },
+    { number: 2, phase: 'Phase 1: Inventory & Preparation', title: 'Step 2: Tabletop Alignment & Placement', description: 'Follow spatial guidelines to lay hexes and frames seamlessly.' },
+    { number: 3, phase: 'Phase 2: Player Setup' ,title: 'Step 3: Distribute Player Sets', description: 'Hand out roads, settlements and cities to each player.' },
+    { number: 4, phase: 'Phase 2: Player Setup' ,title: 'Step 4: Prepare the Bank', description: 'Sort resource and development cards into their stacks.' },
+    { number: 5, phase: 'Phase 3: Final Checks' ,title: 'Step 5: Final Checks', description: 'Confirm the robber, dice and tokens are placed and ready.' }
 ]
 
 const MOCK_CHECKLIST: Omit<ChecklistItem, 'checked'>[] = [

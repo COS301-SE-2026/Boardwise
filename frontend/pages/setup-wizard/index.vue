@@ -2,7 +2,7 @@
     <PageContainer>
         <Navbar />
 
-        <div class="setup-hub-hero"> 
+        <div class="setup-hub__hero"> 
             <BaseBackButton to="/library">Back to Library</BaseBackButton>
 
             <span class="setup-hub__eyebrow">
