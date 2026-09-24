@@ -46,7 +46,7 @@
 
       <p class="text-center text-medium-emphasis mt-6">
         Prefer email?
-        <a href="worksonmymachine67@gmail.com">
+        <a href="mailto:worksonmymachine67@gmail.com">
           support@boardwise.co.za
         </a>
       </p>
