@@ -4,7 +4,7 @@
 
         <div class="wizard-hub">
             <div class="wizard-hub__crumb">
-                <BaseBackButton to="/library">Back to Library</BaseBackButton>
+                <BaseBackButton to="/setup-wizard">Back to Wizard Hud</BaseBackButton>
                 <span class="wizard-hub__divider">/</span>
                 <span class="wizard-hub__game">{{  gameTitle  }}</span>
             </div>
@@ -45,7 +45,7 @@
                     <ChecklistItemCard v-for="item in checklist" :key="item.id" :item="item" @toggle="toggleItem" />
                 </div>
 
-                <div class="wizard-layou__hint">
+                <div class="wizard-layout__hint">
                     <v-icon size="20" color="var(--color-text-muted)">mdi-help-circle-outline</v-icon>
 
                     <p class="card-meta">
@@ -55,7 +55,7 @@
                 </div>
             </div>
 
-            <WizardChatSidebar class="wizard-layour__sidebar" :game-title="gameTitle" />
+            <WizardChatSidebar class="wizard-layout__sidebar" :game-title="gameTitle" />
         </div>
 
         <div class="wizard-footer">

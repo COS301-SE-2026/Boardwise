@@ -2,10 +2,14 @@
     <PageContainer>
         <Navbar />
 
-        <SectionTitle 
-            title="Setup Wizard Hub"
-            subtitle="Get from unboxing to first roll in minutes, with step-by-step guidance grounded in official rulebooks."
-        />
+        <div>
+            <BaseBackButton to="/library">Back to Library</BaseBackButton>
+            <SectionTitle 
+                title="Setup Wizard Hub"
+                subtitle="Get from unboxing to first roll in minutes, with step-by-step guidance grounded in official rulebooks."
+            />
+        </div>
+        
 
         <BaseSearch
             v-model="searchQuery"
@@ -24,7 +28,7 @@
         <div class="section">
             <div class="page-header">
                 <div>
-                    <h2 class="section-title__heading" style="font-size: var(---fs-h2);">
+                    <h2 class="section-title__heading" style="font-size: var(--fs-h2);">
                         Wizard-Ready Games
                     </h2>
 
@@ -38,7 +42,7 @@
 
             <BaseErrorState
                 v-else-if="error"
-                :messages="error"
+                :message="error"
                 retryable
                 @retry="() => searchGames(searchQuery)"
             />
@@ -82,6 +86,7 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import SetupGameCard from '~/components/features/setup-wizard/SetupGameCard.vue'
 import ActiveSetupBanner from '~/components/features/setup-wizard/ActiveSetupBanner.vue'
 import { useActiveSetup } from '~/composables/useSetupWizard'
+import BaseBackButton from '~/components/ui/BaseBackButton.vue'
 
 const router = useRouter()
 const { games, isLoading, error, searchGames } = useBoardGames()

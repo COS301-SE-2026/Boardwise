@@ -4801,3 +4801,395 @@ button:disabled,
           repeat(2, minmax(0, 1fr));
   }
 }
+
+/* =============================================================================
+  SETUP WIZARD
+ ============================================================================ */
+.setup-game-card__players {
+  flex-shrink: 0;
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+  background: var(--color-surface-alt);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+}
+
+.setup-game-card__desc {
+  margin-top: var(--space-1);
+}
+
+.setup-game-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.setup-game-card__verified {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+}
+
+/* Active setup banner */ 
+.active-setup-banner__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.active-setup-banner__info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.active-setup-banner__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.active-setup-banner__progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 280px;
+}
+
+.active-setup-banner__track {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-alt);
+  overflow: hidden;
+}
+
+.active-setup-banner__fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+  transition: width var(--transition-base);
+}
+
+.active-setup-banner__actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+/* Checklist Item */
+.checklist-item {
+  cursor: pointer;
+}
+
+.checklist-item--checked {
+  border-color: var(--color-primary) !important;
+  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
+}
+
+.checklist-item__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.checklist-item__check {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  margin-top: 2px;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.checklist-item--checked .checklist-item__check {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.checklist-item__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.checklist-item__heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.checklist-item__title {
+  margin: 0;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+.checklist-item--checked .checklist-item__title {
+  color: var(--color-primary);
+}
+
+.checklist-item__category {
+  flex-shrink: 0;
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+}
+
+.checklist-item__desc {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+}
+
+.checklist-item__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.checklist-item__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  font-size: var(--fs-small);
+  color: var(--color-text);
+}
+
+.checklist-item__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+}
+
+/* Hint callout */
+.wizard-layout__hint {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+}
+
+/* Wizard HUD (top bar) */
+.wizard-hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.wizard-hud__crumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.wizard-hud__divider {
+  color: var(--color-border-strong);
+}
+
+.wizard-hud__game {
+  font-weight: var(--fw-bold);
+  color: var(--color-secondary);
+}
+
+.wizard-hud__progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.wizard-hud__track {
+  width: 96px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-alt);
+  overflow: hidden;
+}
+
+.wizard-hud__fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+  transition: width var(--transition-base);
+}
+
+/* Wizard layout */
+.wizard-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  gap: var(--space-6);
+  align-items: start;
+  padding: var(--space-6) 0;
+}
+
+.wizard-layout__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.wizard-layout__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.wizard-layout__eyebrow {
+  display: block;
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-primary);
+  margin-bottom: var(--space-1);
+}
+
+.wizard-layout__confirm {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.wizard-layout__checklist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.wizard-layout__sidebar {
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-4));
+}
+
+@media (max-width: 960px) {
+  .wizard-layout {
+    grid-template-columns: 1fr;
+  }
+  .wizard-layout__sidebar {
+    position: static;
+  }
+}
+
+/* Wizard footer */
+.wizard-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-6) 0 var(--space-8);
+  border-top: 1px solid var(--color-border);
+}
+
+.wizard-footer__cancel {
+  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+}
+
+.wizard-footer__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+@media (max-width: 600px) {
+  .wizard-footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  .wizard-footer__actions {
+    justify-content: space-between;
+  }
+}
+
+/* Wizard chat panel */
+.wizard-chat-panel {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - var(--header-height) - var(--space-8));
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.wizard-chat-panel__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.wizard-chat-panel__title {
+  margin: 0;
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-body);
+  color: var(--color-text);
+}
+
+.wizard-chat-panel__subtitle {
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+}
+
+.wizard-chat-panel__suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0 var(--space-4) var(--space-3);
+}
+
+.wizard-chat-panel__suggestions-label {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.wizard-chat-panel__suggestion {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.wizard-chat-panel__suggestion:hover {
+  background: var(--color-border);
+}

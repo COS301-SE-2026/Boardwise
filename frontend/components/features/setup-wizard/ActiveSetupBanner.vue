@@ -14,9 +14,8 @@
                         <div class="active-setup-banner__track">
                             <div class="active-setup-banner__fill" :style="{ width: progressPercent + '%' }" />
                         </div>
+                        <span class="card-meta">{{  progressPercent }}%</span>
                     </div>
-
-                    <span class="card-meta">{{  progressPercent }}%</span>
                 </div>
             </div>
 
