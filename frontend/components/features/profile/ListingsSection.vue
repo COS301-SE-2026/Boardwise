@@ -21,7 +21,11 @@
 import ListingGrid from './ListingsGrid.vue'
 import AddListingModal from './AddListingModal.vue'
 import DeleteModal from './DeleteListingModal.vue'
+
 import { useMarketplace } from '~/composables/useMarketplace'
+import { useSnackBar } from '~/composables/useSnackbar'
+
+const { show } = useSnackBar()
 
 defineProps({
   listings: Array,
@@ -56,6 +60,7 @@ const handleAddListing = async (payload, file, callback) => {
     await addListing(payload, file)
     emit('updated')
     callback?.()
+    show('Listing created successfully!')
   } catch (err) {
     callback?.(err?.data?.message || err?.message || 'Failed to create listing. Please try again.')
   }

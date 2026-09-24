@@ -26,3 +26,11 @@
 import BaseButton from '~/components/ui/BaseButton.vue'
 defineEmits(['reset'])
 </script>
+
+<style scoped>
+.base-filter-sidebar {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+}
+</style>

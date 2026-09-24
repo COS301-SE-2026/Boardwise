@@ -1,5 +1,5 @@
 <template>
-    <PageContainer>
+    <PageContainer class="profile-page">
         <!-- Loading -->
         <template v-if="loading">
             <BaseLoadingState />
@@ -22,16 +22,16 @@
         <template v-else-if="user">
             <Navbar />
 
-            <BaseCard flush class="profile-header pa-10 w-100 mb-6">
+            <BaseCard flush class="profile-header">
                 <div class="d-flex justify-space-between align-center flex-wrap ga-6">
-                    <div class="d-flex align-center ga-6 flex-wrap profle-info">
+                    <div class="profile-info">
                         <BaseAvatar 
                             :src="user.profilePicture ?? '/images/avatar.jpg'" 
                             :name="user.username" 
                             size="lg" 
                         />
 
-                        <div>
+                        <div class="profile-details"> 
                             <h1 class="profile-name ma-0">{{ user.fullName || user.username }}</h1>
                             <p class="profile-username ma-0">@{{ user.username }}</p>
                             
@@ -67,33 +67,35 @@
 
             <ProfileCommunities :communities="user.communities" />
 
-            <BaseTabs
-                :tabs="['Games Owned', 'Listings']"
-                :active-tabs="activeTab"
-                aria-label="Profile sections"
-                class="mb-4"
-                @change="activeTab=$event"
+            <section class="profile-content">
+                <BaseTabs
+                    :tabs="['Games Owned', 'Listings']"
+                    :active-tabs="activeTab"
+                    aria-label="Profile sections"
+                    class="mb-4"
+                    @change="activeTab=$event"
+                />
+
+                <v-window v-model="activeTab">
+                    <v-window-item value="Games Owned">
+                        <GamesOwnedSection :games="games" />
+                    </v-window-item>
+
+                    <v-window-item value="Listings">
+                        <ListingsSection :listings="listings" :editable="false" />
+                    </v-window-item>
+                </v-window>
+            </section>
+
+            <FriendsModal
+                v-model="showFriendsModal"
+                :username="user?.username ?? ''"
+                :loading="isLoading"
+                :friends="otherFriendList?.friends"
+                :mutuals="otherFriendList?.mutuals"
+                @remove="onModalRemove"
             />
-
-            <v-window v-model="activeTab">
-                <v-window-item value="Games Owned">
-                    <GamesOwnedSection :games="games" />
-                </v-window-item>
-
-                <v-window-item value="Listings">
-                    <ListingsSection :listings="listings" :editable="false" />
-                </v-window-item>
-            </v-window>
         </template>
-
-        <FriendsModal
-            v-model="showFriendsModal"
-            :username="user?.username ?? ''"
-            :loading="isLoading"
-            :friends="otherFriendList?.friends"
-            :mutuals="otherFriendList?.mutuals"
-            @remove="onModalRemove"
-        />
     </PageContainer>
 </template>
 

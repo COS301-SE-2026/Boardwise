@@ -1,5 +1,5 @@
 <template>
-  <section>
+  <section class="games-owned-section">
     <GamesGrid
       :games="games"
       @add-game="$emit('add-game')"
@@ -18,9 +18,3 @@ defineProps({
 
 defineEmits(['add-game','remove-game'])
 </script>
-
-<style scoped>
-.games-owned-section {
-  width: 100%;
-}
-</style>
