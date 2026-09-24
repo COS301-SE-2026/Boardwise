@@ -32,6 +32,7 @@ import com.boardwise.backend.user_service.dtos.response.ProfilePictureResponseDT
 import com.boardwise.backend.user_service.dtos.response.ProfileResponseDTO;
 import com.boardwise.backend.user_service.dtos.request.UpdateProfileDTO;
 import com.boardwise.backend.user_service.dtos.request.BoardgameCollectionBulkAddDto;
+import com.boardwise.backend.user_service.dtos.response.BoardgameRulebookDto;
 import com.boardwise.backend.user_service.dtos.response.BulkAddResponseDTO;
 import com.boardwise.backend.user_service.services.ProfileService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -368,6 +369,12 @@ public class ProfileController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
     
+    @GetMapping("/gameInventory/read/{gameId}")
+    public ResponseEntity<BoardgameRulebookDto>getGameRulebookId(
+        @PathVariable String gameId
+    ){
+        return ResponseEntity.ok(service.getGameRulebookId(gameId));
+    }
 
     public static String extractToken(HttpServletRequest req){
         String header = req.getHeader("Authorization");

@@ -112,6 +112,10 @@ interface PresenceResponseDTO{
     isOnline: boolean
 }
 
+interface BoardgameRulebookDto{
+    rulebookId: string
+}
+
 export const userService = {
     getCurrentUser(){
         const { $api } = useNuxtApp();
@@ -239,5 +243,10 @@ export const userService = {
     getUserPresence(userId: string){
         const { $api } = useNuxtApp();
         return $api<PresenceResponseDTO>(`users/${userId}/presence`);
+    },
+
+    getBoardgameRulebookId(gameId: string){
+        const {$api} = useNuxtApp();
+        return $api<BoardgameRulebookDto>(`gameInventory/read/${gameId}`);
     }
 }
