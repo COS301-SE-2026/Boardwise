@@ -381,47 +381,48 @@ public class BoardGameService {
 
     public List<OnboardingDTO> getPopularGamesBasedOnGenres(GenreRequestDTO genres, int numElements){
         final int TARGET = numElements;
-
-        List<String> topTenGenres = genres.genres().stream()
-                    .map(String::toLowerCase)
-                    .toList();
-
         Map<String, OnboardingDTO> res = new LinkedHashMap<>();
 
-        for (GameOwnershipCount curr : userRepository.findMostOwnedGameIds(10)) {
-            if (curr == null || curr.getId() == null) continue;
-            if (res.size() >= TARGET) break;
-            if (res.containsKey(curr.getId())) continue;
+        
+        if(genres != null && genres.genres() != null && !genres.genres().isEmpty()){
+            List<String> targetGenres = genres.genres()
+                .stream()
+                .map(g -> g.trim())
+                .map(String::toLowerCase)
+                .toList();
 
-            Boardgame game = gameRepo.findById(curr.getId()).orElse(null);
-            if (game == null || game.getGenres() == null) continue;
+                List<Criteria> genreCriteria = targetGenres.stream()
+                    .map(g -> Criteria.where("genres").regex("^" + Pattern.quote(g)+"$","i"))
+                    .toList();
 
-            boolean matches = game.getGenres().stream()
-                    .map(String::toLowerCase)
-                    .anyMatch(topTenGenres::contains);
+            Criteria combinedCriteria = new Criteria().orOperator(genreCriteria.toArray(new Criteria[0]));
+            Query genreQuery = new Query(combinedCriteria);
+            genreQuery.with(Sort.by(Sort.Direction.DESC, "popularityScore"));
+            genreQuery.limit(TARGET * 2);
 
-            if (matches) {
-                res.put(game.getId(), new OnboardingDTO(game.getId(), game.getTitle(), game.getImageURL()));
+            List<Boardgame> matchedGames = db.find(genreQuery,  Boardgame.class);
+
+            for(Boardgame game : matchedGames){
+                if(res.size() >= TARGET) break;
+                if(game.getId() != null){
+                    res.putIfAbsent(game.getId(), new OnboardingDTO(game.getId(), game.getTitle(), game.getImageURL()));
+                }
             }
         }
 
-            List<String> shuffledGenres = new ArrayList<>(topTenGenres);
-            Collections.shuffle(shuffledGenres);
+        if (res.size() < TARGET) {
+            Query fallbackQuery = new Query();
+            fallbackQuery.with(Sort.by(Sort.Direction.DESC, "popularityScore"));
+            fallbackQuery.limit(TARGET * 3);
 
-            for (String genre : shuffledGenres) {
+            List<Boardgame> fallbackGames = db.find(fallbackQuery, Boardgame.class);
+            for (Boardgame game : fallbackGames) {
                 if (res.size() >= TARGET) break;
-                for (Boardgame g : gameRepo.findByGenresIn(List.of(genre),Limit.of(TARGET))) {
-                    if (res.size() >= TARGET) break;
-                    res.putIfAbsent(g.getId(), new OnboardingDTO(g.getId(),g.getTitle(), g.getImageURL()));
+                if (game.getId() != null) {
+                    res.putIfAbsent(game.getId(), new OnboardingDTO(game.getId(), game.getTitle(), game.getImageURL()));
                 }
             }
-
-            if (res.size() < TARGET) {
-                for (Boardgame g : gameRepo.findAll(PageRequest.of(0, TARGET * 3)).getContent()) {
-                    if (res.size() >= TARGET) break;
-                    res.putIfAbsent(g.getId(), new OnboardingDTO(g.getId() ,g.getTitle(), g.getImageURL()));
-                }
-            }
+        }
 
             return new ArrayList<>(res.values());
     }

@@ -63,12 +63,13 @@ const selectedGenreIds = ref([])
 const genreOptions = ref([])
 const seenGames = ref({})
 
+const genres = ["Economic"," Strategy","Abstract Strategy","Card Game","Science Fiction","Cooperative", "Party Game", "Fantasy", "Wargame", "Dice"];
+
 const {
     games,
     searchGames,
     searchGenres,
     getTopNGenresFromUsersPreferences,
-    topNgenres,
     getPopularBoardgamesFromUserPrefrences,
     getPopularGamesBasedOnGenres,
     topGamesInDBBasedOnGenres
@@ -106,7 +107,7 @@ onMounted(async () => {
 
 async function loadTopNGenres() {
     await getTopNGenresFromUsersPreferences(10)
-    genreOptions.value = (topNgenres.value ?? []).map(name => ({ id: name, label: name }))
+    genreOptions.value = (genres ?? []).map(name => ({ id: name, label: name }))
 }
 
 async function handleGetGames() {

@@ -39,7 +39,7 @@ public class BoardGameServiceUnitTest {
     private MockRestServiceServer mockServer;
     private BoardGameService service;
     private String baseUrl = "https://boardgamegeek.com/xmlapi2";
-    private UserRepository userRepository;
+    private UserRepository userRepo;
 
     @Captor
     private ArgumentCaptor<List<Boardgame>> captor;
@@ -51,15 +51,15 @@ public class BoardGameServiceUnitTest {
         bucket = mock(R2StorageService.class);
         db = mock(MongoTemplate.class);
         popularityScorer = mock(PopularityScorer.class);
-
         RestClient.Builder builder = RestClient.builder();
         mockServer = MockRestServiceServer.bindTo(builder).build();
+        userRepo = mock(UserRepository.class);
 
         RestClient testClient = builder.baseUrl(baseUrl)
                                         .defaultHeader("Authorization", "Bearer some-valid-token")
                                         .build();
 
-        service = new BoardGameService(gameRepo, bucket, testClient, db, popularityScorer);
+        service = new BoardGameService(gameRepo, bucket, testClient, popularityScorer, userRepo, db);
     }
 
     @Test
