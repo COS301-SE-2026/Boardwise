@@ -5262,3 +5262,44 @@ button:disabled,
   align-items: center;
   text-align: center;
 }
+
+.game-architect-result__mascot {
+  width: 132px;
+  height: 132px;
+  object-fit: contain;
+}
+
+.game-architect-result__icon {
+  display: inline-flex;
+  width: 64px;
+  height: 64px;
+  margin: calc(var(--space-6) * -1) 0 var(--space-4) 88px;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-inverse);
+  background: var(--color-success);
+  border: 5px solid var(--color-surface);
+  border-radius: 50%;
+}
+
+.game-architect-result__details {
+  width: 100%;
+  margin-top: var(--space-6);
+  text-align: left;
+}
+
+.game-architect-result__details > div + div {
+  margin-top: var(--space-5);
+}
+
+.game-architect-result__tags,
+.game-architect-result__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.game-architect-result__actions {
+  margin-top: var(--space-6);
+  justify-content: center;
+}
