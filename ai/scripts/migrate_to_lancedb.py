@@ -25,7 +25,7 @@ def migrate_rulebooks(): # NOSONAR
         trust_remote_code=True,
     )
 
-    query = {"status": "Ready", "lancedbMigratedAt": {"$exists": False}}
+    query = {"status": "Ready"}
 
     total_to_migrate = db["RULEBOOK"].count_documents(query)
     logger.info(f"Found {total_to_migrate} rulebooks pending migration.")
@@ -112,10 +112,6 @@ def migrate_rulebooks(): # NOSONAR
 
             lancedb_service.write_chunks(vectorised_chunks)
 
-            db["RULEBOOK"].update_one(
-                {"_id": ObjectId(rulebook_id)},
-                {"$set": {"lancedbMigratedAt": current_time}},
-            )
             logger.info(f"Successfully migrated {rulebook_id}")
 
         except Exception:

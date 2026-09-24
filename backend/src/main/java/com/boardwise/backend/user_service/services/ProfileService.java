@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Example;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -49,6 +50,7 @@ import com.boardwise.backend.user_service.dtos.response.ProfileResponseDTO;
 import com.boardwise.backend.user_service.dtos.response.ProfileSearchResponse;
 import com.boardwise.backend.user_service.dtos.request.UpdateProfileDTO;
 import com.boardwise.backend.user_service.dtos.request.BoardgameCollectionBulkAddDto;
+import com.boardwise.backend.user_service.dtos.response.BoardgameRulebookDto;
 import com.boardwise.backend.user_service.dtos.response.BulkAddResponseDTO;
 import com.boardwise.backend.user_service.enums.FriendStatus;
 import com.boardwise.backend.user_service.enums.NotificationType;
@@ -62,6 +64,8 @@ import com.boardwise.backend.user_service.repository.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repository.GroupRepository;
 import com.boardwise.backend.user_service.repository.NotificationRepository;
 import com.boardwise.backend.user_service.repository.UserRepository;
+import com.boardwise.backend.vault.model.Rulebook;
+import com.boardwise.backend.vault.repository.RulebookRepository;
 import com.google.maps.GeoApiContext;
 import com.google.maps.GeocodingApi;
 import com.google.maps.errors.ApiException;
@@ -85,8 +89,13 @@ public class ProfileService {
     private final NotificationRepository notifRepo;
     private final NotificationService notifService;
     private final ApplicationEventPublisher eventPublisher;
+    private final BoardGameRepository bgRepo;
+    private final RulebookRepository rbRepo;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+
+    @Value("${system.contributor.id}")
+    private String systemContributorId;
 
     public ProfileResponseDTO getOwnProfile(String token) {
         // get user id from token
@@ -728,6 +737,24 @@ public class ProfileService {
             "User presence successfully retrieved",
             notifService.isOnline(userId)
         );
+    }
+
+    public BoardgameRulebookDto getGameRulebookId(String gameId){
+
+        Boardgame bg = bgRepo.findById(gameId).orElseThrow(
+            () -> new IllegalArgumentException("Boardgame not found")
+        );
+        Rulebook rb = rbRepo.findByGameIdAndContributorId(new ObjectId(bg.getId()), new ObjectId(systemContributorId))
+            .orElseGet(() -> {
+                List<Rulebook> fallbackRulebooks = rbRepo.findByGameId(new ObjectId(gameId));
+                if(fallbackRulebooks.isEmpty()){
+                    throw new IllegalArgumentException("No fallback rulebooks found for gameId: " + gameId);
+                }
+                return fallbackRulebooks.get(0);
+            }
+        );
+
+        return new BoardgameRulebookDto(rb.getId().toHexString());
     }
 
     private void emitFriendEvent(String receiver, NotificationDTO notification){
