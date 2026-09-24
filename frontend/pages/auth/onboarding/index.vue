@@ -98,11 +98,15 @@ watch(step, async () => {
 })
 
 onMounted(async () => {
+    if(localStorage.getItem("access_token")){
+        router.push("/library");
+    }
     await Promise.all([
         loadTopNGenres(),
         handleGetGames(),
         getPopularBoardgamesFromUserPrefrences()
     ])
+
 })
 
 async function loadTopNGenres() {
