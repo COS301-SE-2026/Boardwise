@@ -1,6 +1,6 @@
 package com.boardwise.backend;
 
-import java.io.IOException;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,7 +13,6 @@ import org.bson.types.ObjectId;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.geo.Point;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -43,14 +42,11 @@ import com.boardwise.backend.user_service.repository.GroupRepository;
 import com.boardwise.backend.user_service.repository.MessageRepository;
 import com.boardwise.backend.user_service.repository.UserRepository;
 import com.boardwise.backend.user_service.services.ChatService;
+import com.boardwise.backend.user_service.services.GeocodingService;
 import com.boardwise.backend.vault.repository.EditEventRepository;
 import com.boardwise.backend.vault.repository.IngestionJobRepository;
 import com.boardwise.backend.vault.repository.RulebookRepository;
 import com.boardwise.backend.vault.repository.RulebookTextRepository;
-import com.google.maps.GeoApiContext;
-import com.google.maps.GeocodingApi;
-import com.google.maps.errors.ApiException;
-import com.google.maps.model.GeocodingResult;
 import com.boardwise.backend.marketplace.enums.Genres;
 
 @Component
@@ -65,23 +61,15 @@ public class Seeding {
             return new ObjectId(userRepository.findByUsername(username).get().getId());
     }
 
-    private GeoJsonPoint getPoint(String locationText, GeoApiContext geoApiContext) throws ApiException, InterruptedException, IOException{
-        GeocodingResult[] results = GeocodingApi.geocode(geoApiContext, locationText).await();
-
-        if(results.length == 0)
-            throw new NoSuchElementException("Could not find coordinates for location: " + locationText);
-
-        double latitude = results[0].geometry.location.lat;
-        double longitude = results[0].geometry.location.lng;
-
-        return new GeoJsonPoint(new Point(longitude, latitude));
+    private GeoJsonPoint getPoint(String locationText, GeocodingService geocodingService) throws NoSuchElementException{
+        return geocodingService.getLocationCoordinates(locationText);
     }
 
         
     @Bean
     public CommandLineRunner seedDB(ListingRepository listingRepository, BoardGameRepository boardGameRepository, GroupMembershipRepository groupMembershipRepository,
             GroupRepository groupRepository, UserRepository userRepository, EditEventRepository editEventRepository, EventRepository eventsRepository, EventAttendeeRepository eaRepository,
-            IngestionJobRepository ingestionJobRepository, RulebookRepository rulebookRepository, RulebookTextRepository rulebookTextRepository, GeoApiContext geoApiContext,
+            IngestionJobRepository ingestionJobRepository, RulebookRepository rulebookRepository, RulebookTextRepository rulebookTextRepository, GeocodingService geocodingService,
             ConversationRepository conversationRepository, MessageRepository messageRepository
         ) {
         return args -> {
@@ -382,7 +370,7 @@ public class Seeding {
                     .startDateTime(LocalDateTime.of(2026, 11, 1, 17, 30))
                     .endDateTime(LocalDateTime.of(2026, 11, 1, 21, 30))
                     .locationText(locations.get(0))
-                    .location(getPoint(locations.get(0), geoApiContext))
+                    .location(getPoint(locations.get(0), geocodingService))
                     .creatorId(hosts.get(0).getId())
                     .visibility(Visibility.PUBLIC)
                     .status(EventStatus.OPEN)
@@ -398,7 +386,7 @@ public class Seeding {
                     .startDateTime(LocalDateTime.of(2026, 11, 29, 14, 15))
                     .endDateTime(LocalDateTime.of(2026, 11, 29, 19, 45))
                     .locationText(locations.get(1))
-                    .location(getPoint(locations.get(1), geoApiContext))
+                    .location(getPoint(locations.get(1), geocodingService))
                     .creatorId(hosts.get(1).getId())
                     .visibility(Visibility.PUBLIC)
                     .status(EventStatus.OPEN)
@@ -414,7 +402,7 @@ public class Seeding {
                     .startDateTime(LocalDateTime.of(2026, 11, 28, 10, 30))
                     .endDateTime(LocalDateTime.of(2026, 11, 28, 12, 15))
                     .locationText(locations.get(2))
-                    .location(getPoint(locations.get(2), geoApiContext))
+                    .location(getPoint(locations.get(2), geocodingService))
                     .creatorId(hosts.get(2).getId())
                     .visibility(Visibility.PRIVATE)
                     .status(EventStatus.OPEN)
