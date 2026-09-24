@@ -79,7 +79,6 @@ export const useSetupChecklist = () => {
     const toggleItem = (id: number) => {
         const item = checklist.value.find(c => c.id === id)
         if (item) item.checked = !item.checked
-
     }
 
     const toggleAll = () => {
