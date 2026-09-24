@@ -115,7 +115,7 @@ interface PresenceResponseDTO{
 export const userService = {
     getCurrentUser(){
         const { $api } = useNuxtApp();
-        return $api<ProfileResponse>("users/");
+        return $api<ProfileResponse>("users/me");
     },
 
     getUser(id: string){
