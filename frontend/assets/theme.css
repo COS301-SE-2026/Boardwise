@@ -5017,3 +5017,42 @@ button:disabled,
   background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface));
   border-color: var(--color-primary);
 }
+
+.game-architect-option__icon,
+.game-architect-entry__icon {
+  display: inline-flex;
+  width: 64px;
+  height: 64px;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  border-radius: var(--radius-md);
+}
+
+.game-architect-option__title {
+  color: var(--color-secondary);
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-bold);
+}
+
+.game-architect-option__description {
+  color: var(--color-text-muted);
+  line-height: var(--lh-relaxed);
+}
+
+.game-architect-option__check,
+.game-architect-game-card__check {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+}
+
+.game-architect-selection-layout,
+.game-architect-review-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--space-6);
+  align-items: start;
+}
