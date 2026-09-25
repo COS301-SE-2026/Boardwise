@@ -3,14 +3,14 @@
         data-test="explore-header"
         title="Social"
         subtitle="Find your people"
-        action-label="Create a community"
-        action-icon = "mdi-plus"
+        action-label="Create Community"
+        action-icon="mdi-plus"
         @action="$emit('create-community')"
    >
         <template #search>
             <ExploreSearch
-                :model-value="searchQuery"
-                @update:model-value="$emit('update:searchQuery', $event)"
+                data-test="explore-search"
+                @search="$emit('search', $event)"
             />
         </template>
    </PageHeader>
@@ -20,9 +20,9 @@
 import PageHeader from '~/components/layout/PageHeader.vue'
 import ExploreSearch from './ExploreSearch.vue'
 
-defineProps({
+const props = defineProps({
     searchQuery: { type: String, default: ''}
 })
 
-defineEmits(['search', 'create-community'])
+const emit = defineEmits(['search', 'create-community'])
 </script>

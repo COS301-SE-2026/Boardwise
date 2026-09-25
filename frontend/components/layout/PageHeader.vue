@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex flex-column ga-5" :datat-test="dataTest">
+  <div class="d-flex flex-column ga-5" :data-test="dataTest">
     <div class="page-header__top">
       <SectionTitle
         :title="title"

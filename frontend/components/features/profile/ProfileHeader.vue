@@ -40,7 +40,7 @@
             <span class="preference-label">Favourite genres</span>
 
               <div
-                v-if="user.preferences.genres?.length"
+                v-if="user.preferences?.genres?.length"
                 class="preferences-badges"
               >
                 <BaseBadge

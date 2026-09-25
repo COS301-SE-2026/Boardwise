@@ -9,7 +9,7 @@
   >
     <template #search>
       <RulebookSearch
-        @data-test="rulebook-search"
+        data-test="rulebook-search"
         @search="$emit('search', $event)" 
       />
     </template>

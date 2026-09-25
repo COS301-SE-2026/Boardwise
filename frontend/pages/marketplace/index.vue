@@ -10,25 +10,10 @@
     <!-- Community Listings -->
     <template v-if="activeTab === 'Community Listings'">
       <!-- Mobile -->
-      <div class="d-flex d-md-none mt-6 mb-4">
-        <v-chip
-          color="secondary"
-          prepend-icon="mdi-filter-variant"
-          size="large"
-          @click="showFilters = true"
-        >
-          Filters
-        </v-chip>
-
-        <v-navigation-drawer
-          v-model="showFilters"
-          temporary
-          location="left"
-          width="300"
-        >
-          <FilterSidebar data-test="filter-sidebar" @filter="handleFilter" />
-        </v-navigation-drawer>
-      </div>
+      <MobileFilterDrawer id="community-mobile-filters">
+        <FilterSidebar data-test="filter-sidebar" @filter="handleFilter" />
+      </MobileFilterDrawer>
+      
 
       <!-- Desktop -->
       <div class="d-flex d-md-flex ga-6 mt-6 align-start">
@@ -75,29 +60,13 @@
     <!-- External Retail -->
     <template v-else-if="activeTab === 'Web'">
       <!-- Mobile -->
-      <div class="d-flex d-md-none mt-6 mb-4">
-          <v-chip
-            color="secondary"
-            prepend-icon="mdi-filter-variant"
-            size="large"
-            @click="showRetailFilters = true"
-          >
-            Filters
-          </v-chip>
-
-          <v-navigation-drawer
-            v-model="showRetailFilters"
-            temporary
-            location="left"
-            width="300"
-          >
-            <RetailerFilterSidebar 
-              data-test="retailer-filter-sidebar"
-              :retailer-options="retailerOptions"
-              @filter="handleRetailerFilter" 
-            />
-          </v-navigation-drawer>
-        </div>
+      <MobileFilterDrawer id="retail-mobile-filters">
+        <RetailerFilterSidebar
+          data-test="retailer-filter-sidebar"
+          :retailer-options="retailerOptions"
+          @filter="handleRetailerFilter"
+        />
+      </MobileFilterDrawer>
 
         <!-- Desktop -->
         <div class="d-flex d-md-flex ga-6 mt-6 align-start">
