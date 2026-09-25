@@ -4675,7 +4675,7 @@ html[data-density="compact"] .rulebook-list {
   font-size: 1.35rem;
 }
 
-.ui-section-title h1 {
+.ui-section-title {
   margin: 0;
   color: var(--color-primary);
   font-family: var(--font-display);
