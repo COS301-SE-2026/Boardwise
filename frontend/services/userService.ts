@@ -100,7 +100,7 @@ export interface ProfileSearchResponse {
 
 export interface GetUsersResponse {
     message: string,
-    users: ProfileSearchResponse[]
+    results: ProfileSearchResponse[]
 }
 
 interface GenresResponse {

@@ -358,8 +358,8 @@ function get_rental_period() {
   return [fmt(start_date.value), fmt(end_date.value)]
 }
 
-start_date.value = listing_element.rentalPeriod?.[0] ?? null
-end_date.value = listing_element.rentalPeriod?.[1] ?? null
+// start_date.value = listing_element.rentalPeriod?.[0] ?? null
+// end_date.value = listing_element.rentalPeriod?.[1] ?? null
 
 
 const handleSave = async () => {

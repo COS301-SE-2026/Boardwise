@@ -186,7 +186,7 @@ public class ProfileService {
     
         if(query == null){
             int pageIdx = pageNum == null ? 0 : Math.max(0, (pageNum - 1));
-            Pageable page = PageRequest.of(pageIdx, 10);
+            Pageable page = PageRequest.of(pageIdx, 9);
             dbQuery.with(page);
         }
         else{

@@ -33,7 +33,7 @@ export const useProfile = () => {
         error.value = ''
         try{
             const res = await userService.getUsers(page);
-            return res.users;
+            return res.results;
         }
         catch(err: any){
             error.value = err.data?.message || "Failed to fetch users"
