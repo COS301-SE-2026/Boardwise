@@ -1,12 +1,15 @@
 export type GameArchitectMode = 'scale' | 'create'
 export type ScaleDirection = 'up' | 'down'
 export type GameDifficulty = 'easier' | 'same' | 'harder'
+export type PlayerRange = '1-2' | '3-4' | '5-6' | '7+'
 
 export interface ScalePreferences {
   direction: ScaleDirection
   difficulty: GameDifficulty
+  playerRange: PlayerRange
   targetPlayerCount?: number
 }
+
 
 export interface GameArchitectGame {
   id: string
@@ -20,7 +23,6 @@ export interface GenerateGameRequest {
   mode: GameArchitectMode
   sourceGameIds: string[]
   surpriseMe: boolean
-  blueprintNotes?: string
   scalePreferences?: ScalePreferences
 }
 
