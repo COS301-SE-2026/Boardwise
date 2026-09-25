@@ -142,6 +142,7 @@ import PageContainer from '~/components/layout/PageContainer.vue'
 import BasePagination from '~/components/ui/BasePagination.vue'
 import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
+import MobileFilterDrawer from '~/components/ui/MobileFilterDrawer.vue'
 
 import ExploreHeader from '~/components/features/community/ExploreHeader.vue'
 import ExploreSearch from '~/components/features/community/ExploreSearch.vue'
