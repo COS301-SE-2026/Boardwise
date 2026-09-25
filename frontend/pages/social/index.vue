@@ -51,7 +51,7 @@
         <div class="flex-1-1">
           <!-- Loading -->
           <div
-            v-if="friendsLoading"
+            v-if="isLoading"
             class="d-flex justify-center align-center"
             style="min-height: 60vh"
           >
@@ -285,26 +285,34 @@ const pagedCommunities = computed(() => {
   return filteredCommunities.value.slice(start, start + CARD_PAGE_SIZE)
 })
 
-// Friends 
+// ======================= Friends ============================== 
 import FriendsFilterSidebar from '~/components/features/people/FriendsFilterSidebar.vue'
 import PeopleGrid from '~/components/features/people/PeopleGrid.vue'
 
-import type { FriendDTO } from '~/services/friendService'
+import { useFriends } from '~/composables/useFriends'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
+const {
+    userFriendList,
+    isLoading,
+    sendFriendRequest,
+    unfriendUser
+} = useFriends()
+
 const showFriendFilters = ref(false)
-const friends = ref<FriendDTO[]>([])
-const friendsLoading = ref(false)
-
 const selectedFriendStatuses = ref<string[]>([])
-
 const friendsPage = ref(1)
+
 const FRIENDS_PAGE_SIZE = 9
 
+// onMounted(async () => {
+//   await getOwnFriendsList()
+// })
+
 const filteredPeople = computed(() => {
-  let result = friends.value
+  let result = userFriendList.value?.friends ?? []
   
   const query = searchQuery.value.trim().toLowerCase()
 
@@ -342,12 +350,13 @@ const handleMessage = (id: string) => {
     })
 }
 
-const handleAddFriend = (id: string) => {
-    console.log('Add friend:', id)
+const handleAddFriend = async (id: string) => {
+  await sendFriendRequest(id)
 }
 
-const handleUnfriend = (id: string) => {
-    console.log('Unfriend:', id)
+const handleUnfriend = async (id: string) => {
+  await unfriendUser(id)
+  // await getOwnFriendsList()
 }
 
 const friendRangeStart = computed(() => {
