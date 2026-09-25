@@ -14,9 +14,11 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Example;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -49,6 +51,7 @@ import com.boardwise.backend.user_service.dtos.response.ProfileResponseDTO;
 import com.boardwise.backend.user_service.dtos.response.ProfileSearchResponse;
 import com.boardwise.backend.user_service.dtos.request.UpdateProfileDTO;
 import com.boardwise.backend.user_service.dtos.request.BoardgameCollectionBulkAddDto;
+import com.boardwise.backend.user_service.dtos.response.BoardgameRulebookDto;
 import com.boardwise.backend.user_service.dtos.response.BulkAddResponseDTO;
 import com.boardwise.backend.user_service.enums.FriendStatus;
 import com.boardwise.backend.user_service.enums.NotificationType;
@@ -62,11 +65,10 @@ import com.boardwise.backend.user_service.repository.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repository.GroupRepository;
 import com.boardwise.backend.user_service.repository.NotificationRepository;
 import com.boardwise.backend.user_service.repository.UserRepository;
-import com.google.maps.GeoApiContext;
-import com.google.maps.GeocodingApi;
-import com.google.maps.errors.ApiException;
-import com.google.maps.model.GeocodingResult;
-
+import com.boardwise.backend.vault.model.Rulebook;
+import com.boardwise.backend.vault.repository.RulebookRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -80,13 +82,18 @@ public class ProfileService {
     private final GroupRepository groupRepo;
     private final BoardGameRepository gameRepo;
     private final R2StorageService bucket;
-    private final GeoApiContext geoContext;
-    private final MongoTemplate template;
+    private final GeocodingService geoService;
+    private final MongoTemplate db;
     private final NotificationRepository notifRepo;
     private final NotificationService notifService;
     private final ApplicationEventPublisher eventPublisher;
+    private final BoardGameRepository bgRepo;
+    private final RulebookRepository rbRepo;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+
+    @Value("${system.contributor.id}")
+    private String systemContributorId;
 
     public ProfileResponseDTO getOwnProfile(String token) {
         // get user id from token
@@ -156,7 +163,7 @@ public class ProfileService {
             user.getId(),
             fullName,
             user.getUsername(),
-            user.getLocation(),
+            user.getLocationText(),
             user.getProfilePicture(),
             friendCount,
             groupCount,
@@ -169,27 +176,40 @@ public class ProfileService {
         );
     }
 
-    public List<ProfileSearchResponse> searchForUsers(String query, String token){
+    public List<?> getUsers(String token, String query, Integer pageNum){
         List<ProfileSearchResponse> results = new ArrayList<>();
         String userId = jwtService.extractUserId(token).toString();
         User subject = userRepo.findById(userId).get();
+        
+        
+        Query dbQuery = new Query();
+    
+        if(query == null){
+            int pageIdx = pageNum == null ? 0 : Math.max(0, (pageNum - 1));
+            Pageable page = PageRequest.of(pageIdx, 10);
+            dbQuery.with(page);
+        }
+        else{
+            String cleanQuery = AuthService.sanitize(query);
+            Pattern pattern = Pattern.compile(Pattern.quote(cleanQuery), Pattern.CASE_INSENSITIVE);
 
-        String cleanQuery = AuthService.sanitize(query);
-        Pattern pattern = Pattern.compile(Pattern.quote(cleanQuery), Pattern.CASE_INSENSITIVE);
-
-        Criteria searchCriteria = new Criteria().orOperator(
-            Criteria.where("username").regex(pattern),
-            Criteria.where("firstName").regex(pattern),
-            Criteria.where("lastName").regex(pattern)
-        );
-        Query dbQuery = new Query(searchCriteria);
-        List<User> matches = template.find(dbQuery, User.class);
-
+            Criteria criteria = new Criteria().orOperator(
+                Criteria.where("username").regex(pattern),
+                Criteria.where("firstName").regex(pattern),
+                Criteria.where("lastName").regex(pattern)
+            );
+            
+            dbQuery.addCriteria(criteria);
+        }
+        
+        List<User> matches = db.find(dbQuery, User.class);
         for(User user : matches){
             if(!user.getId().equals(subject.getId())){
                 Optional<Friendship> optional = fsRepo.findFriendShipBetweenUsers(userId, user.getId());
                 FriendStatus status = optional.isPresent() ? optional.get().getStatus() : null;
-                results.add(new ProfileSearchResponse(
+                
+                results.add(
+                    new ProfileSearchResponse(
                         user.getId(),
                         user.getUsername(),
                         user.getFirstName() + " " + user.getLastName(),
@@ -210,7 +230,7 @@ public class ProfileService {
         userRepo.deleteById(userId);
     }
 
-    public Map<String, Object> updateProfile(String token, UpdateProfileDTO profileUpdateData) throws ApiException, InterruptedException, IOException, NoSuchElementException {
+    public Map<String, Object> updateProfile(String token, UpdateProfileDTO profileUpdateData) throws IOException, NoSuchElementException {
         String userId = jwtService.extractUserId(token).toString();
         User user = userRepo.findById(userId).get();
 
@@ -237,11 +257,10 @@ public class ProfileService {
         }
         
         if(newLocation != null && !newLocation.trim().isBlank()){
-            GeocodingResult[] results = GeocodingApi.geocode(geoContext, newLocation).await();
-            if(results.length == 0)
-                throw new NoSuchElementException("Could not find coordinates for location: " + newLocation);
+            GeoJsonPoint point = geoService.getLocationCoordinates(newLocation);
 
-            user.setLocation(newLocation);
+            user.setLocation(point);
+            user.setLocationText(newLocation);
             toReturn.put("location", newLocation);
         }
 
@@ -263,7 +282,7 @@ public class ProfileService {
                 profileUpdateData.preferences().getGenres()
             );
             Map<String, Object> prefs = updateOrSetPreferences(token, dto);
-            toReturn.put("preferences", prefs.get("preferences"));
+            toReturn.put("preferences", (Preferences) prefs.get("preferences"));
         }
 
         userRepo.save(user);
@@ -271,17 +290,18 @@ public class ProfileService {
         return toReturn;
     }
 
-    public ProfilePictureResponseDTO changeProfilePicture(String token, MultipartFile pfp) throws IOException {
+    public ProfilePictureResponseDTO changeProfilePicture(String token, MultipartFile pfp) throws IOException, IllegalArgumentException {
         String url = "";
         String message = "";
         String userId = jwtService.extractUserId(token).toString();
+        User user = userRepo.findById(userId).get();
 
         // logic here
+        bucket.deleteFile(user.getProfilePicture());
         String fileName = bucket.uploadFile(pfp, userId);
         url = bucket.getFileUrl(fileName);
         message = "Profile picture successfully update";
          
-        User user = userRepo.findById(userId).get();
         user.setProfilePicture(url);
         userRepo.save(user);
 
@@ -728,6 +748,19 @@ public class ProfileService {
             "User presence successfully retrieved",
             notifService.isOnline(userId)
         );
+    }
+
+    public BoardgameRulebookDto getGameRulebookId(String gameId){
+
+        Boardgame bg = bgRepo.findById(gameId).orElseThrow(
+            () -> new IllegalArgumentException("Boardgame not found")
+        );
+        ObjectId gameObjectId = new ObjectId(bg.getId());
+        Rulebook rb = rbRepo.findByGameIdAndContributorId(gameObjectId, new ObjectId(systemContributorId))
+            .orElseGet(() -> rbRepo.findFirstByGameId(gameObjectId).orElseThrow(() -> new IllegalArgumentException("No fallback rulebooks found for gameId: " + gameId))
+        );
+
+        return new BoardgameRulebookDto(rb.getId().toHexString());
     }
 
     private void emitFriendEvent(String receiver, NotificationDTO notification){

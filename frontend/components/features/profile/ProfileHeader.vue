@@ -1,58 +1,77 @@
 <template>
-  <BaseCard flush class="profile-header pa-10 w-100 ">
+  <BaseCard flush class="profile-header">
 
-    <div class="d-flex justify-space-between align-center flex-wrap ga-6">
+    <div class="profile-header__content">
 
-      <div class="d-flex align-center ga-6 flex-wrap profile-info">
+      <!-- Identity -->
+      <div class="profile-identity">
 
-        <BaseAvatar 
-          :src="user.profilePicture ?? '/images/avatar.jpg'"
-          :name="user.fullName"
-          size="xxl"
-          class="profile-avatar"
+        <button 
+          class="profile-avatar-button"
+          type="button"
+          aria-label="Change profile picture"
           @click="showPfpModal = true"
-        />
+        >
+          <BaseAvatar 
+            :src="user.profilePicture ?? '/images/avatar.jpg'"
+            :name="user.fullName"
+            size="xxl"
+            class="profile-avatar"
+          />
 
-        <div class="d-flex flex-column ga-3 profile-details">
-
-          <h1 class="profile-name ma-0">{{ user.fullName }}</h1>
-
-         
-          <p class="profile-username ma-0">@{{ user.username }}</p>
+          <span class="profile-avatar-edit">
+            <v-icon size="15">mdi-camera</v-icon>
+          </span>
+        </button>
           
+        <div class="profile-details">
+
+          <div class="profile-name-row">
+            <h1 class="profile-name">{{ user.fullName }}</h1>
+            <BaseBadge v-if="user.role" size="small" variant="default">
+              {{ user.role }}
+            </BaseBadge>
+          </div>
+          
+          <p class="profile-username">@{{ user.username }}</p>
+            
           <div class="profile-preferences">
 
-            <span class="preference-label">Preferences</span>
+            <span class="preference-label">Favourite genres</span>
 
-            <div
-              v-if="user.preferences?.visibility === 'public' && user.preferences.genres?.length > 0"
-              class="d-flex flex-wrap ga-1"
-            >
-              <BaseBadge
-                v-for="genre in user.preferences.genres"
-                :key="genre"
-                size="small"
-                variant="default"
+              <div
+                v-if="user.preferences.genres?.length"
+                class="preferences-badges"
               >
-                {{ genre }}
-              </BaseBadge>
+                <BaseBadge
+                  v-for="genre in user.preferences.genres"
+                  :key="genre"
+                  size="small"
+                  variant="default"
+                >
+                  {{ genre }}
+                </BaseBadge>
+              </div>
               
-            </div>
-            
-            <div v-else-if="user.preferences?.visibility === 'private'">
-              <p class = "no-pref">user genre preferences are private</p>
-            </div>
+              <p v-else-if="user.preferences?.visibility === 'private'" class="no-pref">
+                Genre preferences are private
+              </p>
 
-            <div v-else>
-              <p class = "no-pref">no preferences</p>
-            </div>
+              <p v-else class="no-pref">
+                No preferences added
+              </p>
 
           </div>
         </div>
-
       </div>
 
-      <BaseButton @click="showEdit = true">Edit Profile</BaseButton>
+      <!-- Actions -->
+      <div class="profile-actions">
+        <BaseButton @click="showEdit = true">
+          <v-icon start size="17">mdi-pencil</v-icon>
+          Edit Profile
+        </BaseButton>
+      </div>
 
     </div>
 
@@ -65,7 +84,7 @@
     <ChangeProfilePictureModal
       v-model="showPfpModal"
       :user="user"
-      @save="$emit('pfpChange', $event)"
+      @save="$emit('pfp-change', $event)"
     />
 
   </BaseCard>
@@ -73,18 +92,20 @@
 
 <script setup>
 import { ref } from 'vue'
+
+import BaseButton from '~/components/ui/BaseButton.vue'
+import BaseAvatar from '~/components/ui/BaseAvatar.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseBadge from '~/components/ui/BaseBadge.vue'
+
+import ChangeProfilePictureModal from './ChangeProfilePictureModal.vue'
 import EditProfileModal from './EditProfileModal.vue'
-import BaseButton from '~/components/ui/BaseButton.vue';
-import BaseAvatar from '~/components/ui/BaseAvatar.vue';
-import ChangeProfilePictureModal from './ChangeProfilePictureModal.vue';
-import BaseCard from '~/components/ui/BaseCard.vue';
-import BaseBadge from '~/components/ui/BaseBadge.vue';
 
 defineProps({
   user: { type: Object, required: true }
 })
 
-defineEmits(['saved', 'pfpChange'])
+defineEmits(['saved', 'pfp-change'])
 
 const showEdit = ref(false)
 const showPfpModal = ref(false)

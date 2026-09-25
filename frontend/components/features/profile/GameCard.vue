@@ -1,35 +1,59 @@
 <template>
-  <BaseCard clickable @click="openDelete = true">
+  <BaseCard
+    clickable
+    class="games-card"
+    @click="handleBoardgameRedirect"
+    >
 
     <template #media>
       <BaseImage :src="image" :alt="title" height="200px" />
     </template>
  
-    <p class="card-title">
-      {{ decodedTitle }}
-    </p>
+    <div class="game-card__content">
+      <p class="card-title">
+        {{ decodedTitle }}
+      </p>
 
-    <p class="card-meta">
-      {{ decodedCategory }}
-    </p>
+      <p class="card-meta">
+        {{ decodedCategory }}
+      </p>
 
-    <RemoveGameModal v-model="openDelete" @confirm="handleRemove()" ></RemoveGameModal>
+      <BaseButton
+        variant="text"
+        size="small"
+        class="game-card__remove"
+        @click.stop="openDelete = true"
+      >
+        <v-icon size="16">mdi-delete-outline</v-icon>
+      </BaseButton>
+    </div>
+
+    <RemoveGameModal v-model="openDelete" @confirm="handleRemove" />
   </BaseCard>
 </template>
 
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
 import RemoveGameModal from './RemoveGameModal.vue'
 
 import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useProfile } from '~/composables/useProfile'
+import { useSnackBar } from '~/composables/useSnackbar'
+
+const { fetchGetBoardgameRulebookId, error } = useProfile();
+const { show } = useSnackBar();
 
 const props = defineProps({
   id: { type: String, required: true },
-  title: String,
-  category: String,
-  image: String,
+  title: { type: String, default: '' },
+  category: { type: String, default: '' },
+  image: { type: String, default: '' }
 })
+
+const router = useRouter()
 
 const emit = defineEmits(['remove'])
 
@@ -40,6 +64,15 @@ const decodedCategory = computed(() => decodeEntity(props.category));
 
 function handleRemove(){
   emit('remove');
+}
+
+const handleBoardgameRedirect = async () => {
+  try{
+    const rulebookId = await fetchGetBoardgameRulebookId(props.id);
+    router.push(`/library/read/${rulebookId}`);
+  }catch(err){
+    if(err.message) show(error.value, 'error');
+  }
 }
 
 function decodeEntity(entity) {

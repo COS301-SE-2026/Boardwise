@@ -308,3 +308,10 @@ def run_scheduled_compaction() -> None:
         logger.info("LanceDB table has %d fragments after compaction.", fragments_after)
     except Exception:
         pass
+
+def clear_table_cache() -> None:
+    """Clears the globally cached LanceDB table reference."""
+    global _table
+    _table = None
+    logger.info("LanceDB table cache cleared. It will be reloaded on the next query.")
+    

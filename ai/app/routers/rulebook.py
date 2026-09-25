@@ -1,4 +1,6 @@
 import logging
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from typing import Annotated
 
 from bson import ObjectId
@@ -15,29 +17,25 @@ from fastapi import (
 )
 
 from app.config import settings
-from app.dependencies import verify_index_ready, verify_internal_token, verify_jwt 
-from app.scripts.seed_system_user import seed_system_user
+from app.dependencies import verify_index_ready, verify_internal_token, verify_jwt
 from app.generation.llm import generate_answer
 from app.generation.prompt import build_chat_messages
 from app.ingestion.ingestion import run_ingestion_pipeline
 from app.retrieval.retriever import retrieve_context
-from app.schemas import Citation, QueryRequest, QueryResponse, UploadResponse
+from app.schemas.schemas import Citation, QueryRequest, QueryResponse, UploadResponse
 from app.services import mongo_service
 from app.utils.logging_utils import sanitise_log_input
-from concurrent.futures import ThreadPoolExecutor
-import threading 
 
-_ingest_slots = threading.BoundedSemaphore(5) 
+_ingest_slots = threading.BoundedSemaphore(5)
 
 _ingest_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="ingestion")
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    tags=["rulebooks"]
-)
+router = APIRouter(tags=["rulebooks"])
 
 SAFE_TEXT_PATTERN = r"^[\w\s\-.,&'\(\)!?]+$"
+
 
 @router.post(
     "/upload",
@@ -165,8 +163,9 @@ async def upload_rulebook(
     return UploadResponse(
         message="Rulebook upload accepted. Ingestion has started.",
         rulebook_id=rulebook_id,
-        job_id=job_id
+        job_id=job_id,
     )
+
 
 def _run_ingestion(**kwargs):
     try:
@@ -174,26 +173,21 @@ def _run_ingestion(**kwargs):
     finally:
         _ingest_slots.release()
 
+
 @router.post(
     "/internal/upload",
     response_model=UploadResponse,
     status_code=status.HTTP_202_ACCEPTED,
     responses={
-        503:{
+        503: {
             "description": "Ingestion queue full",
             "content": {
-                "application/json":{
-                    "example":{"detail": "Ingestion queue full."}
-                }
+                "application/json": {"example": {"detail": "Ingestion queue full."}}
             },
         },
         400: {
             "description": "Bad Request",
-            "content": {
-                "application/json": {
-                    "example": {"detail": "Upload rejected"}
-                }
-            },
+            "content": {"application/json": {"example": {"detail": "Upload rejected"}}},
         },
         500: {
             "description": "Internal Server Error",
@@ -209,11 +203,18 @@ async def internal_upload_rulebooks(
     request: Request,
     title: Annotated[
         str,
-        Form(min_length=1, max_length=150, strip_whitespace=True, pattern=SAFE_TEXT_PATTERN),
+        Form(
+            min_length=1,
+            max_length=150,
+            strip_whitespace=True,
+            pattern=SAFE_TEXT_PATTERN,
+        ),
     ],
     language: Annotated[
         str,
-        Form(min_length=2, max_length=10, strip_whitespace=True, pattern=r"^[a-zA-Z\-]+$"),
+        Form(
+            min_length=2, max_length=10, strip_whitespace=True, pattern=r"^[a-zA-Z\-]+$"
+        ),
     ],
     file: Annotated[UploadFile, File()],
     _token: Annotated[str, Depends(verify_internal_token)],
@@ -269,7 +270,9 @@ async def internal_upload_rulebooks(
             raise HTTPException(status_code=400, detail="Upload rejected") from e
         except Exception as e:
             logger.exception("Failed to initialise internal upload.")
-            raise HTTPException(status_code=500, detail="An internal server error occurred.") from e
+            raise HTTPException(
+                status_code=500, detail="An internal server error occurred."
+            ) from e
 
         embedding_model = request.app.state.ml_models["embedding_model"]
         safe_filename = file.filename or "untitled_rulebook.pdf"
@@ -358,6 +361,7 @@ async def query_rulebook(
             )
             for chunk in retrieved_chunks
         ]
+        citations.sort(key=lambda c: c.index)
         logger.info(
             "Successfully processed query for rulebook %s.",
             sanitise_log_input(rulebook_id),

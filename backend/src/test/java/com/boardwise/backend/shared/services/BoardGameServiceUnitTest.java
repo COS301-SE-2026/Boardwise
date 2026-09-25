@@ -22,7 +22,9 @@ import org.springframework.test.web.client.response.MockRestResponseCreators;
 import org.springframework.web.client.RestClient;
 
 import com.boardwise.backend.shared.repository.BoardGameRepository;
+import com.boardwise.backend.shared.services.scoring.PopularityScorer;
 import com.boardwise.backend.shared.model.Boardgame;
+import com.boardwise.backend.user_service.repository.UserRepository;
 import com.boardwise.backend.user_service.services.R2StorageService;
 
 
@@ -33,9 +35,11 @@ public class BoardGameServiceUnitTest {
     private BoardGameRepository gameRepo;
     private MongoTemplate db;
     private R2StorageService bucket;
+    private PopularityScorer popularityScorer;
     private MockRestServiceServer mockServer;
     private BoardGameService service;
     private String baseUrl = "https://boardgamegeek.com/xmlapi2";
+    private UserRepository userRepo;
 
     @Captor
     private ArgumentCaptor<List<Boardgame>> captor;
@@ -46,15 +50,16 @@ public class BoardGameServiceUnitTest {
         gameRepo = mock(BoardGameRepository.class);
         bucket = mock(R2StorageService.class);
         db = mock(MongoTemplate.class);
-
+        popularityScorer = mock(PopularityScorer.class);
         RestClient.Builder builder = RestClient.builder();
         mockServer = MockRestServiceServer.bindTo(builder).build();
+        userRepo = mock(UserRepository.class);
 
         RestClient testClient = builder.baseUrl(baseUrl)
                                         .defaultHeader("Authorization", "Bearer some-valid-token")
                                         .build();
 
-        service = new BoardGameService(gameRepo, bucket, testClient, db);
+        service = new BoardGameService(gameRepo, bucket, testClient, popularityScorer, userRepo, db);
     }
 
     @Test
@@ -64,7 +69,7 @@ public class BoardGameServiceUnitTest {
         when(gameRepo.findTopByBggIdNotNullOrderByBggIdDesc())
             .thenReturn(Optional.empty());
 
-        String requestUrl = baseUrl + "/thing?id=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20&subtype=boardgame";
+        String requestUrl = baseUrl + "/thing?id=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20&subtype=boardgame&stats=1";
         String mockResponse = """
             <?xml version="1.0" encoding="utf-8"?>
             <items termsofuse="https://boardgamegeek.com/xmlapi/termsofuse">
@@ -148,7 +153,7 @@ public class BoardGameServiceUnitTest {
                 null
             )));
 
-        String requestUrl = baseUrl + "/thing?id=421,422,423,424,425,426,427,428,429,430,431,432,433,434,435,436,437,438,439,440&subtype=boardgame";
+        String requestUrl = baseUrl + "/thing?id=421,422,423,424,425,426,427,428,429,430,431,432,433,434,435,436,437,438,439,440&subtype=boardgame&stats=1";
         String mockResponse = """
             <?xml version="1.0" encoding="utf-8"?>
             <items termsofuse="https://boardgamegeek.com/xmlapi/termsofuse">

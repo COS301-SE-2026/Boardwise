@@ -4,6 +4,7 @@
         village?: string;
         suburb?: string;
         residential?:string;
+        county?:string
     }
 
     interface NominatimResponse {
@@ -53,7 +54,7 @@ export function useUserLocation() {
             const address = data.address;
 
 
-            city.value = address.city?? address.town ?? address.village ?? null;
+            city.value = address.city ?? address.village ?? null;
             suburb.value = address.residential ?? null;
 
         } catch (err) {

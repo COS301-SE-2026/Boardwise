@@ -14,20 +14,23 @@
         :id="titleId"
         class="base-modal__header"
       >
-        <span class="base-modal__title">
-          {{ title  }}
-        </span>
-
         <BaseButton
           v-if="closable"
           variant="text"
           icon="mdi-close"
           aria-label="Close dialog"
           :disabled="loading"
+          class="mr-2"
           @click="
             $emit('update:modelValue', false)
           "
-        />
+        >
+          <v-icon>mdi-close</v-icon>
+        </BaseButton>
+
+        <span class="base-modal__title">
+          {{ title  }}
+        </span>
       </v-card-title>
 
       <v-card-text class="pa-6">
@@ -44,12 +47,13 @@
 
 <script setup>
 import { useId } from 'vue'
+
 import BaseButton from './BaseButton.vue'
 import BaseLoadingState from './BaseLoadingState.vue'
 
 const props = defineProps({
   modelValue: {
-    type:Boolean,
+    type: Boolean,
     required: true  
   },
   title: {
@@ -74,7 +78,7 @@ const props = defineProps({
   }
 })
 
-defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue'])
 
 const titleId = useId()
 

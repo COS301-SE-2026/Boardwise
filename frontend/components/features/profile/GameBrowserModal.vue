@@ -105,7 +105,7 @@ import BaseImage from '~/components/ui/BaseImage.vue'
 
 import { ref, watch } from 'vue'
 import { useProfile } from '~/composables/useProfile'
-// import { userService } from '~/services/userService'
+import { useDebounceFn } from '@vueuse/core'
 
 const props = defineProps({
     games: { 
@@ -115,7 +115,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['confirm', 'add-custom'])
-const open = defineModal({ type: Boolean, default: false })
+const open = defineModel({ type: Boolean, default: false })
 
 const { searchGames, addExistingGame, addGame } = useProfile()
 
@@ -151,9 +151,18 @@ async function handleSearch() {
     }
 }
 
+const delaySearch = useDebounceFn(() => handleSearch(), 400)
 
 watch(search, (_) => {
-    handleSearch()
+    delaySearch()
+})
+
+watch(open, (isOpen) => {
+    if(!isOpen){
+        search.value = ''
+        selectedGames.value = []
+        searchResults.value = []
+    }
 })
 
 const toggleGame = (game) => {
@@ -187,11 +196,6 @@ const handleConfirm = async () => {
         await Promise.all(gamesToAdd.map(game => addExistingGame(game.id)))
 
         emit('confirm')
-
-        selectedGames.value = []
-        search.value = ''
-        searchResults.value = []
-
         open.value = false
     } catch (err)
     {

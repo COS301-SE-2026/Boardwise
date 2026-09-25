@@ -5,6 +5,7 @@
         :class="{ 'base-card--clickable' : clickable}"
         rounded="lg"
         v-bind="$attrs"
+        @click="clickable && $emit('click', $event)"
     >
         <div v-if="$slots.media" class="base-card__media">
             <slot name="media" />
@@ -25,4 +26,6 @@ defineProps({
     clickable: { type: Boolean, default: false },
     flush: {type: Boolean, default: false }
 })
+
+defineEmits(['click'])
 </script>

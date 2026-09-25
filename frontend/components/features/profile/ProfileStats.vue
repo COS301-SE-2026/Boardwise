@@ -1,29 +1,42 @@
 <template>
-  <div class="stats-row">
+  <section class="stats-row">
+
     <BaseCard flush class="stat-card">
-      <div class="stat-icon"><v-icon size="20">mdi-dice-multiple</v-icon></div>
+      <div class="stat-icon">
+        <v-icon size="20">mdi-dice-multiple</v-icon>
+      </div>
+
       <div class="stat-body">
-        <span class="stat-value">{{  games }}</span>
+        <span class="stat-value">{{ games }}</span>
         <span class="stat-label">Games Owned</span>
       </div>
     </BaseCard>
 
-    <button class="stat-card stat-card__clickable" @click="$emit('open')">
-      <div class="stat-icon"><v-icon size="20">mdi-account-multiple</v-icon></div>
-      <div class="stat-body">
-        <span class="stat-value">{{ friends }}</span>
-        <span class="stat-label">Friends</span>
-      </div>
-    </button>
+    <!-- Friends -->
+    <BaseCard clickable flush class="stat-card" @click="$emit('open')">
+        
+      <div class="stat-icon">
+          <v-icon size="20">mdi-account-multiple</v-icon>
+        </div>
+
+        <div class="stat-body">
+          <span class="stat-value">{{ friends }}</span>
+          <span class="stat-label">Friends</span>
+          <span v-if="friendsDelta" class="stat-delta">{{ friendsDelta }}</span>
+        </div>
+    </BaseCard>
 
     <BaseCard flush class="stat-card">
-      <div class="stat-icon"><v-icon size="20">mdi-shield-account</v-icon></div>
+      <div class="stat-icon">
+        <v-icon size="20">mdi-shield-account</v-icon>
+      </div>
+
       <div class="stat-body">
         <span class="stat-value">{{ communities }}</span>
         <span class="stat-label">Communities</span>
       </div>
     </BaseCard>
-  </div>
+  </section>
 </template>
 
 <script setup>
@@ -32,7 +45,10 @@ import BaseCard from '~/components/ui/BaseCard.vue';
 defineProps({
   games: { type: Number, default: 0 },
   friends: { type: Number, default: 0 },
-  communities: { type: Number, default: 0 }
+  communities: { type: Number, default: 0 },
+  gamesDelta: { type: String, default: '' },
+  friendsDelta: { type: String, default: '' },
+  communitiesDelta: { type: String, default: '' }
 })
 
 defineEmits(['open'])
