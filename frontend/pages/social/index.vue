@@ -163,7 +163,6 @@ import type { GroupInfo } from '~/services/communityService'
 
 import { useCommunity } from '~/composables/useCommunity'
 import { useSnackBar } from '~/composables/useSnackbar'
-import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 import PrivateCommunityAccessModal from '~/components/features/community/PrivateCommunityAccessModal.vue'
 import { CommunityService } from '~/services/communityService'
 import { useProfile } from '~/composables/useProfile'
@@ -328,7 +327,6 @@ import { useRouter } from 'vue-router'
 import type { ProfileSearchResponse } from '~/services/userService'
 const { fetchUsers, isLoading: peopleLoading } = useProfile()
 
-const router = useRouter()
 
 const {
     isLoading: friendActionLoading,
