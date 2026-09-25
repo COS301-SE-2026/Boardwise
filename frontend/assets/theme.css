@@ -3448,6 +3448,7 @@ html[data-density="compact"] .rulebook-list {
 
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 /* Game Add Button */
