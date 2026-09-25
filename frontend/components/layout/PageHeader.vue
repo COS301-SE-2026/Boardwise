@@ -35,4 +35,6 @@ defineProps({
   actionIcon: { type: String, default: 'mdi-plus' },
   dataTest: { type: String, default: 'page-header' }
 })
+
+defineEmits(['action'])
 </script>
