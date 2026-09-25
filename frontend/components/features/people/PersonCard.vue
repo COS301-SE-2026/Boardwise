@@ -10,7 +10,7 @@
         </div>
 
         <template #actions>
-            <div class="person-card__actions" @click.stop>
+            <div class="person-card__actions" @click.stop @keydown.enter.stop>
                 <BaseButton 
                     v-if="computedStatus === FriendStatus.ACCEPTED"
                     variant="secondary"
