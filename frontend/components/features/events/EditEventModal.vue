@@ -115,6 +115,8 @@
 </template>
 
 <script setup>
+import { ref, watch } from 'vue'
+
 import { useEvents } from '~/composables/useEvents'
 import { useBoardGames } from '~/composables/useBoardGames'
 
@@ -155,6 +157,9 @@ watch(open, val => {
 
   game_options.value = eventElement.games ?? []
   selected_games.value = (eventElement.games ?? []).map(g => g.id)
+
+  file.name.value = ''
+  image_file.value = null
 })
 
 watch(searchedGames, (results) => {

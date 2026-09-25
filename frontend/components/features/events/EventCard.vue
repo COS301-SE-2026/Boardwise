@@ -2,30 +2,38 @@
     <BaseCard data-test="event-card" clickable class="h-100 d-flex flex-column" @click="$emit('click', event)">
       <template #media>
         <BaseImage
-            data-test="event-image"
-            :src="event.imageUrl ?? '/default-event.png'"
-            :alt="event.name"
-            height="200px"
+          data-test="event-image"
+          :src="event.imageUrl ?? '/default-event.png'"
+          :alt="event.name"
+          height="200px"
         />
 
-        <BaseBadge
-          data-test="event-status-badge"
-          absolute
-          size="x-small"
-          tone="tonal"
-          :variant="statusColor(event.eventStatus)"
-        >
-          {{ event.eventStatus }}
-        </BaseBadge>
+        <div class="event-card__gradient" />
+
+        <div class="event-card__top-badges">
+          <BaseBadge
+            data-test="event-status-badge"
+            absolute
+            size="x-small"
+            tone="tonal"
+            :variant="statusColor(event.eventStatus)"
+          >
+            {{ event.eventStatus }}
+          </BaseBadge>
+
+          <BaseBadge size="x-small" tone="tonal" variant="default">
+            {{ isOnline ? 'Online' : 'In-Person' }}
+          </BaseBadge>
+        </div>
+
+        <div class="event-card__bottom-overlay">
+          <v-icon size="14">mdi-calendar</v-icon>
+          <span>{{  event.date  }} - {{ event.startTime }}</span>
+        </div>
       </template>
 
       <p class="card-title" data-test="event-title">
         {{ event.name }}
-      </p>
-
-      <p class="card-meta" data-test="event-datetime">
-        <v-icon size="16">mdi-calendar</v-icon>
-        {{ event.date }} : {{ event.startTime  }} - {{ event.endTime }}
       </p>
 
       <p class="card-meta" data-test="event-location">
@@ -73,6 +81,8 @@
 </template>
 
 <script setup> 
+import { computed } from 'vue'
+
 import BaseBadge from '~/components/ui/BaseBadge.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
@@ -85,6 +95,8 @@ const props = defineProps({
 })
 
 defineEmits(['click'])
+
+const isOnline = computed(() => props.event.location?.toLowerCase() === 'online')
 
 const statusColor = (status) => {
   if (status == 'OPEN') return 'success'

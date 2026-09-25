@@ -10,63 +10,59 @@
         </BaseFilterGroup>
 
         <BaseFilterGroup title="Format">
-            <BaseFilterCheckboxGroup v-model="selectedFormats" :options="['In-Person', 'Online']" />
+            <BaseFilterCheckboxGroup v-model="selectedFormats" :options="formatOptions" />
         </BaseFilterGroup>
 
     </BaseFilterSidebar>
 </template>
 
 <script setup>
-import { ref, reactive, watch} from 'vue';
+import { ref, watch, computed } from 'vue'
 
 import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue';
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue';
 import BaseFilterPills from '~/components/ui/Filters/BaseFilterPills.vue';
 import BaseFilterCheckboxGroup from '~/components/ui/Filters/BaseFilterCheckboxGroup.vue';
 
+const props = defineProps({
+  events: {
+    type: Array,
+    default: () => []
+  }
+})
+
 const emit = defineEmits(['filter'])
 
-const dates = [
-  'All',
-  'Today',
-  'This Week',
-  'This Month'
-]
-
-const games = [
-  'Catan',
-  'Chess',
-  'Uno',
-  'Monopoly',
-  'D&D',
-  'General'
-]
+const dates = ['All', 'Today', 'This Week','This Month']
+const formatOptions = ['In-Person', 'Online']
 
 const selectedDate = ref('All')
 const selectedGames = ref([])
 const selectedFormats = ref([])
 
-const gameOptions = computed(() => games)
+const gameOptions = computed(() => {
+  const titles = new Set()
+  for (const event of props.events) {
+    for (const game of event.games ?? []) {
+      titles.add(game.title)
+    }
+  }
 
-const filters = reactive({
-  online: false,
-  inPerson: false
+  return [...titles].sort()
 })
 
-watch([selectedDate, selectedGames, filters], () => {
+watch([selectedDate, selectedGames, selectedFormats], () => {
   emit('filter', {
     date: selectedDate.value,
     games: selectedGames.value,
-    online: filters.online,
-    inPerson: filters.inPerson
+    online: selectedFormats.value.includes('Online'),
+    inPerson: selectedFormats.value.includes('In-Person')
   })
 }, { deep: true })
 
 const resetFilters = () => {
   selectedDate.value = 'All'
   selectedGames.value = []
-
-  filters.online = false
-  filters.inPerson = false
+  selectedFormats.value = []
 }
 </script>

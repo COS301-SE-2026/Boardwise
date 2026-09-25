@@ -13,7 +13,7 @@
             @cancel-event="handleCancelEvent"
         />        
 
-        <div v-else class="pa-16 text center">
+        <div v-else class="pa-16 text-center">
             <p class="mb-4">Event not found.</p>
             <BaseButton @click="router.push('/events')">Back to events</BaseButton>
         </div>
@@ -64,9 +64,12 @@ onMounted(async () => {
         router.push('/auth/signin')
         return
     }
-    const fetched = await fetchEventbyId(route.params.id);
 
-    event.value = fetched
+    try {
+        event.value = await fetchEventbyId(route.params.id)
+    } catch {
+        event.value = null
+    }
 })
 
 const handleRsvp = async () => {

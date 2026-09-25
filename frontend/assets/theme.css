@@ -6610,6 +6610,36 @@ games-owned-section {
   font-weight: 600;
 }
 
+.event-card__gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(46, 20, 48, 0.75), transparent 55%);
+  pointer-events: none;
+}
+
+.event-card__top-badges {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  right: var(--space-2);
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.event-card__bottom-overlay {
+  position: absolute;
+  left: var(--space-2);
+  bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: white;
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
 /* ================================================================
     READING 
   ================================================================= */
