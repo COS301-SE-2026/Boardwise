@@ -411,14 +411,26 @@ python_image = awsx.ecr.Image(
 
 python_setup_script = r"""#!/bin/bash
 yum update -y
-yum install -y docker
+yum install -y docker cronie
 
 systemctl enable --now docker
+systemctl enable --now crond
 
 aws ecr get-login-password --region __REGION__ | docker login --username AWS --password-stdin __REGISTRY_URL__
 
 mkdir -p /var/lib/lancedb
 chown 1001:1001 /var/lib/lancedb
+
+AWS_ACCESS_KEY_ID="__R2_ACCESS_KEY__" \
+AWS_SECRET_ACCESS_KEY="__R2_SECRET_KEY__" \
+AWS_DEFAULT_REGION="auto" \
+aws s3 sync s3://__R2_BUCKET_RULEBOOKS__/lancedb_backup /var/lib/lancedb \
+    --endpoint-url "https://__R2_ACCOUNT_ID__.r2.cloudflarestorage.com"
+
+cat << 'EOF' > /etc/cron.d/lancedb_backup
+0 */2 * * * root AWS_ACCESS_KEY_ID="__R2_ACCESS_KEY__" AWS_SECRET_ACCESS_KEY="__R2_SECRET_KEY__" AWS_DEFAULT_REGION="auto" aws s3 sync /var/lib/lancedb s3://__R2_BUCKET_RULEBOOKS__/lancedb_backup --endpoint-url "https://__R2_ACCOUNT_ID__.r2.cloudflarestorage.com" >> /var/log/lancedb_sync.log 2>&1
+EOF
+chmod 0644 /etc/cron.d/lancedb_backup
 
 docker run -d \
     --restart always \
@@ -464,8 +476,8 @@ python_user_data = pulumi.Output.all(
                         .replace("__REGION__", aws.get_region().region)
                         .replace("__SYSTEM_CONTRIBUTOR_ID__", settings.SYSTEM_CONTRIBUTOR_ID)
                         .replace("__UNSTRUCTURED_API_KEY__", settings.UNSTRUCTURED_API_KEY)
-                        .replace("__UNSTRUCTURED_PROD_URL__", f"http://{args["unstructured_ip"]}:8000")
-                        .replace("__EMBEDDING_DIMENSIONS__", settings.EMBEDDING_DIMENSIONS)
+                        .replace("__UNSTRUCTURED_PROD_URL__", f"http://{args['unstructured_ip']}:8000/general/v0/general")
+                        .replace("__EMBEDDING_DIMENSIONS__", str(settings.EMBEDDING_DIMENSIONS))
                         .replace("__APP_ENV__", settings.APP_ENV)
 )
 

@@ -38,6 +38,7 @@
           <template v-else>
             <CommunityGrid
               :communities="pagedCommunities"
+              @select="openCommunity"
             />
 
             <template v-if="filteredCommunities.length > 0">
@@ -63,6 +64,14 @@
           />
     </template>
 
+  <PrivateCommunityAccessModal
+  v-if="selectedPrivateCommunity"
+  v-model="showPrivateCommunityModal"
+  :community="selectedPrivateCommunity"
+  :loading="requestLoading"
+  :requested="requestSent"
+  @request="handlePrivateCommunityRequest"
+/>
     <template v-else-if="activeTab === 'Friends'">
       <MobileFilterDrawer id="friend-mobile-filters">
         <FriendsFilterSidebar @filter="handleFriendFilter" />
@@ -154,17 +163,32 @@ import type { GroupInfo } from '~/services/communityService'
 
 import { useCommunity } from '~/composables/useCommunity'
 import { useSnackBar } from '~/composables/useSnackbar'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
+import PrivateCommunityAccessModal from '~/components/features/community/PrivateCommunityAccessModal.vue'
+import { CommunityService } from '~/services/communityService'
 import { useProfile } from '~/composables/useProfile'
 
 const CARD_PAGE_SIZE = 6
 
+type CommunityListItem = GroupInfo & {
+  groupId?: string
+  isMember?: boolean
+  isOwner?: boolean
+}
+
 const { getAllCommunities, searchForCommunity, loading } = useCommunity()
 const { show } = useSnackBar()
+const router = useRouter()
 
 const activeTab = ref('Friends')
 const searchQuery = ref('')
 const showCreateCommunity = ref(false)
-const communities = ref<Array<GroupInfo>>([])
+const communities = ref<CommunityListItem[]>([])
+
+const showPrivateCommunityModal = ref(false)
+const selectedPrivateCommunity = ref<CommunityListItem | null>(null)
+const requestLoading = ref(false)
+const requestSent = ref(false)
 
 const selectedTypes = ref<string[]>([])
 const selectedCategories = ref<string[]>([])
@@ -241,6 +265,59 @@ const pagedCommunities = computed(() => {
   const start = (communitiesPage.value - 1) * CARD_PAGE_SIZE
   return filteredCommunities.value.slice(start, start + CARD_PAGE_SIZE)
 })
+
+const getCommunityId = (
+  community: CommunityListItem | null
+) => community?.id ?? community?.groupId
+
+const openCommunity = (community: CommunityListItem) => {
+  const isPrivate =
+    String(community?.visibility).toLowerCase() === 'private'
+
+  const hasAccess =
+    community?.isMember === true ||
+    community?.isOwner === true
+
+  if (isPrivate && !hasAccess) {
+    selectedPrivateCommunity.value = community
+    requestSent.value = false
+    showPrivateCommunityModal.value = true
+    return
+  }
+
+  const id = getCommunityId(community)
+
+  if (id) {
+    router.push(`/social/community/${id}`)
+  }
+}
+
+const handlePrivateCommunityRequest = async () => {
+  const id = getCommunityId(selectedPrivateCommunity.value)
+
+  if (!id) {
+    show('Could not identify this community.', 'error')
+    return
+  }
+
+  requestLoading.value = true
+
+  try {
+    await CommunityService.requestToJoinCommunity(id)
+    requestSent.value = true
+    show('Your request was sent to the community owner.', 'success')
+  } catch (err: any) {
+    console.error('Failed to request community access.', err)
+
+    show(
+      err?.data?.message ||
+        'Could not send your request. Please try again.',
+      'error'
+    )
+  } finally {
+    requestLoading.value = false
+  }
+}
 
 // ======================= Friends ============================== 
 import FriendsFilterSidebar from '~/components/features/people/FriendsFilterSidebar.vue'
