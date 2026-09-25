@@ -13,34 +13,9 @@
 
     <template v-if="activeTab === 'Communities'">
       <!-- Mobile filter trigger -->
-      <div class="d-flex d-md-none mt-6 mb-4">
-        <v-chip
-          color="secondary"
-          prepend-icon="mdi-filter-variant"
-          size="large"
-          :aria-expanded="showFilters"
-          aria-controls="community-mobile-filters"
-          @click="showFilters = true"
-        >
-          Filters
-        </v-chip>
-
-        <v-navigation-drawer
-          v-model="showFilters"
-          temporary
-          location="left"
-          width="300"
-        >
-          <div
-            id="community-mobile-filters"
-            class="pa-4"
-          >
-            <CommunityFilter
-              @filter="handleFilter"
-            />
-          </div>
-        </v-navigation-drawer>
-      </div>
+      <MobileFilterDrawer id="community-mobile-filters">
+        <CommunityFilter @filter="handleFilter" />
+      </MobileFilterDrawer>
 
       <!-- Shared catalogue/results -->
       <div class="community-results-layout">
@@ -89,32 +64,9 @@
     </template>
 
     <template v-else-if="activeTab === 'Friends'">
-      <div class="d-flex d-md-none mt-6 mb-4">
-        <v-chip
-          color="secondary"
-          prepend-icon="mdi-filter-variant"
-          size="large"
-          :aria-expanded="showFriendFilters"
-          aria-controls="friend-mobile-filters"
-          @click="showFriendFilters = true"
-        >
-          Filters
-        </v-chip>
-
-        <v-navigation-drawer
-          v-model="showFriendFilters"
-          temporary
-          location="left"
-          width="300"
-        >
-          <div
-            id="friend-mobile-filters"
-            class="pa-4"
-          >
-            <FriendsFilterSidebar @filter="handleFriendFilter" />
-          </div>
-        </v-navigation-drawer>
-      </div>
+      <MobileFilterDrawer id="friend-mobile-filters">
+        <FriendsFilterSidebar @filter="handleFriendFilter" />
+      </MobileFilterDrawer>
 
       <!-- Desktop -->
       <div class="d-flex d-md-flex ga-6 mt-6 align-start">
