@@ -7464,3 +7464,28 @@ games-owned-section {
     width: 100%;
   }
 }
+
+/* ================================================================
+   SOCIAL: FRIENDS 
+  =============================================================== */  
+.player-card__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.player-card__info {
+  min-width: 0;
+}
+
+.player-card__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-card__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
