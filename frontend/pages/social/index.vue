@@ -149,7 +149,6 @@ import { useDebounceFn } from '@vueuse/core'
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import BasePagination from '~/components/ui/BasePagination.vue'
-import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import MobileFilterDrawer from '~/components/ui/MobileFilterDrawer.vue'
 
@@ -163,6 +162,7 @@ import type { GroupInfo } from '~/services/communityService'
 
 import { useCommunity } from '~/composables/useCommunity'
 import { useSnackBar } from '~/composables/useSnackbar'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 import PrivateCommunityAccessModal from '~/components/features/community/PrivateCommunityAccessModal.vue'
 import { CommunityService } from '~/services/communityService'
 import { useProfile } from '~/composables/useProfile'
@@ -177,7 +177,6 @@ type CommunityListItem = GroupInfo & {
 
 const { getAllCommunities, searchForCommunity, loading } = useCommunity()
 const { show } = useSnackBar()
-const router = useRouter()
 
 const activeTab = ref('Friends')
 const searchQuery = ref('')
@@ -327,6 +326,7 @@ import { useRouter } from 'vue-router'
 import type { ProfileSearchResponse } from '~/services/userService'
 const { fetchUsers, isLoading: peopleLoading } = useProfile()
 
+const router = useRouter()
 
 const {
     isLoading: friendActionLoading,
