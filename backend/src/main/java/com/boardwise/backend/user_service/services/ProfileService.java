@@ -282,7 +282,7 @@ public class ProfileService {
                 profileUpdateData.preferences().getGenres()
             );
             Map<String, Object> prefs = updateOrSetPreferences(token, dto);
-            toReturn.put("preferences", prefs.get("preferences"));
+            toReturn.put("preferences", (Preferences) prefs.get("preferences"));
         }
 
         userRepo.save(user);

@@ -127,6 +127,27 @@ export const useProfile = () => {
         }
     }
 
+    const updateGenrePreferences = async (genres: Array<string>) => {
+        isLoading.value = true;
+        error.value = ''
+        try{
+            const res = await userService.updateGenrePreferences(genres);
+            return res.preferences.genres;
+        }
+        catch(err: any){
+            error.value = err.data?.message || "User genre preferences update failed"
+            if(err.response?.status === 401){
+                localStorage.removeItem("access_token")
+                router.push('/auth/signin')
+                return;
+            }
+            throw err;
+        }
+        finally{
+            isLoading.value = false;
+        }
+    }
+
     const searchGames = async (game: string) => {
         isLoading.value = true;
         error.value = ''
@@ -233,7 +254,8 @@ export const useProfile = () => {
         fetchUserPresence, 
         fetchUserById, 
         updateProfile, 
-        updateProfilePicture, 
+        updateProfilePicture,
+        updateGenrePreferences, 
         addGame, 
         removeGame, 
         searchGames,

@@ -47,9 +47,14 @@ interface BoardgameSearchResponse {
     boardGames: GameListItem[];
 }
 
-interface Preferences{
+export interface Preferences{
     visibility: string;
-    genres : Array<string>;
+    genres: Array<string>;
+}
+
+export interface PreferencesResponse{
+    message: string,
+    preferences: Preferences
 }
 
 export enum FriendStatus{
@@ -162,6 +167,16 @@ export const userService = {
                 username : user.username,
                 location : user.location
             }
+        });
+    },
+
+    updateGenrePreferences(genres: Array<String>){
+        const { $api } = useNuxtApp();
+        return $api<PreferencesResponse>('users/preferences', {
+            body: {
+                genres
+            },
+            method: 'PUT'
         });
     },
 
