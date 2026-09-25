@@ -224,10 +224,25 @@ export const useProfile = () => {
         } finally {
             isLoading.value = false;
         }
-    }
+    };
+
+    const fetchGetBoardgameRulebookId = async (gameId: string) => {
+        isLoading.value = true;
+        error.value = ''
+        try {
+            const res = await userService.getBoardgameRulebookId(gameId);
+            return res.rulebookId;
+        } catch (err: any) {
+            error.value = "Failed to fetch rulebook Id";
+            throw err;
+        } finally {
+            isLoading.value = false;
+        }
+    };
 
     return { 
-        isLoading, 
+        isLoading,
+        fetchGetBoardgameRulebookId,
         fetchCurrentUser, 
         fetchUsers,
         fetchUserPresence, 

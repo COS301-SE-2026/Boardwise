@@ -261,6 +261,6 @@ export const userService = {
 
     getBoardgameRulebookId(gameId: string){
         const {$api} = useNuxtApp();
-        return $api<BoardgameRulebookDto>(`gameInventory/read/${gameId}`);
+        return $api<BoardgameRulebookDto>(`users/gameInventory/read/${gameId}`);
     }
 }
