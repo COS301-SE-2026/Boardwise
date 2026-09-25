@@ -460,7 +460,7 @@ python_user_data = pulumi.Output.all(
                         .replace("__JWT_SECRET__", settings.JWT_SECRET)
                         .replace("__DB_NAME__", settings.MONGODB_DATABASE)
                         .replace("__PROD_DB_URL__", settings.MONGODB_URL)
-                        .replace("__REGISTRY_URL__", image_uri.split('/')[0])
+                        .replace("__REGISTRY_URL__", args['image_uri'].split('/')[0])
                         .replace("__REGION__", aws.get_region().region)
                         .replace("__SYSTEM_CONTRIBUTOR_ID__", settings.SYSTEM_CONTRIBUTOR_ID)
                         .replace("__UNSTRUCTURED_API_KEY__", settings.UNSTRUCTURED_API_KEY)
