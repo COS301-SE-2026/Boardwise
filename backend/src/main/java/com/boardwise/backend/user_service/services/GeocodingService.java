@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import tools.jackson.databind.JsonNode;
 
 @Service 
 @RequiredArgsConstructor 
@@ -31,8 +31,8 @@ public class GeocodingService {
             if(res != null && res.isArray() && res.size() > 0){
                 JsonNode match = res.get(0);
 
-                double lat = Double.parseDouble(match.get("lat").asText());
-                double lng = Double.parseDouble(match.get("lon").asText());
+                double lat = match.get("lat").asDouble();
+                double lng = match.get("lon").asDouble();
 
                 return new GeoJsonPoint(lng, lat);
             }
