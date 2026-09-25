@@ -64,8 +64,7 @@ public class Seeding {
     private GeoJsonPoint getPoint(String locationText, GeocodingService geocodingService) throws NoSuchElementException{
         return geocodingService.getLocationCoordinates(locationText);
     }
-
-        
+   
     @Bean
     public CommandLineRunner seedDB(ListingRepository listingRepository, BoardGameRepository boardGameRepository, GroupMembershipRepository groupMembershipRepository,
             GroupRepository groupRepository, UserRepository userRepository, EditEventRepository editEventRepository, EventRepository eventsRepository, EventAttendeeRepository eaRepository,
@@ -380,9 +379,9 @@ public class Seeding {
                     ))
                     .build(),
                     Event.builder()
-                    .name("Dune Dune Ddduunnnneeee")
-                    .description("Did y'all catch the pun in the event name? No... Welp, doesn't matter cause we're playing DUNE tonight. Come join, all are welcome.")
-                    .eventImg("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxK9bxTqFLwoD6FsdgHwKptKZP-C6FT1Zdbjm5ZFN9Yg&s=10")
+                    .name("Cheesy chess")
+                    .description("We're eating cheese burgers today, while playing chess. (Did you get the word play there?)")
+                    .eventImg("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNawF0ggbDUjtNpBph1PhfUxOULB3d4Kf8mzUUR9tEog&s=10")
                     .startDateTime(LocalDateTime.of(2026, 11, 29, 14, 15))
                     .endDateTime(LocalDateTime.of(2026, 11, 29, 19, 45))
                     .locationText(locations.get(1))
@@ -392,7 +391,7 @@ public class Seeding {
                     .status(EventStatus.OPEN)
                     .createdAt(Instant.now())
                     .games(List.of(
-                        boardGameRepository.findByTitle("Dune").get().getId()
+                        boardGameRepository.findByTitle("Chess").get().getId()
                     ))
                     .build(),
                     Event.builder()
