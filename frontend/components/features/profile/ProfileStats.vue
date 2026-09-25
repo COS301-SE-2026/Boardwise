@@ -13,17 +13,19 @@
     </BaseCard>
 
     <!-- Friends -->
-    <button type="button" class="stat-card stat-card--button" @click="$emit('open')">
-      <div class="stat-icon">
-        <v-icon size="20">mdi-account-multiple</v-icon>
-      </div>
+    <BaseCard flush class="stat-card">
+      <button type="button" class="stat-card--button" @click="$emit('open')">
+        <div class="stat-icon">
+          <v-icon size="20">mdi-account-multiple</v-icon>
+        </div>
 
-      <div class="stat-body">
-        <span class="stat-value">{{ friends }}</span>
-        <span class="stat-label">Friends</span>
-        <span v-if="friendsDelta" class="stat-delta">{{ friendsDelta }}</span>
-      </div>
-    </button>
+        <div class="stat-body">
+          <span class="stat-value">{{ friends }}</span>
+          <span class="stat-label">Friends</span>
+          <span v-if="friendsDelta" class="stat-delta">{{ friendsDelta }}</span>
+        </div>
+      </button>
+    </BaseCard>
 
     <BaseCard flush class="stat-card">
       <div class="stat-icon">
@@ -55,10 +57,15 @@ defineEmits(['open'])
 
 <style scoped> 
 .stat-card--button { 
+  background: none;
   width: 100%; 
   border: none; 
   font: inherit; 
   text-align: left; 
   cursor: pointer; 
 } 
+
+.stat-card--button:hover{
+  background: none;
+}
 </style>
