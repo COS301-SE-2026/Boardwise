@@ -6,6 +6,8 @@ import {
   type GameArchitectMode,
   type GameDifficulty,
   type ScaleDirection,
+  type PlayerRange,
+
   type GenerateGameResponse
 } from '~/services/gameArchitectService'
 import { userService } from '~/services/userService'
@@ -39,6 +41,7 @@ export const useGameArchitect = () => {
   const games = ref<GameArchitectGame[]>([])
   const selectedGames = ref<GameArchitectGame[]>([])
   const prompt = ref('')
+  const playerRange = ref<PlayerRange | null>(null)
   const scaleDirection = ref<ScaleDirection | null>(null)
   const difficulty = ref<GameDifficulty | null>(null)
   const targetPlayerCount = ref<number | null>(null)
@@ -47,23 +50,30 @@ export const useGameArchitect = () => {
   const generating = ref(false)
   const error = ref('')
   const result = ref<GenerateGameResponse | null>(null)
+  const generationInProgress = ref(false)
+  const activeJobId = ref<string | null>(null)
+
+  const ACTIVE_JOB_STORAGE_KEY = 'boardwise:game-architect-active-job'
 
   const isScaleMode = computed(() => mode.value === 'scale')
 
   const canContinue = computed(() => {
-    if (step.value === 1) return mode.value !== null
-
+    if (step.value === 1) {
+      return mode.value !== null && !generationInProgress.value
+    }
     if (step.value === 2) {
       return surpriseMe.value || selectedGames.value.length > 0
     }
 
     if (step.value === 3) {
-      if (isScaleMode.value) {
-        return scaleDirection.value !== null && difficulty.value !== null
-      }
+    if (!isScaleMode.value) return true
 
-      return prompt.value.trim().length >= 10
-    }
+    return (
+      scaleDirection.value !== null &&
+      difficulty.value !== null &&
+      playerRange.value !== null
+    )
+  }
     return false
   })
 
@@ -83,6 +93,8 @@ export const useGameArchitect = () => {
   }
 
   const chooseMode = (nextMode: GameArchitectMode) => {
+    if (generationInProgress.value) return
+
     if (mode.value !== nextMode) {
       selectedGames.value = []
       surpriseMe.value = false
@@ -95,6 +107,29 @@ export const useGameArchitect = () => {
     mode.value = nextMode
   }
 
+  const loadActiveGeneration = () => {
+  if (!import.meta.client) return
+
+  const storedJob = localStorage.getItem(ACTIVE_JOB_STORAGE_KEY)
+  if (!storedJob) return
+
+  try {
+    const job = JSON.parse(storedJob) as {
+      jobId?: string
+      status?: string
+    }
+
+    if (job.status === 'queued' || job.status === 'processing') {
+      generationInProgress.value = true
+      activeJobId.value = job.jobId ?? null
+      return
+    }
+
+    localStorage.removeItem(ACTIVE_JOB_STORAGE_KEY)
+  } catch {
+    localStorage.removeItem(ACTIVE_JOB_STORAGE_KEY)
+  }
+}
   const isSelected = (gameId: string) =>
     selectedGames.value.some(game => game.id === gameId)
 
@@ -138,37 +173,53 @@ export const useGameArchitect = () => {
   }
 
   const generate = async () => {
-    if (!mode.value || !canContinue.value) return
+    if (!mode.value || !canContinue.value || generationInProgress.value) return
 
     generating.value = true
     error.value = ''
     result.value = null
 
     try {
-       result.value = await GameArchitectService.generateGame({
-        mode: mode.value,
-        sourceGameIds: selectedGames.value.map(game => game.id),
-        surpriseMe: surpriseMe.value,
-        ...(isScaleMode.value
-          ? {
-              scalePreferences: {
-                direction: scaleDirection.value!,
-                difficulty: difficulty.value!,
-                ...(targetPlayerCount.value !== null
-                  ? { targetPlayerCount: targetPlayerCount.value }
-                  : {})
-              }
+      result.value = await GameArchitectService.generateGame({
+      mode: mode.value,
+      sourceGameIds: selectedGames.value.map(game => game.id),
+      surpriseMe: surpriseMe.value,
+      ...(isScaleMode.value
+        ? {
+            scalePreferences: {
+              direction: scaleDirection.value!,
+              difficulty: difficulty.value!,
+              playerRange: playerRange.value!
             }
-          : { blueprintNotes: prompt.value.trim() 
-      })
+          }
+        : {})
     })
-      step.value = 4
-    } catch (err: unknown) {
-      error.value = getErrorMessage(err) || 'Boarley could not generate your game. Please try again.'
-    } finally {
-      generating.value = false
-    }
+    if (
+  result.value.status === 'queued' ||
+  result.value.status === 'processing'
+) {
+  generationInProgress.value = true
+  activeJobId.value = result.value.jobId ?? null
+
+  if (import.meta.client) {
+    localStorage.setItem(
+      ACTIVE_JOB_STORAGE_KEY,
+      JSON.stringify({
+        jobId: result.value.jobId,
+        status: result.value.status
+      })
+    )
   }
+}
+
+  step.value = 4
+} catch (err: unknown) {
+  error.value =
+    getErrorMessage(err) ||
+    'Boarley could not generate your game. Please try again.'
+} finally {
+  generating.value = false
+}}
 
   const reset = () => {
     step.value = 1
@@ -192,6 +243,7 @@ export const useGameArchitect = () => {
     prompt,
     scaleDirection,
     difficulty,
+    playerRange,
     targetPlayerCount,
     surpriseMe,
     loadingGames,
@@ -201,6 +253,9 @@ export const useGameArchitect = () => {
     maxSelectedGames: MAX_SELECTED_GAMES,
     isScaleMode,
     canContinue,
+    generationInProgress,
+    activeJobId,
+    loadActiveGeneration,
     loadOwnedGames,
     chooseMode,
     isSelected,
