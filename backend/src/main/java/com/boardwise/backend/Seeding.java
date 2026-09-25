@@ -421,7 +421,7 @@ public class Seeding {
             if(eaRepository.count() == 0){
                 List<Event> events = List.of(
                     eventsRepository.findByName("Monopoly Marathon").get(),
-                    eventsRepository.findByName("Dune Dune Ddduunnnneeee").get(),
+                    eventsRepository.findByName("Cheesy chess").get(),
                     eventsRepository.findByName("Scrabble storm").get()
                 );
 
