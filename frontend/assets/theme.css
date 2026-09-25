@@ -7497,3 +7497,51 @@ games-owned-section {
   flex-wrap: wrap;
   gap: var(--space-4);
 }
+
+.friend-requests {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.friend-requests__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  color: var(--color-secondary);
+}
+
+.friend-requests__row {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+  scrollbar-width: none;
+}
+
+.friend-requests__row::-webkit-scrollbar {
+  display: none;
+}
+
+.friend-request-card {
+  flex: 0 0 auto;
+  width: 260px;
+}
+
+.friend-request-card__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.friend-request-card__info {
+  min-width: 0;
+}
+
+.friend-request-card__actions {
+  display: flex;
+  gap: var(--space-2);
+}
