@@ -2,76 +2,99 @@
   <section aria-labelledby="architect-review-title">
     <div class="game-architect-step__heading">
       <p class="game-architect-step__eyebrow">Step 3 of 3</p>
-      <h1 id="architect-review-title">Describe your game idea</h1>
+
+      <h1 id="architect-review-title">
+        Choose your game settings
+      </h1>
+
       <p>
-        Give Boarley direction about the audience, theme, difficulty, or change
-        you want to make.
+        Select the player range and difficulty for the generated game.
       </p>
     </div>
 
     <div class="game-architect-review-layout">
       <BaseCard class="game-architect-brief-card pa-6">
-        <div v-if="mode === 'scale'">
-          <v-radio-group
-            :model-value="scaleDirection"
-            label="How should the player count change?"
-            @update:model-value="updateScaleDirection"
-          >
-            <v-radio label="Scale up for more players" value="up" />
-            <v-radio label="Scale down for fewer players" value="down" />
-          </v-radio-group>
+        <div v-if="mode === 'scale'" class="game-architect-settings">
+        <v-radio-group
+          :model-value="playerRange"
+          label="How many players should the game support?"
+          @update:model-value="updatePlayerRange"
+        >
+          <v-radio label="1–2 players" value="1-2" />
+          <v-radio label="3–4 players" value="3-4" />
+          <v-radio label="5–6 players" value="5-6" />
+          <v-radio label="7 or more players" value="7+" />
+        </v-radio-group>
 
-          <v-radio-group
-            :model-value="difficulty"
-            label="How should the difficulty change?"
-            @update:model-value="updateDifficulty"
-          >
-            <v-radio label="Make it easier" value="easier" />
-            <v-radio label="Keep it similar" value="same" />
-            <v-radio label="Make it harder" value="harder" />
-          </v-radio-group>
+        <v-radio-group
+          :model-value="difficulty"
+          label="Choose the game difficulty"
+          @update:model-value="updateDifficulty"
+        >
+          <v-radio label="Easier" value="easier" />
+          <v-radio label="Keep it similar" value="same" />
+          <v-radio label="Harder" value="harder" />
+        </v-radio-group>
 
-          <v-text-field
-            :model-value="targetPlayerCount"
-            label="Target player count (optional)"
-            type="number"
-            min="1"
-            max="20"
-            variant="outlined"
-            rounded="lg"
-            hide-details="auto"
-            @update:model-value="updateTargetPlayerCount"
-          />
+        <v-radio-group
+          v-if="mode === 'scale'"
+          :model-value="scaleDirection"
+          label="How should the game scale?"
+          @update:model-value="updateScaleDirection"
+        >
+          <v-radio label="Scale up" value="up" />
+          <v-radio label="Scale down" value="down" />
+        </v-radio-group>
         </div>
 
-        <template v-else>
-          <BaseTextArea
-            :model-value="modelValue"
-            label="Blueprint notes"
-            :placeholder="placeholder"
-            :rows="8"
-            maxlength="1000"
-            counter
-            @update:model-value="emit('update:modelValue', $event)"
+        <div v-else class="game-architect-create-confirmation">
+          <v-icon
+            icon="mdi-sparkles"
+            color="primary"
+            size="48"
+            aria-hidden="true"
           />
 
-          <p class="game-architect-field-help">
-            Use at least 10 characters. Do not include private information.
-          </p>
-        </template>
+          <div>
+            <h2>Ready to create</h2>
+            <p>
+              Boarley will create a new experience using your selected inspiration.
+            </p>
+          </div>
+    </div>
       </BaseCard>
 
-      <aside class="game-architect-review-summary" aria-label="Game brief summary">
+      <aside
+        class="game-architect-review-summary"
+        aria-label="Game settings summary"
+      >
         <h2>Review</h2>
+
         <dl>
           <div>
             <dt>Action</dt>
             <dd>{{ modeLabel }}</dd>
           </div>
+
           <div>
             <dt>Inspiration</dt>
             <dd v-if="surpriseMe">Surprise me</dd>
-            <dd v-else>{{ selectedGames.map(game => game.title).join(', ') }}</dd>
+            <dd v-else>{{ selectedGamesLabel }}</dd>
+          </div>
+
+          <div>
+            <dt>Difficulty</dt>
+            <dd>{{ difficultyLabel }}</dd>
+          </div>
+
+          <div>
+            <dt>Player range</dt>
+            <dd>{{ playerRangeLabel }}</dd>
+          </div>
+
+          <div v-if="mode === 'scale'">
+            <dt>Scale direction</dt>
+            <dd>{{ scaleDirectionLabel }}</dd>
           </div>
         </dl>
       </aside>
@@ -83,19 +106,15 @@
 import { computed, type PropType } from 'vue'
 
 import BaseCard from '~/components/ui/BaseCard.vue'
-import BaseTextArea from '~/components/ui/BaseTextArea.vue'
 import type {
   GameArchitectGame,
   GameArchitectMode,
   GameDifficulty,
+  PlayerRange,
   ScaleDirection
 } from '~/services/gameArchitectService'
 
 const props = defineProps({
-  modelValue: {
-    type: String,
-    default: ''
-  },
   mode: {
     type: String as PropType<GameArchitectMode>,
     required: true
@@ -116,17 +135,16 @@ const props = defineProps({
     type: String as PropType<GameDifficulty | null>,
     default: null
   },
-  targetPlayerCount: {
-    type: Number as PropType<number | null>,
+  playerRange: {
+    type: String as PropType<PlayerRange | null>,
     default: null
   }
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
   'update:scaleDirection': [value: ScaleDirection]
   'update:difficulty': [value: GameDifficulty]
-  'update:targetPlayerCount': [value: number | null]
+  'update:playerRange': [value: PlayerRange]
 }>()
 
 const updateScaleDirection = (value: unknown) => {
@@ -137,13 +155,8 @@ const updateDifficulty = (value: unknown) => {
   emit('update:difficulty', value as GameDifficulty)
 }
 
-const updateTargetPlayerCount = (value: unknown) => {
-  const parsedValue = Number(value)
-
-  emit(
-    'update:targetPlayerCount',
-    Number.isInteger(parsedValue) && parsedValue > 0 ? parsedValue : null
-  )
+const updatePlayerRange = (value: unknown) => {
+  emit('update:playerRange', value as PlayerRange)
 }
 
 const modeLabel = computed(() =>
@@ -152,9 +165,43 @@ const modeLabel = computed(() =>
     : 'Create a new experience'
 )
 
-const placeholder = computed(() =>
-  props.mode === 'scale'
-    ? 'Example: Adapt this game for six players while keeping turns under five minutes…'
-    : 'Example: Create a cooperative mystery game for families that takes about 45 minutes…'
-)
+const selectedGamesLabel = computed(() => {
+  const titles = props.selectedGames.map(game => game.title)
+
+  return titles.length > 0
+    ? titles.join(', ')
+    : 'No games selected'
+})
+
+const difficultyLabel = computed(() => {
+  const labels: Record<GameDifficulty, string> = {
+    easier: 'Easier',
+    same: 'Keep it similar',
+    harder: 'Harder'
+  }
+
+  return props.difficulty
+    ? labels[props.difficulty]
+    : 'Not selected'
+})
+
+const playerRangeLabel = computed(() => {
+  const labels: Record<PlayerRange, string> = {
+    '1-2': '1–2 players',
+    '3-4': '3–4 players',
+    '5-6': '5–6 players',
+    '7+': '7 or more players'
+  }
+
+  return props.playerRange
+    ? labels[props.playerRange]
+    : 'Not selected'
+})
+
+const scaleDirectionLabel = computed(() => {
+  if (props.scaleDirection === 'up') return 'Scale up'
+  if (props.scaleDirection === 'down') return 'Scale down'
+
+  return 'Not selected'
+})
 </script>
