@@ -71,7 +71,7 @@ const handleBoardgameRedirect = async () => {
     const rulebookId = await fetchGetBoardgameRulebookId(props.id);
     router.push(`/library/read/${rulebookId}`);
   }catch(err){
-    show(error.value, 'error');
+    if(err.message) show(error.value, 'error');
   }
 }
 

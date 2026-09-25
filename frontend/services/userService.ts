@@ -170,7 +170,7 @@ export const userService = {
         });
     },
 
-    updateGenrePreferences(genres: Array<String>){
+    updateGenrePreferences(genres: Array<string>){
         const { $api } = useNuxtApp();
         return $api<PreferencesResponse>('users/preferences', {
             body: {
