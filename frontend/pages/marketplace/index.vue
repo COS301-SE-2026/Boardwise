@@ -51,7 +51,7 @@
           />
 
           <template v-else>
-            <ListingGrid data-test="listing-grid" :listings="listings" />
+            <ListingGrid data-test="listing-grid" :listings="pagedListings" />
 
             <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
               <span class="card-meta">
@@ -243,9 +243,9 @@ const delaySearch = useDebounceFn((query) => {
   fetchListings({ ...activeFilterState.value, search: query || null }, true)
 }, 400)
 
-watch(activeTab, (tab) => {
+watch(activeTab, async (tab) => {
   if(tab === 'Web' && retailResults.value.length === 0) {
-    fetchPersonalisedListings();
+    await fetchPersonalisedListings();
   }
 })
 
@@ -279,7 +279,7 @@ watch(searchQ,(query)=>{
   fetchListings({ ...activeFilterState.value, search: searchQ.value || null }, true);
 }
 
-const KNOWN_RETAILERS = ['Bobshop', 'Takealot', 'ToysRUs']
+const KNOWN_RETAILERS = []
 
 const retailerOptions = computed(() => {
   const loadedNames = retailResults.value.map(r => r.retailer).filter(Boolean)
