@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.boardwise.scrapers.dtos.RuleBookReqResponse;
 import com.boardwise.scrapers.exceptions.FailedToScrape;
 import com.boardwise.scrapers.exceptions.ResourceNotFound;
-import com.boardwise.scrapers.services.PdfService;
+import com.boardwise.scrapers.services.PdfServiceHandler;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("internal/pdfscraper")
 public class PdfScraperController {
     private final Logger logger = Logger.getLogger(PdfScraperController.class.getName());
-    private final PdfService pdfService;
-    PdfScraperController( PdfService pdfService){
+    private final PdfServiceHandler pdfService;
+    PdfScraperController( PdfServiceHandler pdfService){
         this.pdfService = pdfService;
 
     }
