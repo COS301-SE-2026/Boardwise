@@ -149,7 +149,6 @@ import { useDebounceFn } from '@vueuse/core'
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import BasePagination from '~/components/ui/BasePagination.vue'
-import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import MobileFilterDrawer from '~/components/ui/MobileFilterDrawer.vue'
 
@@ -178,7 +177,6 @@ type CommunityListItem = GroupInfo & {
 
 const { getAllCommunities, searchForCommunity, loading } = useCommunity()
 const { show } = useSnackBar()
-const router = useRouter()
 
 const activeTab = ref('Friends')
 const searchQuery = ref('')

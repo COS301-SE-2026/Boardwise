@@ -3722,6 +3722,7 @@ html[data-density="compact"] .rulebook-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+}
 .onboarding-feature-card__desc {
   font-size: var(--fs-small);
   color: var(--color-text-muted);
@@ -7181,7 +7182,7 @@ games-owned-section {
   flex-shrink: 0;
 }
 
-  .community-chat-header__title {
+.community-chat-header__title {
     min-width: 0;
   flex: 1 1 auto;
   margin: 0;
@@ -7197,11 +7198,11 @@ games-owned-section {
   overflow-wrap: anywhere;
   text-overflow: ellipsis;
   white-space: nowrap;
-  .wizard-layout__sidebar {
-    position: static;
   }
 }
-
+.wizard-layout__sidebar {
+    position: static;
+  }
 /* Wizard footer */
 .wizard-footer {
   display: flex;
@@ -7289,9 +7290,10 @@ games-owned-section {
 transition:
   background var(--transition-fast),
   color var(--transition-fast);
-
   background: transparent;
   border: 0;
+}
+
 .wizard-chat-panel__suggestion {
   text-align: left;
   padding: var(--space-2) var(--space-3);
