@@ -101,7 +101,7 @@ public class RuleBookOrgScraper {
         this.pythonUploadClient = pythonUploadClient;
     }
 
-    // @Scheduled(initialDelayString = "30s", fixedDelayString = "30m")
+    @Scheduled(initialDelayString = "20m", fixedDelayString = "30m")
     public void scrapeRulebooksForExistingGames() {
 
         long currentRulebookCount = rulebookRepository.count();
