@@ -47,9 +47,14 @@ interface BoardgameSearchResponse {
     boardGames: GameListItem[];
 }
 
-interface Preferences{
+export interface Preferences{
     visibility: string;
-    genres : Array<string>;
+    genres: Array<string>;
+}
+
+export interface PreferencesResponse{
+    message: string,
+    preferences: Preferences
 }
 
 export enum FriendStatus{
@@ -165,6 +170,16 @@ export const userService = {
         });
     },
 
+    updateGenrePreferences(genres: Array<string>){
+        const { $api } = useNuxtApp();
+        return $api<PreferencesResponse>('users/preferences', {
+            body: {
+                genres
+            },
+            method: 'PUT'
+        });
+    },
+
     updateProfilePicture(newPfp: File){
         const { $api } = useNuxtApp();
         const formData = new FormData();
@@ -261,6 +276,6 @@ export const userService = {
 
     getBoardgameRulebookId(gameId: string){
         const {$api} = useNuxtApp();
-        return $api<BoardgameRulebookDto>(`gameInventory/read/${gameId}`);
+        return $api<BoardgameRulebookDto>(`users/gameInventory/read/${gameId}`);
     }
 }

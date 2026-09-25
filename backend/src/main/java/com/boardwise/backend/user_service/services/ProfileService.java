@@ -282,7 +282,7 @@ public class ProfileService {
                 profileUpdateData.preferences().getGenres()
             );
             Map<String, Object> prefs = updateOrSetPreferences(token, dto);
-            toReturn.put("preferences", prefs.get("preferences"));
+            toReturn.put("preferences", (Preferences) prefs.get("preferences"));
         }
 
         userRepo.save(user);
@@ -290,7 +290,7 @@ public class ProfileService {
         return toReturn;
     }
 
-    public ProfilePictureResponseDTO changeProfilePicture(String token, MultipartFile pfp) throws IOException {
+    public ProfilePictureResponseDTO changeProfilePicture(String token, MultipartFile pfp) throws IOException, IllegalArgumentException {
         String url = "";
         String message = "";
         String userId = jwtService.extractUserId(token).toString();
@@ -755,14 +755,9 @@ public class ProfileService {
         Boardgame bg = bgRepo.findById(gameId).orElseThrow(
             () -> new IllegalArgumentException("Boardgame not found")
         );
-        Rulebook rb = rbRepo.findByGameIdAndContributorId(new ObjectId(bg.getId()), new ObjectId(systemContributorId))
-            .orElseGet(() -> {
-                List<Rulebook> fallbackRulebooks = rbRepo.findByGameId(new ObjectId(gameId));
-                if(fallbackRulebooks.isEmpty()){
-                    throw new IllegalArgumentException("No fallback rulebooks found for gameId: " + gameId);
-                }
-                return fallbackRulebooks.get(0);
-            }
+        ObjectId gameObjectId = new ObjectId(bg.getId());
+        Rulebook rb = rbRepo.findByGameIdAndContributorId(gameObjectId, new ObjectId(systemContributorId))
+            .orElseGet(() -> rbRepo.findFirstByGameId(gameObjectId).orElseThrow(() -> new IllegalArgumentException("No fallback rulebooks found for gameId: " + gameId))
         );
 
         return new BoardgameRulebookDto(rb.getId().toHexString());

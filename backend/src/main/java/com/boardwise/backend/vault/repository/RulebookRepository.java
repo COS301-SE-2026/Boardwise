@@ -10,5 +10,5 @@ import com.boardwise.backend.vault.model.Rulebook;
 public interface RulebookRepository extends MongoRepository<Rulebook, ObjectId>, RulebookRepositoryCustom {
     List<Rulebook> findByLockHeldBy(ObjectId userId);
     Optional<Rulebook> findByGameIdAndContributorId(ObjectId gameId, ObjectId contributorId);
-    List<Rulebook> findByGameId(ObjectId gameId);
+    Optional<Rulebook> findFirstByGameId(ObjectId gameId);
 }
