@@ -6,12 +6,27 @@
       <p>Choose how Boarley should help create your next game concept.</p>
     </div>
 
+    <v-alert
+      v-if="generationInProgress"
+      type="info"
+      variant="tonal"
+      class="mb-6"
+      role="status"
+    >
+      <strong>Your Game Architect is already working.</strong>
+      You cannot start another game concept until the current one is complete.
+      Please continue browsing Boardwise—we’ll notify you when it is ready.
+    </v-alert>
+
+
     <div class="game-architect-action-grid">
       <button
         type="button"
         class="game-architect-option"
         :class="{ 'game-architect-option--selected': modelValue === 'scale' }"
         :aria-pressed="modelValue === 'scale'"
+        :disabled="generationInProgress"
+        :aria-disabled="generationInProgress"
         @click="emit('update:modelValue', 'scale')"
       >
         <span class="game-architect-option__icon" aria-hidden="true">
@@ -19,7 +34,7 @@
         </span>
         <span class="game-architect-option__title">Scale a game you own</span>
         <span class="game-architect-option__description">
-          Start with one game from your collection and describe how you want
+          Start with one game from your collection and choose  how you want
           to expand or adapt it.
         </span>
         <v-icon
@@ -36,6 +51,8 @@
         class="game-architect-option"
         :class="{ 'game-architect-option--selected': modelValue === 'create' }"
         :aria-pressed="modelValue === 'create'"
+        :disabled="generationInProgress"
+        :aria-disabled="generationInProgress"
         @click="emit('update:modelValue', 'create')"
       >
         <span class="game-architect-option__icon" aria-hidden="true">
@@ -66,6 +83,10 @@ defineProps({
   modelValue: {
     type: String as PropType<GameArchitectMode | null>,
     default: null
+  },
+  generationInProgress: {
+    type: Boolean,
+    default: false
   }
 })
 
