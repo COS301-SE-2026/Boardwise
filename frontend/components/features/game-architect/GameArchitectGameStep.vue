@@ -29,12 +29,24 @@
           <span>Loading your games…</span>
         </output>
 
-        <BaseEmptyState
+        <div
           v-else-if="!filteredGames.length"
-          title="No games found"
-          :message="emptyMessage"
-          icon="mdi-dice-multiple-outline"
-        />
+          class="game-architect-empty"
+        >
+          <BaseEmptyState
+            title="No games found"
+            :message="emptyMessage"
+            icon="mdi-dice-multiple-outline"
+          />
+
+          <BaseButton
+            v-if="!games.length"
+            to="/profile"
+            variant="secondary"
+          >
+            Add games to profile
+          </BaseButton>
+        </div>
 
         <div v-else class="game-architect-game-grid">
           <button
