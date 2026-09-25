@@ -72,6 +72,6 @@ const computedStatus = computed(() => {
 })
 
 const goToProfile = () => {
-    router.push(`/profile/&{props.person.id}`)
+    router.push(`/profile/${props.person.id}`)
 }
 </script>

@@ -1,11 +1,11 @@
 <template>
     <BaseGrid data-test="people-grid">
-        <PlayerCard
+        <PersonCard
             v-for="person in people"
             :key="person.id"
             :person="person"
             :variant="variant"
-            @friend-request="$emit('friend-request', $event)"
+            @add-friend="$emit('add-friend', $event)"
             @message="$emit('message', $event)"
             @unfriend="$emit('unfriend', $event)"
         />
@@ -13,7 +13,7 @@
 </template>
 
 <script setup>
-import PlayerCard from '../PlayerCard.vue'
+import PersonCard from '../PersonCard.vue'
 import BaseGrid from '~/components/ui/BaseGrid.vue'
 
 defineProps({
@@ -21,9 +21,9 @@ defineProps({
     variant: {
         type: String,
         default: 'discover',
-        validaor: (v) => ['discover', 'friend'].includes(v)
+        validator: (v) => ['discover', 'friend'].includes(v)
     }
 })
 
-defineEmits(['friend-request', 'message', 'unfriend'])
+defineEmits(['add-friend', 'message', 'unfriend'])
 </script>
