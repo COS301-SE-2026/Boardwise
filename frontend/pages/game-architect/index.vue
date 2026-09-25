@@ -18,9 +18,11 @@
           :current-step="step"
         />
 
+
         <GameArchitectActionStep
           v-if="step === 1"
           :model-value="mode"
+          :generation-in-progress="generationInProgress"
           @update:model-value="chooseMode"
         />
 
@@ -41,6 +43,7 @@
           v-model="prompt"
           v-model:scale-direction="scaleDirection"
           v-model:difficulty="difficulty"
+          v-model:player-range="playerRange"
           v-model:target-player-count="targetPlayerCount"
           :mode="mode"
           :selected-games="selectedGames"
@@ -98,6 +101,37 @@
         </div>
       </div>
     </main>
+    <v-dialog
+  v-model="showGenerationNotice"
+  max-width="520"
+  persistent
+>
+  <BaseCard class="pa-6 text-center">
+    <v-icon
+      icon="mdi-auto-fix"
+      color="primary"
+      size="52"
+      aria-hidden="true"
+    />
+
+    <h2 class="mt-4">
+      Your Game Architect is getting to work
+    </h2>
+
+    <p class="mt-3">
+      Please continue browsing Boardwise while Boarley creates your game
+      concept. We’ll notify you when it is complete.
+    </p>
+
+    <BaseButton
+      class="mt-5"
+      to="/library"
+      @click="showGenerationNotice = false"
+    >
+      Continue browsing Boardwise
+    </BaseButton>
+  </BaseCard>
+</v-dialog>
   </PageContainer>
 </template>
 
@@ -106,7 +140,9 @@ definePageMeta({
   middleware: 'auth'
 })
 
-import { computed, onMounted } from 'vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
+
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import GameArchitectActionStep from '~/components/features/game-architect/GameArchitectActionStep.vue'
@@ -121,7 +157,10 @@ import { useGameArchitect } from '~/composables/useGameArchitect'
 
 const route = useRoute()
 const router = useRouter()
-
+onMounted(() => {
+  loadActiveGeneration()
+  loadOwnedGames()
+})
 const {
   step,
   mode,
@@ -139,6 +178,8 @@ const {
   maxSelectedGames,
   isScaleMode,
   canContinue,
+  generationInProgress,
+  loadActiveGeneration,
   loadOwnedGames,
   chooseMode,
   toggleGame,
@@ -148,6 +189,17 @@ const {
   generate,
   reset
 } = useGameArchitect()
+
+const showGenerationNotice = ref(false)
+
+watch(
+  () => result.value?.status,
+  status => {
+    if (status === 'queued' || status === 'processing') {
+      showGenerationNotice.value = true
+    }
+  }
+)
 
 const source = computed(() =>
   route.query.from === 'library' ? 'library' : 'profile'
