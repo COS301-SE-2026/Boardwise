@@ -1,6 +1,6 @@
 <template>
     <BaseModal v-model="open" title="Create Listing" max-width="700" :loading="isLoading">
-      <v-form ref="formRef" v-model="formValid" class="listing-form" @submmit.prevent="handleConfirm">
+      <v-form ref="formRef" v-model="formValid" class="listing-form" @submit.prevent="handleConfirm">
         <v-alert
           v-if="submitError"
           type="error"
@@ -225,6 +225,8 @@
 </template>
 
 <script setup>
+import {ref, computed, watch, onMounted} from 'vue'
+
 import { useUserLocation } from '@/composables/useUserLocation'
 import { useBoardGames } from '~/composables/useBoardGames'
 
@@ -261,7 +263,7 @@ const negotiable = ref(false);
 const price = ref(0);
 const location = ref('');
 const fileName = ref('');
-const file_input = ref(null);
+const fileInput = ref(null);
 const file = ref(null);
 const version = ref('');
 const useCurrLocation = ref(false);
@@ -294,6 +296,14 @@ watch(useCurrLocation, async (val) => {
 
 });
 
+const blockNegativeKeys = (e) =>{
+  if(['-','+','e','E'].includes(e.key)) e.preventDefault()
+}
+
+const blockNegativePaste = (e) =>{
+  const text = e.clipboardData?.getData('text') || ''
+  if(text.includes('-')) e.preventDefault()
+}
 const requiredRule = (v) =>
   (v !== null && v !== undefined && String(v).trim() !== '') || 'This field is required';
 
@@ -363,28 +373,38 @@ const descriptionRule = (v) => {
 };
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpg','image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
-const triggerUpload = () => file_input.value.click();
+const triggerUpload = () => fileInput.value.click();
 
 const handleFileChange = (e) => {
   fileError.value = '';
   const toUpload = e.target.files[0];
   if (!toUpload) return;
 
-  if (!ALLOWED_IMAGE_TYPES.includes(toUpload.type)) {
+  if (!ALLOWED_IMAGE_TYPES.has(toUpload.type)) {
     fileError.value = 'Please upload a JPEG, PNG, WEBP or GIF image.';
   } else if (toUpload.size > MAX_FILE_SIZE) {
     fileError.value = `Image must be smaller than ${MAX_FILE_SIZE / 1024 / 1024}MB.`;
   }
 
   if (fileError.value) {
+    
     return;
   }
 
   fileName.value = toUpload.name;
   file.value = toUpload;
 }
+
+watch(startDate, ()=>{
+  if(endDate.value) formRef.value?.validate()
+})
+
+watch(listingType, (type) =>{
+  if(type === 'rent') negotiable.value = false;
+})
+
 
 const closeModal = () => {
   isLoading.value = false;
@@ -396,7 +416,7 @@ const closeModal = () => {
   selectedCondition.value = null;
   selectedItemType.value = null;
   listingType.value = 'sell';
-  price.value = '';
+  price.value = 0;
   negotiable.value = false;
   location.value = '';
   fileName.value = '';
@@ -466,7 +486,7 @@ const handleConfirm = async () => {
 
 const conditions = ['New', 'Like New', 'Good', 'Fair'];
 
-const itemTypes = ['Merch', 'Full Boardgame', 'Partial Boardgame', 'Pieces'];
+const itemTypes = ['Full Boardgame', 'Partial Boardgame', 'Pieces'];
 
 </script>
 
