@@ -1767,29 +1767,12 @@ html[data-density="compact"] .rulebook-list {
 /* ============================================================
    LAYOUT
    ============================================================ */
-.page-header {
+.page-header__top {
   display: flex;
+  align-items: flex-end;
   justify-content: space-between;
-  align-items: center;
   flex-wrap: wrap;
-  gap: var(--space-3);
-  padding: var(--space-4) 0 var(--space-1);
-}
-
-.page-header__title {
-  margin: 0;
-  color: var(--color-primary);
-  font-family: var(--font-display);
-  font-size: var(--space-8);
-  line-height: 1;
-}
-
-.page-header__subtitle {
-  color: var(--color-text-muted);
-  font-size: 1.35rem;
-  font-family: var(--font-body);
-  margin-top: var(--space-3);
-  max-width: 650px;
+  gap: var(--space-4);
 }
 
 /* ============================================================
@@ -3448,6 +3431,7 @@ html[data-density="compact"] .rulebook-list {
 
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 /* Game Add Button */
@@ -7463,4 +7447,85 @@ games-owned-section {
   .onboarding-final__finish-button {
     width: 100%;
   }
+}
+
+/* ================================================================
+   SOCIAL: FRIENDS 
+  =============================================================== */  
+.person-card__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.person-card__info {
+  min-width: 0;
+}
+
+.person-card__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.person-card__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.friends-header__top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.friend-requests {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.friend-requests__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  color: var(--color-secondary);
+}
+
+.friend-requests__row {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+  scrollbar-width: none;
+}
+
+.friend-requests__row::-webkit-scrollbar {
+  display: none;
+}
+
+.friend-request-card {
+  flex: 0 0 auto;
+  width: 260px;
+}
+
+.friend-request-card__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.friend-request-card__info {
+  min-width: 0;
+}
+
+.friend-request-card__actions {
+  display: flex;
+  gap: var(--space-2);
 }
