@@ -115,7 +115,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['confirm', 'add-custom'])
-const open = defineModal({ type: Boolean, default: false })
+const open = defineModel({ type: Boolean, default: false })
 
 const { searchGames, addExistingGame, addGame } = useProfile()
 
