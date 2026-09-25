@@ -11,91 +11,7 @@
 
     <SocialTabs data-test="social-tabs" v-model="activeTab" />
 
-    <template v-if="activeTab === 'Friends'">
-      <div class="d-flex d-md-none mt-6 mb-4">
-        <v-chip
-          color="secondary"
-          prepend-icon="mdi-filter-variant"
-          size="large"
-          :aria-expanded="showFriendFilters"
-          aria-controls="friend-mobile-filters"
-          @click="showFriendFilters = true"
-        >
-          Filters
-        </v-chip>
-
-        <v-navigation-drawer
-          v-model="showFriendFilters"
-          temporary
-          location="left"
-          width="300"
-        >
-          <div
-            id="friend-mobile-filters"
-            class="pa-4"
-          >
-            <FriendsFilterSidebar @filter="handleFriendFilter" />
-          </div>
-        </v-navigation-drawer>
-      </div>
-
-      <!-- Desktop -->
-      <div class="d-flex d-md-flex ga-6 mt-6 align-start">
-        <div class="d-none d-md-block">
-          <FriendsFilterSidebar 
-            data-test="friend-filter"
-            @filter="handleFriendFilter"
-          />
-        </div>
-
-        <div class="flex-1-1">
-          <!-- Loading -->
-          <div
-            v-if="isLoading"
-            class="d-flex justify-center align-center"
-            style="min-height: 60vh"
-          >
-            <BaseLoadingState />
-          </div>
-
-          <!-- Empty -->
-          <BaseEmptyState
-            v-else-if="filteredPeople.length === 0"
-            title="No players found"
-            description="Try changing your search or friend filters."
-          />
-
-          <!-- People grid -->
-          <template v-else>
-            <PeopleGrid 
-              data-test="people-grid"
-              :people="pagedPeople"
-              variant="discover"
-              @add-friend="handleAddFriend"
-              @message="handleMessage"
-              @unfriend="handleUnfriend"
-            />
-
-            <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
-              <span class="card-meta">
-                Showing {{ friendRangeStart }}-{{ friendRangeEnd }}
-                of {{ filteredPeople.length }} tabletop players
-              </span>
-            </div>
-
-            <BasePagination 
-              v-if="friendTotalPages > 1"
-              class="mt-4"
-              :model-value="friendsPage"
-              :total-pages="friendTotalPages"
-              @update:model-value="goToFriendsPage"
-            />
-          </template>
-        </div>
-      </div>
-    </template>
-    
-    <template v-else-if="activeTab === 'Communities'">
+    <template v-if="activeTab === 'Communities'">
       <!-- Mobile filter trigger -->
       <div class="d-flex d-md-none mt-6 mb-4">
         <v-chip
@@ -171,6 +87,92 @@
             @confirm="handleCreate"
           />
     </template>
+
+    <template v-else-if="activeTab === 'Friends'">
+      <div class="d-flex d-md-none mt-6 mb-4">
+        <v-chip
+          color="secondary"
+          prepend-icon="mdi-filter-variant"
+          size="large"
+          :aria-expanded="showFriendFilters"
+          aria-controls="friend-mobile-filters"
+          @click="showFriendFilters = true"
+        >
+          Filters
+        </v-chip>
+
+        <v-navigation-drawer
+          v-model="showFriendFilters"
+          temporary
+          location="left"
+          width="300"
+        >
+          <div
+            id="friend-mobile-filters"
+            class="pa-4"
+          >
+            <FriendsFilterSidebar @filter="handleFriendFilter" />
+          </div>
+        </v-navigation-drawer>
+      </div>
+
+      <!-- Desktop -->
+      <div class="d-flex d-md-flex ga-6 mt-6 align-start">
+        <div class="d-none d-md-block">
+          <FriendsFilterSidebar 
+            data-test="friend-filter"
+            @filter="handleFriendFilter"
+          />
+        </div>
+
+        <div class="flex-1-1">
+          <!-- Loading -->
+          <div
+            v-if="isLoading"
+            class="d-flex justify-center align-center"
+            style="min-height: 60vh"
+          >
+            <BaseLoadingState />
+          </div>
+
+          <!-- Empty -->
+          <BaseEmptyState
+            v-else-if="filteredPeople.length === 0"
+            title="No people found"
+            description="Try changing your search or friend filters."
+          />
+
+          <!-- People grid -->
+          <template v-else>
+            <PeopleGrid 
+              data-test="people-grid"
+              :people="pagedPeople"
+              variant="discover"
+              @add-friend="handleAddFriend"
+              @message="handleMessage"
+              @unfriend="handleUnfriend"
+            />
+
+            <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
+              <span class="card-meta">
+                Showing {{ friendRangeStart }}-{{ friendRangeEnd }}
+                of {{ filteredPeople.length }} tabletop players
+              </span>
+            </div>
+
+            <BasePagination 
+              v-if="friendTotalPages > 1"
+              class="mt-4"
+              :model-value="friendsPage"
+              :total-pages="friendTotalPages"
+              @update:model-value="goToFriendsPage"
+            />
+          </template>
+        </div>
+      </div>
+    </template>
+    
+    
 
   </PageContainer>
 </template>
@@ -307,12 +309,76 @@ const friendsPage = ref(1)
 
 const FRIENDS_PAGE_SIZE = 9
 
+const mockPeople = ref([
+  {
+    id: 'mock-1',
+    username: 'meeplemaster',
+    fullname: 'Sarah Johnson',
+    profilePicture: '/images/avatar.jpg'
+  },
+  {
+    id: 'mock-2',
+    username: 'dicequeen',
+    fullname: 'Emily Williams',
+    profilePicture: '/images/avatar.jpg'
+  },
+  {
+    id: 'mock-3',
+    username: 'boardgamer42',
+    fullname: 'James Smith',
+    profilePicture: '/images/avatar.jpg'
+  },
+  {
+    id: 'mock-4',
+    username: 'cardboardking',
+    fullname: 'Daniel Brown',
+    profilePicture: '/images/avatar.jpg'
+  },
+  {
+    id: 'mock-5',
+    username: 'tabletopgirl',
+    fullname: 'Jessica Adams',
+    profilePicture: '/images/avatar.jpg'
+  },
+  {
+    id: 'mock-6',
+    username: 'rollwithit',
+    fullname: 'Michael Jones',
+    profilePicture: '/images/avatar.jpg'
+  },
+  {
+    id: 'mock-7',
+    username: 'meeplewizard',
+    fullname: 'Olivia Davis',
+    profilePicture: '/images/avatar.jpg'
+  },
+  {
+    id: 'mock-8',
+    username: 'diceanddragons',
+    fullname: 'Matthew Wilson',
+    profilePicture: '/images/avatar.jpg'
+  },
+  {
+    id: 'mock-9',
+    username: 'boardqueen',
+    fullname: 'Sophie Taylor',
+    profilePicture: '/images/avatar.jpg'
+  },
+  {
+    id: 'mock-10',
+    username: 'sweeyyy',
+    fullname: 'Swelihle Makhankiti',
+    profilePicture: '/images/avatar.jpg'
+  }
+])
+
 // onMounted(async () => {
 //   await getOwnFriendsList()
 // })
 
 const filteredPeople = computed(() => {
-  let result = userFriendList.value?.friends ?? []
+  // let result = userFriendList.value?.friends ?? []
+  let result = mockPeople.value
   
   const query = searchQuery.value.trim().toLowerCase()
 

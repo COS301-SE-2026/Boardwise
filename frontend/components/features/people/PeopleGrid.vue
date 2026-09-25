@@ -13,7 +13,7 @@
 </template>
 
 <script setup>
-import PersonCard from '../PersonCard.vue'
+import PersonCard from './PersonCard.vue'
 import BaseGrid from '~/components/ui/BaseGrid.vue'
 
 defineProps({
