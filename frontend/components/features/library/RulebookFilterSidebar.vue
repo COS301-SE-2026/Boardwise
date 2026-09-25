@@ -2,7 +2,7 @@
   <BaseFilterSidebar @reset="resetFilters">
 
     <BaseFilterGroup title="Genre" :default-open="true">
-      <BaseFilterPills v-model="selectedGenre" :options="presetGenres" />
+      <BaseFilterPills v-model="filters.genre" :options="presetGenres" />
     </BaseFilterGroup>
 
     <BaseFilterGroup title="Player Count" :default-open="true">
@@ -21,15 +21,11 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch } from 'vue'
-
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue'
 import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue'
-import BaseFilterCheckboxGroup from '~/components/ui/Filters/BaseFilterCheckboxGroup.vue'
 import BaseFilterNumberField from '~/components/ui/Filters/BaseFilterNumberField.vue'
 import BaseFilterPills from '~/components/ui/Filters/BaseFilterPills.vue'
-
-const emit = defineEmits(['filter'])
+import { useRulebookFilters } from '~/composables/useRulebookFilters'
 
 const presetGenres = [
   'all',
@@ -41,37 +37,5 @@ const presetGenres = [
   'strategy'
 ]
 
-const selectedGenre = ref('all')
-
-const filters = reactive({
-  playerCount: '',
-  duration: '',
-  minAge: ''
-})
-
-watch(
-  [selectedGenre, filters],
-  () => {
-    emit('filter', {
-      genre:
-        selectedGenre.value === 'all'
-          ? null
-          : selectedGenre.value,
-
-      playerCount: filters.playerCount,
-      duration: filters.duration,
-      minAge: filters.minAge
-    })
-  },
-  {
-    deep: true
-  }
-)
-
-const resetFilters = () => {
-  selectedGenre.value = 'all'
-  filters.playerCount = ''
-  filters.duration = ''
-  filters.minAge = ''
-}
+const {filters, resetFilters} = useRulebookFilters();
 </script>

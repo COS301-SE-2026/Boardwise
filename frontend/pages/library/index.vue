@@ -40,9 +40,7 @@
         width="300"
       >
         
-        <RulebookFilterSidebar
-          @filter="handleFilter"
-        />
+        <RulebookFilterSidebar/>
         
       </v-navigation-drawer>
     </div>
@@ -51,9 +49,7 @@
     <div class="d-none d-md-flex ga-6 align-start">
 
       <!-- Filters -->
-      <RulebookFilterSidebar
-        @filter="handleFilter"
-      />
+      <RulebookFilterSidebar/>
       
       <div class="flex-grow-1" style="min-width: 0;">
         <BaseLoadingState v-if="isLoading" message="Loading rulebooks... " />
@@ -178,7 +174,7 @@ const selectedRulebook = ref(null)
 
 onMounted(() => { // Does stuff when component loads
   fetchFeaturedRulebooks();
-  getAllRulebooks({}, true);
+  getAllRulebooks({limit: CARD_PAGE_SIZE}, true);
 })
 
 const handleUploadRequest = () => {
@@ -194,7 +190,7 @@ const handleUploadRequest = () => {
 
 const delaySearch = useDebounceFn((query) => {
   rulebooksPage.value = 1
-  getAllRulebooks({...activeFilterState.value, search:query || null}, true);
+  getAllRulebooks({...activeFilterState.value, search:query || null, limit: CARD_PAGE_SIZE}, true);
 }, 400);
 
 watch(searchQuery, (query) => {
@@ -214,16 +210,9 @@ const handleSearch = (query) => {
 }
 
 const handleFilter = (filters) => {
-  activeFilterState.value = {
-    genre: filters.genre,
-    languages: "English",
-    playerCount: filters.playerCount,
-    duration: filters.duration,
-    minAge: filters.minAge,
-  }
-    rulebooksPage.value = 1
-    getAllRulebooks({...activeFilterState.value, search: searchQuery.value || null}, true);
-    
+  activeFilterState.value = filters
+  rulebooksPage.value = 1
+  getAllRulebooks({...activeFilterState.value, search: searchQuery.value || null, limit: CARD_PAGE_SIZE}, true);
 }
 
 const handleUploadRulebook = async (newRulebook) => {
@@ -262,4 +251,21 @@ const goToRulebooksPage = async (page) => {
     await loadMore()
   }
 }
+
+const { filters } = useRulebookFilters();
+
+watch(
+  filters,
+  (newFilters) => {
+    const currentGenre = newFilters.genre[0]
+    activeFilterState.value = {
+      genre: currentGenre === 'all' ? null : currentGenre,
+      playerCount: filters.playerCount,
+      duration: filters.duration,
+      minAge: filters.minAge
+    }
+    rulebooksPage.value = 1;
+    getAllRulebooks({...activeFilterState.value, search: searchQuery.value || null, limit: CARD_PAGE_SIZE}, true);
+  },{deep: true}
+)
 </script>
