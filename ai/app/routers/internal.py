@@ -5,7 +5,8 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Request, status
 
 from app.dependencies import verify_internal_token
 from app.ingestion.vectoriser import background_vectorise_and_update
-from ai.app.schemas.schemas import ReEmbedRequest
+from app.schemas.schemas import ReEmbedRequest
+from app.services import lancedb_service
 
 logger = logging.getLogger(__name__)
 
