@@ -174,6 +174,7 @@ public class ProfileController {
             return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
         }
         catch(Exception e){
+            e.printStackTrace();
             Map<String, Object> res = new HashMap<>();
             res.put("message", "Something went wrong during profile picture update.");
             return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);

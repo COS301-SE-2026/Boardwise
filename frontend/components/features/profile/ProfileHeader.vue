@@ -84,7 +84,7 @@
     <ChangeProfilePictureModal
       v-model="showPfpModal"
       :user="user"
-      @save="$emit('pfpChange', $event)"
+      @save="$emit('pfp-change', $event)"
     />
 
   </BaseCard>
@@ -105,7 +105,7 @@ defineProps({
   user: { type: Object, required: true }
 })
 
-defineEmits(['saved', 'pfpChange'])
+defineEmits(['saved', 'pfp-change'])
 
 const showEdit = ref(false)
 const showPfpModal = ref(false)

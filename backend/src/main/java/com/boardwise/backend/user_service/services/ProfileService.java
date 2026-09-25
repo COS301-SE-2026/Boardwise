@@ -290,7 +290,7 @@ public class ProfileService {
         return toReturn;
     }
 
-    public ProfilePictureResponseDTO changeProfilePicture(String token, MultipartFile pfp) throws IOException {
+    public ProfilePictureResponseDTO changeProfilePicture(String token, MultipartFile pfp) throws IOException, IllegalArgumentException {
         String url = "";
         String message = "";
         String userId = jwtService.extractUserId(token).toString();
