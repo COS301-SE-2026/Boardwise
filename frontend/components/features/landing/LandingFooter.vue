@@ -64,10 +64,13 @@
 
                 <v-col cols="12" md="4">
                     
-                    <p>
-                        © {{ currentYear }} Boardwise. By WOMM.
-                    </p>
-
+                    <a
+                        href="https://boardgamegeek.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Powered by BGG
+                    </a>
                 </v-col>
             </v-row>
 

@@ -1,5 +1,5 @@
 <template>
-    <v-app-bar flat class="landing-navbar" color="transparent">
+    <v-app-bar flat class="landing-navbar" color="surface">
         <v-container class="landing-navbar__inner">
             <NuxtLink
                 to="/"

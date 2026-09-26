@@ -858,8 +858,10 @@ a { color: var(--color-link); text-decoration: none; }
 }
 
 .landing-hero__container {
-  padding-top: clamp(3rem, 7vw, 6rem);
-  padding-bottom: clamp(3rem, 7vw, 6rem);
+  width: 100%;
+  max-width: none;
+  padding-inline: var(--space-4);
+
 }
 
 .landing-hero__layout {
@@ -867,7 +869,8 @@ a { color: var(--color-link); text-decoration: none; }
 }
 
 .landing-hero__content {
-  max-width: 720px;
+  width: 100%;
+  max-width: none;
 }
 
 .landing-hero__content .hero-badges {
@@ -897,7 +900,7 @@ a { color: var(--color-link); text-decoration: none; }
 }
 
 .landing-hero__description {
-  max-width: 620px;
+  max-width: none;
   margin-top: var(--space-5);
 
   font-size: clamp(1rem, 1.3vw, 1.125rem);
