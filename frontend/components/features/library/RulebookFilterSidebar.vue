@@ -2,7 +2,7 @@
   <BaseFilterSidebar @reset="resetFilters">
 
     <BaseFilterGroup title="Genre" :default-open="true">
-      <BaseFilterPills v-model="filters.genre" :options="presetGenres" />
+      <BaseFilterPills v-model="filters.genre" :options="availableGenres" @search="handleGenreSearch" />
     </BaseFilterGroup>
 
     <BaseFilterGroup title="Player Count" :default-open="true">
@@ -21,21 +21,29 @@
 </template>
 
 <script setup>
+import { onMounted, computed } from 'vue'
+import { useDebounceFn } from '@vueuse/core'
+
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue'
 import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue'
 import BaseFilterNumberField from '~/components/ui/Filters/BaseFilterNumberField.vue'
 import BaseFilterPills from '~/components/ui/Filters/BaseFilterPills.vue'
 import { useRulebookFilters } from '~/composables/useRulebookFilters'
-
-const presetGenres = [
-  'all',
-  'adventure',
-  'card game',
-  'economic',
-  'family',
-  'fantasy',
-  'strategy'
-]
+import { useBoardGames } from '~/composables/useBoardGames'
 
 const {filters, resetFilters} = useRulebookFilters();
+const {genres, searchGenres} = useBoardGames();
+
+const availableGenres = computed(() => {
+  const combined = ['all', ...filters.genre, ...genres.value];
+  return Array.from(new Set(combined));
+});
+
+onMounted(() => {
+  searchGenres()
+})
+
+const handleGenreSearch = useDebounceFn((query) => {
+  searchGenres(query);
+}, 300);
 </script>

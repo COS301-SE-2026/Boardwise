@@ -174,7 +174,6 @@ const selectedRulebook = ref(null)
 
 onMounted(() => { // Does stuff when component loads
   fetchFeaturedRulebooks();
-  getAllRulebooks({limit: CARD_PAGE_SIZE}, true);
 })
 
 const handleUploadRequest = () => {
@@ -207,12 +206,6 @@ const openRulebook = async (rulebook) => {
 
 const handleSearch = (query) => {
   searchQuery.value = query
-}
-
-const handleFilter = (filters) => {
-  activeFilterState.value = filters
-  rulebooksPage.value = 1
-  getAllRulebooks({...activeFilterState.value, search: searchQuery.value || null, limit: CARD_PAGE_SIZE}, true);
 }
 
 const handleUploadRulebook = async (newRulebook) => {
@@ -260,12 +253,12 @@ watch(
     const currentGenre = newFilters.genre[0]
     activeFilterState.value = {
       genre: currentGenre === 'all' ? null : currentGenre,
-      playerCount: filters.playerCount,
-      duration: filters.duration,
-      minAge: filters.minAge
+      playerCount: newFilters.playerCount,
+      duration: newFilters.duration,
+      minAge: newFilters.minAge
     }
     rulebooksPage.value = 1;
     getAllRulebooks({...activeFilterState.value, search: searchQuery.value || null, limit: CARD_PAGE_SIZE}, true);
-  },{deep: true}
+  },{deep: true, immediate: true}
 )
 </script>
