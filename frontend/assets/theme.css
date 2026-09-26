@@ -875,11 +875,12 @@ a { color: var(--color-link); text-decoration: none; }
   overflow: hidden;
 }
 
-.landing-hero__container {
-  width: 100%;
-  max-width: none;
-  padding-inline: var(--space-4);
-
+.landing-hero__container,
+.landing-section__inner {
+  width: min(calc(100% - 32px), var(--container-max));
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: 0;
 }
 
 .landing-hero__layout {
@@ -930,10 +931,17 @@ a { color: var(--color-link); text-decoration: none; }
 .landing-hero__actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   flex-wrap: wrap;
   gap: var(--space-3);
 
   margin-top: var(--space-6);
+}
+
+@media (max-width: 959px) {
+  .landing-hero__actions {
+    justify-content: center;
+  }
 }
 
 .landing-hero__mascot {
@@ -1040,6 +1048,9 @@ a { color: var(--color-link); text-decoration: none; }
     padding-bottom: var(--space-8);
   }
 
+  .landing-section__inner {
+  width: calc(100% - 24px);
+}
   .landing-hero__title {
     font-size: clamp(2.6rem, 14vw, 4rem);
   }

@@ -1,5 +1,5 @@
 <template>
-    <v-container class=" py-16">
+    <v-container class="landing-section__inner py-16">
 
         <v-row class="mb-14"
         >

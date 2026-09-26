@@ -1,6 +1,6 @@
 <template>
-    <v-footer class=" py-10">
-        <v-container>
+    <v-footer class="landing-hero">
+        <v-container class="landing-section__inner">
             <v-row>
                 <v-col cols="12" md="4">
                     <h3>
@@ -10,7 +10,6 @@
                           Discover, collect and share board games with the Boardwise community.
                     </p>
                 </v-col>
-
                 
                     <div>
                         <span class="hero-badge hero-badge--connect">Connect</span>
@@ -57,7 +56,7 @@
                     </h4>
 
                     <div class="d-flex flex-column ga-2">
-                        <NuxtLink to="/auth/signup">Sign In</NuxtLink>
+                        <NuxtLink to="/auth/signin">Sign In</NuxtLink>
                         <NuxtLink to="/auth/signup">Sign Up</NuxtLink>
                     </div>
                 </v-col>
