@@ -521,22 +521,39 @@ a { color: var(--color-link); text-decoration: none; }
 .game-strip {
   display: flex;
   gap: var(--space-3);
-
+  margin-bottom: var(--space-3);
   width: max-content;
 }
 
 .game-card {
-  width: 110px;
-
-  flex: 0 0 110px;
-
-  overflow: hidden;
-
-  cursor: default;
-
-  pointer-events: none;
+  display: block;
+  flex: 0 0 120px;
+  width: 120px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
 }
 
+.game-card .base-image {
+  width: 100%;
+  background: var(--color-surface);
+}
+
+@media (max-width: 599px) {
+  .game-card {
+    flex-basis: 110px;
+    width: 110px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-right,
+  .marquee-left {
+    animation: none !important;
+    transform: none !important;
+  }
+}
 .marquee-left {
   animation: marquee-left 45s linear infinite;
 }
@@ -573,6 +590,7 @@ a { color: var(--color-link); text-decoration: none; }
 
   .game-strip {
     gap: var(--space-2);
+    
   }
 
   .game-card {
@@ -857,9 +875,12 @@ a { color: var(--color-link); text-decoration: none; }
   overflow: hidden;
 }
 
-.landing-hero__container {
-  padding-top: clamp(3rem, 7vw, 6rem);
-  padding-bottom: clamp(3rem, 7vw, 6rem);
+.landing-hero__container,
+.landing-section__inner {
+  width: min(calc(100% - 32px), var(--container-max));
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: 0;
 }
 
 .landing-hero__layout {
@@ -867,7 +888,8 @@ a { color: var(--color-link); text-decoration: none; }
 }
 
 .landing-hero__content {
-  max-width: 720px;
+  width: 100%;
+  max-width: none;
 }
 
 .landing-hero__content .hero-badges {
@@ -897,7 +919,7 @@ a { color: var(--color-link); text-decoration: none; }
 }
 
 .landing-hero__description {
-  max-width: 620px;
+  max-width: none;
   margin-top: var(--space-5);
 
   font-size: clamp(1rem, 1.3vw, 1.125rem);
@@ -909,10 +931,17 @@ a { color: var(--color-link); text-decoration: none; }
 .landing-hero__actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   flex-wrap: wrap;
   gap: var(--space-3);
 
   margin-top: var(--space-6);
+}
+
+@media (max-width: 959px) {
+  .landing-hero__actions {
+    justify-content: center;
+  }
 }
 
 .landing-hero__mascot {
@@ -1019,6 +1048,9 @@ a { color: var(--color-link); text-decoration: none; }
     padding-bottom: var(--space-8);
   }
 
+  .landing-section__inner {
+  width: calc(100% - 24px);
+}
   .landing-hero__title {
     font-size: clamp(2.6rem, 14vw, 4rem);
   }
@@ -1278,9 +1310,23 @@ a { color: var(--color-link); text-decoration: none; }
 }
 
 .landing-navbar {
-  padding-block: 0.35rem;
+  position: relative;
+  z-index: 10;
+  width: 100%;
 }
 
+.site-footer__bgg {
+  display: inline-flex;
+  align-items: center;
+  margin-top: var(--space-3);
+}
+
+.site-footer__bgg-logo {
+  display: block;
+  width: auto;
+  max-width: 150px;
+  height: auto;
+}
 .landing-navbar__inner {
   display: flex;
   align-items: center;
@@ -1295,7 +1341,7 @@ a { color: var(--color-link); text-decoration: none; }
   flex-shrink: 0;
 
   font-family: var(--font-display);
-  font-size: clamp(1.7rem, 3vw, 2.35rem);
+  font-size: clamp(2.7rem, 5vw, 5.35rem);
   font-weight: 700;
   line-height: 1;
 
@@ -2598,7 +2644,7 @@ html[data-density="compact"] .rulebook-list {
       repeat(2, minmax(0, 1fr));
   }
 
-  .chat-user-details__tabs ,.v-tab {
+  .chat-user-details__tabs .v-tab {
     min-width: auto;
 
     padding-inline: var(--space-2);
@@ -3632,6 +3678,10 @@ html[data-density="compact"] .rulebook-list {
   gap: var(--space-2);
 }
 
+
+/* -------------------------------------------------------------
+   MOBILE / SMALL SCREENS
+   ------------------------------------------------------------- */
 .onboarding-games__footer-status > .v-icon {
   flex: 0 0 auto;
 }
@@ -3714,6 +3764,11 @@ html[data-density="compact"] .rulebook-list {
   margin: 0 0 var(--space-2);
 }
 
+.profile-preferences {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
 .onboarding-feature-card__desc {
   font-size: var(--fs-small);
   color: var(--color-text-muted);
@@ -4659,7 +4714,7 @@ html[data-density="compact"] .rulebook-list {
   font-size: 1.35rem;
 }
 
-ui-section-title h1 {
+.ui-section-title {
   margin: 0;
   color: var(--color-primary);
   font-family: var(--font-display);
@@ -5272,7 +5327,7 @@ games-owned-section {
 
 .stat-card {
   min-height: 20px;
-  padding: var(--space-4);
+  padding: var(--space-8);
 
   display: flex;
   align-items: center;
@@ -5281,6 +5336,12 @@ games-owned-section {
   border-radius: var(--radius-lg);
   background: var(--alabaster);
   border: 1px solid var(--color-border);
+}
+
+.stat-card .base-card__body {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .stat-card--button {
@@ -6945,8 +7006,12 @@ games-owned-section {
 
 .checklist-item__row {
   display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
   align-items: flex-start;
   gap: var(--space-3);
+  overflow: hidden;
 }
 
 .checklist-item__check {
@@ -7151,11 +7216,39 @@ games-owned-section {
   .wizard-layout {
     grid-template-columns: 1fr;
   }
-  .wizard-layout__sidebar {
-    position: static;
-  }
+
+  .community-chat-header__title-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-2);
 }
 
+.community-chat-header__visibility {
+  flex-shrink: 0;
+}
+
+.community-chat-header__title {
+    min-width: 0;
+  flex: 1 1 auto;
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--color-secondary);
+
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  line-height: 1.2;
+
+  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  }
+}
+.wizard-layout__sidebar {
+    position: static;
+  }
 /* Wizard footer */
 .wizard-footer {
   display: flex;
@@ -7230,6 +7323,21 @@ games-owned-section {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
+}
+
+.community-chat-header__details-trigger {
+  padding: var(--space-1);
+
+  color: inherit;
+  text-align: left;
+
+  width: 100%;
+
+transition:
+  background var(--transition-fast),
+  color var(--transition-fast);
+  background: transparent;
+  border: 0;
 }
 
 .wizard-chat-panel__suggestion {

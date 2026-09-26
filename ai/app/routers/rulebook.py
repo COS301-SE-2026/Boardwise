@@ -361,6 +361,7 @@ async def query_rulebook(
             )
             for chunk in retrieved_chunks
         ]
+        citations.sort(key=lambda c: c.index)
         logger.info(
             "Successfully processed query for rulebook %s.",
             sanitise_log_input(rulebook_id),

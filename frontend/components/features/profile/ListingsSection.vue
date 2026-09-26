@@ -28,7 +28,10 @@ import { useSnackBar } from '~/composables/useSnackbar'
 const { show } = useSnackBar()
 
 defineProps({
-  listings: Array,
+  listings: {
+    type: Array,
+    default: () => []
+  },
   editable: {
     type: Boolean,
     default: false

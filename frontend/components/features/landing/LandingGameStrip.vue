@@ -6,10 +6,12 @@
         <div 
             class="game-strip marquee-right" 
             aria-hidden="true">
-                <BaseCard
+                <div
                     v-for="(game, index) in topRow"
                     :key="`top-${game.id}-${index}`" 
                     class="game-card pa-0" 
+                    alt=""
+                    decoding="async"
                     > 
                     <BaseImage
                         :src="game.image"
@@ -17,23 +19,26 @@
                         height="160" 
                         cover
                     />
-                </BaseCard>
+</div>
         </div>
 
         <div 
             class="game-strip marquee-left" 
             aria-hidden="true">
-                <BaseCard 
+                <div 
                     v-for="(game, index) in secondRow"
                     :key="`top-${game.id}-${index}`" 
-                    class="game-card pa-0" > 
+                    class="game-card pa-0"
+                    alt=""
+                    decoding="async"
+                     > 
                     <BaseImage
                         :src="game.image"
                         :alt="game.title"
                         height="160" 
                         cover
                     />
-                </BaseCard>
+    </div>
     </div>
 </section>
 </template>

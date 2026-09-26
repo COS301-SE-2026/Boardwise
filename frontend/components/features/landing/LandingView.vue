@@ -1,13 +1,11 @@
 <template>
     <LandingNavbar/>
-    <main>
     <LandingHero/>
     <LandingGameStrip/>
     
     <LandingRagPreview/>
     <LandingFeatures/>
     <LandingCallToAction/>
-    </main>
     <LandingFooter/>
 </template>
 
