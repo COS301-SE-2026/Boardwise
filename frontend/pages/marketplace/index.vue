@@ -73,7 +73,7 @@
     </template>
     
     <!-- External Retail -->
-    <template v-else-if="activeTab === 'Web'">
+    <template v-else-if="activeTab === 'Web Listings'">
       <!-- Mobile -->
       <div class="d-flex d-md-none mt-6 mb-4">
           <v-chip
@@ -115,12 +115,12 @@
               class="d-flex justify-center align-center flex-1-1"
               style="min-height: 60vh"
             >
-              <MarketplaceLoadingState tab="Web" />
+              <MarketplaceLoadingState tab="Web Listings" />
             </div>
 
             <MarketplaceEmptyState
               v-else-if="filteredRetailResults.length === 0"
-              tab="Web"
+              tab="Web Listings"
               :search="searchQ"
               :has-active-filters="hasRetailFilters"
               @clear-filters="resetRetailFilters"
@@ -222,7 +222,7 @@ const showInlineLoading = computed(() => {
 const currentListings = unref(listings) ?? []
 const currentRetail = unref(retailResults) ?? []
 
-  if (activeTab.value === 'Web') {
+  if (activeTab.value === 'Web Listings') {
     return retailLoading.value && currentRetail.length > 0
   }
   return loading.value && currentListings.length > 0
@@ -233,7 +233,7 @@ const activeFilterState = ref({})
 const activeRetailFilterState = ref({ retailers: null, minPrice: null, maxPrice: null }, true)
 
 const delaySearch = useDebounceFn((query) => {
-  if(activeTab.value === 'Web'){
+  if(activeTab.value === 'Web Listings'){
     retailPage.value = 1
     fetchPersonalisedListings(true);
     return
@@ -244,7 +244,7 @@ const delaySearch = useDebounceFn((query) => {
 }, 400)
 
 watch(activeTab, async (tab) => {
-  if(tab === 'Web' && retailResults.value.length === 0) {
+  if(tab === 'Web Listings' && retailResults.value.length === 0) {
     await fetchPersonalisedListings();
   }
 })
@@ -263,7 +263,7 @@ watch(searchQ,(query)=>{
   const handleFilter = (filters)=>{
 
   const conditions = filters.conditions.length > 0 ? filters.conditions.map(c => c.toLowerCase()) : null
-  const genres = filters.genres?.length > 0 ? filters.genres : null
+  const genres = filters.genres ? [filters.genres.toLowerCase()] : null
 
   const  lt= getListingType(filters.rent,filters.sale);
 

@@ -83,7 +83,7 @@ const _useMarketplace = () =>{
             }
             
         } catch (err) {
-            show('Failed to find any listings!', 'error')
+            show("We couldn't find anything!", 'error')
             throw err
         } finally {
             loading.value = false
@@ -115,7 +115,7 @@ const _useMarketplace = () =>{
             userListings.value = res ?? [];
         } catch (err: any) {
             error.value = err.data?.message ?? 'Failed to fetch user listings';
-            show('Failed to fetch user listings', 'error');
+            show("", 'error');
             console.error(err);
         } finally {
             loading.value = false;

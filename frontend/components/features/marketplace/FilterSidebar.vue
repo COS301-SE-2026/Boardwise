@@ -2,7 +2,7 @@
   <BaseFilterSidebar data-test="filter-sidebar" @reset="resetFilters">
 
     <BaseFilterGroup title="Genres">
-      <BaseFilterPills v-model="selectedGenre" :options="genres" />
+      <BaseFilterPills v-model="selectedGenre" :options="genres" :multiple="false" />
     </BaseFilterGroup>
 
     <BaseFilterGroup title="Listing Type">
@@ -37,7 +37,7 @@ import BaseFilterPriceRange from '~/components/ui/Filters/BaseFilterPriceRange.v
 
 const emit = defineEmits(['filter'])
 
-const genres = ['All', 'Strategy', 'Family', 'Party', 'Card', 'Abstract']
+const genres = ['All', 'Economic', 'Family', 'Party', 'Card Game', 'Abstract']
 const conditions = ['New', 'Like New', 'Good', 'Fair']
 
 const selectedGenre  = ref('All')
@@ -53,8 +53,9 @@ const rent = computed(() => selectedListingTypes.value.includes('rent'))
 const sale = computed(() => selectedListingTypes.value.includes('sale'))
 
 watch([selectedGenre, selectedListingTypes, selectedConditions, filters], () => {
+  console.log("filter genre val being sent ",selectedGenre.value)
   emit('filter', {
-    genres: selectedGenre.value === 'All' ? null : [selectedGenre.value.toLowerCase()],
+    genres: selectedGenre.value === 'All' ? null : selectedGenre.value,
     conditions: selectedConditions.value,
     rent: rent.value,
     sale: sale.value,

@@ -20,4 +20,6 @@ public interface ListingRepository extends MongoRepository<Listing, String> {
     List<Listing> findByUsername(String username);
 
     List<Listing> findByUserId(ObjectId userId);
+
+    List<Listing> findByGameTitle(String gameTitle);
 }
