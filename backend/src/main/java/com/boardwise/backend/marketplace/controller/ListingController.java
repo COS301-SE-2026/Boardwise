@@ -20,6 +20,8 @@ import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
 import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.marketplace.service.*;
+import com.boardwise.backend.shared.model.Boardgame;
+import com.google.maps.DirectionsApi.Response;
 
 import jakarta.validation.*;
 
@@ -238,6 +240,22 @@ public class ListingController {
         } catch (Exception e) {
             logger.log(Level.SEVERE, "personalised listings failed", e);
             return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    @GetMapping("listings/retail")
+    public ResponseEntity<Page<RetailSourceItemDTO>> getExternalBoardgames(@RequestParam (required = true) String boardgame, @RequestParam Integer page, @RequestParam Integer size){
+        try{
+            Page<RetailSourceItemDTO>  results =
+                retailService.fetchListingsFromScraper(List.of(boardgame), page, size);
+
+            if(results.isEmpty()) return ResponseEntity.noContent().build();
+            return ResponseEntity.ok(results);
+        }
+        catch(Exception e){
+            logger.log(Level.SEVERE, "failed while trying to find listings on the web", e);
+            return ResponseEntity.internalServerError().build();
+
         }
     }
 }
