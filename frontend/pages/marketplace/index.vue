@@ -26,14 +26,14 @@
           location="left"
           width="300"
         >
-          <FilterSidebar data-test="filter-sidebar" @filter="handleFilter" />
+          <FilterSidebar v-if="!loading" data-test="filter-sidebar" @filter="handleFilter" />
         </v-navigation-drawer>
       </div>
 
       <!-- Desktop -->
       <div class="d-flex d-md-flex ga-6 mt-6 align-start">
         <div class="d-none d-md-block">
-          <FilterSidebar data-test="filter-sidebar" @filter="handleFilter"/>
+          <FilterSidebar v-if="!loading" data-test="filter-sidebar" @filter="handleFilter"/>
         </div>
           
         <div class="flex-1-1">
@@ -92,6 +92,7 @@
             width="300"
           >
             <RetailerFilterSidebar 
+              v-if="!loading" 
               data-test="retailer-filter-sidebar"
               :retailer-options="retailerOptions"
               @filter="handleRetailerFilter" 
@@ -102,7 +103,7 @@
         <!-- Desktop -->
         <div class="d-flex d-md-flex ga-6 mt-6 align-start">
           <div class="d-none d-md-block">
-            <RetailerFilterSidebar 
+            <RetailerFilterSidebar v-if="!loading"
               data-test="filter-sidebar" 
               :retailer-options="retailerOptions"
               @filter="handleRetailerFilter"
