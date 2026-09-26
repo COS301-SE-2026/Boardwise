@@ -46,7 +46,7 @@ def _assess_and_refine_page(
         boxed_regions = _detect_boxed_regions(raw_page)
         _tag_boxed_blocks(raw_blocks_list, boxed_regions)
         page_dict["blocks"] = _reorder_blocks_by_column(raw_blocks_list, raw_page)
-        return (page_dict, True, escalation_reason, (0.6 if escalate_page else None))
+        return (page_dict, False, escalation_reason, (0.6 if escalate_page else None))
 
     page_blocks = page_dict.get("blocks", [])
     page_has_issues = any(
@@ -486,7 +486,7 @@ def _escalate_to_tier_3(file_bytes: bytes) -> list[dict]:
                 "pdf_infer_table_structure": "true",
                 "extract_image_block_to_payload": "true",
             },
-            timeout=120,
+            timeout=300,
         )
         response.raise_for_status()
         elements = response.json()

@@ -38,6 +38,7 @@
           <template v-else>
             <CommunityGrid
               :communities="pagedCommunities"
+              @select="openCommunity"
             />
 
             <template v-if="filteredCommunities.length > 0">
@@ -63,6 +64,14 @@
           />
     </template>
 
+  <PrivateCommunityAccessModal
+  v-if="selectedPrivateCommunity"
+  v-model="showPrivateCommunityModal"
+  :community="selectedPrivateCommunity"
+  :loading="requestLoading"
+  :requested="requestSent"
+  @request="handlePrivateCommunityRequest"
+/>
     <template v-else-if="activeTab === 'Friends'">
       <MobileFilterDrawer id="friend-mobile-filters">
         <FriendsFilterSidebar @filter="handleFriendFilter" />
@@ -80,7 +89,7 @@
         <div class="flex-1-1">
           <!-- Loading -->
           <div
-            v-if="isLoading"
+            v-if="peopleLoading"
             class="d-flex justify-center align-center"
             style="min-height: 60vh"
           >
@@ -140,7 +149,6 @@ import { useDebounceFn } from '@vueuse/core'
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import BasePagination from '~/components/ui/BasePagination.vue'
-import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import MobileFilterDrawer from '~/components/ui/MobileFilterDrawer.vue'
 
@@ -154,8 +162,18 @@ import type { GroupInfo } from '~/services/communityService'
 
 import { useCommunity } from '~/composables/useCommunity'
 import { useSnackBar } from '~/composables/useSnackbar'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
+import PrivateCommunityAccessModal from '~/components/features/community/PrivateCommunityAccessModal.vue'
+import { CommunityService } from '~/services/communityService'
+import { useProfile } from '~/composables/useProfile'
 
 const CARD_PAGE_SIZE = 6
+
+type CommunityListItem = GroupInfo & {
+  groupId?: string
+  isMember?: boolean
+  isOwner?: boolean
+}
 
 const { getAllCommunities, searchForCommunity, loading } = useCommunity()
 const { show } = useSnackBar()
@@ -163,7 +181,12 @@ const { show } = useSnackBar()
 const activeTab = ref('Friends')
 const searchQuery = ref('')
 const showCreateCommunity = ref(false)
-const communities = ref<Array<GroupInfo>>([])
+const communities = ref<CommunityListItem[]>([])
+
+const showPrivateCommunityModal = ref(false)
+const selectedPrivateCommunity = ref<CommunityListItem | null>(null)
+const requestLoading = ref(false)
+const requestSent = ref(false)
 
 const selectedTypes = ref<string[]>([])
 const selectedCategories = ref<string[]>([])
@@ -171,6 +194,7 @@ const selectedCategories = ref<string[]>([])
 onMounted(async () => {
   communities.value = await getAllCommunities()
   console.log(communities.value)
+  await fetchPeople(friendsPage.value);
 })
 const showFilters = ref(false)
 const delaySearch = useDebounceFn( async (query) => {
@@ -240,18 +264,72 @@ const pagedCommunities = computed(() => {
   return filteredCommunities.value.slice(start, start + CARD_PAGE_SIZE)
 })
 
+const getCommunityId = (
+  community: CommunityListItem | null
+) => community?.id ?? community?.groupId
+
+const openCommunity = (community: CommunityListItem) => {
+  const isPrivate =
+    String(community?.visibility).toLowerCase() === 'private'
+
+  const hasAccess =
+    community?.isMember === true ||
+    community?.isOwner === true
+
+  if (isPrivate && !hasAccess) {
+    selectedPrivateCommunity.value = community
+    requestSent.value = false
+    showPrivateCommunityModal.value = true
+    return
+  }
+
+  const id = getCommunityId(community)
+
+  if (id) {
+    router.push(`/social/community/${id}`)
+  }
+}
+
+const handlePrivateCommunityRequest = async () => {
+  const id = getCommunityId(selectedPrivateCommunity.value)
+
+  if (!id) {
+    show('Could not identify this community.', 'error')
+    return
+  }
+
+  requestLoading.value = true
+
+  try {
+    await CommunityService.requestToJoinCommunity(id)
+    requestSent.value = true
+    show('Your request was sent to the community owner.', 'success')
+  } catch (err: any) {
+    console.error('Failed to request community access.', err)
+
+    show(
+      err?.data?.message ||
+        'Could not send your request. Please try again.',
+      'error'
+    )
+  } finally {
+    requestLoading.value = false
+  }
+}
+
 // ======================= Friends ============================== 
 import FriendsFilterSidebar from '~/components/features/people/FriendsFilterSidebar.vue'
 import PeopleGrid from '~/components/features/people/PeopleGrid.vue'
 
 import { useFriends } from '~/composables/useFriends'
 import { useRouter } from 'vue-router'
+import type { ProfileSearchResponse } from '~/services/userService'
+const { fetchUsers, isLoading: peopleLoading } = useProfile()
 
 const router = useRouter()
 
 const {
-    userFriendList,
-    isLoading,
+    isLoading: friendActionLoading,
     sendFriendRequest,
     unfriendUser
 } = useFriends()
@@ -262,83 +340,103 @@ const friendsPage = ref(1)
 
 const FRIENDS_PAGE_SIZE = 9
 
-const mockPeople = ref([
-  {
-    id: 'mock-1',
-    username: 'meeplemaster',
-    fullname: 'Sarah Johnson',
-    profilePicture: '/images/avatar.jpg'
-  },
-  {
-    id: 'mock-2',
-    username: 'dicequeen',
-    fullname: 'Emily Williams',
-    profilePicture: '/images/avatar.jpg'
-  },
-  {
-    id: 'mock-3',
-    username: 'boardgamer42',
-    fullname: 'James Smith',
-    profilePicture: '/images/avatar.jpg'
-  },
-  {
-    id: 'mock-4',
-    username: 'cardboardking',
-    fullname: 'Daniel Brown',
-    profilePicture: '/images/avatar.jpg'
-  },
-  {
-    id: 'mock-5',
-    username: 'tabletopgirl',
-    fullname: 'Jessica Adams',
-    profilePicture: '/images/avatar.jpg'
-  },
-  {
-    id: 'mock-6',
-    username: 'rollwithit',
-    fullname: 'Michael Jones',
-    profilePicture: '/images/avatar.jpg'
-  },
-  {
-    id: 'mock-7',
-    username: 'meeplewizard',
-    fullname: 'Olivia Davis',
-    profilePicture: '/images/avatar.jpg'
-  },
-  {
-    id: 'mock-8',
-    username: 'diceanddragons',
-    fullname: 'Matthew Wilson',
-    profilePicture: '/images/avatar.jpg'
-  },
-  {
-    id: 'mock-9',
-    username: 'boardqueen',
-    fullname: 'Sophie Taylor',
-    profilePicture: '/images/avatar.jpg'
-  },
-  {
-    id: 'mock-10',
-    username: 'sweeyyy',
-    fullname: 'Swelihle Makhankiti',
-    profilePicture: '/images/avatar.jpg'
-  }
-])
+// const mockPeople = ref([
+//   {
+//     id: 'mock-1',
+//     username: 'meeplemaster',
+//     fullname: 'Sarah Johnson',
+//     profilePicture: '/images/avatar.jpg'
+//   },
+//   {
+//     id: 'mock-2',
+//     username: 'dicequeen',
+//     fullname: 'Emily Williams',
+//     profilePicture: '/images/avatar.jpg'
+//   },
+//   {
+//     id: 'mock-3',
+//     username: 'boardgamer42',
+//     fullname: 'James Smith',
+//     profilePicture: '/images/avatar.jpg'
+//   },
+//   {
+//     id: 'mock-4',
+//     username: 'cardboardking',
+//     fullname: 'Daniel Brown',
+//     profilePicture: '/images/avatar.jpg'
+//   },
+//   {
+//     id: 'mock-5',
+//     username: 'tabletopgirl',
+//     fullname: 'Jessica Adams',
+//     profilePicture: '/images/avatar.jpg'
+//   },
+//   {
+//     id: 'mock-6',
+//     username: 'rollwithit',
+//     fullname: 'Michael Jones',
+//     profilePicture: '/images/avatar.jpg'
+//   },
+//   {
+//     id: 'mock-7',
+//     username: 'meeplewizard',
+//     fullname: 'Olivia Davis',
+//     profilePicture: '/images/avatar.jpg'
+//   },
+//   {
+//     id: 'mock-8',
+//     username: 'diceanddragons',
+//     fullname: 'Matthew Wilson',
+//     profilePicture: '/images/avatar.jpg'
+//   },
+//   {
+//     id: 'mock-9',
+//     username: 'boardqueen',
+//     fullname: 'Sophie Taylor',
+//     profilePicture: '/images/avatar.jpg'
+//   },
+//   {
+//     id: 'mock-10',
+//     username: 'sweeyyy',
+//     fullname: 'Swelihle Makhankiti',
+//     profilePicture: '/images/avatar.jpg'
+//   }
+// ])
 
 // onMounted(async () => {
 //   await getOwnFriendsList()
 // })
 
+const people = ref<ProfileSearchResponse[]>([])
+const hasMorePeople = ref(true)
+
+const fetchPeople = async (page: number) => {
+  try{
+    const res = await fetchUsers(page)
+    people.value = res ?? []
+    hasMorePeople.value = people.value.length === FRIENDS_PAGE_SIZE
+  }
+  catch(err){
+    console.error('falied to fetch users: ', err)
+    show('Failed to fetch users', 'error')
+    people.value = []
+  }
+}
+
+watch(friendsPage, (page) => {
+  fetchPeople(page)
+})
+
 const filteredPeople = computed(() => {
   // let result = userFriendList.value?.friends ?? []
-  let result = mockPeople.value
+  let result = people.value
   
   const query = searchQuery.value.trim().toLowerCase()
 
   if (query) {
     result = result.filter(person =>
         person.username?.toLowerCase().includes(query) ||
-        person.fullname?.toLowerCase().includes(query)
+        person.fullName?.toLowerCase().includes(query)
     )
   }
 
@@ -346,19 +444,11 @@ const filteredPeople = computed(() => {
 })
 
 const friendTotalPages = computed(() => {
-  return Math.max(1,
-    Math.ceil(filteredPeople.value.length / FRIENDS_PAGE_SIZE)
-  )
+  return hasMorePeople.value ? friendsPage.value + 1 : friendsPage.value
 })
 
-const pagedPeople = computed(() => {
-  const start = (friendsPage.value - 1) * FRIENDS_PAGE_SIZE
+const pagedPeople = computed(() => filteredPeople.value)
 
-  return filteredPeople.value.slice(
-    start, 
-    start + FRIENDS_PAGE_SIZE
-  )
-})
 
 const handleMessage = (id: string) => {
     router.push({
@@ -375,7 +465,7 @@ const handleAddFriend = async (id: string) => {
 
 const handleUnfriend = async (id: string) => {
   await unfriendUser(id)
-  // await getOwnFriendsList()
+  await fetchPeople(friendsPage.value)
 }
 
 const friendRangeStart = computed(() => {
@@ -387,10 +477,7 @@ const friendRangeStart = computed(() => {
 })
 
 const friendRangeEnd = computed(() => {
-    return Math.min(
-        friendsPage.value * FRIENDS_PAGE_SIZE,
-        filteredPeople.value.length
-    )
+    return (friendsPage.value - 1) * FRIENDS_PAGE_SIZE + pagedPeople.value.length
 })
 
 const goToFriendsPage = (page: number) => {
