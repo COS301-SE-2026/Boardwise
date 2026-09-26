@@ -22,8 +22,8 @@
         <!-- Breadcrumb -->
         <div class="event-detail__breadcrumb">
             <BaseBackButton :to="'/events'">Events</BaseBackButton>
-            <span class="event-detail__crump-sep">/</span>
-            <span class="event-detail__crump-current">{{ event.name }}</span>
+            <span class="event-detail__crumb-sep">/</span>
+            <span class="event-detail__crumb-current">{{ event.name }}</span>
         </div>
 
         <div class="event-detail__grid">

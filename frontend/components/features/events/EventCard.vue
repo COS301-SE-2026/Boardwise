@@ -43,7 +43,7 @@
         
       <p class="card-meta" data-test="event-host">
         <v-icon size="16">mdi-account</v-icon>
-        Hosted By @{{ event.host.username }}
+        Hosted By @{{ event.host?.username }}
       </p>
 
       <div class="d-flex ga-1 flex-wrap">

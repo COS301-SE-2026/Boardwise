@@ -7816,3 +7816,54 @@ games-owned-section {
   display: flex;
   gap: var(--space-2);
 }
+
+/* ============================================================
+    LIVE EVENTS 
+  =========================================================== */
+.live-event-card__top {
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+.live-event-card__pulse-badge {
+  display: inline-flex; 
+  align-items: center; 
+  gap: 6px;
+  padding: 3px 10px; 
+
+  border-radius: var(--radius-pill);
+  background: var(--wildfire); 
+  color: #fff;
+
+  font-size: var(--fs-small); 
+  font-weight: var(--fw-bold); 
+  letter-spacing: .04em;
+}
+.live-event-card__pulse-dot {
+  width: 7px; 
+  height: 7px; 
+  
+  border-radius: 50%; 
+  
+  background: #fff;
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+  .live-event-card__capacity-track {
+    width: 100%; 
+    height: 6px; 
+
+    border-radius: var(--radius-pill);
+    background: var(--color-border); 
+
+    overflow: hidden; 
+    margin: var(--space-2) 0;
+}
+
+.live-event-card__capacity-fill { 
+  height: 100%; 
+  background: 
+  var(--color-primary); 
+  border-radius: var(--radius-pill); 
+}

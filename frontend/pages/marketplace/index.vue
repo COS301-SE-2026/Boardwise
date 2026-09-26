@@ -4,24 +4,30 @@
     <Navbar data-test="navbar" />
 
     <MarketplaceHeader data-test="marketplace-header" @search ="searchQ = $event" @create-listing="showCreateListing = true" />
-
     <MarketplaceTabs data-test="marketplace-tabs" v-model="activeTab" />
+
+    <MobileFilterDrawer id="community-mobile-filters">
+      <FilterSidebar 
+        v-if="activeTab === 'Community Listings'"
+        data-test="filter-sidebar"
+        @filter="handleFilter" 
+      />
+
+      <RetailerFilterSidebar
+        v-else
+        data-test="retailer-filter-sidebar"
+        :retailer-options="retailerOptions"
+        @filter="handleRetailerFilter"
+      />
+    </MobileFilterDrawer>
 
     <!-- Community Listings -->
     <template v-if="activeTab === 'Community Listings'">
-      <!-- Mobile -->
-      <MobileFilterDrawer id="community-mobile-filters">
-        <FilterSidebar data-test="filter-sidebar" @filter="handleFilter" />
-      </MobileFilterDrawer>
-      
-
       <!-- Desktop -->
-      <div class="d-flex d-md-flex ga-6 mt-6 align-start">
-        <div class="d-none d-md-block">
-          <FilterSidebar data-test="filter-sidebar" @filter="handleFilter"/>
-        </div>
+      <div class="d-none d-md-flex ga-6 mt-6 align-start">
+        <FilterSidebar data-test="filter-sidebar" @filter="handleFilter"/>
           
-        <div class="flex-1-1">
+        <div class="flex-grow-1" style="min-width: 0;">
           <div v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
             <MarketplaceLoadingState tab="Community Listings" />
           </div>
@@ -59,24 +65,13 @@
     
     <!-- External Retail -->
     <template v-else-if="activeTab === 'Web'">
-      <!-- Mobile -->
-      <MobileFilterDrawer id="retail-mobile-filters">
-        <RetailerFilterSidebar
-          data-test="retailer-filter-sidebar"
-          :retailer-options="retailerOptions"
-          @filter="handleRetailerFilter"
-        />
-      </MobileFilterDrawer>
-
         <!-- Desktop -->
-        <div class="d-flex d-md-flex ga-6 mt-6 align-start">
-          <div class="d-none d-md-block">
+        <div class="d-none d-md-flex ga-6 mt-6 align-start">
             <RetailerFilterSidebar 
               data-test="filter-sidebar" 
               :retailer-options="retailerOptions"
               @filter="handleRetailerFilter"
             />
-          </div>
             
           <div class="flex-1-1">
             <div

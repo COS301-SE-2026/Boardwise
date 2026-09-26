@@ -227,7 +227,7 @@ const closeModal = () => {
   selected_visibility.value = null
   selected_games.value = []
   game_options.value = []
-  file_name.value = ''
+  file.name.value = ''
   image_file.value = null
 }
 
