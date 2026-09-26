@@ -6,6 +6,17 @@
       @search="searchQuery = $event"
       @create-event="showCreateEvent = true"  
     />
+
+    <LiveEventBanner :count="liveEvents.length" @view="scrollToLive" />
+
+    <div v-if="liveEvents.length" id="live-now" class="base-grid" style="margin-top: 24px">
+      <LiveEventCard
+        v-for="e in liveEvents"
+        :key="e.id"
+        :event="e"
+        @click="router.push(`/events/live/${e.id}`)"
+      />
+    </div>
     
     <!-- Mobile -->
     <MobileFilterDrawer id="mobile-events-filter">
@@ -114,6 +125,14 @@ import { useDebounceFn } from '@vueuse/core'
 import { useRouter } from 'vue-router'
 import InviteModal from '~/components/features/community/InviteModal.vue'
 import EventHeader from '~/components/features/events/EventHeader.vue'
+
+import { useLiveEvents } from '~/composables/useLiveEvents'
+
+import LiveEventBanner from '~/components/features/live-events/LiveEventBanner.vue'
+import LiveEventCard from '~/components/features/live-events/LiveEventCard.vue'
+
+const { liveEvents } = useLiveEvents()
+const scrollToLive = () => document.getElementById('live-now')?.scrolltoView({ behavior: 'smooth'})
 
 const { show } = useSnackBar(3)
 const {
