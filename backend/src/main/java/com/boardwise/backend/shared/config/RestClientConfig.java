@@ -28,4 +28,14 @@ public class RestClientConfig {
         .baseUrl(scraperUrl)
         .build();
     }
+
+    @Bean
+    public RestClient osmRestClient(
+        @Value("${nominatim.service.url}") String openStreetBaseUrl
+    ){
+        return RestClient.builder()
+                        .baseUrl(openStreetBaseUrl)
+                        .defaultHeader("User-Agent", "BoardwiseSpringBackend/1.0 (worksonmymachine67@gmail.com)")
+                        .build();
+    }
 }
