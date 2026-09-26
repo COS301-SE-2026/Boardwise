@@ -1,5 +1,5 @@
 <template>
-    <v-app-bar flat class="landing-navbar" color="surface">
+    <header class="landing-navbar" >
         <v-container class="landing-navbar__inner">
             <NuxtLink
                 to="/"
@@ -18,14 +18,13 @@
                 </BaseButton>
 
                 <BaseButton
-                    class="ml-3"
                     @click="router.push('/auth/signup')"
                 >
                     Sign Up
                 </BaseButton>
             </div>
         </v-container>
-    </v-app-bar>
+    </header>
 </template>
 
 <script setup>
