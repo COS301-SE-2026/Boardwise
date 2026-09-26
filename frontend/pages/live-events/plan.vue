@@ -50,6 +50,6 @@ const isValid = computed(() => form.value.name && form.value.game && form.value.
 const handleSubmit = async () => {
   const event = await createLiveEvent(form.value)
   show('Live table launched!', 'success')
-  router.push(`/events/live/${event.id}`)
+  router.push(`/live-events/${event.id}`)
 }
 </script>

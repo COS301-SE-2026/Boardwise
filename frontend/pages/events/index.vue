@@ -14,7 +14,7 @@
         v-for="e in liveEvents"
         :key="e.id"
         :event="e"
-        @click="router.push(`/events/live/${e.id}`)"
+        @click="router.push(`/live-events/${e.id}`)"
       />
     </div>
     
@@ -132,7 +132,7 @@ import LiveEventBanner from '~/components/features/live-events/LiveEventBanner.v
 import LiveEventCard from '~/components/features/live-events/LiveEventCard.vue'
 
 const { liveEvents } = useLiveEvents()
-const scrollToLive = () => document.getElementById('live-now')?.scrolltoView({ behavior: 'smooth'})
+const scrollToLive = () => document.getElementById('live-now')?.scrollIntoView({ behavior: 'smooth' })
 
 const { show } = useSnackBar(3)
 const {
