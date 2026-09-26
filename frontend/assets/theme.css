@@ -7820,6 +7820,8 @@ games-owned-section {
 /* ============================================================
     LIVE EVENTS 
   =========================================================== */
+
+/* ================= LIVE CARD ======================== */
 .live-event-card__top {
   display: flex; 
   align-items: center; 
@@ -7868,6 +7870,8 @@ games-owned-section {
   border-radius: var(--radius-pill); 
 }
 
+/* ================= LIVE EVENTS BANNER ======================== */
+
 .live-events-banner {
   display: flex; 
   align-items: center; 
@@ -7901,3 +7905,80 @@ games-owned-section {
   color: var(--alabaster); 
   flex-shrink: 0;
 }
+
+/* ================= TABLE SEAT GRID ======================== */
+
+.table-seat-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); 
+  gap: var(--space-3); 
+  margin-top: var(--space-3); 
+}
+
+/* ================= SEAT CARD ======================== */
+
+.seat-card { 
+  display: flex; 
+  flex-direction: column; 
+  gap: var(--space-2); 
+}
+
+.seat-card__row { 
+  display: flex; 
+  align-items: center; 
+  gap: var(--space-2); 
+}
+
+.seat-card__info { 
+  min-width: 0; 
+  flex: 1; 
+}
+
+.seat-card--open { 
+  border: 2px dashed var(--color-border-strong); 
+  align-items: center; 
+  text-align: center; 
+}
+
+/* ================= TABLE CHAT ======================== */
+
+.table-chat-feed {
+  display: flex; 
+  flex-direction: column; 
+  gap: var(--space-3); 
+  max-height: 320px; 
+  overflow-y: auto; 
+  padding-right: var(--space-1); 
+  margin: var(--space-3) 0; 
+}
+
+.table-chat-message { 
+  display: flex; 
+  gap: var(--space-2); 
+  padding: var(--space-2) var(--space-3); 
+  border-radius: var(--radius-md); 
+  background: var(--color-surface-alt); 
+}
+
+.table-chat-message--host { 
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface-alt)); 
+}
+
+.table-chat-message__body { 
+  min-width: 0; 
+  flex: 1; 
+}
+
+.table-chat-message__meta { 
+  display: flex; 
+  align-items: center; 
+  gap: var(--space-2); 
+  margin-bottom: 2px; 
+}
+
+.table-chat-composer { 
+  display: flex; 
+  gap: var(--space-2); 
+  align-items: flex-start; 
+}
+
