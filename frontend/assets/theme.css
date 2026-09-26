@@ -7834,7 +7834,7 @@ games-owned-section {
 
   border-radius: var(--radius-pill);
   background: var(--wildfire); 
-  color: #fff;
+  color: var(--alabaster);
 
   font-size: var(--fs-small); 
   font-weight: var(--fw-bold); 
@@ -7846,7 +7846,7 @@ games-owned-section {
   
   border-radius: 50%; 
   
-  background: #fff;
+  background: var(--alabaster);
   animation: pulse-dot 1.2s ease-in-out infinite;
 }
 @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
@@ -7866,4 +7866,38 @@ games-owned-section {
   background: 
   var(--color-primary); 
   border-radius: var(--radius-pill); 
+}
+
+.live-events-banner {
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+  gap: var(--space-4); 
+  flex-wrap: wrap;
+  padding: var(--space-4) var(--space-5); 
+  border-radius: var(--radius-lg);
+  background: linear-gradient(110deg, color-mix(in srgb, var(--wildfire) 12%, var(--color-surface)), color-mix(in srgb, var(--rosewood) 14%, var(--color-surface)));
+  box-shadow: var(--shadow-sm); 
+  margin-top: var(--space-4);
+}
+
+.live-events-banner__info { 
+  display: flex; 
+  align-items: center; 
+  gap: var(--space-3); 
+  min-width: 0; 
+}
+
+.live-events-banner__icon {
+  width: 40px;
+  height: 40px; 
+  border-radius: 50%;
+
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+
+  background: var(--color-primary); 
+  color: var(--alabaster); 
+  flex-shrink: 0;
 }
