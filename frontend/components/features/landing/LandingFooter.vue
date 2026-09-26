@@ -35,7 +35,7 @@
                         </NuxtLink>
                         <NuxtLink to="/social/community"
                             class="text-decoration-none text-medium-emphasis"
-                        >Communities
+                        >Social
 
                         </NuxtLink>
                         <NuxtLink to="/events"
@@ -68,8 +68,14 @@
                         href="https://boardgamegeek.com"
                         target="_blank"
                         rel="noopener noreferrer"
+                        class="site-footer__bgg"
+                        aria-label="Visit BoardGameGeek"
                     >
-                        Powered by BGG
+                        <img
+                            src="/images/powered-by-bgg.png"
+                            alt="Powered by BoardGameGeek"
+                            class="site-footer__bgg-logo"
+                        >
                     </a>
                 </v-col>
             </v-row>
