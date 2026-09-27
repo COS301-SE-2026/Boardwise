@@ -133,7 +133,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useDebounceFn } from '@vueuse/core'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
@@ -151,8 +150,9 @@ import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue
 import { useLibrary } from '~/composables/useLibrary'
 import { useVaultUpload } from '~/composables/useVaultUpload';
 import { useAuth } from '~/composables/useAuth';
-
+import { useRulebookFilters } from '~/composables/useRulebookFilters'
 import { useSnackBar } from '~/composables/useSnackbar';
+import { useDebouncedAutocomplete } from '~/composables/useDebounce'
 
 const CARD_PAGE_SIZE = 12
 
@@ -165,14 +165,26 @@ const router = useRouter();
 const {rulebooks, isLoading, getAllRulebooks, getRulebookById, currentRulebook, featuredRulebooks, loadMore, hasMore, fetchFeaturedRulebooks } = useLibrary()
 const {triggerUpload, isUploading, error} = useVaultUpload();
 const { isAuthenticated } = useAuth();
+const { filters } = useRulebookFilters();
 
-const searchQuery = ref('')
 const activeFilterState = ref({})
 const showDetail = ref(false)
 const showUpload = ref(false)
 const selectedRulebook = ref(null)
 
-onMounted(() => { // Does stuff when component loads
+const fetchRulebooksForSearch = async (query) => {
+  rulebooksPage.value = 1;
+  await getAllRulebooks({
+    ...activeFilterState.value,
+    search: query || null,
+    limit: CARD_PAGE_SIZE
+  }, true);
+  return rulebooks.value ?? []
+}
+
+const {search:searchQuery} = useDebouncedAutocomplete(fetchRulebooksForSearch, {debounceMs: 400, fetchOnMount: false});
+
+onMounted(() => {
   fetchFeaturedRulebooks();
 })
 
@@ -186,16 +198,6 @@ const handleUploadRequest = () => {
   }
   showUpload.value = true;
 }
-
-const delaySearch = useDebounceFn((query) => {
-  rulebooksPage.value = 1
-  getAllRulebooks({...activeFilterState.value, search:query || null, limit: CARD_PAGE_SIZE}, true);
-}, 400);
-
-watch(searchQuery, (query) => {
-  delaySearch(query);
-});
-
 
 const openRulebook = async (rulebook) => {
   selectedRulebook.value = null;
@@ -245,12 +247,10 @@ const goToRulebooksPage = async (page) => {
   }
 }
 
-const { filters } = useRulebookFilters();
-
 watch(
   filters,
   (newFilters) => {
-    const currentGenre = newFilters.genre[0]
+    const currentGenre = newFilters.genre?.[0]
     activeFilterState.value = {
       genre: currentGenre === 'all' ? null : currentGenre,
       playerCount: newFilters.playerCount,

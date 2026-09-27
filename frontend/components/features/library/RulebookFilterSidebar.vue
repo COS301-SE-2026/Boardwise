@@ -21,8 +21,7 @@
 </template>
 
 <script setup>
-import { onMounted, computed } from 'vue'
-import { useDebounceFn } from '@vueuse/core'
+import { computed } from 'vue'
 
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue'
 import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue'
@@ -30,20 +29,15 @@ import BaseFilterNumberField from '~/components/ui/Filters/BaseFilterNumberField
 import BaseFilterPills from '~/components/ui/Filters/BaseFilterPills.vue'
 import { useRulebookFilters } from '~/composables/useRulebookFilters'
 import { useBoardGames } from '~/composables/useBoardGames'
+import { useDebouncedAutocomplete } from '~/composables/useDebounce'
 
 const {filters, resetFilters} = useRulebookFilters();
-const {genres, searchGenres} = useBoardGames();
+const {searchGenres} = useBoardGames();
+
+const {options: apiGenres, refetch: handleGenreSearch, markSelecting} = useDebouncedAutocomplete(searchGenres, {fetchOnMount: true});
 
 const availableGenres = computed(() => {
-  const combined = ['all', ...filters.genre, ...genres.value];
+  const combined = ['all', ...filters.genre, ...apiGenres.value];
   return Array.from(new Set(combined));
 });
-
-onMounted(() => {
-  searchGenres()
-})
-
-const handleGenreSearch = useDebounceFn((query) => {
-  searchGenres(query);
-}, 300);
 </script>

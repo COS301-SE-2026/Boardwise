@@ -144,7 +144,6 @@ definePageMeta({
 })
 
 import { ref, computed, onMounted, watch } from 'vue'
-import { useDebounceFn } from '@vueuse/core'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
@@ -166,6 +165,7 @@ import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 import PrivateCommunityAccessModal from '~/components/features/community/PrivateCommunityAccessModal.vue'
 import { CommunityService } from '~/services/communityService'
 import { useProfile } from '~/composables/useProfile'
+import { useDebouncedAutocomplete } from '~/composables/useDebounce'
 
 const CARD_PAGE_SIZE = 6
 
@@ -179,7 +179,6 @@ const { getAllCommunities, searchForCommunity, loading } = useCommunity()
 const { show } = useSnackBar()
 
 const activeTab = ref('Friends')
-const searchQuery = ref('')
 const showCreateCommunity = ref(false)
 const communities = ref<CommunityListItem[]>([])
 
@@ -191,26 +190,26 @@ const requestSent = ref(false)
 const selectedTypes = ref<string[]>([])
 const selectedCategories = ref<string[]>([])
 
+const fetchSearchData = async (query: string) =>{
+  const res = (query && query.trim()) ? await searchForCommunity(query.trim()) : await getAllCommunities();
+
+  communities.value = Array.isArray(res) ? res : [];
+  return [];
+}
+
+const {search:searchQuery, refetch: reloadCommunities} = useDebouncedAutocomplete(fetchSearchData, {debounceMs: 400, fetchOnMount: false});
+
 onMounted(async () => {
-  communities.value = await getAllCommunities()
-  console.log(communities.value)
+  await reloadCommunities('');
   await fetchPeople(friendsPage.value);
 })
-const showFilters = ref(false)
-const delaySearch = useDebounceFn( async (query) => {
-  const res = await searchForCommunity(query)
-  communities.value = Array.isArray(res) ? res : []
-}, 400)
 
-watch(searchQuery, (query) => {
-  delaySearch(query) 
-})
+const showFilters = ref(false)
 
 const handleCreate = (newCommunity: GroupInfo) => {
   communities.value.push(newCommunity)
   show("Your community is ready. Welcome to the table!")
 }
-
 
 const handleFilter = ({
   types,
