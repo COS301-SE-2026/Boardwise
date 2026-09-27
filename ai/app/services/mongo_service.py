@@ -424,7 +424,7 @@ def create_setup_wizard(rulebook_id: str, session=None) -> str:
 
     result = db["SETUP_WIZARD"].insert_one(
         {
-            "rulebookId": rulebook_obj_id,
+            "rulebookId": rulebook_object_id,
             "createdAt": now,
             "updatedAt": now,
             "schemaVersion": 1,
