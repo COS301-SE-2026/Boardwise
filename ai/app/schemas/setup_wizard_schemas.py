@@ -23,7 +23,7 @@ class LLMComponentUse(BaseAPIModel):
     quantity: int | None = None
 
 class LLMStep(BaseAPIModel):
-    title: str = Field(..., max_length = 80)
+    title: str = Field(..., max_length = 300)
     instruction: str  = Field(..., max_length = 400)
     components: list[LLMComponentUse] = []
     scope: Scope
