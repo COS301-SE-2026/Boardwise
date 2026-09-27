@@ -36,6 +36,7 @@ class Settings:
     LANCEDB_IVF_PARTITIONS: int = int(os.getenv("LANCEDB_IVF_PARTITIONS", "256"))
     LANCEDB_CANDIDATES: int = int(os.getenv("LANCEDB_CANDIDATES", "25"))
     GEMINI_API_KEY: str | None = os.getenv("GEMINI_API_KEY")
+    GLM_API_KEY: str | None = os.getenv("GLM_API_KEY")
 
 
 settings = Settings()

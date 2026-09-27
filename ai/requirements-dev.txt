@@ -40,6 +40,12 @@ botocore==1.35.99 \
     #   -r requirements.txt
     #   boto3
     #   s3transfer
+cachetools==7.2.0 \
+    --hash=sha256:3045213f186b89fdd95d94441354c4bd87c570b7a38d8c3fd1d9dd37f6dc90d8 \
+    --hash=sha256:bcac1a1b8da6909994a2957238a57b8140dab7c5c5c69a43669654fe87a33c1d
+    # via
+    #   -r requirements.txt
+    #   zhipuai
 certifi==2026.7.22 \
     --hash=sha256:62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775 \
     --hash=sha256:741e2c3b351ddf169a738da9f2c048608ff7f2c5cc02f1ebc6b118bb090d5d55
@@ -554,6 +560,7 @@ httpx==0.28.1 \
     #   -r requirements.txt
     #   google-genai
     #   langchain-core
+    #   zhipuai
 httpx2==2.12.0 \
     --hash=sha256:7631fe9887a8a2275f4a2540e053aa670fcc50742864a9ae7c66e609fdcf12cf \
     --hash=sha256:cc8b6eecb8661c146b8f89a60e97456ee086e91a784ed31ac450c3a9e613dd36
@@ -1173,6 +1180,7 @@ pydantic==2.13.5 \
     #   lancedb
     #   langchain-core
     #   langsmith
+    #   zhipuai
 pydantic-core==2.46.5 \
     --hash=sha256:013d6f3483d81e02e7c328831808f336c8596ee33b4bd4026b9ffb1e960b8942 \
     --hash=sha256:03b9666e41e35d8909852ba191a0607520f81b74eaf12ccf8737005dbb313821 \
@@ -1297,14 +1305,17 @@ pydantic-core==2.46.5 \
     # via
     #   -r requirements.txt
     #   pydantic
+    #   zhipuai
 pygments==2.21.0 \
     --hash=sha256:2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9 \
     --hash=sha256:610ca751c9bc2492b38eb9a38a7fbc93edbbb2d7182edaf34e66ae493dee5c8c
     # via pytest
-pyjwt==2.13.0 \
-    --hash=sha256:41571c89ca91598c79e8ef18a2d07367d4810fbbd6f637794879baf1b7703423 \
-    --hash=sha256:66adcc2aff09b3f1bbd95fc1e1577df8ac8723c978552fd43304c8a290ac5728
-    # via -r requirements.txt
+pyjwt==2.8.0 \
+    --hash=sha256:57e28d156e3d5c10088e0c68abb90bfac3df82b40a71bd0daa20c65ccd5c23de \
+    --hash=sha256:59127c392cc44c2da5bb3192169a91f429924e17aff6534d70fdc02ab3e04320
+    # via
+    #   -r requirements.txt
+    #   zhipuai
 pymongo==4.8.0 \
     --hash=sha256:0fc18b3a093f3db008c5fea0e980dbd3b743449eee29b5718bc2dc15ab5088bb \
     --hash=sha256:16e5019f75f6827bb5354b6fef8dfc9d6c7446894a27346e03134d290eb9e758 \
@@ -2378,6 +2389,10 @@ xxhash==4.0.1 \
     # via
     #   -r requirements.txt
     #   langsmith
+zhipuai==2.1.5.20250825 \
+    --hash=sha256:50fc3982565ee631bd640b1166a1d223de227958026a74a1dd0e26dbd58d729c \
+    --hash=sha256:aaad19881e514a4682598f07503b82d60b8b9a91cd83f9bcda988b94853c830d
+    # via -r requirements.txt
 zstandard==0.25.0 \
     --hash=sha256:011d388c76b11a0c165374ce660ce2c8efa8e5d87f34996aa80f9c0816698b64 \
     --hash=sha256:01582723b3ccd6939ab7b3a78622c573799d5d8737b534b86d0e06ac18dbde4a \

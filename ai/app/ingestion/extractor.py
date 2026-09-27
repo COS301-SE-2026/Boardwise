@@ -10,6 +10,7 @@ import pymupdf4llm
 
 from app.config import settings
 from app.ingestion import vlm
+from app.ingestion.enums.vlm_enums import VlmStatus
 from app.services.r2_service import upload_to_r2
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,7 @@ MIN_TEXT_BLOCKS_FOR_DENSITY_CHECK = 4
 MIN_TEXT_BLOCKS_FOR_WIDTH_CHECK = 6
 
 PENDING_REVIEW_CHAR_RATIO_THRESHOLD = 0.30
+PENDING_REVIEW_PAGE_RATIO_THRESHOLD = 0.25
 
 _DIGIT_RUN_PATTERN = re.compile(r"\d+")
 LINE_MIN_PAGE_COUNT = 3
@@ -117,6 +119,9 @@ def _escalate_low_quality_pages(
     """
     Mutates 'pages' in place: flagged pages are sent to the VLM or are marked for review if VLM call fails
     """
+    vlm_available = bool(getattr(settings, "GEMINI_API_KEY", None))
+    gemini_cap_exhausted = False
+
     for page_entry in pages:
         page_index = page_entry["page"] - 1
         if not (0 <= page_index < len(pdf_document)):
@@ -128,24 +133,72 @@ def _escalate_low_quality_pages(
         if not needs_escalation:
             continue
 
-        vlm_markdown = None
-        if getattr(settings, "GEMINI_API_KEY", None):
-            vlm_markdown = vlm.extract_page_via_vlm(pdf_document, page_index)
+        text: str | None = None
+        source = "failed_unknown"
+        confidence = 0.5
 
-        if vlm_markdown:
-            page_entry["markdown"] = vlm_markdown
+        if vlm_available and not gemini_cap_exhausted:
+            vlm_text, vlm_status = vlm.extract_page_via_vlm(pdf_document, page_index)
+
+            if vlm_status == VlmStatus.OK and vlm_text:
+                text = vlm_text
+                source = "vlm_ok"
+                confidence = 0.9
+            elif vlm_status == VlmStatus.MAX_TOKENS and vlm_text:
+                logger.warning(
+                    "VLM hit MAX_TOKENS on page %d. Keeping partial output.",
+                    page_index + 1,
+                )
+                text = vlm_text
+                source = "vlm_max_tokens"
+                confidence = 0.75
+            elif vlm_status == VlmStatus.DAILY_CAP_EXHAUSTED:
+                logger.warning(
+                    "VLM daily cap exhausted at page %d. Routing the rest of the rulebook to the fallback.",
+                    page_index + 1,
+                )
+                gemini_cap_exhausted = True
+            elif vlm_status in (VlmStatus.RECITATION, VlmStatus.SAFETY):
+                logger.info(
+                    "VLM refused page %d (%s). Trying fallback",
+                    page_index + 1,
+                    vlm_status.value,
+                )
+            else:
+                logger.info(
+                    "VLM failed page %d (%s). Trying fallback",
+                    page_index + 1,
+                    vlm_status.value,
+                )
+
+        if text is None:
+            glm_text, glm_status = vlm.extract_page_via_glm(pdf_document, page_index)
+
+            if glm_status == VlmStatus.OK and glm_text:
+                text = glm_text
+                source = "glm_ok"
+                confidence = 0.85
+            elif glm_status == VlmStatus.MAX_TOKENS and glm_text:
+                logger.warning(
+                    "GLM hit MAX_TOKENS on page %d. Keeping partial output.",
+                    page_index + 1,
+                )
+                text = glm_text
+                source = "glm_max_tokens"
+                confidence = 0.70
+            else:
+                source = f"failed_{glm_status.value.lower()}"
+                confidence = 0.5
+
+        if text and text.strip():
+            page_entry["markdown"] = text
             page_entry["escalated"] = True
-            page_entry["confidence"] = 0.9
+            page_entry["confidence"] = confidence
             page_entry["flagged"] = False
-            page_entry["reason"] = reason
         else:
             page_entry["flagged"] = True
             page_entry["confidence"] = 0.5
-            page_entry["reason"] = (
-                reason
-                if getattr(settings, "GEMINI_API_KEY", None)
-                else f"{reason}_vlm_not_configured"
-            )
+        page_entry["reason"] = f"{reason}__{source}"
 
 
 def _assess_page(
@@ -258,32 +311,40 @@ def _summarize_extraction_quality(pages: list[dict]) -> dict:
     Produces the final extraction verdict: 'ready' or 'pending_review'
     """
     total_chars = sum(len(p["markdown"]) for p in pages)
+    total_pages = len(pages)
+    flagged = [p for p in pages if p["flagged"]]
+    flagged_pages = [p["page"] for p in flagged]
+    
     if total_chars == 0:
         return {
             "outcome": "pending_review",
             "reason": "No text content was extracted from any page.",
             "flaggedCharRatio": 1.0,
-            "flaggedPages": [p["page"] for p in pages if p["flagged"]],
+            "flaggedPageRatio": 1.0,
+            "flaggedPages": [p["page"] for p in pages],
         }
 
     flagged_chars = sum(len(p["markdown"]) for p in pages if p["flagged"])
-    flagged_ratio = flagged_chars / total_chars
-    flagged_pages = [p["page"] for p in pages if p["flagged"]]
+    flagged_char_ratio = flagged_chars / total_chars
+    flagged_page_ratio = len(flagged) / total_pages
 
-    if flagged_ratio > PENDING_REVIEW_CHAR_RATIO_THRESHOLD:
+
+    if flagged_char_ratio > PENDING_REVIEW_CHAR_RATIO_THRESHOLD or flagged_page_ratio > PENDING_REVIEW_PAGE_RATIO_THRESHOLD:
         return {
             "outcome": "pending_review",
             "reason": (
-                f"{flagged_ratio:.0%} of extracted content is low-confidence "
-                f"or failed VLM escalation (pages: {flagged_pages})."
+                f"{len(flagged)}/{total_pages} pages flagged "
+                f"(pages: {flagged_pages})."
             ),
-            "flaggedCharRatio": flagged_ratio,
+            "flaggedCharRatio": flagged_char_ratio,
+            "flaggedPageRatio": flagged_page_ratio,
             "flaggedPages": flagged_pages,
         }
 
     return {
         "outcome": "ready",
         "reason": "",
-        "flaggedCharRatio": flagged_ratio,
+        "flaggedCharRatio": flagged_char_ratio,
+        "flaggedPageRatio": flagged_page_ratio,
         "flaggedPages": flagged_pages,
     }

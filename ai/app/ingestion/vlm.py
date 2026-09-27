@@ -1,21 +1,25 @@
-"""Gemini Flash VLM escalation path for pages that fail the quality gate during text extraction."""
+"""VLM escalation path for pages that fail the quality gate during text extraction."""
 
 import base64
 import logging
 import random
 import time
 
+import httpx
 import pymupdf
 from google import genai
 from google.genai import types
 from google.genai.errors import APIError
+from zhipuai import ZhipuAI
 
 from app.config import settings
+from app.ingestion.enums.vlm_enums import VlmStatus
 
 logger = logging.getLogger(__name__)
 
 GEMINI_MODEL = "gemini-3.5-flash-lite"
-GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
+
+GLM_MODEL = "glm-4.6v-flash"
 
 VLM_RENDER_DPI = 200
 VLM_BASE_RETRY_DELAY_SECONDS = 2.0
@@ -29,14 +33,41 @@ TRANSCRIPTION_PROMPT = """Convert one page from a board-game rulebook into clean
 4. Whenever the rules show a game icon instead of a word—such as a resource, action, or symbol—write it as a bracketed label that names what the icon shows, e.g. [Wood], [Gold Coin], [Move Action], [Combat Icon]. Never describe an icon in running prose; always use the bracketed form at the icon's position in the sentence.
 5. For sidebars, "Example:" boxes, and flavor or thematic text that is visually set apart from the main rules, begin that block with "> " (a Markdown blockquote) so it can later be told apart from the core rules.
 6. Leave out page numbers, running headers/footers, printer or production markings (file names, print/export dates, "Seite N", "Page N" folios), and copyright/trademark boilerplate. Do not transcribe them at all.
-7.If an area contains only decorative artwork or background texture and no readable text, ignore it without comment.
-8.Do not summarize, reword, or add your own notes. Include only what is visibly present on the page. If something is truly unreadable, use [illegible] instead of guessing.
+7. If an area contains only decorative artwork or background texture and no readable text, ignore it without comment.
+8. Do not summarize, reword, or add your own notes. Include only what is visibly present on the page. If something is truly unreadable, use [illegible] instead of guessing.
 9. Return only the Markdown transcription for this page—no introduction, no explanation, and no code fences surrounding the output.
 """
 
 TRANSIENT_STATUS_CODES = {429, 500, 502, 503, 504}
 
-client = genai.Client(api_key=settings.GEMINI_API_KEY)
+_client: genai.Client | None = None
+_glm_client = (
+    ZhipuAI(api_key=settings.GLM_API_KEY)
+    if getattr(settings, "GLM_API_KEY", None)
+    else None
+)
+
+
+def _get_gemini_client() -> genai.Client | None:
+    global _client
+    if _client is not None:
+        return _client
+    if not getattr(settings, "GEMINI_API_KEY", None):
+        return None
+    http_client = httpx.Client(
+        timeout=httpx.Timeout(
+            connect=15.0,
+            read=VLM_REQUEST_TIMEOUT_SECONDS,
+            write=30.0,
+            pool=15.0,
+        ),
+    )
+
+    _client = genai.Client(
+        api_key=settings.GEMINI_API_KEY,
+        http_options=types.HttpOptions(httpx_client=http_client),
+    )
+    return _client
 
 
 def _render_page_to_png(pdf_document: "pymupdf.Document", page_num: int) -> bytes:
@@ -46,53 +77,87 @@ def _render_page_to_png(pdf_document: "pymupdf.Document", page_num: int) -> byte
     return pix.tobytes("png")
 
 
-def _build_payload(image_bytes: bytes) -> dict:
-    encoded = base64.b64encode(image_bytes).decode("utf-8")
-    return {
-        "contents": [
-            {
-                "role": "user",
-                "parts": [
-                    {"text": TRANSCRIPTION_PROMPT},
-                    {"inline_data": {"mime_type": "image/png", "data": encoded}},
-                ],
-            }
-        ],
-        "generationConfig": {
-            "temperature": 0.1,
-            "maxOutputTokens": VLM_MAX_OUTPUT_TOKENS,
-        },
-    }
+def _extract_text_from_response(response) -> tuple[str | None, VlmStatus]:
+    """Inspect a Gemini response and maps finish_reason to a VlmStatus."""
+    if not response.candidates:
+        logger.warning(
+            "Gemini returned no candidates. prompt_feedback=%s",
+            getattr(response, "prompt_feedback", None),
+        )
+        return (None, VlmStatus.EMPTY)
+
+    cand = response.candidates[0]
+    finish_reason = getattr(cand, "finish_reason", None)
+    reason_name = (
+        finish_reason.name
+        if hasattr(finish_reason, "name")
+        else str(finish_reason)
+        if finish_reason
+        else "UNKNOWN"
+    )
+
+    parts = cand.content.parts if cand.content and cand.content.parts else []
+    text_parts = [p.text for p in parts if getattr(p, "text", None)]
+    combined = "".join(text_parts).strip()
+
+    reason_upper = reason_name.upper()
+    if "RECITATION" in reason_upper:
+        return (None, VlmStatus.RECITATION)
+    if "SAFETY" in reason_upper:
+        return (None, VlmStatus.SAFETY)
+    if "MAX_TOKENS" in reason_upper:
+        logger.warning(
+            "Gemini hit MAX_TOKENS. (usage=%s)",
+            getattr(response, "usage_metadata", None),
+        )
+        return (combined or None, VlmStatus.MAX_TOKENS)
+
+    if not combined:
+        logger.warning(
+            "Gemini returned no text. finish_reason=%s usage=%s",
+            reason_name,
+            getattr(response, "usage_metadata", None),
+        )
+        return (None, VlmStatus.EMPTY)
+
+    if reason_upper not in ("STOP", "FINISH_REASON_STOP", "UNKNOWN"):
+        logger.warning(
+            "Gemini finished with reason=%s but produced %d chars.",
+            reason_name,
+            len(combined),
+        )
+    return (combined, VlmStatus.OK)
 
 
-def _extract_text_from_response(response_json: dict) -> str | None:
-    try:
-        candidates = response_json.get("candidates", [])
-        if not candidates:
-            logger.warning("VLM response contained no candidates.")
-            return None
+def _extract_text_from_glm_response(response) -> tuple[str | None, VlmStatus]:
+    """Inspect a GLM response and maps finish_reason to a VlmStatus."""
+    if not response.choices:
+        return (None, VlmStatus.EMPTY)
 
-        finish_reason = candidates[0].get("finishReason")
-        if finish_reason not in (None, "STOP"):
-            logger.warning("VLM finished with reason=%s", finish_reason)
+    choice = response.choices[0]
+    finish_reason = (choice.finish_reason or "").lower()
+    text = (choice.message.content or "").strip() if choice.message else ""
 
-        parts = candidates[0].get("content", {}).get("parts", [])
-        text_parts = [p.get("text", "") for p in parts if "text" in p]
-        combined = "".join(text_parts).strip()
-        return combined or None
-    except (KeyError, IndexError, AttributeError, TypeError):
-        logger.exception("Unexpected VLM response shape.")
-        return None
+    if finish_reason == "content_filter":
+        return (None, VlmStatus.SAFETY)
+    if finish_reason == "length":
+        logger.warning("GLM hit max_token for this page.")
+        return (text or None, VlmStatus.MAX_TOKENS)
+
+    if not text:
+        return (None, VlmStatus.EMPTY)
+    return (text, VlmStatus.OK)
 
 
-def _call_vlm(image_bytes: bytes, max_retries: int = 3) -> str | None:
+def _call_vlm(image_bytes: bytes, max_retries: int = 3) -> tuple[str | None, VlmStatus]:
     """
     Sends a single page image to the VLM for transcription.
-    Returns markdown text, or None if the call fails.
+    Returns (markdown text, or None, VlmStatus).
     """
-    if not getattr(settings, "GEMINI_API_KEY", None):
+    client = _get_gemini_client()
+    if client is None:
         logger.error("GEMINI_API_KEY is not configured. Cannot escalate to VLM.")
-        return None
+        return (None, VlmStatus.NOT_CONFIGURED)
 
     for attempt in range(max_retries):
         try:
@@ -111,10 +176,14 @@ def _call_vlm(image_bytes: bytes, max_retries: int = 3) -> str | None:
                     ),
                 ),
             )
-            text = (response.text or "").strip()
-            return text or None
+            return _extract_text_from_response(response)
         except APIError as e:
             if e.code in TRANSIENT_STATUS_CODES:
+                if e.code == 429:
+                    error_str = str(e).lower()
+                    if "quota" in error_str or "resource_exhausted" in error_str:
+                        return (None, VlmStatus.DAILY_CAP_EXHAUSTED)
+
                 logger.warning(
                     "VLM returned %s. Attempt %d of %d.",
                     e.code,
@@ -130,22 +199,103 @@ def _call_vlm(image_bytes: bytes, max_retries: int = 3) -> str | None:
                     continue
 
                 logger.error("VLM exhausted retries for status %s", e.code)
-                return None
+                return (None, VlmStatus.RETRIES_EXHAUSTED)
 
             logger.error("VLM returned error on which we cannot retry: %s", e)
-            return None
+            return (None, VlmStatus.API_ERROR)
+
         except ValueError:
             logger.exception("VLM produced empty or blocked response.")
-            return None
+            return (None, VlmStatus.EMPTY)
+
         except Exception:
             logger.exception("Unexpected error during VLM call.")
-            return None
-    return None
+            return (None, VlmStatus.API_ERROR)
+
+    return (None, VlmStatus.RETRIES_EXHAUSTED)
+
+
+def _is_transient_glm_error(exc: Exception) -> bool:
+    code = (
+        getattr(exc, "code", None)
+        or getattr(exc, "status_code", None)
+        or getattr(exc, "http_status", None)
+    )
+    if isinstance(code, int) and code in TRANSIENT_STATUS_CODES:
+        return True
+
+    msg = str(exc).lower()
+    return any(f" {c} " in msg or f" {c}," in msg for c in TRANSIENT_STATUS_CODES)
+
+
+def _call_glm(
+    image_bytes: bytes, page_num: int, max_retries: int = 3
+) -> tuple[str | None, VlmStatus]:
+    """
+    Sends a single page image to the fallback GLM for transcription.
+    Returns (markdown text | None, VlmStatus).
+    """
+    if _glm_client is None:
+        return (None, VlmStatus.NOT_CONFIGURED)
+
+    encoded = base64.b64encode(image_bytes).decode("utf-8")
+
+    for attempt in range(max_retries):
+        try:
+            response = _glm_client.chat.completions.create(
+                model=GLM_MODEL,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": TRANSCRIPTION_PROMPT},
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/png;base64,{encoded}"
+                                },
+                            },
+                        ],
+                    }
+                ],
+                temperature=0.1,
+                max_tokens=VLM_MAX_OUTPUT_TOKENS,
+                stream=False,
+                timeout=VLM_REQUEST_TIMEOUT_SECONDS,
+            )
+
+            text, status = _extract_text_from_glm_response(response)
+            if status in (
+                VlmStatus.OK,
+                VlmStatus.RECITATION,
+                VlmStatus.SAFETY,
+                VlmStatus.EMPTY,
+                VlmStatus.MAX_TOKENS,
+            ):
+                return (text, status)
+
+            if attempt < max_retries - 1:
+                delay = (VLM_BASE_RETRY_DELAY_SECONDS * (2**attempt)) + random.uniform(
+                    0, 0.5
+                )
+                time.sleep(delay)
+                continue
+            return (None, status)
+        except Exception as e:
+            if _is_transient_glm_error(e) and attempt < max_retries - 1:
+                delay = (VLM_BASE_RETRY_DELAY_SECONDS * (2**attempt)) + random.uniform(
+                    0, 0.5
+                )
+                time.sleep(delay)
+                continue
+            logger.error("GLM failed for page %d (attempt %d)", page_num, attempt + 1)
+            return (None, VlmStatus.API_ERROR)
+    return (None, VlmStatus.RETRIES_EXHAUSTED)
 
 
 def extract_page_via_vlm(
     pdf_document: "pymupdf.Document", page_num: int, max_retries: int = 3
-) -> str | None:
+) -> tuple[str | None, VlmStatus]:
     """
     Renders a single page into an image and sends it to the VLM for transcription
     Returns markdown text for the page or None on failure
@@ -154,6 +304,26 @@ def extract_page_via_vlm(
         image_bytes = _render_page_to_png(pdf_document, page_num)
     except Exception:
         logger.exception("Failed to render page %d for VLM transcription", page_num)
-        return None
+        return (None, VlmStatus.RENDER_ERROR)
 
     return _call_vlm(image_bytes, max_retries=max_retries)
+
+
+def extract_page_via_glm(
+    pdf_document: "pymupdf.Document", page_num: int, max_retries: int = 3
+) -> tuple[str | None, VlmStatus]:
+    """
+    Fallback transcription via Zhipu's GLM-4.6V-Flash
+    Returns (markdown_text | None, status_tag)
+    """
+    if _glm_client is None:
+        logger.error("GLM_API_KEY not configured")
+        return (None, VlmStatus.NOT_CONFIGURED)
+
+    try:
+        image_bytes = _render_page_to_png(pdf_document, page_num)
+    except Exception:
+        logger.exception("Failed to render page %d for GLM fallback", page_num)
+        return (None, VlmStatus.RENDER_ERROR)
+
+    return _call_glm(image_bytes, page_num, max_retries=max_retries)
