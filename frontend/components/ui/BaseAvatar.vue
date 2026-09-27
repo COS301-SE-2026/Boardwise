@@ -1,12 +1,12 @@
 <template>
-  <v-avatar :size="sizeMap[size] || sizeMap.md" clas="base-avatar">
+  <v-avatar :size="sizeMap[size] || sizeMap.md" class="base-avatar">
     <BaseImage 
       v-if="src && !imageError"
       :src="src"
       :alt="resolvedAlt"
       cover
       @error="imageError = true"
-    ></BaseImage>
+    />
 
     <span
       v-else
