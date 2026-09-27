@@ -4,7 +4,7 @@ from pydantic.alias.generators import to_camel
 from typing import Literal
 
 from ai.app.generation.setup_wizard.setup_wizard_prompt import PHASE_ORDER
-
+from app.generation.setup_wizard.setup_wizard_prompt import build_phase_messages
 logger = logging.getLogger(__name__)
 
 class BaseAPIModel(BaseModel):
@@ -35,7 +35,7 @@ def generate_phase(phase: str, chunks: list[dict], ml_models: dict)->list[LLMSte
     response  = model.create_chat_completion(
         messages=messages,
         response_format={"type": "json_object", "schema": schema},
-        temperature = 0.2,
+        temperature = 0.1,
         repeat_penalty=1.3,
         max_tokens=1250
     )

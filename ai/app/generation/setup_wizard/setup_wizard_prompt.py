@@ -4,10 +4,10 @@ from typing import Literal
 
 logger = logging.getLogger(__name__)
 
+
 PhaseKey = Literal["board", "components", "players", "first_player"]
 
-PHASE_ORDER = Literal[PhaseKey]["board", "components", "players", "first_player"]
-
+PHASE_ORDER: list[PhaseKey] = ["board", "components", "players", "first_player"]
 PHASE_DESCRIPTIONS ={
     "board": "laying out the board, map, or shared play area",
     "components": "shared piles, decks, tokens, or dice placed once for the whole game, not owned by any one player",
@@ -15,7 +15,7 @@ PHASE_DESCRIPTIONS ={
     "first_player": "ONLY choosing who goes first and very last check before play begins",
 }
 
-def build_wizard_setup_messages(phase: PhaseKey, chunks: list[dict]) -> list[dict]:
+def build_phase_messages(phase: PhaseKey, chunks: list[dict]) -> list[dict]:
     context = "\n\n".join(f"[Chunk {c['index']}]\n{c['content']}" for c in chunks)
 
     system = (

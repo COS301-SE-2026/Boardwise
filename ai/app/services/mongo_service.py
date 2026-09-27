@@ -400,7 +400,7 @@ def get_setup_wizard_by_rulebookId(rulebook_id: str) -> dict | None:
         return None
 
     doc["id"] = str(doc.pop("_id"))
-    doc["rulebookId"] = str(doc["rulebook"])
+    doc["rulebookId"] = str(doc["rulebookId"])
 
     return doc
 
@@ -451,7 +451,7 @@ def create_setup_wizard(rulebook_id: str, session=None) -> str:
 
     db["RULEBOOK"].update_one(
             { "_id": rulebook_object_id },
-            {"$set": {"setWizardId": wizard_id}},
+            {"$set": {"setupWizardId": wizard_id}},
             session = session
         )
     return wizard_id
@@ -469,14 +469,73 @@ def get_or_create_setup_wizard(rulebook_id: str) -> dict:
     try:
 
         with client.start_session() as session:
-            session.start_transaction(
-                lambda s: create_setup_wizard(rulebook_id, session = s)
-            )
+            with session.start_transaction():
+                create_setup_wizard(rulebook_id, session=session)
     except DuplicateKeyError: 
             logger.info("Lost setup wizard create race for rule '%s';  re-fetching.", rulebook_id)
-            create_setup_wizard(rulebook_id, session=session)
 
     doc = get_setup_wizard_by_rulebookId(rulebook_id)
     if not doc:
         raise ValueError(f"Setup wizard for rulebook '{rulebook_id}' not found after creation.") 
     return doc
+
+def update_setup_wizard_job(
+        wizard_id: str, status:str, progress: int | None = None,
+        error: str | None = None, session = None,
+    ) -> None:
+    db = get_db()
+    now = datetime.now(timezone.utc)
+    set_fields: dict[str, Any] = {"job.status": status, "updatedAt": now, "job.error": error }
+    if progress is not None:
+        set_fields["job.progress"] = progress
+
+    if status == "ready":
+        set_fields["job.generatedAt"] = now
+
+    result = db["SETUP_WIZARD"].update_one(
+        {"_id": ObjectId(wizard_id)}, {"$set": set_fields}, session = session
+    )
+
+    if result.matched_count != 1:
+        logger.warning("Failed to upate setup wizard %s: no document matched.", wizard_id)
+        raise ValueError(f"Setup wizard '{wizard_id}' not found.")
+
+def finalise_setup_wizard(wizard_id: str, output: dict) -> None:
+    db = get_db()
+    now = datetime.now(timezone.utc)
+    db["SETUP_WIZARD"].update_one(
+        {"_id": ObjectId(wizard_id)},
+        {"$set": {
+            "components": output["components"],
+            "phases": output["phases"],
+            "summary":output["summary"],
+            "job.status": "ready",
+            "job.progress": 100,
+            "job.generatedAt": now,
+            "job.error": None,
+            "updatedAt": now
+        }}
+    )
+
+def get_setup_wizard(wizard_id: str) -> dict | None:
+    """
+    Stale-job recovery, mirrors get_ingestion_job.
+    """
+
+    db =get_db()
+    doc = db["SETUP_WIZARD"].find_one({"_id": ObjectId(wizard_id)})
+    if not doc:
+        return None
+
+    if doc["job"]["status"] == "running":
+        age = datetime.now(timezone.utc) - doc["updatedAt"].replace(tzinfo=timezone.utc)
+        if age > timedelta(minutes = STALE_JOB_THRESHOLD_MINUTES):
+            logger.warning("Setup wizard job %s is stale (age %s) - marking as failed.", wizard_id, age)
+            update_setup_wizard_job(wizard_id,"failed", error=f"Timed out after exceeding the {STALE_JOB_THRESHOLD_MINUTES} minute threshold. Possible crash mid-pipeline")
+
+            doc = db["SETUP_WIZARD"].find_one({"_id":ObjectId(wizard_id)})
+            if not doc:
+                return None
+
+    doc["id"] = str(doc.pop("_id"))
+    doc["rulebookId"] = str(doc["rulebookId"])

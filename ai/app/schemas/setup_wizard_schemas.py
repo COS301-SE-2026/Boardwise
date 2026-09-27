@@ -10,7 +10,7 @@ PHASE_LABELS={
     "board": "Build the board",
     "components": "Sort the components",
     "players": "Prepare each player",
-    "final": "Final steps",
+    "first_player": "Final steps",
 }
 
 PhaseKey = Literal["board", "components", "players", "final"]
