@@ -1,6 +1,7 @@
 package com.boardwise.backend.shared.model;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
@@ -34,6 +35,7 @@ public class Boardgame {
     private Integer minAge;
     private Integer duration;
     private List<String> genres;
+    private List<String> types;
 
     @Nullable 
     private Integer yearPublished;
@@ -60,5 +62,11 @@ public class Boardgame {
         this.minAge = minAge;
         this.duration = duration;
         this.genres = genres;
+
+        this.types = Collections.emptyList();
+        this.yearPublished = null;
+        this.stats = null;
+        this.popularityScore = null;
+        this.lastStatsRefreshedAt = null;
     }
 }

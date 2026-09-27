@@ -24,7 +24,6 @@ import org.springframework.web.client.RestClient;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.services.scoring.PopularityScorer;
 import com.boardwise.backend.shared.model.Boardgame;
-import com.boardwise.backend.user_service.repository.UserRepository;
 import com.boardwise.backend.user_service.services.R2StorageService;
 
 
@@ -39,7 +38,6 @@ public class BoardGameServiceUnitTest {
     private MockRestServiceServer mockServer;
     private BoardGameService service;
     private String baseUrl = "https://boardgamegeek.com/xmlapi2";
-    private UserRepository userRepo;
 
     @Captor
     private ArgumentCaptor<List<Boardgame>> captor;
@@ -53,13 +51,12 @@ public class BoardGameServiceUnitTest {
         popularityScorer = mock(PopularityScorer.class);
         RestClient.Builder builder = RestClient.builder();
         mockServer = MockRestServiceServer.bindTo(builder).build();
-        userRepo = mock(UserRepository.class);
 
         RestClient testClient = builder.baseUrl(baseUrl)
                                         .defaultHeader("Authorization", "Bearer some-valid-token")
                                         .build();
 
-        service = new BoardGameService(gameRepo, bucket, testClient, popularityScorer, userRepo, db);
+        service = new BoardGameService(gameRepo, bucket, testClient, popularityScorer, db);
     }
 
     @Test

@@ -2,7 +2,7 @@ package com.boardwise.backend.shared.services;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Map;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -16,8 +16,18 @@ import com.boardwise.backend.shared.model.Boardgame;
 // shared by the ingest and the refresh job so the two can't drift apart
 public final class BggDataParser {
 
-    private BggDataParser() {
-    }
+    private static final Map<String, String> BGG_RANK_NAME_TO_TYPE = Map.of(
+        "strategygames", "Strategy Games",
+        "wargames", "Wargames",
+        "familygames", "Family Games",
+        "partygames", "Party Games",
+        "abstracts", "Abstract Strategy Games",
+        "thematic", "Thematic Games",
+        "childrensgames", "Children's Games",
+        "cgs", "Customisable Games"
+    );
+
+    private BggDataParser(){}
 
     public static BggStats parseStats(Element item) {
         if (item.getElementsByTagName("statistics").getLength() == 0)
@@ -35,7 +45,59 @@ public final class BggDataParser {
                 .build();
     }
 
-    public static Boardgame parseGame(Element item){
+    public static Boardgame parseGame(Element item, String fallBackImage){
+
+        String pulledImage = tagTextContent(item, "image"); 
+        String imageUrl = pulledImage == null ? fallBackImage : pulledImage;
+        
+        // API game data object
+        return Boardgame.builder()
+                .id(null)
+                .bggId(null)
+                .title(rawAttr(item, "name"))
+                .description(tagTextContent(item, "description"))
+                .imageURL(imageUrl)
+                .minPlayers(intAttr(item, "minplayers"))
+                .maxPlayers(intAttr(item, "maxplayers"))
+                .minAge(intAttr(item, "minage"))
+                .duration(intAttr(item, "playingtime"))
+                .genres(parseGenres(item))
+                .types(parseGameTypes(item))
+                .yearPublished(parseYearPublished(item))
+                .stats(parseStats(item))
+                .build();
+    }
+
+    public static Integer parseYearPublished(Element item) {
+        return intAttr(item, "yearpublished");
+    }
+
+    private static List<String> parseGameTypes(Element item){
+        if (item.getElementsByTagName("statistics").getLength() == 0)
+            return null;
+
+        NodeList rankNodes = item.getElementsByTagName("rank");
+        List<String> types = new ArrayList<>();
+        for(int i = 0; i < rankNodes.getLength(); i++){
+            Element rankTag = (Element) rankNodes.item(i);
+
+            if(
+                !"family".equals(rankTag.getAttribute("type")) || 
+                "Not Ranked".equals(rankTag.getAttribute("value"))
+            )
+                continue;
+
+            String slug = rankTag.getAttribute("name");
+            String type = BGG_RANK_NAME_TO_TYPE.get(slug);
+            
+            if(type != null)
+                types.add(type);
+        }
+
+        return types;
+    }
+
+    private static List<String> parseGenres(Element item){
         NodeList gameGenres = item.getElementsByTagName("link");
         List<String> genres = new ArrayList<>();
         for(int j = 0; j < gameGenres.getLength(); j++){
@@ -48,24 +110,7 @@ public final class BggDataParser {
                 genres.add(genre.toLowerCase());
             }
         }
-
-        // API game data object
-        return Boardgame.builder()
-                .id(null)
-                .bggId(null)
-                .title(rawAttr(item, "name"))
-                .description(tagTextContent(item, "description"))
-                .imageURL(tagTextContent(item, "image"))
-                .minPlayers(intAttr(item, "minplayers"))
-                .maxPlayers(intAttr(item, "maxplayers"))
-                .minAge(intAttr(item, "minage"))
-                .duration(intAttr(item, "playingtime"))
-                .genres(genres)
-                .build();
-    }
-
-    public static Integer parseYearPublished(Element item) {
-        return intAttr(item, "yearpublished");
+        return genres;
     }
 
     private static String tagTextContent(Element item, String tag){
