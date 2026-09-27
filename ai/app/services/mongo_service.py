@@ -5,8 +5,8 @@ from typing import Any
 
 from bson import ObjectId
 from pymongo import MongoClient
-from pymongo.errors import DuplicateKeyError
 
+# from pymongo.errors import DuplicateKeyError
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -218,6 +218,8 @@ def create_rulebook_text(
                 "content": chunk["content"],
                 "charCount": len(chunk["content"]),
                 "type": chunk.get("type", "text"),
+                "sourcePages": chunk.get("sourcePages", []),
+                "metadata": chunk.get("metadata", {}),
                 "needsReview": chunk.get("needsReview", False),
                 "confidence": chunk.get("confidence", 1.0),
                 "associatedImageUrls": chunk.get("associatedImageUrls", []),
@@ -379,104 +381,105 @@ def mark_pipeline_failed(
         "Marked pipeline failed for rulebook %s at stage %s.", rulebook_id, stage
     )
 
-#Setup Wizard
-def setup_wizard_indexes() -> None:
-    """
-    Creates required indexes on the SETUP_WIZARD COLLECTION.
-    Call once at startup.
-    """
-    db =get_db()
-    db["SETUP_WIZARD"].create_index("rulebookId", unique = True)
 
-def get_setup_wizard_by_rulebookId(rulebook_id: str) -> dict | None:
-    """
-    Fetches the SETUP_WIZARD document for a given rulebook, if one exists.
-    """
+# #Setup Wizard
+# def setup_wizard_indexes() -> None:
+#     """
+#     Creates required indexes on the SETUP_WIZARD COLLECTION.
+#     Call once at startup.
+#     """
+#     db =get_db()
+#     db["SETUP_WIZARD"].create_index("rulebookId", unique = True)
 
-    db = get_db()
-    doc = ["SETUP_WIZARD"].findOne({"rulebookId": ObjectId(rulebook_id)})
+# def get_setup_wizard_by_rulebookId(rulebook_id: str) -> dict | None:
+#     """
+#     Fetches the SETUP_WIZARD document for a given rulebook, if one exists.
+#     """
 
-    if not doc:
-        return None
+#     db = get_db()
+#     doc = db["SETUP_WIZARD"].findOne({"rulebookId": ObjectId(rulebook_id)})
 
-    doc["id"] = str(doc.pop("_id"))
-    doc["rulebookId"] = str(doc["rulebook"])
+#     if not doc:
+#         return None
 
-    return doc
+#     doc["id"] = str(doc.pop("_id"))
+#     doc["rulebookId"] = str(doc["rulebook"])
 
-def create_setup_wizard(rulebook_id: str, session=None) -> str:
-    """
-    Inserts a new queued SETUP_WIZARD document for a rulebook, seeded with 
-    minPlayers/maxPlayers pulled from the rulebook, and points 
-    Rulebook.setupWizardId back at it. Raises ValueError if the rulebook
-    doesn't exist or already has a wizard.
-    """
+#     return doc
 
-    db = get_db()
-    rulebook_object_id = ObjectId(rulebook_id)
+# def create_setup_wizard(rulebook_id: str, session=None) -> str:
+#     """
+#     Inserts a new queued SETUP_WIZARD document for a rulebook, seeded with
+#     minPlayers/maxPlayers pulled from the rulebook, and points
+#     Rulebook.setupWizardId back at it. Raises ValueError if the rulebook
+#     doesn't exist or already has a wizard.
+#     """
 
-    rulebook = db["RULEBOOK"].find_one({"_id": rulebook_object_id}, session = session)
-    if not rulebook:
-        logger.warning("Setup wizard creation rejected: rulebook '%s' not found.", rulebook_id)
-        raise ValueError(f"Rulebook '{rulebook_id}' not found.")
+#     db = get_db()
+#     rulebook_object_id = ObjectId(rulebook_id)
 
-    now = datetime.now(timezone.utc)
+#     rulebook = db["RULEBOOK"].find_one({"_id": rulebook_object_id}, session = session)
+#     if not rulebook:
+#         logger.warning("Setup wizard creation rejected: rulebook '%s' not found.", rulebook_id)
+#         raise ValueError(f"Rulebook '{rulebook_id}' not found.")
 
-    result = db["SETUP_WIZARD"].insert_one(
-        {
-            "rulebookId": rulebook_obj_id,
-            "createdAt": now,
-            "updatedAt": now,
-            "schemaVersion": 1,
-            "job": {
-                "status": "queued",
-                "progress": 0,
-                "generatedAt": None,
-                "error": None,
-            },
-            "game": None,
-            "config": {
-                "minPlayers": rulebook.get("minPlayers", -1),
-                "maxPlayers": rulebook.get("maxPlayers", -1),
-            },
-            "summary": None,
-            "components": [],
-            "phases": [],
-            "warnings": [],
-        },     
-        session  = session   
-    )
+#     now = datetime.now(timezone.utc)
 
-    wizard_id = str(result.inserted_id)
+#     result = db["SETUP_WIZARD"].insert_one(
+#         {
+#             "rulebookId": rulebook_obj_id,
+#             "createdAt": now,
+#             "updatedAt": now,
+#             "schemaVersion": 1,
+#             "job": {
+#                 "status": "queued",
+#                 "progress": 0,
+#                 "generatedAt": None,
+#                 "error": None,
+#             },
+#             "game": None,
+#             "config": {
+#                 "minPlayers": rulebook.get("minPlayers", -1),
+#                 "maxPlayers": rulebook.get("maxPlayers", -1),
+#             },
+#             "summary": None,
+#             "components": [],
+#             "phases": [],
+#             "warnings": [],
+#         },
+#         session  = session
+#     )
 
-    db["RULEBOOK"].update_one(
-            { "_id": rulebook_object_id },
-            {"$set": {"setWizardId": wizard_id}},
-            session = session
-        )
-    return wizard_id
+#     wizard_id = str(result.inserted_id)
 
-def get_or_create_setup_wizard(rulebook_id: str) -> dict:
-    """
-    Returns the SETUP_WIZARD document for a rulebook, creating one
-    (atomically, with the Rulebook.setupWizardId backref) if none exists
-    """
+#     db["RULEBOOK"].update_one(
+#             { "_id": rulebook_object_id },
+#             {"$set": {"setWizardId": wizard_id}},
+#             session = session
+#         )
+#     return wizard_id
 
-    existing = get_setup_wizard_by_rulebookId(rulebook_id)
-    if existing:
-        return existing
+# def get_or_create_setup_wizard(rulebook_id: str) -> dict:
+#     """
+#     Returns the SETUP_WIZARD document for a rulebook, creating one
+#     (atomically, with the Rulebook.setupWizardId backref) if none exists
+#     """
 
-    try:
+#     existing = get_setup_wizard_by_rulebookId(rulebook_id)
+#     if existing:
+#         return existing
 
-        with client.start_session() as session:
-            session.start_transaction(
-                lambda s: create_setup_wizard(rulebook_id, session = s)
-            )
-    except DuplicateKeyError: 
-            logger.info("Lost setup wizard create race for rule '%s';  re-fetching.", rulebook_id)
-            create_setup_wizard(rulebook_id, session=session)
+#     try:
 
-    doc = get_setup_wizard_by_rulebookId(rulebook_id)
-    if not doc:
-        raise ValueError(f"Setup wizard for rulebook '{rulebook_id}' not found after creation.") 
-    return doc
+#         with client.start_session() as session:
+#             session.start_transaction(
+#                 lambda s: create_setup_wizard(rulebook_id, session = s)
+#             )
+#     except DuplicateKeyError:
+#             logger.info("Lost setup wizard create race for rule '%s';  re-fetching.", rulebook_id)
+#             create_setup_wizard(rulebook_id, session=session)
+
+#     doc = get_setup_wizard_by_rulebookId(rulebook_id)
+#     if not doc:
+#         raise ValueError(f"Setup wizard for rulebook '{rulebook_id}' not found after creation.")
+#     return doc

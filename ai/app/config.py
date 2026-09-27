@@ -35,19 +35,7 @@ class Settings:
     EMBEDDING_DIMENSIONS: int = int(os.getenv("EMBEDDING_DIMENSIONS", "512"))
     LANCEDB_IVF_PARTITIONS: int = int(os.getenv("LANCEDB_IVF_PARTITIONS", "256"))
     LANCEDB_CANDIDATES: int = int(os.getenv("LANCEDB_CANDIDATES", "25"))
-    UNSTRUCTURED_API_URL: str | None = (
-        os.getenv("UNSTRUCTURED_PROD_URL")
-        if environment == "prod"
-        else os.getenv("UNSTRUCTURED_DEV_URL")
-    )
-    UNSTRUCTURED_API_KEY: str | None = os.getenv("UNSTRUCTURED_API_KEY")
-    MIN_IMAGE_DIMENSION_PX: int = (
-        60  # Used to flter out bullets, icons and decorative rules
-    )
-    MIN_BOXED_REGION_AREA_PX: int = (
-        4000  # Used to filter table-cell borders (small rules)
-    )
-    MIN_BOXED_REGION_HEIGHT_PT: int = 20
+    GEMINI_API_KEY: str | None = os.getenv("GEMINI_API_KEY")
 
 
 settings = Settings()

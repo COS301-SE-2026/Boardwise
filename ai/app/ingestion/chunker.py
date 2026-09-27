@@ -5,49 +5,70 @@ from bson import ObjectId
 
 logger = logging.getLogger(__name__)
 
+MIN_CHUNK_CHARS = 20
+MIN_ALPHA_RATIO = 0.4
+SHORT_LINE_CHAR_LIMIT = 4
+SHORT_LINE_RATIO_THRESHOLD = 0.6
+MIN_SHORT_LINE_STACK = 3
+
+_HEADER_LINE_PATTERN = re.compile(r"^(#{1,6})\s+(.*)$", re.MULTILINE)
+_TABLE_ROW_PATTERN = re.compile(r"^\s*\|.+\|\s*$", re.MULTILINE)
+_TABLE_SEPARATOR_PATTERN = re.compile(
+    r"^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$", re.MULTILINE
+)
+
+_FILENAME_ARTIFACT_PATTERNS = (
+    re.compile(r"\.(indd|pdf|qxd|idml)\b", re.IGNORECASE),
+    re.compile(r"\b\d{2}[./-]\d{2}[./-]\d{2,4}\b"),
+    re.compile(r"\b(seite|page|p\.)\s*\d+\b", re.IGNORECASE),
+)
+
+_RULEBOOK_BOILERPLATE_PATTERNS = (
+    re.compile(r"\bAll Rights Reserved\b", re.IGNORECASE),
+    re.compile(r"\bis a registered trademark\b", re.IGNORECASE),
+    re.compile(r"\bNo part of this (product|book|game)\b", re.IGNORECASE),
+    re.compile(r"\bNOT INTENDED FOR USE BY PERSONS\b", re.IGNORECASE),
+    re.compile(r"\bMade in (China|Germany|U\.S\.A\.|USA)\b", re.IGNORECASE),
+    re.compile(
+        r"\b(Consumer contact|Consumer Relations|Customer Service)\b", re.IGNORECASE
+    ),
+    re.compile(r"©\s*\d{4}"),
+)
+
 
 def generate_chunks(
-    blocks_cache: dict, max_chunk_size: int = 1000
+    pages_cache: dict, max_chunk_size: int = 1000
 ) -> tuple[bool, list[dict], str]:
     """
     Splits Markdown text semantically by headers, preserving tables and lists.
     Enforces a strict max_chunk_size by sub-chunking oversized paragraphs
     Returns: (success, list_of_chunks, failure_reason)
     """
-    chunks = []
-    rulebook_id = blocks_cache.get("rulebookId", "")
+    rulebook_id = pages_cache.get("rulebookId", "")
     if not rulebook_id:
-        logger.error("Rulebook ID not provided with the blocks_cache")
+        logger.error("Rulebook ID not provided with the pages_cache")
         return (False, [], "Rulebook ID not provided.")
 
-    raw_blocks = blocks_cache.get("blocks", [])
-    if not raw_blocks:
+    pages = pages_cache.get("pages", [])
+    if not pages:
         return (True, [], "")
 
-    sections: list[list[dict]] = []
-    current_section: list[dict] = []
-    current_section_kind = None  # None | aside
+    document_text, page_offsets = _build_document_with_page_offsets(pages)
+    if not document_text.strip():
+        return (True, [], "")
 
-    for block in raw_blocks:
-        block_kind = "aside" if block.get("type") == "aside" else None
-        is_heading = block.get("type") == "heading"
-
-        if (is_heading or block_kind != current_section_kind) and current_section:
-            sections.append(current_section)
-            current_section = []
-
-        current_section.append(block)
-        current_section_kind = block_kind
-    if current_section:
-        sections.append(current_section)
-
-    # Process each section into 1 or more chunks based on max_chunk_size
-    for section in sections:
+    chunks: list[dict] = []
+    for section_text, metadata, page_numbers in _split_by_headers(
+        document_text, page_offsets
+    ):
         _chunk_section(
-            section_blocks=section,
+            section_text=section_text,
+            metadata=metadata,
+            page_numbers=page_numbers,
             rulebook_id=rulebook_id,
             chunks=chunks,
             max_chunk_size=max_chunk_size,
+            pages=pages,
         )
 
     logger.info("Successfully generated %d Markdown-aware chunks.", len(chunks))
@@ -57,114 +78,231 @@ def generate_chunks(
 
 def filter_out_decorative_chunks(chunk_list: list[dict]) -> list[dict]:
     """
-    Filters out decorative chunks (trademark lines, all-caps title-page noise
-    and any chunk that is still over 50% throwaway image content)
+    Filters out low-quality chunks: filename/production artifacts,
+    legal boilerplate, and other noise that survived the header/footer stripping
     """
-    return [c for c in chunk_list if c.get("type") != "decorative"]
+    return [
+        c
+        for c in chunk_list
+        if not is_low_quality_rulebook_content(c.get("content", ""))
+    ]
 
 
-def _handle_oversized_block(
-    block: dict, content: str, rulebook_id: str, chunks: list[dict], max_chunk_size: int
-) -> None:
-    """Process a single block that exceeds the maximum chunk size."""
-    sub_texts = _split_large_block(content, max_chars=max_chunk_size - 50)
+def is_low_quality_rulebook_content(content: str) -> bool:
+    """Determines if content is low quality based on certain heuristics"""
+    text = content.strip()
+    if not text:
+        return True
+    if len(text) < MIN_CHUNK_CHARS:
+        return True
+    if _matches_any(text, _FILENAME_ARTIFACT_PATTERNS):
+        return True
+    if _matches_any(text, _RULEBOOK_BOILERPLATE_PATTERNS):
+        return True
+    if _alpha_ratio(text) < MIN_ALPHA_RATIO:
+        return True
+    return _is_short_line_stack(text)
 
-    for sub_text in sub_texts:
-        sub_block = block.copy()
-        sub_block["content"] = sub_text
 
-        chunks.append(_roll_up_chunk([sub_block], rulebook_id, len(chunks)))
+def _matches_any(text: str, patterns) -> bool:
+    return any(p.search(text) for p in patterns)
 
 
-def _chunk_section(  # NOSONAR
-    section_blocks: list[dict],
+def _alpha_ratio(text: str) -> float:
+    return sum(1 for c in text if c.isalpha()) / len(text)
+
+
+def _is_short_line_stack(text: str) -> bool:
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if len(lines) < MIN_SHORT_LINE_STACK:
+        return False
+    short = sum(1 for line in lines if len(line) <= SHORT_LINE_CHAR_LIMIT)
+    return (short / len(lines)) >= SHORT_LINE_RATIO_THRESHOLD
+
+
+def _build_document_with_page_offsets(
+    pages: list[dict],
+) -> tuple[str, list[tuple[int, int]]]:
+    """
+    Concatenates page Markdown into one document.
+    Returns the text alongside a list of (start_offset, page_number) pairs marking where each page's content begins
+    """
+    parts = []
+    offsets: list[tuple[int, int]] = []
+    cursor = 0
+
+    for page in pages:
+        markdown_text = page.get("markdown", "")
+        if not markdown_text.strip():
+            continue
+        if parts:
+            cursor += 2  # account for the "\n\n" joiner before this page
+        offsets.append((cursor, page["page"]))
+        parts.append(markdown_text)
+        cursor += len(markdown_text)
+    return ("\n\n".join(parts), offsets)
+
+
+def _pages_for_range(
+    page_offsets: list[tuple[int, int]], start: int, end: int
+) -> list[int]:
+    """Returns every page whose start_offset - next_start_offset rage overlaps the given start - end text range."""
+    result = []
+    for i, (page_start, page_number) in enumerate(page_offsets):
+        page_end = page_offsets[i + 1][0] if i + 1 < len(page_offsets) else float("inf")
+        if page_start < end and page_end > start:
+            result.append(page_number)
+    return result
+
+
+def _split_by_headers(
+    document_text: str, page_offsets: list[tuple[int, int]]
+) -> list[tuple[str, dict[str, str], list[int]]]:
+    """Splits Markdown heading lines"""
+    matches = list(_HEADER_LINE_PATTERN.finditer(document_text))
+    if not matches:
+        if document_text.strip():
+            return [
+                (
+                    document_text,
+                    {},
+                    _pages_for_range(page_offsets, 0, len(document_text)),
+                )
+            ]
+        return []
+
+    sections: list[tuple[str, dict[str, str], list[int]]] = []
+    first_start = matches[0].start()
+    if first_start > 0 and document_text[:first_start].strip():
+        sections.append(
+            (
+                document_text[:first_start],
+                {},
+                _pages_for_range(page_offsets, 0, first_start),
+            )
+        )
+
+    active_headers: dict[int, str] = {}
+    for i, match in enumerate(matches):
+        level = len(match.group(1))
+        title = match.group(2).strip()
+
+        for existing_level in [lvl for lvl in active_headers if lvl >= level]:
+            del active_headers[existing_level]
+        active_headers[level] = title
+
+        breadcrumb = {
+            f"Header {lvl}": active_headers[lvl] for lvl in sorted(active_headers)
+        }
+
+        start = match.start()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(document_text)
+        sections.append(
+            (
+                document_text[start:end],
+                breadcrumb,
+                _pages_for_range(page_offsets, start, end),
+            )
+        )
+
+    return sections
+
+
+def _classify_section_type(text: str) -> str:
+    """Types: 'table', 'aside', or 'text'."""
+    if _TABLE_ROW_PATTERN.search(text) and _TABLE_SEPARATOR_PATTERN.search(text):
+        return "table"
+
+    lines = [line for line in text.splitlines() if line.strip()]
+    if lines:
+        aside_lines = sum(1 for line in lines if line.strip().startswith(">"))
+        if aside_lines / len(lines) >= 0.6:
+            return "aside"
+    return "text"
+
+
+def _get_page_confidence(
+    pages: list[dict], page_numbers: list[int]
+) -> tuple[float, bool]:
+    """Rolls up the confidence/flagged state of a section's source page(s)"""
+    if not page_numbers:
+        return (1.0, False)
+    matching = [p for p in pages if p.get("page") in page_numbers]
+    if not matching:
+        return (1.0, False)
+    confidence = min(p.get("confidence", 1.0) for p in matching)
+    needs_review = any(p.get("flagged") for p in matching) or confidence < 0.8
+    return (confidence, needs_review)
+
+
+def _chunk_section(
+    section_text: str,
+    metadata: dict[str, str],
+    page_numbers: list[int],
     rulebook_id: str,
     chunks: list[dict],
     max_chunk_size: int,
+    pages: list[dict],
 ) -> None:
-    """Chunks an individual heading-delimited section, enforcing the max_chunk_size limit"""
-    current_chunk_blocks: list[dict] = []
-    current_char_count = 0
+    """
+    Chunks an individual heading-delimited section, enforcing the max_chunk_size limit.
+    Sub-chunks of a section share it's header breadcrumb and page range
+    """
+    content = section_text.strip()
+    if not content:
+        return
 
-    for block in section_blocks:
-        content = block.get("content", "")
-        block_len = len(content)
+    confidence, needs_review = _get_page_confidence(pages, page_numbers)
 
-        if block_len > max_chunk_size:
-            if current_chunk_blocks:
-                chunks.append(
-                    _roll_up_chunk(current_chunk_blocks, rulebook_id, len(chunks))
-                )
-                current_chunk_blocks = []
-                current_char_count = 0
-
-            _handle_oversized_block(block, content, rulebook_id, chunks, max_chunk_size)
-            continue
-
-        # Adding 1 to account for the "\n" joiner used in _roll_up_chunk
-        added_len = block_len + (1 if current_chunk_blocks else 0)
-        if current_char_count + added_len > max_chunk_size:
-            chunks.append(
-                _roll_up_chunk(current_chunk_blocks, rulebook_id, len(chunks))
+    if len(content) <= max_chunk_size:
+        chunks.append(
+            _make_chunk(
+                content,
+                metadata,
+                rulebook_id,
+                len(chunks),
+                page_numbers,
+                confidence,
+                needs_review,
             )
+        )
+        return
 
-            overlap_block = current_chunk_blocks[-1:] if current_chunk_blocks else []
-            current_chunk_blocks = overlap_block
-            current_char_count = sum(
-                len(b.get("content", "")) for b in current_chunk_blocks
-            ) + len(overlap_block)
+    for sub_text in _split_large_block(content, max_chars=max_chunk_size - 50):
+        chunks.append(
+            _make_chunk(
+                sub_text,
+                metadata,
+                rulebook_id,
+                len(chunks),
+                page_numbers,
+                confidence,
+                needs_review,
+            )
+        )
 
-            added_len = block_len + (1 if current_chunk_blocks else 0)
 
-        current_chunk_blocks.append(block)
-        current_char_count += added_len
-
-    if current_chunk_blocks:
-        chunks.append(_roll_up_chunk(current_chunk_blocks, rulebook_id, len(chunks)))
-
-
-def _roll_up_chunk(blocks: list, rulebook_id: str, index: int) -> dict:
-    """Derives exposed metadata from constituent blocks."""
-    content = "\n".join(b["content"] for b in blocks if b.get("content"))
-
+def _make_chunk(
+    content: str,
+    metadata: dict[str, str],
+    rulebook_id: str,
+    index: int,
+    page_numbers: list[int],
+    confidence: float,
+    needs_review: bool,
+) -> dict:
     return {
         "chunkId": ObjectId(),
         "rulebookId": rulebook_id,
         "index": index,
         "content": content,
         "charCount": len(content),
-        "type": _determine_chunk_type(blocks),
-        "needsReview": any(
-            b.get("confidence", 1.0) < 0.8 or b.get("forceReview", False)
-            for b in blocks
-        ),
-        "confidence": min([b.get("confidence", 1.0) for b in blocks] or [1.0]),
+        "type": _classify_section_type(content),
+        "sourcePages": page_numbers,
+        "metadata": metadata,
+        "needsReview": needs_review,
+        "confidence": confidence,
     }
-
-
-def _determine_chunk_type(blocks: list[dict]) -> str:
-    """
-    Rolls up constituent block types into a single chunk type
-    Types: 'text', 'table', 'aside', 'mixed', 'decorative'
-    """
-    if not blocks:
-        return "text"
-
-    types_present = {b.get("type", "paragraph") for b in blocks}
-    total_blocks = len(blocks)
-
-    decorative_count = sum(1 for b in blocks if b.get("type") == "decorative")
-    if decorative_count > 0 and (decorative_count / total_blocks) >= 0.5:
-        return "decorative"
-
-    if "table" in types_present:
-        return "table" if len(types_present) == 1 else "mixed"
-
-    aside_count = sum(1 for b in blocks if b.get("type") == "aside")
-    if aside_count > 0 and (aside_count / total_blocks) >= 0.5:
-        return "aside"
-
-    return "text"
 
 
 def _split_large_block(block_text, max_chars=950) -> list:

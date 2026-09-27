@@ -95,18 +95,33 @@ def run_ingestion_pipeline(
             )
             return
 
-        # =========== Stage 4: Vectorise ===========
-        mongo_service.update_ingestion_job(job_id, "Vectorise", "Processing")
+        # ========== Quality Gate ==========
 
-        vector_success, vectorised_chunks, vector_reason = vectorise_chunks(
-            chunk_list, embedding_model
-        )
+        quality_summary = blocks_cache.get("qualitySummary", {"outcome": "ready"})
+        pending_review = quality_summary.get("outcome") == "pending_review"
+        pending_reason = quality_summary.get("reason", "")
 
-        if not vector_success:
-            mongo_service.mark_pipeline_failed(
-                rulebook_id, job_id, "Vectorise", vector_reason
+        if pending_review:
+            logger.warning(
+                "Rulebook %s flagged for review pre-vectorisation: %s",
+                rulebook_id,
+                pending_reason,
             )
-            return
+
+        # =========== Stage 4: Vectorise ===========
+        if pending_review:
+            vectorised_chunks = chunk_list
+        else:
+            mongo_service.update_ingestion_job(job_id, "Vectorise", "Processing")
+            vector_success, vectorised_chunks, vector_reason = vectorise_chunks(
+                chunk_list, embedding_model
+            )
+
+            if not vector_success:
+                mongo_service.mark_pipeline_failed(
+                    rulebook_id, job_id, "Vectorise", vector_reason
+                )
+                return
 
         # =========== Stage 5: Storage & Finalisation ===========
         # Storage
@@ -137,6 +152,13 @@ def run_ingestion_pipeline(
             rulebook_id, pdf_key, vectorised_chunks
         )
 
+        if pending_review:
+            mongo_service.mark_rulebook_pending_review(
+                rulebook_id, job_id, quality_summary.get("reason", "")
+            )
+            logger.info("Pipeline completed (quarantined) for rulebook %s", rulebook_id)
+            return
+
         lancedb_success, lancedb_reason = _write_chunks_to_lancedb_with_retry(
             vectorised_chunks
         )
@@ -146,12 +168,8 @@ def run_ingestion_pipeline(
                 rulebook_id, job_id, "Store", lancedb_reason
             )
             return
-        
-        quality_summary = blocks_cache.get("qualitySummary", {"outcome": "ready"})
-        if quality_summary.get("outcome") == "pending_review":
-            mongo_service.mark_rulebook_pending_review(rulebook_id, job_id, quality_summary.get("reason", ""))
-        else:
-            mongo_service.mark_rulebook_ready(rulebook_id, job_id)
+
+        mongo_service.mark_rulebook_ready(rulebook_id, job_id)
 
         logger.info("Pipeline completed successfully for rulebook %s", rulebook_id)
     except Exception:
