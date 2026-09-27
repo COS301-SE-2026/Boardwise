@@ -16,6 +16,58 @@ client = MongoClient(settings.MONGODB_URL)
 # 50MB worst-case OCR estimate
 STALE_JOB_THRESHOLD_MINUTES = 20
 
+_CHUNK_PASSTHROUGH_FIELDS = (
+    "index",
+    "content",
+    "type",
+    "sourcePages",
+    "metadata",
+    "needsReview",
+    "confidence",
+    "associatedImageUrls",
+)
+
+_CHUNK_FIELD_DEFAULTS = {
+    "type": "text",
+    "sourcePages": [],
+    "metadata": {},
+    "needsReview": False,
+    "confidence": 1.0,
+    "associatedImageUrls": [],
+}
+
+
+def _coerce_object_id(value) -> ObjectId:
+    """Accept an ObjectId or a 24-character hex string. Raise ValueError otherwise"""
+    if isinstance(value, ObjectId):
+        return value
+    return ObjectId(str(value))
+
+
+def _chunk_to_document(chunk: dict, rulebook_oid: ObjectId, now: datetime) -> dict:
+    """Map a chunk into a RULEBOOK_TEXT document"""
+    chunk_id = chunk.get("chunkId")
+    if chunk_id is None:
+        raise ValueError("Chunk is missing 'chunkId'.")
+
+    content = chunk.get("content", "")
+    doc = {
+        "_id": _coerce_object_id(chunk_id),
+        "rulebookId": rulebook_oid,
+        "charCount": len(content),
+        "createdAt": chunk.get("createdAt") or now,
+        "updatedAt": now,
+    }
+
+    for field in _CHUNK_PASSTHROUGH_FIELDS:
+        if field in chunk and chunk[field] is not None:
+            doc[field] = chunk[field]
+
+    for field, default in _CHUNK_FIELD_DEFAULTS.items():
+        doc.setdefault(field, default)
+
+    return doc
+
 
 def get_db():
     """Returns instance of the database"""
@@ -208,25 +260,9 @@ def create_rulebook_text(
     chunks_to_insert = []
 
     for chunk in chunks_list:
-        chunk_obj_id = ObjectId(chunk["chunkId"])
+        in_chunk = _chunk_to_document(chunk, rulebook_obj_id, now)
 
-        chunks_to_insert.append(
-            {
-                "_id": chunk_obj_id,
-                "rulebookId": rulebook_obj_id,
-                "index": chunk["index"],
-                "content": chunk["content"],
-                "charCount": len(chunk["content"]),
-                "type": chunk.get("type", "text"),
-                "sourcePages": chunk.get("sourcePages", []),
-                "metadata": chunk.get("metadata", {}),
-                "needsReview": chunk.get("needsReview", False),
-                "confidence": chunk.get("confidence", 1.0),
-                "associatedImageUrls": chunk.get("associatedImageUrls", []),
-                "createdAt": now,
-                "updatedAt": now,
-            }
-        )
+        chunks_to_insert.append(in_chunk)
 
     result = db["RULEBOOK_TEXT"].insert_many(chunks_to_insert, session=session)
 
@@ -380,6 +416,38 @@ def mark_pipeline_failed(
     logger.info(
         "Marked pipeline failed for rulebook %s at stage %s.", rulebook_id, stage
     )
+
+
+def replace_rulebook_text(rulebook_id: str, chunks: list[dict]) -> int:
+    """
+    Atomically replace all RULEBOOK_TEXT chunks for one rulebook.
+    - Deletes every existing document for the rulebook.
+    - Inserts the new document derived from 'chunks'
+    Returns the number of documents written
+    Raises on failure
+    """
+    rulebook_oid = _coerce_object_id(rulebook_id)
+    now = datetime.now(timezone.utc)
+    documents = [_chunk_to_document(c, rulebook_oid, now) for c in chunks]
+
+    db = get_db()
+
+    def _delete_then_insert(session=None) -> None:
+        db["RULEBOOK_TEXT"].delete_many(
+            {"rulebookId": rulebook_oid}, session=session
+        )
+        if documents:
+            db["RULEBOOK_TEXT"].insert_many(documents, session=session)
+
+    with client.start_session() as session, session.start_transaction():
+        _delete_then_insert(session=session)
+
+    logger.info(
+        "Replaced RULEBOOK_TEXT for rulebook %s with %d chunks",
+        rulebook_id,
+        len(documents),
+    )
+    return len(documents)
 
 
 # #Setup Wizard
