@@ -21,5 +21,5 @@ defineProps({
 
 defineEmits(['update:modelValue'])
 
-const tabs = ['Friends', 'Communities']
+const tabs = ['Communities', 'Friends']
 </script>

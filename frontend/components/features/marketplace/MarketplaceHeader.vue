@@ -1,38 +1,27 @@
 <template>
-  <div class="d-flex flex-column ga-5" data-test="marketplace-header">
-    <div class="marketplace-header__top">
-      <SectionTitle
-        data-test="marketplace-title"
-        title="Marketplace"
-        subtitle="Buy, Rent and Sell board games and more with the community"
+  <PageHeader
+    title="Marketplace"
+    subtitle="Buy, Rent and Sell board games and more with the community"
+    action-label="Create Listing"
+    action-icon="mdi-plus"
+    @action="$emit('create-listing')"
+  >
+    <template #search>
+      <MarketplaceSearch 
+        data-test="marketplace-search"
+        @search="$emit('search', $event)" 
+        @create-listing="$emit('create-listing')" 
       />
-
-      <BaseButton 
-        data-test="create-listing-button" 
-        variant="primary" 
-        :block="mobile"
-        prepend-icon="mdi-plus" 
-        @click="$emit('create-listing')"
-      > 
-          Create Listing
-      </BaseButton>
-    </div>
-
-    <MarketplaceSearch
-      data-test="marketplace-search"
-     @search="$emit('search', $event)" 
-     @create-listing="$emit('create-listing')" 
-    />
-  </div>
+    </template>
+  </PageHeader>
 </template>
 
 <script setup>
 import { useDisplay } from 'vuetify'
 const { mobile } = useDisplay()
 
-import SectionTitle from '~/components/ui/SectionTitle.vue'
-import MarketplaceSearch from './MarketplaceSearch.vue';
-import BaseButton from '~/components/ui/BaseButton.vue';
+import PageHeader from '~/components/layout/PageHeader.vue'
+import MarketplaceSearch from './MarketplaceSearch.vue'
 
 defineEmits(['search', 'create-listing'])
 </script>

@@ -303,6 +303,35 @@ python_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
 )
 
 # make unstructured instance security group. Allow traffic from python
+unstructured_sg = aws.ec2.SecurityGroup(
+    f"{RESOURCE_PREFIX}-unstructured-sg",
+    description="Allow traffic from python backend to unstructured API",
+    vpc_id=vpc.id,
+)
+
+unstructured_ingress = aws.vpc.SecurityGroupIngressRule(
+    "unstructured-sg-ingress",
+    description="Allow traffic from python backend to unstructured API",
+    security_group_id=unstructured_sg.id,
+    referenced_security_group_id=python_sg.id,
+    from_port=8000,
+    to_port=8000,
+    ip_protocol="tcp",
+)
+
+unstructured_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
+    "unstructured-sg-egress-ipv4",
+    security_group_id=unstructured_sg.id,
+    cidr_ipv4=ALLOW_ALL_IPv4,
+    ip_protocol="-1",
+)
+
+unstructured_egress_ipv6 = aws.vpc.SecurityGroupEgressRule(
+    "unstructured-sg-egress-ipv6",
+    security_group_id=unstructured_sg.id,
+    cidr_ipv6=ALLOW_ALL_IPv6,
+    ip_protocol="-1",
+)
 
 # set up backend
 ami = aws.ssm.get_parameter(
@@ -342,6 +371,34 @@ backend_profile = aws.iam.InstanceProfile(
 )
 
 # Make unstructured instance
+unstructured_setup_script = r"""#!/bin/bash
+yum update -y
+yum install -y docker
+systemctl enable --now docker
+
+# Pull and run the Unstructured API container
+docker run -d \
+    --restart always \
+    --name unstructured-api \
+    -p 8000:8000 \
+    quay.io/unstructured-io/unstructured-api:latest
+"""
+
+unstructured_instance = aws.ec2.Instance(
+    f"{RESOURCE_PREFIX}-unstructured-api",
+    instance_type="m7i-flex.large",
+    ami=ami.value,
+    subnet_id=private_subnets[0].id,
+    vpc_security_group_ids=[unstructured_sg.id],
+    root_block_device=aws.ec2.InstanceRootBlockDeviceArgs(
+        volume_size=13, volume_type="gp3"
+    ),
+    tags={"Name": f"{RESOURCE_PREFIX}-unstructured-api"},
+    user_data=unstructured_setup_script,
+    iam_instance_profile=backend_profile.name,
+    user_data_replace_on_change=True,
+)
+
 
 python_repo = awsx.ecr.Repository(f"{RESOURCE_PREFIX}-python-repo", force_delete=True)
 
@@ -354,14 +411,26 @@ python_image = awsx.ecr.Image(
 
 python_setup_script = r"""#!/bin/bash
 yum update -y
-yum install -y docker
+yum install -y docker cronie
 
 systemctl enable --now docker
+systemctl enable --now crond
 
 aws ecr get-login-password --region __REGION__ | docker login --username AWS --password-stdin __REGISTRY_URL__
 
 mkdir -p /var/lib/lancedb
 chown 1001:1001 /var/lib/lancedb
+
+AWS_ACCESS_KEY_ID="__R2_ACCESS_KEY__" \
+AWS_SECRET_ACCESS_KEY="__R2_SECRET_KEY__" \
+AWS_DEFAULT_REGION="auto" \
+aws s3 sync s3://__R2_BUCKET_RULEBOOKS__/lancedb_backup /var/lib/lancedb \
+    --endpoint-url "https://__R2_ACCOUNT_ID__.r2.cloudflarestorage.com"
+
+cat << 'EOF' > /etc/cron.d/lancedb_backup
+0 */2 * * * root AWS_ACCESS_KEY_ID="__R2_ACCESS_KEY__" AWS_SECRET_ACCESS_KEY="__R2_SECRET_KEY__" AWS_DEFAULT_REGION="auto" aws s3 sync /var/lib/lancedb s3://__R2_BUCKET_RULEBOOKS__/lancedb_backup --endpoint-url "https://__R2_ACCOUNT_ID__.r2.cloudflarestorage.com" >> /var/log/lancedb_sync.log 2>&1
+EOF
+chmod 0644 /etc/cron.d/lancedb_backup
 
 docker run -d \
     --restart always \
@@ -386,9 +455,12 @@ docker run -d \
     -e EMBEDDING_DIMENSIONS="__EMBEDDING_DIMENSIONS__" \
     -e APP_ENV="__APP_ENV__" __IMAGE_URI__
 """
-python_user_data = python_image.image_uri.apply(
-    lambda image_uri : python_setup_script
-                        .replace("__IMAGE_URI__", image_uri)
+python_user_data = pulumi.Output.all(
+    image_uri=python_image.image_uri,
+    unstructured_ip=unstructured_instance.private_ip
+).apply(
+    lambda args : python_setup_script
+                        .replace("__IMAGE_URI__", args["image_uri"])
                         .replace("__CPU_CORES__", str(settings.CPU_CORES))
                         .replace("__INTERNAL_SECRET__", settings.INTERNAL_WEBHOOK_SECRET)
                         .replace("__HF_TOKEN__", settings.HF_TOKEN)
@@ -400,12 +472,12 @@ python_user_data = python_image.image_uri.apply(
                         .replace("__JWT_SECRET__", settings.JWT_SECRET)
                         .replace("__DB_NAME__", settings.MONGODB_DATABASE)
                         .replace("__PROD_DB_URL__", settings.MONGODB_URL)
-                        .replace("__REGISTRY_URL__", image_uri.split('/')[0])
+                        .replace("__REGISTRY_URL__", args['image_uri'].split('/')[0])
                         .replace("__REGION__", aws.get_region().region)
                         .replace("__SYSTEM_CONTRIBUTOR_ID__", settings.SYSTEM_CONTRIBUTOR_ID)
                         .replace("__UNSTRUCTURED_API_KEY__", settings.UNSTRUCTURED_API_KEY)
-                        .replace("__UNSTRUCTURED_PROD_URL__", "make instance then inser value")
-                        .replace("__EMBEDDING_DIMENSIONS__", settings.EMBEDDING_DIMENSIONS)
+                        .replace("__UNSTRUCTURED_PROD_URL__", f"http://{args['unstructured_ip']}:8000/general/v0/general")
+                        .replace("__EMBEDDING_DIMENSIONS__", str(settings.EMBEDDING_DIMENSIONS))
                         .replace("__APP_ENV__", settings.APP_ENV)
 )
 

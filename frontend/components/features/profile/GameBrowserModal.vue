@@ -115,7 +115,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['confirm', 'add-custom'])
-const open = defineModal({ type: Boolean, default: false })
+const open = defineModel({ type: Boolean, default: false })
 
 const { searchGames, addExistingGame, addGame } = useProfile()
 
@@ -157,6 +157,14 @@ watch(search, (_) => {
     delaySearch()
 })
 
+watch(open, (isOpen) => {
+    if(!isOpen){
+        search.value = ''
+        selectedGames.value = []
+        searchResults.value = []
+    }
+})
+
 const toggleGame = (game) => {
     // No Dups allowed
     if(isOwned(game)) {
@@ -188,11 +196,6 @@ const handleConfirm = async () => {
         await Promise.all(gamesToAdd.map(game => addExistingGame(game.id)))
 
         emit('confirm')
-
-        selectedGames.value = []
-        search.value = ''
-        searchResults.value = []
-
         open.value = false
     } catch (err)
     {

@@ -4,7 +4,6 @@ import json
 import logging
 import math
 import re
-from concurrent.futures import ThreadPoolExecutor
 from typing import Any, cast
 
 import pymupdf
@@ -47,7 +46,7 @@ def _assess_and_refine_page(
         boxed_regions = _detect_boxed_regions(raw_page)
         _tag_boxed_blocks(raw_blocks_list, boxed_regions)
         page_dict["blocks"] = _reorder_blocks_by_column(raw_blocks_list, raw_page)
-        return (page_dict, True, escalation_reason, (0.6 if escalate_page else None))
+        return (page_dict, False, escalation_reason, (0.6 if escalate_page else None))
 
     page_blocks = page_dict.get("blocks", [])
     page_has_issues = any(
@@ -97,7 +96,6 @@ def extract_text(file_bytes: bytes, rulebook_id: str) -> tuple[bool, str, str, d
                 "blocks": [],
             }
 
-            pending_uploads: list[tuple[bytes, str, str]] = []
             used_tier3 = False
 
             if _fails_quality_check(md_dicts):
@@ -106,7 +104,6 @@ def extract_text(file_bytes: bytes, rulebook_id: str) -> tuple[bool, str, str, d
                 blocks_cache["extractorVersion"] = "tier3-v1"
                 used_tier3 = True
 
-            seen_image_hashes: set[str] = set()
             page_quality: list[dict] = []
 
             for page_num, page_dict in enumerate(md_dicts):
@@ -132,15 +129,10 @@ def extract_text(file_bytes: bytes, rulebook_id: str) -> tuple[bool, str, str, d
                     block_mapper.map_to_blocks(
                         page_dict=page_dict,
                         rulebook_id=rulebook_id,
-                        pending_uploads=pending_uploads,
-                        seen_image_hashes=seen_image_hashes,
-                        image_base_url=settings.R2_RULEBOOKS_URL or "",
                         confidence_override=confidence_override,
                         force_review=escalate_page,
                     )
                 )
-
-            _flush_pending_uploads(pending_uploads)
 
             flat_text_pieces = [
                 str(b.get("content"))
@@ -494,7 +486,7 @@ def _escalate_to_tier_3(file_bytes: bytes) -> list[dict]:
                 "pdf_infer_table_structure": "true",
                 "extract_image_block_to_payload": "true",
             },
-            timeout=120,
+            timeout=300,
         )
         response.raise_for_status()
         elements = response.json()
@@ -529,18 +521,6 @@ def _escalate_to_tier_3(file_bytes: bytes) -> list[dict]:
         logger.exception("Unexpected error communicating with local Unstructured API.")
 
     return []
-
-
-def _flush_pending_uploads(pending_uploads: list[tuple[bytes, str, str]]) -> None:
-    def _do_upload(item):
-        image_bytes, image_key, content_type = item
-        try:
-            upload_to_r2(image_bytes, image_key, content_type)
-        except Exception:
-            logger.warning("Image upload failed for %s", image_key)
-
-    with ThreadPoolExecutor(max_workers=8) as executor:
-        executor.map(_do_upload, pending_uploads)
 
 
 PENDING_REVIEW_CHAR_RATIO_THRESHOLD = 0.30

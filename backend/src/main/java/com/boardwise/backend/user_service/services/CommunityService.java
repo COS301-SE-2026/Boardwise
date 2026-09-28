@@ -17,7 +17,6 @@ import java.util.Set;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.geo.Point;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -45,10 +44,6 @@ import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repository.EventAttendeeRepository;
 import com.boardwise.backend.user_service.repository.EventRepository;
 import com.boardwise.backend.user_service.repository.UserRepository;
-import com.google.maps.GeoApiContext;
-import com.google.maps.GeocodingApi;
-import com.google.maps.errors.ApiException;
-import com.google.maps.model.GeocodingResult;
 import lombok.RequiredArgsConstructor;
 
 
@@ -60,7 +55,7 @@ public class CommunityService {
     private final UserRepository userRepo;
     private final BoardGameRepository gameRepo;
     private final JWTService jwtService;
-    private final GeoApiContext geoApiContext;
+    private final GeocodingService geoService;
     private final R2StorageService bucket;
     private final EventAttendeeRepository eaRepo;
     private final MongoTemplate template;
@@ -159,7 +154,7 @@ public class CommunityService {
         return union.isEmpty() ? 0.0 : (double) overlap / union.size();
     }
 
-    public Map<String, Object> createEvent(String token, EventInfoDTO eventInfo, MultipartFile eventImg) throws ApiException, InterruptedException, NoSuchElementException, IOException {
+    public Map<String, Object> createEvent(String token, EventInfoDTO eventInfo, MultipartFile eventImg) throws  NoSuchElementException, IOException {
         Map<String, Object> result = new HashMap<>();
         User user = getUserFromToken(token);
 
@@ -184,15 +179,7 @@ public class CommunityService {
             eventGames.add(id);
         }
 
-        GeocodingResult[] results = GeocodingApi.geocode(geoApiContext, eventLocationText).await();
-
-        if(results.length == 0)
-            throw new NoSuchElementException("Could not find coordinates for location: " + eventLocationText);
-
-        double latitude = results[0].geometry.location.lat;
-        double longitude = results[0].geometry.location.lng;
-
-        GeoJsonPoint point = new GeoJsonPoint(new Point(longitude, latitude));
+        GeoJsonPoint point = geoService.getLocationCoordinates(eventLocationText);
 
         Event newEvent = new Event(
             eventName,
@@ -240,7 +227,7 @@ public class CommunityService {
         return result;
     }
 
-    public Map<String, Object> updateEvent(String token, String eventId, EventUpdateDTO newInfo, MultipartFile newImage) throws IllegalAccessException, IllegalArgumentException, NoSuchElementException, IOException, ApiException, InterruptedException {
+    public Map<String, Object> updateEvent(String token, String eventId, EventUpdateDTO newInfo, MultipartFile newImage) throws IllegalAccessException, IllegalArgumentException, NoSuchElementException, IOException {
         User user = getUserFromToken(token);
         Optional<Event> preEvent = eventRepo.findById(eventId);
         boolean eventChanged = false;
@@ -293,14 +280,7 @@ public class CommunityService {
                 eventChanged = true;
                 event.setLocationText(newLocation);
 
-                GeocodingResult[] results = GeocodingApi.geocode(geoApiContext, newLocation).await();
-                if(results.length == 0)
-                    throw new NoSuchElementException("Could not find coordinates for location: " + newLocation);
-
-                double latitude = results[0].geometry.location.lat;
-                double longitude = results[0].geometry.location.lng;
-
-                GeoJsonPoint point = new GeoJsonPoint(new Point(longitude, latitude));
+                GeoJsonPoint point = geoService.getLocationCoordinates(newLocation);
                 event.setLocation(point);
             }
             if(newDate != null && !event.getStartDateTime().toLocalDate().equals(newDate)){

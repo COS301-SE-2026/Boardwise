@@ -6,9 +6,11 @@
             <p class="card-meta">{{ label }}</p>
         </div>
     </BaseCard>
- </template>
+</template>
 
- <script setup>
+<script setup>
+import BaseCard from './BaseCard.vue';
+
 defineProps({ label: {type: String, default:'Add' } })
 defineEmits(['click'])
 </script>

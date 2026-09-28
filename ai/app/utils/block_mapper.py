@@ -1,4 +1,3 @@
-import hashlib
 import re
 import uuid
 from typing import Any
@@ -11,10 +10,6 @@ def _extract_valid_block_data(
     order: int,
     raw_blocks: list[dict],
     page_num: int,
-    rulebook_id: str,
-    seen_image_hashes: set[str],
-    pending_uploads: list[tuple[bytes, str, str]],
-    image_base_url: str,
     median_size: float,
 ) -> dict | None:
     """Routes block processing by type and filters out OCR gibberish."""
@@ -26,10 +21,6 @@ def _extract_valid_block_data(
             order,
             raw_blocks,
             page_num,
-            rulebook_id,
-            seen_image_hashes,
-            pending_uploads,
-            image_base_url,
         )
 
     if raw_type == 0:  # Text block
@@ -46,9 +37,6 @@ def _extract_valid_block_data(
 def map_to_blocks(
     page_dict: dict[str, Any],
     rulebook_id: str,
-    pending_uploads: list[tuple[bytes, str, str]],
-    seen_image_hashes: set[str],
-    image_base_url: str,
     confidence_override: float | None = None,
     force_review: bool = False,
 ) -> list[dict]:
@@ -74,10 +62,6 @@ def map_to_blocks(
             order,
             raw_blocks,
             page_num,
-            rulebook_id,
-            seen_image_hashes,
-            pending_uploads,
-            image_base_url,
             median_size,
         )
 
@@ -97,7 +81,6 @@ def map_to_blocks(
                 "confidence": final_confidence,
                 "forceReview": force_review,
                 "sourcePage": page_num,
-                "imageUrl": block_data.get("image_url"),
                 "headingLevel": block_data.get("heading_level"),
             }
         )
@@ -138,12 +121,8 @@ def _process_image_block(
     order: int,
     raw_blocks: list[dict],
     page_num: int,
-    rulebook_id: str,
-    seen_image_hashes: set[str],
-    pending_uploads: list[tuple[bytes, str, str]],
-    image_base_url: str,
 ) -> dict | None:
-    """Handles dimension validation, deduplication, and caption extraction for images."""
+    """Extracts captions from image blocks as plain text for RAG, discarding the image itself."""
     bbox = raw_block.get("bbox")
     if bbox and len(bbox) == 4:
         bw = bbox[2] - bbox[0]
@@ -157,31 +136,15 @@ def _process_image_block(
         if bw == 0 or bh == 0 or (bw / bh) > 8 or (bh / bw) > 8:
             return None
 
-    image_ext = raw_block.get("ext", "png").lower()
-    if image_ext not in ["png", "jpeg", "jpg"]:
-        return None
-    image_bytes = raw_block.get("image")
-    image_hash = hashlib.sha256(image_bytes).hexdigest() if image_bytes else None
-
-    if image_hash:
-        if image_hash in seen_image_hashes:
-            return None
-        seen_image_hashes.add(image_hash)
-
-    image_key = f"rulebooks/{rulebook_id}/images/{page_num}_{order}.{image_ext}"
-    image_url = f"{image_base_url}{image_key}"
-
-    if image_bytes:
-        pending_uploads.append((image_bytes, image_key, f"image/{image_ext}"))
-
     caption_text = _find_image_caption(order, raw_blocks)
-    alt_text = caption_text if caption_text else f"Rulebook image, page {page_num}"
+    # No caption = discard image block entirely to keep the text clean
+    if not caption_text:
+        return None
 
     return {
-        "type": "image",
-        "content": f"![{alt_text}]({image_url})",  # Rendering as markdown image syntax
+        "type": "paragraph",
+        "content": f"> Note: {caption_text}",
         "confidence": 0.95,
-        "image_url": image_url,
         "heading_level": None,
     }
 
@@ -243,7 +206,7 @@ def _extract_text_and_max_size(raw_block: dict) -> tuple[str, float]:
     return (" ".join(content_lines).strip(), block_max_size)
 
 
-def _classify_text_block( # NOSONAR
+def _classify_text_block(  # NOSONAR
     content: str,
     block_max_size: float,
     median_size: float,

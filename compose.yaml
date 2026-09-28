@@ -54,7 +54,7 @@ services:
       - BGG_TOKEN=${BGG_TOKEN}
       - BGG_URL=${BGG_URL}
       - R2_RULEBOOKS_PUBLIC_URL=${R2_RULEBOOKS_PUBLIC_URL}
-      - GOOGLE_MAP_API_KEY=${GOOGLE_MAP_API_KEY}
+      - NOMINATIM_SERVICE_URL=${NOMINATIM_SERVICE_URL}
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_USERNAME=${SMTP_USERNAME}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
@@ -136,13 +136,13 @@ services:
       retries: 3
       start_period: 20s
 
-  mailhog:
-    image: mailhog/mailhog:latest
-    container_name: mailhog
-    ports:
-      - "1025:1025"
-      - "8025:8025"
-    restart: unless-stopped
+  # mailhog:
+  #   image: mailhog/mailhog:latest
+  #   container_name: mailhog
+  #   ports:
+  #     - "1025:1025"
+  #     - "8025:8025"
+  #   restart: unless-stopped
 
   caddy:
     image: caddy:2.11.4-alpine
@@ -157,8 +157,8 @@ services:
     depends_on:
       backend:
         condition: service_started
-      # ai-gateway:
-      #   condition: service_started
+      ai-gateway:
+        condition: service_started
       scrapers:
         condition: service_started
   

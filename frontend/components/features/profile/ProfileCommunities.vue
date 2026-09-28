@@ -2,9 +2,7 @@
   <section class="communities-section">
 
     <div class="section-heading">
-      <SectionTitle
-        title="Active Communities"
-      />
+      <h2>Active Communities</h2>
 
       <NuxtLink to="/social" class="see-all">
         Explore Communities

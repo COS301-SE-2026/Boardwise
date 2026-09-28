@@ -16,12 +16,12 @@ import com.boardwise.scrapers.services.rulebook_scrapers.RuleBookOrgScraper;
 
 
 @Service
-public class PdfService {
+public class PdfServiceHandler {
     private final BoardGameRepository boardgameRepository;
     private final RulebookRepository rulebookRepository;
     private final RuleBookOrgScraper ruleBookOrgScraper;
     
-    public PdfService(BoardGameRepository boardgameRepository, RulebookRepository rulebookRepository, RuleBookOrgScraper ruleBookOrgScraper){
+    public PdfServiceHandler(BoardGameRepository boardgameRepository, RulebookRepository rulebookRepository, RuleBookOrgScraper ruleBookOrgScraper){
         this.boardgameRepository = boardgameRepository;
         this.rulebookRepository = rulebookRepository;
         this.ruleBookOrgScraper =  ruleBookOrgScraper;

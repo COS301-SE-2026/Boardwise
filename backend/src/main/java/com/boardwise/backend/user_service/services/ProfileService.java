@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Example;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -68,11 +69,6 @@ import com.boardwise.backend.vault.model.Rulebook;
 import com.boardwise.backend.vault.repository.RulebookRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import com.google.maps.GeoApiContext;
-import com.google.maps.GeocodingApi;
-import com.google.maps.errors.ApiException;
-import com.google.maps.model.GeocodingResult;
-
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -86,7 +82,7 @@ public class ProfileService {
     private final GroupRepository groupRepo;
     private final BoardGameRepository gameRepo;
     private final R2StorageService bucket;
-    private final GeoApiContext geoContext;
+    private final GeocodingService geoService;
     private final MongoTemplate db;
     private final NotificationRepository notifRepo;
     private final NotificationService notifService;
@@ -167,7 +163,7 @@ public class ProfileService {
             user.getId(),
             fullName,
             user.getUsername(),
-            user.getLocation(),
+            user.getLocationText(),
             user.getProfilePicture(),
             friendCount,
             groupCount,
@@ -190,7 +186,7 @@ public class ProfileService {
     
         if(query == null){
             int pageIdx = pageNum == null ? 0 : Math.max(0, (pageNum - 1));
-            Pageable page = PageRequest.of(pageIdx, 10);
+            Pageable page = PageRequest.of(pageIdx, 9);
             dbQuery.with(page);
         }
         else{
@@ -234,7 +230,7 @@ public class ProfileService {
         userRepo.deleteById(userId);
     }
 
-    public Map<String, Object> updateProfile(String token, UpdateProfileDTO profileUpdateData) throws ApiException, InterruptedException, IOException, NoSuchElementException {
+    public Map<String, Object> updateProfile(String token, UpdateProfileDTO profileUpdateData) throws IOException, NoSuchElementException {
         String userId = jwtService.extractUserId(token).toString();
         User user = userRepo.findById(userId).get();
 
@@ -261,11 +257,10 @@ public class ProfileService {
         }
         
         if(newLocation != null && !newLocation.trim().isBlank()){
-            GeocodingResult[] results = GeocodingApi.geocode(geoContext, newLocation).await();
-            if(results.length == 0)
-                throw new NoSuchElementException("Could not find coordinates for location: " + newLocation);
+            GeoJsonPoint point = geoService.getLocationCoordinates(newLocation);
 
-            user.setLocation(newLocation);
+            user.setLocation(point);
+            user.setLocationText(newLocation);
             toReturn.put("location", newLocation);
         }
 
@@ -287,7 +282,7 @@ public class ProfileService {
                 profileUpdateData.preferences().getGenres()
             );
             Map<String, Object> prefs = updateOrSetPreferences(token, dto);
-            toReturn.put("preferences", prefs.get("preferences"));
+            toReturn.put("preferences", (Preferences) prefs.get("preferences"));
         }
 
         userRepo.save(user);
@@ -295,7 +290,7 @@ public class ProfileService {
         return toReturn;
     }
 
-    public ProfilePictureResponseDTO changeProfilePicture(String token, MultipartFile pfp) throws IOException {
+    public ProfilePictureResponseDTO changeProfilePicture(String token, MultipartFile pfp) throws IOException, IllegalArgumentException {
         String url = "";
         String message = "";
         String userId = jwtService.extractUserId(token).toString();
@@ -760,14 +755,9 @@ public class ProfileService {
         Boardgame bg = bgRepo.findById(gameId).orElseThrow(
             () -> new IllegalArgumentException("Boardgame not found")
         );
-        Rulebook rb = rbRepo.findByGameIdAndContributorId(new ObjectId(bg.getId()), new ObjectId(systemContributorId))
-            .orElseGet(() -> {
-                List<Rulebook> fallbackRulebooks = rbRepo.findByGameId(new ObjectId(gameId));
-                if(fallbackRulebooks.isEmpty()){
-                    throw new IllegalArgumentException("No fallback rulebooks found for gameId: " + gameId);
-                }
-                return fallbackRulebooks.get(0);
-            }
+        ObjectId gameObjectId = new ObjectId(bg.getId());
+        Rulebook rb = rbRepo.findByGameIdAndContributorId(gameObjectId, new ObjectId(systemContributorId))
+            .orElseGet(() -> rbRepo.findFirstByGameId(gameObjectId).orElseThrow(() -> new IllegalArgumentException("No fallback rulebooks found for gameId: " + gameId))
         );
 
         return new BoardgameRulebookDto(rb.getId().toHexString());

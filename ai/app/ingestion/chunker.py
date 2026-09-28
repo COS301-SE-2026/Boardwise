@@ -62,21 +62,21 @@ def filter_out_decorative_chunks(chunk_list: list[dict]) -> list[dict]:
     """
     return [c for c in chunk_list if c.get("type") != "decorative"]
 
-def _handle_oversized_block(block: dict, content: str, rulebook_id: str, chunks: list[dict], max_chunk_size: int) -> None:
+
+def _handle_oversized_block(
+    block: dict, content: str, rulebook_id: str, chunks: list[dict], max_chunk_size: int
+) -> None:
     """Process a single block that exceeds the maximum chunk size."""
     sub_texts = _split_large_block(content, max_chars=max_chunk_size - 50)
-    
-    for index, sub_text in enumerate(sub_texts):
+
+    for sub_text in sub_texts:
         sub_block = block.copy()
         sub_block["content"] = sub_text
-    
-        # Prevents image duplication by only attaching the image to the first sub-chunk
-        if index > 0 and "imageUrl" in sub_block:
-            sub_block.pop("imageUrl", None)
-    
+
         chunks.append(_roll_up_chunk([sub_block], rulebook_id, len(chunks)))
 
-def _chunk_section( # NOSONAR
+
+def _chunk_section(  # NOSONAR
     section_blocks: list[dict],
     rulebook_id: str,
     chunks: list[dict],
@@ -134,16 +134,18 @@ def _roll_up_chunk(blocks: list, rulebook_id: str, index: int) -> dict:
         "content": content,
         "charCount": len(content),
         "type": _determine_chunk_type(blocks),
-        "needsReview": any(b.get("confidence", 1.0) < 0.8 or b.get("forceReview", False) for b in blocks),
+        "needsReview": any(
+            b.get("confidence", 1.0) < 0.8 or b.get("forceReview", False)
+            for b in blocks
+        ),
         "confidence": min([b.get("confidence", 1.0) for b in blocks] or [1.0]),
-        "associatedImageUrls": [b["imageUrl"] for b in blocks if b.get("imageUrl")],
     }
 
 
 def _determine_chunk_type(blocks: list[dict]) -> str:
     """
     Rolls up constituent block types into a single chunk type
-    Types: 'text', 'table', 'image-heavy', 'mixed', 'decorative'
+    Types: 'text', 'table', 'aside', 'mixed', 'decorative'
     """
     if not blocks:
         return "text"
@@ -157,17 +159,10 @@ def _determine_chunk_type(blocks: list[dict]) -> str:
 
     if "table" in types_present:
         return "table" if len(types_present) == 1 else "mixed"
-    
+
     aside_count = sum(1 for b in blocks if b.get("type") == "aside")
     if aside_count > 0 and (aside_count / total_blocks) >= 0.5:
         return "aside"
-
-    image_count = sum(1 for b in blocks if b.get("type") == "image")
-    if image_count > 0 and (image_count / total_blocks) >= 0.5:
-        return "image-heavy"
-
-    if "image" in types_present:
-        return "mixed"
 
     return "text"
 
