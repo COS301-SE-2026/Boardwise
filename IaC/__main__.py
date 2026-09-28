@@ -476,7 +476,7 @@ python_user_data = pulumi.Output.all(
                         .replace("__REGION__", aws.get_region().region)
                         .replace("__SYSTEM_CONTRIBUTOR_ID__", settings.SYSTEM_CONTRIBUTOR_ID)
                         .replace("__UNSTRUCTURED_API_KEY__", settings.UNSTRUCTURED_API_KEY)
-                        .replace("__UNSTRUCTURED_PROD_URL__", f"http://{args['unstructured_ip']}:8000/general/v0/general")
+                        .replace("__UNSTRUCTURED_PROD_URL__", f"http://{args['unstructured_ip']}:8000/general/v0/general")  # NOSONAR -- private VPC service; TLS is not configured on the internal container
                         .replace("__EMBEDDING_DIMENSIONS__", str(settings.EMBEDDING_DIMENSIONS))
                         .replace("__APP_ENV__", settings.APP_ENV)
 )
