@@ -16,6 +16,58 @@ client = MongoClient(settings.MONGODB_URL)
 # 50MB worst-case OCR estimate
 STALE_JOB_THRESHOLD_MINUTES = 20
 
+_CHUNK_PASSTHROUGH_FIELDS = (
+    "index",
+    "content",
+    "type",
+    "sourcePages",
+    "metadata",
+    "needsReview",
+    "confidence",
+    "associatedImageUrls",
+)
+
+_CHUNK_FIELD_DEFAULTS = {
+    "type": "text",
+    "sourcePages": [],
+    "metadata": {},
+    "needsReview": False,
+    "confidence": 1.0,
+    "associatedImageUrls": [],
+}
+
+
+def _coerce_object_id(value) -> ObjectId:
+    """Accept an ObjectId or a 24-character hex string. Raise ValueError otherwise"""
+    if isinstance(value, ObjectId):
+        return value
+    return ObjectId(str(value))
+
+
+def _chunk_to_document(chunk: dict, rulebook_oid: ObjectId, now: datetime) -> dict:
+    """Map a chunk into a RULEBOOK_TEXT document"""
+    chunk_id = chunk.get("chunkId")
+    if chunk_id is None:
+        raise ValueError("Chunk is missing 'chunkId'.")
+
+    content = chunk.get("content", "")
+    doc = {
+        "_id": _coerce_object_id(chunk_id),
+        "rulebookId": rulebook_oid,
+        "charCount": len(content),
+        "createdAt": chunk.get("createdAt") or now,
+        "updatedAt": now,
+    }
+
+    for field in _CHUNK_PASSTHROUGH_FIELDS:
+        if field in chunk and chunk[field] is not None:
+            doc[field] = chunk[field]
+
+    for field, default in _CHUNK_FIELD_DEFAULTS.items():
+        doc.setdefault(field, default)
+
+    return doc
+
 
 def get_db():
     """Returns instance of the database"""
@@ -208,23 +260,9 @@ def create_rulebook_text(
     chunks_to_insert = []
 
     for chunk in chunks_list:
-        chunk_obj_id = ObjectId(chunk["chunkId"])
+        in_chunk = _chunk_to_document(chunk, rulebook_obj_id, now)
 
-        chunks_to_insert.append(
-            {
-                "_id": chunk_obj_id,
-                "rulebookId": rulebook_obj_id,
-                "index": chunk["index"],
-                "content": chunk["content"],
-                "charCount": len(chunk["content"]),
-                "type": chunk.get("type", "text"),
-                "needsReview": chunk.get("needsReview", False),
-                "confidence": chunk.get("confidence", 1.0),
-                "associatedImageUrls": chunk.get("associatedImageUrls", []),
-                "createdAt": now,
-                "updatedAt": now,
-            }
-        )
+        chunks_to_insert.append(in_chunk)
 
     result = db["RULEBOOK_TEXT"].insert_many(chunks_to_insert, session=session)
 
@@ -379,14 +417,46 @@ def mark_pipeline_failed(
         "Marked pipeline failed for rulebook %s at stage %s.", rulebook_id, stage
     )
 
-#Setup Wizard
+
+def replace_rulebook_text(rulebook_id: str, chunks: list[dict]) -> int:
+    """
+    Atomically replace all RULEBOOK_TEXT chunks for one rulebook.
+    - Deletes every existing document for the rulebook.
+    - Inserts the new document derived from 'chunks'
+    Returns the number of documents written
+    Raises on failure
+    """
+    rulebook_oid = _coerce_object_id(rulebook_id)
+    now = datetime.now(timezone.utc)
+    documents = [_chunk_to_document(c, rulebook_oid, now) for c in chunks]
+
+    db = get_db()
+
+    def _delete_then_insert(session=None) -> None:
+        db["RULEBOOK_TEXT"].delete_many({"rulebookId": rulebook_oid}, session=session)
+        if documents:
+            db["RULEBOOK_TEXT"].insert_many(documents, session=session)
+
+    with client.start_session() as session, session.start_transaction():
+        _delete_then_insert(session=session)
+
+    logger.info(
+        "Replaced RULEBOOK_TEXT for rulebook %s with %d chunks",
+        rulebook_id,
+        len(documents),
+    )
+    return len(documents)
+
+
+# Setup Wizard
 def setup_wizard_indexes() -> None:
     """
     Creates required indexes on the SETUP_WIZARD COLLECTION.
     Call once at startup.
     """
-    db =get_db()
-    db["SETUP_WIZARD"].create_index("rulebookId", unique = True)
+    db = get_db()
+    db["SETUP_WIZARD"].create_index("rulebookId", unique=True)
+
 
 def get_setup_wizard_by_rulebookId(rulebook_id: str) -> dict | None:
     """
@@ -404,10 +474,11 @@ def get_setup_wizard_by_rulebookId(rulebook_id: str) -> dict | None:
 
     return doc
 
+
 def create_setup_wizard(rulebook_id: str, session=None) -> str:
     """
-    Inserts a new queued SETUP_WIZARD document for a rulebook, seeded with 
-    minPlayers/maxPlayers pulled from the rulebook, and points 
+    Inserts a new queued SETUP_WIZARD document for a rulebook, seeded with
+    minPlayers/maxPlayers pulled from the rulebook, and points
     Rulebook.setupWizardId back at it. Raises ValueError if the rulebook
     doesn't exist or already has a wizard.
     """
@@ -415,15 +486,18 @@ def create_setup_wizard(rulebook_id: str, session=None) -> str:
     db = get_db()
     rulebook_object_id = ObjectId(rulebook_id)
 
-    rulebook = db["RULEBOOK"].find_one({"_id": rulebook_object_id}, session = session)
+    rulebook = db["RULEBOOK"].find_one({"_id": rulebook_object_id}, session=session)
     if not rulebook:
-        logger.warning("Setup wizard creation rejected: rulebook '%s' not found.", rulebook_id)
+        logger.warning(
+            "Setup wizard creation rejected: rulebook '%s' not found.", rulebook_id
+        )
         raise ValueError(f"Rulebook '{rulebook_id}' not found.")
 
     now = datetime.now(timezone.utc)
 
     result = db["SETUP_WIZARD"].insert_one(
         {
+            "rulebookId": rulebook_object_id,
             "rulebookId": rulebook_object_id,
             "createdAt": now,
             "updatedAt": now,
@@ -443,8 +517,8 @@ def create_setup_wizard(rulebook_id: str, session=None) -> str:
             "components": [],
             "phases": [],
             "warnings": [],
-        },     
-        session  = session   
+        },
+        session=session,
     )
 
     wizard_id = str(result.inserted_id)
@@ -455,6 +529,7 @@ def create_setup_wizard(rulebook_id: str, session=None) -> str:
             session = session
         )
     return wizard_id
+
 
 def get_or_create_setup_wizard(rulebook_id: str) -> dict:
     """
@@ -467,7 +542,6 @@ def get_or_create_setup_wizard(rulebook_id: str) -> dict:
         return existing
 
     try:
-
         with client.start_session() as session:
             with session.start_transaction():
                 create_setup_wizard(rulebook_id, session=session)
@@ -476,7 +550,9 @@ def get_or_create_setup_wizard(rulebook_id: str) -> dict:
 
     doc = get_setup_wizard_by_rulebookId(rulebook_id)
     if not doc:
-        raise ValueError(f"Setup wizard for rulebook '{rulebook_id}' not found after creation.") 
+        raise ValueError(
+            f"Setup wizard for rulebook '{rulebook_id}' not found after creation."
+        )
     return doc
 
 def update_setup_wizard_job(
