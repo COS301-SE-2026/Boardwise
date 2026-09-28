@@ -5099,12 +5099,6 @@ button:disabled,
   border-radius: var(--radius-pill) !important;
 }
 
-.profile-preferences {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
 .preference-label {
   font-family: var(--font-body);
   font-size: var(--fs-small);
@@ -7315,21 +7309,6 @@ games-owned-section {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
-}
-
-.community-chat-header__details-trigger {
-  padding: var(--space-1);
-
-  color: inherit;
-  text-align: left;
-
-  width: 100%;
-
-transition:
-  background var(--transition-fast),
-  color var(--transition-fast);
-  background: transparent;
-  border: 0;
 }
 
 .wizard-chat-panel__suggestion {
