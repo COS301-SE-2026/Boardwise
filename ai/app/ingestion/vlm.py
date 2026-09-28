@@ -88,13 +88,12 @@ def _extract_text_from_response(response) -> tuple[str | None, VlmStatus]:
 
     cand = response.candidates[0]
     finish_reason = getattr(cand, "finish_reason", None)
-    reason_name = (
-        finish_reason.name
-        if hasattr(finish_reason, "name")
-        else str(finish_reason)
-        if finish_reason
-        else "UNKNOWN"
-    )
+    reason_name = "UNKNOWN"
+    if finish_reason:
+        if hasattr(finish_reason, "name"):
+            reason_name = finish_reason.name
+        else:
+            reason_name = str(finish_reason)
 
     parts = cand.content.parts if cand.content and cand.content.parts else []
     text_parts = [p.text for p in parts if getattr(p, "text", None)]
@@ -149,6 +148,32 @@ def _extract_text_from_glm_response(response) -> tuple[str | None, VlmStatus]:
     return (text, VlmStatus.OK)
 
 
+def _handle_vlm_api_error(
+    e: APIError, attempt: int, max_retries: int
+) -> tuple[bool, VlmStatus]:
+    """Helps process API errors and determine if a retry can be done"""
+    if e.code not in TRANSIENT_STATUS_CODES:
+        logger.exception("VLM returned error on which we cannot retry: %s", e)
+        return (False, VlmStatus.API_ERROR)
+
+    if e.code == 429:
+        error_str = str(e).lower()
+        if "quota" in error_str or "resource_exhausted" in error_str:
+            return (False, VlmStatus.DAILY_CAP_EXHAUSTED)
+
+    logger.warning(
+        "VLM returned %s. Attempt %d of %d.", e.code, attempt + 1, max_retries
+    )
+
+    if attempt < max_retries - 1:
+        delay = (VLM_BASE_RETRY_DELAY_SECONDS * (2**attempt)) + random.uniform(0, 0.5)
+        time.sleep(delay)
+        return (True, VlmStatus.OK)
+
+    logger.exception("VLM exhausted retries for status %s", e.code)
+    return (False, VlmStatus.RETRIES_EXHAUSTED)
+
+
 def _call_vlm(image_bytes: bytes, max_retries: int = 3) -> tuple[str | None, VlmStatus]:
     """
     Sends a single page image to the VLM for transcription.
@@ -177,32 +202,12 @@ def _call_vlm(image_bytes: bytes, max_retries: int = 3) -> tuple[str | None, Vlm
                 ),
             )
             return _extract_text_from_response(response)
+
         except APIError as e:
-            if e.code in TRANSIENT_STATUS_CODES:
-                if e.code == 429:
-                    error_str = str(e).lower()
-                    if "quota" in error_str or "resource_exhausted" in error_str:
-                        return (None, VlmStatus.DAILY_CAP_EXHAUSTED)
-
-                logger.warning(
-                    "VLM returned %s. Attempt %d of %d.",
-                    e.code,
-                    attempt + 1,
-                    max_retries,
-                )
-
-                if attempt < max_retries - 1:
-                    delay = (
-                        VLM_BASE_RETRY_DELAY_SECONDS * (2**attempt)
-                    ) + random.uniform(0, 0.5)
-                    time.sleep(delay)
-                    continue
-
-                logger.error("VLM exhausted retries for status %s", e.code)
-                return (None, VlmStatus.RETRIES_EXHAUSTED)
-
-            logger.error("VLM returned error on which we cannot retry: %s", e)
-            return (None, VlmStatus.API_ERROR)
+            should_retry, status = _handle_vlm_api_error(e, attempt, max_retries)
+            if should_retry:
+                continue
+            return (None, status)
 
         except ValueError:
             logger.exception("VLM produced empty or blocked response.")

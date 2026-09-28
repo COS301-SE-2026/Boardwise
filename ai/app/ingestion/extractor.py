@@ -133,72 +133,97 @@ def _escalate_low_quality_pages(
         if not needs_escalation:
             continue
 
-        text: str | None = None
-        source = "failed_unknown"
-        confidence = 0.5
+        text, source, confidence, gemini_cap_exhausted = _attempt_escalation(
+            pdf_document, page_index, vlm_available, gemini_cap_exhausted
+        )
+        _update_page_entry(page_entry, text, reason, source, confidence)
 
-        if vlm_available and not gemini_cap_exhausted:
-            vlm_text, vlm_status = vlm.extract_page_via_vlm(pdf_document, page_index)
 
-            if vlm_status == VlmStatus.OK and vlm_text:
-                text = vlm_text
-                source = "vlm_ok"
-                confidence = 0.9
-            elif vlm_status == VlmStatus.MAX_TOKENS and vlm_text:
-                logger.warning(
-                    "VLM hit MAX_TOKENS on page %d. Keeping partial output.",
-                    page_index + 1,
-                )
-                text = vlm_text
-                source = "vlm_max_tokens"
-                confidence = 0.75
-            elif vlm_status == VlmStatus.DAILY_CAP_EXHAUSTED:
-                logger.warning(
-                    "VLM daily cap exhausted at page %d. Routing the rest of the rulebook to the fallback.",
-                    page_index + 1,
-                )
-                gemini_cap_exhausted = True
-            elif vlm_status in (VlmStatus.RECITATION, VlmStatus.SAFETY):
-                logger.info(
-                    "VLM refused page %d (%s). Trying fallback",
-                    page_index + 1,
-                    vlm_status.value,
-                )
-            else:
-                logger.info(
-                    "VLM failed page %d (%s). Trying fallback",
-                    page_index + 1,
-                    vlm_status.value,
-                )
+def _attempt_escalation(
+    pdf_document: "pymupdf.Document",
+    page_index: int,
+    vlm_available: bool,
+    gemini_cap_exhausted: bool,
+) -> tuple[str | None, str, float, bool]:
+    text: str | None = None
+    source = "failed_unknown"
+    confidence = 0.5
 
-        if text is None:
-            glm_text, glm_status = vlm.extract_page_via_glm(pdf_document, page_index)
+    if vlm_available and not gemini_cap_exhausted:
+        text, source, confidence, gemini_cap_exhausted = _try_gemini_vlm(
+            pdf_document, page_index, gemini_cap_exhausted
+        )
 
-            if glm_status == VlmStatus.OK and glm_text:
-                text = glm_text
-                source = "glm_ok"
-                confidence = 0.85
-            elif glm_status == VlmStatus.MAX_TOKENS and glm_text:
-                logger.warning(
-                    "GLM hit MAX_TOKENS on page %d. Keeping partial output.",
-                    page_index + 1,
-                )
-                text = glm_text
-                source = "glm_max_tokens"
-                confidence = 0.70
-            else:
-                source = f"failed_{glm_status.value.lower()}"
-                confidence = 0.5
+    if text is None:
+        text, source, confidence = _try_fallback_glm(pdf_document, page_index)
 
-        if text and text.strip():
-            page_entry["markdown"] = text
-            page_entry["escalated"] = True
-            page_entry["confidence"] = confidence
-            page_entry["flagged"] = False
-        else:
-            page_entry["flagged"] = True
-            page_entry["confidence"] = 0.5
-        page_entry["reason"] = f"{reason}__{source}"
+    return (text, source, confidence, gemini_cap_exhausted)
+
+
+def _try_gemini_vlm(
+    pdf_document: "pymupdf.Document", page_index: int, cap_exhausted: bool
+) -> tuple[str | None, str, float, bool]:
+    vlm_text, vlm_status = vlm.extract_page_via_vlm(pdf_document, page_index)
+
+    if vlm_status == VlmStatus.OK and vlm_text:
+        return (vlm_text, "vlm_ok", 0.9, cap_exhausted)
+    elif vlm_status == VlmStatus.MAX_TOKENS and vlm_text:
+        logger.warning(
+            "VLM hit MAX_TOKENS on page %d. Keeping partial output.",
+            page_index + 1,
+        )
+        return (vlm_text, "vlm_max_tokens", 0.75, cap_exhausted)
+    elif vlm_status == VlmStatus.DAILY_CAP_EXHAUSTED:
+        logger.warning(
+            "VLM daily cap exhausted at page %d. Routing the rest of the rulebook to the fallback.",
+            page_index + 1,
+        )
+        return (None, "failed_cap_exhausted", 0.5, True)
+
+    if vlm_status in (VlmStatus.RECITATION, VlmStatus.SAFETY):
+        logger.info(
+            "VLM refused page %d (%s). Trying fallback",
+            page_index + 1,
+            vlm_status.value,
+        )
+    else:
+        logger.info(
+            "VLM failed page %d (%s). Trying fallback",
+            page_index + 1,
+            vlm_status.value,
+        )
+    return (None, f"failed_{vlm_status.value.lower()}", 0.5, cap_exhausted)
+
+
+def _try_fallback_glm(
+    pdf_document: "pymupdf.Document", page_index: int
+) -> tuple[str | None, str, float]:
+    glm_text, glm_status = vlm.extract_page_via_glm(pdf_document, page_index)
+
+    if glm_status == VlmStatus.OK and glm_text:
+        return (glm_text, "glm_ok", 0.85)
+    elif glm_status == VlmStatus.MAX_TOKENS and glm_text:
+        logger.warning(
+            "GLM hit MAX_TOKENS on page %d. Keeping partial output.",
+            page_index + 1,
+        )
+        return (glm_text, "glm_max_tokens", 0.70)
+
+    return (None, f"failed_{glm_status.value.lower()}", 0.5)
+
+
+def _update_page_entry(
+    page_entry: dict, text: str | None, reason: str, source: str, confidence: float
+) -> None:
+    if text and text.strip():
+        page_entry["markdown"] = text
+        page_entry["escalated"] = True
+        page_entry["confidence"] = confidence
+        page_entry["flagged"] = False
+    else:
+        page_entry["flagged"] = True
+        page_entry["confidence"] = 0.5
+    page_entry["reason"] = f"{reason}__{source}"
 
 
 def _assess_page(
@@ -314,7 +339,7 @@ def _summarize_extraction_quality(pages: list[dict]) -> dict:
     total_pages = len(pages)
     flagged = [p for p in pages if p["flagged"]]
     flagged_pages = [p["page"] for p in flagged]
-    
+
     if total_chars == 0:
         return {
             "outcome": "pending_review",
@@ -328,13 +353,14 @@ def _summarize_extraction_quality(pages: list[dict]) -> dict:
     flagged_char_ratio = flagged_chars / total_chars
     flagged_page_ratio = len(flagged) / total_pages
 
-
-    if flagged_char_ratio > PENDING_REVIEW_CHAR_RATIO_THRESHOLD or flagged_page_ratio > PENDING_REVIEW_PAGE_RATIO_THRESHOLD:
+    if (
+        flagged_char_ratio > PENDING_REVIEW_CHAR_RATIO_THRESHOLD
+        or flagged_page_ratio > PENDING_REVIEW_PAGE_RATIO_THRESHOLD
+    ):
         return {
             "outcome": "pending_review",
             "reason": (
-                f"{len(flagged)}/{total_pages} pages flagged "
-                f"(pages: {flagged_pages})."
+                f"{len(flagged)}/{total_pages} pages flagged (pages: {flagged_pages})."
             ),
             "flaggedCharRatio": flagged_char_ratio,
             "flaggedPageRatio": flagged_page_ratio,

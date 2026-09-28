@@ -11,10 +11,11 @@ SHORT_LINE_CHAR_LIMIT = 4
 SHORT_LINE_RATIO_THRESHOLD = 0.6
 MIN_SHORT_LINE_STACK = 3
 
-_HEADER_LINE_PATTERN = re.compile(r"^(#{1,6})\s+(.*)$", re.MULTILINE)
+_HEADER_LINE_PATTERN = re.compile(r"^(#{1,6})[ \t]+(.*)$", re.MULTILINE)
 _TABLE_ROW_PATTERN = re.compile(r"^\s*\|.+\|\s*$", re.MULTILINE)
 _TABLE_SEPARATOR_PATTERN = re.compile(
-    r"^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$", re.MULTILINE
+    r"^[ \t]*\|?[ \t]*:?-{2,}:?(?:[ \t]*\|[ \t]*:?-{2,}:?)*[ \t]*\|?[ \t]*$",
+    re.MULTILINE,
 )
 
 _FILENAME_ARTIFACT_PATTERNS = (

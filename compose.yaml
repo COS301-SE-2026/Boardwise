@@ -122,6 +122,7 @@ services:
       - R2_RULEBOOKS_PUBLIC_URL=${R2_RULEBOOKS_PUBLIC_URL}
       - DEV_FAST_API_BASE=${DEV_FAST_API_BASE}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GLM_API_KEY=${GLM_API_KEY}
     ports:
       - 8000:8000
     depends_on:
