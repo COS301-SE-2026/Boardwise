@@ -11,7 +11,7 @@ from google.genai.errors import APIError
 from zhipuai import ZhipuAI
 
 from app.config import settings
-from app.ingestion.enums.vlm_enums import VlmStatus
+from app.ingestion.enums.lm_enums import LmStatus
 
 logger = logging.getLogger(__name__)
 
@@ -75,14 +75,14 @@ def _render_page_to_png(pdf_document: "pymupdf.Document", page_num: int) -> byte
     return pix.tobytes("png")
 
 
-def _extract_text_from_response(response) -> tuple[str | None, VlmStatus]:
-    """Inspect a Gemini response and maps finish_reason to a VlmStatus."""
+def _extract_text_from_response(response) -> tuple[str | None, LmStatus]:
+    """Inspect a Gemini response and maps finish_reason to a LmStatus."""
     if not response.candidates:
         logger.warning(
             "Gemini returned no candidates. prompt_feedback=%s",
             getattr(response, "prompt_feedback", None),
         )
-        return (None, VlmStatus.EMPTY)
+        return (None, LmStatus.EMPTY)
 
     cand = response.candidates[0]
     finish_reason = getattr(cand, "finish_reason", None)
@@ -99,15 +99,15 @@ def _extract_text_from_response(response) -> tuple[str | None, VlmStatus]:
 
     reason_upper = reason_name.upper()
     if "RECITATION" in reason_upper:
-        return (None, VlmStatus.RECITATION)
+        return (None, LmStatus.RECITATION)
     if "SAFETY" in reason_upper:
-        return (None, VlmStatus.SAFETY)
+        return (None, LmStatus.SAFETY)
     if "MAX_TOKENS" in reason_upper:
         logger.warning(
             "Gemini hit MAX_TOKENS. (usage=%s)",
             getattr(response, "usage_metadata", None),
         )
-        return (combined or None, VlmStatus.MAX_TOKENS)
+        return (combined or None, LmStatus.MAX_TOKENS)
 
     if not combined:
         logger.warning(
@@ -115,7 +115,7 @@ def _extract_text_from_response(response) -> tuple[str | None, VlmStatus]:
             reason_name,
             getattr(response, "usage_metadata", None),
         )
-        return (None, VlmStatus.EMPTY)
+        return (None, LmStatus.EMPTY)
 
     if reason_upper not in ("STOP", "FINISH_REASON_STOP", "UNKNOWN"):
         logger.warning(
@@ -123,41 +123,41 @@ def _extract_text_from_response(response) -> tuple[str | None, VlmStatus]:
             reason_name,
             len(combined),
         )
-    return (combined, VlmStatus.OK)
+    return (combined, LmStatus.OK)
 
 
-def _extract_text_from_glm_response(response) -> tuple[str | None, VlmStatus]:
-    """Inspect a GLM response and maps finish_reason to a VlmStatus."""
+def _extract_text_from_glm_response(response) -> tuple[str | None, LmStatus]:
+    """Inspect a GLM response and maps finish_reason to a LmStatus."""
     if not response.choices:
-        return (None, VlmStatus.EMPTY)
+        return (None, LmStatus.EMPTY)
 
     choice = response.choices[0]
     finish_reason = (choice.finish_reason or "").lower()
     text = (choice.message.content or "").strip() if choice.message else ""
 
     if finish_reason == "content_filter":
-        return (None, VlmStatus.SAFETY)
+        return (None, LmStatus.SAFETY)
     if finish_reason == "length":
         logger.warning("GLM hit max_token for this page.")
-        return (text or None, VlmStatus.MAX_TOKENS)
+        return (text or None, LmStatus.MAX_TOKENS)
 
     if not text:
-        return (None, VlmStatus.EMPTY)
-    return (text, VlmStatus.OK)
+        return (None, LmStatus.EMPTY)
+    return (text, LmStatus.OK)
 
 
 def _handle_vlm_api_error(
     e: APIError, attempt: int, max_retries: int
-) -> tuple[bool, VlmStatus]:
+) -> tuple[bool, LmStatus]:
     """Helps process API errors and determine if a retry can be done"""
     if e.code not in TRANSIENT_STATUS_CODES:
         logger.exception("VLM returned error on which we cannot retry: %s", e)
-        return (False, VlmStatus.API_ERROR)
+        return (False, LmStatus.API_ERROR)
 
     if e.code == 429:
         error_str = str(e).lower()
         if "quota" in error_str or "resource_exhausted" in error_str:
-            return (False, VlmStatus.DAILY_CAP_EXHAUSTED)
+            return (False, LmStatus.DAILY_CAP_EXHAUSTED)
 
     logger.warning(
         "VLM returned %s. Attempt %d of %d.", e.code, attempt + 1, max_retries
@@ -166,21 +166,21 @@ def _handle_vlm_api_error(
     if attempt < max_retries - 1:
         delay = (VLM_BASE_RETRY_DELAY_SECONDS * (2**attempt)) + random.uniform(0, 0.5)
         time.sleep(delay)
-        return (True, VlmStatus.OK)
+        return (True, LmStatus.OK)
 
     logger.exception("VLM exhausted retries for status %s", e.code)
-    return (False, VlmStatus.RETRIES_EXHAUSTED)
+    return (False, LmStatus.RETRIES_EXHAUSTED)
 
 
-def _call_vlm(image_bytes: bytes, max_retries: int = 3) -> tuple[str | None, VlmStatus]:
+def _call_vlm(image_bytes: bytes, max_retries: int = 3) -> tuple[str | None, LmStatus]:
     """
     Sends a single page image to the VLM for transcription.
-    Returns (markdown text, or None, VlmStatus).
+    Returns (markdown text, or None, LmStatus).
     """
     client = _get_gemini_client()
     if client is None:
         logger.error("GEMINI_API_KEY is not configured. Cannot escalate to VLM.")
-        return (None, VlmStatus.NOT_CONFIGURED)
+        return (None, LmStatus.NOT_CONFIGURED)
 
     for attempt in range(max_retries):
         try:
@@ -209,13 +209,13 @@ def _call_vlm(image_bytes: bytes, max_retries: int = 3) -> tuple[str | None, Vlm
 
         except ValueError:
             logger.exception("VLM produced empty or blocked response.")
-            return (None, VlmStatus.EMPTY)
+            return (None, LmStatus.EMPTY)
 
         except Exception:
             logger.exception("Unexpected error during VLM call.")
-            return (None, VlmStatus.API_ERROR)
+            return (None, LmStatus.API_ERROR)
 
-    return (None, VlmStatus.RETRIES_EXHAUSTED)
+    return (None, LmStatus.RETRIES_EXHAUSTED)
 
 
 def _is_transient_glm_error(exc: Exception) -> bool:
@@ -233,13 +233,13 @@ def _is_transient_glm_error(exc: Exception) -> bool:
 
 def _call_glm(
     image_bytes: bytes, page_num: int, max_retries: int = 3
-) -> tuple[str | None, VlmStatus]:
+) -> tuple[str | None, LmStatus]:
     """
     Sends a single page image to the fallback GLM for transcription.
-    Returns (markdown text | None, VlmStatus).
+    Returns (markdown text | None, LmStatus).
     """
     if _glm_client is None:
-        return (None, VlmStatus.NOT_CONFIGURED)
+        return (None, LmStatus.NOT_CONFIGURED)
 
     encoded = base64.b64encode(image_bytes).decode("utf-8")
 
@@ -269,11 +269,11 @@ def _call_glm(
 
             text, status = _extract_text_from_glm_response(response)
             if status in (
-                VlmStatus.OK,
-                VlmStatus.RECITATION,
-                VlmStatus.SAFETY,
-                VlmStatus.EMPTY,
-                VlmStatus.MAX_TOKENS,
+                LmStatus.OK,
+                LmStatus.RECITATION,
+                LmStatus.SAFETY,
+                LmStatus.EMPTY,
+                LmStatus.MAX_TOKENS,
             ):
                 return (text, status)
 
@@ -292,13 +292,13 @@ def _call_glm(
                 time.sleep(delay)
                 continue
             logger.error("GLM failed for page %d (attempt %d)", page_num, attempt + 1)
-            return (None, VlmStatus.API_ERROR)
-    return (None, VlmStatus.RETRIES_EXHAUSTED)
+            return (None, LmStatus.API_ERROR)
+    return (None, LmStatus.RETRIES_EXHAUSTED)
 
 
 def extract_page_via_vlm(
     pdf_document: "pymupdf.Document", page_num: int, max_retries: int = 3
-) -> tuple[str | None, VlmStatus]:
+) -> tuple[str | None, LmStatus]:
     """
     Renders a single page into an image and sends it to the VLM for transcription
     Returns markdown text for the page or None on failure
@@ -307,26 +307,26 @@ def extract_page_via_vlm(
         image_bytes = _render_page_to_png(pdf_document, page_num)
     except Exception:
         logger.exception("Failed to render page %d for VLM transcription", page_num)
-        return (None, VlmStatus.RENDER_ERROR)
+        return (None, LmStatus.RENDER_ERROR)
 
     return _call_vlm(image_bytes, max_retries=max_retries)
 
 
 def extract_page_via_glm(
     pdf_document: "pymupdf.Document", page_num: int, max_retries: int = 3
-) -> tuple[str | None, VlmStatus]:
+) -> tuple[str | None, LmStatus]:
     """
     Fallback transcription via Zhipu's GLM-4.6V-Flash
     Returns (markdown_text | None, status_tag)
     """
     if _glm_client is None:
         logger.error("GLM_API_KEY not configured")
-        return (None, VlmStatus.NOT_CONFIGURED)
+        return (None, LmStatus.NOT_CONFIGURED)
 
     try:
         image_bytes = _render_page_to_png(pdf_document, page_num)
     except Exception:
         logger.exception("Failed to render page %d for GLM fallback", page_num)
-        return (None, VlmStatus.RENDER_ERROR)
+        return (None, LmStatus.RENDER_ERROR)
 
     return _call_glm(image_bytes, page_num, max_retries=max_retries)

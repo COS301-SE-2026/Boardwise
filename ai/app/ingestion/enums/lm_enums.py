@@ -1,7 +1,7 @@
 from enum import StrEnum
 
 
-class VlmStatus(StrEnum):
+class LmStatus(StrEnum):
     OK = "OK"
     EMPTY = "EMPTY"
     NOT_CONFIGURED = "NOT_CONFIGURED"
@@ -12,3 +12,5 @@ class VlmStatus(StrEnum):
     MAX_TOKENS = "MAX_TOKENS"
     DAILY_CAP_EXHAUSTED = "DAILY_CAP_EXHAUSTED"
     RETRIES_EXHAUSTED = "RETRIES_EXHAUSTED"
+    PARSE_ERROR = "PARSE_ERROR"
+    LOCAL_UNAVAILABLE = "LOCAL_UNAVAILABLE"

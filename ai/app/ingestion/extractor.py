@@ -10,7 +10,7 @@ import pymupdf4llm
 
 from app.config import settings
 from app.ingestion import vlm
-from app.ingestion.enums.vlm_enums import VlmStatus
+from app.ingestion.enums.lm_enums import LmStatus
 from app.services.r2_service import upload_to_r2
 
 logger = logging.getLogger(__name__)
@@ -165,22 +165,22 @@ def _try_gemini_vlm(
 ) -> tuple[str | None, str, float, bool]:
     vlm_text, vlm_status = vlm.extract_page_via_vlm(pdf_document, page_index)
 
-    if vlm_status == VlmStatus.OK and vlm_text:
+    if vlm_status == LmStatus.OK and vlm_text:
         return (vlm_text, "vlm_ok", 0.9, cap_exhausted)
-    elif vlm_status == VlmStatus.MAX_TOKENS and vlm_text:
+    elif vlm_status == LmStatus.MAX_TOKENS and vlm_text:
         logger.warning(
             "VLM hit MAX_TOKENS on page %d. Keeping partial output.",
             page_index + 1,
         )
         return (vlm_text, "vlm_max_tokens", 0.75, cap_exhausted)
-    elif vlm_status == VlmStatus.DAILY_CAP_EXHAUSTED:
+    elif vlm_status == LmStatus.DAILY_CAP_EXHAUSTED:
         logger.warning(
             "VLM daily cap exhausted at page %d. Routing the rest of the rulebook to the fallback.",
             page_index + 1,
         )
         return (None, "failed_cap_exhausted", 0.5, True)
 
-    if vlm_status in (VlmStatus.RECITATION, VlmStatus.SAFETY):
+    if vlm_status in (LmStatus.RECITATION, LmStatus.SAFETY):
         logger.info(
             "VLM refused page %d (%s). Trying fallback",
             page_index + 1,
@@ -200,9 +200,9 @@ def _try_fallback_glm(
 ) -> tuple[str | None, str, float]:
     glm_text, glm_status = vlm.extract_page_via_glm(pdf_document, page_index)
 
-    if glm_status == VlmStatus.OK and glm_text:
+    if glm_status == LmStatus.OK and glm_text:
         return (glm_text, "glm_ok", 0.85)
-    elif glm_status == VlmStatus.MAX_TOKENS and glm_text:
+    elif glm_status == LmStatus.MAX_TOKENS and glm_text:
         logger.warning(
             "GLM hit MAX_TOKENS on page %d. Keeping partial output.",
             page_index + 1,
