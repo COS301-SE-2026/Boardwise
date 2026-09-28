@@ -1,4 +1,3 @@
-import { duration } from 'happy-dom/lib/PropertySymbol';
 import {reactive, watch} from 'vue';
 
 const filters = reactive({
@@ -12,7 +11,7 @@ watch(
     () => filters.genre,
     (newGenreArray) => {
         if(Array.isArray(newGenreArray) && newGenreArray.length > 1){
-            filters.genre = [newGenreArray[newGenreArray.length - 1] ?? 'all'];
+            filters.genre = [newGenreArray.at(-1) ?? 'all'];
         }else if(!newGenreArray || newGenreArray.length === 0){
             filters.genre = ['all'];
         }

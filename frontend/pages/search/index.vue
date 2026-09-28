@@ -38,7 +38,7 @@ import PageContainer from '~/components/layout/PageContainer.vue'
 import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
-import { computed, watch } from 'vue'
+import { watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useSearch } from '~/composables/useSearch'
 import { useFriends } from '~/composables/useFriends'
