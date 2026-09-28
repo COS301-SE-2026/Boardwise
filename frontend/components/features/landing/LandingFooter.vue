@@ -11,11 +11,6 @@
                     </p>
                 </v-col>
                 
-                    <div>
-                        <span class="hero-badge hero-badge--connect">Connect</span>
-                        <span class="hero-badge hero-badge--share">Share</span>
-                        <span class="hero-badge hero-badge--play">Play</span>
-                    </div>
 
                 <v-col cols="6" md="2">
                     <h4 >
@@ -47,6 +42,14 @@
                         >Help
 
                         </NuxtLink>
+
+                        <NuxtLink to="/setup-wizard">
+                            Setup Wizard
+                        </NuxtLink>
+
+                        <NuxtLink to="/game-architect">
+                         Game Architect
+                        </NuxtLink>
                     </div>
                 </v-col>
 
@@ -63,6 +66,11 @@
 
                 <v-col cols="12" md="4">
                     
+                    <div>
+                        <span class="hero-badge hero-badge--connect">Connect</span>
+                        <span class="hero-badge hero-badge--share">Share</span>
+                        <span class="hero-badge hero-badge--play">Play</span>
+                    </div>
                     <a
                         href="https://boardgamegeek.com"
                         target="_blank"
