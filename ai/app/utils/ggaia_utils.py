@@ -1,3 +1,4 @@
+from collections import Counter
 from app.schemas.ggaia_schemas import ComponentPool, DesignDraft, Mechanic, NewGame
 
 def draft_feasibility(
@@ -37,5 +38,25 @@ def validate_game_against_pool(
                 issues.append(f"Game references component_id: {component.component_id} which does not exist in component pool.")
             else:
                 issues.append(f"Game requires {component.quantity}x '{bad_component.name}' but the pool only has {bad_component.quantity}")
+
+    return issues
+
+def duplicate_component_overuse(game: NewGame, pool: ComponentPool) -> list[str]:
+    totals: Counter = Counter()
+    for entry in game.components:
+        totals[entry.component_id] += entry.quantity
+
+    issues: list[str] = []
+    for comp_id, total in totals.items():
+        comp = pool.get_component_by_id(comp_id)
+        if comp is None:
+            continue # checked in the validate_game_against_pool util 
+
+        matches = [entry for entry in game.components if entry.component_id == comp_id]
+        if len(matches) > 1 and total > comp.quantity and all(match.quantity <= comp.quantity for match in matches):
+            issues.append(
+                f"Component_id: {comp_id} is listed {len(matches)} times for a total of {total}x "
+                f"'{comp.name}', but the pool only has {comp.quantity}. Merge the occurences and reduce quantity."
+            )
 
     return issues
