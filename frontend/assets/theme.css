@@ -3768,11 +3768,6 @@ html[data-density="compact"] .rulebook-list {
   margin: 0 0 var(--space-2);
 }
 
-.profile-preferences {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
 .onboarding-feature-card__desc {
   font-size: var(--fs-small);
   color: var(--color-text-muted);
@@ -6372,7 +6367,21 @@ games-owned-section {
   min-width: 0;
 }
 
+.community-chat-header__title-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.community-chat-header__visibility {
+  flex-shrink: 0;
+}
+
 .community-chat-header__title {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: anywhere;
   margin: 0;
 
   overflow: hidden;
@@ -7226,38 +7235,10 @@ games-owned-section {
     grid-template-columns: 1fr;
   }
 
-  .community-chat-header__title-row {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.community-chat-header__visibility {
-  flex-shrink: 0;
-}
-
-.community-chat-header__title {
-    min-width: 0;
-  flex: 1 1 auto;
-  margin: 0;
-
-  overflow: hidden;
-
-  color: var(--color-secondary);
-
-  font-family: var(--font-display);
-  font-size: 1.125rem;
-  line-height: 1.2;
-
-  overflow-wrap: anywhere;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  }
-}
-.wizard-layout__sidebar {
+  .wizard-layout__sidebar {
     position: static;
   }
+}
 /* Wizard footer */
 .wizard-footer {
   display: flex;
