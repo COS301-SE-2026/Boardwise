@@ -12,6 +12,10 @@ from zhipuai import ZhipuAI
 
 from app.config import settings
 from app.ingestion.enums.lm_enums import LmStatus
+from app.ingestion.utils.api_retry_utils import (
+    handle_gemini_api_error,
+    is_transient_glm_error,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +39,6 @@ TRANSCRIPTION_PROMPT = """Convert one page from a board-game rulebook into clean
 8. Do not summarize, reword, or add your own notes. Include only what is visibly present on the page. If something is truly unreadable, use [illegible] instead of guessing.
 9. Return only the Markdown transcription for this page—no introduction, no explanation, and no code fences surrounding the output.
 """
-
-TRANSIENT_STATUS_CODES = {429, 500, 502, 503, 504}
 
 _client: genai.Client | None = None
 _glm_client = (
@@ -146,32 +148,6 @@ def _extract_text_from_glm_response(response) -> tuple[str | None, LmStatus]:
     return (text, LmStatus.OK)
 
 
-def _handle_vlm_api_error(
-    e: APIError, attempt: int, max_retries: int
-) -> tuple[bool, LmStatus]:
-    """Helps process API errors and determine if a retry can be done"""
-    if e.code not in TRANSIENT_STATUS_CODES:
-        logger.exception("VLM returned error on which we cannot retry: %s", e)
-        return (False, LmStatus.API_ERROR)
-
-    if e.code == 429:
-        error_str = str(e).lower()
-        if "quota" in error_str or "resource_exhausted" in error_str:
-            return (False, LmStatus.DAILY_CAP_EXHAUSTED)
-
-    logger.warning(
-        "VLM returned %s. Attempt %d of %d.", e.code, attempt + 1, max_retries
-    )
-
-    if attempt < max_retries - 1:
-        delay = (VLM_BASE_RETRY_DELAY_SECONDS * (2**attempt)) + random.uniform(0, 0.5)
-        time.sleep(delay)
-        return (True, LmStatus.OK)
-
-    logger.exception("VLM exhausted retries for status %s", e.code)
-    return (False, LmStatus.RETRIES_EXHAUSTED)
-
-
 def _call_vlm(image_bytes: bytes, max_retries: int = 3) -> tuple[str | None, LmStatus]:
     """
     Sends a single page image to the VLM for transcription.
@@ -202,7 +178,13 @@ def _call_vlm(image_bytes: bytes, max_retries: int = 3) -> tuple[str | None, LmS
             return _extract_text_from_response(response)
 
         except APIError as e:
-            should_retry, status = _handle_vlm_api_error(e, attempt, max_retries)
+            should_retry, status = handle_gemini_api_error(
+                e,
+                attempt,
+                max_retries,
+                label="VLM",
+                base_retry_delay=VLM_BASE_RETRY_DELAY_SECONDS,
+            )
             if should_retry:
                 continue
             return (None, status)
@@ -216,19 +198,6 @@ def _call_vlm(image_bytes: bytes, max_retries: int = 3) -> tuple[str | None, LmS
             return (None, LmStatus.API_ERROR)
 
     return (None, LmStatus.RETRIES_EXHAUSTED)
-
-
-def _is_transient_glm_error(exc: Exception) -> bool:
-    code = (
-        getattr(exc, "code", None)
-        or getattr(exc, "status_code", None)
-        or getattr(exc, "http_status", None)
-    )
-    if isinstance(code, int) and code in TRANSIENT_STATUS_CODES:
-        return True
-
-    msg = str(exc).lower()
-    return any(f" {c} " in msg or f" {c}," in msg for c in TRANSIENT_STATUS_CODES)
 
 
 def _call_glm(
@@ -285,7 +254,7 @@ def _call_glm(
                 continue
             return (None, status)
         except Exception as e:
-            if _is_transient_glm_error(e) and attempt < max_retries - 1:
+            if is_transient_glm_error(e) and attempt < max_retries - 1:
                 delay = (VLM_BASE_RETRY_DELAY_SECONDS * (2**attempt)) + random.uniform(
                     0, 0.5
                 )

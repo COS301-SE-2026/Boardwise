@@ -5,8 +5,8 @@ from typing import Any
 from bson import ObjectId
 from llama_cpp import Llama
 
-from app.ingestion.game_architect.llm_client import call_structured_llm
-from app.ingestion.game_architect.shared_constants import _COMPONENT_EXTRACTION_SCHEMA
+from app.ingestion.language_models.llm_client import call_structured_llm
+from app.ingestion.schemas.component_schemas import COMPONENT_EXTRACTION_SCHEMA
 from app.utils.logging_utils import sanitise_log_input
 
 logger = logging.getLogger(__name__)
@@ -134,7 +134,7 @@ def _call_llm_for_components(
     """Calls text LLM with a JSON schema so output is valid"""
     prompt = _EXTRACTION_PROMPT.format(text=candidate_text)
     success, parsed, reason = call_structured_llm(
-        prompt=prompt, schema=_COMPONENT_EXTRACTION_SCHEMA, local_model=local_model
+        prompt=prompt, schema=COMPONENT_EXTRACTION_SCHEMA, local_model=local_model
     )
     if not success:
         logger.warning("Structured component extraction failed: %s", reason)

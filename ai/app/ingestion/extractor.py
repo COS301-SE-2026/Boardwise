@@ -9,8 +9,8 @@ import pymupdf
 import pymupdf4llm
 
 from app.config import settings
-from app.ingestion import vlm
 from app.ingestion.enums.lm_enums import LmStatus
+from app.ingestion.language_models import vlm
 from app.services.r2_service import upload_to_r2
 
 logger = logging.getLogger(__name__)

@@ -14,6 +14,10 @@ from zhipuai import ZhipuAI
 
 from app.config import settings
 from app.ingestion.enums.lm_enums import LmStatus
+from app.ingestion.utils.api_retry_utils import (
+    handle_gemini_api_error,
+    is_transient_glm_error,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -75,44 +79,6 @@ def _get_gemini_client() -> genai.Client | None:
         http_options=types.HttpOptions(httpx_client=http_client),
     )
     return _client
-
-
-def _handle_api_error(
-    e: APIError, attempt: int, max_retries: int
-) -> tuple[bool, LmStatus]:
-    if e.code not in TRANSIENT_STATUS_CODES:
-        logger.exception("LLM returned error on which we cannot retry: %s", e)
-        return (False, LmStatus.API_ERROR)
-
-    if e.code == 429:
-        error_str = str(e).lower()
-        if "quota" in error_str or "resource_exhausted" in error_str:
-            return (False, LmStatus.DAILY_CAP_EXHAUSTED)
-
-    logger.warning(
-        "LLM returned %s. Attempt %d of %d.", e.code, attempt + 1, max_retries
-    )
-
-    if attempt < max_retries - 1:
-        delay = (TEXT_BASE_RETRY_DELAY_SECONDS * (2**attempt)) + random.uniform(0, 0.5)
-        time.sleep(delay)
-        return (True, LmStatus.OK)
-
-    logger.exception("LLM exhausted retries for status %s", e.code)
-    return (False, LmStatus.RETRIES_EXHAUSTED)
-
-
-def _is_transient_glm_error(exc: Exception) -> bool:
-    code = (
-        getattr(exc, "code", None)
-        or getattr(exc, "status_code", None)
-        or getattr(exc, "http_status", None)
-    )
-    if isinstance(code, int) and code in TRANSIENT_STATUS_CODES:
-        return True
-
-    msg = str(exc).lower()
-    return any(f" {c} " in msg or f" {c}," in msg for c in TRANSIENT_STATUS_CODES)
 
 
 # ========== Tier 1: Gemini Structured Output ==========
@@ -180,7 +146,13 @@ def _call_gemini_structured(
             return _extract_json_from_gemini_response(response)
 
         except APIError as e:
-            should_retry, status = _handle_api_error(e, attempt, max_retries)
+            should_retry, status = handle_gemini_api_error(
+                e,
+                attempt,
+                max_retries,
+                label="LLM",
+                base_retry_delay=TEXT_BASE_RETRY_DELAY_SECONDS,
+            )
             if should_retry:
                 continue
             return (None, status)
@@ -286,7 +258,7 @@ def _call_glm_structured(
                 continue
             return (None, status)
         except Exception as e:
-            if _is_transient_glm_error(e) and attempt < max_retries - 1:
+            if is_transient_glm_error(e) and attempt < max_retries - 1:
                 delay = (TEXT_BASE_RETRY_DELAY_SECONDS * (2**attempt)) + random.uniform(
                     0, 0.5
                 )
