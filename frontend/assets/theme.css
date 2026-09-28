@@ -3768,6 +3768,11 @@ html[data-density="compact"] .rulebook-list {
   margin: 0 0 var(--space-2);
 }
 
+.profile-preferences {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
 .onboarding-feature-card__desc {
   font-size: var(--fs-small);
   color: var(--color-text-muted);
@@ -7310,6 +7315,21 @@ games-owned-section {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
+}
+
+.community-chat-header__details-trigger {
+  padding: var(--space-1);
+
+  color: inherit;
+  text-align: left;
+
+  width: 100%;
+
+transition:
+  background var(--transition-fast),
+  color var(--transition-fast);
+  background: transparent;
+  border: 0;
 }
 
 .wizard-chat-panel__suggestion {
