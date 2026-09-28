@@ -1,5 +1,3 @@
-"""VLM escalation path for pages that fail the quality gate during text extraction."""
-
 import base64
 import logging
 import random
