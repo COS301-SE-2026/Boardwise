@@ -12,6 +12,7 @@ from app.schemas.ggaia_schemas import (
     CoreMechanic,
     SupportingMechanic,
     StructuralMechanic,
+    Flaw
 )
 
 #-------- build ggaia generation prompts ---------
@@ -183,6 +184,67 @@ matching this schema:
     return [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
+    ]
+
+def game_realizer_revise(
+    draft: DesignDraft,
+    pool: ComponentPool,
+    mechanics_by_id: dict[str, Mechanic],
+    current: NewGame,
+    flaws: list[Flaw]
+) -> list[dict]:
+    system_prompt = """You are an expert board game rulebook author revising an existing rulebook. 
+A reviewer found specific flaws. Produce a corrected version of the FULL rulebook as a single JSON 
+object matching the provided schema.
+
+Rules:
+- Fix every listed flaw. Change only what is needed to fix them; keep all other text and structure as 
+  close to the current version as possible.
+- Do not drop, rename or weaken any mechanic from the design draft while fixing a flaw.
+- Every component you reference MUST be an exact component_id from the pool, and quantities must not 
+  exceed the pool. Do not introduce pieces that are not in the pool.
+- If a fix changes a rule, update every other section that mentions that rule (setup, scoring, FAQ) so 
+  the rulebook stays consistent.
+- Keep the flowing-prose style; numbered steps only for strictly sequential procedures.
+
+Respond with ONLY a JSON object matching the provided schema. No other text. Represent line breaks as '\\n'
+ in JSON string values.
+"""
+    pool_block = "\n".join(
+        f"- component_id={comp.component_id} | {comp.name} ({comp.type})"
+        f", available quantity: {comp.quantity}"
+        for comp in pool.components
+    )
+
+    flaw_block = "\n".join(
+        f"{i}. [{flaw.flaw_type}] section: {flaw.section} | affects: {flaw.affected_target}\n"
+        f"  Evidence: \"{flaw.evidence_quote}\"\n"
+        f"  Problem: \"{flaw.problem}\"\n"
+        f"  Consequence: \"{flaw.mda_chain}\"\n"
+        f"  Suggested direction: \"{flaw.repair_suggestions}\"\n"
+        for i, flaw in enumerate(flaws, 1)
+    )
+
+    user_prompt = f"""## Design Draft
+{draft_block(draft, mechanics_by_id)}
+
+## Component Pool (select component_id from these ONLY)
+{format_pool_block(pool)}
+
+## Current Rulebook (JSON)
+{current.model_dump_json(indent=2)}
+
+## Flaws to Fix
+{flaw_block}
+
+## Task
+Return the full corrected rulebook as ONE JSON object matching this schema:
+{schema_json(NewGame)}
+"""
+
+    return [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt}
     ]
 
 FLAW_TAXONOMY = """M - Mechanics layer (the actual written rules)
