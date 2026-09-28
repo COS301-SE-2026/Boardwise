@@ -37,7 +37,7 @@
 <script setup>
 import BaseModal from '~/components/ui/BaseModal.vue'
 
-const open = defineModel()
+const open = defineModel({ type: Boolean })
 const emit = defineEmits(['select'])
 
 const choose = (type) => {
