@@ -1,13 +1,10 @@
 export type GameArchitectMode = 'scale' | 'create'
-export type ScaleDirection = 'up' | 'down'
 export type GameDifficulty = 'easier' | 'same' | 'harder'
 export type PlayerRange = '1-2' | '3-4' | '5-6' | '7+'
 
 export interface ScalePreferences {
-  direction: ScaleDirection
   difficulty: GameDifficulty
   playerRange: PlayerRange
-  targetPlayerCount?: number
 }
 
 

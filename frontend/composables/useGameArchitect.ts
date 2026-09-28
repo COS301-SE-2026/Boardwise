@@ -5,24 +5,38 @@ import {
   type GameArchitectGame,
   type GameArchitectMode,
   type GameDifficulty,
-  type ScaleDirection,
   type PlayerRange,
 
   type GenerateGameResponse
 } from '~/services/gameArchitectService'
 import { userService } from '~/services/userService'
 
-const MAX_SELECTED_GAMES = 3
+const MAX_SELECTED_GAMES = 2
+const ACTIVE_JOB_STORAGE_KEY =
+  'boardwise:game-architect-active-job'
 
-const normaliseGame = (game: any): GameArchitectGame => ({
-  id: String(game.id),
-  title: game.title ?? 'Untitled game',
-  description: game.description ?? '',
-  imageUrl: game.imageUrl ?? game.imageURL ?? '/images/default-listing.png',
-  genres: game.genres ?? game.genre ?? []
-})
+const normaliseGame = (game: any): GameArchitectGame => {
+  let genres: string[] = []
+    
+  if (Array.isArray(game.genres)) {
+    genres = game.genres
+  } else if (game.genre) {
+    genres = [game.genre]
+  }
 
-const getErrorMessage = (error: unknown) => {
+  return {
+    id: String(game.id),
+    title: game.title ?? 'Untitled game',
+    description: game.description ?? '',
+    imageUrl:
+      game.imageUrl ??
+      game.imageURL ??
+      '/images/default-listing.png',
+    genres
+  }
+}
+
+const getErrorMessage = (error: unknown): string | undefined => {
   if (typeof error === 'object' && error !== null) {
     const candidate = error as {
       data?: { message?: string }
@@ -40,11 +54,8 @@ export const useGameArchitect = () => {
   const mode = ref<GameArchitectMode | null>(null)
   const games = ref<GameArchitectGame[]>([])
   const selectedGames = ref<GameArchitectGame[]>([])
-  const prompt = ref('')
   const playerRange = ref<PlayerRange | null>(null)
-  const scaleDirection = ref<ScaleDirection | null>(null)
   const difficulty = ref<GameDifficulty | null>(null)
-  const targetPlayerCount = ref<number | null>(null)
   const surpriseMe = ref(false)
   const loadingGames = ref(false)
   const generating = ref(false)
@@ -53,8 +64,6 @@ export const useGameArchitect = () => {
   const generationInProgress = ref(false)
   const activeJobId = ref<string | null>(null)
 
-  const ACTIVE_JOB_STORAGE_KEY = 'boardwise:game-architect-active-job'
-
   const isScaleMode = computed(() => mode.value === 'scale')
 
   const canContinue = computed(() => {
@@ -62,18 +71,30 @@ export const useGameArchitect = () => {
       return mode.value !== null && !generationInProgress.value
     }
     if (step.value === 2) {
-      return surpriseMe.value || selectedGames.value.length > 0
+      if (isScaleMode.value) {
+        return selectedGames.value.length === 1
+      }
+    return (
+        surpriseMe.value ||
+        (
+          selectedGames.value.length > 0 &&
+          selectedGames.value.length <=
+            MAX_SELECTED_GAMES
+        )
+      )
     }
 
     if (step.value === 3) {
-    if (!isScaleMode.value) return true
+      if (!isScaleMode.value) {
+        return true
+      }
 
-    return (
-      scaleDirection.value !== null &&
-      difficulty.value !== null &&
-      playerRange.value !== null
-    )
-  }
+      return (
+        difficulty.value !== null &&
+        playerRange.value !== null
+      )
+    }
+
     return false
   })
 
@@ -98,10 +119,8 @@ export const useGameArchitect = () => {
     if (mode.value !== nextMode) {
       selectedGames.value = []
       surpriseMe.value = false
-      scaleDirection.value = null
       difficulty.value = null
-      targetPlayerCount.value = null
-      prompt.value = ''
+      playerRange.value = null
     }
 
     mode.value = nextMode
@@ -187,7 +206,6 @@ export const useGameArchitect = () => {
       ...(isScaleMode.value
         ? {
             scalePreferences: {
-              direction: scaleDirection.value!,
               difficulty: difficulty.value!,
               playerRange: playerRange.value!
             }
@@ -195,11 +213,11 @@ export const useGameArchitect = () => {
         : {})
     })
     if (
-  result.value.status === 'queued' ||
-  result.value.status === 'processing'
-) {
-  generationInProgress.value = true
-  activeJobId.value = result.value.jobId ?? null
+      result.value.status === 'queued' ||
+      result.value.status === 'processing'
+    ) {
+      generationInProgress.value = true
+      activeJobId.value = result.value.jobId ?? null
 
   if (import.meta.client) {
     localStorage.setItem(
@@ -225,10 +243,8 @@ export const useGameArchitect = () => {
     step.value = 1
     mode.value = null
     selectedGames.value = []
-    prompt.value = ''
-    scaleDirection.value = null
+    playerRange.value = null
     difficulty.value = null
-    targetPlayerCount.value = null
     surpriseMe.value = false
     generating.value = false
     error.value = ''
@@ -240,11 +256,8 @@ export const useGameArchitect = () => {
     mode,
     games,
     selectedGames,
-    prompt,
-    scaleDirection,
     difficulty,
     playerRange,
-    targetPlayerCount,
     surpriseMe,
     loadingGames,
     generating,

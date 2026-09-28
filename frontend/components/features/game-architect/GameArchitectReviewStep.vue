@@ -4,11 +4,19 @@
       <p class="game-architect-step__eyebrow">Step 3 of 3</p>
 
       <h1 id="architect-review-title">
-        Choose your game settings
+        {{
+          mode === 'scale'
+            ? 'Choose how to scale your game'
+            : 'Choose your game settings'
+        }}
       </h1>
 
-      <p>
-        Select the player range and difficulty for the generated game.
+      <p v-if="mode === 'scale'">
+        Choose whether Boarley should scale the selected game up or down.
+      </p>
+
+      <p v-else>
+        Select the player range and difficulty for your new experience.
       </p>
     </div>
 
@@ -31,22 +39,30 @@
           label="Choose the game difficulty"
           @update:model-value="updateDifficulty"
         >
-          <v-radio label="Easier" value="easier" />
-          <v-radio label="Keep it similar" value="same" />
-          <v-radio label="Harder" value="harder" />
+          <v-radio label="Easier — reduce complexity" value="easier" />
+          <v-radio label="Keep it similar  — preserve complexity" value="same" />
+          <v-radio label="Harder — increase complexity" value="harder" />
         </v-radio-group>
 
-        <v-radio-group
-          v-if="mode === 'scale'"
-          :model-value="scaleDirection"
-          label="How should the game scale?"
-          @update:model-value="updateScaleDirection"
-        >
-          <v-radio label="Scale up" value="up" />
-          <v-radio label="Scale down" value="down" />
-        </v-radio-group>
-        </div>
+        <v-alert
+            v-if="difficulty || playerRange"
+            type="info"
+            variant="tonal"
+            class="game-architect-scaling-impact mt-4"
+            aria-live="polite"
+          >
+            <strong>Scaling impact</strong>
 
+            <p v-if="difficulty" class="mt-2 mb-1">
+              {{ difficultyImpact }}
+            </p>
+
+            <p v-if="playerRange" class="mb-0">
+              Boarley will adapt the rules and components to support
+              {{ playerRangeLabel.toLowerCase() }}.
+            </p>
+          </v-alert>
+</div>
         <div v-else class="game-architect-create-confirmation">
           <v-icon
             icon="mdi-sparkles"
@@ -82,20 +98,16 @@
             <dd v-else>{{ selectedGamesLabel }}</dd>
           </div>
 
-          <div>
+          <div v-if="mode === 'scale'">
             <dt>Difficulty</dt>
             <dd>{{ difficultyLabel }}</dd>
           </div>
 
-          <div>
+          <div v-if="mode === 'scale'">
             <dt>Player range</dt>
             <dd>{{ playerRangeLabel }}</dd>
           </div>
 
-          <div v-if="mode === 'scale'">
-            <dt>Scale direction</dt>
-            <dd>{{ scaleDirectionLabel }}</dd>
-          </div>
         </dl>
       </aside>
     </div>
@@ -110,8 +122,7 @@ import type {
   GameArchitectGame,
   GameArchitectMode,
   GameDifficulty,
-  PlayerRange,
-  ScaleDirection
+  PlayerRange
 } from '~/services/gameArchitectService'
 
 const props = defineProps({
@@ -127,10 +138,6 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  scaleDirection: {
-    type: String as PropType<ScaleDirection | null>,
-    default: null
-  },
   difficulty: {
     type: String as PropType<GameDifficulty | null>,
     default: null
@@ -138,18 +145,17 @@ const props = defineProps({
   playerRange: {
     type: String as PropType<PlayerRange | null>,
     default: null
-  }
+  },
+  maxSelected: {
+  type: Number,
+  default: 2
+}
 })
 
 const emit = defineEmits<{
-  'update:scaleDirection': [value: ScaleDirection]
   'update:difficulty': [value: GameDifficulty]
   'update:playerRange': [value: PlayerRange]
 }>()
-
-const updateScaleDirection = (value: unknown) => {
-  emit('update:scaleDirection', value as ScaleDirection)
-}
 
 const updateDifficulty = (value: unknown) => {
   emit('update:difficulty', value as GameDifficulty)
@@ -185,6 +191,21 @@ const difficultyLabel = computed(() => {
     : 'Not selected'
 })
 
+const difficultyImpact = computed(() => {
+  if (props.difficulty === 'easier') {
+    return 'Complexity will scale down with simpler rules and decisions.'
+  }
+
+  if (props.difficulty === 'harder') {
+    return 'Complexity will scale up with deeper rules and decisions.'
+  }
+
+  if (props.difficulty === 'same') {
+    return 'The current level of complexity will be preserved.'
+  }
+
+  return ''
+})
 const playerRangeLabel = computed(() => {
   const labels: Record<PlayerRange, string> = {
     '1-2': '1–2 players',
@@ -198,10 +219,4 @@ const playerRangeLabel = computed(() => {
     : 'Not selected'
 })
 
-const scaleDirectionLabel = computed(() => {
-  if (props.scaleDirection === 'up') return 'Scale up'
-  if (props.scaleDirection === 'down') return 'Scale down'
-
-  return 'Not selected'
-})
 </script>

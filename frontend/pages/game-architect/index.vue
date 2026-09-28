@@ -40,11 +40,8 @@
 
         <GameArchitectReviewStep
           v-else-if="step === 3 && mode"
-          v-model="prompt"
-          v-model:scale-direction="scaleDirection"
           v-model:difficulty="difficulty"
           v-model:player-range="playerRange"
-          v-model:target-player-count="targetPlayerCount"
           :mode="mode"
           :selected-games="selectedGames"
           :surprise-me="surpriseMe"
@@ -102,10 +99,10 @@
       </div>
     </main>
     <v-dialog
-  v-model="showGenerationNotice"
-  max-width="520"
-  persistent
->
+      v-model="showGenerationNotice"
+      max-width="520"
+      persistent
+    >
   <BaseCard class="pa-6 text-center">
     <v-icon
       icon="mdi-auto-fix"
@@ -154,6 +151,9 @@ import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import { useGameArchitect } from '~/composables/useGameArchitect'
+definePageMeta({
+  middleware: 'auth'
+})
 
 const route = useRoute()
 const router = useRouter()
@@ -166,10 +166,7 @@ const {
   mode,
   games,
   selectedGames,
-  prompt,
-  scaleDirection,
   difficulty,
-  targetPlayerCount,
   surpriseMe,
   loadingGames,
   generating,
