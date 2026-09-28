@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import GlobalSnackBar from './components/ui/GlobalSnackBar.vue';
+import MobileBottomNav from './components/layout/MobileBottomNav.vue';
 
 </script>
 
@@ -8,6 +9,7 @@ import GlobalSnackBar from './components/ui/GlobalSnackBar.vue';
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
+    <MobileBottomNav />
     <GlobalSnackBar />
   </v-app>
 </template>
