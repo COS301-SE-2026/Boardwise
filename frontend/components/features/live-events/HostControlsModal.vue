@@ -1,12 +1,12 @@
 <template>
-    <BaseModal v-model="open" title="Host Controls" :max-with="640">
+    <BaseModal v-model="open" title="Host Controls" :max-width="640">
         <div class="host-controls">
             <!-- Session management -->
             <section class="host-controls__section">
                 <p class="card-subtitle">Session</p>
                 <div class="host-controls__row">
                     <BaseButton variant="secondary" @click="togglePause">
-                        <v-icon start>{{  isPused ? 'mdi-play' : 'mdi-pause' }}</v-icon>
+                        <v-icon start>{{  isPaused ? 'mdi-play' : 'mdi-pause' }}</v-icon>
                         {{  isPaused ? 'Resume table' : 'Pause table' }}
                     </BaseButton>
 
@@ -25,7 +25,7 @@
             <!-- Capacity management -->   
             <section class="host-controls__section">
                 <p class="card-subtitle">Table capacity</p>
-                <p class="card-meta">Can't fo below occupied seats.</p>
+                <p class="card-meta">Can't go below occupied seats.</p>
 
                 <div class="capacity-stepper">
                     <BaseButton icon size="36" variant="text" :disabled="event.capacity <= minCapacity" @click="setCapacity(event.id, event.capacity - 1)">
@@ -43,7 +43,7 @@
                 <p class="card-subtitle">Roster</p>
                 <div v-for="s in seatedPlayers" :key="s.seat" class="host-controls__player">
                     <BaseAvatar :name="s.user.username" size="sm" />
-                    <div class="host-control__player-info">
+                    <div class="host-controls__player-info">
                         <p class="card-subtitle" style="margin: 0">@{{  s.user.username }}</p>
                         <span class="card-meta">Seat {{ s.seat }} </span>
                     </div>
@@ -59,7 +59,7 @@
             <!-- Announcement -->
             <section class="host-controls__section">
                 <p class="card-subtitle">Announcement</p>
-                <form class="table-chat-compose" @submit.prevent="announce">
+                <form class="table-chat-composer" @submit.prevent="announce">
                     <BaseInput v-model="announcement" placeholder="Broadcast to the table..." hide-details />
                     <BaseButton type="submit" :disabled="!announcement.trim()">Post</BaseButton>
                 </form>
@@ -96,7 +96,7 @@ const isPaused = computed(() => props.event.status === 'PAUSED')
 const seatedPlayers = computed(() => props.event.seats.filter(s => s.user))
 const minCapacity = computed(() => Math.max(3, seatedPlayers.value.length))
 
-const togglePause = () => setStatus(props.event.id, isPaused.value ? 'LIVE' : 'PUASED')
+const togglePause = () => setStatus(props.event.id, isPaused.value ? 'LIVE' : 'PAUSED')
 
 const endSession = () => {
     setStatus(props.event.id, 'ENDED')

@@ -8,8 +8,8 @@
 
             <div class="d-flex align-center ga-3 flex-wrap">
                 <div class="live-table-header__status">
-                    <v-icon size="14" color="var(--wildfire)">mdi-circle</v-icon>
-                    <span class="card-subtitle" style="margin:0">LIVE</span>
+                    <v-icon size="14" color="isPaused ? 'var(--color-warning)' : 'var(--wildfire)'">mdi-circle</v-icon>
+                    <span class="card-subtitle" style="margin:0">{{ isPaused ? 'PAUSED' : 'LIVE' }}</span>
                     <span class="live-table-header__timer">{{ elapsed }}</span>
                 </div>
 
@@ -27,14 +27,14 @@
                         <span class="card-meta">({{ seatedCount }} of {{ event.capacity }} seated)</span>
                     </p>
 
-                    <TableSeatGrid :seats="event.seats" @cliam="handleClaim" />
+                    <TableSeatGrid :seats="event.seats" @claim="handleClaim" />
                 </BaseCard>
 
                 <TableChatFeed :messages="event.messages" @send="handleSend" />
             </div>
 
             <div class="live-table-sidebar">
-                <VenueInfoCard :venue="event.vanue" :table="event.table" />
+                <VenueInfoCard :venue="event.venue" :table="event.table" />
                 <ShareLinkCard :url="shareUrl" />
             </div>
         </div>
@@ -68,7 +68,7 @@ const props = defineProps({ eventId: { type: String, required: true } })
 const router = useRouter()
 const { show } = useSnackBar()
 
-const { getLiveEvent, claimSeat, sendMessage } = useLiveEvents()
+const { getLiveEvent, claimSeat, sendMessage, currentUser } = useLiveEvents()
 const event = getLiveEvent(props.eventId)
 const showHostControls = ref(false)
 
@@ -76,7 +76,7 @@ const elapsed = useElapsedTimer(computed(() => event.value?.startedAt ?? Date.no
 const isPaused = computed(() => event.value?.status === 'PAUSED')
 const isHost = computed(() => event.value?.seats.some(s => s.isHost && s.user?.username === currentUser) ?? false)
 const seatedCount = computed(() => event.value?.seats.filter(s => s.status !== 'OPEN').length ?? 0)
-const shareUrl = computed(() => `boardwise.games/live/${props.eventId}`)
+const shareUrl = computed(() => `boardwise.games/live-events/${props.eventId}`)
 
 const handleClaim = () => {
   if (isPaused.value) return show('The host has paused this table.', 'warning')
