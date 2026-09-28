@@ -134,7 +134,7 @@ import { useLiveEvents } from '~/composables/useLiveEvents'
 import LiveEventBanner from '~/components/features/live-events/LiveEventBanner.vue'
 import LiveEventCard from '~/components/features/live-events/LiveEventCard.vue'
 
-const { liveEvents } = useLiveEvents()
+const { activeLiveEvents: liveEvents } = useLiveEvents()
 const scrollToLive = () => document.getElementById('live-now')?.scrollIntoView({ behavior: 'smooth' })
 
 const { show } = useSnackBar(3)
