@@ -4504,6 +4504,13 @@ html[data-density="compact"] .rulebook-list {
 /* -------------------------------------------------------------
    BASE MODAL
    ------------------------------------------------------------- */
+.base-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-6);
+}
 
 .base-modal__title {
   font-family: var(--font-display);
@@ -4519,6 +4526,12 @@ html[data-density="compact"] .rulebook-list {
 
 .base-modal__actions {
   padding: 0 var(--space-6) var(--space-6);
+}
+
+.base-modal__close,
+.base-modal__close .v-icon {
+  color: var(--color-secondary) !important;
+  opacity: 1;
 }
 
 /* -------------------------------------------------------------
@@ -8198,16 +8211,50 @@ games-owned-section {
 .settings-choice-card--compact { min-height: auto; padding: var(--space-3) var(--space-4); }
 
 /* ============ HOST CONTROLS ============ */
-.host-controls { display: flex; flex-direction: column; gap: var(--space-5); }
+.host-controls { 
+  display: flex; 
+  flex-direction: column; 
+  gap: var(--space-5); 
+}
+
 .host-controls__section {
-  display: flex; flex-direction: column; gap: var(--space-2);
-  padding-bottom: var(--space-4); border-bottom: 1px dashed var(--color-border);
+  display: flex; 
+  flex-direction: column; 
+  gap: var(--space-2);
+  padding-bottom: var(--space-4); 
+  border-bottom: 1px dashed var(--color-border);
 }
-.host-controls__section:last-child { border-bottom: none; padding-bottom: 0; }
-.host-controls__row { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+
+.host-controls__section:last-child { 
+  border-bottom: none; 
+  padding-bottom: 0; 
+}
+
+.host-controls__row { 
+  display: flex; 
+  align-items: center; 
+  gap: var(--space-3); 
+  flex-wrap: wrap; 
+}
+
 .host-controls__player {
-  display: flex; align-items: center; gap: var(--space-3);
+  display: flex; 
+  align-items: center; 
+  gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md); background: var(--color-surface-alt);
+  border-radius: var(--radius-md); 
+  background: var(--color-surface-alt);
 }
-.host-controls__player-info { flex: 1; min-width: 0; }
+.host-controls__player-info { 
+  flex: 1; 
+  min-width: 0; 
+}
+
+.host-controls-trigger {
+  min-height: 44px;
+  justify-content: center;
+}
+
+@media (max-width: 600px) {
+  .host-controls-trigger { width: 100%; }
+}

@@ -238,9 +238,9 @@
                 <div class="live-form-footer">
                     <BaseBackButton :to="'/events'" variant="text">Cancel</BaseBackButton>
 
-                    <BaseButton type="submit" :loading="isLoading" :disabled="!isValid">
-                        <v-icon start>mdi-play-circle</v-icon>
-                        Launch Live Event
+                    <BaseButton type="submit" :loading="submitting" :disabled="!isValid">
+                        <v-icon start>{{ form.timing === 'later' ? 'mdi-calendar-plus' : 'mdi-play-circle' }}</v-icon>
+                        {{ form.timing === 'later' ? 'Schedule Event' : 'Launch Live Event' }}
                     </BaseButton>
                 </div>
             </form>
@@ -269,6 +269,8 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 
 import { useLiveEvents } from '~/composables/useLiveEvents'
+import { useEvents } from '~/composables/useEvents'
+import { useBoardGames } from '~/composables/useBoardGames'
 import { useSnackBar } from '~/composables/useSnackbar'
 
 definePageMeta({
@@ -276,20 +278,70 @@ definePageMeta({
 })
 
 const router = useRouter()
+
+const { createEvent } = useEvents()
+const { games: searchedGames, searchGames} = useBoardGames()
 const { createLiveEvent, isLoading } = useLiveEvents()
 const { show } = useSnackBar()
 
 const form = ref({ name: '', game: '', venue: '', table: '', capacity: 4 , format: 'in-person', timing: 'now', date: '', time: '', duration: 'standard', style: 'casual', privacy: 'public', autoApprove: true})
+const submitting = ref(false)
 
 const adjustCapacity = (delta) => {
     form.value.capacity = Math.max(3, Math.min(12, form.value.capacity + delta))
 }
-const isValid = computed(() => form.value.name && form.value.game && form.value.venue && form.value.table)
+const isValid = computed(() => {
+    const f = form.value
+    const base = f.name && f.game && f.venue && f.table
+    return f.timing === 'later' ? base && f.date && f.time : base
+})
+
+const DURATION_HOURS = { short: 2, standard: 4, marathon: 6 }
+
+const addHours = (time, hours) => {
+    const [h,m] = time.split(':').map(Number)
+    const end = Math.min(h + hours, 23)
+    return `${String(end).padStart(2, '0')}:${end === 23 && h + hours > 23 ? '59' : String(m).padStart(2, '0')}`
+}
+
+const handleSchedule = async () => {
+    const f = form.value
+
+    await searchGames(f.game)
+    const match = searchedGames.value?.[0]
+
+    const eventInfo = {
+        name: f.name,
+        description: `${f.game} · ${f.style} table · ${f.capacity} seats` + (f.format === 'virtual' ? ` · Join: ${f.venue}` : ` · ${f.table}`), date: f.date,
+        startTime: `${f.time}:00`,
+        endTime:  `${addHours(f.time, DURATION_HOURS[f.duration] ?? 4)}:00`,
+        location: f.format === 'virtual' ? 'Online' : `${f.venue}, ${f.table}`,
+        visibility: f.privacy.toUpperCase(),
+        games: match ? [match.id] : []
+    }
+
+    await createEvent(eventInfo, null)
+    show('Your event is scheduled. Game on!', 'success')
+    router.push('/events')
+}
 
 const handleSubmit = async () => {
-  const event = await createLiveEvent(form.value)
-  show('Live table launched!', 'success')
-  router.push(`/live-events/${event.id}`)
+    if (submitting.value || !isValid.value) return
+    submitting.value = true
+
+    try { 
+        if (form.value.timing === 'later') {
+            await handleSchedule()
+        } else {
+            const event = await createLiveEvent(form.value)
+            show('Live table launched!', 'success')
+            router.push(`/live-events/${event.id}`)
+        }
+    } catch (err) {
+        show(err?.data?.message || 'Something went wrong. Please try again.', 'error')
+    } finally {
+        submitting.value = false
+    }
 }
 
 const durationOptions = [

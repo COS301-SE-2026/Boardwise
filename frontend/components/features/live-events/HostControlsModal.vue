@@ -1,5 +1,5 @@
 <template>
-    <BaseModal v-model="open" title="Host Controls" :max-width="640">
+    <BaseModal v-model="open" title="Host Controls" :max-width="640" :fullscreen="mobile">
         <div class="host-controls">
             <!-- Session management -->
             <section class="host-controls__section">
@@ -10,15 +10,10 @@
                         {{  isPaused ? 'Resume table' : 'Pause table' }}
                     </BaseButton>
 
-                    <BaseButton v-if="!confirmEnd" variant="error" @click="confirmEnd = true">
-                        <v-icon start>mdi-stop-circle-outline</v-icon> End session
-                    </BaseButton>
-
-                    <template v-else>
-                        <span class="card-meta">End for everyone?</span>
-                        <BaseButton variant="error" @click="endSession">Yes, end it</BaseButton>
-                        <BaseButton variant="text" @click="confirmEnd = false">Keep playing</BaseButton>
-                    </template>
+                    <button type="button" class="btn btn--danger-outline" @click="confirmEnd = true">
+                        <v-icon start>mdi-stop-circle-outline</v-icon>
+                        End session
+                    </button>
                 </div>
             </section>
 
@@ -64,7 +59,24 @@
                     <BaseButton type="submit" :disabled="!announcement.trim()">Post</BaseButton>
                 </form>
             </section>
+
+            <BaseModal v-model="confirmEnd" title="End this session?" :max-width="420">
+                <p class="card-meta">
+                    This ends the live table for everyone. Players will be sent back to Events and this can't be undone.
+                </p>
+
+                <template #actions>
+                    <BaseButton variant="secondary" @click="confirmEnd = false">Keep playing</BaseButton> 
+                    <v-spacer />
+                    <button type="button" class="btn btn--danger" @click="endSession">Yes, end it</button>
+                </template>
+            </BaseModal>
         </div>
+
+        <template #actions>
+            <v-spacer />
+            <BaseButton @click="open = false">Done</BaseButton>
+        </template>
     </BaseModal>
 </template>
 

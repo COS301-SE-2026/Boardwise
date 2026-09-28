@@ -8,14 +8,20 @@
 
             <div class="d-flex align-center ga-3 flex-wrap">
                 <div class="live-table-header__status">
-                    <v-icon size="14" color="isPaused ? 'var(--color-warning)' : 'var(--wildfire)'">mdi-circle</v-icon>
+                    <v-icon size="14" :color="isPaused ? 'var(--color-warning)' : 'var(--wildfire)'">mdi-circle</v-icon>
                     <span class="card-subtitle" style="margin:0">{{ isPaused ? 'PAUSED' : 'LIVE' }}</span>
                     <span class="live-table-header__timer">{{ elapsed }}</span>
                 </div>
 
-                <BaseButton v-if="isHost" variant="secondary" size="sm" @click="showHostControls = true">
-                    <v-icon start size="16">mdi-tune</v-icon> Host controls
-                </BaseButton>
+                <button
+                    v-if="isHost"
+                    type="button"
+                    class="btn btn--primary host-controls-trigger"
+                    @click="showHostControls = true"
+                >
+                    <v-icon size="18">mdi-tune</v-icon>
+                    Host controls
+                </button>
             </div>
         </div>
 

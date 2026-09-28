@@ -21,13 +21,16 @@
         <BaseButton
           v-if="closable"
           variant="text"
-          icon="mdi-close"
+          icon
           aria-label="Close dialog"
           :disabled="loading"
+          class="base-modal__close"
           @click="
             $emit('update:modelValue', false)
           "
-        />
+        >
+          <v-icon>mdi-close</v-icon>
+        </BaseButton>
       </v-card-title>
 
       <v-card-text class="pa-6">
