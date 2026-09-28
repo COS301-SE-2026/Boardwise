@@ -6383,9 +6383,6 @@ games-owned-section {
   flex: 1 1 auto;
   overflow-wrap: anywhere;
   margin: 0;
-
-  overflow: hidden;
-
   color: var(--color-secondary);
 
   font-family: var(--font-display);
