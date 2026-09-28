@@ -381,7 +381,6 @@ class Flaw(BaseModel):
 
 class Diagnosis(BaseModel):
     flaws: List[Flaw] = Field(
-        ...,
         max_length=3,
         description=(
             "Genuine flaws, most severe first. An empty list means the new game contains "
