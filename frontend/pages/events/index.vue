@@ -4,7 +4,7 @@
 
     <EventHeader 
       @search="searchQuery = $event"
-      @create-event="showCreateEvent = true"  
+      @create-event="showTypeModal = true"  
     />
 
     <LiveEventBanner :count="liveEvents.length" @view="scrollToLive" />
@@ -93,7 +93,8 @@
       </div>
     </div>
 
-    <CreateEventModal v-model="showCreateEvent"   :on-submit="handleCreateEvent"  @created="handleCreateEvent" />
+    <CreateEventModal v-model="showCreateEvent"  :on-submit="handleCreateEvent" />
+    <EventTypeModal v-model="showTypeModal" @select="handleTypeSelect" />
 
     <InviteModal
       v-model="showInviteModal"
@@ -123,6 +124,8 @@ import { useSnackBar } from '~/composables/useSnackbar'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
 import { useRouter } from 'vue-router'
+
+import EventTypeModal from '~/components/features/events/EventTypeModal.vue'
 import InviteModal from '~/components/features/community/InviteModal.vue'
 import EventHeader from '~/components/features/events/EventHeader.vue'
 
@@ -157,6 +160,7 @@ const searchQuery = ref('')
 const activeFilters = ref({})
 
 const showCreateEvent = ref(false)
+const showTypeModal = ref(false)
 
 const filteredEvents = computed(() => {
   let result = events.value
@@ -232,6 +236,14 @@ const openEvent = (event) => {
 const handleFilter = (filters) => {
   activeFilters.value = filters
   eventsPage.value = 1
+}
+
+const handleTypeSelect = (type) => {
+  if(type === 'live') {
+    router.push('/live-events/plan')
+  } else {
+    showCreateEvent.value = true
+  }
 }
 
 const handleCreateEvent = async ({ eventInfo, image }) => {
