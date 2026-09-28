@@ -877,10 +877,10 @@ a { color: var(--color-link); text-decoration: none; }
 
 .landing-hero__container,
 .landing-section__inner {
-  width: min(calc(100% - 32px), var(--container-max));
-  max-width: var(--container-max);
-  margin-inline: auto;
-  padding-inline: 0;
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  padding-inline: clamp(var(--space-4), 4vw, var(--space-10));
 }
 
 .landing-hero__layout {
@@ -1313,6 +1313,10 @@ a { color: var(--color-link); text-decoration: none; }
   position: relative;
   z-index: 10;
   width: 100%;
+  padding-block: var(--space-3);
+
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .site-footer__bgg {
@@ -1333,8 +1337,10 @@ a { color: var(--color-link); text-decoration: none; }
   justify-content: space-between;
   gap: var(--space-4);
 
-  width: min(100% - 32px, var(--container-max));
-  margin-inline: auto;
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  padding-inline: clamp(var(--space-4), 4vw, var(--space-10));
 }
 
 .landing-navbar__brand {
@@ -1364,15 +1370,15 @@ a { color: var(--color-link); text-decoration: none; }
 
 @media (max-width: 599px) {
   .landing-navbar {
-    padding-block: 0.5rem;
+    padding-block: var(--space-2);
   }
 
   .landing-navbar__inner {
-    width: calc(100% - 24px);
+    padding-inline: var(--space-3);
   }
 
   .landing-navbar__brand {
-    font-size: 1.8rem;
+    font-size: 1.75rem;
   }
   .landing-navbar__actions {
     display: none;
