@@ -19,7 +19,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--force",
-        action="stored_true",
+        action="store_true",
         help="Rebuild indexes even if they already exist"
     )
     args = parser.parse_args()
