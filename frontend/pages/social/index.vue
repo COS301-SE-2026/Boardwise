@@ -2,11 +2,9 @@
   <PageContainer>
     <Navbar />
  
-    <ExploreHeader />
- 
-    <ExploreSearch 
-      v-model="searchQuery"
-      @create-community="showCreateCommunity = true"
+    <ExploreHeader 
+      v-model:search-query="searchQuery"
+      @create-community="showCreateCommunity = true"  
     />
 
     <SocialTabs data-test="social-tabs" v-model="activeTab" />
@@ -145,7 +143,6 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import MobileFilterDrawer from '~/components/ui/MobileFilterDrawer.vue'
 
 import ExploreHeader from '~/components/features/community/ExploreHeader.vue'
-import ExploreSearch from '~/components/features/community/ExploreSearch.vue'
 import CommunityGrid from '~/components/features/community/CommunityGrid.vue'
 import CommunityCreateForm from '~/components/features/community/CommunityCreateForm.vue'
 import CommunityFilter from '~/components/features/community/CommunityFilter.vue'
