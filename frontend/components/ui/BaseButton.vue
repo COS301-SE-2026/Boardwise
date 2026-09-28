@@ -6,9 +6,6 @@
     :rounded="icon ? 'circle' : 'pill'"
     :icon="icon"
     :size="size"
-    :style="{
-      border: `2px solid ${border || borderMap[variant] || borderMap.secondary}`
-    }"
     class="text-none base-button"
     :class="[`btn--${variant}`, { 'base-button--icon' : icon }]"
     v-bind="$attrs"
@@ -35,10 +32,6 @@ defineProps({
   iconSize: {
     type: String,
     default: 'default'
-  }, 
-  border: {
-    type: String,
-    default: undefined
   }
 })
 
@@ -61,16 +54,6 @@ const styleMap = {
   text: 'text',
   error: 'text',
   success: 'text'
-}
-
-const borderMap = {
-  primary: 'transparent',
-  secondary: 'var(--color-secondary)',
-  accent: 'transparent',
-  ghost: 'transparent',
-  error: 'transparent',
-  success: 'transparent',
-  text: 'transparent'
 }
 </script>
 
@@ -99,6 +82,10 @@ const borderMap = {
 
 .base-button:active {
   transform: translateY(1px);
+}
+
+.btn--secondary {
+  border: 2px solid var(--color-secondary) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

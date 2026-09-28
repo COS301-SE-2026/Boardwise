@@ -2,10 +2,14 @@
   <PageContainer>
     <Navbar />
 
-    <LibraryHeader 
-      @upload="handleUploadRequest"
-      @search="handleSearch"
-    />
+    <div class="d-flex flex-column ga-5 mb-6">
+      <SectionTitle title="Library" subtitle="Browse community rulebooks" />
+
+      <RulebookSearch
+        @upload="handleUploadRequest"
+        @search="handleSearch"
+      />
+    </div>
 
     <RulebookCarousel :rulebooks="featuredRulebooks" @select="openRulebook" />
 
@@ -19,9 +23,29 @@
     />
 
     <!-- Mobile filter -->
-    <MobileFilterDrawer id="library-mobile-filters">
-      <RulebookFilterSidebar @filter="handleFilter" />
-    </MobileFilterDrawer>
+    <div class="d-flex d-md-none mt-4 mb-4">
+      <v-chip
+        color="secondary"
+        prepend-icon="mdi-filter-variant"
+        size="large"
+        @click="showFilters = true"
+      >
+        Filters
+      </v-chip>
+
+      <v-navigation-drawer
+        v-model="showFilters"
+        temporary
+        location="left"
+        width="300"
+      >
+        
+        <RulebookFilterSidebar
+          @filter="handleFilter"
+        />
+        
+      </v-navigation-drawer>
+    </div>
 
     <!-- Desktop -->
     <div class="d-none d-md-flex ga-6 align-start">
@@ -119,12 +143,11 @@ import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BasePagination from '~/components/ui/BasePagination.vue'
-import MobileFilterDrawer from '~/components/ui/MobileFilterDrawer.vue'
 
-import LibraryHeader from '~/components/features/library/LibraryHeader.vue'
 import RulebookFilterSidebar from '~/components/features/library/RulebookFilterSidebar.vue'
 import RulebookGrid from '~/components/features/library/RulebookGrid.vue'
 import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue'
+import RulebookSearch from '~/components/features/library/RulebookSearch.vue'
 import UploadRulebookModal from '~/components/features/library/UploadRulebookModal.vue'
 import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
 import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue'

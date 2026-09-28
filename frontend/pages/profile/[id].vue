@@ -70,19 +70,19 @@
             <section class="profile-content">
                 <BaseTabs
                     :tabs="['Games Owned', 'Listings']"
-                    :active-tabs="activeTab"
+                    :active-tab="activeTab"
                     aria-label="Profile sections"
                     class="mb-4"
-                    @change="activeTab=$event"
+                    @change="activeTab = $event"
                 />
 
-                <v-window v-model="activeTab">
+                <v-window v-model="activeTab" class="profile-window">
                     <v-window-item value="Games Owned">
                         <GamesOwnedSection :games="games" />
                     </v-window-item>
 
                     <v-window-item value="Listings">
-                        <ListingsSection :listings="listings" :editable="false" />
+                        <ListingsSection :listings="listings!" :editable="false" />
                     </v-window-item>
                 </v-window>
             </section>
@@ -108,6 +108,7 @@ import BaseAvatar from '~/components/ui/BaseAvatar.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
 import BaseCard from '~/components/ui/BaseCard.vue';
 import PageContainer from '~/components/layout/PageContainer.vue';
+import BaseTabs from '~/components/ui/BaseTabs.vue';
 
 import ProfileStats from '~/components/features/profile/ProfileStats.vue';
 import ProfileCommunities from '~/components/features/profile/ProfileCommunities.vue';
@@ -118,14 +119,17 @@ import FriendsModal from '~/components/features/people/FriendsModal.vue';
 import FriendActionButton from '~/components/features/people/FriendActionButton.vue';
 
 import { useProfile } from '~/composables/useProfile'
+import { useMarketplace } from '~/composables/useMarketplace';
 import { useFriends } from '~/composables/useFriends'
 import { FriendStatus } from '~/services/userService';
 import type { ProfileResponse } from '~/services/userService'
 import BaseLoadingState from '~/components/ui/BaseLoadingState.vue';
+import type { ListingResponse } from '~/services/marketplaceService';
 
 const route = useRoute()
 const router = useRouter()
 const { fetchUserById } = useProfile()
+const { getOtherUsersListings } = useMarketplace()
 
 const {  
     isLoading, 
@@ -140,7 +144,7 @@ const notFound = ref(false)
 
 const user = ref<ProfileResponse | null>(null)
 const activeTab = ref('Games Owned')
-const listings = ref([])
+const listings = ref<ListingResponse[] | null>([])
 const showFriendsModal = ref(false)
 
 const games = computed(() => user.value?.games ?? [])
@@ -152,13 +156,15 @@ const loadProfile = async (id: string) => {
 
     try {
         const profile = await fetchUserById(id);
+        const resListings = await getOtherUsersListings(id);
 
         if(!profile) {
             notFound.value = true
             return
         }
-
+        console.log("raw listing data: ", resListings)
         user.value = profile
+        listings.value = resListings ?? []
         await getUserFriendsList(id)
         // gotta add fetching other user listings
     } catch (err) {

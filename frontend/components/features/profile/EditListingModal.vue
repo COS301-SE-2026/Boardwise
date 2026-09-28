@@ -151,7 +151,7 @@
                 type="file"
                 accept="image/*" 
                 class="hidden-input" 
-                :disabled="isLoading"
+                :disabled="saving"
                 @change="handleFileChange"
               />
             </div>
@@ -228,7 +228,7 @@ const version = ref('')
 
 const selected_condition = ref(null)
 const selected_item_type = ref(null)
-const selected_genres = ref(null)
+const selected_genres = ref([])
 
 const start_date = ref(null)
 const end_date = ref(null)
@@ -305,10 +305,11 @@ watch(open, val => { // listen for an open & populate ref
   selected_genres.value = listing_element.genres ?? []
   selected_condition.value = listing_element.condition ?? null
   selected_item_type.value = listing_element.itemType ?? null
-  start_date.value = listing_element.rentalPeriod?.startDate ?? null
-  end_date.value = listing_element.rentalPeriod?.endDate ?? null
+  start_date.value = listing_element.rentalPeriod?.[0] ?? null
+  end_date.value = listing_element.rentalPeriod?.[1] ?? null
   file_name.value = ''
   image_file.value = null
+
 
   if (selected_genres.value.length) {
     const missing = selected_genres.value.filter(g => !genres.value.includes(g))
@@ -329,10 +330,10 @@ const handleFileChange = (e) => {
   const selected = e.target.files[0]
   if (!selected) return
 
-  if (!ALLOWED_IMAGE_TYPES.includes(selected.type)) {
+  if (!ALLOWED_IMAGE_TYPES.has(selected.type)) {
     fileError.value = 'Please upload a JPEG, PNG, WEBP or GIF image.'
   } else if (selected.size > MAX_FILE_SIZE) {
-    fileError.value = 'Image must be smaller than 5MB.'
+    fileError.value = `Image must be smaller than ${MAX_FILE_SIZE / 1024 / 1024}MB.`
   }
 
   if (fileError.value) {
@@ -356,6 +357,10 @@ function get_rental_period() {
   }
   return [fmt(start_date.value), fmt(end_date.value)]
 }
+
+// start_date.value = listing_element.rentalPeriod?.[0] ?? null
+// end_date.value = listing_element.rentalPeriod?.[1] ?? null
+
 
 const handleSave = async () => {
   saveError.value = ''
@@ -402,17 +407,21 @@ const closeModal = () => {
   selected_item_type.value = ''
   listing_type.value = 'sell'
   price.value = ''
-  rental_period.value = ''
+  start_date.value = null
+  end_date.value = null
   negotiable.value = false
   location.value = ''
   file_name.value = ''
   image_file.value = null
   saveError.value = ''
   fileError.value = ''
+  if (file_input.value) file_input.value.value = ''
+  form.value?.resetValidation()
 }
+
 const conditions = ['New', 'Like New', 'Good', 'Fair']
 
-const item_types = ["Merch", "Full Boardgame", "Partial Boardgame", "Pieces"]
+const item_types = ["Full Boardgame", "Partial Boardgame", "Pieces"]
 </script>
 
 <style scoped>
