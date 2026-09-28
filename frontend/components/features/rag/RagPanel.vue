@@ -46,18 +46,7 @@ const close = () => emit('update:modelValue', false)
 
 const handleRetry = (message: RagMessageType) => {
     if(!props.rulebook?.id || !message.query) return
-
-    let queryToRetry = message.query;
-
-    if(!queryToRetry){
-        const lastUserMessage = [...messages.value].reverse().find(m => m.role === 'user');
-
-        if(!lastUserMessage?.content) return
-
-        queryToRetry = lastUserMessage.content
-    }
-
-    askQuestion(props.rulebook.id, queryToRetry)
+    askQuestion(props.rulebook.id, message.query)
 }
 
 const handleSend = (query: string) => {
