@@ -18,5 +18,5 @@ import BaseSearch from '~/components/ui/BaseSearch.vue'
 
 const search = ref('')
 
-defineEmits(['search'])
+defineEmits(['search','create-listing'])
 </script>

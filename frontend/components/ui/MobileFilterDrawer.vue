@@ -19,11 +19,7 @@
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-
-defineProps({
-  id: { type: String, required: true}
-})
+<script setup lang="ts">
+defineProps<{ id: string }>()
 const open = ref(false)
 </script>

@@ -1,28 +1,12 @@
 <template>
-   <PageHeader
-        data-test="explore-header"
-        title="Social"
-        subtitle="Find your people"
-        action-label="Create Community"
-        action-icon="mdi-plus"
-        @action="$emit('create-community')"
-   >
-        <template #search>
-            <ExploreSearch
-                data-test="explore-search"
-                @search="$emit('search', $event)"
-            />
-        </template>
-   </PageHeader>
+    <div class="d-flex flex-column ga-4">
+        <SectionTitle 
+            title="Social" 
+            subtitle="Find your people" 
+        />
+    </div>
 </template>
 
 <script setup>
-import PageHeader from '~/components/layout/PageHeader.vue'
-import ExploreSearch from './ExploreSearch.vue'
-
-const props = defineProps({
-    searchQuery: { type: String, default: ''}
-})
-
-const emit = defineEmits(['search', 'create-community'])
+import SectionTitle from '~/components/ui/SectionTitle.vue'
 </script>
