@@ -63,7 +63,7 @@ def _call_local_fallback(messages: list[dict], ml_models: dict) -> str:
     """
     Executes the local LLM when the remote one is unavailable.
     """
-    logger.warning("Executing local fallback model...")
+    logger.info("Executing local fallback model")
     try:
         local_model = ml_models.get("local_llm")
         if not local_model:
@@ -88,7 +88,7 @@ def generate_answer(messages: list[dict], ml_models: dict, max_retries: int = 3)
     """
     Calls the Hugging Face Serverless API to generate an answer using the provided context.
     Implements a backoff strategy to handle 503 (Cold Start) and 429 (Rate Limit) HTTP errors.
-    Trips a circuit breaker to a local model if retries are exhaused.
+    Trips a circuit breaker to a local model if retries are exhausted.
     """
     answer = _call_remote_llm(messages, max_retries)
 
