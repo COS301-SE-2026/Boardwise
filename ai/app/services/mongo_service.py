@@ -394,7 +394,7 @@ def get_setup_wizard_by_rulebookId(rulebook_id: str) -> dict | None:
     """
 
     db = get_db()
-    doc = ["SETUP_WIZARD"].findOne({"rulebookId": ObjectId(rulebook_id)})
+    doc = db["SETUP_WIZARD"].find_one({"rulebookId": ObjectId(rulebook_id)})
 
     if not doc:
         return None
@@ -539,3 +539,4 @@ def get_setup_wizard(wizard_id: str) -> dict | None:
 
     doc["id"] = str(doc.pop("_id"))
     doc["rulebookId"] = str(doc["rulebookId"])
+    return doc

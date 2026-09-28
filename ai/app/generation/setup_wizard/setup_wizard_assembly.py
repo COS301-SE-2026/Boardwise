@@ -5,7 +5,7 @@ from app.generation.setup_wizard.setup_wizard_generation import LLMStep
 from app.generation.setup_wizard.setup_wizard_grounding import check_step_grounding
 from app.generation.setup_wizard.setup_wizard_prompt import PHASE_LABELS, PHASE_ORDER
 
-EXCERPT_LENGTH = 120 
+EXCERPT_LENGTH = 250 
 
 def _slugify(name: str)-> str:
     """
@@ -120,7 +120,7 @@ def assemble_wizard_output(
 
     summary = {
         "total_steps": total_steps,
-        "estimated_ minutes": max(1,round((60 + total_steps * 40)/60)),
+        "estimated_minutes": max(1,round((60 + total_steps * 40)/60)),
         "verified_steps": verified_steps,
     }
 

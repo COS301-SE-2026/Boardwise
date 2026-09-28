@@ -4,7 +4,7 @@ from pydantic.alias_generators import to_camel
 from datetime import datetime
 from typing import Literal 
 from .schemas import BaseAPIModel
-from utils.pyObjectId import PyObjectId
+from app.utils.pyObjectId import PyObjectId
 
 PHASE_LABELS={
     "board": "Build the board",

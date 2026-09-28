@@ -1,4 +1,5 @@
-from setup_wizard_generation import LLMStep
+from app.generation.setup_wizard.setup_wizard_prompt import LLMStep
+
 def check_step_grounding(step: LLMStep, chunks_by_index: dict[int, str]) -> list[str]:
     reasons: list[str] = []
     if not step.title.strip():

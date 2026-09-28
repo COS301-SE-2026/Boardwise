@@ -21,6 +21,7 @@ def run_setup_wizard_job(wizard_id: str, rulebook_id: str, ml_models: dict) -> N
         chunks = get_setup_chunks(rulebook_id, ml_models, 12)
         if not chunks:
             raise ValueError("No setup-relevant chunks were retrieved for this rulebook.")
+        chunks_by_index = {c["index"]: c["content"] for c in chunks}
         steps_by_phase: dict[str, list[LLMStep]] = {}
         total_phases = len(PHASE_ORDER)
 
