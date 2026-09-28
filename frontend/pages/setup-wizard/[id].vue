@@ -13,13 +13,19 @@
                 <span class="card-meta">Step {{ stepNumber }} of {{  totalSteps }}</span>
 
                 <div class="wizard-hub__track">
-                    <div class="wizard-hub__fill" :style="{ width: (stepNumber / totalSteps) * 100 + '%'}" />
+                    <div class="wizard-hub__fill" :style="{ width: (totalSteps?(stepNumber / totalSteps) * 100: 0) + '%'}" />
                 </div>
             </div>
         </div>
 
-        <BaseLoadingState v-if="isLoadingGame" message="Loading setup guide..." />
+        <BaseLoadingState v-if="showLoading"
+         :message=" isGenerating? `Generating setup guide... ${progress}%`: 'Loading setup guide...'" />
         
+        <div v-else-if="error" class ="wizard-layout__main">
+            <p class="card-meta">{{ error }}</p>
+            <BaseButton @click="start(rulebookId)"> Try again </BaseButton>
+
+        </div>
 
         <div v-else class="wizard-layout">
             <div class="wizard-layout__main">
@@ -32,7 +38,7 @@
 
                     <div class="wizard-layout__confirm">
                         <BaseBadge :variant="allConfirmed ? 'success' : 'neutral'">
-                            {{ checkedCount }} of {{ checklist.length }} confirmed
+                            {{ checkedCount }} of {{ stepChecklist.length }} confirmed
                         </BaseBadge>
 
                         <BaseButton variant="text" size="small" @click="toggleAll">
@@ -42,7 +48,7 @@
                 </div>
 
                 <div class="wizard-layout__checklist">
-                    <ChecklistItemCard v-for="item in checklist" :key="item.id" :item="item" @toggle="toggleItem" />
+                    <ChecklistItemCard v-for="item in stepChecklist" :key="item.id" :item="item" @toggle="toggleItem" />
                 </div>
 
                 <div class="wizard-layout__hint">
@@ -58,11 +64,11 @@
             <WizardChatSidebar class="wizard-layout__sidebar" :game-title="gameTitle" />
         </div>
 
-        <div class="wizard-footer">
+        <div v-if="!showLoading && !error" class="wizard-footer">
             <NuxtLink to="/setup-wizard" class="wizard-footer__cancel">Cancel Setup</NuxtLink>
             <div class="wizard-footer__actions">
                 <span class="card-meta">
-                    {{ allConfirmed ? 'All pieces ready! Proceed when set.' : `${checklist.length - checkedCount} items left to verify.` }}
+                    {{ allConfirmed ? 'All pieces ready! Proceed when set.' : `${stepChecklist.length - checkedCount} items left to verify.` }}
                 </span>
 
                 <BaseButton @click="handleNext">
@@ -78,7 +84,7 @@
         />
 
         <BaseModal v-model="showConfirmModal" title="Some items aren't confirmed" aria-label="Confirm proceeding with unchecked items">
-            <p>You still have {{ checklist.length - checkedCount }} unconfirmed item(s). Continue anyway?</p>
+            <p>You still have {{ stepChecklist.length - checkedCount }} unconfirmed item(s). Continue anyway?</p>
             <template #actions>
                 <BaseButton variant="secondary" @click="showConfirmModal = false">Go back</BaseButton>
                 <BaseButton @click="confirmNext">Continue</BaseButton>
@@ -104,41 +110,48 @@ import WizardChatSidebar from '~/components/features/setup-wizard/WizardChatSide
 import SetupCompleteModal from '~/components/features/setup-wizard/SetupCompleteModal.vue'
 
 import { useBoardGames } from '~/composables/useBoardGames'
-import { useSetupChecklist, useActiveSetup } from '~/composables/useSetupWizard'
+import {useSetupWizard, useSetupChecklist, useActiveSetup } from '~/composables/useSetupWizard'
 import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 
 const route = useRoute()
 const router = useRouter()
-const gameId = route.params.id as string
+const rulebookId = route.params.id as string
 
 // TODO: replace with getGameById lookup
+const showLoading = computed(()=> isLoadingGame.value || isGenerating.value || (!wizard.value && !error.value))
 
 const { games, isLoading: isLoadingGame, searchGames } = useBoardGames()
-const { checklist, stepNumber, totalSteps, currentStep, checkedCount, allConfirmed, toggleItem, toggleAll, nextStep } = useSetupChecklist()
+const { wizard, isLoading: isGenerating, progress, error, start } = useSetupWizard()
+const {
+    stepChecklist, stepNumber, totalSteps, currentStep,
+    checkedCount, allConfirmed, toggleItem, toggleAll, nextStep,
+} = useSetupChecklist(wizard)
+
 const { setActiveSetup, clearActiveSetup } = useActiveSetup()
 
 const showConfirmModal = ref(false)
 const showCompleteModal = ref(false)
 
-const game = computed(() => games.value.find((g: any) => String(g.id) === gameId))
+const game = computed(() => games.value.find((g: any) => g.rulebookId === rulebookId))
 const gameTitle = computed(() => game.value?.title || 'Setup Guide')
 
 onMounted(async () => {
     if (!games.value.length) await searchGames()
+    await start(rulebookId)
 })
 
 const persistProgress = () => {
     setActiveSetup({
-        id: gameId, 
+        id: rulebookId, 
         title: gameTitle.value,
         coverImage: game.value?.imageUrl,
         step: stepNumber.value, 
-        totalSteps
+        totalSteps: totalSteps.value
     })
 }
 
 const handleNext = () => {
-    if (!allConfirmed.value && stepNumber.value === 1) {
+    if (!allConfirmed.value) {
         showConfirmModal.value = true
         return
     }
@@ -158,7 +171,7 @@ const finishSetup = () => {
 }
 
 const advance = () => {
-    if (stepNumber.value < totalSteps) {
+    if (stepNumber.value < totalSteps.value) {
         nextStep()
         persistProgress()
     } else {

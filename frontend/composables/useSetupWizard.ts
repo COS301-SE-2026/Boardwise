@@ -1,8 +1,86 @@
-import { ref, computed } from 'vue'
+import { ref, watch ,computed, onScopeDispose, type Ref } from 'vue'
+import { SetupWizardService, type SetupWizard } from '~/services/setupWizardService'
 
+const POLL_MS = 5000
+
+export const useSetupWizard = () =>{
+    const wizard = ref<SetupWizard | null>(null)
+    const error = ref<string | null>(null)
+    let timer: ReturnType <typeof setTimeout> | null = null
+
+    const status = computed(() => wizard.value?.job.status ?? null)
+    const progress = computed(() => wizard.value?.job.progress ?? 0)
+    const isLoading = computed(()=> status.value === 'queued' || status.value === 'running')
+
+    const stop = () =>{
+        if(timer) clearTimeout(timer)
+            timer = null
+    }
+
+    const poll = async(wizardId: string) =>{
+        try{
+            wizard.value = await SetupWizardService.getWizard(wizardId);
+        }catch(e: any){
+            error.value = e?.message ?? 'Failed to fetch setup wizard';
+            return;
+        }
+
+        const s = wizard.value.job.status
+        if(s === 'ready') return;
+        if(s === 'failed'){
+            error.value = wizard.value.job.error ?? 'Setup wizard failed'
+            return
+        }
+        timer = setTimeout(()=> poll(wizardId), POLL_MS)
+    }
+
+    const start = async(rulebookId: string) =>{
+        stop();
+        error.value = null;
+        try{
+            wizard.value = await SetupWizardService.createOrGetWizard(rulebookId);
+        }
+        catch(e: any){
+            error.value = e?.message ?? 'Failed to start setup wizard'
+            return;
+        }
+
+        if(wizard.value.job.status !== 'ready'){
+            await poll(wizard.value.id)
+        }
+    }
+    onScopeDispose(stop);
+
+    return {wizard, status , progress, isLoading, error, start, stop}
+
+}
+
+export const toChecklistItems = (wizard: SetupWizard): ChecklistItem[] =>
+    wizard.components.map(comp =>{
+        const usedIn = wizard.phases.find(p=>
+            p.steps.some(s =>s.component_refs.some(r => r.id === comp.id))
+        )
+        return {
+            id: comp.id,
+            title: comp.quantity != null ? `${comp.quantity} ${comp.name}`: comp.name,
+            category: usedIn?.label?? 'Components',
+            description: '',
+            checked: false,
+        }
+    })
+
+export const toWizardStepDefs = (wizard: SetupWizard):WizardStepDef[]=>
+    wizard.phases.flatMap(phase => phase.steps.map(step =>({
+        number: step.order,
+        phase: phase.label,
+        title: step.title,
+        componentIds: step.component_refs.map(r => r.id),
+        description: step.instruction 
+    }))
+)
 export interface ChecklistPill { label: string; color?: string; border?: boolean }
 export interface ChecklistItem {
-    id: number
+    id: string
     title: string
     category: string
     description: string
@@ -11,95 +89,61 @@ export interface ChecklistItem {
     checked: boolean
 }
 
-export interface WizardStepDef { number: number; phase: string, title: string, description: string }
+export interface WizardStepDef { number: number; phase: string, title: string, description: string, componentIds: string[] }
 export interface ActiveSetup { id: string; title: string; coverImage?: string; step: number; totalSteps: number }
 
-// TODO: no backend for wizard 
 
-const MOCK_STEPS: WizardStepDef[] = [
-    { number: 1, phase: 'Phase 1: Inventory & Preparation', title: 'Step 1: Check Your Components', description: 'Verify starting pieces before setting up the board.' },
-    { number: 2, phase: 'Phase 1: Inventory & Preparation', title: 'Step 2: Tabletop Alignment & Placement', description: 'Follow spatial guidelines to lay hexes and frames seamlessly.' },
-    { number: 3, phase: 'Phase 2: Player Setup' ,title: 'Step 3: Distribute Player Sets', description: 'Hand out roads, settlements and cities to each player.' },
-    { number: 4, phase: 'Phase 2: Player Setup' ,title: 'Step 4: Prepare the Bank', description: 'Sort resource and development cards into their stacks.' },
-    { number: 5, phase: 'Phase 3: Final Checks' ,title: 'Step 5: Final Checks', description: 'Confirm the robber, dice and tokens are placed and ready.' }
-]
-
-const MOCK_CHECKLIST: Omit<ChecklistItem, 'checked'>[] = [
-    {
-        id: 1,
-        title: '19 Hexagonal Terrain Tiles',
-        category: 'Island Base',
-        description: 'Ensure all terrain types are accounted for before shuffling.',
-        pills: ['Forest x4', 'Hill x3', 'Pasture x4', 'Fields x4', 'Mountains x3', 'Desert x1']
-    },
-    {
-        id: 2,
-        title: '6 Frame Pieces',
-        category: 'Perimeter',
-        description: 'Outer sea borders numbered 1 through 6 with 9 coastal harbors.',
-        pills: ['Tabs 1-6 intact', '9 Coastal Harbors (5 generic, 4 special)']
-    },
-    {
-        id: 3,
-        title: '95 Resource & 25 Development Cards',
-        category: 'Bank Stacks',
-        description: 'Stored into 5 distinct resource pills + face-down dev card deck.',
-        pills: ['19 of each Resource', '14 Knights - 5 VPs - 6 Progress']
-    },
-    {
-        id: 4,
-        title: '4 Player Sets (24 Wooden Pieces Each)',
-        category: 'Player Stock',
-        description: 'Each set includes 15 Roads, 5 Settlements, and 4 Cities.',
-        customPills: [
-            { label: 'Red (P1)', color: '#E53935' },
-            { label: 'Blue (P2)', color: '#3949AB' },
-            { label: 'White (P3)', color: '#FFFFFF', border: true },
-            { label: 'Orange (P4)', color: '#FB8C00' }
-        ]
-    },
-    {
-        id: 5,
-        title: '18 Number Tokens, Dice & Robber',
-        category: 'Production',
-        description: 'Letters A through R on reverse. Confirm red 6 and 8 tokens are present.',
-        pills: ['Tokens A-R', '2 Six-sided dice', '1 Robber pawn', 'Longest Road & Largest Army']
-    }
-]
-
-export const useSetupChecklist = () => {
-    const checklist = ref<ChecklistItem[]>(MOCK_CHECKLIST.map(item => ({ ...item, checked: false })))
+export const useSetupChecklist = (wizard: Ref<SetupWizard | null>) => {
+    const steps = computed(() => (wizard.value ? toWizardStepDefs(wizard.value) : []))
+    const checklist = ref<ChecklistItem[]>([])
     const stepNumber = ref(1)
-    const totalSteps = MOCK_STEPS.length
 
-    const checkedCount = computed(() => checklist.value.filter(c => c.checked).length)
-    const allConfirmed = computed(() => checkedCount.value === checklist.value.length)
-    const currentStep = computed(() => MOCK_STEPS[stepNumber.value -1])
+    watch(
+        () => wizard.value?.job.status,
+        status => {
+            if (status === 'ready' && wizard.value) {
+                checklist.value = toChecklistItems(wizard.value)
+                stepNumber.value = 1
+            }
+        },
+        { immediate: true }
+    )
 
-    const toggleItem = (id: number) => {
+    const totalSteps = computed(() => steps.value.length)
+    const currentStep = computed(() => steps.value[stepNumber.value - 1])
+
+    const stepChecklist = computed(() => {
+        const ids = currentStep.value?.componentIds ?? []
+        return checklist.value.filter(c => ids.includes(c.id))
+    })
+
+    const checkedCount = computed(() => stepChecklist.value.filter(c => c.checked).length)
+    const allConfirmed = computed(() => stepChecklist.value.every(c => c.checked))
+
+    const toggleItem = (id: string) => {
         const item = checklist.value.find(c => c.id === id)
         if (item) item.checked = !item.checked
     }
 
     const toggleAll = () => {
         const target = !allConfirmed.value
-        checklist.value.forEach(c => { c.checked = target })
+        stepChecklist.value.forEach(c => { c.checked = target })
     }
 
     const nextStep = () => {
-        if (stepNumber.value < totalSteps) stepNumber.value++
+        if (stepNumber.value < totalSteps.value) stepNumber.value++
     }
 
-    return { 
-        checklist, 
-        stepNumber, 
-        totalSteps, 
-        checkedCount, 
-        allConfirmed, 
-        currentStep, 
-        toggleItem, 
-        toggleAll, 
-        nextStep
+    return {
+        stepChecklist,
+        stepNumber,
+        totalSteps,
+        checkedCount,
+        allConfirmed,
+        currentStep,
+        toggleItem,
+        toggleAll,
+        nextStep,
     }
 }
 
