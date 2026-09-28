@@ -1,7 +1,12 @@
 import logging
 import json
 from typing import Optional
-from app.schemas.ggaia_schemas import DesignDraft, NewGame, ComponentPool
+from app.schemas.ggaia_schemas import (
+    DesignDraft, 
+    NewGame, 
+    ComponentPool,
+    Mechanic
+)
 
 logger = logging.getLogger(__name__)
 
@@ -117,12 +122,99 @@ are present in the pool. Produce a single JSON object matching this schema:
 def game_realizer_new_game(
     draft: dict, 
     pool: ComponentPool,
+    mechanics_by_id: dict[str, Mechanic],
     parent_a_rulebook_exp: Optional[str] = None,
     parent_b_rulebook_exp: Optional[str] = None,
 ) -> list[dict]:
 
-    system_prompt = None
-    user_prompt = None
+    system_prompt = """You are an expert board game rulebook author. Given a
+design draft (mechanics, theme, design intent and parameters) and a pool of
+specific physical components, you must write a complete rulebook as a single JSON 
+object matching the provided schema.
+
+Critical requirements:
+- Every component you reference in the "components" field MUST be an exact component_id
+  from the component pool provided below. Never invent a component_id and never request more
+  of a component than the pool actually contains.
+- Choose component quantities appropriate to the draft's complexity and player count -- but 
+  only from what the pool makes available. If the ideal design calls for more of a component
+  than the pool has, adapt the design (e.g. adjust scaling or how a mechanic is used) rather
+  than exceeding the pool.
+- Player count scaling must be explicit wherever it affects setup, component counts or any 
+  variable rule.
+- gameplay_flow and core_mechanics must faithfully implement every core and supporting mechanic
+  listed in the design draft -- no mechanic may be silently dropped.
+- faq must address genuine ambiguities that could arise from THIS specific rulebook, not generic
+  rules questions.
+- Write for a first-time player: clear, precise and unambiguous.
+
+Writing style for the prose fields (lore_and_objective, setup, gameplay_flow, core_mechanics,
+scoring_and_endgame):
+- Write as flowing prose paragraphs, not bullet-point lists.
+- Use numbered steps ONLY for strictly sequential procedures (setup steps, turn phase order within 
+  gameplay_flow) -- these are the parts most likely to contain a sequencing error, so make the order
+  explicit and unambiguous.
+- Match the tone and density of a polished, professionally published rulebook.
+
+This design draws on two parent games. Do not interleave their rules one after another -- synthesise a single,
+unified ruleset that reads as one coherent game.
+
+Respond with ONLY a JSON object matching the provided schema. No other text. Represent line breaks as '\n' in
+JSON string values.
+"""
+    def format_pool_block(pool: ComponentPool) -> str:
+        lines = []
+        for component in pool.components:
+            line = (
+                f"- component_id={component.component_id} | {component.name} ({component.type}), "
+                f"available quantity: {component.quantity}"
+            )
+            if component.attributes:
+                line += f", attributes: {json.dumps(component.attributes)}"
+            lines.append(line)
+
+        return "\n".join(lines)
+
+    chosen_mechanics = (
+        [m['mechanic_id'] for m in draft['mechanics']['core']] +
+        [m['mechanic_id'] for m in draft['mechanics']['supporting']] +
+        [m['mechanic_id'] for m in draft['mechanics']['structural']]
+    )
+
+    mechanic_block = "\n".join(
+        f"- id={mid} | {mechanics_by_id[mid].name}: {mechanics_by_id[mid].description}"
+        for mid in chosen_mechanics
+        if mid in mechanics_by_id
+    )
+
+    guidance_block = ""
+    if parent_a_rulebook_exp or parent_b_rulebook_exp:
+        guidance_block = f"""## Reference Rulebook Excerpts (depth/structure calibration ONLY)
+Use these only to gauge expected level of detail. Do NOT copy their component picks, quantities or
+numeric values -- you are constrained only to the pool below.
+
+-- Parent A excerpt --
+{parent_a_rulebook_exp or "(Not available)"}
+
+-- Parent B excerpt --
+{parent_b_rulebook_exp or "(Not available)"}
+"""
+
+    user_prompt = f"""{guidance_block}
+## Design Draft
+{json.dumps(draft, indent=2)}
+
+## Mechanics used in the draft
+{mechanic_block}
+
+## Component Pool (select ONLY from these, by component_id)
+{format_pool_block(pool)}
+
+## Task
+Write the complete rulebook for the design draft above. Produce a single JSON object
+matching this schema:
+{json.dumps(NewGame.model_json_schema(), indent=2)}
+"""
     
     messages = [
         {"role": "system", "content": system_prompt},
@@ -137,7 +229,7 @@ def game_critic_new_game(
     system_prompt = None
     user_prompt = None
 
-    
+
     
     messages = [
         {"role": "system", "content": system_prompt},
