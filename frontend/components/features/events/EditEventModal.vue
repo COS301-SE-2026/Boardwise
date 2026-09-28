@@ -127,7 +127,7 @@ import BaseInput from '~/components/ui/BaseInput.vue'
 const { updateEvent, error, isLoading } = useEvents()
 const { searchGames, games: searchedGames, isLoading: gamesLoading } = useBoardGames()
 
-const open = defineModel()
+const open = defineModel({ type: Boolean })
 const props = defineProps({ event: Object })
 const emit = defineEmits(['saved'])
 
