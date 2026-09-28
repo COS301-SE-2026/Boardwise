@@ -8,7 +8,7 @@ from llama_cpp import Llama
 from sentence_transformers import CrossEncoder, SentenceTransformer
 
 from app.config import settings
-from app.routers import internal, job, rulebook
+from app.routers import internal, job, rulebook, setup_wizard  
 from app.scripts.seed_system_user import seed_system_user
 from app.services import lancedb_service, mongo_service, r2_service
 from app.utils.init_lancedb_index import initialise_lancedb
@@ -59,8 +59,8 @@ async def lifespan(app: FastAPI):
         logger.info("Cross-encoder re-ranker model loaded successfully.")
 
         ml_models["local_llm"] = Llama(
-            model_path="/app/models/qwen2.5-0.5b-instruct-q4_k_m.gguf",
-            n_ctx=4096,
+            model_path="/app/models/qwen2.5-3b-instruct-q4_k_m.gguf",
+            n_ctx=8192,
             n_threads=settings.CPU_CORES,
             n_gpu_layers=0,
             verbose=False,
@@ -118,7 +118,7 @@ app.add_middleware(
 app.include_router(rulebook.router, prefix="/api/fa/vault/rulebooks")
 app.include_router(job.router, prefix="/api/fa/vault/jobs")
 app.include_router(internal.router, prefix="/api/fa/vault/internal")
-
+app.include_router(setup_wizard.router, prefix="/api/fa/vault/rulebooks" )
 
 @app.get("/api/fa/health", tags=["System"])
 async def health_check():

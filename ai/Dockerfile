@@ -17,13 +17,14 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
     tesseract-ocr-eng \
+    gosu \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /app/models /app/cache \
     && chown -R fast:fast /app
 
 ADD --chown=fast:fast \
-    "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf" \
-    /app/models/qwen2.5-0.5b-instruct-q4_k_m.gguf
+    "https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q4_k_m.gguf" \
+    /app/models/qwen2.5-3b-instruct-q4_k_m.gguf
 
 # Copy requirements file and install Python dependencies
 COPY --chown=fast:fast requirements.txt .
@@ -40,8 +41,9 @@ RUN pip install --upgrade --no-cache-dir --only-binary :all: pip==26.2 \
 # Copy the rest of the application code
 COPY --chown=fast:fast app/ ./app/
 COPY --chown=fast:fast scripts/ ./scripts/
+COPY --chown=fast:fast entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-USER fast
 
 # Expose the port Uvicorn runs on
 EXPOSE 8000
