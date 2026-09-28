@@ -1315,8 +1315,6 @@ a { color: var(--color-link); text-decoration: none; }
   width: 100%;
   padding-block: var(--space-3);
 
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
 }
 
 .site-footer__bgg {
@@ -1347,7 +1345,7 @@ a { color: var(--color-link); text-decoration: none; }
   flex-shrink: 0;
 
   font-family: var(--font-display);
-  font-size: clamp(2.7rem, 5vw, 5.35rem);
+  font-size: clamp(1.75rem, 2.5vw, 2.25rem);
   font-weight: 700;
   line-height: 1;
 
@@ -6574,7 +6572,12 @@ games-owned-section {
 }
 
 .community-chat-header__details-trigger {
-  padding: 0;
+  width: 100%;
+  padding: var(--space-1);
+
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 
   color: inherit;
   text-align: left;
@@ -7329,21 +7332,6 @@ games-owned-section {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
-}
-
-.community-chat-header__details-trigger {
-  padding: var(--space-1);
-
-  color: inherit;
-  text-align: left;
-
-  width: 100%;
-
-transition:
-  background var(--transition-fast),
-  color var(--transition-fast);
-  background: transparent;
-  border: 0;
 }
 
 .wizard-chat-panel__suggestion {
