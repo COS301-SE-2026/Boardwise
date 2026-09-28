@@ -329,3 +329,84 @@ class ComponentPool(BaseModel):
     def component_count_feasible(self, component_id: str, needed_comp_count: int) -> bool:
         component = self.get_component_by_id(component_id)
         return component is not None and component.quantity >= needed_comp_count
+
+# Critic schemas
+FlawType = Literal[
+    "M_critical", "M_major", "M_minor",
+    "D_critical", "D_major", "D_minor",
+    "A_major", "A_minor"
+]
+
+NewGameSection = Literal[
+    "lore_and_objective", "components", "setup", 
+    "gameplay_flow", "core_mechanics", "scoring_and_endgame",
+    "faq"
+]
+
+class Flaw(BaseModel):
+    flaw_type: FlawType = Field(
+        ...,
+        description="Exactly one flaw type from the taxonomy in the instructions."
+    )
+    section: NewGameSection = Field(
+        ...,
+        description="The New Game section that contains your evidence quote."
+    )
+    evidence_quote: str = Field(
+        ...,
+        description=(
+            "A passage of at most one sentence, copied from that section VERBATIM, "
+            "character for character. If the flaw is a missing rule, quote the sentence"
+            " where the gap becomes immediately apparent."
+            
+        )
+    )
+
+    affected_target: str = Field(
+        ...,
+        description="The actual rule, mechanic or component this flaw affects/concerns."
+    )
+    problem: str = Field(..., description="What is wrong, 1-2 sentences.")
+    mda_chain: str = Field(
+        ...,
+        description=(
+            "1-2 sentences tracing the consequence: how the flawed rule changes what "
+            "happens during the play, and how that hurts the player experience."
+        )
+    )
+    repair_suggestions: str = Field(
+        ...,
+        description="A specific, actionable fix, 1-2 sentences."
+    )
+
+class Diagnosis(BaseModel):
+    flaws: List[Flaw] = Field(
+        ...,
+        max_length=3,
+        description=(
+            "Genuine flaws, most severe first. An empty list means the new game contains "
+            "no flaws worth fixing."
+        ),
+        default_factory=list
+    )
+
+class Comparison(BaseModel):
+    version_1_flaws: List[str] = Field(
+        default_factory=list,
+        max_length=3,
+        description=(
+            "Genuine flaws in version 1, most severe first. One short line each."
+        )
+    )
+    version_2_flaws: List[str] = Field(
+        default_factory=list,
+        max_length=3,
+        description=(
+            "Genuine flaws in version 2, most severe first. One short line each."
+        )
+    )
+    reasoning: str = Field(
+        ..., 
+        description="1-2 sentences weighting the flaws above by severity."
+    )
+    preferred: Literal["version_1", "version_2", "tie"]
