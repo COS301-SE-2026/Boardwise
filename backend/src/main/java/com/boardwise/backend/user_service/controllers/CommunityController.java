@@ -21,6 +21,7 @@ import com.boardwise.backend.user_service.dtos.DeRsvpDTO;
 import com.boardwise.backend.user_service.dtos.EventInfoDTO;
 import com.boardwise.backend.user_service.dtos.EventInviteDTO;
 import com.boardwise.backend.user_service.dtos.EventUpdateDTO;
+import com.boardwise.backend.user_service.dtos.request.LiveEventRequestDTO;
 import com.boardwise.backend.user_service.services.CommunityService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -233,6 +234,13 @@ public class CommunityController {
         String token = ProfileController.extractToken(req);
         Map<String, Object> res = service.getUserInvitations(token);
         return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
+    @PostMapping("/live-event")
+    public ResponseEntity<?> createLiveEvent(HttpServletRequest req ,@RequestBody LiveEventRequestDTO eventInfo){
+        String token = ProfileController.extractToken(req);
+        Map<String, Object> res = service.createLiveEvent(token,eventInfo);
+        return new ResponseEntity<>(res,HttpStatus.OK);
     }
     
 }

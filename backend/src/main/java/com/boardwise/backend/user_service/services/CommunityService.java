@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+
+import org.bson.types.ObjectId;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,15 +36,22 @@ import com.boardwise.backend.user_service.dtos.EventInviteDTO;
 import com.boardwise.backend.user_service.dtos.EventInviteInfo;
 import com.boardwise.backend.user_service.dtos.EventUpdateDTO;
 import com.boardwise.backend.user_service.dtos.InviteDTO;
+import com.boardwise.backend.user_service.dtos.LiveEventAttendee;
+import com.boardwise.backend.user_service.dtos.LiveEventAttendeeList;
+import com.boardwise.backend.user_service.dtos.request.LiveEventRequestDTO;
 import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.user_service.enums.EventStatus;
+import com.boardwise.backend.user_service.enums.LiveEventAttendeeStatus;
+import com.boardwise.backend.user_service.enums.LiveEventType;
 import com.boardwise.backend.user_service.enums.RSVPStatus;
 import com.boardwise.backend.user_service.enums.Visibility;
 import com.boardwise.backend.user_service.models.Event;
 import com.boardwise.backend.user_service.models.EventAttendee;
+import com.boardwise.backend.user_service.models.LiveEvent;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repository.EventAttendeeRepository;
 import com.boardwise.backend.user_service.repository.EventRepository;
+import com.boardwise.backend.user_service.repository.LiveEventRepository;
 import com.boardwise.backend.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -54,6 +63,7 @@ public class CommunityService {
     private final EventRepository eventRepo;
     private final UserRepository userRepo;
     private final BoardGameRepository gameRepo;
+    private final LiveEventRepository liveEventRepo;
     private final JWTService jwtService;
     private final GeocodingService geoService;
     private final R2StorageService bucket;
@@ -711,4 +721,62 @@ public class CommunityService {
         String userId = jwtService.extractUserId(token).toString();
         return userRepo.findById(userId).get();
     }
+
+    public Map<String, Object> createLiveEvent(String token, LiveEventRequestDTO req){
+        Map<String, Object> result = new HashMap<>();
+        User currentUser = getUserFromToken(token);
+
+        //Sanitize 
+        String title = AuthService.sanitize(req.title());
+        String venueName =(req.venueName() != null)? AuthService.sanitize(req.venueName()): null;
+        String table = (req.table() != null) ? AuthService.sanitize(req.table()): null;
+        String link = (req.type() == LiveEventType.ONLINE)? AuthService.sanitize(req.link()): null;
+        GeoJsonPoint point =  (req.type() != LiveEventType.ONLINE && venueName != null)? geoService.getLocationCoordinates(venueName) :null;
+
+        LiveEventAttendeeList attendees = new LiveEventAttendeeList(List.of(new LiveEventAttendee(currentUser.getId(),LiveEventAttendeeStatus.ARRIVED, true)));
+
+        //date validation
+        LocalDate date = req.date();
+        if(date.isBefore(LocalDate.now())){
+            throw new IllegalArgumentException("Date cannot be before today");
+        }
+
+
+        LocalTime time = req.time();
+        if(date.equals(LocalDate.now())){
+            //time cannot be before now 
+            if(time.isBefore(LocalTime.now())){
+                throw new IllegalArgumentException("Time cannot have passed");
+            }
+        }
+        Boardgame game  = gameRepo.findById(req.boardgameId().toString()).orElseThrow(() -> new IllegalArgumentException("Boardgame not found"));
+        
+
+        LiveEvent newLiveEvent =
+        new LiveEvent(
+        new ObjectId(),
+        new ObjectId(game.getId()),
+        new ObjectId(currentUser.getId()),
+        title,
+        req.type(),
+        venueName,
+        point,
+        table,
+        link,
+        req.date(),
+        req.time(),
+        req.duration(),
+        req.maxSeats(),
+        req.tone(),
+        req.privacy(),
+        req.automaticApproval(),
+        attendees
+        );
+
+        liveEventRepo.save(newLiveEvent);
+        result.put("message", "Live Event has been successfully created");
+        return result;
+    }
+
+
 }

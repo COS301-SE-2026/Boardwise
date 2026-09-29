@@ -7,5 +7,6 @@ public enum NotificationType {
     COMMUNITY_CHAT,
     DIRECT_MESSAGE,
     PRESENCE,
-    UNFRIEND
+    UNFRIEND,
+    ANNOUNCEMENT
 }
