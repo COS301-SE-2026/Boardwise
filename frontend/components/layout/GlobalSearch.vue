@@ -41,8 +41,8 @@
 
                         <section v-if="listings.length">
                             <h3 class="global-search__heading">Marketplace</h3>
-                            <button v-for="l in listings.slice(0, 3)" :key="l.id" class="global-search__item" @click="go(`/marketplace/${r.id}`)">
-                                <BaseImage :src="l.imageUrl" alt="" height="40px" width="40px" rounded="md" />
+                            <button v-for="l in listings.slice(0, 3)" :key="l.id" class="global-search__item" @click="go(`/marketplace/${l.id}`)">
+                                <BaseImage :src="l.imageUrl ?? ''" alt="" height="40px" width="40px" rounded="md" />
                                 <span class="global-search__text">
                                     <span class="global-search__title">{{ l.listingTitle }}</span>
                                     <span class="global-search__meta">R{{ l.price }} {{ l.username }}</span>
@@ -52,8 +52,8 @@
 
                         <section v-if="people.length">
                             <h3 class="global-search__heading">People</h3>
-                            <button v-for="p in people.slice(0, 3)" :key="p.id" class="global-search__item" @click="go(`/profiLe/${p.id}`)">
-                                <BaseAvatar :src="p.avatarUrl" alt="" height="40px" width="40px" size="sm" />
+                            <button v-for="p in people.slice(0, 3)" :key="p.id" class="global-search__item" @click="go(`/profile/${p.id}`)">
+                                <BaseAvatar :src="p.avatarUrl ?? ''" alt="" height="40px" width="40px" size="sm" />
                                 <span class="global-search__text">
                                     <span class="global-search__title">{{ p.username }}</span>
                                     <span v-if="p.isFriend" class="global-search__meta">Friend</span>
@@ -64,7 +64,7 @@
                         <section v-if="communities.length">
                             <h3 class="global-search__heading">Communities</h3>
                             <button v-for="c in communities.slice(0, 3)" :key="c.id" class="global-search__item" @click="go(`/social/community/${c.id}`)">
-                                <BaseImage :src="c.imageUrl" alt="" height="40px" width="40px" rounded="md" />
+                                <BaseImage :src="c.imageUrl ?? ''" alt="" height="40px" width="40px" rounded="md" />
                                 <span class="global-search__text">
                                     <span class="global-search__title">{{ c.name }}</span>
                                     <span class="global-search__meta">{{ c.memberCount }} members</span>
