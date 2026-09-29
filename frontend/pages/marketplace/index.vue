@@ -6,7 +6,7 @@
     <MarketplaceHeader data-test="marketplace-header" @search ="searchQ = $event" @create-listing="showCreateListing = true" />
     <MarketplaceTabs data-test="marketplace-tabs" v-model="activeTab" />
 
-    <MobileFilterDrawer id="community-mobile-filters">
+    <MobileFilterDrawer id="community-mobile-filters" :active-count="activeCount" >
       <FilterSidebar 
         v-if="activeTab === 'Community Listings'"
         data-test="filter-sidebar"
@@ -20,19 +20,33 @@
         @filter="handleRetailerFilter"
       />
     </MobileFilterDrawer>
-
+    
     <!-- Community Listings -->
-    <template v-if="activeTab === 'Community Listings'">
-      <!-- Desktop -->
-      <div class="d-none d-md-flex ga-6 mt-6 align-start">
-        <FilterSidebar data-test="filter-sidebar" @filter="handleFilter"/>
-          
-        <div class="flex-grow-1" style="min-width: 0;">
-          <div v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
-            <MarketplaceLoadingState tab="Community Listings" />
-          </div>
+    <div class="d-flex flex-column flex-md-row ga-6 mt-6 align-start">
+      <div class="d-none d-md-block">
+        <FilterSidebar 
+          v-if="activeTab === 'Community Listings'"
+          data-test="filter-sidebar"
+          @filter="handleFilter"
+        />
 
-          <MarketplaceEmptyState
+        <RetailerFilterSidebar 
+          v-else
+          data-test="retailer-filter-sidebar"
+          :retailer-options="retailerOptions"
+          @filter="handleRetailerFilter"
+        />
+      </div>
+
+      <div class="flex-grow-1 w-100" style="min-width: 0;">
+        <!-- Community Listings -->
+        <template v-if="activeTab === 'Community Listings'">
+          <MarketplaceLoadingState 
+            v-if="loading && listings.length === 0"
+            tab="Community Listings"
+          />
+
+          <MarketplaceEmptyState 
             v-else-if="listings.length === 0"
             tab="Community Listings"
             :search="searchQ"
@@ -42,78 +56,56 @@
           />
 
           <template v-else>
-            <ListingGrid data-test="listing-grid" :listings="listings" />
+            <ListingGrid data-test="listing-grid" :listings="pagedListings" />
 
-            <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
-              <span class="card-meta">
-                Showing {{ communityRangeStart }}-{{ communityRangeEnd }}
-                of {{ hasMore ? `${listings.length}+` : listings.length }} marketplace listings
-              </span>
-            </div>
-              
+            <span class="card-meta d-block mt-6">
+              Showing {{  communityRangeStart }}-{{ communityRangeEnd }} of 
+              {{ hasMore ? `${listings.length}+`: listings.length }} marketplace listings
+            </span>
+
             <BasePagination
               v-if="communityTotalPages > 1"
               class="mt-4"
               :model-value="communityPage"
               :total-pages="communityTotalPages"
-              @update:modelValue="goToCommunityPage"
+              @update:model-value="goToCommunityPage"
             />
           </template>
-        </div>
-      </div>
-    </template>
-    
-    <!-- External Retail -->
-    <template v-else-if="activeTab === 'Web'">
-        <!-- Desktop -->
-        <div class="d-none d-md-flex ga-6 mt-6 align-start">
-            <RetailerFilterSidebar 
-              data-test="filter-sidebar" 
-              :retailer-options="retailerOptions"
-              @filter="handleRetailerFilter"
+        </template>
+
+        <template v-else>
+          <MarketplaceLoadingState 
+            v-if="retailLoading && retailResults.length === 0"
+            tab="Web"
+          />
+
+          <MarketplaceEmptyState 
+            v-else-if="filteredRetailResults.length === 0"
+            tab="Web"
+            :search="searchQ"
+            :has-active-filters="hasRetailFilters"
+            @clear-filters="resetCommunityFilters"
+          />
+
+          <template v-else>
+            <RetailerGrid data-test="retailer-grid" :retailers="pagedRetailResults" />
+
+            <span class="card-meta d-block mt-6">
+              Showing {{  retailRangeStart }}-{{ retailRangeEnd }} of 
+              {{ hasMoreRetail ? `${filteredRetailResults.length}+`: filteredRetailResults.length }} retailer listings
+            </span>
+
+            <BasePagination
+              v-if="retailTotalPages > 1"
+              class="mt-4"
+              :model-value="retailPage"
+              :total-pages="retailTotalPages"
+              @update:model-value="goToRetailPage"
             />
-            
-          <div class="flex-1-1">
-            <div
-              v-if="retailLoading && retailResults.length === 0" 
-              class="d-flex justify-center align-center flex-1-1"
-              style="min-height: 60vh"
-            >
-              <MarketplaceLoadingState tab="Web" />
-            </div>
-
-            <MarketplaceEmptyState
-              v-else-if="filteredRetailResults.length === 0"
-              tab="Web"
-              :search="searchQ"
-              :has-active-filters="hasRetailFilters"
-              @clear-filters="resetRetailFilters"
-            />
-
-            <template v-else>
-              <RetailerGrid 
-                data-test="retailer-grid" 
-                :retailers="pagedRetailResults" 
-              />
-
-              <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
-                <span class="text-caption text-medium-emphasis mt-4">
-                  Showing {{ retailRangeStart }}-{{ retailRangeEnd }}
-                  of {{ hasMoreRetail ? `${filteredRetailResults.length}+` : filteredRetailResults.length }} results
-                </span>
-              </div>
-              
-              <BasePagination
-                v-if="retailTotalPages > 1"
-                class="mt-4"
-                :model-value="retailPage"
-                :total-pages="retailTotalPages"
-                @update:modelValue="goToRetailPage"
-              />
-            </template>
-          </div>
+          </template>
+        </template>
       </div>
-    </template>
+    </div>
 
     <MarketplaceLoadingState
       v-if="showInlineLoading"
@@ -190,6 +182,11 @@ const currentRetail = unref(retailResults) ?? []
     return retailLoading.value && currentRetail.length > 0
   }
   return loading.value && currentListings.length > 0
+})
+
+const activeCount = computed (()=> {
+  const f = activeTab.value === 'Web' ? activeRetailFilterState : activeFilterState.value
+  return Object.values(f).filter(v => v != null && (!Array.isArray(v) || v.length)) .length
 })
 
 const searchQ = ref('');
