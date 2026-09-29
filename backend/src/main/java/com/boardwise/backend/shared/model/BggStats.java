@@ -20,4 +20,5 @@ public class BggStats {
     private Integer wanting;
     private Integer trading;
     private Integer numComments;
+    private Double weight;
 }

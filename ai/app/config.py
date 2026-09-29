@@ -37,6 +37,9 @@ class Settings:
     LANCEDB_CANDIDATES: int = int(os.getenv("LANCEDB_CANDIDATES", "25"))
     GEMINI_API_KEY: str | None = os.getenv("GEMINI_API_KEY")
     GLM_API_KEY: str | None = os.getenv("GLM_API_KEY")
+    SPRING_API_BASE: str | None = (
+        os.getenv("PROD_SPRING_API_BASE") if environment == "prod" else os.getenv("DEV_SPRING_API_BASE")
+    )
 
 
 settings = Settings()

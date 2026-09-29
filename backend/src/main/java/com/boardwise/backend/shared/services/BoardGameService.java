@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -22,12 +21,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Limit;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.StringOperators;
@@ -49,8 +46,6 @@ import com.boardwise.backend.shared.services.scoring.PopularityScorer;
 import com.boardwise.backend.shared.dtos.*;
 import com.boardwise.backend.shared.model.*;
 import com.boardwise.backend.user_service.models.User;
-import com.boardwise.backend.user_service.repository.UserRepository;
-import com.boardwise.backend.user_service.repository.UserRepository.GameOwnershipCount;
 import com.boardwise.backend.user_service.services.AuthService;
 import com.boardwise.backend.user_service.services.R2StorageService;
 
@@ -66,7 +61,6 @@ public class BoardGameService {
     private final PopularityScorer scorer;
 
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
-    private  final UserRepository userRepository;
     private final String defaultImageKey = "/rulebooks/default_cover.png"; 
     @Value("${r2.rulebooks.public-url}")
     private String r2BaseUrl;
@@ -110,15 +104,10 @@ public class BoardGameService {
                 int bggId = Integer.parseInt(preBggId);
                 
                 Element element = ((Element) node);
-                Boardgame game = BggDataParser.parseGame(element);
-                String imageURL = game.getImageURL() == null ? (r2BaseUrl + defaultImageKey) : game.getImageURL();
-                game.setImageURL(imageURL);
+                Boardgame game = BggDataParser.parseGame(element, (r2BaseUrl + defaultImageKey));
                 game.setBggId(bggId);
 
-                BggStats stats = BggDataParser.parseStats(element);
-                game.setYearPublished(BggDataParser.parseYearPublished(element));
-                if(stats != null){
-                    game.setStats(stats);
+                if(game.getStats() != null){
                     game.setPopularityScore(scorer.score(game));
                     game.setLastStatsRefreshedAt(Instant.now());
                 }
@@ -250,14 +239,9 @@ public class BoardGameService {
             NodeList nodeList = document.getElementsByTagName("item");
             for(int k = 0; k < nodeList.getLength(); k++){
                 Element element = ((Element) nodeList.item(k));
-                Boardgame game = BggDataParser.parseGame(element);
-                String imageURL = game.getImageURL() == null ? (r2BaseUrl + defaultImageKey) : game.getImageURL();
-                game.setImageURL(imageURL);
+                Boardgame game = BggDataParser.parseGame(element, (r2BaseUrl + defaultImageKey));
 
-                BggStats stats = BggDataParser.parseStats(element);
-                game.setYearPublished(BggDataParser.parseYearPublished(element));
-                if(stats != null){
-                    game.setStats(stats);
+                if(game.getStats() != null){
                     game.setPopularityScore(scorer.score(game));
                     game.setLastStatsRefreshedAt(Instant.now());
                 }
@@ -388,7 +372,7 @@ public class BoardGameService {
             List<String> targetGenres = genres.genres()
                 .stream()
                 .map(g -> g.trim())
-                .map(String::toLowerCase)
+                .map(g -> g.toLowerCase())
                 .toList();
 
                 List<Criteria> genreCriteria = targetGenres.stream()
