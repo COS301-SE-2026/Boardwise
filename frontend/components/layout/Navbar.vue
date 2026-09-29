@@ -4,6 +4,7 @@
     border="b" 
     color="surface" 
     height="72" 
+    class="app-bar"
   >
 
   <div class="navbar">
@@ -21,13 +22,7 @@
 
     <!-- Desktop Search -->
     <div v-if="lgAndUp" class="center">
-      <BaseSearch
-        v-model="searchQuery"
-        placeholder="Search games, users, rules..."
-        aria-label="Search"
-        class="search"
-        @keyup.enter="submitSearch(searchQuery)"
-      />
+      <GlobalSearch class="search" />
     </div>
 
     <!-- Desktop Navigation -->
@@ -83,6 +78,7 @@
 
     <div v-if="!lgAndUp" class="mobile">
       <v-menu 
+        v-model="mobileSearchOpen"
         :close-on-content-click="false" 
         location="bottom end" 
       >
@@ -100,13 +96,10 @@
 
         <!-- Search (Mobile) -->
         <v-card class="pa-2" min-width="280">
-          <BaseSearch
-            v-model="mobileSearchQuery"
+          <GlobalSearch 
             placeholder="Search..."
-            aria-label="Search"
-            rounded="pill"
             autofocus
-            @keyup.enter="submitSearch(mobileSearchQuery)"
+            @select="mobileSearchOpen = false"
           />
         </v-card>
       </v-menu>
@@ -177,6 +170,7 @@ import { useDisplay } from 'vuetify'
 import { useRouter } from 'vue-router'
 
 import LogOutButton from '~/components/features/auth/LogOutButton.vue'
+import GlobalSearch from '../features/search/GlobalSearch.vue'
 import BaseButton from '../ui/BaseButton.vue'
 import BaseDropdown from '../ui/BaseDropdown.vue'
 
@@ -185,6 +179,7 @@ const drawer = ref(false)
 const router = useRouter()
 const searchQuery = ref('')
 const mobileSearchQuery = ref('')
+const mobileSearchOpens = ref(false)
 
 const submitSearch = (query) => {
   const q = query.trim()
@@ -296,5 +291,13 @@ const { lgAndUp } = useDisplay()
 
 :deep(.v-field--focused) {
   --v-field-border-color: var(--color-primary) !important;
+}
+
+.app-bar {
+  overflow: visible !important;
+}
+
+.mobile-search {
+  overflow: visible !important;
 }
 </style>
