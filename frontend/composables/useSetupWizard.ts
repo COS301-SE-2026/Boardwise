@@ -14,7 +14,7 @@ export const useSetupWizard = () =>{
 
     const stop = () =>{
         if(timer) clearTimeout(timer)
-            timer = null
+        timer = null
     }
 
     const poll = async(wizardId: string) =>{
