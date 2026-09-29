@@ -12,12 +12,13 @@ COPY lombok.config .
 
 # Make the wrapper executable and download dependencies
 # (This step is cached by Docker unless pom.xml changes, speeding up future builds)
-RUN chmod +x ./mvnw
-RUN ./mvnw dependency:go-offline -B
+RUN chmod +x ./mvnw \
+    && ./mvnw --version \
+    && ./mvnw dependency:go-offline -B -e -X
 
 # Copy the source code and build the JAR
 COPY src src
-RUN ./mvnw clean package -DskipTests
+RUN ./mvnw clean package -DskipTests -B -e
 
 # ==========================================
 # Stage 2: Runtime image
