@@ -109,29 +109,5 @@ const resetFilters = () => {
   searchedGenres.value = null
 }
 
-const genreQuery = ref('')
-const searchedGenres = ref(null)
-let timer = null 
-let latest = ''
-
-const visibleGenres = computed(()=> searchedGenres.value ?? hardGenres)
-
-const onGenreSearch = (q) =>{
-  clearTimeout(timer)
-  const query = q.trim()
-  latest = query
-
-  if(!query){
-    searchedGenres.value = null
-    return;
-  }
-
-  timer = setTimeout(async ()=>{
-    const res = await searchGenres(query)
-    if(query !== latest) return
-    searchedGenres.value = res.length? res : hardGenres.filter(g => g.toLowerCase().includes(query.toLowerCase()))
-  },300)
-}
-
 onScopeDispose(()=> clearTimeout(timer))
 </script>
