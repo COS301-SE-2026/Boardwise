@@ -36,6 +36,7 @@ public class Boardgame {
     private Integer duration;
     private List<String> genres;
     private List<String> types;
+    private List<Integer> mechanics;
 
     @Nullable 
     private Integer yearPublished;
@@ -64,6 +65,7 @@ public class Boardgame {
         this.genres = genres;
 
         this.types = Collections.emptyList();
+        this.mechanics = Collections.emptyList();
         this.yearPublished = null;
         this.stats = null;
         this.popularityScore = null;

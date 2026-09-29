@@ -65,6 +65,7 @@ public final class BggDataParser {
                 .types(parseGameTypes(item))
                 .yearPublished(parseYearPublished(item))
                 .stats(parseStats(item))
+                .mechanics(parseMechanics(item))
                 .build();
     }
 
@@ -111,6 +112,22 @@ public final class BggDataParser {
             }
         }
         return genres;
+    }
+
+    private static List<Integer> parseMechanics(Element item){
+        NodeList gameGenres = item.getElementsByTagName("link");
+        List<Integer> mechanicIds = new ArrayList<>();
+        for(int j = 0; j < gameGenres.getLength(); j++){
+            Node mechanicNode = gameGenres.item(j);
+            Node type = mechanicNode.getAttributes()
+                            .getNamedItem("type");
+            
+            if(type != null && type.getNodeValue().equals("boardgamemechanic")){
+                String mechanicId = mechanicNode.getAttributes().getNamedItem("id").getNodeValue();
+                mechanicIds.add(Integer.parseInt(mechanicId));
+            }
+        }
+        return mechanicIds;
     }
 
     private static String tagTextContent(Element item, String tag){
