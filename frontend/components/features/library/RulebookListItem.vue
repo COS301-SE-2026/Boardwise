@@ -1,5 +1,5 @@
 <template>
-  <BaseButton
+  <button
     type="button"
     class="rulebook-list-item"
     :aria-label="`Open ${rulebook.title}`"
@@ -40,11 +40,10 @@
       aria-hidden="true"
       class="rulebook-list-item__arrow"
     />
-  </BaseButton>
+  </button>
 </template>
 
 <script setup>
-import BaseButton from '~/components/ui/BaseButton.vue';
 import BaseImage from '~/components/ui/BaseImage.vue'
 
 defineProps({

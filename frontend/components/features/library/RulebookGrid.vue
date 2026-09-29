@@ -15,7 +15,7 @@
           v-for="rulebook in rulebooks"
           :key="rulebook.id"
           :rulebook="rulebook"
-          @click="$emit('select', $event)"
+          @select="$emit('select', $event)"
         />
     </div>
   </div>
