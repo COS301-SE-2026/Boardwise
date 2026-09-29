@@ -20,7 +20,7 @@ WarningType = Literal["ambiguous_rule", "missing_info", "conflicting_rule"]
 
 class LLMComponentUse(BaseAPIModel):
     name: str
-    quantity: int | None = None
+    quantity: str  |int | None = None
 
 class LLMStep(BaseAPIModel):
     title: str = Field(..., max_length = 300)

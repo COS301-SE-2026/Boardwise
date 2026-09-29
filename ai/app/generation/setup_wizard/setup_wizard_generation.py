@@ -37,7 +37,7 @@ def generate_phase(phase: str, chunks: list[dict], ml_models: dict) -> list[LLMS
         messages=messages,
         response_format={"type": "json_object", "schema": schema},
         temperature=0.1,
-        repeat_penalty=1.3,
+        repeat_penalty=1.1,
         max_tokens=1250,
     )
 

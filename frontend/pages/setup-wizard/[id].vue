@@ -36,7 +36,7 @@
                         <p class="card-meta">{{ currentStep?.description }}</p>
                     </div>
 
-                    <div class="wizard-layout__confirm">
+                    <div v-if="stepChecklist.length" class="wizard-layout__confirm">
                         <BaseBadge :variant="allConfirmed ? 'success' : 'neutral'">
                             {{ checkedCount }} of {{ stepChecklist.length }} confirmed
                         </BaseBadge>
@@ -47,11 +47,11 @@
                     </div>
                 </div>
 
-                <div class="wizard-layout__checklist">
+                <div v-if="stepChecklist.length" class="wizard-layout__checklist">
                     <ChecklistItemCard v-for="item in stepChecklist" :key="item.id" :item="item" @toggle="toggleItem" />
                 </div>
 
-                <div class="wizard-layout__hint">
+                <div v-if="stepChecklist.length"class="wizard-layout__hint">
                     <v-icon size="20" color="var(--color-text-muted)">mdi-help-circle-outline</v-icon>
 
                     <p class="card-meta">
@@ -68,7 +68,7 @@
             <NuxtLink to="/setup-wizard" class="wizard-footer__cancel">Cancel Setup</NuxtLink>
             <div class="wizard-footer__actions">
                 <span class="card-meta">
-                    {{ allConfirmed ? 'All pieces ready! Proceed when set.' : `${stepChecklist.length - checkedCount} items left to verify.` }}
+                    {{ !stepChecklist.length ? 'Read the rule, then continue.' :allConfirmed ? 'All pieces ready! Proceed when set.' : `${stepChecklist.length - checkedCount} items left to verify.` }}
                 </span>
 
                 <BaseButton @click="handleNext">

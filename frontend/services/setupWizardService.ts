@@ -39,7 +39,7 @@ export interface WizardSummary{
 export interface WizardComponent{
     id: string
     name: string
-    quantity: number | null;
+    quantity: string |number | null;
 }
 
 export interface WizardPhase{
@@ -61,7 +61,7 @@ export interface WizardStep{
 
 export interface ComponentRef{
     id: string;
-    quantity: number | null;
+    quantity: string |number | null;
 }
 
 export interface StepSource{

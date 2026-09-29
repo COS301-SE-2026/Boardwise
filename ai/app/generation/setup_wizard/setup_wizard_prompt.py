@@ -42,6 +42,10 @@ def build_phase_messages(phase: PhaseKey, chunks: list[dict]) -> list[dict]:
         "6. scope: 'shared' = done once for the whole table. 'per_player' = each player "
         "does their own copy of this action.\n"
         "7. Never list the same step twice."
+        "Example of a correctly filled step:\n"
+        '{"title": "Dealing Starting Cards", "instruction": "Each player receives five card s"'
+        'from the shuffled deck.", "components[{"name": "cards", "quantity":"five"}], '
+        '"scope":"per_player", "sourceChunks": [4]'
     )
 
     user =(

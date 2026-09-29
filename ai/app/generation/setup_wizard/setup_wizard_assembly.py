@@ -7,6 +7,27 @@ from app.generation.setup_wizard.setup_wizard_prompt import PHASE_LABELS, PHASE_
 
 EXCERPT_LENGTH = 250 
 
+def _norm_text(text: str) -> str:
+    return re.sub(r"\s+"," ", text.strip().lower())
+
+def dedupe_steps(steps_by_phase: dict[str, list[LLMStep]]) -> dict[str, list[LLMStep]]:
+    """
+    Drop steps whose instruction repeats an earlier one (across all phases).
+    """
+
+    seen: set[str] = set()
+    out: dict[str, list[LLMStep]] = {}
+    for phase_key in PHASE_ORDER:
+        kept = []
+        for step in steps_by_phase.get(phase_key,[]):
+            key = _norm_text(step.instruction)
+            if key in seen:
+                continue
+            seen.add(key)
+            kept.append(step)
+        out[phase_key] = kept
+    return out
+
 def _slugify(name: str)-> str:
     """
     Used as a way to establish a somewhat stable root for a component;
@@ -80,6 +101,8 @@ def assemble_wizard_output(
     The job runner knows the rulebook and job state, this function only knows about steps and chunks).
     """
 
+    steps_by_phase = dedupe_steps(steps_by_phase)
+    
     components, name_to_id = build_master_components(steps_by_phase)
 
     phases =[]

@@ -1,5 +1,5 @@
 import { ref, watch ,computed, onScopeDispose, type Ref } from 'vue'
-import { SetupWizardService, type SetupWizard } from '~/services/setupWizardService'
+import { SetupWizardService, type SetupWizard, type StepConfidence } from '~/services/setupWizardService'
 
 const POLL_MS = 5000
 
@@ -55,29 +55,57 @@ export const useSetupWizard = () =>{
 
 }
 
-export const toChecklistItems = (wizard: SetupWizard): ChecklistItem[] =>
-    wizard.components.map(comp =>{
-        const usedIn = wizard.phases.find(p=>
-            p.steps.some(s =>s.component_refs.some(r => r.id === comp.id))
+export const toChecklistItems = (wizard: SetupWizard): ChecklistItem[] => {
+    const rules: ChecklistItem[] = wizard.phases.flatMap(p =>
+        p.steps.map(s => ({
+            id: `rule_${s.id}`,
+            title: s.instruction,
+            category: s.confidence === 'flagged' ? 'Needs review' : 'Rule',
+            description: '',
+            checked: false,
+        }))
+    )
+
+    const components: ChecklistItem[] = wizard.components.map(comp => {
+        const usedIn = wizard.phases.find(p =>
+            p.steps.some(s => s.component_refs.some(r => r.id === comp.id))
         )
         return {
             id: comp.id,
-            title: comp.quantity != null ? `${comp.quantity} ${comp.name}`: comp.name,
-            category: usedIn?.label?? 'Components',
+            title: comp.quantity ? `${comp.name} (${comp.quantity})` : comp.name,
+            category: usedIn?.label ?? 'Components',
             description: '',
             checked: false,
         }
     })
 
-export const toWizardStepDefs = (wizard: SetupWizard):WizardStepDef[]=>
-    wizard.phases.flatMap(phase => phase.steps.map(step =>({
+    return [...rules, ...components]
+}
+
+export const toWizardStepDefs = (wizard: SetupWizard): WizardStepDef[] =>
+    wizard.phases.flatMap(phase => phase.steps.map(step => ({
         number: step.order,
         phase: phase.label,
         title: step.title,
-        componentIds: step.component_refs.map(r => r.id),
-        description: step.instruction 
-    }))
-)
+        componentIds: [`rule_${step.id}`, ...step.component_refs.map(r => r.id)],
+        description: step.instruction,
+        confidence: step.confidence
+    })))
+
+const normalise = (s:string) => s.trim().toLowerCase().replace(/\s+/g,' ');
+
+const uniqueSteps = (wizard: SetupWizard) =>{
+    const seen = new Set<string>()
+    return wizard.phases.flatMap(phase =>
+        phase.steps.filter(step=>{
+            const key = normalise(step.instruction)
+            if(seen.has(key)) return false;
+            seen.add(key)
+            return true
+        }).map(step =>({phase, step}))
+    )
+}
+
 export interface ChecklistPill { label: string; color?: string; border?: boolean }
 export interface ChecklistItem {
     id: string
@@ -89,7 +117,7 @@ export interface ChecklistItem {
     checked: boolean
 }
 
-export interface WizardStepDef { number: number; phase: string, title: string, description: string, componentIds: string[] }
+export interface WizardStepDef { number: number; phase: string, title: string, description: string, componentIds: string[], confidence: StepConfidence }
 export interface ActiveSetup { id: string; title: string; coverImage?: string; step: number; totalSteps: number }
 
 
@@ -99,9 +127,9 @@ export const useSetupChecklist = (wizard: Ref<SetupWizard | null>) => {
     const stepNumber = ref(1)
 
     watch(
-        () => wizard.value?.job.status,
-        status => {
-            if (status === 'ready' && wizard.value) {
+        ()=>[wizard.value?.id,()=> wizard.value?.job.status],
+        () => {
+            if (wizard.value?.job.status === 'ready') {
                 checklist.value = toChecklistItems(wizard.value)
                 stepNumber.value = 1
             }
