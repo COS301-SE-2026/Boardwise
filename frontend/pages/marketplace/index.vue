@@ -26,14 +26,14 @@
           location="left"
           width="300"
         >
-          <FilterSidebar v-if="!loading" data-test="filter-sidebar" @filter="handleFilter" />
+          <FilterSidebar v-if="communityLoadedOnce" data-test="filter-sidebar" @filter="handleFilter" />
         </v-navigation-drawer>
       </div>
 
       <!-- Desktop -->
       <div class="d-flex d-md-flex ga-6 mt-6 align-start">
         <div class="d-none d-md-block">
-          <FilterSidebar v-if="!loading" data-test="filter-sidebar" @filter="handleFilter"/>
+          <FilterSidebar v-if="communityLoadedOnce" data-test="filter-sidebar" @filter="handleFilter"/>
         </div>
           
         <div class="flex-1-1">
@@ -230,7 +230,10 @@ onMounted(async () => {
   if(!localStorage.getItem('access_token')){
     router.push('/auth/signin');
   }
-  fetchListings({}, true)
+  try{
+    await fetchListings({}, true) 
+  }
+    finally {communityLoadedOnce.value =true}
 })
 
 const handleAdd = async (data, image) => {
@@ -238,6 +241,8 @@ const handleAdd = async (data, image) => {
   showCreateListing.value = false;
   communityPage.value = 1;
 }
+
+const communityLoadedOnce = ref(false)
 
 const showInlineLoading = computed(() => {
 const currentListings = unref(listings) ?? []
