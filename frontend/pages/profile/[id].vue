@@ -70,7 +70,7 @@
             <section class="profile-content">
                 <BaseTabs
                     :tabs="['Games Owned', 'Listings']"
-                    :active-tabs="activeTab"
+                    :active-tab="activeTab"
                     aria-label="Profile sections"
                     class="mb-4"
                     @change="activeTab=$event"
