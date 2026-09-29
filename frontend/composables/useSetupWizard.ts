@@ -127,7 +127,7 @@ export const useSetupChecklist = (wizard: Ref<SetupWizard | null>) => {
     const stepNumber = ref(1)
 
     watch(
-        ()=>[wizard.value?.id,()=> wizard.value?.job.status],
+        () => [wizard.value?.id, wizard.value?.job.status],
         () => {
             if (wizard.value?.job.status === 'ready') {
                 checklist.value = toChecklistItems(wizard.value)
@@ -176,12 +176,20 @@ export const useSetupChecklist = (wizard: Ref<SetupWizard | null>) => {
 }
 
 const STORAGE_KEY = 'boardwise_active_setup'
-const activeSetup = ref<ActiveSetup | null>(
-    import.meta.client ? JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') : null
-)
+
+const loadActiveSetup = (): ActiveSetup | null => {
+    if (!import.meta.client) return null
+    try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null')
+    } catch {
+        return null
+    }
+}
+
+const activeSetup = ref<ActiveSetup | null>(loadActiveSetup())
 
 export const useActiveSetup = () => {
-    const setActiveSetup  = (setup: ActiveSetup) => {
+    const setActiveSetup = (setup: ActiveSetup) => {
         activeSetup.value = setup
         if (import.meta.client) localStorage.setItem(STORAGE_KEY, JSON.stringify(setup))
     }
@@ -195,8 +203,8 @@ export const useActiveSetup = () => {
         if (activeSetup.value) setActiveSetup({ ...activeSetup.value, step: 1 })
     }
 
-    return { 
-        activeSetup, 
+    return {
+        activeSetup,
         setActiveSetup,
         clearActiveSetup,
         restartSetup

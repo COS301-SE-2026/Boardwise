@@ -44,6 +44,15 @@ def _normalise_name(name:str) -> str:
     """
     return name.strip().lower().rstrip("s")
 
+def _iter_named_components(steps_by_phase: dict[str, list[LLMStep]]):
+    return (
+        comp
+        for steps in steps_by_phase.values()
+        for step in steps
+        for comp in step.components
+        if comp.name and comp.name.strip()
+    )
+
 def build_master_components(steps_by_phase: dict[str, list[LLMStep]]) -> tuple[list[dict],dict[str,str]]:
     """
     Scans every step's own `components` list an builds one deduplicated master list, keyed by normalized name. Returns (component_list, name_to_id_map).
@@ -53,22 +62,19 @@ def build_master_components(steps_by_phase: dict[str, list[LLMStep]]) -> tuple[l
     by_norm_name: dict[str. dict] = {}
     name_to_id: dict[str, str] = {}
 
-    for steps in steps_by_phase.values():
-        for step in steps:
-            for comp in step.components:
-                if not comp.name or not comp.name.strip():
-                    continue
-                norm = _normalise_name(comp.name)
-                if norm not in by_norm_name:
-                    comp_id =f"c_{_slugify(comp.name)}_{uuid.uuid4().hex[:4]}"
-                    by_norm_name[norm] = {
-                        "id": comp_id,
-                        "name": comp.name.strip(),
-                        "quantity": comp.quantity,
-                    }
-                    name_to_id[norm] = comp_id
-                elif by_norm_name[norm]["quantity"] is None and comp.quantity is not None:
-                    by_norm_name[norm]["quantity"] = comp.quantity
+    for comp in _iter_named_components(steps_by_phase):
+        norm = _normalise_name(comp.name)
+        existing = by_norm_name(norm)
+        if existing is None:
+            comp_id =f"c_{_slugify(comp.name)}_{uuid.uuid4().hex[:4]}"
+            by_norm_name[norm] = {
+                "id": comp_id,
+                "name": comp.name.strip(),
+                "quantity": comp.quantity,
+            }
+            name_to_id[norm] = comp_id
+        elif by_norm_name[norm]["quantity"] is None and comp.quantity is not None:
+            by_norm_name[norm]["quantity"] = comp.quantity
 
     return list(by_norm_name.values()), name_to_id
 

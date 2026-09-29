@@ -117,7 +117,6 @@ const route = useRoute()
 const router = useRouter()
 const rulebookId = route.params.id as string
 
-// TODO: replace with getGameById lookup
 const showLoading = computed(()=> isLoadingGame.value || isGenerating.value || (!wizard.value && !error.value))
 
 const { games, isLoading: isLoadingGame, searchGames } = useBoardGames()
