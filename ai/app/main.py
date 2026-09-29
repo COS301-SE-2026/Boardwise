@@ -8,7 +8,7 @@ from llama_cpp import Llama
 from sentence_transformers import CrossEncoder, SentenceTransformer
 
 from app.config import settings
-from app.routers import internal, job, rulebook
+from app.routers import internal, job, rulebook, ggaia
 from app.scripts.seed_system_user import seed_system_user
 from app.services import lancedb_service, mongo_service, r2_service
 from app.utils.init_lancedb_index import initialise_lancedb
@@ -119,6 +119,7 @@ app.add_middleware(
 app.include_router(rulebook.router, prefix="/api/fa/vault/rulebooks")
 app.include_router(job.router, prefix="/api/fa/vault/jobs")
 app.include_router(internal.router, prefix="/api/fa/vault/internal")
+app.include_router(ggaia.router, prefix="/api/fa/game-architect")
 
 
 @app.get("/api/fa/health", tags=["System"])
