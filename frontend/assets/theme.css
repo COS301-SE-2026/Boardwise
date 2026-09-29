@@ -178,40 +178,13 @@
     --raspberry: var(--wildfire);
     --tangelo: var(--copper);
     --blossom: var(--rosewood); 
-}
-/* =============================================================
-   DARK MODE - will be a toggle with data-theme="dark"
-   ============================================================= */
-    html[data-theme="dark"] {
-    --scrollpaper: #17101C; 
-    --alabaster:   #241629;  
-    --feltboard:   #33223A;  
-    --shadowink:   #F4E9F1;  
-    --ashquill:    #B49CB6; 
-    --obsidian:   #F0D9EC;
-    --wildfire:   #E64C86;
-
-    --color-primary:        var(--wildfire);
-    --color-text:           var(--shadowink);
-    --color-text-muted:     var(--ashquill);
-    --color-bg:             var(--scrollpaper);   
-    --color-surface:        var(--alabaster);   
-    --color-surface-alt:    var(--feltboard);   
-    --color-border:         var(--feltboard);
-    --color-border-strong:  #4A3550;
-
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
-
 
     --focus-ring-width: 3px;
-    --focus-ring-color: var(var(--color-primary));
+    --focus-ring-color: var(--color-primary);
     --foocus-ring-offset: 3px;
 
     --radiux-xl: 32px;
-   } 
-
+}
 /* =============================================================
    BASE RESETS
    ============================================================= */
