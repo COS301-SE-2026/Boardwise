@@ -14,77 +14,79 @@
             @keydown="onKeydown"
         />
 
-        <div v-if="open" class="global-search__panel" @mousedown.prevent>
-            <div v-if="showInitialLoading" class="global-search__status">
-                <BaseSpinner size="xs" />
-                <span>Searching...</span>
-            </div>
+        <Teleport to="body">
+            <div v-if="open" class="global-search__panel" :style="panelStyle" @mousedown.prevent>
+                <div v-if="showInitialLoading" class="global-search__status">
+                    <BaseSpinner size="xs" />
+                    <span>Searching...</span>
+                </div>
 
-            <div v-else-if="showEmpty" class="global-search__status">
-                <v-icon size="20" aria-hidden="true">mdi-magnify-close</v-icon>
-                <span>No matches for "{{ trimmed }}"</span>
-            </div>
+                <div v-else-if="showEmpty" class="global-search__status">
+                    <v-icon size="20" aria-hidden="true">mdi-magnify-close</v-icon>
+                    <span>No matches for "{{ trimmed }}"</span>
+                </div>
 
-            <div v-else 
-                :id="listboxId" 
-                role="listbox" 
-                aria-label="Search results" 
-                class="global-search__list" 
-                :class="{ 'global-search__list--stale': loading }"
-            >
-                <template v-for="section in sections" :key="section.key">
-                    <div class="global-search__group">
-                        {{ section.label }}
-                    </div>
+                <div v-else 
+                    :id="listboxId" 
+                    role="listbox" 
+                    aria-label="Search results" 
+                    class="global-search__list" 
+                    :class="{ 'global-search__list--stale': loading }"
+                >
+                    <template v-for="section in sections" :key="section.key">
+                        <div class="global-search__group">
+                            {{ section.label }}
+                        </div>
 
-                    <div 
-                        v-for="item in section.items"
-                        :id="item.domId"
-                        :key="item.domId"
-                        role="option"
-                        class="global-search__option"
-                        :class="{ 'global-search__option--active': item.index === activeIndex }"
-                        :aria-selected="String(item.index === activeIndex)"
-                        @mouseenter="activeIndex = item.index"
-                        @click="select(item)"
-                    >
-                        <BaseAvatar 
-                            v-if="section.key === 'people'"
-                            :src="item.image"
-                            :name="item.title"
-                            size="sm"
-                            class="global-search__thumb"
-                        />
-
-                        <span v-else class="global-search__thumb global-search__tile" aria-hidden="true">
-                            <BaseImage
-                                v-if="item.image"
+                        <div 
+                            v-for="item in section.items"
+                            :id="item.domId"
+                            :key="item.domId"
+                            role="option"
+                            class="global-search__option"
+                            :class="{ 'global-search__option--active': item.index === activeIndex }"
+                            :aria-selected="String(item.index === activeIndex)"
+                            @mouseenter="activeIndex = item.index"
+                            @click="select(item)"
+                        >
+                            <BaseAvatar 
+                                v-if="section.key === 'people'"
                                 :src="item.image"
-                                alt=""
-                                height="32px"
-                                width="32px"
+                                :name="item.title"
+                                size="sm"
+                                class="global-search__thumb"
                             />
 
-                             <v-icon v-else size="20">{{ section.icon }}</v-icon>
-                        </span>
+                            <span v-else class="global-search__thumb global-search__tile" aria-hidden="true">
+                                <BaseImage
+                                    v-if="item.image"
+                                    :src="item.image"
+                                    alt=""
+                                    height="32px"
+                                    width="32px"
+                                />
 
-                        <span class="global-search__text">
-                            <span class="global-search__title">{{ item.title }}</span>
-                            <span v-if="item.subtitle" class="global-search__subtitle">{{ item.subtitle }}</span>
-                        </span>
-                    </div>
-                </template>
+                                <v-icon v-else size="20">{{ section.icon }}</v-icon>
+                            </span>
+
+                            <span class="global-search__text">
+                                <span class="global-search__title">{{ item.title }}</span>
+                                <span v-if="item.subtitle" class="global-search__subtitle">{{ item.subtitle }}</span>
+                            </span>
+                        </div>
+                    </template>
+                </div>
+
+                <output class="sr-only" aria-live="polite">{{ announcement }}</output>
             </div>
-
-            <output class="sr-only" aria-live="polite">{{ announcement }}</output>
-        </div>
+        </Teleport>
     </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, nextTick, useId } from 'vue'
 import { useRouter } from 'vue-router'
-import { useDebounceFn } from '@vueuse/core'
+import { useDebounceFn, useElementBounding } from '@vueuse/core'
 
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 import BaseSpinner from '~/components/ui/BaseSpinner.vue'
@@ -211,6 +213,19 @@ const announcement = computed(() => {
     return `${n} ${noun} available`
 })
 
+const { left, bottom, width, update } = useElementBounding(rootRef)
+
+const panelStyle = computed(() => {
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 0
+    const w = Math.min(Math.max(width.value, 320), vw - 16)
+    const l = Math.min(Math.max(left.value, 8), vw - w - 8)
+    return { top: `${bottom.value + 8}px`, left: `${l}px`, width: `${w}px` }
+})
+
+watch(open, (isOpen) => {
+    if (isOpen) nextTick(update)
+})
+
 // Interaction
 function select(item) {
     router.push(item.path)
@@ -277,11 +292,8 @@ watch (activeIndex, async () => {
 }
  
 .global-search__panel {
-    position: absolute;
-    top: calc(100% + var(--space-2));
-    left: 0;
-    right: 0;
-    z-index: 1100;
+    position: fixed;
+    z-index: 2500;
  
     max-height: min(480px, 70vh);
     overflow-y: auto;

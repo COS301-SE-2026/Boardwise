@@ -4424,9 +4424,9 @@ html[data-density="compact"] .rulebook-list {
 }
 
 .base-search:focus-within {
-  outline: 3px solid var(--color-primary);
-  outline-offset: 2px;
-  border-radius: var(--radius-md);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(199, 40, 110, 0.22);
+  border-radius: var(--radius-pill);
 }
 
 .base-search :deep(.v-field) {
@@ -4987,6 +4987,17 @@ button:disabled,
   .section-title__subtitle {
     font-size: var(--fs-body);
   }
+}
+
+.mobile-search-bar {
+  position: fixed;
+  top: 72px;
+  left: 0;
+  right: 0;
+  z-index: 1005;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
 }
 
 /* ==========================================================

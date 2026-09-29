@@ -77,31 +77,15 @@
     <!-- Mobile -->
 
     <div v-if="!lgAndUp" class="mobile">
-      <v-menu 
-        v-model="mobileSearchOpen"
-        :close-on-content-click="false" 
-        location="bottom end" 
+      <BaseButton
+        icon
+        variant="text"
+        aria-label="Search"
+        :aria-expanded="String(mobileSearchOpen)"
+        @click="mobileSearchOpen = !mobileSearchOpen"
       >
-
-        <template #activator="{ props: menuProps }">
-          <BaseButton 
-            icon
-            variant="text" 
-            v-bind="menuProps" 
-            aria-label="Search"
-          >
-            <v-icon size="26">mdi-magnify</v-icon>
-          </BaseButton>
-        </template>
-
-        <!-- Search (Mobile) -->
-        <v-card class="pa-2" min-width="280">
-          <GlobalSearch 
-            placeholder="Search..."
-            @select="mobileSearchOpen = false"
-          />
-        </v-card>
-      </v-menu>
+        <v-icon size="26">{{ mobileSearchOpen ? 'mdi-close' : 'mdi-magnify' }}</v-icon>
+      </BaseButton>
 
       <BaseButton icon variant="text" to="/notifications" aria-label="Notifications">
         <v-icon size="26">mdi-bell-outline</v-icon>
@@ -146,6 +130,10 @@
     </div>
   </div>
 </v-app-bar>
+
+<div v-if="!lgAndUp && mobileSearchOpen" class="mobile-search-bar">
+  <GlobalSearch placeholder="Search..." @select="mobileSearchOpen = false" />
+</div>
 
 <v-navigation-drawer 
   v-model="drawer" 
