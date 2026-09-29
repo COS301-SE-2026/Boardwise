@@ -491,7 +491,7 @@ def create_setup_wizard(rulebook_id: str, session=None) -> str:
     rulebook = db["RULEBOOK"].find_one({"_id": rulebook_object_id}, session=session)
     if not rulebook:
         logger.warning(
-            "Setup wizard creation rejected: rulebook '%s' not found.", rulebook_id
+            "Setup wizard creation rejected: rulebook '%s' not found.", sanitise_for_log(rulebook_id)
         )
         raise ValueError(f"Rulebook '{rulebook_id}' not found.")
 
@@ -499,7 +499,6 @@ def create_setup_wizard(rulebook_id: str, session=None) -> str:
 
     result = db["SETUP_WIZARD"].insert_one(
         {
-            "rulebookId": rulebook_object_id,
             "rulebookId": rulebook_object_id,
             "createdAt": now,
             "updatedAt": now,
@@ -548,7 +547,7 @@ def get_or_create_setup_wizard(rulebook_id: str) -> dict:
             with session.start_transaction():
                 create_setup_wizard(rulebook_id, session=session)
     except DuplicateKeyError: 
-            logger.info("Lost setup wizard create race for rule '%s';  re-fetching.", rulebook_id)
+            logger.info("Lost setup wizard create race for rule '%s';  re-fetching.", sanitise_for_log(rulebook_id))
 
     doc = get_setup_wizard_by_rulebookId(rulebook_id)
     if not doc:
@@ -575,7 +574,7 @@ def update_setup_wizard_job(
     )
 
     if result.matched_count != 1:
-        logger.warning("Failed to upate setup wizard %s: no document matched.", wizard_id)
+        logger.warning("Failed to upate setup wizard %s: no document matched.", sanitise_for_log( wizard_id))
         raise ValueError(f"Setup wizard '{wizard_id}' not found.")
 
 def finalise_setup_wizard(wizard_id: str, output: dict) -> None:
