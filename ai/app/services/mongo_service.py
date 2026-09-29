@@ -4,6 +4,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from bson import ObjectId
+from bson.errors import InvalidId
+
 from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
 
@@ -597,22 +599,32 @@ def get_setup_wizard(wizard_id: str) -> dict | None:
     """
     Stale-job recovery, mirrors get_ingestion_job.
     """
+    try:
+        wizard_oid = ObjectId(wizard_id)
+    except (InvalidId, TypeError):
+        return None
 
-    db =get_db()
-    doc = db["SETUP_WIZARD"].find_one({"_id": ObjectId(wizard_id)})
+    db = get_db()
+    doc = db["SETUP_WIZARD"].find_one({"_id": wizard_oid})
     if not doc:
         return None
 
     if doc["job"]["status"] == "running":
         age = datetime.now(timezone.utc) - doc["updatedAt"].replace(tzinfo=timezone.utc)
-        if age > timedelta(minutes = STALE_JOB_THRESHOLD_MINUTES):
-            logger.warning("Setup wizard job %s is stale (age %s) - marking as failed.", wizard_id, age)
-            update_setup_wizard_job(wizard_id,"failed", error=f"Timed out after exceeding the {STALE_JOB_THRESHOLD_MINUTES} minute threshold. Possible crash mid-pipeline")
-
-            doc = db["SETUP_WIZARD"].find_one({"_id":ObjectId(wizard_id)})
+        if age > timedelta(minutes=STALE_JOB_THRESHOLD_MINUTES):
+            logger.warning(
+                "Setup wizard job %s is stale (age %s),  marking as failed.",
+                sanitise_for_log(wizard_id), age,
+            )
+            update_setup_wizard_job(
+                wizard_id, "failed",
+                error=f"Timed out after exceeding the {STALE_JOB_THRESHOLD_MINUTES} minute threshold. Possible crash mid-pipeline",
+            )
+            doc = db["SETUP_WIZARD"].find_one({"_id": wizard_oid})
             if not doc:
                 return None
 
     doc["id"] = str(doc.pop("_id"))
     doc["rulebookId"] = str(doc["rulebookId"])
     return doc
+
