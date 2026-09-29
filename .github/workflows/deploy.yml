@@ -88,6 +88,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
           RULEBOOK_PDF_API: ${{ secrets.RULEBOOK_PDF_API }}
+          SYSTEM_CONTRIBUTOR_ID: ${{ secrets.SYSTEM_CONTRIBUTOR_ID }}
     
       - name: Get CloudFront Distro ID
         id: get_distro
