@@ -85,6 +85,8 @@ jobs:
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           NOMINATIM_SERVICE_URL: ${{ vars.NOMINATIM_SERVICE_URL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
     
       - name: Get CloudFront Distro ID
         id: get_distro

@@ -403,6 +403,8 @@ docker run -d \
     -e INTERNAL_SECRET="__INTERNAL_SECRET__" \
     -e CPU_CORES="__CPU_CORES__" \
     -e PROD_SPRING_API_BASE="__PROD_SPRING_API_BASE__" \
+    -e GEMINI_API_KEY="__GEMINI_API_KEY__" \
+    -e GLM_API_KEY="__GLM_API_KEY__" \
     -e SYSTEM_CONTRIBUTOR_ID="__SYSTEM_CONTRIBUTOR_ID__" \
     -e EMBEDDING_DIMENSIONS="__EMBEDDING_DIMENSIONS__" \
     -e APP_ENV="__APP_ENV__" __IMAGE_URI__
@@ -428,6 +430,8 @@ python_user_data = pulumi.Output.all(
                         .replace("__REGION__", aws.get_region().region)
                         .replace("__EMBEDDING_DIMENSIONS__", str(settings.EMBEDDING_DIMENSIONS))
                         .replace("__PROD_SPRING_API_BASE__", f"http://{SPRING_PRIVATE_IP}:8080/api/sb/")
+                        .replace("__GEMINI_API_KEY__", settings.GEMINI_API_KEY)
+                        .replace("__GLM_API_KEY__", settings.GLM_API_KEY)
                         .replace("__APP_ENV__", settings.APP_ENV)
 )
 
