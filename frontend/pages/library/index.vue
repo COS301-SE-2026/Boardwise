@@ -8,27 +8,24 @@
     />
 
     <RulebookCarousel :rulebooks="featuredRulebooks" @select="openRulebook" />
-
-    <BaseLoadingState v-if="isLoading" message="Fetching your library..." />
-
     <RecommendedBooks v-if="recommended.length" :rulebooks="recommended" @select ="openRulebook"/>
 
     <SectionTitle title="All Rulebooks" class="mt-8" />
 
-    <div class="d-none d-md-block">
+    <MobileFilterDrawer id="library-mobile-filters">
+      <RulebookFilterSidebar :key="filterKey" @filter="handleFilter" />
+    </MobileFilterDrawer>
+
+    <div class="d-flex ga-6 mt-6 align-start">
+      <!-- Desktop Filter -->
       <div class="d-none d-md-block">
         <RulebookFilterSidebar :key="filterKey" @filter="handleFilter" />
       </div>
 
-      <div class="flex-grow-1 w-100" style="min-width: 0;">
-        <!-- Mobile filter -->
-        <MobileFilterDrawer id="library-mobile-filters">
-          <RulebookFilterSidebar @filter="handleFilter" />
-        </MobileFilterDrawer>
-
-        <BaseLoadingState 
-          v-if="isLoading && rulebooks.length === 0" 
-          message="Loading rulebooks... " 
+      <div class="flex-grow-1" style="min-width: 0;">
+        <BaseLoadingState
+          v-if="!initialLoaded || (isLoading && rulebooks.length === 0)"
+          message="Loading rulebooks..."
         />
 
         <template v-else-if="rulebooks.length === 0">
@@ -65,26 +62,23 @@
       </div>
     </div>
 
-  <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
-    
-    <BaseLoadingState v-if="isLoading" message="Loading rulebooks... " />
+    <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
+      <BaseLoadingState v-if="isLoading" message="Loading rulebooks... " />
 
-    <RulebookDetail
-      v-if="selectedRulebook"
-      :rulebook="selectedRulebook"
-      :rulebooks="rulebooks"
-      @select="openRulebook"
-      @close="showDetail = false"
-    />
-
-  </v-navigation-drawer>
+      <RulebookDetail
+        v-else="selectedRulebook"
+        :rulebook="selectedRulebook"
+        :rulebooks="rulebooks"
+        @select="openRulebook"
+        @close="showDetail = false"
+      />
+    </v-navigation-drawer>
 
     <UploadRulebookModal
       v-model="showUpload"
       :loading="isUploading"
       @add="handleUploadRulebook"
     />
-
   </PageContainer>
 </template>
 
@@ -133,10 +127,15 @@ const showDetail = ref(false)
 const showUpload = ref(false)
 const selectedRulebook = ref(null)
 const filterKey = ref(0)
+const initialLoaded = ref(false)
 
-onMounted(() => { // Does stuff when component loads
-  fetchFeaturedRulebooks();
-  getAllRulebooks({}, true);
+onMounted(async () => {
+  fetchFeaturedRulebooks()
+  try {
+    await getAllRulebooks({}, true)
+  } finally {
+    initialLoaded.value = true
+  }
 })
 
 const activeCount = computed(() => Object.entries(activeFilterState.value).filter(([k, v]) => k !== 'languages' && v != null && v !== '' && (!Array.isArray(v) || v.length)).length)
