@@ -163,7 +163,7 @@ public class ProfileService {
             user.getId(),
             fullName,
             user.getUsername(),
-            user.getLocationText(),
+            user.getLocation(),
             user.getProfilePicture(),
             friendCount,
             groupCount,
@@ -259,8 +259,8 @@ public class ProfileService {
         if(newLocation != null && !newLocation.trim().isBlank()){
             GeoJsonPoint point = geoService.getLocationCoordinates(newLocation);
 
-            user.setLocation(point);
-            user.setLocationText(newLocation);
+            user.setCoords(point);
+            user.setLocation(newLocation);
             toReturn.put("location", newLocation);
         }
 
