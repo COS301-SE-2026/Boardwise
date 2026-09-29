@@ -55,26 +55,26 @@ def _iter_named_components(steps_by_phase: dict[str, list[LLMStep]]):
 
 def build_master_components(steps_by_phase: dict[str, list[LLMStep]]) -> tuple[list[dict],dict[str,str]]:
     """
-    Scans every step's own `components` list an builds one deduplicated master list, keyed by normalized name. Returns (component_list, name_to_id_map).
-    Quantity: first non-null value wins, since sghared component's quantity should be the same wherever it's mentioned; a None ambiguity is left as None rather than guessed.
+    Scans every step's own `components` list and builds one deduplicated master list, keyed by normalized name. Returns (component_list, name_to_id_map).
+    Quantity: first non-null value wins, since a shared component's quantity should be the same wherever it's mentioned; a None ambiguity is left as None rather than guessed.
     """
 
-    by_norm_name: dict[str. dict] = {}
+    by_norm_name: dict[str, dict] = {}
     name_to_id: dict[str, str] = {}
 
     for comp in _iter_named_components(steps_by_phase):
         norm = _normalise_name(comp.name)
-        existing = by_norm_name(norm)
+        existing = by_norm_name.get(norm)
         if existing is None:
-            comp_id =f"c_{_slugify(comp.name)}_{uuid.uuid4().hex[:4]}"
+            comp_id = f"c_{_slugify(comp.name)}_{uuid.uuid4().hex[:4]}"
             by_norm_name[norm] = {
                 "id": comp_id,
                 "name": comp.name.strip(),
                 "quantity": comp.quantity,
             }
             name_to_id[norm] = comp_id
-        elif by_norm_name[norm]["quantity"] is None and comp.quantity is not None:
-            by_norm_name[norm]["quantity"] = comp.quantity
+        elif existing["quantity"] is None:
+            existing["quantity"] = comp.quantity
 
     return list(by_norm_name.values()), name_to_id
 
@@ -103,7 +103,7 @@ def assemble_wizard_output(
 )-> dict:
     """
     Turns raw per-phase LLM output into the frontend-shaped
-    {components, phasesm summary payload}. Does not attach job/game/config.
+    {components, phases, summary} payload. Does not attach job/game/config.
     The job runner knows the rulebook and job state, this function only knows about steps and chunks).
     """
 
@@ -137,6 +137,7 @@ def assemble_wizard_output(
                 "instruction": step.instruction,
                 "component_refs": build_component_refs(step, name_to_id),
                 "scope": step.scope,
+                "optional": step.optional,
                 "confidence": confidence,
                 "sources": build_step_sources(step, chunks_by_index)
             })
