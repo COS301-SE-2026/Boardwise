@@ -210,11 +210,6 @@ Rules:
 Respond with ONLY a JSON object matching the provided schema. No other text. Represent line breaks as '\\n'
  in JSON string values.
 """
-    pool_block = "\n".join(
-        f"- component_id={comp.component_id} | {comp.name} ({comp.type})"
-        f", available quantity: {comp.quantity}"
-        for comp in pool.components
-    )
 
     flaw_block = "\n".join(
         f"{i}. [{flaw.flaw_type}] section: {flaw.section} | affects: {flaw.affected_target}\n"

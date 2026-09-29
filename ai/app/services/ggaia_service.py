@@ -77,10 +77,14 @@ class StructuredOutput(Generic[T]):
     value: T
     source: str
 
-FENCE = re.compile(r"^```(?:json)?\s*|\s*```$")
+OPENING_FENCE = re.compile(r"^```(?:json)?\s*")
+CLOSING_FENCE = re.compile(r"```$")
 
 def parse_model(raw: str, model: Type[T]) -> T:
-    text = FENCE.sub("", raw.strip())
+    text = raw.strip()
+    text = OPENING_FENCE.sub("", text, count=1)
+    text = CLOSING_FENCE.sub("", text, count=1).rstrip()
+
     try:
         return model.model_validate_json(text)
     except ValidationError as v_err:
@@ -299,7 +303,7 @@ def generate_new_game(
     )
 
     def new_game_issues(game: NewGame):
-        validate_game_against_pool(game, pool) + duplicate_component_overuse(game, pool)
+        return validate_game_against_pool(game, pool) + duplicate_component_overuse(game, pool)
 
     new_game_hint = "Only use component_ids present in the pool. Never more than the available quantity."
 

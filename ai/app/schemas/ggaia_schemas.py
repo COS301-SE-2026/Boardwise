@@ -61,10 +61,12 @@ class Classification(BaseModel):
         )
     )
 
+MECHANIC_ID_DESC = "Must be an exact mechanic_id from the mechanics made available to you."
+
 class CoreMechanic(BaseModel):
     mechanic_id: str = Field(
         ...,
-        description="Must be an exact mechanic_id from the mechanics made available to you."
+        description=MECHANIC_ID_DESC
     )
     rationale: str = Field(
         ...,
@@ -77,7 +79,7 @@ class CoreMechanic(BaseModel):
 class SupportingMechanic(BaseModel):
     mechanic_id: str = Field(
         ...,
-        description="Must be an exact mechanic_id from the mechanics made available to you."
+        description=MECHANIC_ID_DESC
     )
     rationale: str = Field(
         ..., 
@@ -90,7 +92,7 @@ class SupportingMechanic(BaseModel):
 class StructuralMechanic(BaseModel):
     mechanic_id: str = Field(
         ...,
-        description="Must be an exact mechanic_id from the mechanics made available to you."
+        description=MECHANIC_ID_DESC
     )
     rationale: str = Field(
         ...,
@@ -177,7 +179,7 @@ class Parameters(BaseModel):
 
     @field_validator("player_count", "play_time_in_minutes")
     @classmethod
-    def min_and_max_valid(_, value: Tuple[int, int]):
+    def min_and_max_valid(unused, value: Tuple[int, int]):
         minimum, maximum = value
         if minimum > maximum:
             raise ValueError(f"Minimum value ({minimum}) cannot be greater than maximum value ({maximum})")

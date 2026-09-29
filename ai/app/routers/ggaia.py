@@ -39,7 +39,8 @@ def run_generation_job(
 ) -> None:
     try:
         inputs = load_inputs(request_body.parents)
-        result = generate_new_game(inputs, ml_models) if request_body.type == 'NEW' else None # <- replace with scale method
+        # will be assigned to a variable for the next function when it is available [this is just for sonarqube]
+        generate_new_game(inputs, ml_models) if request_body.type == 'NEW' else None # <- replace with scale method
         # do some saving or sumn
         # generate_rulebook(result) <- send to model and make rulebook
         spring_alert = {
