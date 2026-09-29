@@ -42,20 +42,20 @@
                     <p class="card-meta">Grounded rulebooks loaded with full setup guidance.</p>
                 </div>
 
-                <span class="card-meta">Showing {{  games.length  }} games</span>
+                <span class="card-meta">Showing {{ rulebooks.length }} games</span>
             </div>
 
-            <BaseLoadingState v-if="isLoading" message="Loading your library..." />
+            <BaseLoadingState v-if="isLoading && !rulebooks.length" message="Loading your library..." />
 
             <BaseErrorState
                 v-else-if="error"
                 :message="error"
                 retryable
-                @retry="() => searchGames(searchQuery)"
+                @retry="() => load(searchQuery)"
             />
 
             <BaseEmptyState
-                v-else-if="!games.length"
+                v-else-if="!rulebooks.length"
                 title="No games found"
                 :message="searchQuery ? `Nothing matched \u201C${searchQuery}\u201D.` : 'Add games to your library to get setup guidance.'"
             >
@@ -65,12 +65,12 @@
             </BaseEmptyState>
 
             <BaseGrid v-else cols="320px" gap="24px">
-                <SetupGameCard v-for="game in games" :key="game.id" :game="game" @launch="goToWizard" />
+                <SetupGameCard v-for="rulebook in rulebooks" :key="rulebook.id" :game="rulebook" @launch="goToWizard" />
             </BaseGrid>
         </div>
 
         <div class="section setup-hub__how">
-                <div class="setup-hub__how-header">
+            <div class="setup-hub__how-header">
                 <span class="setup-hub__eyebrow setup-hub__eyebrow--muted">Zero Rulebook Headaches</span>
                 <h2 class="section-title__heading">How Boarley RAG Setup Works</h2>
             </div>
@@ -88,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 
@@ -109,6 +109,7 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import SetupGameCard from '~/components/features/setup-wizard/SetupGameCard.vue'
 import ActiveSetupBanner from '~/components/features/setup-wizard/ActiveSetupBanner.vue'
 import { useActiveSetup } from '~/composables/useSetupWizard'
+import { useLibrary } from '~/composables/useLibrary'
 
 const howItWorks = [
   { number: 1, title: 'Physical Board Guidance', body: 'Interactive diagrams show exactly where every tile, card deck, and token sits.' },
@@ -117,18 +118,21 @@ const howItWorks = [
 ]
 
 const router = useRouter()
-const { games, isLoading, error, searchGames } = useBoardGames()
+const { rulebooks, isLoading, error, getAllRulebooks } = useLibrary()
 const { activeSetup, restartSetup } = useActiveSetup()
 
 const searchQuery = ref('')
 
-onMounted(() => searchGames())
+   const load = (q?: string) =>
+       getAllRulebooks({ search: q || null, status: 'Ready' }, true)
+       
+onMounted(() => load())
 
-const delaySearch = useDebounceFn((q: string) => searchGames(q), 400)
-watch(searchQuery, (q) => delaySearch(q))
+const delaySearch = useDebounceFn((q: string) => load(q), 400)
+watch(searchQuery, q => { console.log('search:', q); delaySearch(q) })
 
-const goToWizard = (gameOrId: any) => {
-    const id = typeof gameOrId === 'string' ? gameOrId : gameOrId.id 
+const goToWizard = (rulebookId: any) => {
+    const id = typeof rulebookId === 'string' ? rulebookId : rulebookId.id 
     router.push(`/setup-wizard/${id}`)
 }
 </script>

@@ -38,6 +38,6 @@ import BaseCard from '~/components/ui/BaseCard.vue'
 const props = defineProps<{ game : any}>()
 defineEmits<{ (e: 'launch', game: any) : void}>()
 
-const coverImage = computed(() => props.game.imageUrl || '/images/BoarleySide.svg')
-const badgeLabel = computed(() => (Array.isArray(props.game.genre)) ? props.game.genre[0] : props.game.genre || 'Base Game')
+const coverImage = computed(() => props.game.coverUrl || '/images/BoarleySide.svg')
+const badgeLabel = computed(() => (Array.isArray(props.game.genre) && props.game.genres.length) ? props.game.genre[0] : props.game.genre || 'Base Game')
 </script>

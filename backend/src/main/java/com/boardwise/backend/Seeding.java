@@ -235,7 +235,7 @@ public class Seeding {
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now(), rp3),
 
                         new Listing(null, "ruan_sa", getObjectIdFromUsername("ruan_sa", userRepository),
-                                "partial boardgame", "sale", 195.00, "Centurion", false,"","like new","Kingdom Builder","base",
+                                "partial boardgame", "sale", 195.00, "Centurion", false,"Likely not a scam","like new","Kingdom Builder","base",
                                 "Kingdom Builder base game. Complete, all tiles and tokens present. Minor box shelf wear.",
                                 "https://pub-c543dd80255b4b9c9c31a54e09389b5d.r2.dev/seeded-data/KingdomBuilder.jpg",
                                 ListingStatus.AVAILABLE, LocalDateTime.now(), LocalDateTime.now() ,null));

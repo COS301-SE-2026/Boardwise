@@ -90,5 +90,5 @@ public class Rulebook {
     private Integer minAge;
 
     @Field("setupWizard")
-    private String setupWizardId;
+    private ObjectId setupWizardId;
 }

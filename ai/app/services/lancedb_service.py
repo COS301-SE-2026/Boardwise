@@ -314,4 +314,17 @@ def clear_table_cache() -> None:
     global _table
     _table = None
     logger.info("LanceDB table cache cleared. It will be reloaded on the next query.")
-    
+
+def get_chunks_before_index(rulebook_id: str, max_index: int) -> list[dict]:
+    """
+    Returns the first chunks of a rulebook,
+    In most rulebooks, set up usually lives near the start
+    """
+
+    table = get_table()
+    return(
+        table.search()
+        .where(f"rulebookId = '{rulebook_id}' AND index < {int(max_index)}", prefilter=True)
+        .select["chunkId", "content", "index", "type", "needsReview", "confidence"]
+        .to_list()
+    )
