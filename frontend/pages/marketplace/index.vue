@@ -92,7 +92,7 @@
             width="300"
           >
             <RetailerFilterSidebar 
-              v-if="!loading" 
+              v-if="!retailInitialLoading"
               data-test="retailer-filter-sidebar"
               :retailer-options="retailerOptions"
               @filter="handleRetailerFilter" 
@@ -103,7 +103,7 @@
         <!-- Desktop -->
         <div class="d-flex d-md-flex ga-6 mt-6 align-start">
           <div class="d-none d-md-block">
-            <RetailerFilterSidebar v-if="!loading"
+            <RetailerFilterSidebar  v-if="!retailInitialLoading"
               data-test="filter-sidebar" 
               :retailer-options="retailerOptions"
               @filter="handleRetailerFilter"
@@ -211,6 +211,7 @@ const retailPage = ref(1)
 const activeFilterState = ref({})
 const activeRetailFilterState = ref({ retailers: null, minPrice: null, maxPrice: null }, true)
 
+const retailInitialLoading = computed(()=> retailLoading.value && retailResults.value.length === 0)
 const fetchMarketplaceSearch = async (query) => {
   if(activeTab.value === 'Web'){
     retailPage.value = 1;
