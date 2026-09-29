@@ -370,3 +370,7 @@ def generate_new_game(
         notes=notes,
         critic_degraded=critic.self_critic
     )
+
+# scale a game
+
+# turn GenerationResult into a full prose rulebook
