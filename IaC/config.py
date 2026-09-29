@@ -41,7 +41,7 @@ class Settings:
     SYSTEM_CONTRIBUTOR_ID: str | None = os.getenv("SYSTEM_CONTRIBUTOR_ID")
     SCRAPER_SERVICE_URL: str | None = os.getenv("SCRAPER_SERVICE_URL")
     EMBEDDING_DIMENSIONS: int = 512
-    UNSTRUCTURED_API_KEY: str | None = os.getenv("UNSTRUCTURED_API_KEY")
+
 
 
 
