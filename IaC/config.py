@@ -43,6 +43,7 @@ class Settings:
     EMBEDDING_DIMENSIONS: int = 512
     GEMINI_API_KEY: str | None = os.getenv("GEMINI_API_KEY")
     GLM_API_KEY: str | None = os.getenv("GLM_API_KEY")
+    NOMINATIM_SERVICE_URL: str | None = os.getenv("NOMINATIM_SERVICE_URL")
 
 
 
