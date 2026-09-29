@@ -61,7 +61,7 @@
                 </div>
             </div>
 
-            <WizardChatSidebar class="wizard-layout__sidebar" :game-title="gameTitle" />
+            <WizardChatSidebar class="wizard-layout__sidebar" :game-title="gameTitle" :rulebook-id="rulebookId" />
         </div>
 
         <div v-if="!showLoading && !error" class="wizard-footer">

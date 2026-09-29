@@ -65,7 +65,7 @@ const selectedGenreIds = ref([])
 const genreOptions = ref([])
 const seenGames = ref({})
 
-const genres = ["Economic"," Strategy","Abstract Strategy","Card Game","Science Fiction","Cooperative", "Party Game", "Fantasy", "Wargame", "Dice"];
+const genres = ["Economic"," Strategy","Abstract Strategy","Card Game","Science Fiction","Cooperative", "Party Game", "Fantasy", "Wargame"];
 
 const {
     games,
@@ -100,9 +100,9 @@ watch(step, async () => {
 })
 
 onMounted(async () => {
-    // if(localStorage.getItem("access_token")){
-    //     router.push("/library");
-    // }
+    if(localStorage.getItem("access_token")){
+        router.push("/library");
+    }
     await Promise.all([
         loadTopNGenres(),
         handleGetGames(),
