@@ -2,7 +2,7 @@
   <BaseFilterSidebar data-test="filter-sidebar" @reset="resetFilters">
 
     <BaseFilterGroup title="Genres">
-      <BaseFilterPills v-model="selectedGenre" :options="genres" :multiple="false" />
+      <BaseFilterPills v-model="selectedGenre" :options="visibleGenres" :multiple="false" @search="onGenreSearch" />
     </BaseFilterGroup>
 
     <BaseFilterGroup title="Listing Type">
@@ -28,16 +28,17 @@
 </template>
 
 <script setup>
-import { computed, ref, reactive, watch } from 'vue'
+import { computed, ref, reactive, watch, onScopeDispose } from 'vue'
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue'
 import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue'
 import BaseFilterCheckboxGroup from '~/components/ui/Filters/BaseFilterCheckboxGroup.vue'
 import BaseFilterPills from '~/components/ui/Filters/BaseFilterPills.vue'
 import BaseFilterPriceRange from '~/components/ui/Filters/BaseFilterPriceRange.vue'
-
+import { useBoardGames } from '~/composables/useBoardGames'
 const emit = defineEmits(['filter'])
 
-const genres = ['All', 'Economic', 'Family', 'Party', 'Card Game', 'Abstract']
+const { searchGenres } = useBoardGames()
+const hardGenres = ['All', 'Economic', 'Family', 'Party', 'Card Game', 'Abstract']
 const conditions = ['New', 'Like New', 'Good', 'Fair']
 
 const selectedGenre  = ref('All')
@@ -70,5 +71,34 @@ const resetFilters = () => {
   selectedListingTypes.value = []
   filters.minPrice = ''
   filters.maxPrice = ''
+  clearTimeout(timer)
+  latest = ''
+  searchedGenres.value = null
 }
+
+const genreQuery = ref('')
+const searchedGenres = ref(null)
+let timer = null 
+let latest = ''
+
+const visibleGenres = computed(()=> searchedGenres.value ?? hardGenres)
+
+const onGenreSearch = (q) =>{
+  clearTimeout(timer)
+  const query = q.trim()
+  latest = query
+
+  if(!query){
+    searchedGenres.value = null
+    return;
+  }
+
+  timer = setTimeout(async ()=>{
+    const res = await searchGenres(query)
+    if(query !== latest) return
+    searchedGenres.value = res.length? res : hardGenres.filter(g => g.toLowerCase().includes(query.toLowerCase()))
+  },300)
+}
+
+onScopeDispose(()=> clearTimeout(timer))
 </script>
