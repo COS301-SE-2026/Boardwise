@@ -35,27 +35,32 @@ definePageMeta({
 import SearchResults from '~/components/features/search/SearchResults.vue'
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
-
-import { useRouter, useRoute } from 'vue-router'
-import { useDebounceFn } from '@vueuse/core'
-import { useSearch } from '~/composables/useSearch'
-import { useFriends } from '~/composables/useFriends'
 import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
+import { watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useSearch } from '~/composables/useSearch'
+import { useFriends } from '~/composables/useFriends'
+import { useDebouncedAutocomplete } from '~/composables/useDebounce'
+
 const { sendFriendRequest } = useFriends();
-
-
 
 const router = useRouter()
 const route = useRoute()
-const query = computed(() => route.query.q ?? '')
 
 const { people, rulebooks, listings, communities, loading, search } = useSearch()
 
-const delaySearch = useDebounceFn((q) => search(q), 400)
+const fetchSearchData = async (query) => {
+    await search(query);
+    return []
+}
 
-watch(query, (q) => delaySearch(q), { immediate: true })
+const {search:searchQuery} = useDebouncedAutocomplete(fetchSearchData, {debounceMs: 400, fetchOnMount: false});
+
+watch(() => route.query.q , (newQuery) => {
+    searchQuery.value = newQuery ?? ''
+}, { immediate: true })
 
 function handleOpenRulebook(rb) {
     router.push(`/library/${rb.id}`)
@@ -73,5 +78,4 @@ const handleFriendAction =  async (person) => {
     person.isFriend = true
     return await sendFriendRequest(person.id);
 }
-
 </script>

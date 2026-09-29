@@ -88,9 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useDebounceFn } from '@vueuse/core'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
@@ -109,6 +107,8 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import SetupGameCard from '~/components/features/setup-wizard/SetupGameCard.vue'
 import ActiveSetupBanner from '~/components/features/setup-wizard/ActiveSetupBanner.vue'
 import { useActiveSetup } from '~/composables/useSetupWizard'
+import { useDebouncedAutocomplete } from '~/composables/useDebounce'
+import { useBoardGames } from '~/composables/useBoardGames'
 
 const howItWorks = [
   { number: 1, title: 'Physical Board Guidance', body: 'Interactive diagrams show exactly where every tile, card deck, and token sits.' },
@@ -120,12 +120,12 @@ const router = useRouter()
 const { games, isLoading, error, searchGames } = useBoardGames()
 const { activeSetup, restartSetup } = useActiveSetup()
 
-const searchQuery = ref('')
+const fetchGamesForSearch = async (query: string) => {
+    await searchGames(query || '');
+    return []
+};
 
-onMounted(() => searchGames())
-
-const delaySearch = useDebounceFn((q: string) => searchGames(q), 400)
-watch(searchQuery, (q) => delaySearch(q))
+const {search:searchQuery} = useDebouncedAutocomplete(fetchGamesForSearch, {debounceMs: 400, fetchOnMount: true});
 
 const goToWizard = (gameOrId: any) => {
     const id = typeof gameOrId === 'string' ? gameOrId : gameOrId.id 
