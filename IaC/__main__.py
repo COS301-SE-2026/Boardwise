@@ -555,6 +555,7 @@ docker run -d \
     -e SMTP_USERNAME="__SMTP_USERNAME__" \
     -e SMTP_PASSWORD="__SMTP_PASSWORD__" \
     -e SCRAPER_SERVICE_URL="__SCRAPER_SERVICE_URL__" \
+    -e NOMINATIM_SERVICE_URL="__NOMINATIM_SERVICE_URL__" \
     -e SPRING_PROFILES_ACTIVE="__SPRING_PROFILES_ACTIVE__" __IMAGE_URI__
 """
 
@@ -586,6 +587,7 @@ spring_user_data = pulumi.Output.all(
                         .replace("__JWT_SECRET__", settings.JWT_SECRET)
                         .replace("__PROD_DB_URL__", settings.MONGODB_URL)
                         .replace("__REGISTRY_URL__", args["image_uri"].split('/')[0])
+                        .replace("__NOMINATIM_SERVICE_URL__", settings.NOMINATIM_SERVICE_URL)
                         .replace("__REGION__", aws.get_region().region)
                         .replace("__SPRING_PROFILES_ACTIVE__", settings.SPRING_PROFILES_ACTIVE)
 )
