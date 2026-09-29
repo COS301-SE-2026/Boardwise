@@ -5050,9 +5050,10 @@ button:disabled,
 }
 
 .mobile-filters__sheet {
-  max-height: 85dvh;
   display: flex;
   flex-direction: column;
+  height: 100dvh;
+  width: min(320px, 85vw);
 }
 
 .mobile-filters__header {
