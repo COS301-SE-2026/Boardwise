@@ -217,11 +217,6 @@ const communitiesTotalPages = computed(() =>
   Math.max(1, Math.ceil(filteredCommunities.value.length / CARD_PAGE_SIZE))
 )
 
-const pageCommunities = computed(() => {
-  const start = (communitiesPage.value - 1) * CARD_PAGE_SIZE
-  return filteredCommunities.value.slice(start, start + CARD_PAGE_SIZE)
-})
-
 const goToCommunitiesPage = (page: number) => {
   communitiesPage.value = page
 }
@@ -259,68 +254,7 @@ const friendsPage = ref(1)
 
 const FRIENDS_PAGE_SIZE = 9
 
-const mockPeople = ref([
-  {
-    id: 'mock-1',
-    username: 'meeplemaster',
-    fullname: 'Sarah Johnson',
-    profilePicture: '/images/avatar.jpg'
-  },
-  {
-    id: 'mock-2',
-    username: 'dicequeen',
-    fullname: 'Emily Williams',
-    profilePicture: '/images/avatar.jpg'
-  },
-  {
-    id: 'mock-3',
-    username: 'boardgamer42',
-    fullname: 'James Smith',
-    profilePicture: '/images/avatar.jpg'
-  },
-  {
-    id: 'mock-4',
-    username: 'cardboardking',
-    fullname: 'Daniel Brown',
-    profilePicture: '/images/avatar.jpg'
-  },
-  {
-    id: 'mock-5',
-    username: 'tabletopgirl',
-    fullname: 'Jessica Adams',
-    profilePicture: '/images/avatar.jpg'
-  },
-  {
-    id: 'mock-6',
-    username: 'rollwithit',
-    fullname: 'Michael Jones',
-    profilePicture: '/images/avatar.jpg'
-  },
-  {
-    id: 'mock-7',
-    username: 'meeplewizard',
-    fullname: 'Olivia Davis',
-    profilePicture: '/images/avatar.jpg'
-  },
-  {
-    id: 'mock-8',
-    username: 'diceanddragons',
-    fullname: 'Matthew Wilson',
-    profilePicture: '/images/avatar.jpg'
-  },
-  {
-    id: 'mock-9',
-    username: 'boardqueen',
-    fullname: 'Sophie Taylor',
-    profilePicture: '/images/avatar.jpg'
-  },
-  {
-    id: 'mock-10',
-    username: 'sweeyyy',
-    fullname: 'Swelihle Makhankiti',
-    profilePicture: '/images/avatar.jpg'
-  }
-])
+import { mockPeople } from '~/services/mockData/people.js'
 
 // onMounted(async () => {
 //   await getOwnFriendsList()
@@ -328,12 +262,12 @@ const mockPeople = ref([
 
 const filteredPeople = computed(() => {
   // let result = userFriendList.value?.friends ?? []
-  let result = mockPeople.value
+  let result = mockPeople
   
   const query = searchQuery.value.trim().toLowerCase()
 
   if (query) {
-    result = result.filter(person =>
+    result = result.filter((person: any) =>
         person.username?.toLowerCase().includes(query) ||
         person.fullname?.toLowerCase().includes(query)
     )
