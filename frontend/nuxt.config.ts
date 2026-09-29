@@ -1,4 +1,6 @@
 // nuxt.config.js
+import { pwaConfig } from './config/pwa'
+
 export default defineNuxtConfig({
   ssr: false,
   
@@ -16,7 +18,9 @@ export default defineNuxtConfig({
     }
   },
 
-  modules: ['vuetify-nuxt-module'],
+  modules: ['vuetify-nuxt-module', '@vite-pwa/nuxt'],
+
+  pwa: pwaConfig,
 
   vuetify: {
     moduleOptions: {

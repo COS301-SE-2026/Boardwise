@@ -2,7 +2,7 @@ import type { ModuleOptions } from '@vite-pwa/nuxt'
 
 /** Precache public assets and static page shells. Never cache API responses or user uploads. */
 export const pwaConfig: Partial<ModuleOptions> = {
-  registerType: 'autoUpdate',
+  registerType: 'prompt',
   manifest: false,
   includeAssets: ['manifest.webmanifest', 'icon-192.png', 'icon-512.png',
     'icon-maskable-512.png', 'apple-touch-icon.png', 'offline.html'],

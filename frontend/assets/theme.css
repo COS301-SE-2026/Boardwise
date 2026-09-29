@@ -5,11 +5,11 @@
      css: ['~/assets/theme.css']
    Then use the variables everywhere instead of hard-coded values.
 
-   v2 changes: matches the brand style guide better. Semantic tokens 
+   v2 changes: matches the brand style guide better. Semantic tokens
    have defined colours.
 
-   v3 changes: Added component based styling to remove scoped styling 
-   from the code. 
+   v3 changes: Added component based styling to remove scoped styling
+   from the code.
    ============================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=DynaPuff:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Comic+Neue:wght@400;700&display=swap');
@@ -25,7 +25,7 @@
   --wildfire:   #C7286E;  /* PRIMARY — like wildfire event cards */
   --copper:     #EF5B27;  /* orange — like copper resource tokens */
   --rosewood:   #E58BB4;  /* soft pink — like rosewood game boxes */
-  
+
   /* Neutrals */
   --scrollpaper: #FBF6F0; /* page bg — like ancient scroll rulebooks */
   --alabaster:   #FFFFFF;  /* surfaces — like alabaster game tiles */
@@ -148,15 +148,15 @@
   --skeleton-highlight: #FDFBF9;
 
   /*=========================================================================
-  LEGACY ALIASES 
+  LEGACY ALIASES
       Colour names were changed and below is code to correct those changes to
-      match the new colour names. 
+      match the new colour names.
 
       Known from the old (broken) theme.css semantic section:
         --bw-maroon, --bw-maroon-deep, --bw-navy, --bw-navy-ink,
         --bw-accent-coral, --bw-accent-violet, --bw-accent-violet-2,
         --bw-gold-muted
-  
+
       Known from the v1 colour system (per changelog):
         --grape, --raspberry, --tangelo, --blossom
 
@@ -176,33 +176,33 @@
     --grape: var(--obsidian);
     --raspberry: var(--wildfire);
     --tangelo: var(--copper);
-    --blossom: var(--rosewood); 
+    --blossom: var(--rosewood);
 }
 /* =============================================================
    DARK MODE - will be a toggle with data-theme="dark"
    ============================================================= */
     html[data-theme="dark"] {
-    --scrollpaper: #17101C; 
-    --alabaster:   #241629;  
-    --feltboard:   #33223A;  
-    --shadowink:   #F4E9F1;  
-    --ashquill:    #B49CB6; 
+    --scrollpaper: #17101C;
+    --alabaster:   #241629;
+    --feltboard:   #33223A;
+    --shadowink:   #F4E9F1;
+    --ashquill:    #B49CB6;
     --obsidian:   #F0D9EC;
     --wildfire:   #E64C86;
 
     --color-primary:        var(--wildfire);
     --color-text:           var(--shadowink);
     --color-text-muted:     var(--ashquill);
-    --color-bg:             var(--scrollpaper);   
-    --color-surface:        var(--alabaster);   
-    --color-surface-alt:    var(--feltboard);   
+    --color-bg:             var(--scrollpaper);
+    --color-surface:        var(--alabaster);
+    --color-surface-alt:    var(--feltboard);
     --color-border:         var(--feltboard);
     --color-border-strong:  #4A3550;
 
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.5);
     --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
-   } 
+   }
 
 /* =============================================================
    BASE RESETS
@@ -328,23 +328,23 @@ a { color: var(--color-link); text-decoration: none; }
 .btn:active { transform: translateY(1px); }
 .btn:focus-visible { outline: 3px solid var(--rosewood); outline-offset: 2px; }
 
-.btn--primary { 
-  background: var(--color-primary); 
-  color: var(--color-text-inverse); 
+.btn--primary {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
   box-shadow: var(--shadow-sm);
 }
 .btn--primary:hover { background: var(--color-primary-hover); box-shadow: var(--shadow-md); }
 
-.btn--secondary { 
-  background: transparent; 
-  color: var(--color-secondary); 
-  border: 2px solid var(--color-secondary) !important; 
+.btn--secondary {
+  background: transparent;
+  color: var(--color-secondary);
+  border: 2px solid var(--color-secondary) !important;
 }
 .btn--secondary:hover { background: var(--color-surface-alt); }
 
-.btn--accent    { 
-  background: var(--color-accent); 
-  color: var(--color-text-inverse) !important; 
+.btn--accent    {
+  background: var(--color-accent);
+  color: var(--color-text-inverse) !important;
   box-shadow: var(--shadow-sm);
 }
 .btn--accent:hover { opacity: 0.9; box-shadow: var(--shadow-md); }
@@ -435,8 +435,8 @@ a { color: var(--color-link); text-decoration: none; }
 
 /* Accessibility helper — visually hidden but screen-reader available */
 .sr-only {
-  position: absolute; 
-  width: 1px; 
+  position: absolute;
+  width: 1px;
   height: 1px;
   padding: 0 !important;
   margin: -1px !important;
@@ -668,7 +668,7 @@ a { color: var(--color-link); text-decoration: none; }
 }
 
 /* ==========================================================
-   RAG MESSAGE 
+   RAG MESSAGE
    ========================================================== */
 .rag-message {
   display: flex;
@@ -1427,7 +1427,7 @@ li {
     font-size: 1.4rem;
   }
 
-  
+
 
 }
 
@@ -1776,7 +1776,7 @@ html[data-density="compact"] .rulebook-list {
 }
 
 /* ============================================================
-   AUTH  
+   AUTH
    ============================================================ */
 .auth-card {
     width: 100%;
@@ -1789,7 +1789,7 @@ html[data-density="compact"] .rulebook-list {
     display: flex;
     flex-direction: column;
     gap: 16px;
-} 
+}
 
 .form-title {
     text-align: center;
@@ -2871,7 +2871,7 @@ html[data-density="compact"] .rulebook-list {
   }
 }
 
-/* ============================================================= 
+/* =============================================================
    FILTER SIDEBAR
    ============================================================= */
 
@@ -3079,7 +3079,7 @@ html[data-density="compact"] .rulebook-list {
 }
 
 /* =============================================================
-   ONBOARDING 
+   ONBOARDING
    ============================================================= */
 
 .onboarding-step {
@@ -3155,14 +3155,14 @@ html[data-density="compact"] .rulebook-list {
   align-items: center;
   justify-content: center;
   gap: var(--space-4);
- 
+
   padding: var(--space-6) var(--space-6);
- 
+
   background:
     radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--rosewood) 22%, transparent), transparent 40%),
     radial-gradient(circle at 85% 85%, color-mix(in srgb, var(--rosewood) 16%, transparent), transparent 40%);
 }
- 
+
 .onboarding-page--wide {
   align-items: stretch;
   justify-content: flex-start;
@@ -3174,7 +3174,7 @@ html[data-density="compact"] .rulebook-list {
     max-width: 920px;
     margin: 0 auto;
 }
- 
+
 .onboarding-page__error {
   margin: 0;
   color: var(--color-error);
@@ -3229,7 +3229,7 @@ html[data-density="compact"] .rulebook-list {
   border: 0;
   border-radius: var(--radius-pill);
   background: var(--color-surface-alt);
-  color: var(--color-primary); 
+  color: var(--color-primary);
 }
 
 .onboarding-progress__track::-webkit-progress-bar {
@@ -3271,7 +3271,7 @@ html[data-density="compact"] .rulebook-list {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
   padding: 5px 12px;
-  
+
   color: var(--color-text-muted);
   background: var(--color-surface);
   cursor: pointer;
@@ -3349,7 +3349,7 @@ html[data-density="compact"] .rulebook-list {
   border-radius: var(--radius-pill);
 }
 
-.onboarding-games_body 
+.onboarding-games_body
   + .onboarding-step_hint {
     width: 100%;
 
@@ -3376,7 +3376,7 @@ html[data-density="compact"] .rulebook-list {
 
     text-align: left;
 
-    transition: 
+    transition:
       border-color var(--transition-base),
       box-shadow var(--transition-base),
       transform var(--shadow-sm);
@@ -3460,7 +3460,7 @@ html[data-density="compact"] .rulebook-list {
 
   cursor: pointer;
 
-  transition: 
+  transition:
     background-color var(--transition-fast),
     color var(--transition-fast),
     border-color var(--transition-fast)
@@ -3516,10 +3516,10 @@ html[data-density="compact"] .rulebook-list {
   font-weight: var(--fw-bold);
 
   color: var(--color-secondary);
-  
+
   cursor: pointer;
 
-  transition: 
+  transition:
   color var(--transition-fast)
   transform var(--transition-fast);
 }
@@ -3596,7 +3596,7 @@ html[data-density="compact"] .rulebook-list {
   font-family: var(--font-body);
   font-size: 9px;
   font-weight: var(--fw-bold);
-  
+
   box-shadow: var(--shadow-sm);
 }
 
@@ -4012,11 +4012,11 @@ html[data-density="compact"] .rulebook-list {
   border-radius: var(--radius-lg);
 
   background:
-    linear-gradient(110deg, 
-    color-mix(in srgb, 
-    var(--color-primary) 12%, 
-    var(--color-surface)), 
-    color-mix(in srgb, var(--rosewood) 14%, 
+    linear-gradient(110deg,
+    color-mix(in srgb,
+    var(--color-primary) 12%,
+    var(--color-surface)),
+    color-mix(in srgb, var(--rosewood) 14%,
     var(--color-surface)));
 
   box-shadow: var(--shadow-sm);
@@ -4469,7 +4469,7 @@ html[data-density="compact"] .rulebook-list {
 }
 
 /* =========================================================
-  PAGINATION 
+  PAGINATION
   ========================================================= */
 
 .base-pagination {
@@ -5280,7 +5280,7 @@ games-owned-section {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  
+
   border-radius: var(--radius-lg);
   background: var(--alabaster);
   border: 1px solid var(--color-border);
@@ -5297,9 +5297,9 @@ games-owned-section {
   text-align: left;
   font: inherit;
   cursor: pointer;
-  
-  transition: 
-    transform var(--transition-base), 
+
+  transition:
+    transform var(--transition-base),
     box-shadow var(--transition-base);
 }
 
@@ -5426,7 +5426,7 @@ games-owned-section {
   text-decoration: none;
 
   white-space: nowrap;
-  transition: 
+  transition:
     color var(--transition-fast),
     transform var(--transition-fast);
 }
@@ -5472,7 +5472,7 @@ games-owned-section {
 
   text-decoration: none;
 
-  transition: 
+  transition:
     border-color var(--transition-base),
     box-shadow var(--shadow-sm);
 }
@@ -5490,7 +5490,7 @@ games-owned-section {
 
 .pill-name {
   max-width: 140px;
-  
+
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -5815,7 +5815,7 @@ games-owned-section {
     flex: 1;
   }
 }
-   
+
 /* ==========================================================
    LANDING — RAG FEATURE
    ========================================================== */
@@ -6542,7 +6542,7 @@ games-owned-section {
 }
 
 /* =============================================================
-   BOARLEY AI 
+   BOARLEY AI
    ============================================================= */
 
 .boarley-bubble {
@@ -6592,7 +6592,7 @@ games-owned-section {
 
 
 /* ================================================================
-    EVENTS 
+    EVENTS
   ================================================================= */
 
 .games-grid {
@@ -6620,7 +6620,7 @@ games-owned-section {
 }
 
 /* ================================================================
-    READING 
+    READING
   ================================================================= */
 
 .search-highlight {
@@ -6670,7 +6670,7 @@ games-owned-section {
 }
 
 /* ================================================================
-    Add Games To Profile 
+    Add Games To Profile
   ================================================================= */
 
 
@@ -6878,7 +6878,7 @@ games-owned-section {
   color: var(--color-text-muted);
 }
 
-/* Active setup banner */ 
+/* Active setup banner */
 .active-setup-banner {
   margin-top: var(--space-5);
   border: 1px solid var(--color-border);
@@ -7488,8 +7488,8 @@ games-owned-section {
 }
 
 /* ================================================================
-   SOCIAL: FRIENDS 
-  =============================================================== */  
+   SOCIAL: FRIENDS
+  =============================================================== */
 .person-card__row {
   display: flex;
   align-items: center;
@@ -7689,5 +7689,161 @@ games-owned-section {
   .mobile-bottom-nav__item:hover,
   .mobile-bottom-nav__item.is-active .v-icon {
     transform: none;
+  }
+}
+/* PWA update notification */
+
+.pwa-update-notice {
+  position: fixed;
+  z-index: 2400;
+
+  inset-inline: var(--space-4);
+  bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+
+  max-width: 640px;
+  margin-inline: auto;
+  padding: var(--space-4);
+
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.pwa-update-notice__message {
+  display: flex;
+  flex: 1 1 240px;
+  flex-direction: column;
+  gap: var(--space-1);
+
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.pwa-update-notice__title {
+  font-weight: var(--fw-bold);
+}
+
+.pwa-update-notice__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+@media (max-width: 599px) {
+  .pwa-update-notice__actions {
+    width: 100%;
+  }
+
+  .pwa-update-notice__actions .base-button {
+    flex: 1;
+  }
+}
+
+/* PWA INSTALL AND CONNECTION NOTICES */
+.pwa-install {
+  position: fixed;
+  z-index: 2300;
+  right: max(var(--space-3), env(safe-area-inset-right));
+  bottom: calc(108px + env(safe-area-inset-bottom));
+  left: max(var(--space-3), env(safe-area-inset-left));
+
+  display: flex;
+  max-width: 640px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+
+  margin-inline: auto;
+  padding: var(--space-4);
+
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.pwa-install__copy {
+  min-width: 0;
+}
+
+.pwa-install__copy p {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+  line-height: var(--lh-relaxed);
+}
+
+.pwa-install__actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pwa-offline {
+  position: fixed;
+  z-index: 2500;
+  top: max(var(--space-3), env(safe-area-inset-top));
+  right: max(var(--space-3), env(safe-area-inset-right));
+  left: max(var(--space-3), env(safe-area-inset-left));
+
+  display: flex;
+  max-width: 720px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+
+  margin-inline: auto;
+  padding: var(--space-3) var(--space-4);
+
+  color: var(--color-surface);
+  background: var(--color-secondary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+
+  font-size: var(--fs-small);
+  text-align: center;
+}
+
+.pwa-offline a {
+  flex-shrink: 0;
+  color: inherit;
+  font-weight: var(--fw-bold);
+}
+
+.pwa-offline a:focus-visible {
+  outline: 3px solid var(--rosewood);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+@media (max-width: 599px) {
+  .pwa-install {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pwa-install__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .pwa-offline {
+    align-items: flex-start;
+    flex-direction: column;
+    text-align: left;
+  }
+}
+
+@media (min-width: 960px) {
+  .pwa-install {
+    bottom: var(--space-4);
   }
 }
