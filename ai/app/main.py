@@ -109,6 +109,7 @@ app.add_middleware(
         "http://localhost:3000",
         "https://www.boardwise.games",
         "https://boardwise.games",
+        "http://localhost:4173"
     ],
     allow_credentials=True,
     allow_methods=["*"],
