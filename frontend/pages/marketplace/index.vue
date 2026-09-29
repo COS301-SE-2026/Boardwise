@@ -26,14 +26,14 @@
           location="left"
           width="300"
         >
-          <FilterSidebar data-test="filter-sidebar" @filter="handleFilter" />
+          <FilterSidebar v-if="communityLoadedOnce" data-test="filter-sidebar" @filter="handleFilter" />
         </v-navigation-drawer>
       </div>
 
       <!-- Desktop -->
       <div class="d-flex d-md-flex ga-6 mt-6 align-start">
         <div class="d-none d-md-block">
-          <FilterSidebar data-test="filter-sidebar" @filter="handleFilter"/>
+          <FilterSidebar v-if="communityLoadedOnce" data-test="filter-sidebar" @filter="handleFilter"/>
         </div>
           
         <div class="flex-1-1">
@@ -73,7 +73,7 @@
     </template>
     
     <!-- External Retail -->
-    <template v-else-if="activeTab === 'Web'">
+    <template v-else-if="activeTab === 'Web Listings'">
       <!-- Mobile -->
       <div class="d-flex d-md-none mt-6 mb-4">
           <v-chip
@@ -92,6 +92,7 @@
             width="300"
           >
             <RetailerFilterSidebar 
+              v-if="!retailInitialLoading"
               data-test="retailer-filter-sidebar"
               :retailer-options="retailerOptions"
               @filter="handleRetailerFilter" 
@@ -102,7 +103,7 @@
         <!-- Desktop -->
         <div class="d-flex d-md-flex ga-6 mt-6 align-start">
           <div class="d-none d-md-block">
-            <RetailerFilterSidebar 
+            <RetailerFilterSidebar  v-if="!retailInitialLoading"
               data-test="filter-sidebar" 
               :retailer-options="retailerOptions"
               @filter="handleRetailerFilter"
@@ -115,12 +116,12 @@
               class="d-flex justify-center align-center flex-1-1"
               style="min-height: 60vh"
             >
-              <MarketplaceLoadingState tab="Web" />
+              <MarketplaceLoadingState tab="Web Listings" />
             </div>
 
             <MarketplaceEmptyState
               v-else-if="filteredRetailResults.length === 0"
-              tab="Web"
+              tab="Web Listings"
               :search="searchQ"
               :has-active-filters="hasRetailFilters"
               @clear-filters="resetRetailFilters"
@@ -210,6 +211,7 @@ const retailPage = ref(1)
 const activeFilterState = ref({})
 const activeRetailFilterState = ref({ retailers: null, minPrice: null, maxPrice: null }, true)
 
+const retailInitialLoading = computed(()=> retailLoading.value && retailResults.value.length === 0)
 const fetchMarketplaceSearch = async (query) => {
   if(activeTab.value === 'Web'){
     retailPage.value = 1;
@@ -228,7 +230,10 @@ onMounted(async () => {
   if(!localStorage.getItem('access_token')){
     router.push('/auth/signin');
   }
-  fetchListings({}, true)
+  try{
+    await fetchListings({}, true) 
+  }
+    finally {communityLoadedOnce.value =true}
 })
 
 const handleAdd = async (data, image) => {
@@ -237,18 +242,20 @@ const handleAdd = async (data, image) => {
   communityPage.value = 1;
 }
 
+const communityLoadedOnce = ref(false)
+
 const showInlineLoading = computed(() => {
 const currentListings = unref(listings) ?? []
 const currentRetail = unref(retailResults) ?? []
 
-  if (activeTab.value === 'Web') {
+  if (activeTab.value === 'Web Listings') {
     return retailLoading.value && currentRetail.length > 0
   }
   return loading.value && currentListings.length > 0
 })
 
 watch(activeTab, async (tab) => {
-  if(tab === 'Web' && retailResults.value.length === 0) {
+  if(tab === 'Web Listings' && retailResults.value.length === 0) {
     await fetchPersonalisedListings();
   }
 })
@@ -264,7 +271,7 @@ watch(activeTab, async (tab) => {
   const handleFilter = (filters)=>{
 
   const conditions = filters.conditions.length > 0 ? filters.conditions.map(c => c.toLowerCase()) : null
-  const genres = filters.genres?.length > 0 ? filters.genres : null
+  const genres = filters.genres ? [filters.genres.toLowerCase()] : null
 
   const  lt= getListingType(filters.rent,filters.sale);
 
