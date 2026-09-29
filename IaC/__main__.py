@@ -559,6 +559,7 @@ docker run -d \
     -e SMTP_PASSWORD="__SMTP_PASSWORD__" \
     -e SCRAPER_SERVICE_URL="__SCRAPER_SERVICE_URL__" \
     -e NOMINATIM_SERVICE_URL="__NOMINATIM_SERVICE_URL__" \
+    -e SYSTEM_CONTRIBUTOR_ID="__SYSTEM_CONTRIBUTOR_ID__" \
     -e SPRING_PROFILES_ACTIVE="__SPRING_PROFILES_ACTIVE__" __IMAGE_URI__
 """
 
@@ -593,6 +594,7 @@ spring_user_data = pulumi.Output.all(
                         .replace("__NOMINATIM_SERVICE_URL__", settings.NOMINATIM_SERVICE_URL)
                         .replace("__REGION__", aws.get_region().region)
                         .replace("__SPRING_PROFILES_ACTIVE__", settings.SPRING_PROFILES_ACTIVE)
+                        .replace("__SYSTEM_CONTRIBUTOR_ID__", settings.SYSTEM_CONTRIBUTOR_ID)
 )
 
 spring_instance = aws.ec2.Instance(
