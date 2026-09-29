@@ -98,7 +98,6 @@
         <v-card class="pa-2" min-width="280">
           <GlobalSearch 
             placeholder="Search..."
-            autofocus
             @select="mobileSearchOpen = false"
           />
         </v-card>
@@ -167,7 +166,6 @@
 <script setup>
 import { ref } from 'vue'
 import { useDisplay } from 'vuetify'
-import { useRouter } from 'vue-router'
 
 import LogOutButton from '~/components/features/auth/LogOutButton.vue'
 import GlobalSearch from '../features/search/GlobalSearch.vue'
@@ -175,17 +173,7 @@ import BaseButton from '../ui/BaseButton.vue'
 import BaseDropdown from '../ui/BaseDropdown.vue'
 
 const drawer = ref(false)
-
-const router = useRouter()
-const searchQuery = ref('')
-const mobileSearchQuery = ref('')
-const mobileSearchOpens = ref(false)
-
-const submitSearch = (query) => {
-  const q = query.trim()
-  if(!q) return
-  router.push({ path: '/search', query:{ q } })
-}
+const mobileSearchOpen = ref(false)
 
 const { lgAndUp } = useDisplay()
 </script>

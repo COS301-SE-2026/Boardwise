@@ -2,7 +2,7 @@
     <div ref="rootRef" class="global-search" @focusout="onFocusOut">
         <BaseSearch 
             v-model="query"
-            placeholder="Search people, rulebooks, listings, communities"
+            :placeholder="props.placeholder"
             aria-label="Search Boardwise"
             role="combobox"
             aria-autocomplete="list"
@@ -93,8 +93,14 @@ import BaseAvatar from '~/components/ui/BaseAvatar.vue'
 
 import { useSearch } from '~/composables/useSearch'
 
+const props = defineProps({
+    placeholder: { type: String, default: 'Search people, rulebooks, listings, communities, events'}
+})
+
+const emit = defineEmits(['select'])
+
 const router = useRouter()
-const { people, rulebooks, listings, communities, loading, search } = useSearch()
+const { people, rulebooks, listings, communities, events, loading, search } = useSearch()
 
 const MIN_CHARS = 2
 const PER_GROUP = 4
@@ -115,8 +121,16 @@ const runSearch = useDebounceFn((q) => search(q), DEBOUNCE_MS)
 
 watch(trimmed, (q) => {
     activeIndex.value = -1
-    if (q.length >= MIN_CHARS) runSearch(q)
+    if (q.length >= MIN_CHARS) {
+        focused.value = true
+        runSearch(q)
+    }
 })
+
+const formatDate = (iso) => {
+    const d = new Date(iso)
+    return Number.isNaN(d) ? '' : d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })
+}
 
 // Result of search ==> Mapping to row display + destination of each [id].vue
 const mappers = {
@@ -130,15 +144,15 @@ const mappers = {
     rulebooks: (r) => ({
         id: r.id,
         title: r.title || r.name,
-        subtitle: r.publisher || r.game || '',
-        image: r.coverUrl || r.image,
+        subtitle: r.genre || '',
+        image: r.coverUrl,
         path: `/library/${r.id}`
     }), 
     listings: (l) => ({
         id: l.id,
-        title: l.title || l.name,
-        subtitle: l.price != null ? String(l.price) : '',
-        image: l.imageUrl || l.image,
+        title: l.listingTitle || l.gameTitle,
+        subtitle: [l.gameTitle, l.price != null ? `R${l.price}` : ''].filter(Boolean).join(' · '),
+        image: l.imageUrl,
         path: `/marketplace/${l.id}`
     }),
     communities: (c) => ({
@@ -147,6 +161,13 @@ const mappers = {
         subtitle: c.memberCount != null ? `${c.memberCount} members` : '',
         image: c.imageUrl || c.image,
         path: `/social/community/${c.id}`
+    }),
+    events: (e) => ({
+        id: e.id,
+        title: e.name, 
+        subtitle: [formatDate(e.startTime), e.location].filter(Boolean).join(' · '),
+        image: e.imageUrl,
+        path: `/events/${e.id}`
     })
 }
 
@@ -154,7 +175,8 @@ const groups = [
     {key: 'people', label: 'Friends', icon: 'mdi-account', source: people },
     {key: 'rulebooks', label: 'Rulebooks', icon: 'mdi-book-open-page-variant', source: rulebooks },
     {key: 'listings', label: 'Listings', icon: 'mdi-storefront-outline', source: listings },
-    {key: 'communities', label: 'Communities', icon: 'mdi-account-group', source: communities }
+    {key: 'communities', label: 'Communities', icon: 'mdi-account-group', source: communities },
+    {key: 'events', label: 'Events', icon: 'mdi-calendar', source: events },
 ]
 
 // Sections
@@ -192,6 +214,7 @@ const announcement = computed(() => {
 // Interaction
 function select(item) {
     router.push(item.path)
+    emit('select')
     query.value = ''
     focused.value = false
     activeIndex.value = -1
