@@ -87,6 +87,7 @@ jobs:
           NOMINATIM_SERVICE_URL: ${{ vars.NOMINATIM_SERVICE_URL }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
+          RULEBOOK_PDF_API: ${{ secrets.RULEBOOK_PDF_API }}
     
       - name: Get CloudFront Distro ID
         id: get_distro
