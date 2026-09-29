@@ -268,5 +268,10 @@ public class CommunityController {
                     .body(Map.of("message", "Live event not found"));
         }
     }
+    @PostMapping("/live-event/{eventId}/join")
+    public ResponseEntity<?> joinLiveEvent(HttpServletRequest req, @PathVariable String eventId){
+        String token = ProfileController.extractToken(req);
+        return ResponseEntity.ok(service.joinLiveEvent(token, eventId));
+    }
 }
 

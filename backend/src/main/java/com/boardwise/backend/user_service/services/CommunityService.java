@@ -23,6 +23,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -55,6 +56,8 @@ import com.boardwise.backend.user_service.repository.EventAttendeeRepository;
 import com.boardwise.backend.user_service.repository.EventRepository;
 import com.boardwise.backend.user_service.repository.LiveEventRepository;
 import com.boardwise.backend.user_service.repository.UserRepository;
+import com.mongodb.client.result.UpdateResult;
+
 import lombok.RequiredArgsConstructor;
 
 
@@ -805,6 +808,51 @@ public class CommunityService {
        return result;
     }
 
+    private final MongoTemplate mongoTemplate; // inject via constructor
 
+    public Map<String, Object> joinLiveEvent(String token, String eventId){
+        Map<String, Object> result = new HashMap<>();
+        User user = getUserFromToken(token);
+        ObjectId id = new ObjectId(eventId);
+
+        LiveEvent event = liveEventRepo.findById(eventId)
+                .orElseThrow(() -> new NoSuchElementException("Event does not exist"));
+
+        // Past event check
+        LocalDateTime start = LocalDateTime.of(event.getDate(), event.getTime());
+        if(start.isBefore(LocalDateTime.now())){
+            throw new IllegalStateException("This event has already started");
+        }
+
+        int maxSeats = event.getMaxSeats();
+
+        Query query = new Query(new Criteria().andOperator(
+                Criteria.where("_id").is(id),
+                // user not already in the list
+                Criteria.where("attendees.attendees.userId").ne(user.getId()),
+                // list has fewer than maxSeats items (index maxSeats-1 must not exist)
+                Criteria.where("attendees.attendees." + (maxSeats - 1)).exists(false)
+        ));
+
+        Update update = new Update().push(
+                "attendees.attendees",
+                new LiveEventAttendee(user.getId(), LiveEventAttendeeStatus.JOINED, false)
+        );
+
+        UpdateResult ur = mongoTemplate.updateFirst(query, update, LiveEvent.class);
+
+        if(ur.getModifiedCount() == 0){
+            // Work out why it failed so the message is useful
+            LiveEvent fresh = liveEventRepo.findById(eventId)
+                    .orElseThrow(() -> new NoSuchElementException("Event does not exist"));
+            boolean joined = fresh.getLiveAttendees().attendees().stream()
+                    .anyMatch(a -> a.userId().equals(user.getId()));
+            throw new IllegalStateException(joined ? "You already joined this event" : "Event is full");
+        }
+
+        result.put("message", "Successfully joined the event");
+        return result;
+    }
+    
 }
 
