@@ -24,7 +24,26 @@
                     </div>
 
                     <BaseInput v-model="form.name" label="Event title" placeholder="e.g. Catan Marathon" />
-                    <BaseInput v-model="form.game" label="Game" placeholder="e.g. Catan" />
+                    <BaseInput v-if="form.timing === 'now'" v-model="form.game" label="Game" placeholder="e.g. Catan" />
+
+                    <v-autocomplete 
+                        v-else
+                        v-model="form.gameIds"
+                        :items="gameOptions"
+                        :loading="gamesLoading"
+                        item-title="title"
+                        item-value="id"
+                        label="Games"
+                        placeholder="Search for games to add"
+                        variant="outlined"
+                        density="comfortable"
+                        rounded="xl"
+                        multiple
+                        chips
+                        closable-chips
+                        hide-details
+                        @update:search="onGameSearch"
+                    />
 
                     <div>
                         <p class="card-subtitle" style="margin-bottom: var(--space-2)">Session Format</p>
@@ -124,7 +143,7 @@
                                 @click="form.duration = d.value"
                             >
                                 <span class="settings-choice-card__content">
-                                    <span class="settings-choice-card-title">{{ d.label }}</span>
+                                    <span class="settings-choice-card__title">{{ d.label }}</span>
                                     <span class="settings-choice-card__description">{{ d.desc }}</span>
                                 </span>
                             </button>
@@ -259,7 +278,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 import Navbar from '~/components/layout/Navbar.vue'
@@ -280,46 +299,57 @@ definePageMeta({
 const router = useRouter()
 
 const { createEvent } = useEvents()
-const { games: searchedGames, searchGames} = useBoardGames()
+const { games: gameOptions, isLoading: gamesLoading, searchGames} = useBoardGames()
 const { createLiveEvent, isLoading } = useLiveEvents()
 const { show } = useSnackBar()
 
-const form = ref({ name: '', game: '', venue: '', table: '', capacity: 4 , format: 'in-person', timing: 'now', date: '', time: '', duration: 'standard', style: 'casual', privacy: 'public', autoApprove: true})
+onMounted(() => searchGames())
+
+let gameSearchTimeout 
+const onGameSearch = (query) => {
+    clearTimeout(gameSearchTimeout)
+    gameSearchTimeout = setTimeout(() => searchGames(query), 400)
+}
+
+const form = ref({ name: '', game: '', gameIds: [], venue: '', table: '', capacity: 4 ,format: 'in-person', timing: 'now', date: '', time: '', duration: 'standard', style: 'casual', privacy: 'public', autoApprove: true })
+
 const submitting = ref(false)
 
 const adjustCapacity = (delta) => {
     form.value.capacity = Math.max(3, Math.min(12, form.value.capacity + delta))
 }
+
 const isValid = computed(() => {
     const f = form.value
-    const base = f.name && f.game && f.venue && f.table
-    return f.timing === 'later' ? base && f.date && f.time : base
+    if (f.timing === 'later') {
+        return f.name && f.venue && f.table && f.date && f.time && f.gameIds.length > 0
+    }
+    return f.name && f.game && f.venue && f.table
 })
 
 const DURATION_HOURS = { short: 2, standard: 4, marathon: 6 }
 
 const addHours = (time, hours) => {
-    const [h,m] = time.split(':').map(Number)
-    const end = Math.min(h + hours, 23)
-    return `${String(end).padStart(2, '0')}:${end === 23 && h + hours > 23 ? '59' : String(m).padStart(2, '0')}`
+    const [h, m] = time.split(':').map(Number)
+    if (h + hours > 23) return '23:59'
+    return `${String(h + hours).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 }
 
 const handleSchedule = async () => {
     const f = form.value
 
-    await searchGames(f.game)
-    const match = searchedGames.value?.[0]
-
     const eventInfo = {
         name: f.name,
-        description: `${f.game} · ${f.style} table · ${f.capacity} seats` + (f.format === 'virtual' ? ` · Join: ${f.venue}` : ` · ${f.table}`), date: f.date,
+        description: `${f.style} table · ${f.capacity} seats` + (f.format === 'virtual' ? ` · Join: ${f.venue}` : ` · ${f.table}`),
+        date: f.date,
         startTime: `${f.time}:00`,
         endTime:  `${addHours(f.time, DURATION_HOURS[f.duration] ?? 4)}:00`,
         location: f.format === 'virtual' ? 'Online' : `${f.venue}, ${f.table}`,
         visibility: f.privacy.toUpperCase(),
-        games: match ? [match.id] : []
+        games: f.gameIds
     }
 
+    console.log('schedule payload', eventInfo)
     await createEvent(eventInfo, null)
     show('Your event is scheduled. Game on!', 'success')
     router.push('/events')
