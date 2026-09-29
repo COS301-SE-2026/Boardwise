@@ -254,7 +254,14 @@ const friendsPage = ref(1)
 
 const FRIENDS_PAGE_SIZE = 9
 
-import { mockPeople } from '~/services/mockData/people.js'
+const mockPeople = ref([
+  {
+    id: 'mock-1',
+    username: 'meeplemaster',
+    fullname: 'Sarah Johnson',
+    profilePicture: '/images/avatar.jpg'
+  }
+])
 
 // onMounted(async () => {
 //   await getOwnFriendsList()
@@ -262,12 +269,12 @@ import { mockPeople } from '~/services/mockData/people.js'
 
 const filteredPeople = computed(() => {
   // let result = userFriendList.value?.friends ?? []
-  let result = mockPeople
+  let result = mockPeople.value
   
   const query = searchQuery.value.trim().toLowerCase()
 
   if (query) {
-    result = result.filter((person: any) =>
+    result = result.filter(person =>
         person.username?.toLowerCase().includes(query) ||
         person.fullname?.toLowerCase().includes(query)
     )
