@@ -42,16 +42,16 @@
                     <p class="card-meta">Grounded rulebooks loaded with full setup guidance.</p>
                 </div>
 
-                <span class="card-meta">Showing {{  rulebooks.length  }} games</span>
+                <span class="card-meta">Showing {{ rulebooks.length }} games</span>
             </div>
 
-            <BaseLoadingState v-if="isLoading" message="Loading your library..." />
+            <BaseLoadingState v-if="isLoading && !rulebooks.length" message="Loading your library..." />
 
             <BaseErrorState
                 v-else-if="error"
                 :message="error"
                 retryable
-                @retry="() => getAllRulebooks({title: searchQuery}, true)"
+                @retry="() => load(searchQuery)"
             />
 
             <BaseEmptyState
@@ -70,7 +70,7 @@
         </div>
 
         <div class="section setup-hub__how">
-                <div class="setup-hub__how-header">
+            <div class="setup-hub__how-header">
                 <span class="setup-hub__eyebrow setup-hub__eyebrow--muted">Zero Rulebook Headaches</span>
                 <h2 class="section-title__heading">How Boarley RAG Setup Works</h2>
             </div>
@@ -88,7 +88,9 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useDebounceFn } from '@vueuse/core'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
@@ -107,9 +109,7 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import SetupGameCard from '~/components/features/setup-wizard/SetupGameCard.vue'
 import ActiveSetupBanner from '~/components/features/setup-wizard/ActiveSetupBanner.vue'
 import { useActiveSetup } from '~/composables/useSetupWizard'
-
-
-import { useLibrary } from '~/composables/useLibrary';
+import { useLibrary } from '~/composables/useLibrary'
 
 const howItWorks = [
   { number: 1, title: 'Physical Board Guidance', body: 'Interactive diagrams show exactly where every tile, card deck, and token sits.' },
@@ -118,20 +118,18 @@ const howItWorks = [
 ]
 
 const router = useRouter()
-const { rulebooks, isLoading, error, getAllRulebooks }= useLibrary()
+const { rulebooks, isLoading, error, getAllRulebooks } = useLibrary()
 const { activeSetup, restartSetup } = useActiveSetup()
 
-const fetchGamesForSearch = async (query: string) => {
-    await searchGames(query || '');
-    return []
-};
+const searchQuery = ref('')
 
-onMounted(() => getAllRulebooks({status: 'Ready'},true));
+   const load = (q?: string) =>
+       getAllRulebooks({ search: q || null, status: 'Ready' }, true)
+       
+onMounted(() => load())
 
-const delaySearch = useDebounceFn((q:string)=> getAllRulebooks({title: q,
-    status: 'Ready'
-}, true), 400);
-watch(searchQuery, (q) =>delaySearch(q));
+const delaySearch = useDebounceFn((q: string) => load(q), 400)
+watch(searchQuery, q => { console.log('search:', q); delaySearch(q) })
 
 const goToWizard = (rulebookId: any) => {
     const id = typeof rulebookId === 'string' ? rulebookId : rulebookId.id 
