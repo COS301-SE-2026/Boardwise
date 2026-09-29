@@ -43,12 +43,6 @@ interface GroupUpdateResponse{
     }
 }
 
-interface GroupJoinRequestResponse {
-  message: string
-  status: 'PENDING'
-}
-
-
 interface GroupMembershipResponse{
     message: string;
     data: {
@@ -166,15 +160,4 @@ export const CommunityService = {
         });
         return response.data;
     },
-
-    requestToJoinCommunity(id: string) {
-  const { $api } = useNuxtApp()
-
-  return $api<GroupJoinRequestResponse>(
-    `social/groups/${id}/requests`,
-    {
-      method: 'POST'
-    }
-  )
-},
 }

@@ -15,6 +15,54 @@ const _useLiveEvents = () => {
     const isLoading = ref(false)
     const error = ref('')
 
+    const currentUser = 'You'
+    const findEvent = (id: string) => liveEvents.value.find(e => e.id === id)
+
+    const activeLiveEvents = computed(() =>  liveEvents.value.filter(e => e.status !== 'ENDED'))
+
+    const setStatus = (eventId: string, status: 'LIVE' | 'PAUSED' | 'ENDED') => {
+        const event = findEvent(eventId)
+        if (event) event.status = status
+    }
+
+    const checkInPlayer = (eventId: string, seatNo: number) => {
+        const seat = findEvent(eventId)?.seats.find(s => s.seat === seatNo)
+        if (seat?.status === 'EN_ROUTE') seat.status = 'SEATED'
+    }
+
+    const removePlayer = (eventId: string, seatNo: number) => {
+        const seat = findEvent(eventId)?.seats.find(s => s.seat === seatNo)
+        if (seat && !seat.isHost) {
+            seat.user = null
+            seat.status = 'OPEN'
+        }
+    }
+
+    const setCapacity = (eventId: string, capacity: number) => {
+        const event = findEvent(eventId)
+        if (!event) return
+        while (event.seats.length < capacity) {
+            event.seats.push({ seat: event.seats.length + 1, user: null, status: 'OPEN' })
+        }
+
+        while (event.seats.length > capacity && event.seats.at(-1)?.status === 'OPEN') {
+            event.seats.pop()
+        }
+        event.capacity = event.seats.length
+    }
+
+    const postAnnouncement = (eventId: string, text: string) => {
+        const event = findEvent(eventId)
+        if (!event || !text.trim()) return
+        event.messages.push({
+            id: crypto.randomUUID(),
+            user: event.seats.find(s => s.isHost)?.user?.username ?? currentUser,
+            isHost: true,
+            text: text.trim(),
+            ts: Date.now()
+        })
+    }
+
     const fetchLiveEvents = async () => {
         isLoading.value = true
         await new Promise(r => setTimeout(r, 400))
@@ -78,11 +126,18 @@ const _useLiveEvents = () => {
         liveEvents, 
         isLoading, 
         error, 
+        currentUser,
+        activeLiveEvents,
         fetchLiveEvents, 
         getLiveEvent, 
         claimSeat, 
         sendMessage, 
-        createLiveEvent
+        createLiveEvent,
+        setStatus,
+        checkInPlayer,
+        removePlayer,
+        setCapacity,
+        postAnnouncement,
     }
 }
 

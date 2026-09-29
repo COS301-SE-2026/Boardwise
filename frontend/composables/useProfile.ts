@@ -33,7 +33,7 @@ export const useProfile = () => {
         error.value = ''
         try{
             const res = await userService.getUsers(page);
-            return res.results;
+            return res.users;
         }
         catch(err: any){
             error.value = err.data?.message || "Failed to fetch users"
@@ -115,27 +115,6 @@ export const useProfile = () => {
         }
         catch(err: any){
             error.value = err.data?.message || "Profile picture update failed"
-            if(err.response?.status === 401){
-                localStorage.removeItem("access_token")
-                router.push('/auth/signin')
-                return;
-            }
-            throw err;
-        }
-        finally{
-            isLoading.value = false;
-        }
-    }
-
-    const updateGenrePreferences = async (genres: Array<string>) => {
-        isLoading.value = true;
-        error.value = ''
-        try{
-            const res = await userService.updateGenrePreferences(genres);
-            return res.preferences.genres;
-        }
-        catch(err: any){
-            error.value = err.data?.message || "User genre preferences update failed"
             if(err.response?.status === 401){
                 localStorage.removeItem("access_token")
                 router.push('/auth/signin')
@@ -245,32 +224,16 @@ export const useProfile = () => {
         } finally {
             isLoading.value = false;
         }
-    };
-
-    const fetchGetBoardgameRulebookId = async (gameId: string) => {
-        isLoading.value = true;
-        error.value = ''
-        try {
-            const res = await userService.getBoardgameRulebookId(gameId);
-            return res.rulebookId;
-        } catch (err: any) {
-            error.value = "Failed to fetch rulebook Id";
-            throw err;
-        } finally {
-            isLoading.value = false;
-        }
-    };
+    }
 
     return { 
-        isLoading,
-        fetchGetBoardgameRulebookId,
+        isLoading, 
         fetchCurrentUser, 
         fetchUsers,
         fetchUserPresence, 
         fetchUserById, 
         updateProfile, 
-        updateProfilePicture,
-        updateGenrePreferences, 
+        updateProfilePicture, 
         addGame, 
         removeGame, 
         searchGames,
