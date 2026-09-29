@@ -31,6 +31,8 @@ _EXTRACTION_PROMPT = """\
 Extract the physical component inventory from this board game rulebook excerpt.
 List each distinct component and its stated quantity. Do not infer unlisted components.
 Exclude rules text; output only the component list.
+"meeple" is specifically a humanoid piece; sticks, pawns, and abstract markers belong in
+"miniature" or "other"
 
 Rulebook excerpt:
 ---
@@ -153,7 +155,7 @@ def _finalise_component(rulebook_id: str, raw: dict[str, Any]) -> dict:
         if raw.get("type") in ALLOWED_COMPONENT_TYPES
         else "other",
         "name": str(raw.get("name", "")).strip(),
-        "quantity": _safe_quantity(raw.get("quantity")),
+        "quantity": _coerce_quantity(raw.get("quantity")),
         "attributes": raw.get("attributes") or {},
         "needsReview": needs_review,
         "reviewReason": reason,
@@ -162,7 +164,6 @@ def _finalise_component(rulebook_id: str, raw: dict[str, Any]) -> dict:
 
 def _verify_component(raw: dict[str, Any]) -> tuple[bool, str]:
     name = str(raw.get("name", "")).strip()
-    quantity = raw.get("quantity", "")
     component_type = raw.get("type")
 
     if len(name) < MIN_NAME_CHARS:
@@ -171,20 +172,15 @@ def _verify_component(raw: dict[str, Any]) -> tuple[bool, str]:
     if component_type not in ALLOWED_COMPONENT_TYPES:
         return (True, "unrecognized_component_type")
 
-    if isinstance(quantity, int) or quantity < MIN_QUANTITY:
+    quantity = _coerce_quantity(raw.get("quantity"))
+    if quantity is None or quantity < MIN_QUANTITY:
+        logger.warning("Rejecting quantity %r (type=%s) for component %r", raw.get("quantity"), type(raw.get("quantity")).__name__, name)
         return (True, "invalid_or_missing_quantity")
 
     if quantity > MAX_REASONABLE_QUANTITY:
         return (True, "implausible_quantity")
 
     return (False, "")
-
-
-def _safe_quantity(value: Any) -> int:
-    try:
-        return max(int(value), 0)
-    except (TypeError, ValueError):
-        return 0
 
 
 def _merge_duplicate_components(components: list[dict]) -> list[dict]:
@@ -212,3 +208,16 @@ def _merge_duplicate_components(components: list[dict]) -> list[dict]:
         existing["reviewReason"] = "; ".join(reasons)
 
     return list(merged.values())
+
+def _coerce_quantity(value: Any) -> int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    if isinstance(value, str):
+        stripped = value.strip()
+        if stripped.isdigit():
+            return int(stripped)
+    return None

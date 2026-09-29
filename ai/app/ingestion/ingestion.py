@@ -2,10 +2,12 @@ import logging
 import time
 from datetime import datetime, timezone
 
+from llama_cpp import Llama
 from sentence_transformers import SentenceTransformer
 
 from app.ingestion.chunker import filter_out_decorative_chunks, generate_chunks
 from app.ingestion.extractor import extract_text
+from app.ingestion.game_architect.component_extractor import extract_components
 from app.ingestion.sanitiser import sanitise_pdf
 from app.ingestion.vectoriser import vectorise_chunks
 from app.services import lancedb_service, mongo_service, r2_service
@@ -43,6 +45,8 @@ def run_ingestion_pipeline(
     rulebook_id: str,
     job_id: str,
     embedding_model: SentenceTransformer,
+    *,
+    local_model: Llama | None = None,
 ):
     """
     Executes the background ingestion pipeline for a rulebook PDF.
@@ -84,8 +88,10 @@ def run_ingestion_pipeline(
             )
             return
 
+        before = len(chunk_list)
         chunk_list = filter_out_decorative_chunks(chunk_list)
-
+        logger.info("Filtered chunks: %d -> %d (rulebook %s)", before, len(chunk_list), rulebook_id)
+        
         if not chunk_list:
             mongo_service.mark_pipeline_failed(
                 rulebook_id,
@@ -108,7 +114,42 @@ def run_ingestion_pipeline(
                 pending_reason,
             )
 
-        # =========== Stage 4: Vectorise ===========
+        # =========== Stage 4: Component Extraction ===========
+        if pending_review:
+            logger.info(
+                "Skipping component extraction for rulebook %s (pending review)",
+                rulebook_id,
+            )
+        else:
+            mongo_service.update_ingestion_job(
+                job_id, "ComponentExtraction", "Processing"
+            )
+            component_success, component_list, component_reason = extract_components(
+                chunk_list, rulebook_id, local_model=local_model
+            )
+
+            if not component_success:
+                logger.warning(
+                    "Component extraction failed for rulebook %s: %s",
+                    rulebook_id,
+                    component_reason,
+                )
+            else:
+                try:
+                    mongo_service.store_extracted_components(
+                        rulebook_id, component_list
+                    )
+                    logger.info(
+                        "Stored %d components for rulebook %s",
+                        len(component_list),
+                        rulebook_id,
+                    )
+                except Exception:
+                    logger.exception(
+                        "Failed to persist components for rulebook %s", rulebook_id
+                    )
+
+        # =========== Stage 5: Vectorise ===========
         if pending_review:
             vectorised_chunks = chunk_list
         else:
@@ -123,7 +164,7 @@ def run_ingestion_pipeline(
                 )
                 return
 
-        # =========== Stage 5: Storage & Finalisation ===========
+        # =========== Stage 6: Storage & Finalisation ===========
         # Storage
         pdf_key = r2_service.generate_pdf_key(rulebook_id, filename)
 

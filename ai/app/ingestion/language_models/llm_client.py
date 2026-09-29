@@ -302,7 +302,7 @@ def _call_local_structured(
     try:
         with _local_llm_lock:
             response = local_model.create_chat_completion(
-                messages=messages,
+                messages=messages,  # type: ignore[arg-type]
                 grammar=grammar,
                 temperature=TEXT_TEMPERATURE,
                 max_tokens=LOCAL_MAX_COMPLETION_TOKENS,
@@ -311,8 +311,8 @@ def _call_local_structured(
         logger.exception("Local LLM structured call failed.")
         return (None, LmStatus.API_ERROR)
 
-    finish_reason = response["choices"][0].get("finish_reason")
-    text = response["choices"][0]["message"]["content"]
+    finish_reason = response["choices"][0].get("finish_reason")  # type: ignore[arg-type]
+    text = response["choices"][0]["message"]["content"]  # type: ignore[arg-type]
 
     if finish_reason == "length":
         # Output was cut off before producing valid JSON

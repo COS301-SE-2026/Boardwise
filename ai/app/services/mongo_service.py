@@ -448,6 +448,56 @@ def replace_rulebook_text(rulebook_id: str, chunks: list[dict]) -> int:
     return len(documents)
 
 
+# Generative Game AI Architect
+def store_extracted_components(rulebook_id: str, components: list[dict]) -> int:
+    """
+    Stores all extracted components for a rulebook as a single document
+    Returns the number of components written
+    """
+    rulebook_oid = _coerce_object_id(rulebook_id)
+    now = datetime.now(timezone.utc)
+
+    stored = []
+    for component in components:
+        component_id = component.get("componentId")
+        if component_id is None:
+            logger.warning(
+                "Skipping component missing componentId for rulebook %s", rulebook_id
+            )
+            continue
+        stored.append(
+            {
+                "componentId": component_id,
+                "type": component.get("type", "other"),
+                "name": component.get("name", ""),
+                "quantity": component.get("quantity", 0),
+                "attributes": component.get("attributes") or {},
+                "needsReview": component.get("needsReview", False),
+                "reviewReason": component.get("reviewReason", ""),
+            }
+        )
+    db = get_db()
+    db["GAME_COMPONENT"].replace_one(
+        {"_id": rulebook_oid},
+        {"_id": rulebook_oid, "components": stored, "createdAt": now, "updatedAt": now},
+        upsert=True,
+    )
+
+    return len(stored)
+
+
+def get_components_for_rulebook(rulebook_id: str) -> list[dict]:
+    """
+    Return the extracted component list for a rulebook
+    Return [] otherwise
+    """
+    db = get_db()
+    doc = db["GAME_COMPONENT"].find_one({"_id": _coerce_object_id(rulebook_id)})
+    if not doc:
+        return []
+    return doc.get("components", [])
+
+
 # Setup Wizard
 def setup_wizard_indexes() -> None:
     """
