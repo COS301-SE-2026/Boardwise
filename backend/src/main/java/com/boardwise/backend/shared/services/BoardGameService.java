@@ -20,6 +20,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -45,6 +46,9 @@ import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.services.scoring.PopularityScorer;
 import com.boardwise.backend.shared.dtos.*;
 import com.boardwise.backend.shared.model.*;
+import com.boardwise.backend.user_service.dtos.notifications.GGAIAStatusNotification;
+import com.boardwise.backend.user_service.events.GGAIAStatusEvent;
+import com.boardwise.backend.user_service.events.payload.GGAIAStatusEventPayload;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.services.AuthService;
 import com.boardwise.backend.user_service.services.R2StorageService;
@@ -59,13 +63,13 @@ public class BoardGameService {
     private final R2StorageService bucket;
     private final @Qualifier("bggRestClient") RestClient client;
     private final PopularityScorer scorer;
+    private final MongoTemplate db;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final Logger log = LoggerFactory.getLogger(BoardGameService.class);
     private final String defaultImageKey = "/rulebooks/default_cover.png"; 
     @Value("${r2.rulebooks.public-url}")
     private String r2BaseUrl;
-
-    private final MongoTemplate db;
 
     @Scheduled(fixedDelay = 6 * 1000)
     public void populateDatabase(){
@@ -456,5 +460,16 @@ public class BoardGameService {
 
         existing.addAll(gameRepo.saveAll(toSave));
         return existing;
+    }
+
+    public void notifyUserOnGenerationJob(GGAIAStatusReport body) {
+        String reason = null;
+        if(body.status().equals("failed"))
+            reason = body.reason().split(".")[0];
+
+        GGAIAStatusNotification notification = new GGAIAStatusNotification(body.status(), reason);
+        GGAIAStatusEventPayload payload = new GGAIAStatusEventPayload(body.userId(), notification);
+        GGAIAStatusEvent event = new GGAIAStatusEvent(this, payload);
+        eventPublisher.publishEvent(event);
     } 
 }

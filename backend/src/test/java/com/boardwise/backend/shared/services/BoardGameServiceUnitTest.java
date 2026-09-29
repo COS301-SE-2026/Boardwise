@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -37,6 +38,7 @@ public class BoardGameServiceUnitTest {
     private PopularityScorer popularityScorer;
     private MockRestServiceServer mockServer;
     private BoardGameService service;
+    private ApplicationEventPublisher eventPublisher;
     private String baseUrl = "https://boardgamegeek.com/xmlapi2";
 
     @Captor
@@ -49,6 +51,7 @@ public class BoardGameServiceUnitTest {
         bucket = mock(R2StorageService.class);
         db = mock(MongoTemplate.class);
         popularityScorer = mock(PopularityScorer.class);
+        eventPublisher = mock(ApplicationEventPublisher.class);
         RestClient.Builder builder = RestClient.builder();
         mockServer = MockRestServiceServer.bindTo(builder).build();
 
@@ -56,7 +59,7 @@ public class BoardGameServiceUnitTest {
                                         .defaultHeader("Authorization", "Bearer some-valid-token")
                                         .build();
 
-        service = new BoardGameService(gameRepo, bucket, testClient, popularityScorer, db);
+        service = new BoardGameService(gameRepo, bucket, testClient, popularityScorer, db, eventPublisher);
     }
 
     @Test

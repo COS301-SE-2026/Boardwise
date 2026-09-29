@@ -38,30 +38,30 @@ def run_generation_job(
     job_id: str
 ) -> None:
     try:
-        inputs = load_inputs(request_body.parents)
+        inputs = load_inputs(request_body, user_id)
         # will be assigned to a variable for the next function when it is available [this is just for sonarqube]
         generate_new_game(inputs, ml_models) if request_body.type == 'NEW' else None # <- replace with scale method
+
+        # somewhere we need to tie things to the user fr
+        
         # do some saving or sumn
         # generate_rulebook(result) <- send to model and make rulebook
         spring_alert = {
-            "job_id": job_id,
             "status": "success"
         }
     except InfeasiblePair as in_pair:
         spring_alert = {
-            "job_id": job_id,
             "status": "failed",
             "reason": f"Selected pair deemed infeasible for generation. Reason: {str(in_pair)}"
         }
     except Exception as exc:
         logger.exception(f"Generation job {job_id} failed")
         spring_alert = {
-            "job_id": job_id,
             "status": "failed",
             "reason": f"Something went wrong during game generation. Reason: {str(exc)}"
         }
 
-    spring_alert[user_id] = user_id
+    spring_alert["userId"] = user_id
     notify_user(spring_alert)
 
 @router.post("/generate", status_code=status.HTTP_202_ACCEPTED)
