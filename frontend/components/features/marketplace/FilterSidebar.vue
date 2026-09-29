@@ -41,9 +41,17 @@ const { searchGenres } = useBoardGames()
 const hardGenres = ['All', 'Economic', 'Family', 'Party', 'Card Game', 'Abstract']
 const conditions = ['New', 'Like New', 'Good', 'Fair']
 
-const selectedGenre  = ref('All')
+const selectedGenre = ref('All')
 const selectedConditions = ref([])
 const selectedListingTypes = ref([])
+
+const genreModel = computed({
+  get: () => [selectedGenre.value],
+  set: (arr) => {
+    const next = arr.find(g => g !== selectedGenre.value)
+    selectedGenre.value = next ?? 'All'
+  }
+})
 
 const filters = reactive({
   minPrice: '',
@@ -52,6 +60,31 @@ const filters = reactive({
 
 const rent = computed(() => selectedListingTypes.value.includes('rent'))
 const sale = computed(() => selectedListingTypes.value.includes('sale'))
+
+const searchedGenres = ref(null)
+let timer = null
+let latest = ''
+
+const visibleGenres = computed(() => searchedGenres.value ?? hardGenres)
+
+const onGenreSearch = (q) => {
+  clearTimeout(timer)
+  const query = q.trim()
+  latest = query
+
+  if (!query) {
+    searchedGenres.value = null
+    return
+  }
+
+  timer = setTimeout(async () => {
+    const res = await searchGenres(query)
+    if (query !== latest) return   
+    searchedGenres.value = res.length
+      ? res
+      : hardGenres.filter(g => g.toLowerCase().includes(query.toLowerCase()))
+  }, 300)
+}
 
 watch([selectedGenre, selectedListingTypes, selectedConditions, filters], () => {
   console.log("filter genre val being sent ",selectedGenre.value)
@@ -74,30 +107,6 @@ const resetFilters = () => {
   clearTimeout(timer)
   latest = ''
   searchedGenres.value = null
-}
-
-const genreQuery = ref('')
-const searchedGenres = ref(null)
-let timer = null 
-let latest = ''
-
-const visibleGenres = computed(()=> searchedGenres.value ?? hardGenres)
-
-const onGenreSearch = (q) =>{
-  clearTimeout(timer)
-  const query = q.trim()
-  latest = query
-
-  if(!query){
-    searchedGenres.value = null
-    return;
-  }
-
-  timer = setTimeout(async ()=>{
-    const res = await searchGenres(query)
-    if(query !== latest) return
-    searchedGenres.value = res.length? res : hardGenres.filter(g => g.toLowerCase().includes(query.toLowerCase()))
-  },300)
 }
 
 onScopeDispose(()=> clearTimeout(timer))
