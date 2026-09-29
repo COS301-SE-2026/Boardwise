@@ -47,8 +47,12 @@ const props = defineProps({
   },
 
   modelValue: {
-    type: Array,
+    type: [Array, String],
     default: () => []
+  },
+  multiple: {
+    type: Boolean,
+    default: true
   }
 })
 
@@ -61,10 +65,18 @@ watch(searchQuery, (newQuery) => {
 })
 
 function isSelected(option) {
-  return props.modelValue.includes(option)
+  if (props.multiple) {
+    return props.modelValue.includes(option)
+  }
+  return props.modelValue === option
 }
 
 function toggleOption(option) {
+  if (!props.multiple) {
+    emit('update:modelValue', option)
+    return
+  }
+
   const selected = [...props.modelValue]
   const index = selected.indexOf(option)
 

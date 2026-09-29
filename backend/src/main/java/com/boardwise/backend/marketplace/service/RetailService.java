@@ -56,21 +56,6 @@ public class RetailService {
         this.boardGameService = boardGameService;
     }
 
-    private Boardgame getRandomBoardGameByGenre(String genre, List<String> suggBoardgames) {
-        List<Boardgame> games = boardGameRepository.findByGenresIn(genre)
-                .stream()
-                .filter((g) -> !suggBoardgames.contains(g.getId()))
-                .limit(5)
-                .toList();
-
-        if (games.isEmpty()) {
-            throw new IllegalArgumentException("Games with genre " + genre + " doesn't exist in db");
-        }
-
-        int index = ThreadLocalRandom.current().nextInt(games.size());
-        return games.get(index);
-    }
-
     private List<String> buildGamePrefrenceList(String token) {
         ObjectId userId;
         try {
@@ -183,12 +168,6 @@ public class RetailService {
         return derived;
     }
 
-    private List<String> getTopOwnedGameIds(int limit) {
-        return userRepository.findMostOwnedGameIds(limit)
-                .stream()
-                .map(GameOwnershipCount::getId)
-                .toList();
-    }
 
     public Page<RetailSourceItemDTO> getPersonalisedRetailListings(String token, Integer page) {
         int pageNum = (page == null || page < 0) ? 0 : page;
@@ -215,7 +194,7 @@ public class RetailService {
         return fetchListingsFromScraper(titles, pageNum, PAGESIZE);
     }
 
-    private Page<RetailSourceItemDTO> fetchListingsFromScraper(List<String> titles, int page, int size) {
+    public Page<RetailSourceItemDTO> fetchListingsFromScraper(List<String> titles, int page, int size) {
         try {
             ScrapeResultsDTO response = scraperClient.post()
                     .uri("/listings")

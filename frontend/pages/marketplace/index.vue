@@ -26,14 +26,14 @@
           location="left"
           width="300"
         >
-          <FilterSidebar v-if="communityLoadedOnce" :key="filterKey" data-test="filter-sidebar" @filter="handleFilter" />
+          <FilterSidebar v-if="communityLoadedOnce" data-test="filter-sidebar" @filter="handleFilter" />
         </v-navigation-drawer>
       </div>
 
       <!-- Desktop -->
       <div class="d-flex d-md-flex ga-6 mt-6 align-start">
         <div class="d-none d-md-block">
-          <FilterSidebar v-if="communityLoadedOnce" :key="filterKey" data-test="filter-sidebar" @filter="handleFilter"/>
+          <FilterSidebar v-if="communityLoadedOnce" data-test="filter-sidebar" @filter="handleFilter"/>
         </div>
           
         <div class="flex-1-1">
@@ -103,8 +103,7 @@
         <!-- Desktop -->
         <div class="d-flex d-md-flex ga-6 mt-6 align-start">
           <div class="d-none d-md-block">
-            <RetailerFilterSidebar
-              v-if="!retailInitialLoading"
+            <RetailerFilterSidebar  v-if="!retailInitialLoading"
               data-test="filter-sidebar" 
               :retailer-options="retailerOptions"
               @filter="handleRetailerFilter"
@@ -210,12 +209,9 @@ const {retailResults, retailLoading, hasMoreRetail, fetchPersonalisedListings, p
 const communityPage = ref(1)
 const retailPage = ref(1)
 const activeFilterState = ref({})
-const activeRetailFilterState = ref({ retailers: null, minPrice: null, maxPrice: null })
+const activeRetailFilterState = ref({ retailers: null, minPrice: null, maxPrice: null }, true)
 
-const communityLoadedOnce = ref(false)
-const filterKey = ref(0)
-const retailInitialLoading = computed(() => retailLoading.value && retailResults.value.length === 0)
-
+const retailInitialLoading = computed(()=> retailLoading.value && retailResults.value.length === 0)
 const fetchMarketplaceSearch = async (query) => {
   if(activeTab.value === 'Web Listings'){
     retailPage.value = 1;
@@ -234,11 +230,10 @@ onMounted(async () => {
   if (!localStorage.getItem('access_token')) {
     router.push('/auth/signin')
   }
-  try {
-    await fetchListings({}, true)
-  } finally {
-    communityLoadedOnce.value = true
+  try{
+    await fetchListings({}, true) 
   }
+    finally {communityLoadedOnce.value =true}
 })
 
 const handleAdd = async (data, image) => {
@@ -246,6 +241,8 @@ const handleAdd = async (data, image) => {
   showCreateListing.value = false;
   communityPage.value = 1;
 }
+
+const communityLoadedOnce = ref(false)
 
 const showInlineLoading = computed(() => {
   const currentListings = unref(listings) ?? []
@@ -272,7 +269,7 @@ const getListingType = (rent, sale) => {
 
 const handleFilter = (filters) => {
   const conditions = filters.conditions.length > 0 ? filters.conditions.map(c => c.toLowerCase()) : null
-  const genres = filters.genres?.length > 0 ? filters.genres : null
+  const genres = filters.genres ? [filters.genres.toLowerCase()] : null
 
   const lt = getListingType(filters.rent, filters.sale);
 
