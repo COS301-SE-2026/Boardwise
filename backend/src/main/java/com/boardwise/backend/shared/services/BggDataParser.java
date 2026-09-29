@@ -7,6 +7,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.boardwise.backend.shared.model.BggMechanics;
 import com.boardwise.backend.shared.model.BggStats;
 import com.boardwise.backend.shared.model.Boardgame;
 
@@ -42,6 +43,7 @@ public final class BggDataParser {
                 .wanting(intAttr(item, "wanting"))
                 .trading(intAttr(item, "trading"))
                 .numComments(intAttr(item, "numcomments"))
+                .weight(doubleAttr(item, "averageweight"))
                 .build();
     }
 
@@ -61,6 +63,8 @@ public final class BggDataParser {
                 .maxPlayers(intAttr(item, "maxplayers"))
                 .minAge(intAttr(item, "minage"))
                 .duration(intAttr(item, "playingtime"))
+                .minDuration(intAttr(item, "minplaytime"))
+                .maxDuration(intAttr(item, "maxplaytime"))
                 .genres(parseGenres(item))
                 .types(parseGameTypes(item))
                 .yearPublished(parseYearPublished(item))
@@ -114,20 +118,28 @@ public final class BggDataParser {
         return genres;
     }
 
-    private static List<Integer> parseMechanics(Element item){
-        NodeList gameGenres = item.getElementsByTagName("link");
-        List<Integer> mechanicIds = new ArrayList<>();
-        for(int j = 0; j < gameGenres.getLength(); j++){
-            Node mechanicNode = gameGenres.item(j);
+    private static List<BggMechanics> parseMechanics(Element item){
+        NodeList gameMechanics = item.getElementsByTagName("link");
+        List<BggMechanics> mechanics = new ArrayList<>();
+        for(int j = 0; j < gameMechanics.getLength(); j++){
+            Node mechanicNode = gameMechanics.item(j);
             Node type = mechanicNode.getAttributes()
                             .getNamedItem("type");
             
             if(type != null && type.getNodeValue().equals("boardgamemechanic")){
-                String mechanicId = mechanicNode.getAttributes().getNamedItem("id").getNodeValue();
-                mechanicIds.add(Integer.parseInt(mechanicId));
+                Element mechElement = (Element) mechanicNode;
+                String mechanicId = mechElement.getAttribute("id");
+                String mechanicName =  mechElement.getAttribute("value");
+
+                BggMechanics mechanic = BggMechanics.builder()
+                                                    .bggId(Integer.parseInt(mechanicId))
+                                                    .name(mechanicName)
+                                                    .build();
+                
+                mechanics.add(mechanic);
             }
         }
-        return mechanicIds;
+        return mechanics;
     }
 
     private static String tagTextContent(Element item, String tag){

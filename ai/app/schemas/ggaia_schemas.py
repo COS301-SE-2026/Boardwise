@@ -179,7 +179,7 @@ class Parameters(BaseModel):
 
     @field_validator("player_count", "play_time_in_minutes")
     @classmethod
-    def min_and_max_valid(unused, value: Tuple[int, int]):
+    def min_and_max_valid(cls, value: Tuple[int, int]):
         minimum, maximum = value
         if minimum > maximum:
             raise ValueError(f"Minimum value ({minimum}) cannot be greater than maximum value ({maximum})")
