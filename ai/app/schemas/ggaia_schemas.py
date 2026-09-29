@@ -151,11 +151,17 @@ class Parameters(BaseModel):
         ..., 
         ge=1,
         le=5,
-        description="Complexity on a scale from 1-5."
+        description=(
+            "Complexity on a scale from 1-5. Following from the selected mechanics; "
+            "parent values are for reference only."
+        )
     )
     player_count: Tuple[int, int] = Field(
         ..., 
-        description="[min, max] supported player count."
+        description=(
+            "[min, max] supported player count. Must be feasible with "
+            "component pool supplied."
+        )
     )
     play_time_in_minutes: Tuple[int, int] = Field(
         ..., 

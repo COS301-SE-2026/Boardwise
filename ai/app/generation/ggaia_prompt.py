@@ -23,16 +23,31 @@ def schema_json(model: type[BaseModel]) -> str:
 def generate_parent_string(parent: dict):
     parent_types = ", ".join(parent['types']) if parent['types'] else "No classified type"
     parent_genres = ", ".join(parent['genres'])
-    return (
+    text = (
         f"{parent['title']} ({parent_types}; genres: {parent_genres})\n"
         f" {parent['description']}"
     )
+    stats = parent.get("stats")
+    if stats:
+        stats_parts = []
+        if stats.get("weight"):
+            stats_parts.append(f"complexity: {stats['weight']}/5")
+
+        if stats.get("minPlayers") and stats.get("maxPlayers"):
+            stats_parts.append(f"players: {stats['minPlayers']}-{stats['minPlayers']}")
+
+        if stats.get("minDuration") and stats.get("maxDuration"):
+                    stats_parts.append(f"Duration: {stats['minDuration']}-{stats['minDuration']}")
+        if stats_parts:
+            text += f"\n Values for reference:\n {", ".join(stats_parts)}"
+    return text
+        
 
 def game_ideator_new_game(
     parent_a: dict,
     parent_b: dict,
     potential_mechanics: list[dict],
-    available_component_types: set[str]
+    pool: ComponentPool
 ) -> list[dict]:
     system_prompt = """You are a board game design analyst. You will be given two
 "parent" games and a pool of physical components available to build with. Your job
@@ -49,6 +64,10 @@ Rules:
 - Synthesize a coherent theme for the new design; you are not required to reuse either parent's theme verbatim,
   but the result should feel intentional, not like two settings frankensteined together.
 - Every mechanic's rationale must explain its role in THIS new design.
+- Any \"values for reference\" given for the parents are context and not targets. Choose the new 
+  design's complexity, player count and play time so that they follow from the mechanics you select and 
+  from the component quantities in the pool. Do not simply average the parents' values. The player count 
+  must not exceed what the pooled components can physically support.
 
 Respond with ONLY a JSON object matching the provided schema. No other text.
 """
@@ -59,7 +78,10 @@ Respond with ONLY a JSON object matching the provided schema. No other text.
         for m in potential_mechanics
     )
 
-    available_components_str = ", ".join(sorted(available_component_types))
+    available_components_str = ", ".join(
+        f"{type} (x{pool.quantity_per_type(type)})"
+        for type in sorted(pool.available_types())
+    )
 
     user_prompt = f"""## Parent A
 {generate_parent_string(parent_a)}

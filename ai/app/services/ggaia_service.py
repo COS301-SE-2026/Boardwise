@@ -290,7 +290,7 @@ def generate_new_game(
             input.parent_a, 
             input.parent_b,
             [m.model_dump() for m in feasible],
-            pool.available_types()
+            pool
         ),
         DesignDraft,
         lambda d: draft_feasibility(d, pool, mechs_by_id),
