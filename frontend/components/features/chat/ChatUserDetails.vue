@@ -9,81 +9,66 @@
             <header class="chat-user-details__header">
                 <div class="d-flex align-center ga-4">
                     <BaseAvatar
-               :src="conversation.avatar"
-               :name="conversation.name"
-               size="xl"
+                        :src="conversation.avatar"
+                        :name="conversation.name"
+                        size="xl"
                     />
 
                     <div class="flex-grow-1">
-               <h2 class="chat-user-details__name">
+                        <h2 class="chat-user-details__name">
                             {{ conversation.name }}
-                 </h2>
+                        </h2>
 
                         <p
-                            v-if="username"                    class="chat-user-details__username"
+                            v-if="username"
+                            class="chat-user-details__username"
                         >
                             @{{ username }}
-               </p>
+                        </p>
 
                         <div class="chat-user-details__status">
-                   <span
+                            <span
                              class="chat-user-details__status-dot"
-                          :class="{
-                                    'chat-user-details__status-dot--online':
+                            :class="{
+                                        'chat-user-details__status-dot--online':
                                         conversation.online
-                                }"
-                    aria-hidden="true"
-                            />
+                                    }"
+                            aria-hidden="true"
+                                    />
 
-                       {{ conversation.online ? 'Online' : 'Offline' }}
+                            {{ conversation.online ? 'Online' : 'Offline' }}
                         </div>
                     </div>
 
                     <BaseButton
                         variant="secondary"
                         aria-label="Close conversation details"
-                   @click="dialog = false"
+                        @click="dialog = false"
                     >
                         <v-icon
                             icon="mdi-close"
                             aria-hidden="true"
-               />
+                        />
                     </BaseButton>
                 </div>
             </header>
 
             <v-divider />
 
-            <v-tabs
-                v-model="activeTab"
-           color="primary"
+            <BaseTabs
+                :tabs="['overview', 'media', 'events', 'communities']"
+                :active-tab="activeTab"
+                aria-label="Details sections"
                 class="chat-user-details__tabs"
-                grow
+                @change="activeTab = $event"
             >
-                <v-tab value="overview">
-                    Overview
-                </v-tab>
-
-                <v-tab value="media">
+                <template #tab-media>
                     Media
-
-                    <v-chip
-                        v-if="media.length"
-                        size="x-small"
-                        class="ms-2"
-                    >
+                    <BaseBadge v-if="media.length" size="x-small" class="ms-2" variant="neutral" tone="tonal">
                         {{ media.length }}
-              </v-chip>
-                </v-tab>
-
-                <v-tab value="events">
-                    Events
-                </v-tab>
-
-     <v-tab value="communities">
-                    Communities
-                </v-tab>
-            </v-tabs>
+                    </BaseBadge>
+                </template>
+            </BaseTabs>
 
             <v-divider />
 
@@ -184,18 +169,14 @@
                                     </h3>
 
                                     <div class="d-flex flex-wrap ga-2">
-                             <v-chip
+                                    <BaseBadge
                                             v-for="game in sharedGames"
                                             :key="game.id ?? game.title ?? game"
-                                            color="primary"
-                                            variant="tonal"
+                                            variant="primary"
+                                            tone="tonal"
                                         >
-                                            {{
-                                                game.title ??
-                                          game.name ??
-                                    game
-                                            }}
-                                        </v-chip>
+                                            {{ game.title ?? game.name ?? game }}
+                                        </BaseBadge>
                                     </div>
                                 </section>
                             </template>
@@ -250,7 +231,7 @@
                             <BaseEmptyState
                              v-else
                                 title="No shared media"
-                                description="Photos and images shared in this conversation will appear here."
+                                message="Photos and images shared in this conversation will appear here."
                             />
                         </section>
                     </v-window-item>
@@ -335,7 +316,7 @@
                             <BaseEmptyState
                                 v-else
                                 title="No shared events"
-                                description="Events you both attend will appear here."
+                                message="Events you both attend will appear here."
                             />
                         </section>
                     </v-window-item>
@@ -361,7 +342,7 @@
                                 <NuxtLink
                                     v-for="community in communities"
                                     :key="community.id"
-                        :to="`/community/${community.id}`"
+                        :to="`/social/community/${community.id}`"
                                     class="chat-detail-link"
                                 >
                                     <BaseCard class="chat-detail-row pa-4">
@@ -403,7 +384,7 @@
                             <BaseEmptyState
                                 v-else
                                 title="No communities in common"
-                                description="Communities you both join will appear here."
+                                message="Communities you both join will appear here."
                      />
                         </section>
                     </v-window-item>
@@ -454,6 +435,7 @@ import { computed, ref } from 'vue'
 import { useDisplay } from 'vuetify'
 
 import BaseAvatar from '~/components/ui/BaseAvatar.vue'
+import BaseBadge from '~/components/ui/BaseBadge.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'

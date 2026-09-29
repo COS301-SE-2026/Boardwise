@@ -1,6 +1,6 @@
 <template>
     <div class="boarley-bubble">
-        <BaseAvatar src="/images/Boarley.svg" alt="Boarley" size="xl" />
+        <BaseAvatar v-if="showAvatar" src="/images/Boarley.svg" alt="Boarley" size="lg" />
         <div class="boarley-bubble_text">
             <slot />
         </div>
@@ -8,22 +8,12 @@
 </template>
 
 <script setup>
-    import BaseAvatar from '~/components/ui/BaseAvatar.vue'
+import BaseAvatar from '~/components/ui/BaseAvatar.vue'
+
+defineProps({
+    showAvatar: {
+        type: Boolean,
+        default: true
+    }
+})
 </script>
-
-<style scoped>
-.boarley-bubble {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-3);
-}
-
-.boarley-bubble_text {
-    background: var(--color-surface-alt);
-    border-radius: var(--radius-md);
-    padding: var(--space-3) var(--space-4);
-    font-family: var(--font-body);
-    font-size: var(--fs-body);
-    color: var(--color-text);
-}
-</style>

@@ -26,7 +26,7 @@
                 <div class="chat-header__avatar">
                     <BaseAvatar
                         :src="conversation.profilePicture "
-                        :name="conversation.username + ' profile picture'"
+                        :name="conversation.username"
                         size="lg"
                     />
                 </div>
@@ -36,13 +36,13 @@
                         {{ conversation.username }}
                     </h2>
 
-                <div class="chat-header__status">
-                    <span
-                        :class="{
-                            'chat-status-dot--online': conversation.online
-                        }"
-                        aria-hidden="true"
-                    />
+                    <div class="chat-header__status">
+                        <span
+                            :class="{
+                                'chat-status-dot--online': conversation.online
+                            }"
+                            aria-hidden="true"
+                        ></span>
 
                         <span>
                             {{ conversation.isOnline ? 'Online' : 'Offline' }}

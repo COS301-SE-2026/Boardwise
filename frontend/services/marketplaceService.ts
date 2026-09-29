@@ -22,7 +22,6 @@ export interface ListingResponse {
 }
 
 
-
 export const MarketplaceService = {
     //GET ALL LISTINGS
     getListings(filters:{
@@ -101,5 +100,24 @@ export const MarketplaceService = {
     getListingById(id: string){ 
         const { $api } = useNuxtApp();
         return $api<ListingResponse>(`marketplace/listing/${id}`);
+    },
+
+    //GET OTHER USERS LISTINGS 
+    getOtherUsersListings(id: string){
+        const { $api } = useNuxtApp();
+        return $api<ListingResponse[]>(`marketplace/listings/user/${id}`);
+    },
+
+    //RENT OUT A LISTING
+    rentOutListing(id: string){
+        const { $api } = useNuxtApp();
+        return $api<any>(`marketplace/listings/${id}/rent`,{method: "PUT"});
+    },
+
+    //RETURN RENTED LISTING
+    returnRentedOutListing(id: string ){
+        const { $api } = useNuxtApp();
+        return $api<any>(`marketplace/listings/${id}/rent`,{method: "PUT"});
     }
+
 }

@@ -8,9 +8,10 @@ from llama_cpp import Llama
 from sentence_transformers import CrossEncoder, SentenceTransformer
 
 from app.config import settings
-from app.routers import internal, job, rulebook
-from app.services import mongo_service, r2_service
-from app.utils.init_vector_index import initialise_vector_index
+from app.routers import internal, job, rulebook, setup_wizard  
+from app.scripts.seed_system_user import seed_system_user
+from app.services import lancedb_service, mongo_service, r2_service
+from app.utils.init_lancedb_index import initialise_lancedb
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -37,7 +38,10 @@ async def lifespan(app: FastAPI):
         r2_service.ping_r2_storage()
         logger.info("Connection to R2 bucket verified.")
 
-        initialise_vector_index()
+        lancedb_service.ping_lancedb()
+        logger.info("LanceDB connection verified.")
+
+        initialise_lancedb()
 
         # device="cpu" is set to avoid searching for CUDA on Fargate
         # trust_remote_code=True is required for Nomic models via HuggingFace
@@ -55,8 +59,8 @@ async def lifespan(app: FastAPI):
         logger.info("Cross-encoder re-ranker model loaded successfully.")
 
         ml_models["local_llm"] = Llama(
-            model_path="/app/models/qwen2.5-0.5b-instruct-q4_k_m.gguf",
-            n_ctx=4096,
+            model_path="/app/models/qwen2.5-3b-instruct-q4_k_m.gguf",
+            n_ctx=8192,
             n_threads=settings.CPU_CORES,
             n_gpu_layers=0,
             verbose=False,
@@ -64,6 +68,14 @@ async def lifespan(app: FastAPI):
         logger.info("Local LLM model loaded successfully.")
 
         app.state.ml_models = ml_models
+
+        mongo_service.ping_database()
+        logger.info("MongoDB connection verified.")
+
+        seed_system_user()
+        logger.info("System user check complete.")
+
+        r2_service.ping_r2_storage()
     except Exception:
         logger.exception("FATAL BOOT ERROR: Infrastructure check failed")
         raise
@@ -83,7 +95,7 @@ app = FastAPI(
     
     Core Capabilities:
     - Ingestion Pipeline: PDF sanitisation, OCR text extraction, and hierarchical chunking.
-    - Vectorisation: Matryoshka dimensionality truncation and MongoDB Binary Quantization via Nomic embeddings.
+    - Vectorisation: Matryoshka dimensionality truncation (Nomic embeddings) stored in embedded LanceDB vector index.
     - Retrieval & Generation: Vector similarity search, cross-encoder re-ranking, and LLM context generation.
     """,
     version="1.0.0",
@@ -106,7 +118,7 @@ app.add_middleware(
 app.include_router(rulebook.router, prefix="/api/fa/vault/rulebooks")
 app.include_router(job.router, prefix="/api/fa/vault/jobs")
 app.include_router(internal.router, prefix="/api/fa/vault/internal")
-
+app.include_router(setup_wizard.router, prefix="/api/fa/vault/rulebooks" )
 
 @app.get("/api/fa/health", tags=["System"])
 async def health_check():

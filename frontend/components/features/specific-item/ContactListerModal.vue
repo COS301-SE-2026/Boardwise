@@ -25,7 +25,7 @@
           hide-details="auto"
         />
 
-        <v-textarea
+        <BaseTextArea
           v-model="message"
           label="Message"
           :placeholder="`Hey, I'm interested in your listing for ${listingTitle}...`"
@@ -59,6 +59,7 @@
 import { ref } from 'vue'
 import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
+import BaseTextArea from '~/components/ui/BaseTextArea.vue'
 
 const open = defineModel()
 

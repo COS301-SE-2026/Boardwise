@@ -20,13 +20,13 @@
         mandatory
         divided  
       >
-        <v-btn value="Public">
+        <BaseButton value="Public">
           Public
-        </v-btn>
+        </BaseButton>
 
-        <v-btn value="Private">
+        <BaseButton value="Private">
           Private
-        </v-btn>
+        </BaseButton>
     </v-btn-toggle>
 
       <div class="d-flex align-center ga-4">

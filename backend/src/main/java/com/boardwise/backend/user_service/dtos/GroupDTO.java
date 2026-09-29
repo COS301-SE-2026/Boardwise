@@ -1,7 +1,6 @@
 package com.boardwise.backend.user_service.dtos;
 
 import java.util.List;
-
 import com.boardwise.backend.user_service.enums.Visibility;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -13,7 +12,7 @@ public record GroupDTO(
     String owner,
     Visibility visibility,
     int memberCount,
-    List<?> members,
+    List<GroupMember> members,
     @JsonProperty("isMember")
     boolean isMember,
     @JsonProperty("isOwner")

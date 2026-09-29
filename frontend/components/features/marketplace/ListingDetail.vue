@@ -35,9 +35,9 @@
       </div>
 
       <div v-if="listing.genres?.length" data-test="listing-genre" class="d-flex flex-wrap ga-2">
-        <v-chip v-for="genre in listing.genres" :key="genre" size="small">
+        <BaseBadge v-for="genre in listing.genres" :key="genre" variant="default">
           {{ genre }}
-        </v-chip>
+        </BaseBadge>
       </div>
 
       <p class="description" data-test="listing-description">{{ listing.description ?? 'No description provided.' }}</p>
@@ -60,10 +60,22 @@ const props = defineProps({
 })
 
 const handleClick = () => {
-  console.log('Listing.userId: ', props.listing.userId, props.listing)
+  const listing = {
+    listingId: props.listing.listingId,
+    listingImage: props.listing.imageUrl,
+    listingTitle: props.listing.listingTitle,
+    listingPrice: props.listing.price,
+    listingOwner: props.listing.userId
+  }
+
+  const listingStr = JSON.stringify(listing)
+  localStorage.setItem('queried-listing', listingStr);
+
   router.push({
     path: '/chats',
-    query: { newChat: props.listing.userId }
+    query: { 
+      newChat: props.listing.userId
+    }
   })
 }
 </script>

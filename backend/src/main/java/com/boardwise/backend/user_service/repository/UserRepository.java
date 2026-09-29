@@ -26,7 +26,7 @@ public interface UserRepository extends MongoRepository<User, String>{
     //Recc system
     public interface GameOwnershipCount {
         String getId();
-        int getCount();
+        Integer getCount();
     }
     
     @Aggregation(pipeline = {
@@ -40,4 +40,6 @@ public interface UserRepository extends MongoRepository<User, String>{
     public Optional<User> findByEmailAddress(String emailAddress);
 
     public Optional<User> findByResetToken(String token);
+
+    
 }

@@ -3,6 +3,7 @@ import logging
 import numpy as np
 from fastapi import HTTPException
 
+from app.config import settings
 from app.retrieval.reranker import rerank_chunks
 from app.retrieval.vector_store import fetch_candidate_chunks
 from app.utils.logging_utils import sanitise_log_input
@@ -13,9 +14,9 @@ logger = logging.getLogger(__name__)
 def retrieve_context(query: str, rulebook_id: str, ml_models: dict) -> list[dict]:
     """
     Orchestrates the three-stage retrieval pipeline.
-    1. Vectorises the query (Nomic 256d)
-    2. Fetches top 15 candidates from MongoDB Vector Search.
-    3. Re-ranks candidates down to the top 3 using the cross-encoder
+    1. Vectorises the query (Nomic 512d)
+    2. Fetches candidate chunks via LanceDB hybrid search (vector + FTS fused via RRF).
+    3. Re-ranks candidates down to the top_k using a rank-fused cross-encoder
     """
     try:
         # ========== Stage 1: Query Vectorisation ==========
@@ -30,7 +31,7 @@ def retrieve_context(query: str, rulebook_id: str, ml_models: dict) -> list[dict
             [prefixed_query], normalize_embeddings=True
         )
 
-        truncated_query = query_embedding[:, :256]
+        truncated_query = query_embedding[:, : settings.EMBEDDING_DIMENSIONS]
 
         norms = np.linalg.norm(truncated_query, axis=1, keepdims=True)
         norms = np.maximum(norms, 1e-10)
@@ -39,11 +40,11 @@ def retrieve_context(query: str, rulebook_id: str, ml_models: dict) -> list[dict
         query_vector = truncated_query[0].tolist()
 
         # ========== Stage 2: Vector Search Retrieval ==========
-        candidates = fetch_candidate_chunks(rulebook_id, query_vector, limit=15)
+        candidates = fetch_candidate_chunks(rulebook_id, query, query_vector, limit=50)
 
         if not candidates:
             logger.info(
-                "No candidates found in MongoDB for rulebook %s.",
+                "No candidates found in LanceDB for rulebook %s.",
                 sanitise_log_input(rulebook_id),
             )
             return []

@@ -1,40 +1,59 @@
 <template>
-  <BaseCard class="game-card" @click="openDelete = true">
+  <BaseCard
+    clickable
+    class="games-card"
+    @click="handleBoardgameRedirect"
+    >
 
-    <v-img 
-      :src="image" 
-      :alt="title"
-       height="240" 
-       cover 
-    />
-
+    <template #media>
+      <BaseImage :src="image" :alt="title" height="200px" />
+    </template>
+ 
     <div class="game-card__content">
-      <h3 class="game-card__title">
+      <p class="card-title">
         {{ decodedTitle }}
-      </h3>
+      </p>
 
-      <p class="game-card__category">
+      <p class="card-meta">
         {{ decodedCategory }}
       </p>
+
+      <BaseButton
+        variant="text"
+        size="small"
+        class="game-card__remove"
+        @click.stop="openDelete = true"
+      >
+        <v-icon size="16">mdi-delete-outline</v-icon>
+      </BaseButton>
     </div>
 
-    <RemoveGameModal v-if="removable" v-model="openDelete" @confirm="handleRemove()" ></RemoveGameModal>
+    <RemoveGameModal v-model="openDelete" @confirm="handleRemove" />
   </BaseCard>
 </template>
 
 <script setup>
 import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseImage from '~/components/ui/BaseImage.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
 import RemoveGameModal from './RemoveGameModal.vue'
 
 import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useProfile } from '~/composables/useProfile'
+import { useSnackBar } from '~/composables/useSnackbar'
+
+const { fetchGetBoardgameRulebookId, error } = useProfile();
+const { show } = useSnackBar();
 
 const props = defineProps({
   id: { type: String, required: true },
-  title: String,
-  category: String,
-  image: String,
-  removable: { type: Boolean, default: false }
+  title: { type: String, default: '' },
+  category: { type: String, default: '' },
+  image: { type: String, default: '' }
 })
+
+const router = useRouter()
 
 const emit = defineEmits(['remove'])
 
@@ -47,6 +66,15 @@ function handleRemove(){
   emit('remove');
 }
 
+const handleBoardgameRedirect = async () => {
+  try{
+    const rulebookId = await fetchGetBoardgameRulebookId(props.id);
+    router.push(`/library/read/${rulebookId}`);
+  }catch(err){
+    if(err.message) show(error.value, 'error');
+  }
+}
+
 function decodeEntity(entity) {
   if(!entity) return ''
   return entity.replaceAll(/&#39;/g, "'")
@@ -56,57 +84,3 @@ function decodeEntity(entity) {
               .replaceAll(/&gt;/g, '>')
 }
 </script>
-
-<style scoped>
-
-.game-card {
-  display: flex;
-  flex-direction: column;
-
-  width: 100%;
-  height: 320px;
-  
-  border-radius: 16px;
-  overflow: hidden;
-  cursor: pointer;
-
-  transition:
-    transform .2s ease,
-    box-shadow .2s ease;
-}
-
-.game-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md) !important;
-}
-
-.game-card__title {
-    font-family: var(--font-body);
-    font-size: 1.15rem;
-    font-weight: 600;
-    color: var(--color-secondary);
-    line-height: 1.3;
-
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-
-    overflow: hidden;
-}
-
-.game-card__content {
-  padding: 16px;
-
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-
-  flex: 1;
-}
-
-.game-card__category {
-    margin-top: .5rem;
-    color: #777;
-    font-size: .9rem;
-}
-</style>

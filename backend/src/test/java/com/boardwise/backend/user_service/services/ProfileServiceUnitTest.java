@@ -22,18 +22,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Example;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.shared.services.NotificationService;
-import com.boardwise.backend.user_service.dtos.FriendConfirmationNotification;
 import com.boardwise.backend.user_service.dtos.FriendDTO;
-import com.boardwise.backend.user_service.dtos.FriendRequestNotification;
-import com.boardwise.backend.user_service.dtos.FriendRequestResponseDTO;
+import com.boardwise.backend.user_service.dtos.notifications.FriendRequestNotification;
+import com.boardwise.backend.user_service.dtos.response.FriendRequestResponseDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestsDTO;
 import com.boardwise.backend.user_service.dtos.FriendsListDTO;
 import com.boardwise.backend.user_service.enums.FriendStatus;
 import com.boardwise.backend.user_service.enums.NotificationType;
+import com.boardwise.backend.user_service.events.FriendEvent;
 import com.boardwise.backend.user_service.fixtures.ProfileServiceFixtures;
 import com.boardwise.backend.user_service.models.Friendship;
 import com.boardwise.backend.user_service.models.User;
@@ -68,8 +69,11 @@ public class ProfileServiceUnitTest {
     private MongoTemplate template;
     @Mock
     private NotificationService notificationService;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
     @InjectMocks
     private ProfileService profileService;
+
 
     @Nested
     @DisplayName("Testing friends system functionality")
@@ -270,15 +274,17 @@ public class ProfileServiceUnitTest {
 
             verify(fsRepo, times(1)).findFriendShipBetweenUsers(friend3.getId(), friend.getId());
 
-            ArgumentCaptor<FriendRequestNotification> frCaptor = ArgumentCaptor.forClass(FriendRequestNotification.class);
-            verify(notificationService, times(1)).notifyUser(eq(friend3.getId()), frCaptor.capture());
-            FriendRequestNotification savedNotification = frCaptor.getValue();
+        //     ArgumentCaptor<FriendRequestNotification> frCaptor = ArgumentCaptor.forClass(FriendRequestNotification.class);
+        //     verify(notificationService, times(1)).notifyUser(eq(friend3.getId()), frCaptor.capture());
+                    assertEquals("Friend request successfully sent.", result.message());
+            ArgumentCaptor<FriendEvent> eventCaptor = ArgumentCaptor.forClass(FriendEvent.class);
+            verify(eventPublisher).publishEvent(eventCaptor.capture());
+            FriendEvent capturedEvent = eventCaptor.getValue();
+
+            FriendRequestNotification savedNotification = (FriendRequestNotification) capturedEvent.getMessage().notification();
             assertEquals(NotificationType.FRIEND_REQUEST, savedNotification.type());
             assertEquals("fs-006", savedNotification.request().id());
             assertEquals(ProfileServiceFixtures.OWNER_ID, savedNotification.request().sender().id());
-
-            assertEquals("Friend request successfully sent.", result.message());
-        
         }
         
         @Test
@@ -309,9 +315,13 @@ public class ProfileServiceUnitTest {
             FriendRequestResponseDTO result = profileService.sendFriendRequest("", friend3.getId());
 
             // Arrange
-            ArgumentCaptor<FriendRequestNotification> frCaptor = ArgumentCaptor.forClass(FriendRequestNotification.class);
-            verify(notificationService, times(1)).notifyUser(eq(friend3.getId()), frCaptor.capture());
-            FriendRequestNotification savedNotification = frCaptor.getValue();
+        //     ArgumentCaptor<FriendRequestNotification> frCaptor = ArgumentCaptor.forClass(FriendRequestNotification.class);
+        //     verify(notificationService, times(1)).notifyUser(eq(friend3.getId()), frCaptor.capture());
+            ArgumentCaptor<FriendEvent> eventCaptor = ArgumentCaptor.forClass(FriendEvent.class);
+            verify(eventPublisher).publishEvent(eventCaptor.capture());
+            FriendEvent capturedEvent = eventCaptor.getValue();
+
+            FriendRequestNotification savedNotification = (FriendRequestNotification) capturedEvent.getMessage().notification();
             assertEquals(NotificationType.FRIEND_REQUEST, savedNotification.type());
             assertEquals("fs-005", savedNotification.request().id());
             assertEquals(ProfileServiceFixtures.OWNER_ID, savedNotification.request().sender().id());
@@ -324,7 +334,6 @@ public class ProfileServiceUnitTest {
             assertEquals(FriendStatus.REQUESTED, saved.getStatus());
 
             assertEquals("Friend request successfully sent.", result.message());
-            
         }
     
         @Test
@@ -477,12 +486,15 @@ public class ProfileServiceUnitTest {
             // Assert
             assertEquals("Friend request response successfully recorded.", result.message());
 
-            ArgumentCaptor<FriendConfirmationNotification> notificationCaptor = ArgumentCaptor.forClass(FriendConfirmationNotification.class);
-            verify(notificationService, times(1)).notifyUser(eq(friend1.getId()), notificationCaptor.capture());
-            FriendConfirmationNotification captured = notificationCaptor.getValue();
-            assertEquals(NotificationType.FRIEND_CONFIRMATION, captured.type());
-            assertEquals(ProfileServiceFixtures.FRIEND_ID2, captured.friend().id());
-            
+            //     ArgumentCaptor<FriendConfirmationNotification> notificationCaptor = ArgumentCaptor.forClass(FriendConfirmationNotification.class);
+            //     verify(notificationService, times(1)).notifyUser(eq(friend1.getId()), notificationCaptor.capture());
+            //     FriendConfirmationNotification captured = notificationCaptor.getValue();
+            ArgumentCaptor<FriendEvent> eventCaptor = ArgumentCaptor.forClass(FriendEvent.class);
+            verify(eventPublisher).publishEvent(eventCaptor.capture());
+            FriendEvent capturedEvents = eventCaptor.getValue();
+
+            assertEquals(NotificationType.FRIEND_CONFIRMATION, capturedEvents.getMessage().notification().getType());
+            assertEquals(friend1.getId(), capturedEvents.getMessage().receiverId());
         }
 
         @Test
@@ -620,9 +632,6 @@ public class ProfileServiceUnitTest {
             Mockito.when(jwtService.extractUserId(anyString()))   
                     .thenReturn(new ObjectId(owner.getId()));
 
-            Mockito.when(userRepo.findById(owner.getId()))   
-                    .thenReturn(Optional.of(owner));
-
             Mockito.when(userRepo.existsById(toUnfriend))
                     .thenReturn(true);
 
@@ -633,6 +642,9 @@ public class ProfileServiceUnitTest {
             FriendRequestResponseDTO result = profileService.unfriendUser("", toUnfriend);
 
             // Assert
+            ArgumentCaptor<FriendEvent> eventCaptor = ArgumentCaptor.forClass(FriendEvent.class);
+            verify(eventPublisher).publishEvent(eventCaptor.capture());
+        //     FriendEvent capturedEvents = eventCaptor.getValue();
             assertEquals("Unfriend user query successful.", result.message());
             verify(fsRepo, times(1)).save(any());
         }
@@ -646,9 +658,6 @@ public class ProfileServiceUnitTest {
         
             Mockito.when(jwtService.extractUserId(anyString()))   
                     .thenReturn(new ObjectId(owner.getId()));
-
-            Mockito.when(userRepo.findById(owner.getId()))   
-                    .thenReturn(Optional.of(owner));
 
             Mockito.when(userRepo.existsById(toUnfriend))
                     .thenReturn(false);
@@ -670,9 +679,6 @@ public class ProfileServiceUnitTest {
         
             Mockito.when(jwtService.extractUserId(anyString()))   
                     .thenReturn(new ObjectId(owner.getId()));
-
-            Mockito.when(userRepo.findById(owner.getId()))   
-                    .thenReturn(Optional.of(owner));
 
             Mockito.when(userRepo.existsById(toUnfriend))
                     .thenReturn(true);
@@ -697,9 +703,6 @@ public class ProfileServiceUnitTest {
         
             Mockito.when(jwtService.extractUserId(anyString()))   
                     .thenReturn(new ObjectId(owner.getId()));
-
-            Mockito.when(userRepo.findById(owner.getId()))   
-                    .thenReturn(Optional.of(owner));
 
             Mockito.when(userRepo.existsById(toUnfriend))
                     .thenReturn(true);

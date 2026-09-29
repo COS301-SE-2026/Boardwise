@@ -58,7 +58,10 @@ import { useSnackBar } from '~/composables/useSnackbar';
 const { updateProfilePicture, isLoading, error } = useProfile();
 const { show } = useSnackBar();
 
-const open = defineModel(false)
+const open = defineModel({
+    type: Boolean, 
+    default: false
+})
 const emit = defineEmits(['save'])
 
 const fileName  = ref('');

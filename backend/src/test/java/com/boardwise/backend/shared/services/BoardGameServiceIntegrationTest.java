@@ -38,7 +38,7 @@ public class BoardGameServiceIntegrationTest extends BaseIntegrationTest {
         // assert
         List<Boardgame> savedGames = gameRepo.findAll(Sort.by(Sort.Direction.ASC, "bggId"));
         Boardgame first = savedGames.get(0);
-        // assertTrue(savedGames.size() <= 20);
+
         assertTrue(first.getBggId() == 1);
         assertTrue(first.getTitle().equals("Die Macher"));
         assertTrue(first.getDescription().contains("different regions of Germany"));

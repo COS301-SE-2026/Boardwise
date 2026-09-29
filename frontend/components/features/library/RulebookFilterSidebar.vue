@@ -1,155 +1,43 @@
 <template>
   <BaseFilterSidebar @reset="resetFilters">
 
-    <BaseFilterGroup
-      title="Genre"
-      :default-open="false"
-    >
-      <v-radio-group
-        v-model="selectedGenre"
-        hide-details
-        density="compact"
-      >
-        <v-radio
-          label="All"
-          value="all"
-          color="primary"
-        />
-
-        <v-radio
-          v-for="genre in presetGenres"
-          :key="genre"
-          :label="genre"
-          :value="genre"
-          color="primary"
-          class="text-capitalize"
-        />
-      </v-radio-group>
+    <BaseFilterGroup title="Genre" :default-open="true">
+      <BaseFilterPills v-model="filters.genre" :options="availableGenres" @search="handleGenreSearch" />
     </BaseFilterGroup>
 
-    <BaseFilterGroup
-      title="Language"
-      :default-open="false"
-    >
-      <v-checkbox
-        v-for="lang in languages"
-        :key="lang"
-        v-model="selectedLanguages"
-        :label="lang"
-        :value="lang"
-        hide-details
-        density="compact"
-        color="primary"
-      />
+    <BaseFilterGroup title="Player Count" :default-open="true">
+      <BaseFilterNumberField v-model.number="filters.playerCount" placeholder="e.g. 4 players" :min="1" />
     </BaseFilterGroup>
 
-    <BaseFilterGroup
-      title="Player Count"
-      :default-open="false"
-    >
-      <v-text-field
-        v-model.number="filters.playerCount"
-        type="number"
-        placeholder="How many players?"
-        min="1"
-        density="compact"
-        hide-details
-        rounded="lg"
-      />
+    <BaseFilterGroup title="Max Duration" :default-open="true">
+      <BaseFilterNumberField v-model.number="filters.duration" placeholder="e.g. 60 minutes" :min="1" />
     </BaseFilterGroup>
 
-    <BaseFilterGroup
-      title="Max Duration"
-      :default-open="false"
-    >
-      <v-text-field
-        v-model.number="filters.duration"
-        type="number"
-        placeholder="e.g. 60 minutes"
-        min="1"
-        density="compact"
-        hide-details
-        rounded="lg"
-      />
-    </BaseFilterGroup>
-
-    <BaseFilterGroup
-      title="Minimum Age"
-      :default-open="false"
-    >
-      <v-text-field
-        v-model.number="filters.minAge"
-        type="number"
-        placeholder="e.g. 10"
-        min="0"
-        density="compact"
-        hide-details
-        rounded="lg"
-      />
+    <BaseFilterGroup title="Minimum Age" :default-open="true">
+      <BaseFilterNumberField v-model.number="filters.minAge" placeholder="e.g. 10" :min="0" />
     </BaseFilterGroup>
 
   </BaseFilterSidebar>
 </template>
 
 <script setup>
-import { reactive, ref, watch } from 'vue'
+import { computed } from 'vue'
 
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue'
 import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue'
+import BaseFilterNumberField from '~/components/ui/Filters/BaseFilterNumberField.vue'
+import BaseFilterPills from '~/components/ui/Filters/BaseFilterPills.vue'
+import { useRulebookFilters } from '~/composables/useRulebookFilters'
+import { useBoardGames } from '~/composables/useBoardGames'
+import { useDebouncedAutocomplete } from '~/composables/useDebounce'
 
-const emit = defineEmits(['filter'])
+const {filters, resetFilters} = useRulebookFilters();
+const {searchGenres} = useBoardGames();
 
-const presetGenres = [
-  'adventure',
-  'card game',
-  'economic',
-  'family',
-  'fantasy',
-  'strategy'
-]
+const {options: apiGenres, refetch: handleGenreSearch, markSelecting} = useDebouncedAutocomplete(searchGenres, {fetchOnMount: true});
 
-const languages = [
-  'English',
-  'French',
-  'Spanish'
-]
-
-const selectedGenre = ref('all')
-const selectedLanguages = ref([])
-
-const filters = reactive({
-  playerCount: '',
-  duration: '',
-  minAge: ''
-})
-
-watch(
-  [selectedGenre, selectedLanguages, filters],
-  () => {
-    emit('filter', {
-      genre:
-        selectedGenre.value === 'all'
-          ? null
-          : selectedGenre.value,
-
-      languages: selectedLanguages.value,
-
-      playerCount: filters.playerCount,
-      duration: filters.duration,
-      minAge: filters.minAge
-    })
-  },
-  {
-    deep: true
-  }
-)
-
-const resetFilters = () => {
-  selectedGenre.value = 'all'
-  selectedLanguages.value = []
-
-  filters.playerCount = ''
-  filters.duration = ''
-  filters.minAge = ''
-}
+const availableGenres = computed(() => {
+  const combined = ['all', ...filters.genre, ...apiGenres.value];
+  return Array.from(new Set(combined));
+});
 </script>

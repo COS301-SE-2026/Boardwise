@@ -16,7 +16,7 @@
             v-else
             data-test="base-empty-state"
             title="No Invites"
-            description="You don't have any pending event invites."
+            message="You don't have any pending event invites."
         />
     </BaseCard>
 </template>

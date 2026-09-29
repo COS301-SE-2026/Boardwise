@@ -22,25 +22,3 @@ const handleClick = () => {
     }
 }
 </script>
-
-<style scoped>
-.rag-citation {
-    font-size: var(--fs-body-sm, .8rem);
-    color: var(--color-text-muted);
-    margin-top: var(--space-2, 8px);
-    display: flex;
-    align-items: center;
-
-    cursor: pointer;
-    transition: color 0.2s ease, background-color 0.2s ease;
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-left: -6px;
-    width: fit-content;
-}
-
-.rag-citation:hover{
-    color: rgb(var(--v-theme-primary));
-    background-color: rgba(var(--v-theme-primary), 0.1);
-}
-</style>

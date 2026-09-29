@@ -17,7 +17,7 @@
         <BaseEmptyState
             v-if="communityEvents.length === 0"
             title="No upcoming events"
-            description="This community hasn't scheduled any events yet."
+            message="This community hasn't scheduled any events yet."
         />
         
         <BaseButton
@@ -42,7 +42,7 @@ import BaseEmptyState from '~/components/ui/BaseEmptyState.vue';
 import { events } from '~/services/mockData/events';
 import EventReminder from './EventReminder.vue';
 import CreateEventModal from './CreateEventModal.vue';
-import createEvent from '../events/CreateEvent.vue';
+import createEvent from '../events/CreateEventModal.vue/index.js';
 import BaseButton from '~/components/ui/BaseButton.vue';
 
 const props = defineProps({

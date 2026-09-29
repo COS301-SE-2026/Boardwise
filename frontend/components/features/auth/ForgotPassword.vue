@@ -1,45 +1,43 @@
 <template>
-    <v-container fluid class="auth-page d-flex align-center justify-center">
-        <div class="auth-wrapper">
-            <AuthForm
-                data-test="auth-form"
-                v-if="!emailSent"
-                title="Forgot Your Password?"
-                subtitle="There is nothing to worry aboutm we'll send you a message to reset your password!"
-                buttonText="Send Reset Link"
-                :fields="fields"
-                @submit="handleForgotPassword"
-            />
+    <div class="auth-wrapper">
+        <AuthForm
+            data-test="auth-form"
+            v-if="!emailSent"
+            title="Forgot Your Password?"
+            subtitle="There is nothing to worry aboutm we'll send you a message to reset your password!"
+            buttonText="Send Reset Link"
+            :fields="fields"
+            @submit="handleForgotPassword"
+        />
 
-            <BaseCard v-else class="auth-card text-center" data-test="reset-sent-card">
-                <v-icon size="48" color="success" class="mb-3">
-                    mdi-email-check-outline
-                </v-icon>
-                <h2 class="form-title">Check your email</h2>
-                <p class="text-body-2 text-medium-emphasis">
-                    We've sent a reset link <strong>{{  submittedEmail }}</strong>.
-                    Follow the link to set a new password, then you'll be sent to sign in.
-                </p>
-            </BaseCard>
-
-            <v-alert 
-                v-if="error"
-                type="error"
-                variant="tonal"
-                class="mt-4"
-                density="compact"
-            >
-                {{  error }}
-            </v-alert>
-
-            <p class="text-center text-body-2 mt-4 text-medium-emphasis">
-                Remember Password?
-                <NuxtLink to="/auth/signin" class="text-primary font-weight-bold ml-1">
-                    Sign In
-                </NuxtLink>
+        <BaseCard v-else class="auth-card text-center" data-test="reset-sent-card">
+            <v-icon size="48" color="success" class="mb-3">
+                mdi-email-check-outline
+            </v-icon>
+            <h2 class="form-title">Check your email</h2>
+            <p class="text-body-2 text-medium-emphasis">
+                We've sent a reset link <strong>{{  submittedEmail }}</strong>.
+                Follow the link to set a new password, then you'll be sent to sign in.
             </p>
-        </div>
-    </v-container>
+        </BaseCard>
+
+        <v-alert 
+            v-if="error"
+            type="error"
+            variant="tonal"
+            class="mt-4"
+            density="compact"
+        >
+            {{  error }}
+        </v-alert>
+
+        <p class="text-center text-body-2 mt-4 text-medium-emphasis">
+            Remember Password?
+            <NuxtLink to="/auth/signin" class="text-primary font-weight-bold ml-1">
+                Sign In
+            </NuxtLink>
+        </p>
+    </div>
 </template>
 
 <script setup>
@@ -69,15 +67,3 @@ const handleForgotPassword = async (data) => {
     }
 }
 </script>
-
-<style scoped>
-.auth-page {
-    min-height: calc(100vh - 80px);
-    padding: 4rem 1.5rem;
-}
-
-.auth-wrapper {
-    width: 100%;
-    max-width: 520px;
-}
-</style>

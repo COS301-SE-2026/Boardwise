@@ -20,11 +20,15 @@ import com.boardwise.backend.marketplace.dtos.listing.ListingResponse;
 import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
 import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.marketplace.service.*;
+import com.boardwise.backend.shared.model.Boardgame;
+import com.google.maps.DirectionsApi.Response;
 
 import jakarta.validation.*;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/api/sb/marketplace")
@@ -170,17 +174,88 @@ public class ListingController {
         }
     }
 
+    //GET another users listings
+    @GetMapping("/listings/user/{userId}")
+    public ResponseEntity<List<ListingResponse>> getOtherUserListings(@PathVariable (required = true) String userId){
+        try{
+            List<ListingResponse> listings = listingService.getOtherUserListings(userId); 
+            if(listings.isEmpty()){
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(listings);
+        }
+        catch(Exception e){
+            logger.warning("could not fetch other users listings");
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    //rent out 
+    @PutMapping("/listing/{listingId}/rent")
+    public ResponseEntity<Map<Integer,String>> rentOutListing(@PathVariable  (required = true) String listingId, @RequestHeader(value = "Authorization", required = true) String token){
+        String newToken = (token != null) ? token.replace("Bearer ", "") : null;
+        try {
+            Map<Integer, String> l = listingService.rentOutListing(listingId,newToken); 
+            return ResponseEntity.ok().body(l);
+        } 
+        catch (ForbiddenException e) {
+            logger.warning("Rent-out failed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        catch(Exception e){
+            logger.log(Level.SEVERE, "Unexpected error renting out listing " + listingId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    } 
+
+    //return rental 
+    @PutMapping("/listing/{listingId}/return")
+    public ResponseEntity<Map<HttpStatus,String>> returnRentedListing(@PathVariable() String listingId,
+        @RequestHeader(value = "Authorization", required = true) String token) {
+        String newToken = (token != null) ? token.replace("Bearer ", "") : null;
+        try {
+            Map<HttpStatus, String> l = listingService.returnRentedListing(listingId, newToken);
+            return ResponseEntity.ok().body(l);
+        }
+        catch (ForbiddenException e) {
+            logger.warning("Return failed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        catch (Exception e) {
+            logger.log(Level.SEVERE, "Unexpected error returning listing " + listingId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     @GetMapping("/listings/personalised")
-    public ResponseEntity<Page<RetailSourceItemDTO>> getPersonalizedRetailItems(
+    public ResponseEntity<Page<RetailSourceItemDTO>>getPersonalizedRetailItems(
         @RequestHeader("Authorization") String token,
         @RequestParam(required = false, defaultValue = "0") Integer page) {
         try {
-            Page<RetailSourceItemDTO> results = retailService.getPersonalizedRetailListings(token.replace("Bearer ", ""), page);
+            Page<RetailSourceItemDTO>  results =
+                retailService.getPersonalisedRetailListings(token.replace("Bearer ", ""), page);
 
             return ResponseEntity.ok(results);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(null);
-        }
 
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "personalised listings failed", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    @GetMapping("listings/retail")
+    public ResponseEntity<Page<RetailSourceItemDTO>> getExternalBoardgames(@RequestParam (required = true) String boardgame, @RequestParam Integer page, @RequestParam Integer size){
+        try{
+            Page<RetailSourceItemDTO>  results =
+                retailService.fetchListingsFromScraper(List.of(boardgame), page, size);
+
+            if(results.isEmpty()) return ResponseEntity.noContent().build();
+            return ResponseEntity.ok(results);
+        }
+        catch(Exception e){
+            logger.log(Level.SEVERE, "failed while trying to find listings on the web", e);
+            return ResponseEntity.internalServerError().build();
+
+        }
     }
 }

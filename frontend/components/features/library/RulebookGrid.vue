@@ -1,39 +1,34 @@
 <template> 
   <div class="mt-8">
-    <v-row 
-      v-if="gameView === 'grid'"
-      class="rulebook-grid"
-      >
-    <v-col
-      v-for="rulebook in rulebooks"
-      :key="rulebook.id"
-      cols="6" sm="4" md="3" lg="2"
-    >
+    <BaseGrid v-if="gameView === 'grid'">
       <RulebookCard
-        :rulebook="rulebook"
-        @click="$emit('select', $event)"
-      />
-    </v-col>
-  </v-row>
-
-  <div  
-    v-else
-    class="rulebook-list"
-    >
-      <RulebookListItem
         v-for="rulebook in rulebooks"
         :key="rulebook.id"
         :rulebook="rulebook"
+        size="lg"
         @click="$emit('select', $event)"
       />
-  </div>
+    </BaseGrid>
+
+    <div v-else class="rulebook-list">
+        <RulebookListItem
+          v-for="rulebook in rulebooks"
+          :key="rulebook.id"
+          :rulebook="rulebook"
+          @click="$emit('select', $event)"
+        />
+    </div>
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted } from 'vue'
+
 import RulebookCard from './RulebookCard.vue'
 import RulebookListItem from './RulebookListItem.vue'
+
+import BaseGrid from '~/components/ui/BaseGrid.vue';
+
 import { useAppearancePreferences } from '~/composables/useAppearancePreferences.ts';
 defineProps({
   rulebooks: {

@@ -47,9 +47,14 @@ interface BoardgameSearchResponse {
     boardGames: GameListItem[];
 }
 
-interface Preferences{
+export interface Preferences{
     visibility: string;
-    genres : Array<string>;
+    genres: Array<string>;
+}
+
+export interface PreferencesResponse{
+    message: string,
+    preferences: Preferences
 }
 
 export enum FriendStatus{
@@ -93,10 +98,16 @@ export interface ProfileSearchResponse {
     status: FriendStatus | null
 }
 
+export interface GetUsersResponse {
+    message: string,
+    results: ProfileSearchResponse[]
+}
+
 interface GenresResponse {
     message: string;
     genres: string[];
 }
+
 interface CreateBoardgameResponse {
     message: string;
 }
@@ -106,15 +117,33 @@ interface BulkAddResponse {
     games: GameInventory[];
 }
 
+interface PresenceResponseDTO{
+    message: string,
+    isOnline: boolean
+}
+
+interface BoardgameRulebookDto{
+    rulebookId: string
+}
+
 export const userService = {
     getCurrentUser(){
         const { $api } = useNuxtApp();
-        return $api<ProfileResponse>("users/");
+        return $api<ProfileResponse>("users/me");
     },
 
     getUser(id: string){
         const { $api } = useNuxtApp();
         return $api<ProfileResponse>("users/" + id);
+    },
+
+    getUsers(page?: number){
+        const { $api } = useNuxtApp();
+        return $api<GetUsersResponse>("users/", {
+            params: {
+                page
+            }
+        })
     },
     
     updateProfile(user: {
@@ -138,6 +167,16 @@ export const userService = {
                 username : user.username,
                 location : user.location
             }
+        });
+    },
+
+    updateGenrePreferences(genres: Array<string>){
+        const { $api } = useNuxtApp();
+        return $api<PreferencesResponse>('users/preferences', {
+            body: {
+                genres
+            },
+            method: 'PUT'
         });
     },
 
@@ -228,5 +267,15 @@ export const userService = {
             method: 'POST',
             body: payload
         });
+    },
+
+    getUserPresence(userId: string){
+        const { $api } = useNuxtApp();
+        return $api<PresenceResponseDTO>(`users/${userId}/presence`);
+    },
+
+    getBoardgameRulebookId(gameId: string){
+        const {$api} = useNuxtApp();
+        return $api<BoardgameRulebookDto>(`users/gameInventory/read/${gameId}`);
     }
 }

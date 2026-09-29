@@ -13,9 +13,7 @@
 
     <RulebookCarousel :rulebooks="featuredRulebooks" @select="openRulebook" />
 
-    <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
-      <v-progress-circular indeterminate color="primary" size="48" />
-    </v-container>
+    <BaseLoadingState v-if="isLoading" message="Fetching your library..." />
 
     <RecommendedBooks v-else :rulebooks="recommended" @select ="openRulebook"/>
 
@@ -42,9 +40,7 @@
         width="300"
       >
         
-        <RulebookFilterSidebar
-          @filter="handleFilter"
-        />
+        <RulebookFilterSidebar/>
         
       </v-navigation-drawer>
     </div>
@@ -53,59 +49,67 @@
     <div class="d-none d-md-flex ga-6 align-start">
 
       <!-- Filters -->
-      <RulebookFilterSidebar
-        @filter="handleFilter"
-      />
+      <RulebookFilterSidebar/>
       
       <div class="flex-grow-1" style="min-width: 0;">
-        <v-container 
-          v-if="isLoading"
-          class="d-flex justify-center align-center"
-          style="min-height: 60vh"
-        >
-          <v-progress-circular
-            indeterminate
-            color="primary"
-            size="48"
+        <BaseLoadingState v-if="isLoading" message="Loading rulebooks... " />
+        <template v-else>
+          <RulebookGrid
+            :rulebooks="pagedRulebooks"
+            @select="openRulebook"
           />
-        </v-container>
 
-        <RulebookGrid
-          v-else
-          :rulebooks="rulebooks"
-          @select="openRulebook"
-        />
+          <template v-if="rulebooks.length > 0">
+            <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
+              <span class="card-meta">
+                Showing {{ rulebooksRangeStart }}-{{ rulebooksRangeEnd }}
+                of {{ hasMore ? `${rulebooks.length}+` : rulebooks.length }} rulebooks
+              </span>
+            </div>
+
+            <BasePagination 
+              v-if="rulebooksTotalPages > 1"
+              class="mt-4"
+              :model-value="rulebooksPage"
+              :total-pages="rulebooksTotalPages"
+              @update:modelValue="goToRulebooksPage"
+            />
+          </template>
+        </template>
       </div>
     </div>
 
   <div class="d-md-none">
-    <v-container 
-      v-if="isLoading"
-      class="d-flex justify-center align-center"
-      style="min-height: 60vh"
-    >
-      <div v-if="isLoading" class="d-flex justify-center align-center h-100">
-        <v-progress-circular indeterminate color="primary"/>
-      </div>
-    </v-container>
+    <BaseLoadingState v-if="isLoading" message="Fetching your library... " />
 
-    <RulebookGrid
-      v-else
-      :rulebooks="rulebooks"
-      @select="openRulebook"
-    />
+    <template v-else>
+      <RulebookGrid
+        :rulebooks="pagedRulebooks"
+        @select="openRulebook"
+      />
+
+      <template v-if="rulebooks.length > 0">
+        <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
+          <span class="card-meta">
+            Showing {{ rulebooksRangeStart }}-{{ rulebooksRangeEnd }}
+            of {{ hasMore ? `${rulebooks.length}+` : rulebooks.length }} rulebooks
+          </span>
+        </div>
+
+        <BasePagination 
+          v-if="rulebooksTotalPages > 1"
+          class="mt-4"
+          :model-value="rulebooksPage"
+          :total-pages="rulebooksTotalPages"
+          @update:modelValue="goToRulebooksPage"
+        />
+      </template>
+    </template>
   </div>
-
-  <div 
-    ref="sentinel"
-    style="height: 1px"
-  />
 
   <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
     
-    <div v-if="isLoading" class="d-flex justify-center align-center h-100">
-      <v-progress-circular indeterminate color="primary"/>
-    </div>
+    <BaseLoadingState v-if="isLoading" message="Loading rulebooks... " />
 
     <RulebookDetail
       v-if="selectedRulebook"
@@ -129,11 +133,11 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useIntersectionObserver, useDebounceFn } from '@vueuse/core'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
+import BasePagination from '~/components/ui/BasePagination.vue'
 
 import RulebookFilterSidebar from '~/components/features/library/RulebookFilterSidebar.vue'
 import RulebookGrid from '~/components/features/library/RulebookGrid.vue'
@@ -146,8 +150,11 @@ import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue
 import { useLibrary } from '~/composables/useLibrary'
 import { useVaultUpload } from '~/composables/useVaultUpload';
 import { useAuth } from '~/composables/useAuth';
-
+import { useRulebookFilters } from '~/composables/useRulebookFilters'
 import { useSnackBar } from '~/composables/useSnackbar';
+import { useDebouncedAutocomplete } from '~/composables/useDebounce'
+
+const CARD_PAGE_SIZE = 12
 
 const { show } = useSnackBar();
 const showFilters = ref(false)
@@ -158,23 +165,27 @@ const router = useRouter();
 const {rulebooks, isLoading, getAllRulebooks, getRulebookById, currentRulebook, featuredRulebooks, loadMore, hasMore, fetchFeaturedRulebooks } = useLibrary()
 const {triggerUpload, isUploading, error} = useVaultUpload();
 const { isAuthenticated } = useAuth();
+const { filters } = useRulebookFilters();
 
-const searchQuery = ref('')
 const activeFilterState = ref({})
 const showDetail = ref(false)
 const showUpload = ref(false)
 const selectedRulebook = ref(null)
-const sentinel = ref(null)
 
-onMounted(() => { // Does stuff when component loads
+const fetchRulebooksForSearch = async (query) => {
+  rulebooksPage.value = 1;
+  await getAllRulebooks({
+    ...activeFilterState.value,
+    search: query || null,
+    limit: CARD_PAGE_SIZE
+  }, true);
+  return rulebooks.value ?? []
+}
+
+const {search:searchQuery} = useDebouncedAutocomplete(fetchRulebooksForSearch, {debounceMs: 400, fetchOnMount: false});
+
+onMounted(() => {
   fetchFeaturedRulebooks();
-  getAllRulebooks({}, true);
-})
-
-useIntersectionObserver(sentinel,([entry])=>{
-  if(entry.isIntersecting&& hasMore.value && !isLoading.value){
-    loadMore();
-  }
 })
 
 const handleUploadRequest = () => {
@@ -188,15 +199,6 @@ const handleUploadRequest = () => {
   showUpload.value = true;
 }
 
-const delaySearch = useDebounceFn((query) => {
-  getAllRulebooks({...activeFilterState.value, search:query || null}, true);
-}, 400);
-
-watch(searchQuery, (query) => {
-  delaySearch(query);
-});
-
-
 const openRulebook = async (rulebook) => {
   selectedRulebook.value = null;
   showDetail.value = true;
@@ -206,18 +208,6 @@ const openRulebook = async (rulebook) => {
 
 const handleSearch = (query) => {
   searchQuery.value = query
-}
-
-const handleFilter = (filters) => {
-  activeFilterState.value = {
-    genre: filters.genre,
-    languages: filters.languages,
-    playerCount: filters.playerCount,
-    duration: filters.duration,
-    minAge: filters.minAge,
-  }
-    getAllRulebooks({...activeFilterState.value, search: searchQuery.value || null}, true);
-    
 }
 
 const handleUploadRulebook = async (newRulebook) => {
@@ -233,4 +223,42 @@ const handleUploadRulebook = async (newRulebook) => {
 const recommended = computed(() => {
   return featuredRulebooks.value.slice(0, 5);
 })
+
+// ================= Pagination ======================
+const rulebooksPage = ref(1)
+
+const rulebooksTotalPages = computed(() => {
+  const loadedPages = Math.ceil((rulebooks.value?.length || 0) / CARD_PAGE_SIZE)
+  return hasMore.value ? loadedPages + 1 : Math.max(loadedPages, 1)
+})
+
+const pagedRulebooks = computed(() => {
+  const start = (rulebooksPage.value - 1) * CARD_PAGE_SIZE
+  return rulebooks.value.slice(start, start + CARD_PAGE_SIZE)
+})
+
+const rulebooksRangeStart = computed(() => (rulebooks.value.length === 0 ? 0 : (rulebooksPage.value - 1) * CARD_PAGE_SIZE + 1))
+const rulebooksRangeEnd = computed(() => (rulebooksPage.value - 1) * CARD_PAGE_SIZE + pagedRulebooks.value.length)
+
+const goToRulebooksPage = async (page) => {
+  rulebooksPage.value = page
+  while (rulebooks.value.length < page * CARD_PAGE_SIZE && hasMore.value && !isLoading.value) {
+    await loadMore()
+  }
+}
+
+watch(
+  filters,
+  (newFilters) => {
+    const currentGenre = newFilters.genre?.[0]
+    activeFilterState.value = {
+      genre: currentGenre === 'all' ? null : currentGenre,
+      playerCount: newFilters.playerCount,
+      duration: newFilters.duration,
+      minAge: newFilters.minAge
+    }
+    rulebooksPage.value = 1;
+    getAllRulebooks({...activeFilterState.value, search: searchQuery.value || null, limit: CARD_PAGE_SIZE}, true);
+  },{deep: true, immediate: true}
+)
 </script>

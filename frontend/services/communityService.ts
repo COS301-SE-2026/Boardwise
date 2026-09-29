@@ -9,7 +9,7 @@ export interface GroupInfo{
     memberCount: number;
 }
 
-interface Member{
+export interface Member{
     id: string
     username: string;
     profilePicture: string;
@@ -42,6 +42,12 @@ interface GroupUpdateResponse{
         imageUrl: string
     }
 }
+
+interface GroupJoinRequestResponse {
+  message: string
+  status: 'PENDING'
+}
+
 
 interface GroupMembershipResponse{
     message: string;
@@ -160,4 +166,15 @@ export const CommunityService = {
         });
         return response.data;
     },
+
+    requestToJoinCommunity(id: string) {
+  const { $api } = useNuxtApp()
+
+  return $api<GroupJoinRequestResponse>(
+    `social/groups/${id}/requests`,
+    {
+      method: 'POST'
+    }
+  )
+},
 }

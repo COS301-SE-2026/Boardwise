@@ -64,31 +64,3 @@ const handleSignUp = async (data) => {
     }
 }
 </script>
-
-<style scoped>
-.auth-page {
-    min-height: calc(100vh - 80px);
-    padding: 4rem 1.5rem;
-}
-
-.auth-wrapper {
-    width: 100%;
-    max-width: 520px;
-}
-
-.auth-link{
-    text-align: center;
-    margin-top: 1.5rem;
-    color: var(--color-text-muted);
-}
-
-.auth-link a{
-    color: var(--color-primary);
-    font-weight: var(--fw-bold);
-    text-decoration: none;
-}
-
-.auth-link a:hover{
-    text-decoration: underline;
-}
-</style>

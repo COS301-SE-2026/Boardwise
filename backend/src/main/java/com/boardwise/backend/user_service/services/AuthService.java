@@ -9,10 +9,10 @@ import org.springframework.stereotype.Service;
 
 import com.boardwise.backend.shared.security.JWTService;
 import com.boardwise.backend.shared.services.EmailService;
-import com.boardwise.backend.user_service.dtos.AuthResponseDTO;
-import com.boardwise.backend.user_service.dtos.LoginDTO;
-import com.boardwise.backend.user_service.dtos.LogoutResponseDTO;
-import com.boardwise.backend.user_service.dtos.RegisterDTO;
+import com.boardwise.backend.user_service.dtos.response.AuthResponseDTO;
+import com.boardwise.backend.user_service.dtos.request.LoginDTO;
+import com.boardwise.backend.user_service.dtos.response.LogoutResponseDTO;
+import com.boardwise.backend.user_service.dtos.request.RegisterDTO;
 import com.boardwise.backend.user_service.dtos.request.ForgotPasswordDto;
 import com.boardwise.backend.user_service.dtos.request.ResetPasswordDto;
 import com.boardwise.backend.user_service.dtos.response.SummaryUserResponseDto;

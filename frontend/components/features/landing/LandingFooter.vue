@@ -33,7 +33,7 @@
                             >Marketplace
                             
                         </NuxtLink>
-                        <NuxtLink to="/community"
+                        <NuxtLink to="/social/community"
                             class="text-decoration-none text-medium-emphasis"
                         >Communities
 
@@ -67,8 +67,6 @@
                     <p>
                         © {{ currentYear }} Boardwise. By WOMM.
                     </p>
-
-                    <img src="/public/images/powered-by-bgg-rgb.svg" alt="poweredbybgg" />
 
                 </v-col>
             </v-row>

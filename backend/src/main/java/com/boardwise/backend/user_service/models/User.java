@@ -5,8 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
+import org.springframework.data.mongodb.core.index.GeoSpatialIndexType;
+import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import com.boardwise.backend.user_service.models.user_preferences.Preferences;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,7 +36,10 @@ public class User {
     private String firstName;
     private String lastName;
     private String profilePicture; // image url from cloud buckets
-    private String location;
+    private String locationText;
+    
+    @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
+    private GeoJsonPoint location;
     private Preferences preferences;
     private Instant lastOnlineAt;
     private Instant createdAt;
@@ -51,6 +59,7 @@ public class User {
         this.lastOnlineAt = null;
         this.createdAt = Instant.now();
         this.profilePicture = null;
+        this.locationText = null;
         this.location = null;
         this.resetToken = null;
         this.resetTokenExpiry = null;

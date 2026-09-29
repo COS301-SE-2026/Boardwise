@@ -11,10 +11,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Example;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -24,41 +28,47 @@ import org.springframework.web.multipart.MultipartFile;
 import com.boardwise.backend.shared.dtos.GameInventoryDTO;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
+import com.boardwise.backend.shared.services.NotificationService;
 import com.boardwise.backend.shared.dtos.OtherGameDTO;
 import com.boardwise.backend.shared.model.Boardgame;
-import com.boardwise.backend.shared.services.NotificationService;
-import com.boardwise.backend.user_service.dtos.CommunityMessageNotification;
-import com.boardwise.backend.user_service.dtos.DirectMessageNotification;
-import com.boardwise.backend.user_service.dtos.FriendConfirmationNotification;
+import com.boardwise.backend.user_service.dtos.notifications.CommunityMessageNotification;
+import com.boardwise.backend.user_service.dtos.notifications.DirectMessageNotification;
+import com.boardwise.backend.user_service.dtos.notifications.FriendConfirmationNotification;
 import com.boardwise.backend.user_service.dtos.FriendDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestDTO;
-import com.boardwise.backend.user_service.dtos.FriendRequestNotification;
-import com.boardwise.backend.user_service.dtos.FriendRequestResponseDTO;
+import com.boardwise.backend.user_service.dtos.notifications.FriendRequestNotification;
+import com.boardwise.backend.user_service.dtos.response.FriendRequestResponseDTO;
+import com.boardwise.backend.user_service.dtos.response.PresenceResponseDTO;
 import com.boardwise.backend.user_service.dtos.FriendRequestsDTO;
 import com.boardwise.backend.user_service.dtos.FriendsListDTO;
-import com.boardwise.backend.user_service.dtos.InviteNotification;
-import com.boardwise.backend.user_service.dtos.NotificationDTO;
-import com.boardwise.backend.user_service.dtos.NotificationsDTO;
-import com.boardwise.backend.user_service.dtos.PreferencesRequestDTO;
-import com.boardwise.backend.user_service.dtos.ProfilePictureResponseDTO;
-import com.boardwise.backend.user_service.dtos.ProfileResponseDTO;
-import com.boardwise.backend.user_service.dtos.ProfileSearchResponse;
-import com.boardwise.backend.user_service.dtos.UpdateProfileDTO;
+import com.boardwise.backend.user_service.dtos.notifications.InviteNotification;
+import com.boardwise.backend.user_service.dtos.notifications.NotificationDTO;
+import com.boardwise.backend.user_service.dtos.notifications.NotificationsDTO;
+import com.boardwise.backend.user_service.dtos.notifications.UnfriendNotification;
+import com.boardwise.backend.user_service.dtos.request.PreferencesRequestDTO;
+import com.boardwise.backend.user_service.dtos.response.ProfilePictureResponseDTO;
+import com.boardwise.backend.user_service.dtos.response.ProfileResponseDTO;
+import com.boardwise.backend.user_service.dtos.response.ProfileSearchResponse;
+import com.boardwise.backend.user_service.dtos.request.UpdateProfileDTO;
 import com.boardwise.backend.user_service.dtos.request.BoardgameCollectionBulkAddDto;
+import com.boardwise.backend.user_service.dtos.response.BoardgameRulebookDto;
 import com.boardwise.backend.user_service.dtos.response.BulkAddResponseDTO;
 import com.boardwise.backend.user_service.enums.FriendStatus;
 import com.boardwise.backend.user_service.enums.NotificationType;
+import com.boardwise.backend.user_service.events.FriendEvent;
+import com.boardwise.backend.user_service.events.payload.FriendEventPayload;
 import com.boardwise.backend.user_service.models.*;
+import com.boardwise.backend.user_service.models.user_preferences.Preferences;
+import com.boardwise.backend.user_service.models.user_preferences.Settings;
 import com.boardwise.backend.user_service.repository.FriendShipRepository;
 import com.boardwise.backend.user_service.repository.GroupMembershipRepository;
 import com.boardwise.backend.user_service.repository.GroupRepository;
 import com.boardwise.backend.user_service.repository.NotificationRepository;
 import com.boardwise.backend.user_service.repository.UserRepository;
-import com.google.maps.GeoApiContext;
-import com.google.maps.GeocodingApi;
-import com.google.maps.errors.ApiException;
-import com.google.maps.model.GeocodingResult;
-
+import com.boardwise.backend.vault.model.Rulebook;
+import com.boardwise.backend.vault.repository.RulebookRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -72,12 +82,18 @@ public class ProfileService {
     private final GroupRepository groupRepo;
     private final BoardGameRepository gameRepo;
     private final R2StorageService bucket;
-    private final GeoApiContext geoContext;
-    private final MongoTemplate template;
-    private final NotificationService notificationService;
+    private final GeocodingService geoService;
+    private final MongoTemplate db;
     private final NotificationRepository notifRepo;
+    private final NotificationService notifService;
+    private final ApplicationEventPublisher eventPublisher;
+    private final BoardGameRepository bgRepo;
+    private final RulebookRepository rbRepo;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+
+    @Value("${system.contributor.id}")
+    private String systemContributorId;
 
     public ProfileResponseDTO getOwnProfile(String token) {
         // get user id from token
@@ -147,7 +163,7 @@ public class ProfileService {
             user.getId(),
             fullName,
             user.getUsername(),
-            user.getLocation(),
+            user.getLocationText(),
             user.getProfilePicture(),
             friendCount,
             groupCount,
@@ -160,21 +176,40 @@ public class ProfileService {
         );
     }
 
-    public List<ProfileSearchResponse> searchForUsers(String query, String token){
+    public List<?> getUsers(String token, String query, Integer pageNum){
         List<ProfileSearchResponse> results = new ArrayList<>();
         String userId = jwtService.extractUserId(token).toString();
         User subject = userRepo.findById(userId).get();
+        
+        
+        Query dbQuery = new Query();
+    
+        if(query == null){
+            int pageIdx = pageNum == null ? 0 : Math.max(0, (pageNum - 1));
+            Pageable page = PageRequest.of(pageIdx, 9);
+            dbQuery.with(page);
+        }
+        else{
+            String cleanQuery = AuthService.sanitize(query);
+            Pattern pattern = Pattern.compile(Pattern.quote(cleanQuery), Pattern.CASE_INSENSITIVE);
 
-        String cleanQuery = AuthService.sanitize(query);
-        Criteria searchCriteria = Criteria.where("username").regex(cleanQuery, "i");
-        Query dbQuery = new Query(searchCriteria);
-        List<User> matches = template.find(dbQuery, User.class);
-
+            Criteria criteria = new Criteria().orOperator(
+                Criteria.where("username").regex(pattern),
+                Criteria.where("firstName").regex(pattern),
+                Criteria.where("lastName").regex(pattern)
+            );
+            
+            dbQuery.addCriteria(criteria);
+        }
+        
+        List<User> matches = db.find(dbQuery, User.class);
         for(User user : matches){
             if(!user.getId().equals(subject.getId())){
                 Optional<Friendship> optional = fsRepo.findFriendShipBetweenUsers(userId, user.getId());
                 FriendStatus status = optional.isPresent() ? optional.get().getStatus() : null;
-                results.add(new ProfileSearchResponse(
+                
+                results.add(
+                    new ProfileSearchResponse(
                         user.getId(),
                         user.getUsername(),
                         user.getFirstName() + " " + user.getLastName(),
@@ -195,7 +230,7 @@ public class ProfileService {
         userRepo.deleteById(userId);
     }
 
-    public Map<String, Object> updateProfile(String token, UpdateProfileDTO profileUpdateData) throws ApiException, InterruptedException, IOException, NoSuchElementException {
+    public Map<String, Object> updateProfile(String token, UpdateProfileDTO profileUpdateData) throws IOException, NoSuchElementException {
         String userId = jwtService.extractUserId(token).toString();
         User user = userRepo.findById(userId).get();
 
@@ -222,11 +257,10 @@ public class ProfileService {
         }
         
         if(newLocation != null && !newLocation.trim().isBlank()){
-            GeocodingResult[] results = GeocodingApi.geocode(geoContext, newLocation).await();
-            if(results.length == 0)
-                throw new NoSuchElementException("Could not find coordinates for location: " + newLocation);
+            GeoJsonPoint point = geoService.getLocationCoordinates(newLocation);
 
-            user.setLocation(newLocation);
+            user.setLocation(point);
+            user.setLocationText(newLocation);
             toReturn.put("location", newLocation);
         }
 
@@ -241,16 +275,14 @@ public class ProfileService {
         }
 
         if(profileUpdateData.preferences() != null){
-            String visibility = profileUpdateData.preferences().getVisibility() == null ? 
-                                user.getPreferences().getVisibility() : 
-                                profileUpdateData.preferences().getVisibility();
+           
 
             PreferencesRequestDTO dto = new PreferencesRequestDTO(
-                visibility,
+                profileUpdateData.preferences().getSettings().getPrivacy().getVisibility(),
                 profileUpdateData.preferences().getGenres()
             );
             Map<String, Object> prefs = updateOrSetPreferences(token, dto);
-            toReturn.put("preferences", prefs.get("preferences"));
+            toReturn.put("preferences", (Preferences) prefs.get("preferences"));
         }
 
         userRepo.save(user);
@@ -258,17 +290,18 @@ public class ProfileService {
         return toReturn;
     }
 
-    public ProfilePictureResponseDTO changeProfilePicture(String token, MultipartFile pfp) throws IOException {
+    public ProfilePictureResponseDTO changeProfilePicture(String token, MultipartFile pfp) throws IOException, IllegalArgumentException {
         String url = "";
         String message = "";
         String userId = jwtService.extractUserId(token).toString();
+        User user = userRepo.findById(userId).get();
 
         // logic here
+        bucket.deleteFile(user.getProfilePicture());
         String fileName = bucket.uploadFile(pfp, userId);
         url = bucket.getFileUrl(fileName);
         message = "Profile picture successfully update";
          
-        User user = userRepo.findById(userId).get();
         user.setProfilePicture(url);
         userRepo.save(user);
 
@@ -281,17 +314,17 @@ public class ProfileService {
     ){
         String userId = jwtService.extractUserId(token).toString();
         User user = userRepo.findById(userId).get();
+
+        Settings settings = user.getPreferences().getSettings();
         
-        if(user.getPreferences() == null){
-            user.setPreferences(new Preferences());    
-        }
         
-        if(!prefData.visibility().equalsIgnoreCase(user.getPreferences().getVisibility()))
-            user.getPreferences().setVisibility(prefData.visibility());
+        if(prefData.visibility() != null && prefData.visibility() != settings.getPrivacy().getVisibility())
+            settings.getPrivacy().setVisibility(prefData.visibility());
             
         if(prefData.genres() != null)
             user.getPreferences().setGenres(prefData.genres());
 
+        user.getPreferences().setSettings(settings);
         User updatedUser = userRepo.save(user);
 
         Map<String, Object> data = new HashMap<>();
@@ -598,8 +631,9 @@ public class ProfileService {
             friendship.getId(),
             sender
         );
+        
         FriendRequestNotification notification = new FriendRequestNotification(dto);
-        notificationService.notifyUser(userId, notification);
+        emitFriendEvent(userId, notification);
 
         return new FriendRequestResponseDTO(
             "Friend request successfully sent."
@@ -645,7 +679,7 @@ public class ProfileService {
             );
 
             FriendConfirmationNotification notification = new FriendConfirmationNotification(sender);
-            notificationService.notifyUser(fs.getSender(), notification);
+            emitFriendEvent(fs.getSender(), notification);
         }
 
         return new FriendRequestResponseDTO(
@@ -655,18 +689,20 @@ public class ProfileService {
 
     public FriendRequestResponseDTO unfriendUser(String token, String userId) throws NoSuchElementException, IllegalAccessException {
         String clientId = jwtService.extractUserId(token).toString();
-        User client = userRepo.findById(clientId).get();
 
         if(!userRepo.existsById(userId))
             throw new NoSuchElementException("User with id: " + userId + " does not exist.");
 
-        Optional<Friendship> preFriendship = fsRepo.findFriendShipBetweenUsers(client.getId(), userId);
+        Optional<Friendship> preFriendship = fsRepo.findFriendShipBetweenUsers(clientId, userId);
         if(preFriendship.isEmpty() || preFriendship.get().getStatus() != FriendStatus.ACCEPTED)
             throw new IllegalAccessException("Requesting user is a not friends with the user associated with id: " + userId + ".");
 
         Friendship friendship = preFriendship.get();
         friendship.setStatus(FriendStatus.DECLINED);
         fsRepo.save(friendship);
+
+        UnfriendNotification notification = new UnfriendNotification(clientId);
+        emitFriendEvent(userId, notification);
 
         return new FriendRequestResponseDTO(
             "Unfriend user query successful."
@@ -704,4 +740,32 @@ public class ProfileService {
         );
     }
 
+    public PresenceResponseDTO getUserPresence(String userId){
+        if(!userRepo.existsById(userId))
+            throw new NoSuchElementException("User with id:" +  userId + "does not exist.");
+
+        return new PresenceResponseDTO(
+            "User presence successfully retrieved",
+            notifService.isOnline(userId)
+        );
+    }
+
+    public BoardgameRulebookDto getGameRulebookId(String gameId){
+
+        Boardgame bg = bgRepo.findById(gameId).orElseThrow(
+            () -> new IllegalArgumentException("Boardgame not found")
+        );
+        ObjectId gameObjectId = new ObjectId(bg.getId());
+        Rulebook rb = rbRepo.findByGameIdAndContributorId(gameObjectId, new ObjectId(systemContributorId))
+            .orElseGet(() -> rbRepo.findFirstByGameId(gameObjectId).orElseThrow(() -> new IllegalArgumentException("No fallback rulebooks found for gameId: " + gameId))
+        );
+
+        return new BoardgameRulebookDto(rb.getId().toHexString());
+    }
+
+    private void emitFriendEvent(String receiver, NotificationDTO notification){
+        FriendEventPayload payload = new FriendEventPayload(receiver , notification);
+        FriendEvent event = new FriendEvent(this, payload);
+        eventPublisher.publishEvent(event);
+    }
 }

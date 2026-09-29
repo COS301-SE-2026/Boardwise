@@ -106,7 +106,8 @@ public class RulebookControllerTest {
             when(rulebookService.searchRulebooks(any() ,any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(Page.empty());
             // Act and Assert
-            mockMvc.perform(get("/api/sb/vault/rulebooks"))
+            mockMvc.perform(get("/api/sb/vault/rulebooks")
+                .header("Authorization", "Bearer abc"))
                 .andExpect(status().isNoContent());
             verify(rulebookService).searchRulebooks(eq("abc"),isNull(),isNull(),isNull(),isNull(), isNull(), isNull(),eq(1), eq(20));
         }
@@ -119,6 +120,7 @@ public class RulebookControllerTest {
                 .thenReturn(Page.empty());
             // Act and Assert
             mockMvc.perform(get("/api/sb/vault/rulebooks")
+                .header("Authorization", "Bearer abc")
                 .param("search", "catan")
                 .param("genre", "strategy")
                 .param("languages", "English", "French")

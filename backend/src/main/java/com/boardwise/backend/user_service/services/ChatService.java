@@ -19,13 +19,10 @@ import com.boardwise.backend.shared.services.NotificationService;
 import com.boardwise.backend.user_service.dtos.CommunityMessage;
 import com.boardwise.backend.user_service.dtos.CommunityMessageDTO;
 import com.boardwise.backend.user_service.dtos.ConversationDTO;
-import com.boardwise.backend.user_service.dtos.ConversationsResponseDTO;
-import com.boardwise.backend.user_service.dtos.CommunityMessageNotification;
 import com.boardwise.backend.user_service.dtos.DirectMessage;
 import com.boardwise.backend.user_service.dtos.DirectMessageDTO;
-import com.boardwise.backend.user_service.dtos.DirectMessageNotification;
 import com.boardwise.backend.user_service.dtos.MessagesDTO;
-import com.boardwise.backend.user_service.dtos.NotificationDTO;
+import com.boardwise.backend.user_service.dtos.response.ConversationsResponseDTO;
 import com.boardwise.backend.user_service.enums.MessageType;
 import com.boardwise.backend.user_service.models.Conversation;
 import com.boardwise.backend.user_service.models.GroupMembership;
@@ -66,6 +63,7 @@ public class ChatService {
         Conversation conversation = new Conversation(
             convoId,
             List.of(senderId, message.receiverId()),
+            senderId,
             message.message(),
             messageTime
         );
@@ -91,12 +89,6 @@ public class ChatService {
                 messageTime
             );
         }
-
-        NotificationDTO notification = new DirectMessageNotification(
-            senderId,
-            message.message()
-        );
-        notifService.notifyUser(message.receiverId(), notification);
         
         return new DirectMessageDTO(
             senderId,
@@ -145,12 +137,6 @@ public class ChatService {
                 sentAt
             );
         }
-
-        NotificationDTO notification = new CommunityMessageNotification(
-            senderId, 
-            message.message()
-        );
-        notifService.notifyCommunity(message.communityId(), notification);
 
         return new CommunityMessageDTO(
             senderId, 
@@ -231,6 +217,7 @@ public class ChatService {
                     user.getUsername(),
                     user.getProfilePicture(),
                     convo.getLastMessage(),
+                    convo.getLastMessageSender(),
                     convo.getLastMessageAt(),
                     notifService.isOnline(userId)
                 );
@@ -243,6 +230,7 @@ public class ChatService {
                     "Boardwise user",
                     null,
                     convo.getLastMessage(),
+                    convo.getLastMessageSender(),
                     convo.getLastMessageAt(),
                     false
                 );

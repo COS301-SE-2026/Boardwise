@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.boardwise.backend.user_service.dtos.CommunityMessage;
 import com.boardwise.backend.user_service.dtos.CommunityMessageDTO;
-import com.boardwise.backend.user_service.dtos.ConversationsResponseDTO;
+import com.boardwise.backend.user_service.dtos.response.ConversationsResponseDTO;
 import com.boardwise.backend.user_service.dtos.DirectMessage;
 import com.boardwise.backend.user_service.dtos.DirectMessageDTO;
 import com.boardwise.backend.user_service.dtos.ErrorMessage;
@@ -114,6 +114,7 @@ public class ChatController {
     @MessageExceptionHandler(IllegalAccessException.class)
     @SendToUser("/queue/errors")
     public ErrorMessage handleIllegalAccessException(IllegalAccessException e){
+        System.err.println("Triggered not a community member error");
         return new ErrorMessage("NOT_COMMUNITY_MEMBER", e.getMessage());
     }
 
@@ -122,4 +123,5 @@ public class ChatController {
     public ErrorMessage handleGenericException(Exception e){
         return new ErrorMessage("INTERNAL_ERROR", "Something went wrong on our end.");
     }
+
 }

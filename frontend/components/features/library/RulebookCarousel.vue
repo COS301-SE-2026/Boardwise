@@ -17,9 +17,7 @@
       class="popular-carousel mt-4"
       cycle
     >
-      <v-container v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 60vh">
-        <v-progress-circular indeterminate color="primary" size="48" />
-      </v-container>
+      <BaseLoadingState v-if="isLoading" />
 
       <v-carousel-item
         v-else
@@ -35,25 +33,20 @@
 
         <div class="carousel-caption">
           <div class="carousel-content">
-            <v-chip
-              color="primary"
-              size="small"
-              variant="flat"
+            <BaseBadge
+              variant="primary"
               class="mb-3"
             >
               Popular
-            </v-chip>
+            </BaseBadge>
 
             <h2>{{  rulebook.title }}</h2>
 
             <p>{{ rulebook.genre }}</p>
             
-            <v-btn 
-              color="primary"
-              rounded="pill"
-            >
+            <BaseCard>
               Read Rulebook
-            </v-btn>
+            </BaseCard>
           </div>
         </div>
       </v-carousel-item>
@@ -64,7 +57,10 @@
 <script setup>
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
+import BaseBadge from '~/components/ui/BaseBadge.vue';
+import BaseButton from '~/components/ui/BaseButton.vue'
 import { useLibrary } from '~/composables/useLibrary';
+import BaseCard from '~/components/ui/BaseCard.vue';
 
 const { isLoading } = useLibrary()
 
@@ -103,7 +99,7 @@ defineEmits(['select'])
   background: linear-gradient(
     to top,
     rgba(0,0,0,0.8),
-    rgba(0,0,0,0.35)
+    rgba(0,0,0,0.35),
     transparent
   );
 }

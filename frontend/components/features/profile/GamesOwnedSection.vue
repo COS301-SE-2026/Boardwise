@@ -1,8 +1,7 @@
 <template>
-  <section>
+  <section class="games-owned-section">
     <GamesGrid
       :games="games"
-      :editable="editable"
       @add-game="$emit('add-game')"
       @remove-game="$emit('remove-game', $event)"
     />
@@ -14,18 +13,8 @@
 import GamesGrid from './GamesGrid.vue'
 
 defineProps({
-  games: Array,
-  editable: {
-    type: Boolean,
-    default: false
-  }
+  games: Array
 })
 
 defineEmits(['add-game','remove-game'])
 </script>
-
-<style scoped>
-.games-owned-section {
-  width: 100%;
-}
-</style>

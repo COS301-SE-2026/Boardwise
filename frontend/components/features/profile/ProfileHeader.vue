@@ -1,58 +1,77 @@
 <template>
-  <v-card flat class="profile-header pa-10 w-100 ">
+  <BaseCard flush class="profile-header">
 
-    <div class="d-flex justify-space-between align-center flex-wrap ga-6">
+    <div class="profile-header__content">
 
-      <div class="d-flex align-center ga-6 flex-wrap profile-info">
+      <!-- Identity -->
+      <div class="profile-identity">
 
-        <v-avatar size="80" class="profile-avatar" @click="showPfpModal = true">
-          <v-img
+        <button 
+          class="profile-avatar-button"
+          type="button"
+          aria-label="Change profile picture"
+          @click="showPfpModal = true"
+        >
+          <BaseAvatar 
             :src="user.profilePicture ?? '/images/avatar.jpg'"
-            :alt="`${user.fullName} profile picture`"
-            cover
+            :name="user.fullName"
+            size="xxl"
+            class="profile-avatar"
           />
-        </v-avatar>
 
-        <div class="d-flex flex-column ga-3 profile-details">
-
-          <h1 class="profile-name ma-0">{{ user.fullName }}</h1>
-
-         
-          <p class="profile-username ma-0">@{{ user.username }}</p>
+          <span class="profile-avatar-edit">
+            <v-icon size="15">mdi-camera</v-icon>
+          </span>
+        </button>
           
+        <div class="profile-details">
+
+          <div class="profile-name-row">
+            <h1 class="profile-name">{{ user.fullName }}</h1>
+            <BaseBadge v-if="user.role" size="small" variant="default">
+              {{ user.role }}
+            </BaseBadge>
+          </div>
+          
+          <p class="profile-username">@{{ user.username }}</p>
+            
           <div class="profile-preferences">
 
-            <span class="preference-label">Preferences</span>
+            <span class="preference-label">Favourite genres</span>
 
-            <div
-              v-if="user.preferences?.visibility === 'public' && user.preferences.genres?.length > 0"
-              class="d-flex flex-wrap ga-1"
-            >
-              <v-chip
-                v-for="genre in user.preferences.genres"
-                :key="genre"
-                size="small"
-                class="genre-chip"
+              <div
+                v-if="user.preferences.genres?.length"
+                class="preferences-badges"
               >
-                {{ genre }}
-              </v-chip>
+                <BaseBadge
+                  v-for="genre in user.preferences.genres"
+                  :key="genre"
+                  size="small"
+                  variant="default"
+                >
+                  {{ genre }}
+                </BaseBadge>
+              </div>
               
-            </div>
-            
-            <div v-else-if="user.preferences?.visibility === 'private'">
-              <p class = "no-pref">user genre preferences are private</p>
-            </div>
+              <p v-else-if="user.preferences?.visibility === 'private'" class="no-pref">
+                Genre preferences are private
+              </p>
 
-            <div v-else>
-              <p class = "no-pref">no preferences</p>
-            </div>
+              <p v-else class="no-pref">
+                No preferences added
+              </p>
 
           </div>
         </div>
-
       </div>
 
-      <v-btn @click="showEdit = true">Edit Profile</v-btn>
+      <!-- Actions -->
+      <div class="profile-actions">
+        <BaseButton @click="showEdit = true">
+          <v-icon start size="17">mdi-pencil</v-icon>
+          Edit Profile
+        </BaseButton>
+      </div>
 
     </div>
 
@@ -65,140 +84,30 @@
     <ChangeProfilePictureModal
       v-model="showPfpModal"
       :user="user"
-      @save="$emit('pfpChange', $event)"
+      @save="$emit('pfp-change', $event)"
     />
 
-  </v-card>
+  </BaseCard>
 </template>
 
 <script setup>
+import { ref } from 'vue'
+
+import BaseButton from '~/components/ui/BaseButton.vue'
+import BaseAvatar from '~/components/ui/BaseAvatar.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseBadge from '~/components/ui/BaseBadge.vue'
+
+import ChangeProfilePictureModal from './ChangeProfilePictureModal.vue'
 import EditProfileModal from './EditProfileModal.vue'
-import ChangeProfilePictureModal from './ChangeProfilePictureModal.vue';
 
 defineProps({
   user: { type: Object, required: true }
 })
 
-defineEmits(['saved', 'pfpChange'])
+defineEmits(['saved', 'pfp-change'])
 
 const showEdit = ref(false)
 const showPfpModal = ref(false)
 
 </script>
-
-<style scoped>
-.profile-header {
-  background:    var(--color-surface-alt) !important;
-  border-radius: var(--radius-lg) !important;
-  border:        1px solid var(--color-border);
-  box-shadow:    var(--shadow-sm) !important;
-  min-height: 197px; 
-}
-
-.profile-avatar {
-  border: 3px solid var(--color-border-strong);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.profile-info {
-  min-width: 0;
-  height: auto;
-}
-
-.profile-details {
-  min-width: 0;
-}
-
-.profile-name {
-  font-family:  var(--font-display);
-  font-size:    var(--fs-h2);
-  font-weight:  var(--fw-regular);
-  color:        var(--color-secondary);
-  line-height:  var(--lh-tight);
-}
-
-.profile-username {
-  font-family: var(--font-body);
-  font-size:   var(--fs-body);
-  font-weight: var(--fw-bold);
-  color:       var(--color-primary);
-  /* margin-bottom: 90px */
-}
-
-.profile-bio {
-  font-family: var(--font-body);
-  font-size:   var(--fs-body);
-  color:       var(--color-text-muted);
-  line-height: 4px;
-
-}
-
-.genre-chip {
-  font-family:  var(--font-body) !important;
-  font-size:    var(--fs-small) !important;
-  font-weight:  var(--fw-medium) !important;
-  background:   var(--bw-gold-muted) !important;
-  color:        var(--bw-navy-ink) !important;
-  border-radius: var(--radius-pill) !important;
-}
-
-:deep(.v-btn) {
-  font-family:    var(--font-button) !important;
-  background:     var(--color-primary) !important;
-  color:          var(--color-text-inverse) !important;
-  border-radius:  var(--radius-md) !important;
-  height:         44px !important;
-  padding:        0 var(--space-5) !important;
-  text-transform: none !important;
-  letter-spacing: 0 !important;
-  box-shadow:     none !important;
-}
-
-:deep(.v-btn:hover) {
-  background: var(--color-primary-hover) !important;
-}
-.profile-preferences {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.preference-label {
-  font-family: var(--font-body);
-  font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
-  color: var(--color-text-muted);
-}
-
-.no-pref {
-  margin: 0;
-  font-family: var(--font-body);
-  font-size: var(--fs-small);
-  color: var(--color-text-muted);
-  font-style: italic;
-}
-
-@media (max-width: 600px) {
-  .profile-header {
-    padding: var(--space-5) !important;
-  }
-
-  .profile-info {
-    width: 100%;
-    align-items: flex-start !important;
-  }
-
-  .profile-details {
-    flex: 1;
-  }
-
-  .profile-name {
-    font-size: var(--fs-h3);
-  }
-
-  :deep(.v-btn) {
-    width: 100%;
-  }
-}
-</style>

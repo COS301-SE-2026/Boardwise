@@ -10,7 +10,7 @@
       @updated="$emit('updated')"
     />
 
-    <AddListingModal v-model="showAddListing" />
+    <AddListingModal v-model="showAddListing" @confirm="handleAddListing" />
 
     <DeleteModal v-model="showDelete" @confirm="handleDelete" />
 
@@ -21,17 +21,24 @@
 import ListingGrid from './ListingsGrid.vue'
 import AddListingModal from './AddListingModal.vue'
 import DeleteModal from './DeleteListingModal.vue'
+
 import { useMarketplace } from '~/composables/useMarketplace'
+import { useSnackBar } from '~/composables/useSnackbar'
+
+const { show } = useSnackBar()
 
 defineProps({
-  listings: Array,
+  listings: {
+    type: Array,
+    default: () => []
+  },
   editable: {
     type: Boolean,
     default: false
   }
 })
 
-const { removeListing } = useMarketplace()
+const { removeListing, addListing } = useMarketplace()
 
 const showAddListing = ref(false)
 const showDelete = ref(false)
@@ -48,6 +55,17 @@ const handleDelete = async () => {
   if (selectedId.value) {
     await removeListing(selectedId.value)
     selectedId.value = null
+  }
+}
+
+const handleAddListing = async (payload, file, callback) => {
+  try {
+    await addListing(payload, file)
+    emit('updated')
+    callback?.()
+    show('Listing created successfully!')
+  } catch (err) {
+    callback?.(err?.data?.message || err?.message || 'Failed to create listing. Please try again.')
   }
 }
 </script>

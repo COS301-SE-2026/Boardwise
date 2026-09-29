@@ -1,88 +1,55 @@
 <template>
-  <v-card class="status-header pa-3">
-    <div class="status-header_stats">
+  <section class="stats-row">
 
-      <div class="status-header_stat">
-        <span class="status-header_value">{{ games }}</span>
-        <span class="status-header_label">Games</span>
+    <BaseCard flush class="stat-card">
+      <div class="stat-icon">
+        <v-icon size="20">mdi-dice-multiple</v-icon>
       </div>
 
-      <v-divider vertical class="status-header_divider d-none d-sm-flex" />
+      <div class="stat-body">
+        <span class="stat-value">{{ games }}</span>
+        <span class="stat-label">Games Owned</span>
+      </div>
+    </BaseCard>
 
-      <button @click="$emit('open')" class="status-header_stat">
-        <span class="status-header_value">{{ friends }}</span>
-        <span class="status-header_label">Friends</span>
-      </button>
+    <!-- Friends -->
+    <BaseCard clickable flush class="stat-card" @click="$emit('open')">
+        
+      <div class="stat-icon">
+          <v-icon size="20">mdi-account-multiple</v-icon>
+        </div>
 
-      <v-divider vertical class="status-header_divider d-none d-sm-flex" />
+        <div class="stat-body">
+          <span class="stat-value">{{ friends }}</span>
+          <span class="stat-label">Friends</span>
+          <span v-if="friendsDelta" class="stat-delta">{{ friendsDelta }}</span>
+        </div>
+    </BaseCard>
 
-      <div class="status-header_stat">
-        <span class="status-header_value">{{ communities }}</span>
-        <span class="status-header_label">Communities</span>
+    <BaseCard flush class="stat-card">
+      <div class="stat-icon">
+        <v-icon size="20">mdi-shield-account</v-icon>
       </div>
 
-    </div>
-  </v-card>
+      <div class="stat-body">
+        <span class="stat-value">{{ communities }}</span>
+        <span class="stat-label">Communities</span>
+      </div>
+    </BaseCard>
+  </section>
 </template>
 
 <script setup>
+import BaseCard from '~/components/ui/BaseCard.vue';
 
 defineProps({
   games: { type: Number, default: 0 },
   friends: { type: Number, default: 0 },
   communities: { type: Number, default: 0 },
-  reviews: { type: Number, default: 0 },
+  gamesDelta: { type: String, default: '' },
+  friendsDelta: { type: String, default: '' },
+  communitiesDelta: { type: String, default: '' }
 })
 
 defineEmits(['open'])
 </script>
-
-<style scoped>
-.status-header {
-  border-radius:  var(--radius-lg) !important;
-  margin-inline:  var(--space-12);
-  margin-top: -32px;
-  max-height: fit-content;
-  min-height: auto;
-}
-
-.status-header_stats {
-  display:         flex;
-  justify-content: space-around;
-  align-items:     center;
-  flex-wrap:       wrap;
-  gap:             var(--space-6);
-}
-
-.status-header_stat {
-  display:        flex;
-  flex-direction: column;
-  align-items:    center;
-  gap:            var(--space-2);
-  flex:           1;
-}
-
-.status-header_value {
-  font-family: var(--font-display);
-  font-size:   var(--fs-h1);
-  font-weight: var(--fw-regular);
-  color:       var(--color-primary);
-  line-height: var(--lh-tight);
-}
-
-.status-header_label {
-  font-family: var(--font-body);
-  font-size:   var(--fs-small);
-  color:       var(--color-text-muted);
-}
-
-.status-header_divider {
-  height:      60px;
-  align-self:  center;
-}
-
-button {
-  border: none;
-  background-color: var(--color-alabaster);
-}
-</style>

@@ -10,29 +10,29 @@
     />
 
     <!-- Mobile filter trigger -->
-<div class="d-flex d-md-none mt-6 mb-4">
-  <v-chip
-    color="secondary"
-    prepend-icon="mdi-filter-variant"
-    size="large"
-    :aria-expanded="showFilters"
-    aria-controls="community-mobile-filters"
-    @click="showFilters = true"
-  >
-    Filters
-  </v-chip>
+    <div class="d-flex d-md-none mt-6 mb-4">
+      <v-chip
+        color="secondary"
+        prepend-icon="mdi-filter-variant"
+        size="large"
+        :aria-expanded="showFilters"
+        aria-controls="community-mobile-filters"
+        @click="showFilters = true"
+      >
+        Filters
+      </v-chip>
 
-  <v-navigation-drawer
-    v-model="showFilters"
-    temporary
-    location="left"
-    width="300"
-  >
-    <div
-      id="community-mobile-filters"
-      class="pa-4"
-    >
-      <CommunityFilter
+      <v-navigation-drawer
+        v-model="showFilters"
+        temporary
+        location="left"
+        width="300"
+      >
+        <div
+          id="community-mobile-filters"
+          class="pa-4"
+        >
+          <CommunityFilter
         @filter="handleFilter"
       />
     </div>
@@ -89,8 +89,7 @@ definePageMeta({
   middleware: 'auth'
 })
 
-import { ref, computed, onMounted, watch } from 'vue'
-import { useDebounceFn } from '@vueuse/core'
+import { ref, computed} from 'vue'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
@@ -104,31 +103,26 @@ import type { GroupInfo } from '~/services/communityService'
 
 import { useCommunity } from '~/composables/useCommunity'
 import { useSnackBar } from '~/composables/useSnackbar'
-
+import { useDebouncedAutocomplete } from '~/composables/useDebounce'
 
 const { getAllCommunities, searchForCommunity, loading } = useCommunity()
 const { show } = useSnackBar()
 
-const searchQuery = ref('')
 const showCreateCommunity = ref(false)
-const communities = ref<Array<GroupInfo>>([])
-
 const selectedTypes = ref<string[]>([])
 const selectedCategories = ref<string[]>([])
-
-onMounted(async () => {
-  communities.value = await getAllCommunities()
-  console.log(communities.value)
-})
 const showFilters = ref(false)
-const delaySearch = useDebounceFn( async (query) => {
-  const res = await searchForCommunity(query)
-  communities.value = Array.isArray(res) ? res : []
-}, 400)
 
-watch(searchQuery, (query) => {
-  delaySearch(query) 
-})
+const fetchCommunitiesData = async (query: string): Promise<GroupInfo[]> => {
+  if (!query || !query.trim()){
+    return await getAllCommunities();
+  }
+
+  const res = await searchForCommunity(query.trim());
+  return Array.isArray(res) ? res : []
+}
+
+const {search: searchQuery, options: communities} = useDebouncedAutocomplete(fetchCommunitiesData, {debounceMs: 400, fetchOnMount: true});
 
 const handleCreate = (newCommunity: GroupInfo) => {
   communities.value.push(newCommunity)

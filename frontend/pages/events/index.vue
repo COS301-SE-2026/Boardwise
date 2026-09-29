@@ -34,55 +34,73 @@
     </div>
 
     <div class="d-md-none">
-      <v-container 
-        v-if="isLoading"
-        class="d-flex justify-center align-center"
-        style="min-height: 60vh"
-      >
-        <v-progress-circular 
-          indeterminate 
-          color="primary" 
-          size="48" 
-        />
-      </v-container>
+      <BaseLoadingState v-if="isLoading" />
 
-      <EventGrid 
-        v-else 
-        :events="filteredEvents"
-        @select="openEvent"
-      />
+      <template v-else>
+        <EventGrid 
+          :events="pagedEvents"
+          @select="openEvent"
+        />
+
+        <template v-if="filteredEvents.length > 0">
+          <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
+            <span class="card-meta">Page {{ eventsPage }} of {{ eventsTotalPages }}</span>
+          </div>
+          
+          <BasePagination
+            v-if="eventsTotalPages > 1"
+            class="mt-4"
+            :model-value="eventsPage"
+            :total-pages="eventsTotalPages"
+            @update:modelValue="goToPage"
+          />
+        </template>
+      </template>
+      
     </div>
 
     <!-- Desktop -->
-    <div class="d-none d-md-flex ga-6 mt-6 align-start">
+    <div class="d-flex d-md-flex ga-6 mt-6 align-start">
       <EventFilter 
         :events="events" 
         @filter="handleFilter" 
       />
     
       <div class="flex-grow-1" style="min-width: 0;">
-        <v-container 
-          v-if="isLoading" 
-          class="d-flex justify-center align-center" 
-          style="min-height: 60vh"
-        >
-          <v-progress-circular 
-            indeterminate 
-            color="primary" 
-            size="48" 
+        <BaseLoadingState v-if="isLoading" />
+
+        <template v-else>
+          <BaseEmptyState
+            v-if="filteredEvents.length === 0"
+            title="No events found"
+            message="Try adjusting your filters, or be the first to create one."
           />
 
-        </v-container>
+          <template v-else>
+            <EventGrid 
+              :events="pagedEvents" 
+              @select="openEvent" 
+            />
 
-        <EventGrid 
-          v-else
-          :events="filteredEvents" 
-          @select="openEvent" 
-        />
+            <template v-if="filteredEvents.length > 0">
+              <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
+                <span class="card-meta">Page {{ eventsPage }} of {{ eventsTotalPages }}</span>
+              </div>
+
+              <BasePagination
+                v-if="eventsTotalPages > 1"
+                class="mt-4"
+                :model-value="eventsPage"
+                :total-pages="eventsTotalPages"
+                @update:modelValue="goToPage"
+              />
+            </template>
+          </template>
+        </template>
       </div>
     </div>
 
-    <CreateEvent v-model="showCreateEvent"   :on-submit="handleCreateEvent"  @created="handleCreateEvent" />
+    <CreateEventModal v-model="showCreateEvent"   :on-submit="handleCreateEvent"  @created="handleCreateEvent" />
 
     <EditEventModal
       v-model="showEditEvent"
@@ -105,31 +123,43 @@ definePageMeta({
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
+import BasePagination from '~/components/ui/BasePagination.vue'
+
 import EventFilter from '~/components/features/events/EventFilter.vue'
 import EventGrid from '~/components/features/events/EventGrid.vue'
-import CreateEvent from '~/components/features/events/CreateEvent.vue'
-import { useEvents } from '~/composables/useEvents'
-import { useSnackBar } from '~/composables/useSnackbar'
-import { ref, computed, onMounted, watch } from 'vue'
-import { useDebounceFn } from '@vueuse/core'
-import { useRouter } from 'vue-router'
+import CreateEventModal from '~/components/features/events/CreateEventModal.vue'
 import EditEventModal from '~/components/features/events/EditEventModal.vue'
 import InviteModal from '~/components/features/community/InviteModal.vue'
 import EventHeader from '~/components/features/events/EventHeader.vue'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
+import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
+
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useEvents } from '~/composables/useEvents'
+import { useSnackBar } from '~/composables/useSnackbar'
+import { useDebouncedAutocomplete } from '~/composables/useDebounce'
 
 const showFilters = ref(false)
 const { show } = useSnackBar(3)
 const {
-  events, 
+  events: storeEvents, 
   isLoading, 
   fetchEvents,
   createEvent,
   rsvpToEvent, 
-  deRsvpFromEvent,
+  deRsvpToEvent,
   cancelEvent
 } = useEvents()
 
 const router = useRouter()
+
+const fetchEventsData = async(query) => {
+  await fetchEvents(query);
+  return storeEvents.value ?? []
+}
+
+const {search:searchQuery, options: events, refetch: reloadEvents } = useDebouncedAutocomplete(fetchEventsData, {debounceMs: 400, fetchOnMount: false});
 
 onMounted(async () => {
   if (!localStorage.getItem('access_token')) {
@@ -137,11 +167,9 @@ onMounted(async () => {
     return
   }
 
-  fetchEvents()
+  await reloadEvents('')
 })
 
-
-const searchQuery = ref('')
 const activeFilters = ref({})
 
 const showCreateEvent = ref(false)
@@ -192,6 +220,30 @@ const filteredEvents = computed(() => {
   return result
 })
 
+// ============================== Pagination ==========================================
+
+const EVENTS_PAGE_SIZE = 6
+const eventsPage = ref(1)
+
+const eventsTotalPages = computed(() => 
+  Math.max(1, Math.ceil(filteredEvents.value.length /EVENTS_PAGE_SIZE))
+)
+
+const pagedEvents = computed(() => {
+  const start = (eventsPage.value - 1) * EVENTS_PAGE_SIZE
+  return filteredEvents.value.slice(start, start + EVENTS_PAGE_SIZE)
+})
+
+const goToPage = async (pageNum) => {
+  eventsPage.value = pageNum
+}
+
+watch(filteredEvents, () => {
+  if (eventsPage.value > eventsTotalPages.value) {
+    eventsPage.value = 1
+  }
+})
+
 const showInviteModal = ref(false);
 const createdEvent = ref(null);
 
@@ -207,6 +259,7 @@ const openEdit = (event) => {
 
 const handleFilter = (filters) => {
   activeFilters.value = filters
+  eventsPage.value = 1
 }
 
 const handleRsvp = async (eventId) => {
@@ -221,7 +274,7 @@ const handleRsvp = async (eventId) => {
 
 const handleDeRsvp = async (eventId) => {
   try {
-    const updated = await deRsvpFromEvent(eventId)
+    const updated = await deRsvpToEvent(eventId)
     selectedEvent.value = updated
     show('Your seat has been opened up.', 'info')
   } catch {
@@ -255,33 +308,18 @@ const handleEventCreated = (event) => {
 
 const handleEventUpdated = async () => {
 
-  await fetchEvents();
+  await fetchEvents(searchQuery.value);
+  events.value = storeEvents.value;
 
   if (editingEvent.value) {
     selectedEvent.value = events.value.find(
       e => e.id === editingEvent.value.id
     )
   }
-
-
-
   show('Your event changes are locked in.', 'success')
 
   showEditEvent.value = false
   showDetail.value = true
   editingEvent.value = null
-
-
-
 }
-
-const delaySearch = useDebounceFn(async (query) => {
-  await fetchEvents(query)
-}, 400)
-
-watch(searchQuery, (query) => {
-  delaySearch(query)
-})
-
-
 </script>

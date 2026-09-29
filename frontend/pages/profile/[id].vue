@@ -1,46 +1,37 @@
 <template>
-    <PageContainer>
+    <PageContainer class="profile-page">
         <!-- Loading -->
         <template v-if="loading">
-            <v-container
-                class="d-flex justify-center align center"
-                style="min-height: 60vh"
-            >
-                <v-progress-circular
-                    indeterminate
-                    color="primary"
-                    size="48"
-                />
-            </v-container>
+            <BaseLoadingState />
         </template>
 
         <!-- Profile not found -->
         <template v-else-if="notFound">
-            <v-container
+            <div
                 class="d-flex justify-center align-center"
                 style="min-height: 60vh"
             >
                 <BaseEmptyState
                     title="Profile not found"
-                    description="The user you're looking for doesn't exist or is no longer available."
+                    message="The user you're looking for doesn't exist or is no longer available."
                 />
-            </v-container>
+            </div>
         </template>
 
         <!-- Profile -->
         <template v-else-if="user">
             <Navbar />
 
-            <v-card flat class="profile-header pa-10 w-100 mb-6">
+            <BaseCard flush class="profile-header">
                 <div class="d-flex justify-space-between align-center flex-wrap ga-6">
-                    <div class="d-flex align-center ga-6 flex-wrap profle-info">
+                    <div class="profile-info">
                         <BaseAvatar 
                             :src="user.profilePicture ?? '/images/avatar.jpg'" 
                             :name="user.username" 
                             size="lg" 
                         />
 
-                        <div>
+                        <div class="profile-details"> 
                             <h1 class="profile-name ma-0">{{ user.fullName || user.username }}</h1>
                             <p class="profile-username ma-0">@{{ user.username }}</p>
                             
@@ -50,7 +41,7 @@
 
                     <div class="d-flex ga-1">
                         <BaseButton 
-                            @click="handleClick(route.params.id as string)" 
+                            @click="handleMessageClick(route.params.id as string)" 
                             :variant="'primary'"
                             size="small"
                             v-if="user.status === FriendStatus.ACCEPTED"
@@ -65,7 +56,7 @@
                         />
                     </div>
                 </div>
-            </v-card>
+            </BaseCard>
 
             <ProfileStats
                 :games="user.ownedGameCount"
@@ -76,30 +67,35 @@
 
             <ProfileCommunities :communities="user.communities" />
 
-            <v-tabs v-model="activeTab" color="primary" class="mb-4">
-                <v-tab value="Games Owned">Games Owned</v-tab>
-                <v-tab value="Listings">Listings</v-tab>
-            </v-tabs>
+            <section class="profile-content">
+                <BaseTabs
+                    :tabs="['Games Owned', 'Listings']"
+                    :active-tab="activeTab"
+                    aria-label="Profile sections"
+                    class="mb-4"
+                    @change="activeTab = $event"
+                />
 
-            <v-window v-model="activeTab">
-                <v-window-item value="Games Owned">
-                    <GamesOwnedSection :games="games" :editable="false" />
-                </v-window-item>
+                <v-window v-model="activeTab" class="profile-window">
+                    <v-window-item value="Games Owned">
+                        <GamesOwnedSection :games="games" />
+                    </v-window-item>
 
-                <v-window-item value="Listings">
-                    <ListingsSection :listings="listings" :editable="false" />
-                </v-window-item>
-            </v-window>
+                    <v-window-item value="Listings">
+                        <ListingsSection :listings="listings!" :editable="false" />
+                    </v-window-item>
+                </v-window>
+            </section>
+
+            <FriendsModal
+                v-model="showFriendsModal"
+                :username="user?.username ?? ''"
+                :loading="isLoading"
+                :friends="otherFriendList?.friends"
+                :mutuals="otherFriendList?.mutuals"
+                @remove="onModalRemove"
+            />
         </template>
-
-        <FriendsModal
-            v-model="showFriendsModal"
-            :username="user?.username ?? ''"
-            :loading="isLoading"
-            :friends="otherFriendList?.friends"
-            :mutuals="otherFriendList?.mutuals"
-            @remove="onModalRemove"
-        />
     </PageContainer>
 </template>
 
@@ -110,7 +106,9 @@ import { useRoute, useRouter } from 'vue-router'
 import Navbar from '~/components/layout/Navbar.vue';
 import BaseAvatar from '~/components/ui/BaseAvatar.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
+import BaseCard from '~/components/ui/BaseCard.vue';
 import PageContainer from '~/components/layout/PageContainer.vue';
+import BaseTabs from '~/components/ui/BaseTabs.vue';
 
 import ProfileStats from '~/components/features/profile/ProfileStats.vue';
 import ProfileCommunities from '~/components/features/profile/ProfileCommunities.vue';
@@ -121,13 +119,17 @@ import FriendsModal from '~/components/features/people/FriendsModal.vue';
 import FriendActionButton from '~/components/features/people/FriendActionButton.vue';
 
 import { useProfile } from '~/composables/useProfile'
+import { useMarketplace } from '~/composables/useMarketplace';
 import { useFriends } from '~/composables/useFriends'
 import { FriendStatus } from '~/services/userService';
 import type { ProfileResponse } from '~/services/userService'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue';
+import type { ListingResponse } from '~/services/marketplaceService';
 
 const route = useRoute()
 const router = useRouter()
 const { fetchUserById } = useProfile()
+const { getOtherUsersListings } = useMarketplace()
 
 const {  
     isLoading, 
@@ -142,7 +144,7 @@ const notFound = ref(false)
 
 const user = ref<ProfileResponse | null>(null)
 const activeTab = ref('Games Owned')
-const listings = ref([])
+const listings = ref<ListingResponse[] | null>([])
 const showFriendsModal = ref(false)
 
 const games = computed(() => user.value?.games ?? [])
@@ -154,13 +156,15 @@ const loadProfile = async (id: string) => {
 
     try {
         const profile = await fetchUserById(id);
+        const resListings = await getOtherUsersListings(id);
 
         if(!profile) {
             notFound.value = true
             return
         }
-
+        console.log("raw listing data: ", resListings)
         user.value = profile
+        listings.value = resListings ?? []
         await getUserFriendsList(id)
         // gotta add fetching other user listings
     } catch (err) {
@@ -171,7 +175,7 @@ const loadProfile = async (id: string) => {
     }
 }
 
-const handleClick = (id: string) => {
+const handleMessageClick = (id: string) => {
   router.push({
     path: '/chats',
     query: { newChat: id }

@@ -72,15 +72,15 @@ const props = defineProps({
 
 defineEmits(['join'])
 
-onMounted(() => {
+onMounted(async () => {
   const paramId = route.params.id;
     if(!paramId) return;
 
     const communityId: string | undefined = Array.isArray(paramId) ? paramId[0] : paramId;
     
     if(communityId){
-      getMissedCommunityMessages(communityId);
-      onReconnectHook(() => getMissedCommunityMessages(communityId))
+      await getMissedCommunityMessages(communityId);
+      onReconnectHook(async () => await getMissedCommunityMessages(communityId))
     }
 })
 

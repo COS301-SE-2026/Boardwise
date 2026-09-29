@@ -15,7 +15,7 @@
 
         <v-menu v-model="mobileMenuOpen" class="d-md-none">
           <template #activator="{ props }">
-            <v-btn
+            <BaseButton
               icon 
               variant="text"
               class="d-flex d-md-none"
@@ -23,7 +23,7 @@
               title="Open menu"
             >
               <v-icon>mdi-menu</v-icon>
-            </v-btn>
+            </BaseButton>
           </template>
 
           <v-list>

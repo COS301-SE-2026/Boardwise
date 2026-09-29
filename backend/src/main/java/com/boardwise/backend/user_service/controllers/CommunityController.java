@@ -24,6 +24,7 @@ import com.boardwise.backend.user_service.dtos.EventUpdateDTO;
 import com.boardwise.backend.user_service.services.CommunityService;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,13 +32,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/sb/community")
+@RequiredArgsConstructor 
 public class CommunityController {
 
     private final CommunityService service;
-
-    CommunityController(CommunityService service){
-        this.service = service;
-    }
 
     @GetMapping("/")
     public ResponseEntity<?> getEvents(
