@@ -606,3 +606,38 @@ def get_or_create_setup_wizard(rulebook_id: str) -> dict:
             f"Setup wizard for rulebook '{rulebook_id}' not found after creation."
         )
     return doc
+
+# Mechanic Collection
+def upsert_mechanic(mechanic: dict) -> None:
+    """Upserts a single MECHANIC document by mechanicId (used as _id)"""
+    db = get_db()
+    db["MECHANIC"].replace_one(
+        {"_id": mechanic["mechanicId"]},
+        {
+            "_id": mechanic["mechanicId"],
+            "name": mechanic["name"],
+            "category": mechanic.get("category", ""),
+            "description": mechanic["description"],
+            "requiresComponentTypes": mechanic.get("requiresComponentTypes", []),
+        },
+        upsert=True,
+    )
+
+def upsert_mechanics(mechanics: list[dict]) -> int:
+    """Upserts multiple MECHANIC documents. Returns count written"""
+    if not mechanics:
+        return 0
+    for mechanic in mechanics:
+        upsert_mechanic(mechanic)
+    logger.info("Upserted %d mechanics.", len(mechanics))
+    return len(mechanics)
+
+def get_all_mechanics() -> list[dict]:
+    """Returns every MECHANIC document."""
+    db = get_db()
+    return list(db["MECHANIC"].find({}))
+
+def count_mechanics() -> int:
+    """Returns the number of MECHANIC documents."""
+    db = get_db()
+    return db["MECHANIC"].count_documents({})
