@@ -106,10 +106,9 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseSearch from '~/components/ui/BaseSearch.vue'
 import AddCustomGameModal from '~/components/features/shared/AddCustomGameModal.vue'
-import BaseImage from '~/components/ui/BaseImage.vue'
-
 import { useBoardGames } from '~/composables/useBoardGames'
-import { useDebouncedAutocomplete } from '~/composables/useDebounce'
+import { useDebounceFn } from '@vueuse/core'
+import BaseImage from '~/components/ui/BaseImage.vue'
 
 const { games, isLoading: gamesLoading, searchGames } = useBoardGames()
 
@@ -123,26 +122,21 @@ const props = defineProps({
 const open = defineModel()
 const emit = defineEmits(['add'])
 
-const fetchGamesForAutocomplete = async (query) => {
-  if(!query || !query.trim()) return []
-  await searchGames(query)
-  return games.value
-}
-
-const {search, options: gameOptions, markSelecting } = useDebouncedAutocomplete(fetchGamesForAutocomplete, {debounceMs: 400, fetchOnMount: false});
-
+const search = ref('')
 const selectedGame = ref(null)
 const customModalOpen = ref(false)
 
+const debouncedSearch = useDebounceFn((query) => searchGames(query), 400)
 
 watch(search, (val) => {
-  if (selectedGame.value && val !== selectedGame.value?.title) selectedGame.value = null
+  if (selectedGame.value) selectedGame.value = null
+  if (val && val.trim()) {
+    debouncedSearch(val)
+  }
 })
 
 const selectGame = (game) => {
-  markSelecting()
   selectedGame.value = game
-  search.value = game.title
 }
 
 const clearSelection = () => {
@@ -155,7 +149,7 @@ const clearSelection = () => {
 // falls back to the raw { message } response, which has no id/title.
 const onCustomGameAdded = (game, submittedGame) => {
   if (game?.id) {
-    selectGame(game)
+    selectedGame.value = game
   } else {
     console.error('Custom game could not be resolved after creation:', submittedGame?.title)
     selectedGame.value = null
@@ -187,7 +181,6 @@ const resetForm = () => {
   edition.value = ''
   fileName.value = ''
   fileToUpload.value = null
-  gameOptions.value = []
   if (fileInput.value) {
     fileInput.value.value = ''
   }

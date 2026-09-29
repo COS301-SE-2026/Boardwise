@@ -2,14 +2,10 @@
   <PageContainer>
     <Navbar />
 
-    <div class="d-flex flex-column ga-5 mb-6">
-      <SectionTitle title="Library" subtitle="Browse community rulebooks" />
-
-      <RulebookSearch
-        @upload="handleUploadRequest"
-        @search="handleSearch"
-      />
-    </div>
+    <LibraryHeader 
+      @upload="handleUploadRequest"
+      @search="handleSearch"
+    />
 
     <RulebookCarousel :rulebooks="featuredRulebooks" @select="openRulebook" />
 
@@ -23,33 +19,17 @@
     />
 
     <!-- Mobile filter -->
-    <div class="d-flex d-md-none mt-4 mb-4">
-      <v-chip
-        color="secondary"
-        prepend-icon="mdi-filter-variant"
-        size="large"
-        @click="showFilters = true"
-      >
-        Filters
-      </v-chip>
-
-      <v-navigation-drawer
-        v-model="showFilters"
-        temporary
-        location="left"
-        width="300"
-      >
-        
-        <RulebookFilterSidebar/>
-        
-      </v-navigation-drawer>
-    </div>
+    <MobileFilterDrawer id="library-mobile-filters">
+      <RulebookFilterSidebar @filter="handleFilter" />
+    </MobileFilterDrawer>
 
     <!-- Desktop -->
     <div class="d-none d-md-flex ga-6 align-start">
 
       <!-- Filters -->
-      <RulebookFilterSidebar/>
+      <RulebookFilterSidebar
+        @filter="handleFilter"
+      />
       
       <div class="flex-grow-1" style="min-width: 0;">
         <BaseLoadingState v-if="isLoading" message="Loading rulebooks... " />
@@ -133,16 +113,18 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useDebounceFn } from '@vueuse/core'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BasePagination from '~/components/ui/BasePagination.vue'
+import MobileFilterDrawer from '~/components/ui/MobileFilterDrawer.vue'
 
+import LibraryHeader from '~/components/features/library/LibraryHeader.vue'
 import RulebookFilterSidebar from '~/components/features/library/RulebookFilterSidebar.vue'
 import RulebookGrid from '~/components/features/library/RulebookGrid.vue'
 import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue'
-import RulebookSearch from '~/components/features/library/RulebookSearch.vue'
 import UploadRulebookModal from '~/components/features/library/UploadRulebookModal.vue'
 import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
 import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue'
@@ -150,9 +132,8 @@ import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue
 import { useLibrary } from '~/composables/useLibrary'
 import { useVaultUpload } from '~/composables/useVaultUpload';
 import { useAuth } from '~/composables/useAuth';
-import { useRulebookFilters } from '~/composables/useRulebookFilters'
+
 import { useSnackBar } from '~/composables/useSnackbar';
-import { useDebouncedAutocomplete } from '~/composables/useDebounce'
 
 const CARD_PAGE_SIZE = 12
 
@@ -165,27 +146,16 @@ const router = useRouter();
 const {rulebooks, isLoading, getAllRulebooks, getRulebookById, currentRulebook, featuredRulebooks, loadMore, hasMore, fetchFeaturedRulebooks } = useLibrary()
 const {triggerUpload, isUploading, error} = useVaultUpload();
 const { isAuthenticated } = useAuth();
-const { filters } = useRulebookFilters();
 
+const searchQuery = ref('')
 const activeFilterState = ref({})
 const showDetail = ref(false)
 const showUpload = ref(false)
 const selectedRulebook = ref(null)
 
-const fetchRulebooksForSearch = async (query) => {
-  rulebooksPage.value = 1;
-  await getAllRulebooks({
-    ...activeFilterState.value,
-    search: query || null,
-    limit: CARD_PAGE_SIZE
-  }, true);
-  return rulebooks.value ?? []
-}
-
-const {search:searchQuery} = useDebouncedAutocomplete(fetchRulebooksForSearch, {debounceMs: 400, fetchOnMount: false});
-
-onMounted(() => {
+onMounted(() => { // Does stuff when component loads
   fetchFeaturedRulebooks();
+  getAllRulebooks({}, true);
 })
 
 const handleUploadRequest = () => {
@@ -199,6 +169,16 @@ const handleUploadRequest = () => {
   showUpload.value = true;
 }
 
+const delaySearch = useDebounceFn((query) => {
+  rulebooksPage.value = 1
+  getAllRulebooks({...activeFilterState.value, search:query || null}, true);
+}, 400);
+
+watch(searchQuery, (query) => {
+  delaySearch(query);
+});
+
+
 const openRulebook = async (rulebook) => {
   selectedRulebook.value = null;
   showDetail.value = true;
@@ -208,6 +188,19 @@ const openRulebook = async (rulebook) => {
 
 const handleSearch = (query) => {
   searchQuery.value = query
+}
+
+const handleFilter = (filters) => {
+  activeFilterState.value = {
+    genre: filters.genre,
+    languages: "English",
+    playerCount: filters.playerCount,
+    duration: filters.duration,
+    minAge: filters.minAge,
+  }
+    rulebooksPage.value = 1
+    getAllRulebooks({...activeFilterState.value, search: searchQuery.value || null}, true);
+    
 }
 
 const handleUploadRulebook = async (newRulebook) => {
@@ -246,19 +239,4 @@ const goToRulebooksPage = async (page) => {
     await loadMore()
   }
 }
-
-watch(
-  filters,
-  (newFilters) => {
-    const currentGenre = newFilters.genre?.[0]
-    activeFilterState.value = {
-      genre: currentGenre === 'all' ? null : currentGenre,
-      playerCount: newFilters.playerCount,
-      duration: newFilters.duration,
-      minAge: newFilters.minAge
-    }
-    rulebooksPage.value = 1;
-    getAllRulebooks({...activeFilterState.value, search: searchQuery.value || null, limit: CARD_PAGE_SIZE}, true);
-  },{deep: true, immediate: true}
-)
 </script>

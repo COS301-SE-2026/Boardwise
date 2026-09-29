@@ -4,39 +4,30 @@
     <Navbar data-test="navbar" />
 
     <MarketplaceHeader data-test="marketplace-header" @search ="searchQ = $event" @create-listing="showCreateListing = true" />
-
     <MarketplaceTabs data-test="marketplace-tabs" v-model="activeTab" />
+
+    <MobileFilterDrawer id="community-mobile-filters">
+      <FilterSidebar 
+        v-if="activeTab === 'Community Listings'"
+        data-test="filter-sidebar"
+        @filter="handleFilter" 
+      />
+
+      <RetailerFilterSidebar
+        v-else
+        data-test="retailer-filter-sidebar"
+        :retailer-options="retailerOptions"
+        @filter="handleRetailerFilter"
+      />
+    </MobileFilterDrawer>
 
     <!-- Community Listings -->
     <template v-if="activeTab === 'Community Listings'">
-      <!-- Mobile -->
-      <div class="d-flex d-md-none mt-6 mb-4">
-        <v-chip
-          color="secondary"
-          prepend-icon="mdi-filter-variant"
-          size="large"
-          @click="showFilters = true"
-        >
-          Filters
-        </v-chip>
-
-        <v-navigation-drawer
-          v-model="showFilters"
-          temporary
-          location="left"
-          width="300"
-        >
-          <FilterSidebar v-if="communityLoadedOnce" data-test="filter-sidebar" @filter="handleFilter" />
-        </v-navigation-drawer>
-      </div>
-
       <!-- Desktop -->
-      <div class="d-flex d-md-flex ga-6 mt-6 align-start">
-        <div class="d-none d-md-block">
-          <FilterSidebar v-if="communityLoadedOnce" data-test="filter-sidebar" @filter="handleFilter"/>
-        </div>
+      <div class="d-none d-md-flex ga-6 mt-6 align-start">
+        <FilterSidebar data-test="filter-sidebar" @filter="handleFilter"/>
           
-        <div class="flex-1-1">
+        <div class="flex-grow-1" style="min-width: 0;">
           <div v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
             <MarketplaceLoadingState tab="Community Listings" />
           </div>
@@ -51,7 +42,7 @@
           />
 
           <template v-else>
-            <ListingGrid data-test="listing-grid" :listings="pagedListings" />
+            <ListingGrid data-test="listing-grid" :listings="listings" />
 
             <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
               <span class="card-meta">
@@ -73,42 +64,14 @@
     </template>
     
     <!-- External Retail -->
-    <template v-else-if="activeTab === 'Web Listings'">
-      <!-- Mobile -->
-      <div class="d-flex d-md-none mt-6 mb-4">
-          <v-chip
-            color="secondary"
-            prepend-icon="mdi-filter-variant"
-            size="large"
-            @click="showRetailFilters = true"
-          >
-            Filters
-          </v-chip>
-
-          <v-navigation-drawer
-            v-model="showRetailFilters"
-            temporary
-            location="left"
-            width="300"
-          >
-            <RetailerFilterSidebar 
-              v-if="!retailInitialLoading"
-              data-test="retailer-filter-sidebar"
-              :retailer-options="retailerOptions"
-              @filter="handleRetailerFilter" 
-            />
-          </v-navigation-drawer>
-        </div>
-
+    <template v-else-if="activeTab === 'Web'">
         <!-- Desktop -->
-        <div class="d-flex d-md-flex ga-6 mt-6 align-start">
-          <div class="d-none d-md-block">
-            <RetailerFilterSidebar  v-if="!retailInitialLoading"
+        <div class="d-none d-md-flex ga-6 mt-6 align-start">
+            <RetailerFilterSidebar 
               data-test="filter-sidebar" 
               :retailer-options="retailerOptions"
               @filter="handleRetailerFilter"
             />
-          </div>
             
           <div class="flex-1-1">
             <div
@@ -116,12 +79,12 @@
               class="d-flex justify-center align-center flex-1-1"
               style="min-height: 60vh"
             >
-              <MarketplaceLoadingState tab="Web Listings" />
+              <MarketplaceLoadingState tab="Web" />
             </div>
 
             <MarketplaceEmptyState
               v-else-if="filteredRetailResults.length === 0"
-              tab="Web Listings"
+              tab="Web"
               :search="searchQ"
               :has-active-filters="hasRetailFilters"
               @clear-filters="resetRetailFilters"
@@ -192,8 +155,8 @@ import MarketplaceEmptyState from '~/components/features/marketplace/Marketplace
 
 import { useRouter } from 'vue-router'
 import { useMarketplace } from '~/composables/useMarketplace'
+import { useDebounceFn  } from '@vueuse/core'
 import { useRetail } from '~/composables/useRetail'
-import { useDebouncedAutocomplete } from '~/composables/useDebounce'
 
 const CARD_PAGE_SIZE = 9 // cards per "page"
 
@@ -206,34 +169,11 @@ const showCreateListing = ref(false)
 const {listings, loading, fetchListings, addListing, loadMore, hasMore} = useMarketplace();
 const {retailResults, retailLoading, hasMoreRetail, fetchPersonalisedListings, personalisedListings } = useRetail()
 
-const communityPage = ref(1)
-const retailPage = ref(1)
-const activeFilterState = ref({})
-const activeRetailFilterState = ref({ retailers: null, minPrice: null, maxPrice: null }, true)
-
-const retailInitialLoading = computed(()=> retailLoading.value && retailResults.value.length === 0)
-const fetchMarketplaceSearch = async (query) => {
-  if(activeTab.value === 'Web Listings'){
-    retailPage.value = 1;
-    await fetchPersonalisedListings(true);
-    return []
-  }
-
-  communityPage.value = 1;
-  await fetchListings({ ...activeFilterState.value, search: query || null }, true);
-  return []
-}
-
-const {search:searchQ} = useDebouncedAutocomplete(fetchMarketplaceSearch, {debounceMs: 400, fetchOnMount: false});
-
 onMounted(async () => {
-  if (!localStorage.getItem('access_token')) {
-    router.push('/auth/signin')
+  if(!localStorage.getItem('access_token')){
+    router.push('/auth/signin');
   }
-  try{
-    await fetchListings({}, true) 
-  }
-    finally {communityLoadedOnce.value =true}
+  fetchListings({}, true)   
 })
 
 const handleAdd = async (data, image) => {
@@ -242,38 +182,56 @@ const handleAdd = async (data, image) => {
   communityPage.value = 1;
 }
 
-const communityLoadedOnce = ref(false)
-
 const showInlineLoading = computed(() => {
-  const currentListings = unref(listings) ?? []
-  const currentRetail = unref(retailResults) ?? []
+const currentListings = unref(listings) ?? []
+const currentRetail = unref(retailResults) ?? []
 
-  if (activeTab.value === 'Web Listings') {
+  if (activeTab.value === 'Web') {
     return retailLoading.value && currentRetail.length > 0
   }
   return loading.value && currentListings.length > 0
 })
 
-watch(activeTab, async (tab) => {
-  if(tab === 'Web Listings' && retailResults.value.length === 0) {
-    await fetchPersonalisedListings();
+const searchQ = ref('');
+const activeFilterState = ref({})
+const activeRetailFilterState = ref({ retailers: null, minPrice: null, maxPrice: null }, true)
+
+const delaySearch = useDebounceFn((query) => {
+  if(activeTab.value === 'Web'){
+    retailPage.value = 1
+    fetchPersonalisedListings(true);
+    return
+  }
+
+  communityPage.value = 1
+  fetchListings({ ...activeFilterState.value, search: query || null }, true)
+}, 400)
+
+watch(activeTab, (tab) => {
+  if(tab === 'Web' && retailResults.value.length === 0) {
+    fetchPersonalisedListings();
   }
 })
 
-const getListingType = (rent, sale) => { 
-  if (rent && sale) return null;
-  if (rent) return 'rental';
-  if (sale) return 'sale';
-  return null;
-}
+watch(searchQ,(query)=>{
+  delaySearch(query);
+})
 
-const handleFilter = (filters) => {
+  const getListingType = (rent, sale)=> { 
+    if (rent && sale) return null;
+    if (rent) return 'rental';
+    if (sale) return 'sale';
+    return null;
+  }
+
+  const handleFilter = (filters)=>{
+
   const conditions = filters.conditions.length > 0 ? filters.conditions.map(c => c.toLowerCase()) : null
-  const genres = filters.genres ? [filters.genres.toLowerCase()] : null
+  const genres = filters.genres?.length > 0 ? filters.genres : null
 
-  const lt = getListingType(filters.rent, filters.sale);
+  const  lt= getListingType(filters.rent,filters.sale);
 
-  activeFilterState.value = {
+   activeFilterState.value = {
     listingType: lt,
     genres,
     conditions,
@@ -285,19 +243,7 @@ const handleFilter = (filters) => {
   fetchListings({ ...activeFilterState.value, search: searchQ.value || null }, true);
 }
 
-const hasCommunityFilters = computed(() =>
-  Object.values(activeFilterState.value).some(v => v != null) || !!searchQ.value
-)
-
-const resetCommunityFilters = () => {
-  activeFilterState.value = {}
-  searchQ.value = ''
-  communityPage.value = 1
-  filterKey.value++   // remounts the sidebar so its selections clear
-  fetchListings({}, true)
-}
-
-const KNOWN_RETAILERS = []
+const KNOWN_RETAILERS = ['Bobshop', 'Takealot', 'ToysRUs']
 
 const retailerOptions = computed(() => {
   const loadedNames = retailResults.value.map(r => r.retailer).filter(Boolean)
@@ -306,16 +252,6 @@ const retailerOptions = computed(() => {
 
 const handleRetailerFilter = (filters) => {
   activeRetailFilterState.value = filters
-  retailPage.value = 1
-}
-
-const hasRetailFilters = computed(() => {
-  const { retailers, minPrice, maxPrice } = activeRetailFilterState.value
-  return !!retailers?.length || minPrice != null || maxPrice != null
-})
-
-const resetRetailFilters = () => {
-  activeRetailFilterState.value = { retailers: null, minPrice: null, maxPrice: null }
   retailPage.value = 1
 }
 
@@ -331,6 +267,7 @@ const filteredRetailResults = computed(() => {
 })
 
 //============================ Pagination: Community Listings =========================
+const communityPage = ref(1)
 
 const communityTotalPages = computed(() => {
   const loadedPages = Math.ceil((listings.value?.length || 0) / CARD_PAGE_SIZE)
@@ -348,11 +285,12 @@ const communityRangeEnd = computed(() => (communityPage.value - 1) * CARD_PAGE_S
 const goToCommunityPage = async (page) => {
   communityPage.value = page
   while(listings.value.length < page * CARD_PAGE_SIZE && hasMore.value && !loading.value) {
-    await fetchListings({ ...activeFilterState.value, search: searchQ.value || null }, false)
+    await fetchListings(activeFilterState.value, false)
   }
 }
 
 // ======================= Pagination: Retailer ========================================
+const retailPage = ref(1)
 
 const retailTotalPages = computed(() => {
   const loadedPages = Math.ceil((filteredRetailResults.value?.length || 0) / CARD_PAGE_SIZE)
@@ -373,6 +311,7 @@ const goToRetailPage = async (page) => {
     await fetchPersonalisedListings()
   }
 }
+
 </script>
 
 <style scoped>

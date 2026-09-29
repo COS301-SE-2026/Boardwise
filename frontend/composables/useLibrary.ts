@@ -32,6 +32,7 @@ export const useLibrary = () => {
             const response = await LibraryService.fetchAllRulebooks({
                 ...activeFilters.value,
                 page: page.value,
+                limit: 20
             });
             
             const newContent = response?.content || [];
@@ -65,7 +66,7 @@ export const useLibrary = () => {
 
     const loadMore = () => {
         if(!isLoading.value && hasMore.value){
-            getAllRulebooks(activeFilters.value);
+            getAllRulebooks(activeFilters.value, false);
         }
     };
 

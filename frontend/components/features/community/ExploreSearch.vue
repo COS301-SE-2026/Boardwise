@@ -8,20 +8,11 @@
         hide-details
       />
     </div>
-
-    <BaseButton 
-      variant="primary" 
-      @click="$emit('create-community')"
-    >
-      + Create a community
-    </BaseButton>
-
   </div>
 </template>
 
 <script setup>
 import BaseSearch from '~/components/ui/BaseSearch.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
 
 const model = defineModel({
   type: String,

@@ -2,7 +2,7 @@
   <BaseFilterSidebar data-test="filter-sidebar" @reset="resetFilters">
 
     <BaseFilterGroup title="Genres">
-      <BaseFilterPills v-model="selectedGenre" :options="visibleGenres" :multiple="false" @search="onGenreSearch" />
+      <BaseFilterPills v-model="selectedGenre" :options="genres" />
     </BaseFilterGroup>
 
     <BaseFilterGroup title="Listing Type">
@@ -28,30 +28,21 @@
 </template>
 
 <script setup>
-import { computed, ref, reactive, watch, onScopeDispose } from 'vue'
+import { computed, ref, reactive, watch } from 'vue'
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue'
 import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue'
 import BaseFilterCheckboxGroup from '~/components/ui/Filters/BaseFilterCheckboxGroup.vue'
 import BaseFilterPills from '~/components/ui/Filters/BaseFilterPills.vue'
 import BaseFilterPriceRange from '~/components/ui/Filters/BaseFilterPriceRange.vue'
-import { useBoardGames } from '~/composables/useBoardGames'
+
 const emit = defineEmits(['filter'])
 
-const { searchGenres } = useBoardGames()
-const hardGenres = ['All', 'Economic', 'Family', 'Party', 'Card Game', 'Abstract']
+const genres = ['All', 'Strategy', 'Family', 'Party', 'Card', 'Abstract']
 const conditions = ['New', 'Like New', 'Good', 'Fair']
 
-const selectedGenre = ref('All')
+const selectedGenre  = ref('All')
 const selectedConditions = ref([])
 const selectedListingTypes = ref([])
-
-const genreModel = computed({
-  get: () => [selectedGenre.value],
-  set: (arr) => {
-    const next = arr.find(g => g !== selectedGenre.value)
-    selectedGenre.value = next ?? 'All'
-  }
-})
 
 const filters = reactive({
   minPrice: '',
@@ -61,35 +52,9 @@ const filters = reactive({
 const rent = computed(() => selectedListingTypes.value.includes('rent'))
 const sale = computed(() => selectedListingTypes.value.includes('sale'))
 
-const searchedGenres = ref(null)
-let timer = null
-let latest = ''
-
-const visibleGenres = computed(() => searchedGenres.value ?? hardGenres)
-
-const onGenreSearch = (q) => {
-  clearTimeout(timer)
-  const query = q.trim()
-  latest = query
-
-  if (!query) {
-    searchedGenres.value = null
-    return
-  }
-
-  timer = setTimeout(async () => {
-    const res = await searchGenres(query)
-    if (query !== latest) return   
-    searchedGenres.value = res.length
-      ? res
-      : hardGenres.filter(g => g.toLowerCase().includes(query.toLowerCase()))
-  }, 300)
-}
-
 watch([selectedGenre, selectedListingTypes, selectedConditions, filters], () => {
-  console.log("filter genre val being sent ",selectedGenre.value)
   emit('filter', {
-    genres: selectedGenre.value === 'All' ? null : selectedGenre.value,
+    genres: selectedGenre.value === 'All' ? null : [selectedGenre.value.toLowerCase()],
     conditions: selectedConditions.value,
     rent: rent.value,
     sale: sale.value,
@@ -104,10 +69,5 @@ const resetFilters = () => {
   selectedListingTypes.value = []
   filters.minPrice = ''
   filters.maxPrice = ''
-  clearTimeout(timer)
-  latest = ''
-  searchedGenres.value = null
 }
-
-onScopeDispose(()=> clearTimeout(timer))
 </script>
