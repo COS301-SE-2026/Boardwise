@@ -191,8 +191,8 @@ import MarketplaceEmptyState from '~/components/features/marketplace/Marketplace
 
 import { useRouter } from 'vue-router'
 import { useMarketplace } from '~/composables/useMarketplace'
-import { useDebounceFn  } from '@vueuse/core'
 import { useRetail } from '~/composables/useRetail'
+import { useDebouncedAutocomplete } from '~/composables/useDebounce'
 
 const CARD_PAGE_SIZE = 9 // cards per "page"
 
@@ -205,11 +205,30 @@ const showCreateListing = ref(false)
 const {listings, loading, fetchListings, addListing, loadMore, hasMore} = useMarketplace();
 const {retailResults, retailLoading, hasMoreRetail, fetchPersonalisedListings, personalisedListings } = useRetail()
 
+const communityPage = ref(1)
+const retailPage = ref(1)
+const activeFilterState = ref({})
+const activeRetailFilterState = ref({ retailers: null, minPrice: null, maxPrice: null }, true)
+
+const fetchMarketplaceSearch = async (query) => {
+  if(activeTab.value === 'Web'){
+    retailPage.value = 1;
+    await fetchPersonalisedListings(true);
+    return []
+  }
+
+  communityPage.value = 1;
+  await fetchListings({ ...activeFilterState.value, search: query || null }, true);
+  return []
+}
+
+const {search:searchQ} = useDebouncedAutocomplete(fetchMarketplaceSearch, {debounceMs: 400, fetchOnMount: false});
+
 onMounted(async () => {
   if(!localStorage.getItem('access_token')){
     router.push('/auth/signin');
   }
-  fetchListings({}, true)   
+  fetchListings({}, true)
 })
 
 const handleAdd = async (data, image) => {
@@ -228,30 +247,12 @@ const currentRetail = unref(retailResults) ?? []
   return loading.value && currentListings.length > 0
 })
 
-const searchQ = ref('');
-const activeFilterState = ref({})
-const activeRetailFilterState = ref({ retailers: null, minPrice: null, maxPrice: null }, true)
-
-const delaySearch = useDebounceFn((query) => {
-  if(activeTab.value === 'Web'){
-    retailPage.value = 1
-    fetchPersonalisedListings(true);
-    return
-  }
-
-  communityPage.value = 1
-  fetchListings({ ...activeFilterState.value, search: query || null }, true)
-}, 400)
-
 watch(activeTab, async (tab) => {
   if(tab === 'Web' && retailResults.value.length === 0) {
     await fetchPersonalisedListings();
   }
 })
 
-watch(searchQ,(query)=>{
-  delaySearch(query);
-})
 
   const getListingType = (rent, sale)=> { 
     if (rent && sale) return null;
@@ -303,7 +304,6 @@ const filteredRetailResults = computed(() => {
 })
 
 //============================ Pagination: Community Listings =========================
-const communityPage = ref(1)
 
 const communityTotalPages = computed(() => {
   const loadedPages = Math.ceil((listings.value?.length || 0) / CARD_PAGE_SIZE)
@@ -326,7 +326,6 @@ const goToCommunityPage = async (page) => {
 }
 
 // ======================= Pagination: Retailer ========================================
-const retailPage = ref(1)
 
 const retailTotalPages = computed(() => {
   const loadedPages = Math.ceil((filteredRetailResults.value?.length || 0) / CARD_PAGE_SIZE)
@@ -347,7 +346,6 @@ const goToRetailPage = async (page) => {
     await fetchPersonalisedListings()
   }
 }
-
 </script>
 
 <style scoped>

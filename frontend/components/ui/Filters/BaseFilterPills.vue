@@ -9,7 +9,7 @@
 
     <div class="filter-pill-options">
       <button
-        v-for="option in filteredOptions"
+        v-for="option in options"
         :key="option"
         type="button"
         class="filter-pill"
@@ -27,7 +27,7 @@
       </button>
 
       <span 
-        v-if="filteredOptions.length === 0"
+        v-if="options.length === 0"
         class="filter-pill-empty"
       >
         No genres found
@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { ref, watch } from 'vue'
 import BaseSearch from '../BaseSearch.vue'
 
 const props = defineProps({
@@ -52,20 +52,12 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'search'])
 
 const searchQuery = ref('')
 
-const filteredOptions = computed(() => {
-  const query = searchQuery.value.trim().toLowerCase()
-
-  if (!query) {
-    return props.options
-  }
-
-  return props.options.filter(option =>
-    option.toLowerCase().includes(query)
-  )
+watch(searchQuery, (newQuery) => {
+  emit('search', newQuery.toLowerCase())
 })
 
 function isSelected(option) {

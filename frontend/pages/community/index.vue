@@ -89,8 +89,7 @@ definePageMeta({
   middleware: 'auth'
 })
 
-import { ref, computed, onMounted, watch } from 'vue'
-import { useDebounceFn } from '@vueuse/core'
+import { ref, computed} from 'vue'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
@@ -104,30 +103,26 @@ import type { GroupInfo } from '~/services/communityService'
 
 import { useCommunity } from '~/composables/useCommunity'
 import { useSnackBar } from '~/composables/useSnackbar'
-
+import { useDebouncedAutocomplete } from '~/composables/useDebounce'
 
 const { getAllCommunities, searchForCommunity, loading } = useCommunity()
 const { show } = useSnackBar()
 
-const searchQuery = ref('')
 const showCreateCommunity = ref(false)
-const communities = ref<Array<GroupInfo>>([])
-
 const selectedTypes = ref<string[]>([])
 const selectedCategories = ref<string[]>([])
-
-onMounted(async () => {
-  communities.value = await getAllCommunities()
-})
 const showFilters = ref(false)
-const delaySearch = useDebounceFn( async (query) => {
-  const res = await searchForCommunity(query)
-  communities.value = Array.isArray(res) ? res : []
-}, 400)
 
-watch(searchQuery, (query) => {
-  delaySearch(query) 
-})
+const fetchCommunitiesData = async (query: string): Promise<GroupInfo[]> => {
+  if (!query || !query.trim()){
+    return await getAllCommunities();
+  }
+
+  const res = await searchForCommunity(query.trim());
+  return Array.isArray(res) ? res : []
+}
+
+const {search: searchQuery, options: communities} = useDebouncedAutocomplete(fetchCommunitiesData, {debounceMs: 400, fetchOnMount: true});
 
 const handleCreate = (newCommunity: GroupInfo) => {
   communities.value.push(newCommunity)

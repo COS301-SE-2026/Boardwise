@@ -105,7 +105,7 @@ import BaseImage from '~/components/ui/BaseImage.vue'
 
 import { ref, watch } from 'vue'
 import { useProfile } from '~/composables/useProfile'
-import { useDebounceFn } from '@vueuse/core'
+import { useDebouncedAutocomplete } from '~/composables/useDebounce'
 
 const props = defineProps({
     games: { 
@@ -119,39 +119,29 @@ const open = defineModel({ type: Boolean, default: false })
 
 const { searchGames, addExistingGame, addGame } = useProfile()
 
-const search = ref('')
-const searchResults = ref([])
 const selectedGames = ref([])
 const searching = ref(false)
 const adding = ref(false)
 
+const fetchGamesForAutocomplete = async (query) => {
+  if(!query || !query.trim()) return []
+  searching.value = true
+  try{
+    const res = await searchGames(query.trim())
+    return res ?? []
+  }catch(err){
+    console.error("search failed: ", err)
+    return []
+  }finally{
+    searching.value = false
+  }
+}
+
+const {search, options: searchResults} = useDebouncedAutocomplete(fetchGamesForAutocomplete, {debounceMs: 400, fetchOnMount: false});
+
 const isOwned = (game) => {
     return props.games.some(ownedGame => ownedGame.id === game.id)
 }
-
-async function handleSearch() {
-     if (!search.value || !search.value.trim()) {
-        searchResults.value = []
-        return
-    }
-
-    searching.value = true
-
-    try{
-        const res = await searchGames(search.value.trim());
-        console.log(res);
-        searchResults.value = res ?? []
-    }
-    catch(err){
-        console.error("search failed: ", err);
-        searchResults.value = [];
-    }
-    finally{
-        searching.value = false;
-    }
-}
-
-const delaySearch = useDebounceFn(() => handleSearch(), 400)
 
 watch(search, (_) => {
     delaySearch()
@@ -205,5 +195,4 @@ const handleConfirm = async () => {
         adding.value = false
     }
 }
-
 </script>

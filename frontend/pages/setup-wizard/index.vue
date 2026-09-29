@@ -88,9 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useDebounceFn } from '@vueuse/core'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
@@ -123,7 +121,10 @@ const router = useRouter()
 const { rulebooks, isLoading, error, getAllRulebooks }= useLibrary()
 const { activeSetup, restartSetup } = useActiveSetup()
 
-const searchQuery = ref('')
+const fetchGamesForSearch = async (query: string) => {
+    await searchGames(query || '');
+    return []
+};
 
 onMounted(() => getAllRulebooks({status: 'Ready'},true));
 
