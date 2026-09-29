@@ -36,10 +36,10 @@ public class User {
     private String firstName;
     private String lastName;
     private String profilePicture; // image url from cloud buckets
-    private String locationText;
+    private String location;
     
     @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
-    private GeoJsonPoint location;
+    private GeoJsonPoint coords;
     private Preferences preferences;
     private Instant lastOnlineAt;
     private Instant createdAt;
@@ -59,7 +59,7 @@ public class User {
         this.lastOnlineAt = null;
         this.createdAt = Instant.now();
         this.profilePicture = null;
-        this.locationText = null;
+        this.coords = null;
         this.location = null;
         this.resetToken = null;
         this.resetTokenExpiry = null;
