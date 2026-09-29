@@ -1,9 +1,5 @@
 <template>
-  <BaseCard
-    clickable
-    class="games-card"
-    @click="handleBoardgameRedirect"
-    >
+  <BaseCard class="games-card"">
 
     <template #media>
       <BaseImage :src="image" :alt="title" height="200px" />
@@ -39,12 +35,6 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 import RemoveGameModal from './RemoveGameModal.vue'
 
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useProfile } from '~/composables/useProfile'
-import { useSnackBar } from '~/composables/useSnackbar'
-
-const { fetchGetBoardgameRulebookId, error } = useProfile();
-const { show } = useSnackBar();
 
 const props = defineProps({
   id: { type: String, required: true },
@@ -52,8 +42,6 @@ const props = defineProps({
   category: { type: String, default: '' },
   image: { type: String, default: '' }
 })
-
-const router = useRouter()
 
 const emit = defineEmits(['remove'])
 
@@ -64,15 +52,6 @@ const decodedCategory = computed(() => decodeEntity(props.category));
 
 function handleRemove(){
   emit('remove');
-}
-
-const handleBoardgameRedirect = async () => {
-  try{
-    const rulebookId = await fetchGetBoardgameRulebookId(props.id);
-    router.push(`/library/read/${rulebookId}`);
-  }catch(err){
-    if(err.message) show(error.value, 'error');
-  }
 }
 
 function decodeEntity(entity) {

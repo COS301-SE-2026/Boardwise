@@ -38,9 +38,9 @@ const props = defineProps({
 })
 
 const colorMap = {
-  default:  'var(--bw-gold-muted)',
-  rent:     'var(--bw-accent-violet)',
-  sale:     'var(--bw-accent-coral)',
+  default:  'var(--color-text-muted)',
+  rent:     'var(--rent)',
+  sale:     'var(--sale)',
   public:   'var(--bw-gold-muted)',
   private:  'var(--bw-navy)',
   secondary: 'var(--color-secondary)',

@@ -115,6 +115,8 @@
 </template>
 
 <script setup>
+import { ref, watch } from 'vue'
+
 import { useEvents } from '~/composables/useEvents'
 import { useBoardGames } from '~/composables/useBoardGames'
 
@@ -125,7 +127,7 @@ import BaseInput from '~/components/ui/BaseInput.vue'
 const { updateEvent, error, isLoading } = useEvents()
 const { searchGames, games: searchedGames, isLoading: gamesLoading } = useBoardGames()
 
-const open = defineModel()
+const open = defineModel({ type: Boolean })
 const props = defineProps({ event: Object })
 const emit = defineEmits(['saved'])
 
@@ -155,6 +157,9 @@ watch(open, val => {
 
   game_options.value = eventElement.games ?? []
   selected_games.value = (eventElement.games ?? []).map(g => g.id)
+
+  file.name.value = ''
+  image_file.value = null
 })
 
 watch(searchedGames, (results) => {
@@ -222,7 +227,7 @@ const closeModal = () => {
   selected_visibility.value = null
   selected_games.value = []
   game_options.value = []
-  file_name.value = ''
+  file.name.value = ''
   image_file.value = null
 }
 

@@ -4,39 +4,30 @@
     <Navbar data-test="navbar" />
 
     <MarketplaceHeader data-test="marketplace-header" @search ="searchQ = $event" @create-listing="showCreateListing = true" />
-
     <MarketplaceTabs data-test="marketplace-tabs" v-model="activeTab" />
+
+    <MobileFilterDrawer id="community-mobile-filters">
+      <FilterSidebar 
+        v-if="activeTab === 'Community Listings'"
+        data-test="filter-sidebar"
+        @filter="handleFilter" 
+      />
+
+      <RetailerFilterSidebar
+        v-else
+        data-test="retailer-filter-sidebar"
+        :retailer-options="retailerOptions"
+        @filter="handleRetailerFilter"
+      />
+    </MobileFilterDrawer>
 
     <!-- Community Listings -->
     <template v-if="activeTab === 'Community Listings'">
-      <!-- Mobile -->
-      <div class="d-flex d-md-none mt-6 mb-4">
-        <v-chip
-          color="secondary"
-          prepend-icon="mdi-filter-variant"
-          size="large"
-          @click="showFilters = true"
-        >
-          Filters
-        </v-chip>
-
-        <v-navigation-drawer
-          v-model="showFilters"
-          temporary
-          location="left"
-          width="300"
-        >
-          <FilterSidebar data-test="filter-sidebar" @filter="handleFilter" />
-        </v-navigation-drawer>
-      </div>
-
       <!-- Desktop -->
-      <div class="d-flex d-md-flex ga-6 mt-6 align-start">
-        <div class="d-none d-md-block">
-          <FilterSidebar data-test="filter-sidebar" @filter="handleFilter"/>
-        </div>
+      <div class="d-none d-md-flex ga-6 mt-6 align-start">
+        <FilterSidebar data-test="filter-sidebar" @filter="handleFilter"/>
           
-        <div class="flex-1-1">
+        <div class="flex-grow-1" style="min-width: 0;">
           <div v-if="loading" class="d-flex justify-center align-center" style="min-height: 60vh">
             <MarketplaceLoadingState tab="Community Listings" />
           </div>
@@ -51,7 +42,7 @@
           />
 
           <template v-else>
-            <ListingGrid data-test="listing-grid" :listings="pagedListings" />
+            <ListingGrid data-test="listing-grid" :listings="listings" />
 
             <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
               <span class="card-meta">
@@ -74,40 +65,13 @@
     
     <!-- External Retail -->
     <template v-else-if="activeTab === 'Web'">
-      <!-- Mobile -->
-      <div class="d-flex d-md-none mt-6 mb-4">
-          <v-chip
-            color="secondary"
-            prepend-icon="mdi-filter-variant"
-            size="large"
-            @click="showRetailFilters = true"
-          >
-            Filters
-          </v-chip>
-
-          <v-navigation-drawer
-            v-model="showRetailFilters"
-            temporary
-            location="left"
-            width="300"
-          >
-            <RetailerFilterSidebar 
-              data-test="retailer-filter-sidebar"
-              :retailer-options="retailerOptions"
-              @filter="handleRetailerFilter" 
-            />
-          </v-navigation-drawer>
-        </div>
-
         <!-- Desktop -->
-        <div class="d-flex d-md-flex ga-6 mt-6 align-start">
-          <div class="d-none d-md-block">
+        <div class="d-none d-md-flex ga-6 mt-6 align-start">
             <RetailerFilterSidebar 
               data-test="filter-sidebar" 
               :retailer-options="retailerOptions"
               @filter="handleRetailerFilter"
             />
-          </div>
             
           <div class="flex-1-1">
             <div
@@ -243,9 +207,9 @@ const delaySearch = useDebounceFn((query) => {
   fetchListings({ ...activeFilterState.value, search: query || null }, true)
 }, 400)
 
-watch(activeTab, async (tab) => {
+watch(activeTab, (tab) => {
   if(tab === 'Web' && retailResults.value.length === 0) {
-    await fetchPersonalisedListings();
+    fetchPersonalisedListings();
   }
 })
 
@@ -279,7 +243,7 @@ watch(searchQ,(query)=>{
   fetchListings({ ...activeFilterState.value, search: searchQ.value || null }, true);
 }
 
-const KNOWN_RETAILERS = []
+const KNOWN_RETAILERS = ['Bobshop', 'Takealot', 'ToysRUs']
 
 const retailerOptions = computed(() => {
   const loadedNames = retailResults.value.map(r => r.retailer).filter(Boolean)
