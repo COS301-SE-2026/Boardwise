@@ -11,7 +11,7 @@
 
     <BaseLoadingState v-if="isLoading" message="Fetching your library..." />
 
-    <RecommendedBooks v-v-if="recommended.length" :rulebooks="recommended" @select ="openRulebook"/>
+    <RecommendedBooks v-if="recommended.length" :rulebooks="recommended" @select ="openRulebook"/>
 
     <SectionTitle title="All Rulebooks" class="mt-8" />
 
