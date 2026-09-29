@@ -544,7 +544,7 @@ docker run -d \
     -e PROD_FAST_API_BASE="__PROD_FAST_API_BASE__" \
     -e R2_BUCKET_PROFILES="__R2_BUCKET_PROFILES__" \
     -e R2_BUCKET_LISTINGS="__R2_BUCKET_LISTINGS__" \
-    -e R2_RULEBOOKS_PUBLIC_PROD_URL="__R2_RULEBOOKS_PUBLIC_PROD_URL__" \
+    -e R2_RULEBOOKS_PUBLIC_URL="__R2_RULEBOOKS_PUBLIC_URL__" \
     -e R2_LISTINGS_PROD_ENDPOINT="__R2_LISTINGS_PROD_ENDPOINT__" \
     -e R2_PROD_URL="__R2_PROD_URL__" \
     -e BGG_TOKEN="__BGG_TOKEN__" \
@@ -572,7 +572,7 @@ spring_user_data = pulumi.Output.all(
                         .replace("__BGG_TOKEN__", settings.BGG_TOKEN)
                         .replace("__R2_PROD_URL__", settings.R2_PROD_URL)
                         .replace("__R2_LISTINGS_PROD_ENDPOINT__", settings.R2_LISTINGS_PROD_URL)
-                        .replace("__R2_RULEBOOKS_PUBLIC_PROD_URL__", settings.R2_RULEBOOKS_PUBLIC_PROD_URL)
+                        .replace("__R2_RULEBOOKS_PUBLIC_URL__", settings.R2_RULEBOOKS_PUBLIC_URL)
                         .replace("__R2_BUCKET_LISTINGS__", settings.R2_BUCKET_LISTINGS)
                         .replace("__R2_BUCKET_PROFILES__", settings.R2_BUCKET_PROFILES)
                         .replace("__PROD_FAST_API_BASE__", f"http://{PYTHON_PRIVATE_IP}:8000/api/fa/") # NOSONAR
