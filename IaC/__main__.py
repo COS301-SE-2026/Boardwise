@@ -433,6 +433,7 @@ python_user_data = pulumi.Output.all(
                         .replace("__GEMINI_API_KEY__", settings.GEMINI_API_KEY)
                         .replace("__GLM_API_KEY__", settings.GLM_API_KEY)
                         .replace("__APP_ENV__", settings.APP_ENV)
+                        .replace("__SYSTEM_CONTRIBUTOR_ID__", settings.SYSTEM_CONTRIBUTOR_ID)
 )
 
 python_instance = aws.ec2.Instance(
@@ -479,6 +480,7 @@ docker run -d \
     -e INTERNAL_SECRET="__INTERNAL_SECRET__" \
     -e SPRING_PROFILES_ACTIVE="__SPRING_PROFILES_ACTIVE__" \
     -e RULEBOOK_PDF_API="__RULEBOOK_PDF_API__" \
+    -e SYSTEM_CONTRIBUTOR_ID="__SYSTEM_CONTRIBUTOR_ID__" \
     -e PYTHON_API_BASE_URL="__PYTHON_API_BASE_URL__" __IMAGE_URI__
 """
 
@@ -489,6 +491,7 @@ scraper_user_data = pulumi.Output.all(
         scraper_setup_script.replace("__PROD_DB_URL__", settings.MONGODB_URL)
         .replace("__INTERNAL_SECRET__", settings.INTERNAL_WEBHOOK_SECRET)
         .replace("__SPRING_PROFILES_ACTIVE__", settings.SPRING_PROFILES_ACTIVE)
+        .replace("__SYSTEM_CONTRIBUTOR_ID__", settings.SYSTEM_CONTRIBUTOR_ID)
         .replace("__RULEBOOK_PDF_API__", settings.RULEBOOK_PDF_API)
         .replace("__PYTHON_API_BASE_URL__", f"http://{PYTHON_PRIVATE_IP}:8000/api/fa/")  # NOSONAR
         .replace("__IMAGE_URI__", args["image_uri"])
