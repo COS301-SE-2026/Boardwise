@@ -25,6 +25,8 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.shared.dtos.GameInventoryDTO;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
@@ -778,5 +780,31 @@ public class CommunityService {
         return result;
     }
 
+    public Map<String, Object>getLiveEvent(String eventId){
+        Map<String, Object> result = new HashMap<>();
+
+        LiveEvent liveEvent = liveEventRepo.findById(eventId).orElseThrow(() -> new IllegalArgumentException("Event does not exist"));
+        
+        result.put("message", "successfully fetched Live Event");
+        result.put("details",liveEvent);
+        return result;
+    }
+
+    public Map<String, Object> deleteLiveEvent(String token, String eventId){
+        Map<String, Object> result = new HashMap<>();
+        User user = getUserFromToken(token);
+        LiveEvent liveEvent = liveEventRepo.findById(eventId).orElseThrow(()-> new NoSuchElementException("Only the host can delete this event."));
+        
+        String host = liveEvent.getHostId().toString();
+        if(!user.getId().equals(host)){
+            throw new ForbiddenException("User is attempting to delete an event they are not hosts of");
+        }
+
+       liveEventRepo.delete(liveEvent);
+       result.put("message", "Event successfully deleted.");
+       return result;
+    }
+
 
 }
+

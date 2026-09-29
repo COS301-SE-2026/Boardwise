@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.user_service.dtos.DeRsvpDTO;
 import com.boardwise.backend.user_service.dtos.EventInfoDTO;
 import com.boardwise.backend.user_service.dtos.EventInviteDTO;
@@ -243,4 +245,28 @@ public class CommunityController {
         return new ResponseEntity<>(res,HttpStatus.OK);
     }
     
+    @GetMapping("/live-event/{eventId}")
+    public ResponseEntity<?> getLiveEvent(@PathVariable String eventId){
+        try{
+            return ResponseEntity.ok(service.getLiveEvent(eventId));
+        } catch(IllegalArgumentException | NoSuchElementException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Live event not found"));
+        }
+    }
+
+    @DeleteMapping("/live-event/{eventId}")
+    public ResponseEntity<?> deleteLiveEvent(HttpServletRequest req, @PathVariable String eventId){
+        String token = ProfileController.extractToken(req);
+        try{
+            return ResponseEntity.ok(service.deleteLiveEvent(token, eventId));
+        } catch(ForbiddenException e){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("message", e.getMessage()));
+        } catch(IllegalArgumentException | NoSuchElementException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Live event not found"));
+        }
+    }
 }
+

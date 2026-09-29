@@ -14,8 +14,8 @@ import com.boardwise.backend.user_service.dtos.LiveEventAttendee;
 
 //Data from the form
 public record LiveEventRequestDTO(    
-    ObjectId boardgameId, // boardgame Id
-    ObjectId hostId,
+    String boardgameId, // boardgame Id
+    String hostId,
     String title,
     LiveEventType type,
     String venueName,

@@ -21,11 +21,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 
 @Document(collection = "LIVE_EVENTS")
 
 @Builder 
 @AllArgsConstructor 
+@Data
 public class LiveEvent {
     @Id
     @NotNull 
