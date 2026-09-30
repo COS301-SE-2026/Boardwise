@@ -29,6 +29,8 @@ const _useLiveEvents = () => {
     const isJoined = computed(() => roster.value.some(a => a.userId === myUserId.value))
     const isHost = computed(() => roster.value.some(a => a.userId === myUserId.value && a.isHost))
 
+    const currentUser = 'You'
+
     const fetchLiveEvents = async () => {
         isLoading.value = true
         try {

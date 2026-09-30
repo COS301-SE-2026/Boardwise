@@ -5,6 +5,7 @@
     <EventHeader 
       @search="searchQuery = $event"
       @create-event="showTypeModal = true"  
+      @create-event="showTypeModal = true"  
     />
 
     <LiveEventBanner :count="liveEvents.length" @view="scrollToLive" />
@@ -51,48 +52,52 @@
       </template>
       
     </div>
-
-    <!-- Desktop -->
-    <div class="d-flex d-md-flex ga-6 mt-6 align-start">
-      <EventFilter 
-        :events="events" 
-        @filter="handleFilter" 
-      />
     
-      <div class="flex-grow-1" style="min-width: 0;">
+    <!-- Mobile -->
+    <MobileFilterDrawer id="mobile-events-filter">
+      <EventFilter 
+        :events="events"
+        @filter="handleFilter"
+      />
+    </MobileFilterDrawer>
+
+    <div class="d-flex flex-column flex-md-row ga-6 mt-6 align-start">
+      <div class="d-none d-md-block">
+        <EventFilter :events="events" @filter="handleFilter" />
+      </div>
+
+      <div class="flex-grow-1 w-100" style="min-width: 0;">
         <BaseLoadingState v-if="isLoading" />
 
+        <BaseEmptyState
+          v-else-if="filteredEvents.length === 0"
+          title="No events found"
+          message="Try adjusting your filters, or be the first to create one."
+        />
+
         <template v-else>
-          <BaseEmptyState
-            v-if="filteredEvents.length === 0"
-            title="No events found"
-            message="Try adjusting your filters, or be the first to create one."
+          <EventGrid 
+            :events="pagedEvents" 
+            @select="openEvent" 
           />
 
-          <template v-else>
-            <EventGrid 
-              :events="pagedEvents" 
-              @select="openEvent" 
-            />
+          <span class="card-meta d-block mt-6">
+            Page {{ eventsPage }} of {{ eventsTotalPages }}
+          </span> 
 
-            <template v-if="filteredEvents.length > 0">
-              <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
-                <span class="card-meta">Page {{ eventsPage }} of {{ eventsTotalPages }}</span>
-              </div>
-
-              <BasePagination
-                v-if="eventsTotalPages > 1"
-                class="mt-4"
-                :model-value="eventsPage"
-                :total-pages="eventsTotalPages"
-                @update:modelValue="goToPage"
-              />
-            </template>
-          </template>
+          <BasePagination
+            v-if="eventsTotalPages > 1"
+            class="mt-4"
+            :model-value="eventsPage"
+            :total-pages="eventsTotalPages"
+            @update:modelValue="goToPage"
+          />
         </template>
       </div>
     </div>
 
+    <CreateEventModal v-model="showCreateEvent"  :on-submit="handleCreateEvent" />
+    <EventTypeModal v-model="showTypeModal" @select="handleTypeSelect" />
     <CreateEventModal v-model="showCreateEvent"  :on-submit="handleCreateEvent" />
     <EventTypeModal v-model="showTypeModal" @select="handleTypeSelect" />
 
@@ -115,6 +120,9 @@ import BasePagination from '~/components/ui/BasePagination.vue'
 import MobileFilterDrawer from '~/components/ui/MobileFilterDrawer.vue'
 import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
+import MobileFilterDrawer from '~/components/ui/MobileFilterDrawer.vue'
+import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
+import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
 import EventFilter from '~/components/features/events/EventFilter.vue'
 import EventGrid from '~/components/features/events/EventGrid.vue'
@@ -126,8 +134,15 @@ import { useDebounceFn } from '@vueuse/core'
 import { useRouter } from 'vue-router'
 
 import EventTypeModal from '~/components/features/events/EventTypeModal.vue'
+
+import EventTypeModal from '~/components/features/events/EventTypeModal.vue'
 import InviteModal from '~/components/features/community/InviteModal.vue'
 import EventHeader from '~/components/features/events/EventHeader.vue'
+
+import { useLiveEvents } from '~/composables/useLiveEvents'
+
+import LiveEventBanner from '~/components/features/live-events/LiveEventBanner.vue'
+import LiveEventCard from '~/components/features/live-events/LiveEventCard.vue'
 
 import { useLiveEvents } from '~/composables/useLiveEvents'
 
@@ -160,6 +175,7 @@ const searchQuery = ref('')
 const activeFilters = ref({})
 
 const showCreateEvent = ref(false)
+const showTypeModal = ref(false)
 const showTypeModal = ref(false)
 
 const filteredEvents = computed(() => {
@@ -238,6 +254,11 @@ const handleFilter = (filters) => {
   eventsPage.value = 1
 }
 
+const handleTypeSelect = (type) => {
+  if(type === 'live') {
+    router.push('/live-events/plan')
+  } else {
+    showCreateEvent.value = true
 const handleTypeSelect = (type) => {
   if(type === 'live') {
     router.push('/live-events/plan')
