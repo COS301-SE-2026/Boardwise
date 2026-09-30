@@ -1,6 +1,7 @@
 import logging
 import uuid
 import httpx2
+import numpy as np
 
 from fastapi import (
     APIRouter, 
@@ -10,10 +11,12 @@ from fastapi import (
     Depends
 )
 from typing import Annotated
+from sentence_transformers import SentenceTransformer
 
-from ai.app.services.ggaia_new_game import generate_new_game, InfeasiblePair
-from app.retrieval.ggaia_retrieval import load_inputs
-from app.schemas.schemas import GGAIARequest
+from app.services.ggaia_new_game import generate_new_game, InfeasiblePair
+from app.services.ggaia_game_scaling import generate_scaled_game, ScalingError
+from app.retrieval.ggaia_retrieval import load_new_inputs, load_scale_inputs
+from app.schemas.ggaia_schemas import GGAIARequest
 from app.dependencies import verify_jwt
 from app.config import settings
 
@@ -38,9 +41,23 @@ def run_generation_job(
     job_id: str
 ) -> None:
     try:
-        inputs = load_inputs(request_body, user_id)
-        # will be assigned to a variable for the next function when it is available [this is just for sonarqube]
-        generate_new_game(inputs, ml_models) if request_body.type == 'NEW' else None # <- replace with scale method
+        if request_body.type == "NEW":
+            result = generate_new_game(load_new_inputs(request_body.parents), ml_models)
+        else:
+            def embed(to_embed: str):
+                embedding_model: SentenceTransformer = ml_models["embedding_models"]
+                embeddings = np.asarray(
+                    embedding_model.encode(to_embed, normalize_embeddings=True, convert_to_numpy=True)
+                )
+
+                trunc_emb = embedding_model[:, : settings.EMBEDDING_DIMENSIONS]
+                pre_norms = np.linalg.norm(trunc_emb, axis=1, keepdims=True)
+                norms = np.maximum(pre_norms, 1e-10)
+                trunc_emb = trunc_emb / norms
+
+                return trunc_emb
+
+            result = generate_scaled_game(load_scale_inputs(request_body.parents[0]), request_body.scale_options, ml_models, embed)
 
         # somewhere we need to tie things to the user fr
         
@@ -49,6 +66,7 @@ def run_generation_job(
         spring_alert = {
             "status": "success"
         }
+        
     except InfeasiblePair as in_pair:
         spring_alert = {
             "status": "failed",
