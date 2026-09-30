@@ -121,7 +121,7 @@ onMounted(async () => {
     router.push('/auth/signin')
     return
   }
-  fetchLiveEvents().catch(()=>{})
+
   fetchEvents()
 })
 

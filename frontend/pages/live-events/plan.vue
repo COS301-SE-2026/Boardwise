@@ -24,22 +24,9 @@
                     </div>
 
                     <BaseInput v-model="form.name" label="Event title" placeholder="e.g. Catan Marathon" />
-                    <v-autocomplete
-                        v-if="form.timing === 'now'"
-                        v-model="form.gameId"
-                        :items="gameOptions"
-                        :loading="gamesLoading"
-                        item-title="title"
-                        item-value="id"
-                        label="Game"
-                        placeholder="Search for a game"
-                        variant="outlined"
-                        density="comfortable"
-                        rounded="xl"
-                        hide-details
-                        @update:search="onGameSearch"
-                    />
-                    <v-autocomplete
+                    <BaseInput v-if="form.timing === 'now'" v-model="form.game" label="Game" placeholder="e.g. Catan" />
+
+                    <v-autocomplete 
                         v-else
                         v-model="form.gameIds"
                         :items="gameOptions"
@@ -95,7 +82,7 @@
                         :placeholder="form.format === 'virtual' ? 'e.g. discord.gg/boardwise' : 'e.g. Tabletop Tavern Hatfield'"
                     />
 
-                    <BaseInput v-if="form.format !== 'virtual'" v-model="form.table" label="Table" placeholder="e.g. Table 4" />
+                    <BaseInput v-model="form.table" label="Table" placeholder="e.g. Table 4" />
                 </section>
 
                 <section class="live-form-section">
@@ -334,7 +321,7 @@ const onGameSearch = (query) => {
     gameSearchTimeout = setTimeout(() => searchGames(query), 400)
 }
 
-const form = ref({ name: '', gameId: null, gameIds: [], venue: '', table: '', capacity: 4, format: 'in-person', timing: 'now', date: '', time: '', duration: 'standard', style: 'casual', privacy: 'public', autoApprove: true })
+const form = ref({ name: '', game: '', gameIds: [], venue: '', table: '', capacity: 4 ,format: 'in-person', timing: 'now', date: '', time: '', duration: 'standard', style: 'casual', privacy: 'public', autoApprove: true })
 
 const submitting = ref(false)
 
@@ -344,12 +331,12 @@ const adjustCapacity = (delta) => {
 
 const isValid = computed(() => {
     const f = form.value
-    const tableOk = f.format === 'virtual' || !!f.table
     if (f.timing === 'later') {
-        return !!(f.name && f.venue && tableOk && f.date && f.time && f.gameIds.length > 0)
+        return f.name && f.venue && f.table && f.date && f.time && f.gameIds.length > 0
     }
-    return !!(f.name && f.gameId && f.venue && tableOk)
+    return f.name && f.game && f.venue && f.table
 })
+
 const DURATION_HOURS = { short: 2, standard: 4, marathon: 6 }
 
 const addHours = (time, hours) => {

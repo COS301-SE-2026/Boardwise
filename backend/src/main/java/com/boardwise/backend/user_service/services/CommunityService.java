@@ -61,7 +61,6 @@ import com.boardwise.backend.user_service.repository.LiveEventMessageRepository;
 import com.boardwise.backend.user_service.repository.LiveEventRepository;
 import com.boardwise.backend.user_service.repository.UserRepository;
 import com.mongodb.client.result.UpdateResult;
-import com.boardwise.backend.user_service.dtos.LiveEventMessageDTO;
 
 import lombok.RequiredArgsConstructor;
 
@@ -770,7 +769,7 @@ public class CommunityService {
                 .orElseThrow(() -> new IllegalArgumentException("Boardgame not found"));
 
         LiveEventAttendeeList attendees = new LiveEventAttendeeList(
-                List.of(new LiveEventAttendee(currentUser.getId(),currentUser.getUsername(), LiveEventAttendeeStatus.ARRIVED, true)));
+                List.of(new LiveEventAttendee(currentUser.getId(), LiveEventAttendeeStatus.ARRIVED, true)));
 
         ObjectId eventId = new ObjectId();
         LiveEvent newLiveEvent = new LiveEvent(
@@ -791,12 +790,13 @@ public class CommunityService {
         return result;
     }
     
-    public Map<String, Object> getLiveEvent(String eventId){
-        LiveEvent e = liveEventRepo.findById(eventId)
-                .orElseThrow(() -> new IllegalArgumentException("Event does not exist"));
+    public Map<String, Object>getLiveEvent(String eventId){
         Map<String, Object> result = new HashMap<>();
+
+        LiveEvent liveEvent = liveEventRepo.findById(eventId).orElseThrow(() -> new IllegalArgumentException("Event does not exist"));
+        
         result.put("message", "successfully fetched Live Event");
-        result.put("details", toView(e, gameTitle(e.getBoardgameId())));
+        result.put("details",liveEvent);
         return result;
     }
 
@@ -839,7 +839,7 @@ public class CommunityService {
 
         Update update = new Update().push(
                 "liveAttendees.attendees",
-                new LiveEventAttendee(user.getId(),user.getUsername(), LiveEventAttendeeStatus.EN_ROUTE, false)
+                new LiveEventAttendee(user.getId(), LiveEventAttendeeStatus.EN_ROUTE, false)
         );
 
         UpdateResult ur = template.updateFirst(query, update, LiveEvent.class);
@@ -889,11 +889,12 @@ public class CommunityService {
                 clean, isHost, Instant.now());
         liveEventMessageRepo.save(msg);
 
-        Map<String, Object> results = new HashMap<>();
-        LiveEventMessageDTO dto = LiveEventMessageDTO.from(msg);
-        ws.convertAndSend("/topic/live-event/" + event.getId().toHexString() + "/messages", dto);
-        results.put("details", dto);
-        return results;
+        ws.convertAndSend("/topic/live-event/" + event.getId().toHexString() + "/messages", msg);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("message", "Message posted");
+        result.put("details", msg);
+        return result;
     }
 
     public Map<String, Object> getLiveEventMessages(String token, String eventId, Instant after){
@@ -905,7 +906,8 @@ public class CommunityService {
                 : liveEventMessageRepo.findByEventIdAndCreatedAtAfterOrderByCreatedAtAsc(event.getId().toHexString(), after);
 
         Map<String, Object> result = new HashMap<>();
-        result.put("messages", msgs.stream().map(LiveEventMessageDTO::from).toList());        return result;
+        result.put("messages", msgs);
+        return result;
     }
 
     public Map<String, Object> updateAttendeeStatus(String token, String eventId, LiveEventAttendeeStatus status){
@@ -928,7 +930,7 @@ public class CommunityService {
 
         LiveEvent fresh = liveEventRepo.findById(eventId)
                 .orElseThrow(() -> new NoSuchElementException("Event does not exist"));
-        ws.convertAndSend("/topic/live-event/" + eventId + "/roster", withNames(fresh.getLiveAttendees()));
+        ws.convertAndSend("/topic/live-event/" + eventId + "/roster", fresh.getLiveAttendees());
 
         Map<String, Object> result = new HashMap<>();
         result.put("message", "Status updated");
@@ -944,45 +946,8 @@ public class CommunityService {
         .toList();
 
         Map<String, Object> result = new HashMap<>();
-        List<Map<String, Object>> out = active.stream()
-                .map(e -> toView(e, gameTitle(e.getBoardgameId())))
-                .toList();
-        result.put("events", out);
-        return result;    
-    }
-
-    private Map<String, Object> toView(LiveEvent e, String gameTitle) {
-        Map<String, Object> m = new HashMap<>();
-        m.put("id", e.getId().toHexString());
-        m.put("boardgameId", e.getBoardgameId().toHexString());
-        m.put("gameTitle", gameTitle);
-        m.put("hostId", e.getHostId().toString());
-        m.put("title", e.getTitle());
-        m.put("type", e.getType());
-        m.put("venueName", e.getVenueName());
-        m.put("table", e.getTable());
-        m.put("link", e.getLink());
-        m.put("date", e.getDate().toString());
-        m.put("time", e.getTime().toString());
-        m.put("duration", e.getDuration());
-        m.put("maxSeats", e.getMaxSeats());
-        m.put("tone", e.getTone());
-        m.put("privacy", e.getPrivacy());
-        m.put("liveAttendees",withNames(e.getLiveAttendees()));
-        return m;
-    }
-
-    private String gameTitle(ObjectId gameId) {
-        return gameRepo.findById(gameId.toHexString()).map(Boardgame::getTitle).orElse("");
-    }
-
-    private LiveEventAttendeeList withNames(LiveEventAttendeeList list){
-        List<LiveEventAttendee> out = list.attendees().stream().map(a ->{
-            if (a.username() != null) return a;
-            String name = userRepo.findById(a.userId()).map(User::getUsername).orElse(null);
-            return new LiveEventAttendee(a.userId(), name, a.status(), a.isHost());
-        }).toList();
-        return new LiveEventAttendeeList(out);
+        result.put("events", active);
+        return result;
     }
 
 }
