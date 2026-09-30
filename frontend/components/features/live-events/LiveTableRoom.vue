@@ -12,7 +12,7 @@
                     <span class="card-subtitle" style="margin:0">{{ isPaused ? 'PAUSED' : 'LIVE' }}</span>
                     <span class="live-table-header__timer">{{ elapsed }}</span>
                 </div>
-
+<!-- 
                 <button
                     v-if="isHost"
                     type="button"
@@ -21,7 +21,7 @@
                 >
                     <v-icon size="18">mdi-tune</v-icon>
                     Host controls
-                </button>
+                </button> -->
             </div>
         </div>
 

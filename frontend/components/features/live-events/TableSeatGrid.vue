@@ -8,7 +8,7 @@
                     <div class="seat-card__info">
                         <p class="card-subtitle" style="margin: 0">{{ s.user?.username }}</p>
                         <BaseBadge v-if="s.isHost" variant="primary" size="x-small">Host</BaseBadge>
-                        <span v-else class="card-meta">{{ statusLabel(s.status) }}</span>
+                        <!-- <span v-else class="card-meta">{{ statusLabel(s.status) }}</span> -->
                     </div>
                 </div>
 
