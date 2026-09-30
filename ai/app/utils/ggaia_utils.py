@@ -4,6 +4,16 @@ from collections import Counter
 from app.schemas.ggaia_schemas import ComponentPool, DesignDraft, Mechanic, NewGame
 
 
+def normalise_text(text: str):
+    text = re.sub(r"\s+", " ", text).strip().strip("\"'“”‘’")
+    return text.rstrip(".…").strip().lower()
+
+def draft_title_issue(draft: DesignDraft, parent_titles: tuple[str, str]) -> list[dict]:
+    draft_title = normalise_text(draft.concept.title)
+    if any(draft_title == normalise_text(p_title) for p_title in parent_titles):
+        return ["The title reuses one of the parent's titles. Invent a new, original title."]
+    return []
+
 def draft_feasibility(
     draft: DesignDraft, pool: ComponentPool, mechanics_by_id: dict[str, Mechanic]
 ) -> list[str]:

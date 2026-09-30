@@ -60,6 +60,7 @@ is to design a SINGLE new game that meaningfully combines ideas from both parent
 only mechanics that are physically feasible given the component pool.
 
 Rules:
+- Give the new game an original title
 - Every mechanic you select (core, supporting or structural) MUST come from the provided
   candidate mechanics list. Reference mechanics by their mechanic_id.
 - Before selecting a mechanic, check that every component type it requires is present in the
