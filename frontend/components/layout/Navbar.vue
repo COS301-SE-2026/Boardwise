@@ -37,9 +37,7 @@
         <NuxtLink to="/social" class="nav-link">Social</NuxtLink>
         <NuxtLink to="/events" class="nav-link">Events</NuxtLink>
 
-        <BaseButton icon variant="text" to="/notifications" aria-label="Notifications">
-          <v-icon size="26">mdi-bell-outline</v-icon>
-        </BaseButton>
+        <NotificationBell />
 
         <BaseDropdown 
           aria-label="Account menu"
@@ -111,9 +109,7 @@
         </v-card>
       </v-menu>
 
-      <BaseButton icon variant="text" to="/notifications" aria-label="Notifications">
-        <v-icon size="26">mdi-bell-outline</v-icon>
-      </BaseButton>
+      <NotificationBell />
 
       <BaseDropdown
         aria-label="Account menu"
@@ -179,6 +175,7 @@ import { useRouter } from 'vue-router'
 import LogOutButton from '~/components/features/auth/LogOutButton.vue'
 import BaseButton from '../ui/BaseButton.vue'
 import BaseDropdown from '../ui/BaseDropdown.vue'
+import NotificationBell from '../features/notifications/NotificationBell.vue'
 
 const drawer = ref(false)
 
