@@ -45,6 +45,8 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
 
 import java.util.*;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 import javax.management.RuntimeErrorException;
 
@@ -385,12 +387,10 @@ public class ListingService {
                 .orElseThrow(() -> new ResourceNotFound("Listing not found: " + listingId)));
     }
 
-    public Page<ListingResponse> getByFilter(String gameTitle, String listingTitle, String listingType,String itemType, Double minPrice, Double maxPrice, List<String> conditions, List<String> genres,
+    public Page<ListingResponse> getByFilter(String gameTitle, String listingTitle, String listingType, String itemType, Double minPrice, Double maxPrice, List<String> conditions, List<String> genres,
         Integer page, Integer size, String token){
         //Search for AVAILABLE Listings
         Criteria criteria = Criteria.where("status").is(ListingStatus.AVAILABLE);
-
-        // if(listingTitle != null) criteria.and("listingTitle").regex(listingTitle, "i");
 
         if (gameTitle != null) {
             Criteria searchCriteria = new Criteria().orOperator(
@@ -400,33 +400,52 @@ public class ListingService {
             criteria = new Criteria().andOperator(criteria, searchCriteria);
         }
 
-        if (listingType != null)criteria.and("listingType").regex(listingType, "i");
+        if (listingType != null) criteria.and("listingType").regex(listingType, "i");
 
         if (itemType != null) criteria.and("itemType").regex(itemType, "i");
 
         if (minPrice != null && maxPrice != null) criteria.and("price").gte(minPrice).lte(maxPrice);
-        //minimum and up
         else if (minPrice != null) criteria.and("price").gte(minPrice);
-        //maximum and down
         else if (maxPrice != null) criteria.and("price").lte(maxPrice);
 
-        if (genres != null && !genres.isEmpty())criteria.and("genres").in(genres);
+        List<Listing> genreMatches = new ArrayList<>();
+        if (genres != null && !genres.isEmpty()) {
+            List<String> lowerGenres = genres.stream().map(String::toLowerCase).toList();
 
-        if (conditions != null && !conditions.isEmpty())criteria.and("condition").in(conditions);
+            // extract distinct games of listings
+            List<String> gamesOfListings = mongoTemplate.findDistinct("gameTitle", Listing.class, String.class);
 
+            for (String game : gamesOfListings) {
+                Optional<Boardgame> possibleGame = boardGameRepository.findByTitle(game);
+                if (possibleGame.isEmpty()) continue; // edge case: game hasn't been scraped yet
+                Boardgame availableGame = possibleGame.get();
 
-        PageRequest pageRequest;
-        Query query = new Query(criteria);
-        if(page != null && size != null){
-            if(page < 0 ) page = 0;
-            if(size < 0) size = Integer.MAX_VALUE;
+                boolean isAvailable = availableGame.getGenres().stream()
+                    .map(String::toLowerCase)
+                    .anyMatch(lowerGenres::contains);
 
-            //Pagination
-            pageRequest = PageRequest.of(page ,size);
-            query.with(pageRequest);
+                if (isAvailable) {
+                    List<Listing> validListings = listingRepository.findByGameTitle(game);
+                    genreMatches.addAll(validListings);
+                }
+            }
         }
+
+        if (conditions != null && !conditions.isEmpty()) criteria.and("condition").in(conditions);
+
         List<Listing> allMatches = mongoTemplate.find(new Query(criteria), Listing.class);
-            allMatches = personalizeOrder(allMatches, token);
+
+        if (genres != null && !genres.isEmpty()) {
+            Set<String> genreMatchIds = genreMatches.stream()
+                .map(Listing::getId)
+                .collect(Collectors.toSet());
+
+            allMatches = allMatches.stream()
+                .filter(listing -> genreMatchIds.contains(listing.getId()))
+                .collect(Collectors.toList());
+        }
+
+        allMatches = personalizeOrder(allMatches, token);
 
         int pageNum = (page != null && page >= 0) ? page : 0;
         int pageSize = (size != null && size > 0) ? size : Math.max(allMatches.size(), 1);
@@ -435,12 +454,11 @@ public class ListingService {
         int toIndex = Math.min(fromIndex + pageSize, allMatches.size());
 
         List<ListingResponse> pageContent = allMatches.subList(fromIndex, toIndex).stream().map(this::mapToResponse).toList();
-
-        PageRequest pageReq= PageRequest.of(pageNum, pageSize);
+        PageRequest pageReq = PageRequest.of(pageNum, pageSize);
 
         return new PageImpl<>(pageContent, pageReq, allMatches.size());
     }
-
+        
     public ListingResponse updateListing(String listingId, ListingRequest req, String token, MultipartFile img) {
         ObjectId userId = jwtService.extractUserId(token);
 

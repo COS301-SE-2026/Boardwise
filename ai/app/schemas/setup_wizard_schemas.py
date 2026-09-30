@@ -4,13 +4,13 @@ from pydantic.alias_generators import to_camel
 from datetime import datetime
 from typing import Literal 
 from .schemas import BaseAPIModel
-from utils.pyObjectId import PyObjectId
+from app.utils.pyObjectId import PyObjectId
 
 PHASE_LABELS={
     "board": "Build the board",
     "components": "Sort the components",
     "players": "Prepare each player",
-    "final": "Final steps",
+    "first_player": "Final steps",
 }
 
 PhaseKey = Literal["board", "components", "players", "final"]
@@ -20,10 +20,10 @@ WarningType = Literal["ambiguous_rule", "missing_info", "conflicting_rule"]
 
 class LLMComponentUse(BaseAPIModel):
     name: str
-    quantity: int | None = None
+    quantity: str  |int | None = None
 
 class LLMStep(BaseAPIModel):
-    title: str = Field(..., max_length = 80)
+    title: str = Field(..., max_length = 300)
     instruction: str  = Field(..., max_length = 400)
     components: list[LLMComponentUse] = []
     scope: Scope

@@ -23,6 +23,6 @@ defineEmits(['update:modelValue'])
 
 const tabs = [
   'Community Listings',
-  'Web'
+  'Web Listings'
 ]
 </script>
