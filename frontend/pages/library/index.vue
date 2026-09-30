@@ -71,7 +71,7 @@
       <BaseLoadingState v-if="isLoading" message="Loading rulebooks... " />
 
       <RulebookDetail
-        v-else="selectedRulebook"
+        v-else-if="selectedRulebook"
         :rulebook="selectedRulebook"
         :rulebooks="rulebooks"
         @select="openRulebook"
