@@ -112,6 +112,7 @@
   --radius-sm:  10px;
   --radius-md:  16px;
   --radius-lg:  24px;
+  --radius-xl: 32px;
   --radius-pill: 999px;
 
   --shadow-sm: 0 1px 2px rgba(78, 30, 92, 0.08);
@@ -177,33 +178,13 @@
     --raspberry: var(--wildfire);
     --tangelo: var(--copper);
     --blossom: var(--rosewood); 
+
+    --focus-ring-width: 3px;
+    --focus-ring-color: var(--color-primary);
+    --foocus-ring-offset: 3px;
+
+    --radiux-xl: 32px;
 }
-/* =============================================================
-   DARK MODE - will be a toggle with data-theme="dark"
-   ============================================================= */
-    html[data-theme="dark"] {
-    --scrollpaper: #17101C; 
-    --alabaster:   #241629;  
-    --feltboard:   #33223A;  
-    --shadowink:   #F4E9F1;  
-    --ashquill:    #B49CB6; 
-    --obsidian:   #F0D9EC;
-    --wildfire:   #E64C86;
-
-    --color-primary:        var(--wildfire);
-    --color-text:           var(--shadowink);
-    --color-text-muted:     var(--ashquill);
-    --color-bg:             var(--scrollpaper);   
-    --color-surface:        var(--alabaster);   
-    --color-surface-alt:    var(--feltboard);   
-    --color-border:         var(--feltboard);
-    --color-border-strong:  #4A3550;
-
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
-   } 
-
 /* =============================================================
    BASE RESETS
    ============================================================= */
@@ -3064,17 +3045,10 @@ html[data-density="compact"] .rulebook-list {
 
 .base-grid {
   display: grid;
-
-  grid-template-columns:
-    repeat(
-      auto-fill,
-      minmax(var(--base-grid-min, 280px), 1fr)
-    );
+  grid-template-columns:repeat(3, minmax(var(--base-grid-min, 280px), 1fr));
 
   gap: var(--base-grid-gap, 20px);
-
   align-items: stretch;
-
   width: 100%;
 }
 
@@ -4423,9 +4397,9 @@ html[data-density="compact"] .rulebook-list {
 }
 
 .base-search:focus-within {
-  outline: 3px solid var(--color-primary);
-  outline-offset: 2px;
-  border-radius: var(--radius-md);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(199, 40, 110, 0.22);
+  border-radius: var(--radius-pill);
 }
 
 .base-search :deep(.v-field) {
@@ -4895,14 +4869,80 @@ button:disabled,
 /* -------------------------------------------------------------
    MOBILE / SMALL SCREENS
    ------------------------------------------------------------- */
+.mobile-filters__row {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: var(--space-1);
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-filters__row::-webkit-scrollbar { 
+  display: none; 
+}
+
+.mobile-filters__row > * { 
+  flex: 0 0 auto; 
+}
+
+.mobile-filters__sheet {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  width: min(320px, 85vw);
+}
+
+.mobile-filters__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+.mobile-filters__header .card-title { 
+  font-size: var(--fs-h3); 
+}
+
+.mobile-filters__body { 
+  flex: 1; 
+  overflow-y: auto; 
+  padding: var(--space-4); 
+}
+
+.mobile-filters__footer {
+  padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.mobile-filters__body :deep(.base-filter-sidebar) {
+  width: 100% !important;
+  border: 0;
+  padding: 0 !important;
+}
+
+.mobile-filters__body :deep(.base-filter-sidebar__heading) { 
+  display: none; 
+}
 
 @media (max-width: 600px) {
-  .base-filter-sidebar {
-    width: 100% !important;
+  .base-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
   }
 
-  .base-grid {
-    grid-template-columns: 1fr;
+  .base-grid .base-card__body { 
+    padding: var(--space-3); 
+  }
+
+  .base-grid .card-title { 
+    font-size: var(--fs-body); 
+    overflow-wrap: anywhere; 
+  }
+
+  .base-filter-sidebar {
+    width: 100% !important;
   }
 
   .section-title {
@@ -4920,6 +4960,17 @@ button:disabled,
   .section-title__subtitle {
     font-size: var(--fs-body);
   }
+}
+
+.mobile-search-bar {
+  position: fixed;
+  top: 72px;
+  left: 0;
+  right: 0;
+  z-index: 1005;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
 }
 
 /* ==========================================================
@@ -5085,10 +5136,6 @@ button:disabled,
 }
 
 /* Games Owned Profile Section */
-.games-owned-section {
-  width: 100%;
-  padding-top: 20px;
-}
 
 /* Desktop */
 @media (min-width: 960px) {
@@ -5164,7 +5211,7 @@ button:disabled,
 /* ==========================================================
    PROFILE - GAMES OWNED
    ========================================================== */
-games-owned-section {
+.games-owned-section {
   width: 100%;
   padding-top: var(--space-5);
 }
@@ -8257,4 +8304,10 @@ games-owned-section {
 
 @media (max-width: 600px) {
   .host-controls-trigger { width: 100%; }
+}
+
+.is-refreshing { 
+  opacity: 0.5; 
+  pointer-events: none; 
+  transition: opacity var(--transition-fast); 
 }

@@ -89,7 +89,7 @@
           <BaseEmptyState
             v-else-if="filteredPeople.length === 0"
             title="No people found"
-            description="Try changing your search or friend filters."
+            message="Try changing your search or friend filters."
           />
 
           <!-- People grid -->
