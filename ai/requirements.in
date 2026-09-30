@@ -21,3 +21,4 @@ lancedb==0.38.0
 pyarrow==25.0.1
 google-genai==2.25.0
 zhipuai==2.1.5.20250825
+requests==2.34.2

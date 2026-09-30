@@ -90,8 +90,13 @@ def run_ingestion_pipeline(
 
         before = len(chunk_list)
         chunk_list = filter_out_decorative_chunks(chunk_list)
-        logger.info("Filtered chunks: %d -> %d (rulebook %s)", before, len(chunk_list), rulebook_id)
-        
+        logger.info(
+            "Filtered chunks: %d -> %d (rulebook %s)",
+            before,
+            len(chunk_list),
+            rulebook_id,
+        )
+
         if not chunk_list:
             mongo_service.mark_pipeline_failed(
                 rulebook_id,
@@ -124,8 +129,16 @@ def run_ingestion_pipeline(
             mongo_service.update_ingestion_job(
                 job_id, "ComponentExtraction", "Processing"
             )
+            try:
+                game_slug = mongo_service.get_game_slug_for_rulebook(rulebook_id)
+            except ValueError as v:
+                reason = f"Cannot resolve game for rulebook: {v}"
+                logger.warning("Failing pipeline for rulebook %s: %s", rulebook_id, reason)
+                mongo_service.mark_pipeline_failed(rulebook_id, job_id, "ComponentExtraction", reason)
+                return
+                
             component_success, component_list, component_reason = extract_components(
-                chunk_list, rulebook_id, local_model=local_model
+                chunk_list, rulebook_id, game_slug, local_model=local_model
             )
 
             if not component_success:

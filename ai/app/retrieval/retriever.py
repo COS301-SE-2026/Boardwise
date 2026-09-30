@@ -5,7 +5,7 @@ from fastapi import HTTPException
 
 from app.config import settings
 from app.retrieval.reranker import rerank_chunks
-from app.retrieval.vector_store import fetch_candidate_chunks
+from app.retrieval.vector_search import fetch_candidate_chunks
 from app.utils.logging_utils import sanitise_log_input
 
 logger = logging.getLogger(__name__)

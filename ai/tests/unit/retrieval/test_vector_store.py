@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from app.retrieval.vector_store import fetch_candidate_chunks
+from app.retrieval.vector_search import fetch_candidate_chunks
 from bson import ObjectId
 
 
@@ -33,6 +33,8 @@ def test_fetch_candidate_chunks_valid_query_returns_results(mock_mongo_service):
     assert "$vectorSearch" in pipeline_arg[0]
     assert pipeline_arg[0]["$vectorSearch"]["queryVector"] == query_vector
     assert pipeline_arg[0]["$vectorSearch"]["limit"] == expected_limit
-    assert pipeline_arg[0]["$vectorSearch"]["filter"]["rulebookId"] == ObjectId(rulebook_id)
+    assert pipeline_arg[0]["$vectorSearch"]["filter"]["rulebookId"] == ObjectId(
+        rulebook_id
+    )
 
     assert "$project" in pipeline_arg[1]

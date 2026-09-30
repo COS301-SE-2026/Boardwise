@@ -8,6 +8,7 @@ from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
 
 from app.config import settings
+from app.utils.ggaia_utils import slugify
 
 logger = logging.getLogger(__name__)
 
@@ -607,6 +608,7 @@ def get_or_create_setup_wizard(rulebook_id: str) -> dict:
         )
     return doc
 
+
 # Mechanic Collection
 def upsert_mechanic(mechanic: dict) -> None:
     """Upserts a single MECHANIC document by mechanicId (used as _id)"""
@@ -623,6 +625,7 @@ def upsert_mechanic(mechanic: dict) -> None:
         upsert=True,
     )
 
+
 def upsert_mechanics(mechanics: list[dict]) -> int:
     """Upserts multiple MECHANIC documents. Returns count written"""
     if not mechanics:
@@ -632,12 +635,50 @@ def upsert_mechanics(mechanics: list[dict]) -> int:
     logger.info("Upserted %d mechanics.", len(mechanics))
     return len(mechanics)
 
+
 def get_all_mechanics() -> list[dict]:
     """Returns every MECHANIC document."""
     db = get_db()
     return list(db["MECHANIC"].find({}))
 
+
 def count_mechanics() -> int:
     """Returns the number of MECHANIC documents."""
     db = get_db()
     return db["MECHANIC"].count_documents({})
+
+
+def get_boardgames_by_ids(ids: list[ObjectId]) -> list[dict]:
+    db = get_db()
+    return list(
+        db["BOARD_GAME"].find({"_id": {"$in": ids}}, {"title": 1, "mechanics": 1})
+    )
+
+
+def get_mechanics_by_bgg_ids(bgg_ids) -> list[dict]:
+    db = get_db()
+    return list(db["MECHANIC"].find({"bggId": {"$in": list(bgg_ids)}}))
+
+
+def get_game_slug_for_rulebook(rulebook_id: str, max_len: int = 16) -> str:
+    db = get_db()
+    rulebook = db["RULEBOOK"].find_one(
+        {"_id": _coerce_object_id(rulebook_id)}, {"gameId": 1}
+    )
+    if not rulebook:
+        raise ValueError(f"Rulebook '{rulebook_id}' not found.")
+
+    game_id = rulebook.get("gameId")
+    if game_id is None:
+        raise ValueError(f"Rulebook '{rulebook_id}' has no gameId")
+
+    game = db["BOARD_GAME"].find_one({"_id": game_id}, {"title": 1})
+    if not game or not game.get("title"):
+        raise ValueError(
+            f"BOARD_GAME '{game_id}' for rulebook '{rulebook_id}' has no title"
+        )
+    slug = slugify(game["title"], max_len)
+    if not slug:
+        # Non-ASCII title slugifies to nothing so the fallback is an id-derived prefix such that different games still get distinct slugs
+        slug = f"g{str(game_id)[-6:]}"
+    return slug

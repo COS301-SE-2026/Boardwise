@@ -2,11 +2,11 @@ import logging
 import re
 from typing import Any
 
-from bson import ObjectId
 from llama_cpp import Llama
 
 from app.ingestion.language_models.llm_client import call_structured_llm
 from app.ingestion.schemas.component_schemas import COMPONENT_EXTRACTION_SCHEMA
+from app.utils.ggaia_utils import slugify
 from app.utils.logging_utils import sanitise_log_input
 
 logger = logging.getLogger(__name__)
@@ -40,9 +40,14 @@ Rulebook excerpt:
 ---
 """
 
+_NAME_SLUG_MAX = 24
+
 
 def extract_components(
-    chunk_list: list[dict], rulebook_id: str, local_model: Llama | None = None
+    chunk_list: list[dict],
+    rulebook_id: str,
+    game_slug: str,
+    local_model: Llama | None = None,
 ) -> tuple[bool, list[dict], str]:
     """
     Extracts the component list for a rulebook
@@ -81,7 +86,11 @@ def extract_components(
     if not raw_components:
         return (False, [], "LLM returned no components for this rulebook")
 
-    components = [_finalise_component(rulebook_id, raw) for raw in raw_components]
+    sorted_raw = sorted(raw_components, key=_component_sort_key)
+    seen_ids: set[str] = set()
+    components = [
+        _finalise_component(rulebook_id, game_slug, raw, seen_ids) for raw in sorted_raw
+    ]
     components = _merge_duplicate_components(components)
 
     flagged_count = sum(1 for c in components if c["needsReview"])
@@ -144,17 +153,43 @@ def _call_llm_for_components(
     return (True, parsed.get("components", []) or [], "")
 
 
-def _finalise_component(rulebook_id: str, raw: dict[str, Any]) -> dict:
+def _normalised_type(raw_type: Any) -> str:
+    return raw_type if raw_type in ALLOWED_COMPONENT_TYPES else "other"
+
+
+def _component_sort_key(raw: dict[str, Any]) -> tuple[str, str]:
+    """Deterministic ordering for ID assignment"""
+    return (_normalised_type(raw.get("type")), str(raw.get("name", "")).strip().lower())
+
+
+def _make_component_id(
+    game_slug: str, comp_type: str, name: str, seen_ids: set[str]
+) -> str:
+    name_slug = slugify(name, _NAME_SLUG_MAX) or "unnamed"
+    base = f"{game_slug}-{comp_type}-{name_slug}"
+    candidate = base
+    n = 2
+    while candidate in seen_ids:
+        candidate = f"{base}-{n}"
+        n += 1
+    seen_ids.add(candidate)
+    return candidate
+
+
+def _finalise_component(
+    rulebook_id: str, game_slug: str, raw: dict[str, Any], seen_ids: set[str]
+) -> dict:
     """Assigns an id, applies the schema shape, and runs verification checks"""
     needs_review, reason = _verify_component(raw)
 
+    comp_type = _normalised_type(raw.get("type"))
+    name = str(raw.get("name", "")).strip()
+
     return {
-        "componentId": str(ObjectId()),
+        "componentId": _make_component_id(game_slug, comp_type, name, seen_ids),
         "rulebookId": rulebook_id,
-        "type": raw.get("type")
-        if raw.get("type") in ALLOWED_COMPONENT_TYPES
-        else "other",
-        "name": str(raw.get("name", "")).strip(),
+        "type": comp_type,
+        "name": name,
         "quantity": _coerce_quantity(raw.get("quantity")),
         "attributes": raw.get("attributes") or {},
         "needsReview": needs_review,
@@ -174,7 +209,12 @@ def _verify_component(raw: dict[str, Any]) -> tuple[bool, str]:
 
     quantity = _coerce_quantity(raw.get("quantity"))
     if quantity is None or quantity < MIN_QUANTITY:
-        logger.warning("Rejecting quantity %r (type=%s) for component %r", raw.get("quantity"), type(raw.get("quantity")).__name__, name)
+        logger.warning(
+            "Rejecting quantity %r (type=%s) for component %r",
+            raw.get("quantity"),
+            type(raw.get("quantity")).__name__,
+            name,
+        )
         return (True, "invalid_or_missing_quantity")
 
     if quantity > MAX_REASONABLE_QUANTITY:
@@ -208,6 +248,7 @@ def _merge_duplicate_components(components: list[dict]) -> list[dict]:
         existing["reviewReason"] = "; ".join(reasons)
 
     return list(merged.values())
+
 
 def _coerce_quantity(value: Any) -> int | None:
     if isinstance(value, bool):
