@@ -1,11 +1,15 @@
 <template>
-  <div class="d-flex flex-wrap ga-4">
-    <BaseButton prepend-icon="mdi-book-open-variant" @click="goToReader">
+  <div class="d-flex flex-column ga-2">
+    <BaseButton block prepend-icon="mdi-book-open-variant"  :to="`/library/read/${rulebook.id}`">
       Read Rulebook
     </BaseButton>
 
-    <BaseButton variant="secondary" prepend-icon="mdi-store" @click="goToMarketplace">
+    <BaseButton block variant="secondary" prepend-icon="mdi-store" to="/marketplace">
       Browse Marketplace
+    </BaseButton>
+
+    <BaseButton block variant="secondary" prepend-icon="mdi-wizard-hat" :disabled="!rulebook.gameId" :to="`/setup-wizard/${rulebook.gameId}`">
+      Setup Wizard
     </BaseButton>
   </div>
 </template>
@@ -19,12 +23,4 @@ const props = defineProps({
     required: true
   }
 })
-
-const goToMarketplace = () => {
-  navigateTo('/marketplace')
-}
-
-const goToReader = () => {
-  navigateTo(`/library/read/${props.rulebook.id}`)
-}
 </script>

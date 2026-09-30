@@ -1,13 +1,10 @@
 <template>
-  <div class="d-flex flex-column ga-6">
+  <atricle class="rulebook-detail">
 
     <BaseImage 
       :src="rulebook.coverUrl" 
       :alt="rulebook.title" 
-      width="200px"
       height="200px"
-      fit="cover"
-      style="border-radius: 16px;"
     />
 
     <RulebookMeta :rulebook="rulebook" />
@@ -18,7 +15,7 @@
       :current-id="rulebook.id"
       @select="$emit('select', $event)"
     />
-  </div>
+  </atricle>
 </template>
 
 <script setup>
