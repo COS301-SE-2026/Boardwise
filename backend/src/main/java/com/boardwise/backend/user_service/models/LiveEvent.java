@@ -31,7 +31,7 @@ import lombok.Data;
 public class LiveEvent {
     @Id
     @NotNull 
-    ObjectId id;
+    String id;
     @NotNull
     ObjectId boardgameId; // boardgame Id
     @NotNull

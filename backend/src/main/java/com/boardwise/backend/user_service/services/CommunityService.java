@@ -776,7 +776,7 @@ public class CommunityService {
         LiveEventAttendeeList attendees = new LiveEventAttendeeList(
                 List.of(new LiveEventAttendee(currentUser.getId(),currentUser.getUsername(), LiveEventAttendeeStatus.ARRIVED, true)));
 
-        ObjectId eventId = new ObjectId();
+        String eventId = new ObjectId().toString();
         LiveEvent newLiveEvent = new LiveEvent(
                 eventId,
                 new ObjectId(game.getId()),
@@ -791,7 +791,7 @@ public class CommunityService {
 
         Map<String, Object> result = new HashMap<>();
         result.put("message", "Live Event has been successfully created");
-        result.put("id", eventId.toHexString());
+        result.put("id", eventId);
         return result;
     }
     
@@ -814,7 +814,7 @@ public class CommunityService {
             throw new ForbiddenException("Only the host can delete this event");
         }
 
-        liveEventMessageRepo.deleteById(liveEvent.getId().toHexString());
+        liveEventMessageRepo.deleteById(liveEvent.getId());
         liveEventRepo.delete(liveEvent);
         result.put("message", "Event successfully deleted.");
         return result;
@@ -889,13 +889,13 @@ public class CommunityService {
         boolean isHost = event.getHostId().toString().equals(user.getId());
 
         LiveEventMessage msg = new LiveEventMessage(
-                new ObjectId(), event.getId().toHexString(), user.getId(), user.getUsername(),
+                new ObjectId().toString(), event.getId(), user.getId(), user.getUsername(),
                 clean, isHost, Instant.now());
         liveEventMessageRepo.save(msg);
 
         Map<String, Object> results = new HashMap<>();
         LiveEventMessageDTO dto = LiveEventMessageDTO.from(msg);
-        ws.convertAndSend("/topic/live-event/" + event.getId().toHexString() + "/messages", dto);
+        ws.convertAndSend("/topic/live-event/" + event.getId() + "/messages", dto);
         results.put("details", dto);
         return results;
     }
@@ -905,8 +905,8 @@ public class CommunityService {
         LiveEvent event = requireAttendee(user, eventId);
 
         List<LiveEventMessage> msgs = (after == null)
-                ? liveEventMessageRepo.findByEventIdOrderByCreatedAtAsc(event.getId().toHexString())
-                : liveEventMessageRepo.findByEventIdAndCreatedAtAfterOrderByCreatedAtAsc(event.getId().toHexString(), after);
+                ? liveEventMessageRepo.findByEventIdOrderByCreatedAtAsc(event.getId())
+                : liveEventMessageRepo.findByEventIdAndCreatedAtAfterOrderByCreatedAtAsc(event.getId(), after);
 
         Map<String, Object> result = new HashMap<>();
         result.put("messages", msgs.stream().map(LiveEventMessageDTO::from).toList());        return result;
@@ -957,7 +957,7 @@ public class CommunityService {
 
     private Map<String, Object> toView(LiveEvent e, String gameTitle) {
         Map<String, Object> m = new HashMap<>();
-        m.put("id", e.getId().toHexString());
+        m.put("id", e.getId());
         m.put("boardgameId", e.getBoardgameId().toHexString());
         m.put("gameTitle", gameTitle);
         m.put("hostId", e.getHostId().toString());
