@@ -9,6 +9,7 @@
             <BaseButton
                 icon
                 variant="text"
+                class="notif-bell"
                 v-bind="menuProps"
                 :aria-label="bellLabel"
                 data-test="notification-bell"
@@ -17,7 +18,9 @@
                     :model-value="unreadCount > 0"
                     :content="badgeText"
                     color="primary"
-                    floating
+                    class="notif-badge"
+                    offset-x="-2"
+                    offset-y="-2"
                 >
                     <v-icon :size="iconSize">mdi-bell-outline</v-icon>
                 </v-badge>
@@ -191,6 +194,21 @@ const timeAgo = (iso) => {
 </script>
 
 <style scoped>
+.notif-bell {
+  overflow: visible;
+}
+
+.notif-badge .v-badge__badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  border: 2px solid var(--color-surface, #fff);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+}
+
 .notif-panel {
   width: min(380px, calc(100vw - 24px));
   overflow: hidden;
@@ -248,8 +266,14 @@ const timeAgo = (iso) => {
   transition: background-color var(--transition-fast);
 }
 
-.notif-item:hover {
+.notif-item:hover,
+.notif-item--unread:hover {
   background: var(--color-surface-alt);
+}
+
+.notif-item:active,
+.notif-item--unread:active {
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
 }
 
 .notif-item--unread {

@@ -157,6 +157,7 @@
                             >
                                 <span class="settings-choice-card__content">
                                     <span class="settings-choice-card__title">{{ d.label }}</span>
+                                    <span class="settings-choice-card__title">{{ d.label }}</span>
                                     <span class="settings-choice-card__description">{{ d.desc }}</span>
                                 </span>
                             </button>
@@ -211,7 +212,7 @@
                                 @click="form.style = s.value"
                             >
                                 <span class="settings-choice-card__content">
-                                    <span class="settings-choice-card-title">{{ s.label }}</span>
+                                    <span class="settings-choice-card__title">{{ s.label }}</span>
                                     <span class="settings-choice-card__description">{{ s.desc }}</span>
                                 </span>
                             </button>
@@ -233,7 +234,7 @@
                             @click="form.privacy = 'public'"
                         >
                             <span class="settings-choice-card__content">
-                                <span class="settings-choice-card-title">Public</span>
+                                <span class="settings-choice-card__title">Public</span>
                                 <span class="settings-choice-card__description">Listed on Live Events Hub for nearby players.</span>
                             </span>
                         </button>
@@ -246,7 +247,7 @@
                         >
                             <span class="settings-choice-card__icon"><v-icon size="20">mdi-lock-outline</v-icon></span>
                             <span class="settings-choice-card__content">
-                                <span class="settings-choice-card-title">Private / Friends Only</span>
+                                <span class="settings-choice-card__title">Private / Friends Only</span>
                                 <span class="settings-choice-card__description">Accessible via direct share link only.</span>
                             </span>
                         </button>
@@ -273,6 +274,9 @@
                     <BaseButton type="submit" :loading="submitting" :disabled="!isValid">
                         <v-icon start>{{ form.timing === 'later' ? 'mdi-calendar-plus' : 'mdi-play-circle' }}</v-icon>
                         {{ form.timing === 'later' ? 'Schedule Event' : 'Launch Live Event' }}
+                    <BaseButton type="submit" :loading="submitting" :disabled="!isValid">
+                        <v-icon start>{{ form.timing === 'later' ? 'mdi-calendar-plus' : 'mdi-play-circle' }}</v-icon>
+                        {{ form.timing === 'later' ? 'Schedule Event' : 'Launch Live Event' }}
                     </BaseButton>
                 </div>
             </form>
@@ -292,6 +296,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 import Navbar from '~/components/layout/Navbar.vue'
@@ -303,6 +308,8 @@ import BaseInput from '~/components/ui/BaseInput.vue'
 import { useLiveEvents } from '~/composables/useLiveEvents'
 import { useEvents } from '~/composables/useEvents'
 import { useBoardGames } from '~/composables/useBoardGames'
+import { useEvents } from '~/composables/useEvents'
+import { useBoardGames } from '~/composables/useBoardGames'
 import { useSnackBar } from '~/composables/useSnackbar'
 
 definePageMeta({
@@ -310,6 +317,9 @@ definePageMeta({
 })
 
 const router = useRouter()
+
+const { createEvent } = useEvents()
+const { games: gameOptions, isLoading: gamesLoading, searchGames} = useBoardGames()
 
 const { createEvent } = useEvents()
 const { games: gameOptions, isLoading: gamesLoading, searchGames} = useBoardGames()
@@ -369,6 +379,22 @@ const handleSchedule = async () => {
 }
 
 const handleSubmit = async () => {
+    if (submitting.value || !isValid.value) return
+    submitting.value = true
+
+    try { 
+        if (form.value.timing === 'later') {
+            await handleSchedule()
+        } else {
+            const event = await createLiveEvent(form.value)
+            show('Live table launched!', 'success')
+            router.push(`/live-events/${event.id}`)
+        }
+    } catch (err) {
+        show(err?.data?.message || 'Something went wrong. Please try again.', 'error')
+    } finally {
+        submitting.value = false
+    }
     if (submitting.value || !isValid.value) return
     submitting.value = true
 
