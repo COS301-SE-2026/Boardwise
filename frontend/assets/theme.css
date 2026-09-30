@@ -1749,10 +1749,6 @@ html[data-density="compact"] .rulebook-list {
    LAYOUT
    ============================================================ */
 .page-header__top {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  flex-wrap: wrap;
   gap: var(--space-4);
 }
 

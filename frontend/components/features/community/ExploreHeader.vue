@@ -20,9 +20,5 @@
 import PageHeader from '~/components/layout/PageHeader.vue'
 import ExploreSearch from './ExploreSearch.vue'
 
-const props = defineProps({
-    searchQuery: { type: String, default: ''}
-})
-
-const emit = defineEmits(['search', 'create-community'])
+defineEmits(['search', 'create-community'])
 </script>
