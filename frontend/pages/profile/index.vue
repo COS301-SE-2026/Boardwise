@@ -19,13 +19,6 @@
 
       <GameArchitectEntryCard source="profile" class="mb-6" />
 
-       <BaseTabs
-                :tabs="['Games Owned', 'Listings']"
-                :active-tab="activeTab"
-                aria-label="Details sections"
-                class="mb-4"
-                @change="activeTab = $event"
-            />
       <section class="profile-content">
         <BaseTabs
           :tabs="['Games Owned', 'Listings']"

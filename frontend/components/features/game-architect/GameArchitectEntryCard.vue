@@ -6,7 +6,6 @@
       </div>
 
       <div class="game-architect-entry__copy">
-        <p class="game-architect-entry__eyebrow">Powered by Boarley</p>
         <h2>Design your next board game</h2>
         <p>
           Scale a game you own or combine ideas from your collection into a
