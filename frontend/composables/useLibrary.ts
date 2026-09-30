@@ -22,7 +22,7 @@ export const useLibrary = () => {
             rulebooks.value = [];
             hasMore.value = true;
         }
-        
+        console.log("I am here")
         if(!hasMore.value) return;
 
         error.value = '';
@@ -40,6 +40,7 @@ export const useLibrary = () => {
             rulebooks.value = reset ? newContent : [...rulebooks.value, ...newContent];
             hasMore.value = response? !response.last : false;
             page.value += 1;
+            console.log("Rulebooks galore: ",rulebooks);
         } catch(err: any) {
             error.value = err.data?.message || 'No rulebooks found'
             if (reset) rulebooks.value = []
