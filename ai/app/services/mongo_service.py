@@ -500,14 +500,6 @@ def get_components_for_rulebook(rulebook_id: str) -> list[dict]:
 
 
 # Setup Wizard
-def setup_wizard_indexes() -> None:
-    """
-    Creates required indexes on the SETUP_WIZARD COLLECTION.
-    Call once at startup.
-    """
-    db = get_db()
-    db["SETUP_WIZARD"].create_index("rulebookId", unique=True)
-
 
 def get_setup_wizard_by_rulebookId(rulebook_id: str) -> dict | None:
     """
@@ -682,3 +674,24 @@ def get_game_slug_for_rulebook(rulebook_id: str, max_len: int = 16) -> str:
         # Non-ASCII title slugifies to nothing so the fallback is an id-derived prefix such that different games still get distinct slugs
         slug = f"g{str(game_id)[-6:]}"
     return slug
+
+def get_latest_rulebook_per_game(game_ids: list[ObjectId]) -> dict[str, str]:
+    if not game_ids:
+        return {}
+    
+    db = get_db()
+    cursor = db["RULEBOOK"].find({"gameId": {"$in": list(game_ids)}, "status": "Ready"}, {"gameId": 1, "uploadedAt": 1}).sort("uploadedAt", -1)
+    
+    latest: dict[str, str] = {}
+    for doc in cursor:
+        gid = str(doc["gameId"])
+        if gid not in latest:
+            latest[gid] = str(doc["_id"])
+    return latest
+
+def setup_indexes() -> None:
+    db = get_db()
+    
+    db["MECHANIC"].create_index("bggId")
+    db["RULEBOOK"].create_index([("gameId", 1), ("status", 1), ("uploadedAt", -1)])
+    db["SETUP_WIZARD"].create_index("rulebookId", unique=True)
