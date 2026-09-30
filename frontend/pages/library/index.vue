@@ -2,10 +2,15 @@
   <PageContainer>
     <Navbar />
 
-    <LibraryHeader 
-      @upload="handleUploadRequest"
-      @search="handleSearch"
-    />
+    <div class="d-flex flex-column ga-5 mb-6">
+      <SectionTitle title="Library" subtitle="Browse community rulebooks" />
+
+      <RulebookSearch
+        @upload="handleUploadRequest"
+        @search="handleSearch"
+        @architect="openGameArchitect"
+      />
+    </div>
 
     <RulebookCarousel :rulebooks="featuredRulebooks" @select="openRulebook" />
 
@@ -128,7 +133,7 @@ import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue
 import UploadRulebookModal from '~/components/features/library/UploadRulebookModal.vue'
 import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
 import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue'
-
+import RulebookSearch from '~/components/features/library/RulebookSearch.vue'
 import { useLibrary } from '~/composables/useLibrary'
 import { useVaultUpload } from '~/composables/useVaultUpload';
 import { useAuth } from '~/composables/useAuth';
@@ -152,6 +157,21 @@ const activeFilterState = ref({})
 const showDetail = ref(false)
 const showUpload = ref(false)
 const selectedRulebook = ref(null)
+
+const openGameArchitect = () => {
+  if (!isAuthenticated.value) {
+    router.push({
+      path: '/auth/signin',
+      query: { redirect: '/game-architect?from=library' }
+    })
+    return
+  }
+
+  router.push({
+    path: '/game-architect',
+    query: { from: 'library' }
+  })
+}
 
 onMounted(() => { // Does stuff when component loads
   fetchFeaturedRulebooks();

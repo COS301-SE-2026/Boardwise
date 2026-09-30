@@ -11,6 +11,7 @@
       <RulebookSearch
         data-test="rulebook-search"
         @search="$emit('search', $event)" 
+        @architect="$emit('architect')"
       />
     </template>
   </PageHeader>
@@ -20,5 +21,5 @@
 import PageHeader from '~/components/layout/PageHeader.vue'
 import RulebookSearch from './RulebookSearch.vue'
 
-defineEmits(['search', 'upload'])
+defineEmits(['search', 'upload', 'architect'])
 </script>
