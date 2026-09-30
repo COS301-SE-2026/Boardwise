@@ -132,6 +132,8 @@ import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue
 import UploadRulebookModal from '~/components/features/library/UploadRulebookModal.vue'
 import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
 import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue'
+import RulebookSearch from '~/components/features/library/RulebookSearch.vue'
+
 
 import { useLibrary } from '~/composables/useLibrary'
 import { useVaultUpload } from '~/composables/useVaultUpload';
