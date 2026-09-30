@@ -127,7 +127,7 @@ def generate_structured_output(
             backend=backend,
             max_tokens=phase.max_tokens,
             temperature=phase.temperature,
-            response_schema= model.model_json_schema()
+            response_schema=model.model_json_schema()
         )
         try:
             return StructuredOutput(parse_model(output.text, model), output.source)
