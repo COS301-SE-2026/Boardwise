@@ -42,6 +42,10 @@ def generate_parent_string(parent: dict):
             text += f"\n Values for reference:\n {", ".join(stats_parts)}"
     return text
         
+def _mechanic_line(mechanic_id: str, name: str, category: str, description: str, requires: list[str]) -> str:
+    cat = f"({category})" if category else ""
+    req = ", ".join(requires) or "no specific components"
+    return f"- id={mechanic_id} | {name}{cat}: {description} [requires: {req}]"
 
 def game_ideator_new_game(
     parent_a: dict,
@@ -73,8 +77,7 @@ Respond with ONLY a JSON object matching the provided schema. No other text.
 """
 
     mechanic_block = "\n".join(
-        f"- id={m['mechanic_id']} | {m['name']} ({m['category']}): {m['description']}"
-        f" [requires: {', '.join(m['requires_component_types']) or 'no specific components'}]"
+        _mechanic_line(m['mechanic_id'], m['name'], m['category'], m['description'], m['requires_component_types'])
         for m in potential_mechanics
     )
 

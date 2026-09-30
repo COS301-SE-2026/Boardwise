@@ -8,7 +8,7 @@ from llama_cpp import Llama
 from sentence_transformers import CrossEncoder, SentenceTransformer
 
 from app.config import settings
-from app.routers import internal, job, rulebook, ggaia,setup_wizard
+from app.routers import ggaia, internal, job, rulebook, setup_wizard
 from app.scripts.seed_system_user import seed_system_user
 from app.services import lancedb_service, mongo_service, r2_service
 from app.utils.init_lancedb_index import initialise_lancedb
@@ -69,13 +69,11 @@ async def lifespan(app: FastAPI):
 
         app.state.ml_models = ml_models
 
-        mongo_service.ping_database()
-        logger.info("MongoDB connection verified.")
-
         seed_system_user()
         logger.info("System user check complete.")
 
-        r2_service.ping_r2_storage()
+        mongo_service.setup_indexes()
+        logger.info("Mongo indexes initialised.")
     except Exception:
         logger.exception("FATAL BOOT ERROR: Infrastructure check failed")
         raise
@@ -109,7 +107,7 @@ app.add_middleware(
         "http://localhost:3000",
         "https://www.boardwise.games",
         "https://boardwise.games",
-        "http://localhost:4173"
+        "http://localhost:4173",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -120,7 +118,8 @@ app.include_router(rulebook.router, prefix="/api/fa/vault/rulebooks")
 app.include_router(job.router, prefix="/api/fa/vault/jobs")
 app.include_router(internal.router, prefix="/api/fa/vault/internal")
 app.include_router(ggaia.router, prefix="/api/fa/game-architect")
-app.include_router(setup_wizard.router, prefix="/api/fa/vault/rulebooks" )
+app.include_router(setup_wizard.router, prefix="/api/fa/vault/rulebooks")
+
 
 @app.get("/api/fa/health", tags=["System"])
 async def health_check():
