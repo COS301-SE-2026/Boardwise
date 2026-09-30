@@ -6,7 +6,7 @@
         :key="rulebook.id"
         :rulebook="rulebook"
         size="lg"
-        @select="$emit('select', $event)"
+        @click="$emit('select', $event)"
       />
     </BaseGrid>
 
@@ -15,7 +15,7 @@
           v-for="rulebook in rulebooks"
           :key="rulebook.id"
           :rulebook="rulebook"
-          @select="$emit('select', $event)"
+          @click="$emit('select', $event)"
         />
     </div>
   </div>
