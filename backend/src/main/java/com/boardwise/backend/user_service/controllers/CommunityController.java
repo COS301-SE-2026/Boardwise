@@ -297,5 +297,10 @@ public class CommunityController {
         String token = ProfileController.extractToken(req);
         return ResponseEntity.ok(service.updateAttendeeStatus(token, eventId, body.status()));
     }
+    
+    @GetMapping("/live-events")
+    public ResponseEntity<?> getLiveEvents(){
+        return ResponseEntity.ok(service.getPublicLiveEvents());
+    }
 }
 

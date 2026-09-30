@@ -16,30 +16,32 @@ export interface LiveEventMessage{
     createdAt: string;
 }
 
-export interface CreateLiveEventPayload{
+export interface CreateLiveEventPayload {
     boardgameId: string;
-    hostId: string;
+    hostId?: string | null;
     title: string;
     type: string;
     venueName: string | null;
     table: string | null;
     link: string | null;
-    date: string | null;
-    time: string | null;
-    duration: string; 
+    date?: string; // yyyy-MM-dd,
+    time?: string; // HH:mm:ss, 
+    duration: string;
+    maxSeats: number;
+    tone: string;
     privacy: string;
-    automaticApproval:boolean;
-    liveAttendees: LiveEventAttendee[];
+    automaticApproval: boolean;
+    liveAttendees?: LiveEventAttendee[];
 }
 
 export interface LiveEventSocketHandlers{
     onHistory?: (messages: LiveEventMessage[]) => void;
-    onMessage: (msg: LiveEventMessage) =>void;
+    onMessage?: (msg: LiveEventMessage) =>void;
     onRoster: (attendees: LiveEventAttendee[]) =>void;
     onError?: (reason: string) =>void;
 }
 
-export const LiveEventService ={
+export const LiveEventsService ={
     // CREATE LIVE EVENT
     createLiveEvent(data: CreateLiveEventPayload){
         const { $api } = useNuxtApp()
@@ -78,6 +80,11 @@ export const LiveEventService ={
         });
         return res.messages;
     },
+    async listLiveEvents(){
+        const { $api } = useNuxtApp();
+        const res = await $api<{events: any[]}>(`community/live-events`);
+        return res.events;
+    },
 
     postMessage(id:string, content: string){
         const { $api} = useNuxtApp();
@@ -100,20 +107,26 @@ export const LiveEventService ={
             },
             reconnectDelay: 3000,
 
-            onConnect: async () =>{
-                //subscribe then load history 
-                subs = [
-                    client.subscribe(`/topic/live-event/${id}/messages`, f=> h.onMessage(JSON.parse(f.body))),
-                    client.subscribe(`/topic/live-event/${id}/roster`, f=> h.onRoster(JSON.parse(f.body).atendees))
-                ];
+            onConnect: async () => {
+            subs = [
+                client.subscribe(`/topic/live-event/${id}/roster`, f =>
+                    h.onRoster(JSON.parse(f.body).attendees)
+                ),
+            ];
 
-                try{
-                    const history = await LiveEventService.getMessages(id);
-                    h.onHistory?.(history);
-                }catch( e: any){
-                    h.onError?.(e.ata?.message?? 'Could not load messages')
+            if (h.onMessage) {
+                subs.push(
+                    client.subscribe(`/topic/live-event/${id}/messages`, f =>
+                        h.onMessage!(JSON.parse(f.body))
+                    )
+                );
+                try {
+                    h.onHistory?.(await LiveEventsService.getMessages(id));
+                } catch (e: any) {
+                    h.onError?.(e?.data?.message ?? 'Could not load messages');
                 }
-            },
+            }
+        },
 
             onStompError: f => h.onError?. (f.headers['message']?? 'Socket error')
         });
