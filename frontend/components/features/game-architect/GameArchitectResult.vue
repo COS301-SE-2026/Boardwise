@@ -1,6 +1,8 @@
 <template>
-  <section class="game-architect-result" aria-labelledby="architect-result-title">
-    <img
+  <section
+    class="game-architect-job-progress"
+    aria-labelledby="architect-progress-title"
+  ><img
       src="/images/Boarley_cute.svg"
       alt=""
       class="game-architect-result__mascot"
@@ -11,46 +13,64 @@
     </div>
 
     <p class="game-architect-step__eyebrow">
-      Request submitted
+      Generation complete
     </p>
 
     <h1 id="architect-result-title">
-      We’re building your game
+     {{ gameTitle }}
     </h1>
 
     <p>
-      {{ result.message || 'Your game request has been added to the generation queue.' }}
+      {{ description}}
     </p>
 
     <p class="game-architect-result__notice">
       You can continue using Boardwise. We’ll notify you when your game is ready.
     </p>
 
+    <div class="game-architect-result__details">
+      <span>{{ playerCount }}</span>
+      <span>{{ duration }}</span>
+      <span>{{ category }}</span>
+    </div>
+
     <div class="game-architect-result__actions">
-      <BaseButton variant="secondary" to="/library">
-        Return to library
+      <BaseButton variant="secondary" @click="$emit('view')">
+        View game
       </BaseButton>
       <BaseButton @click="emit('restart')">
-        Create another game
+        Start another
       </BaseButton>
     </div>
   </section>
 </template>
 
-<script setup lang="ts">
-import type { PropType } from 'vue'
-
+<script setup >
 import BaseButton from '~/components/ui/BaseButton.vue'
-import type { GenerateGameResponse } from '~/services/gameArchitectService'
 
 defineProps({
-  result: {
-    type: Object as PropType<GenerateGameResponse>,
-    required: true
+ gameTitle: {
+    type: String,
+    default: ''
+  },
+  playerCount: {
+    type: String,
+    default: ''
+  },
+
+  duration: {
+    type: String,
+    default: ''
+  },
+
+  category: {
+    type: String,
+    default: ''
   }
 })
 
-const emit = defineEmits<{
-  restart: []
-}>()
+const emit = defineEmits([
+  'restart',
+  'view'
+])
 </script>

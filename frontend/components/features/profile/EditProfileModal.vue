@@ -19,11 +19,6 @@
         placeholder="Location"
       />
 
-      <BaseTextarea
-        v-model="bio"
-        placeholder="Bio"
-      />
-
       <div class="preferences-section">
         <h3>Preferences</h3>
         

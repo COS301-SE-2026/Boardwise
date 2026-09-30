@@ -112,7 +112,7 @@
             <span>{{ game.title }}</span>
             <BaseButton
               variant="text"
-              icon="mdi-close"
+              v-icon="mdi-close"
               :aria-label="`Remove ${game.title}`"
               @click="emit('toggle', game)"
             />
@@ -132,22 +132,19 @@
   </section>
 </template>
 
-<script setup lang="ts">
-import { computed, ref, type PropType } from 'vue'
-
+<script setup>
 import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import BaseImage from '~/components/ui/BaseImage.vue'
 import BaseSearch from '~/components/ui/BaseSearch.vue'
-import type { GameArchitectGame } from '~/services/gameArchitectService'
 
 const props = defineProps({
   games: {
-    type: Array as PropType<GameArchitectGame[]>,
+    type: Array,
     default: () => []
   },
   selectedGames: {
-    type: Array as PropType<GameArchitectGame[]>,
+    type: Array,
     default: () => []
   },
   scaleMode: {
@@ -168,10 +165,10 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits<{
-  toggle: [game: GameArchitectGame]
-  surprise: []
-}>()
+const emit = defineEmits([
+  'toggle',
+  'surprise'
+])
 
 const search = ref('')
 
@@ -191,10 +188,10 @@ const emptyMessage = computed(() =>
     : 'Add games to your profile before using the Game Architect.'
 )
 
-const isSelected = (gameId: string) =>
+const isSelected = gameId =>
   props.selectedGames.some(game => game.id === gameId)
 
-const selectionDisabled = (gameId: string) =>
+const selectionDisabled = gameId =>
   !props.scaleMode &&
   !isSelected(gameId) &&
   props.selectedGames.length >= props.maxSelected

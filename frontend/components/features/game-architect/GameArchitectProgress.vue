@@ -25,7 +25,7 @@
   </nav>
 </template>
 
-<script setup lang="ts">
+<script setup>
 defineProps({
   currentStep: {
     type: Number,
@@ -38,4 +38,5 @@ const steps = [
   { number: 2, label: 'Select games' },
   { number: 3, label: 'Review idea' }
 ]
+
 </script>

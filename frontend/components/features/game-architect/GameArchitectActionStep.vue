@@ -74,14 +74,10 @@
   </section>
 </template>
 
-<script setup lang="ts">
-import type { PropType } from 'vue'
-
-import type { GameArchitectMode } from '~/services/gameArchitectService'
-
+<script setup>
 defineProps({
   modelValue: {
-    type: String as PropType<GameArchitectMode | null>,
+    type: String,
     default: null
   },
   generationInProgress: {
@@ -90,7 +86,7 @@ defineProps({
   }
 })
 
-const emit = defineEmits<{
-  'update:modelValue': [value: GameArchitectMode]
-}>()
+const emit = defineEmits([
+  'update:modelValue'
+])
 </script>

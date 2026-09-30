@@ -5,22 +5,10 @@
         v-model="search"
         placeholder="Search for rulebooks..."
         @update:model-value="$emit('search', $event)"
-      > <BaseButton
-        variant="primary"
-        prepend-icon="mdi-search"
-        @click="$emit('search', $event)"
-      >
-        Search
-      </BaseButton></BaseSearch>     
+      />      
     </div>
-    <div class="Library">
-      <BaseButton
-        variant="primary"
-        prepend-icon="mdi-upload"
-        @click="$emit('upload')"
-      >
-        Upload Rulebook
-      </BaseButton>
+
+    <div class="rulebook-search__actions">
       <BaseButton
         variant="secondary"
         prepend-icon="mdi-creation-outline"
@@ -28,8 +16,11 @@
       >
         Game Architect
       </BaseButton>
-    </div>
 
+    <BaseButton variant="primary" prepend-icon="mdi-upload" @click="$emit('upload')"> 
+        Upload Rulebook
+    </BaseButton>
+  </div>
   </div>
 </template>
 
@@ -40,5 +31,5 @@ import BaseSearch from '~/components/ui/BaseSearch.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 
 const search = ref('')
-defineEmits(['search', 'upload','architect'])
+defineEmits(['search', 'upload', 'architect'])
 </script>
