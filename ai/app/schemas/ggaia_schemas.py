@@ -20,8 +20,7 @@ class Mechanic(BaseModel):
     category: str
     description: str
     requires_component_types: list[ComponentType]
-    min_players: int
-    max_players: int
+
 
 
 # "Helper" classes for design draft

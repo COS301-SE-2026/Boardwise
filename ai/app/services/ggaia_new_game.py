@@ -57,7 +57,7 @@ class GenerationConfig:
 
 @dataclass
 class GenerationInput:
-    parent_a: dict
+    parent_a: dict # {title, types, }
     parent_b: dict
     pool: ComponentPool
     mechanics: list[Mechanic]
