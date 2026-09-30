@@ -11,7 +11,7 @@ from fastapi import (
 )
 from typing import Annotated
 
-from app.services.ggaia_service import generate_new_game, InfeasiblePair
+from ai.app.services.ggaia_new_game import generate_new_game, InfeasiblePair
 from app.retrieval.ggaia_retrieval import load_inputs
 from app.schemas.schemas import GGAIARequest
 from app.dependencies import verify_jwt

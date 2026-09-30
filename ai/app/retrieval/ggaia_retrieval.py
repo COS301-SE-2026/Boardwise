@@ -1,6 +1,6 @@
 from typing import Optional
 
-from app.services.ggaia_service import GenerationInput
+from ai.app.services.ggaia_new_game import GenerationInput
 from app.services.mongo_service import get_db
 
 
