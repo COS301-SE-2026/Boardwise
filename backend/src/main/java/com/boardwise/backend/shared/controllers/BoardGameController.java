@@ -4,8 +4,11 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,24 +16,27 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.boardwise.backend.shared.dtos.GGAIAStatusReport;
 import com.boardwise.backend.shared.dtos.GenreRequestDTO;
 import com.boardwise.backend.shared.dtos.OtherGameDTO;
 import com.boardwise.backend.shared.services.BoardGameService;
-import com.google.maps.DirectionsApi.Response;
+
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 
 @RestController
+@RequiredArgsConstructor 
 @RequestMapping("/api/sb/boardgames")
 public class BoardGameController {
 
     private final BoardGameService service;
 
-    BoardGameController(BoardGameService service){
-        this.service = service;
-    }
+    @Value("${ai.gateway.internal-secret}")
+    private final String internalSecret;
 
     @GetMapping("/")
     public ResponseEntity<?> getGamesList(
@@ -41,6 +47,35 @@ public class BoardGameController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
+    @PostMapping("/ggaia")
+    public ResponseEntity<?> ggaiaCompletionStatus(
+        @RequestBody GGAIAStatusReport body,
+        @RequestHeader("X-Internal-Token") String internalToken
+    ) {
+        try{
+            if(internalToken == null){
+                throw new MissingRequestHeaderException("X-Internal-Token", null);
+            }
+            else if(internalToken != null && !internalToken.equals(internalSecret)){
+                throw new IllegalAccessException("Internal token supplied is invalid.");
+            }
+            service.notifyUserOnGenerationJob(body);
+            return ResponseEntity.ok().build();
+        }
+        catch(MissingRequestHeaderException e){
+            Map<String, String> res = new HashMap<>();
+            String message = "Internal secret not supplied.";
+            res.put("message", message);
+            return new ResponseEntity<>(res, HttpStatus.UNAUTHORIZED);
+        }
+        catch(IllegalAccessException e){
+            Map<String, String> res = new HashMap<>();
+            res.put("message", e.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.FORBIDDEN);
+        }
+    }
+
+    
     @GetMapping("/available/genres")
     public ResponseEntity<?> getAvailablBoardgameGenres() {
         List<String> uniqueGenres = service.getGenresFromAllAvailableBoardgames(); 

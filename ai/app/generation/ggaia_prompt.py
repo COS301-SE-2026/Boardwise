@@ -12,7 +12,8 @@ from app.schemas.ggaia_schemas import (
     CoreMechanic,
     SupportingMechanic,
     StructuralMechanic,
-    Flaw
+    Flaw,
+    ScaledGame
 )
 
 #-------- build ggaia generation prompts ---------
@@ -459,3 +460,55 @@ Compare the two versions. Produce a single JSON object matching this schema:
     ]
 
 # scale game
+def game_scaler(
+    title: str, 
+    og_rules: str, 
+    pool: ComponentPool, 
+    scaling_brief: str
+) -> list[dict]:
+    system_prompt = """You are a board game developer adapting an EXISTING game to a new player count
+and/or difficulty. You are not designing a new game: keep the original's theme, core loop and identity 
+intact and change as little as possible.
+
+You are shown EXCERPTS of the original rules, not the whole rulebook. Do not assume rules that are not
+shown. If the excerpts are not enough to modify a rule safely, leave that rule rather than guessing.
+
+Rules:
+- Describe your work as a list of changes to the original rules. Each change must quote the original passage
+  it modifies, copied verbatim, unless it adds a new rule.
+- Only use the components available in the pool and never more than the available quantity. If the target needs
+  more pieces than the pool holds, adapt the rules instead (e.g. teams, shared pieces, smaller per-player allocations) 
+  rather than exceeding the pool.
+- Player scaling levers: teams or partnerships, shared pieces, per-player allocations, board size or layout, simultaneous 
+  play to cut downtime, a dummy/automated opponent for low counts.
+- Difficulty levers. Easier: more starting resources, softer penalties, fewer options per turn, removing a subsystem. Harder: 
+  tigher resources, added obstacles, removing safety nets, hidden information.
+- Follow the scope limi in the brief. Do not make changes the did not ask for.
+- The variant's new_player_count must cover the whole target range in the brief.
+
+Respond with ONLY a JSON object matching the provided schema. No other text. Represent line breaks as '\\n' in
+JSON string values.
+
+"""
+
+    user_prompt = f"""## Original game
+{title}
+
+## Original rules (excerpts)
+{og_rules}
+
+## Component Pool (select ONLY from these by component_id)
+{format_pool_block(pool)}
+
+## Scaling brief
+{scaling_brief}
+
+## Task
+Produce the scaled variant as a single JSON object matching this schema:
+{schema_json(ScaledGame)}
+"""
+
+    return [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt}
+    ]
