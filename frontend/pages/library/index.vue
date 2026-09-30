@@ -14,7 +14,7 @@
 
     <BaseCard class="mb-6">
       <div class="d-flex align-center ga-4 flex-wrap">
-        <V-icon size="32" color="primary">mdi-wizard-hat</V-icon>
+        <v-icon size="32" color="primary">mdi-wizard-hat</v-icon>
         <div class="flex-grow-1">
           <h2 class="card-title">Setup Wizard</h2>
           <p class="card-meta">Step-and-step setup grounded in the official rulebook.</p>
@@ -130,6 +130,8 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 
 const CARD_PAGE_SIZE = 12
 
+const initialLoaded = ref(false)
+const filterKey = ref(0)
 const { show } = useSnackBar();
 const showFilters = ref(false)
 
@@ -161,9 +163,15 @@ const openGameArchitect = () => {
   })
 }
 
-onMounted(() => { // Does stuff when component loads
-  fetchFeaturedRulebooks();
-  getAllRulebooks({}, true);
+onMounted(async () => { // Does stuff when component loads
+  try {
+    await Promise.all([
+      fetchFeaturedRulebooks(),
+      getAllRulebooks({}, true)
+    ])
+  } finally {
+    initialLoaded.value = true
+  }
 })
 
 const activeCount = computed(() => Object.entries(activeFilterState.value).filter(([k, v]) => k !== 'languages' && v != null && v !== '' && (!Array.isArray(v) || v.length)).length)
@@ -205,18 +213,25 @@ const handleSearch = (query) => {
   searchQuery.value = query
 }
 
-const handleFilter = (filters) => {
+const handleFilter = (filters = {}) => {
   activeFilterState.value = {
-    genre: filters.genre,
-    languages: "English",
-    playerCount: filters.playerCount,
-    duration: filters.duration,
-    minAge: filters.minAge,
+    genre: filters.genre || null,
+    playerCount: filters.playerCount || null,
+    duration: filters.duration || null,
+    minAge: filters.minAge || null
   }
-    rulebooksPage.value = 1
-    getAllRulebooks({...activeFilterState.value, search: searchQuery.value || null}, true);
-    
+
+  rulebooksPage.value = 1
+
+  getAllRulebooks(
+    {
+      ...activeFilterState.value,
+      search: searchQuery.value || null
+    },
+    true
+  )
 }
+
 
 const handleUploadRulebook = async (newRulebook) => {
   try{
@@ -228,6 +243,15 @@ const handleUploadRulebook = async (newRulebook) => {
   }
 }
 
+const applyFilters = useDebounceFn((filters) => {
+  getAllRulebooks(
+    {
+      ...filters,
+      search: searchQuery.value || null
+    },
+    true
+  )
+}, 400)
 const recommended = computed(() => {
   return featuredRulebooks.value.slice(0, 5);
 })

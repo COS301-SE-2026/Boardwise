@@ -9,6 +9,14 @@
         placeholder="Enter member's username"
       />
 
+      <v-select
+        v-model="role"
+        :items="roles"
+        label="Role"
+        variant="outlined"
+        rounded="lg"
+      />               
+
       <div class="d-flex justify-end ga-3">
         <BaseButton
           variant="secondary"
