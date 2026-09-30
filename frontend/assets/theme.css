@@ -5685,10 +5685,30 @@ button:disabled,
 
 .listings-grid {
   width: 100%;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-5);
   display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-5);
   align-items: start;
+}
+
+.listings-grid > * {
+  min-width: 0;
+}
+
+.listings-grid .base-add-card {
+  width: 100%;
+  min-height: 320px;
+}
+
+@media (max-width: 959px) {
+  .listings-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  .listings-grid .base-add-card {
+    min-height: 240px;
+  }
 }
 
 /* =========================================================
