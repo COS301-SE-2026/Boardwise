@@ -16,13 +16,12 @@ from app.schemas.ggaia_schemas import (
 )
 from app.services.ggaia_new_game import (
     GenerationConfig,
-    generate_checked,
-    normalise_text,
+    generate_checked
 )
 
 from app.retrieval.vector_search import fetch_candidate_chunks
 from app.generation.ggaia_prompt import game_scaler
-from app.utils.ggaia_utils import validate_game_against_pool, duplicate_component_overuse
+from app.utils.ggaia_utils import validate_game_against_pool, duplicate_component_overuse, normalise_text
 
 logger = logging.getLogger(__name__)
 

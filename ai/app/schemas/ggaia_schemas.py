@@ -25,6 +25,14 @@ class Mechanic(BaseModel):
 
 # "Helper" classes for design draft
 class Concept(BaseModel):
+    title: str = Field(
+        ...,
+        min_length=2,
+        description=(
+            "An original, evocative name for the new game, 2-5 words. "
+            "Must not reuse or closely resemble either parent's title"
+        )
+    )
     elevator_pitch: str = Field(
         ..., description="1 sentence summary of the design's core, 15-30 words."
     )

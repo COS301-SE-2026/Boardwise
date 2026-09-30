@@ -15,7 +15,11 @@ from app.generation.ggaia_prompt import (
     game_critic_new_game_diagnose, game_critic_new_game_compare, new_game_block
 )
 from app.utils.ggaia_utils import (
-    draft_feasibility, validate_game_against_pool, duplicate_component_overuse
+    draft_feasibility, 
+    validate_game_against_pool,
+    duplicate_component_overuse,
+    normalise_text,
+    draft_title_issue
 )
 
 logger = logging.getLogger(__name__)
@@ -184,10 +188,6 @@ def generate_checked(
         ]
     raise GenerationFailed(f"{model.__name__} invalid after exhausting all {attempts} attempts: {problems}")
 
-def normalise_text(text: str):
-    text = re.sub(r"\s+", " ", text).strip().strip("\"'“”‘’")
-    return text.rstrip(".…").strip().lower()
-
 def sectioned_new_game_block(game: NewGame, pool: ComponentPool) -> dict[str, str]:
     parts = re.split(r"^### (\w+)\n", new_game_block(game, pool), flags=re.MULTILINE)
     return {parts[i]: parts[i + 1] for i in range(1, len(parts) - 1, 2)}
@@ -277,6 +277,7 @@ def generate_new_game(
 ) -> GenerationResult:
     pool = input.pool
     mechs_by_id = {m.mechanic_id: m for m in input.mechanics}
+    parent_titles = (input.parent_a['title'], input.parent_b['title'])
     notes: list[str] = []
 
     feasible = [m for m in input.mechanics if pool.mechanic_feasibility(m)]
@@ -294,7 +295,7 @@ def generate_new_game(
             pool
         ),
         DesignDraft,
-        lambda d: draft_feasibility(d, pool, mechs_by_id),
+        lambda d: draft_feasibility(d, pool, mechs_by_id) + draft_title_issue(d, parent_titles),
         ml_models,
         backend=config.generator_model,
         phase=config.ideation,
