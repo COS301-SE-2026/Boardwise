@@ -738,7 +738,7 @@ public class CommunityService {
     public Map<String, Object> createLiveEvent(String token, LiveEventRequestDTO req){
         User currentUser = getUserFromToken(token);
 
-        if(req.title() == null || req.title().isBlank())
+        if(req.title() == null || req.title().isBlank() )
             throw new IllegalArgumentException("Title is required");
         if(req.type() == null || req.duration() == null || req.tone() == null || req.privacy() == null)
             throw new IllegalArgumentException("Type, duration, tone and privacy are required");
@@ -758,6 +758,10 @@ public class CommunityService {
         LocalDate date = req.date() != null ? req.date() : LocalDate.now();
         LocalTime time = req.time() != null ? req.time() : LocalTime.now().withSecond(0).withNano(0);
 
+        if(liveEventRepo.findByTitleAndDateEqual(date, title).isPresent()){
+            throw new IllegalArgumentException("There is already an event with the same name on the same day");
+        }
+        
         if(req.date() != null || req.time() != null){
             if(LocalDateTime.of(date, time).isBefore(LocalDateTime.now().minusMinutes(5))){
                 throw new IllegalArgumentException("Start time has already passed");
