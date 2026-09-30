@@ -2,12 +2,12 @@ from typing import Optional
 from bson import ObjectId
 from random import randint
 
+from app.services.mongo_service import get_db
 from app.services.ggaia_new_game import GenerationInput
 from app.services.ggaia_game_scaling import ScaleInput
-from app.services.mongo_service import (
+from app.retrieval.similar_mechanics import (
     get_mechanics_for_games,
-    get_components_for_games,
-    get_db
+    get_components_for_games
 )
 from app.schemas.ggaia_schemas import (
     Mechanic,
@@ -22,7 +22,6 @@ def load_new_inputs(
     db = get_db()
     boardgames = db.get_collection("BOARD_GAME")
     user = db.get_collection("USER").find_one({"_id": ObjectId(user_id)})
-        
     if isinstance(games_for_inspo, str):
         user_game_ids = user['ownedGames']
         user_game_count = len(user_game_ids)
@@ -39,8 +38,6 @@ def load_new_inputs(
         game = boardgames.find_one({"_id": ObjectId(id)})
         actualgames.append(game)
 
-
-    
     mech_dicts = get_mechanics_for_games(games_for_inspo)
     components = get_components_for_games(games_for_inspo)
 
@@ -56,6 +53,8 @@ def load_new_inputs(
         )
         mechanics.append(mechanic)
 
+    ## -- Potentially add vector search to test generation --
+
     return GenerationInput(
         actualgames[0],
         actualgames[1],
@@ -63,9 +62,20 @@ def load_new_inputs(
         mechanics
     )
 
-    
 def load_scale_inputs(
     game_to_scale: str
 ) -> ScaleInput:
-    """ Stubbed for time being. This is for the sake of a merge. Such that the two halves of the WOW factor can integrated."""
-    pass
+    db = get_db()
+    game_id_object_id = ObjectId(game_to_scale)
+    boardgame = db.get_collection("BOARD_GAME").find_one("_id", game_id_object_id)
+    rulebook = db.get_collection("RULEBOOK").find_one({"gameId": game_id_object_id})
+    components = get_components_for_games([game_to_scale])
+    pool = ComponentPool(**components)
+
+    return ScaleInput(
+        title=boardgame["title"],
+        rulebook_id=rulebook["_id"],
+        stats=boardgame["stats"],
+        pool=pool
+    )
+    

@@ -19,10 +19,10 @@ from app.services.ggaia_new_game import (
     generate_checked,
     normalise_text,
 )
-from app.utils.ggaia_utils import (
-    duplicate_component_overuse,
-    validate_game_against_pool,
-)
+
+from app.retrieval.vector_search import fetch_candidate_chunks
+from app.generation.ggaia_prompt import game_scaler
+from app.utils.ggaia_utils import validate_game_against_pool, duplicate_component_overuse
 
 logger = logging.getLogger(__name__)
 
@@ -315,7 +315,7 @@ def generate_scaled_game(
     options: ScaleOptions,
     ml_models: dict,
     embed: Callable[[str], list[float]],
-    config: GenerationConfig,
+    config: GenerationConfig = GenerationConfig()
 ) -> ScaleResult:
     if not input.pool.components:
         raise MissingComponentData(
