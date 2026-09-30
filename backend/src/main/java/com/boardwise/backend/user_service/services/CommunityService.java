@@ -758,10 +758,10 @@ public class CommunityService {
         LocalDate date = req.date() != null ? req.date() : LocalDate.now();
         LocalTime time = req.time() != null ? req.time() : LocalTime.now().withSecond(0).withNano(0);
 
-        if(liveEventRepo.findByTitleAndDateEqual(date, title).isPresent()){
+        if(liveEventRepo.existsByTitleAndDate(title, date)){
             throw new IllegalArgumentException("There is already an event with the same name on the same day");
         }
-        
+
         if(req.date() != null || req.time() != null){
             if(LocalDateTime.of(date, time).isBefore(LocalDateTime.now().minusMinutes(5))){
                 throw new IllegalArgumentException("Start time has already passed");

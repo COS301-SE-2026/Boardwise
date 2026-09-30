@@ -11,5 +11,5 @@ import com.boardwise.backend.user_service.models.LiveEvent;
 
 public interface LiveEventRepository extends MongoRepository<LiveEvent, String> {
     List<LiveEvent> findByPrivacyAndDateGreaterThanEqual(EventPrivacy privacy, LocalDate date);
-    Optional<LiveEvent> findByTitleAndDateEqual(LocalDate date, String title);
+    boolean existsByTitleAndDate(String title, LocalDate date);
 }
