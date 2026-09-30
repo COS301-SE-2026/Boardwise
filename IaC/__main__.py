@@ -414,7 +414,7 @@ python_user_data = pulumi.Output.all(
                         .replace("__JWT_SECRET__", settings.JWT_SECRET)
                         .replace("__DB_NAME__", settings.MONGODB_DATABASE)
                         .replace("__PROD_DB_URL__", settings.MONGODB_URL)
-                        .replace("__REGISTRY_URL__", image_uri.split('/')[0])
+                        .replace("__REGISTRY_URL__", args["image_uri"].split('/')[0])
                         .replace("__REGION__", aws.get_region().region)
                         .replace("__EMBEDDING_DIMENSIONS__", str(settings.EMBEDDING_DIMENSIONS))
                         .replace("__PROD_SPRING_API_BASE__", f"http://{SPRING_PRIVATE_IP}:8080/api/sb/")

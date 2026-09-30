@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 @Document("LIVE_EVENT_MESSAGES")
 @CompoundIndex(def = "{'eventId': 1, 'createdAt': 1}")
 public record LiveEventMessage(
-    @Id @JsonSerialize(using = ToStringSerializer.class) ObjectId id,
+    @Id @JsonSerialize(using = ToStringSerializer.class) String id,
     String eventId,
     String senderId,
     String senderUsername,
