@@ -5,6 +5,7 @@
     <EventHeader 
       @search="searchQuery = $event"
       @create-event="showTypeModal = true"  
+      @create-event="showTypeModal = true"  
     />
 
     <LiveEventBanner :count="liveEvents.length" @view="scrollToLive" />
@@ -26,20 +27,30 @@
       />
     </MobileFilterDrawer>
 
-    <div class="d-md-none">
-      <BaseLoadingState v-if="isLoading" />
+    <div class="d-flex flex-column flex-md-row ga-6 mt-6 align-start">
+      <div class="d-none d-md-block">
+        <EventFilter :events="events" @filter="handleFilter" />
+      </div>
 
-      <template v-else>
-        <EventGrid 
-          :events="pagedEvents"
-          @select="openEvent"
+      <div class="flex-grow-1 w-100" style="min-width: 0;">
+        <BaseLoadingState v-if="isLoading" />
+
+        <BaseEmptyState
+          v-else-if="filteredEvents.length === 0"
+          title="No events found"
+          message="Try adjusting your filters, or be the first to create one."
         />
 
-        <template v-if="filteredEvents.length > 0">
-          <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
-            <span class="card-meta">Page {{ eventsPage }} of {{ eventsTotalPages }}</span>
-          </div>
-          
+        <template v-else>
+          <EventGrid 
+            :events="pagedEvents" 
+            @select="openEvent" 
+          />
+
+          <span class="card-meta d-block mt-6">
+            Page {{ eventsPage }} of {{ eventsTotalPages }}
+          </span> 
+
           <BasePagination
             v-if="eventsTotalPages > 1"
             class="mt-4"
@@ -47,48 +58,6 @@
             :total-pages="eventsTotalPages"
             @update:modelValue="goToPage"
           />
-        </template>
-      </template>
-      
-    </div>
-
-    <!-- Desktop -->
-    <div class="d-flex d-md-flex ga-6 mt-6 align-start">
-      <EventFilter 
-        :events="events" 
-        @filter="handleFilter" 
-      />
-    
-      <div class="flex-grow-1" style="min-width: 0;">
-        <BaseLoadingState v-if="isLoading" />
-
-        <template v-else>
-          <BaseEmptyState
-            v-if="filteredEvents.length === 0"
-            title="No events found"
-            message="Try adjusting your filters, or be the first to create one."
-          />
-
-          <template v-else>
-            <EventGrid 
-              :events="pagedEvents" 
-              @select="openEvent" 
-            />
-
-            <template v-if="filteredEvents.length > 0">
-              <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
-                <span class="card-meta">Page {{ eventsPage }} of {{ eventsTotalPages }}</span>
-              </div>
-
-              <BasePagination
-                v-if="eventsTotalPages > 1"
-                class="mt-4"
-                :model-value="eventsPage"
-                :total-pages="eventsTotalPages"
-                @update:modelValue="goToPage"
-              />
-            </template>
-          </template>
         </template>
       </div>
     </div>
@@ -134,7 +103,7 @@ import { useLiveEvents } from '~/composables/useLiveEvents'
 import LiveEventBanner from '~/components/features/live-events/LiveEventBanner.vue'
 import LiveEventCard from '~/components/features/live-events/LiveEventCard.vue'
 
-const { activeLiveEvents: liveEvents, fetchLiveEvents } = useLiveEvents()
+const { activeLiveEvents: liveEvents } = useLiveEvents()
 const scrollToLive = () => document.getElementById('live-now')?.scrollIntoView({ behavior: 'smooth' })
 
 const { show } = useSnackBar(3)

@@ -160,6 +160,8 @@ services:
         condition: service_started
       ai-gateway:
         condition: service_started
+      ai-gateway:
+        condition: service_started
       scrapers:
         condition: service_started
 

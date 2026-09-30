@@ -22,6 +22,22 @@
                     <v-icon size="18">mdi-tune</v-icon>
                     Host controls
                 </button>
+            <div class="d-flex align-center ga-3 flex-wrap">
+                <div class="live-table-header__status">
+                    <v-icon size="14" :color="isPaused ? 'var(--color-warning)' : 'var(--wildfire)'">mdi-circle</v-icon>
+                    <span class="card-subtitle" style="margin:0">{{ isPaused ? 'PAUSED' : 'LIVE' }}</span>
+                    <span class="live-table-header__timer">{{ elapsed }}</span>
+                </div>
+
+                <button
+                    v-if="isHost"
+                    type="button"
+                    class="btn btn--primary host-controls-trigger"
+                    @click="showHostControls = true"
+                >
+                    <v-icon size="18">mdi-tune</v-icon>
+                    Host controls
+                </button>
             </div>
         </div>
 
@@ -71,9 +87,11 @@ import TableChatFeed from './TableChatFeed.vue'
 import VenueInfoCard from './VenueInfoCard.vue'
 import ShareLinkCard from './ShareLinkCard.vue'
 import HostControlsModal from './HostControlsModal.vue'
+import HostControlsModal from './HostControlsModal.vue'
 
 import { useLiveEvents } from '~/composables/useLiveEvents'
 import { useElapsedTimer } from '~/composables/useElapsedTimer'
+import { useSnackBar } from '~/composables/useSnackbar'
 import { useSnackBar } from '~/composables/useSnackbar'
 
 const props = defineProps({ eventId: { type: String, required: true } })
