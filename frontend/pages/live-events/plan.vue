@@ -198,7 +198,7 @@
                                 @click="form.style = s.value"
                             >
                                 <span class="settings-choice-card__content">
-                                    <span class="settings-choice-card-title">{{ s.label }}</span>
+                                    <span class="settings-choice-card__title">{{ s.label }}</span>
                                     <span class="settings-choice-card__description">{{ s.desc }}</span>
                                 </span>
                             </button>
@@ -220,7 +220,7 @@
                             @click="form.privacy = 'public'"
                         >
                             <span class="settings-choice-card__content">
-                                <span class="settings-choice-card-title">Public</span>
+                                <span class="settings-choice-card__title">Public</span>
                                 <span class="settings-choice-card__description">Listed on Live Events Hub for nearby players.</span>
                             </span>
                         </button>
@@ -233,7 +233,7 @@
                         >
                             <span class="settings-choice-card__icon"><v-icon size="20">mdi-lock-outline</v-icon></span>
                             <span class="settings-choice-card__content">
-                                <span class="settings-choice-card-title">Private / Friends Only</span>
+                                <span class="settings-choice-card__title">Private / Friends Only</span>
                                 <span class="settings-choice-card__description">Accessible via direct share link only.</span>
                             </span>
                         </button>

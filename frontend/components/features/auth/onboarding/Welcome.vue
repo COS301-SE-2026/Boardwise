@@ -4,7 +4,6 @@
 
         <div class="onboarding-welcome__avatar">
             <BaseAvatar src="/images/Boarley.svg" alt="Boarley" size="xl" />
-            <span class="onboarding-welcome__role">Copilot</span>
         </div>
 
         <h1 id="onboardoing-welcome-title" class="onboarding-heading" tabindex="-1">

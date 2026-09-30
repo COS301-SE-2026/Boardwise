@@ -65,7 +65,7 @@ const selectedGenreIds = ref([])
 const genreOptions = ref([])
 const seenGames = ref({})
 
-const genres = ["Economic"," Strategy","Abstract Strategy","Card Game","Science Fiction","Cooperative", "Party Game", "Fantasy", "Wargame", "Dice"];
+const genres = ["Economic","Strategy","Abstract Strategy","Card Game","Science Fiction","Cooperative", "Party Game", "Fantasy", "Wargame", "Dice"];
 
 const {
     games,
