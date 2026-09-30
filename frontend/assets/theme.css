@@ -5043,6 +5043,10 @@ button:disabled,
   border: 3px solid var(--color-border-strong);
 }
 
+.profile-avatar-button--static {
+  cursor: default;
+}
+
 .profile-avatar-edit {
   position: absolute;
   right: -2px;

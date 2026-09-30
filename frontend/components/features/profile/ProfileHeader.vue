@@ -6,11 +6,13 @@
       <!-- Identity -->
       <div class="profile-identity">
 
-        <button 
+        <component 
+          :is="editable ? 'button': 'div'"
           class="profile-avatar-button"
-          type="button"
-          aria-label="Change profile picture"
-          @click="showPfpModal = true"
+          :class="{ 'profile-avatar-button--static': !editable }"
+          :type="editable ? 'button' : undefined"
+          :aria-label="editable ? 'Change profile picture' : undefined"
+          @click="editable && (showPfpModal = true)"
         >
           <BaseAvatar 
             :src="user.profilePicture ?? '/images/avatar.jpg'"
@@ -22,7 +24,7 @@
           <span class="profile-avatar-edit">
             <v-icon size="15">mdi-camera</v-icon>
           </span>
-        </button>
+        </component>
           
         <div class="profile-details">
 
@@ -79,17 +81,19 @@
 
     </div>
 
-    <EditProfileModal
-      v-model="showEdit"
-      :user="user"
-      @save="$emit('saved', $event)"
-    />
+    <template v-if="editable">
+      <EditProfileModal
+        v-model="showEdit"
+        :user="user"
+        @save="$emit('saved', $event)"
+      />
 
-    <ChangeProfilePictureModal
-      v-model="showPfpModal"
-      :user="user"
-      @save="$emit('pfp-change', $event)"
-    />
+      <ChangeProfilePictureModal
+        v-model="showPfpModal"
+        :user="user"
+        @save="$emit('pfp-change', $event)"
+      />
+    </template>
 
   </BaseCard>
 </template>
@@ -106,7 +110,8 @@ import ChangeProfilePictureModal from './ChangeProfilePictureModal.vue'
 import EditProfileModal from './EditProfileModal.vue'
 
 defineProps({
-  user: { type: Object, required: true }
+  user: { type: Object, required: true },
+  editable: { type: Boolean, defaul: true }
 })
 
 defineEmits(['saved', 'pfp-change'])
