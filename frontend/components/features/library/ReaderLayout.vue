@@ -25,6 +25,7 @@
         @toggle-history="showHistory = !showHistory"
         @undo="handleUndo"
         @redo="handleRedo"
+        @ask="showRagPanel = true"
       />
 
       <ReaderProgress :current-page="activeChunkIndex" :total-pages="localChunks.length" />

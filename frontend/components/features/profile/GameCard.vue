@@ -1,7 +1,7 @@
 <template>
   <BaseCard
     clickable
-    class="games-card"
+    class="games-card game-card"
     @click="handleBoardgameRedirect"
     >
 
@@ -19,6 +19,7 @@
       </p>
 
       <BaseButton
+        v-if="removable"
         variant="text"
         size="small"
         class="game-card__remove"
@@ -50,7 +51,8 @@ const props = defineProps({
   id: { type: String, required: true },
   title: { type: String, default: '' },
   category: { type: String, default: '' },
-  image: { type: String, default: '' }
+  image: { type: String, default: '' },
+  removable: { type: Boolean, default: true }
 })
 
 const router = useRouter()
