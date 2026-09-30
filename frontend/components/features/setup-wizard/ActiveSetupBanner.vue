@@ -42,10 +42,5 @@ const props = defineProps<{ game: ActiveSetup }>()
 defineEmits<{ (e: 'resume'): void; (e: 'restart'): void}>()
 
 const coverImage = computed(() => props.game.coverImage || '/images/BoarleySide.svg')
-const progressPercent = computed(() => {
-const { step, totalSteps } = props.game
-    if (!totalSteps) return 0
-    return Math.min(100, Math.max(0, Math.round((step / totalSteps) * 100)))
-})
-
+const progressPercent = computed(() => Math.round((props.game.step / props.game.totalSteps) * 100))
 </script>

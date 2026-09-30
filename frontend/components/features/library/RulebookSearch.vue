@@ -28,7 +28,6 @@
 import { ref } from 'vue'
 
 import BaseSearch from '~/components/ui/BaseSearch.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
 
 const search = ref('')
 defineEmits(['search', 'upload', 'architect'])

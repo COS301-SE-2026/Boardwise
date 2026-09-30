@@ -1,11 +1,13 @@
 package com.boardwise.backend.user_service.controllers;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,16 +19,21 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.user_service.dtos.DeRsvpDTO;
 import com.boardwise.backend.user_service.dtos.EventInfoDTO;
 import com.boardwise.backend.user_service.dtos.EventInviteDTO;
 import com.boardwise.backend.user_service.dtos.EventUpdateDTO;
+import com.boardwise.backend.user_service.dtos.LiveEventStatusRequestDTO;
+import com.boardwise.backend.user_service.dtos.LiveMessageRequestDTO;
+import com.boardwise.backend.user_service.dtos.request.LiveEventRequestDTO;
 import com.boardwise.backend.user_service.services.CommunityService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
@@ -234,5 +241,70 @@ public class CommunityController {
         Map<String, Object> res = service.getUserInvitations(token);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
+
+    @PostMapping("/live-event")
+    public ResponseEntity<?> createLiveEvent(HttpServletRequest req, @RequestBody LiveEventRequestDTO eventInfo){
+        String token = ProfileController.extractToken(req);
+        try {
+            return new ResponseEntity<>(service.createLiveEvent(token, eventInfo), HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("message", e.toString()));
+        }
+    }
     
+    @GetMapping("/live-event/{eventId}")
+    public ResponseEntity<?> getLiveEvent(@PathVariable String eventId){
+        try{
+            return ResponseEntity.ok(service.getLiveEvent(eventId));
+        } catch(IllegalArgumentException | NoSuchElementException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Live event not found"));
+        }
+    }
+
+    @DeleteMapping("/live-event/{eventId}")
+    public ResponseEntity<?> deleteLiveEvent(HttpServletRequest req, @PathVariable String eventId){
+        String token = ProfileController.extractToken(req);
+        try{
+            return ResponseEntity.ok(service.deleteLiveEvent(token, eventId));
+        } catch(ForbiddenException e){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("message", e.getMessage()));
+        } catch(IllegalArgumentException | NoSuchElementException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Live event not found"));
+        }
+    }
+
+    @PostMapping("/live-event/{eventId}/join")
+    public ResponseEntity<?> joinLiveEvent(HttpServletRequest req, @PathVariable String eventId){
+        String token = ProfileController.extractToken(req);
+        return ResponseEntity.ok(service.joinLiveEvent(token, eventId));
+    }
+    
+    @PostMapping("/live-event/{eventId}/messages")
+    public ResponseEntity<?> postLiveEventMessage(HttpServletRequest req, @PathVariable String eventId, @RequestBody LiveMessageRequestDTO body){
+        String token = ProfileController.extractToken(req);
+        return ResponseEntity.ok(service.postLiveEventMessage(token, eventId, body.content()));
+    }
+
+    @GetMapping("/live-event/{eventId}/messages")
+    public ResponseEntity<?> getLiveEventMessages(HttpServletRequest req,@PathVariable String eventId, @RequestParam(required = false) Instant after){
+        String token = ProfileController.extractToken(req);
+        return ResponseEntity.ok(service.getLiveEventMessages(token, eventId, after));
+    }
+
+    @PutMapping("/live-event/{eventId}/status")
+    public ResponseEntity<?> updateAttendeeStatus(HttpServletRequest req, @PathVariable String eventId,
+                                                @RequestBody LiveEventStatusRequestDTO body){
+        String token = ProfileController.extractToken(req);
+        return ResponseEntity.ok(service.updateAttendeeStatus(token, eventId, body.status()));
+    }
+    
+    @GetMapping("/live-events")
+    public ResponseEntity<?> getLiveEvents(){
+        return ResponseEntity.ok(service.getPublicLiveEvents());
+    }
 }
+

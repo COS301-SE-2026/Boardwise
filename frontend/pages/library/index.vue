@@ -102,6 +102,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useDebounceFn } from '@vueuse/core'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
@@ -110,6 +111,7 @@ import BasePagination from '~/components/ui/BasePagination.vue'
 import MobileFilterDrawer from '~/components/ui/MobileFilterDrawer.vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
 
+import LibraryHeader from '~/components/features/library/LibraryHeader.vue'
 import RulebookFilterSidebar from '~/components/features/library/RulebookFilterSidebar.vue'
 import RulebookGrid from '~/components/features/library/RulebookGrid.vue'
 import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue'
@@ -122,7 +124,7 @@ import RulebookSearch from '~/components/features/library/RulebookSearch.vue'
 import { useLibrary } from '~/composables/useLibrary'
 import { useVaultUpload } from '~/composables/useVaultUpload';
 import { useAuth } from '~/composables/useAuth';
-import { useRulebookFilters } from '~/composables/useRulebookFilters'
+
 import { useSnackBar } from '~/composables/useSnackbar';
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
@@ -138,8 +140,8 @@ const router = useRouter();
 const {rulebooks, isLoading, getAllRulebooks, getRulebookById, currentRulebook, featuredRulebooks, loadMore, hasMore, fetchFeaturedRulebooks } = useLibrary()
 const {triggerUpload, isUploading, error} = useVaultUpload();
 const { isAuthenticated } = useAuth();
-const { filters } = useRulebookFilters();
 
+const searchQuery = ref('')
 const activeFilterState = ref({})
 const showDetail = ref(false)
 const showUpload = ref(false)
@@ -159,9 +161,13 @@ const openGameArchitect = () => {
     query: { from: 'library' }
   })
 }
+   const initialLoaded = ref(false)
 
 onMounted(() => { // Does stuff when component loads
   fetchFeaturedRulebooks();
+  getAllRulebooks({}, true);
+  initialLoaded.value = true
+
 })
 
 const activeCount = computed(() => Object.entries(activeFilterState.value).filter(([k, v]) => k !== 'languages' && v != null && v !== '' && (!Array.isArray(v) || v.length)).length)
@@ -182,6 +188,16 @@ const handleUploadRequest = () => {
   showUpload.value = true;
 }
 
+const delaySearch = useDebounceFn((query) => {
+  rulebooksPage.value = 1
+  getAllRulebooks({...activeFilterState.value, search:query || null}, true);
+}, 400);
+
+watch(searchQuery, (query) => {
+  delaySearch(query);
+});
+
+
 const openRulebook = async (rulebook) => {
   selectedRulebook.value = null;
   showDetail.value = true;
@@ -191,6 +207,19 @@ const openRulebook = async (rulebook) => {
 
 const handleSearch = (query) => {
   searchQuery.value = query
+}
+
+const handleFilter = (filters) => {
+  activeFilterState.value = {
+    genre: filters.genre,
+    languages: "English",
+    playerCount: filters.playerCount,
+    duration: filters.duration,
+    minAge: filters.minAge,
+  }
+    rulebooksPage.value = 1
+    getAllRulebooks({...activeFilterState.value, search: searchQuery.value || null}, true);
+    
 }
 
 const handleUploadRulebook = async (newRulebook) => {
@@ -229,19 +258,4 @@ const goToRulebooksPage = async (page) => {
     await loadMore()
   }
 }
-
-watch(
-  filters,
-  (newFilters) => {
-    const currentGenre = newFilters.genre?.[0]
-    activeFilterState.value = {
-      genre: currentGenre === 'all' ? null : currentGenre,
-      playerCount: newFilters.playerCount,
-      duration: newFilters.duration,
-      minAge: newFilters.minAge
-    }
-    rulebooksPage.value = 1;
-    getAllRulebooks({...activeFilterState.value, search: searchQuery.value || null, limit: CARD_PAGE_SIZE}, true);
-  },{deep: true, immediate: true}
-)
 </script>

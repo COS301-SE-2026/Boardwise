@@ -6,7 +6,7 @@
         :key="rulebook.id"
         :rulebook="rulebook"
         size="lg"
-        @select="$emit('select', $event)"
+        @click="$emit('select', $event)"
       />
     </BaseGrid>
 

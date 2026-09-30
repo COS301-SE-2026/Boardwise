@@ -133,6 +133,7 @@ definePageMeta({
 })
 
 import { ref, computed, onMounted, watch } from 'vue'
+import { useDebounceFn } from '@vueuse/core'
 
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
@@ -157,32 +158,32 @@ const { getAllCommunities, searchForCommunity, loading } = useCommunity()
 const { show } = useSnackBar()
 
 const activeTab = ref('Friends')
+const searchQuery = ref('')
 const showCreateCommunity = ref(false)
 const communities = ref<Array<GroupInfo>>([])
 
 const selectedTypes = ref<string[]>([])
 const selectedCategories = ref<string[]>([])
 
-const fetchSearchData = async (query: string) =>{
-  const res = (query && query.trim()) ? await searchForCommunity(query.trim()) : await getAllCommunities();
-
-  communities.value = Array.isArray(res) ? res : [];
-  return [];
-}
-
-const {search:searchQuery, refetch: reloadCommunities} = useDebouncedAutocomplete(fetchSearchData, {debounceMs: 400, fetchOnMount: false});
-
 onMounted(async () => {
   communities.value = await getAllCommunities()
   console.log(communities.value)
 })
-
 const showFilters = ref(false)
+const delaySearch = useDebounceFn( async (query) => {
+  const res = await searchForCommunity(query)
+  communities.value = Array.isArray(res) ? res : []
+}, 400)
+
+watch(searchQuery, (query) => {
+  delaySearch(query) 
+})
 
 const handleCreate = (newCommunity: GroupInfo) => {
   communities.value.push(newCommunity)
   show("Your community is ready. Welcome to the table!")
 }
+
 
 const handleFilter = ({
   types,

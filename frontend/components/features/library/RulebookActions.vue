@@ -8,7 +8,7 @@
       Browse Marketplace
     </BaseButton>
 
-    <BaseButton block variant="secondary" prepend-icon="mdi-wizard-hat" :disabled="!rulebook.gameId" :to="`/setup-wizard/${rulebook.gameId}`">
+    <BaseButton block variant="secondary" prepend-icon="mdi-wizard-hat" :disabled="!rulebook.id" :to="`/setup-wizard/${rulebook.id}`">
       Setup Wizard
     </BaseButton>
   </div>
