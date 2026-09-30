@@ -22,7 +22,6 @@ import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import GameArchitectJobProgress from
   '~/components/features/game-architect/GameArchitectJobProgress.vue'
-import BaseBackButton from '~/components/ui/BaseBackButton.vue'
 
 definePageMeta({
   middleware: 'auth'
