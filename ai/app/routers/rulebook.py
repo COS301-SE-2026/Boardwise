@@ -147,6 +147,7 @@ async def upload_rulebook(
         ) from e
 
     embedding_model = request.app.state.ml_models["embedding_model"]
+    local_model = request.app.state.ml_models["local_llm"]
 
     safe_filename = file.filename or "untitled_rulebook.pdf"
     background_tasks.add_task(
@@ -156,6 +157,7 @@ async def upload_rulebook(
         rulebook_id=rulebook_id,
         job_id=job_id,
         embedding_model=embedding_model,
+        local_model=local_model,
     )
 
     logger.info("Rulebook upload accepted.")

@@ -5,11 +5,11 @@ from typing import Any
 
 from bson import ObjectId
 from bson.errors import InvalidId
-
 from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
 
 from app.config import settings
+from app.utils.ggaia_utils import slugify
 
 logger = logging.getLogger(__name__)
 
@@ -450,14 +450,57 @@ def replace_rulebook_text(rulebook_id: str, chunks: list[dict]) -> int:
     return len(documents)
 
 
-# Setup Wizard
-def setup_wizard_indexes() -> None:
+# Generative Game AI Architect
+def store_extracted_components(rulebook_id: str, components: list[dict]) -> int:
     """
-    Creates required indexes on the SETUP_WIZARD COLLECTION.
-    Call once at startup.
+    Stores all extracted components for a rulebook as a single document
+    Returns the number of components written
+    """
+    rulebook_oid = _coerce_object_id(rulebook_id)
+    now = datetime.now(timezone.utc)
+
+    stored = []
+    for component in components:
+        component_id = component.get("componentId")
+        if component_id is None:
+            logger.warning(
+                "Skipping component missing componentId for rulebook %s", rulebook_id
+            )
+            continue
+        stored.append(
+            {
+                "componentId": component_id,
+                "type": component.get("type", "other"),
+                "name": component.get("name", ""),
+                "quantity": component.get("quantity", 0),
+                "attributes": component.get("attributes") or {},
+                "needsReview": component.get("needsReview", False),
+                "reviewReason": component.get("reviewReason", ""),
+            }
+        )
+    db = get_db()
+    db["GAME_COMPONENT"].replace_one(
+        {"_id": rulebook_oid},
+        {"_id": rulebook_oid, "components": stored, "createdAt": now, "updatedAt": now},
+        upsert=True,
+    )
+
+    return len(stored)
+
+
+def get_components_for_rulebook(rulebook_id: str) -> list[dict]:
+    """
+    Return the extracted component list for a rulebook
+    Return [] otherwise
     """
     db = get_db()
-    db["SETUP_WIZARD"].create_index("rulebookId", unique=True)
+    doc = db["GAME_COMPONENT"].find_one({"_id": _coerce_object_id(rulebook_id)})
+    if not doc:
+        return []
+    return doc.get("components", [])
+
+
+# Setup Wizard
 
 
 def get_setup_wizard_by_rulebookId(rulebook_id: str) -> dict | None:
@@ -466,13 +509,13 @@ def get_setup_wizard_by_rulebookId(rulebook_id: str) -> dict | None:
     """
 
     db = get_db()
-    doc = db["SETUP_WIZARD"].find_one({"rulebookId": ObjectId(rulebook_id)})
+    doc = db["SETUP_WIZARD"].findOne({"rulebookId": ObjectId(rulebook_id)})
 
     if not doc:
         return None
 
     doc["id"] = str(doc.pop("_id"))
-    doc["rulebookId"] = str(doc["rulebookId"])
+    doc["rulebookId"] = str(doc["rulebook"])
 
     return doc
 
@@ -491,7 +534,7 @@ def create_setup_wizard(rulebook_id: str, session=None) -> str:
     rulebook = db["RULEBOOK"].find_one({"_id": rulebook_object_id}, session=session)
     if not rulebook:
         logger.warning(
-            "Setup wizard creation rejected: rulebook '%s' not found.", sanitise_for_log(rulebook_id)
+            "Setup wizard creation rejected: rulebook '%s' not found.", rulebook_id
         )
         raise ValueError(f"Rulebook '{rulebook_id}' not found.")
 
@@ -525,10 +568,10 @@ def create_setup_wizard(rulebook_id: str, session=None) -> str:
     wizard_id = str(result.inserted_id)
 
     db["RULEBOOK"].update_one(
-            { "_id": rulebook_object_id },
-            {"$set": {"setupWizardId": wizard_id}},
-            session = session
-        )
+        {"_id": rulebook_object_id},
+        {"$set": {"setWizardId": wizard_id}},
+        session=session,
+    )
     return wizard_id
 
 
@@ -544,10 +587,13 @@ def get_or_create_setup_wizard(rulebook_id: str) -> dict:
 
     try:
         with client.start_session() as session:
-            with session.start_transaction():
-                create_setup_wizard(rulebook_id, session=session)
-    except DuplicateKeyError: 
-            logger.info("Lost setup wizard create race for rule '%s';  re-fetching.", sanitise_for_log(rulebook_id))
+            session.with_transaction(
+                lambda s: create_setup_wizard(rulebook_id, session=s)
+            )
+    except DuplicateKeyError:
+        logger.info(
+            "Lost setup wizard create race for rule '%s';  re-fetching.", rulebook_id
+        )
 
     doc = get_setup_wizard_by_rulebookId(rulebook_id)
     if not doc:
@@ -556,13 +602,21 @@ def get_or_create_setup_wizard(rulebook_id: str) -> dict:
         )
     return doc
 
+
 def update_setup_wizard_job(
-        wizard_id: str, status:str, progress: int | None = None,
-        error: str | None = None, session = None,
-    ) -> None:
+    wizard_id: str,
+    status: str,
+    progress: int | None = None,
+    error: str | None = None,
+    session=None,
+) -> None:
     db = get_db()
     now = datetime.now(timezone.utc)
-    set_fields: dict[str, Any] = {"job.status": status, "updatedAt": now, "job.error": error }
+    set_fields: dict[str, Any] = {
+        "job.status": status,
+        "updatedAt": now,
+        "job.error": error,
+    }
     if progress is not None:
         set_fields["job.progress"] = progress
 
@@ -570,29 +624,36 @@ def update_setup_wizard_job(
         set_fields["job.generatedAt"] = now
 
     result = db["SETUP_WIZARD"].update_one(
-        {"_id": ObjectId(wizard_id)}, {"$set": set_fields}, session = session
+        {"_id": ObjectId(wizard_id)}, {"$set": set_fields}, session=session
     )
 
     if result.matched_count != 1:
-        logger.warning("Failed to upate setup wizard %s: no document matched.", sanitise_for_log( wizard_id))
+        logger.warning(
+            "Failed to upate setup wizard %s: no document matched.",
+            sanitise_for_log(wizard_id),
+        )
         raise ValueError(f"Setup wizard '{wizard_id}' not found.")
+
 
 def finalise_setup_wizard(wizard_id: str, output: dict) -> None:
     db = get_db()
     now = datetime.now(timezone.utc)
     db["SETUP_WIZARD"].update_one(
         {"_id": ObjectId(wizard_id)},
-        {"$set": {
-            "components": output["components"],
-            "phases": output["phases"],
-            "summary":output["summary"],
-            "job.status": "ready",
-            "job.progress": 100,
-            "job.generatedAt": now,
-            "job.error": None,
-            "updatedAt": now
-        }}
+        {
+            "$set": {
+                "components": output["components"],
+                "phases": output["phases"],
+                "summary": output["summary"],
+                "job.status": "ready",
+                "job.progress": 100,
+                "job.generatedAt": now,
+                "job.error": None,
+                "updatedAt": now,
+            }
+        },
     )
+
 
 def get_setup_wizard(wizard_id: str) -> dict | None:
     """
@@ -613,10 +674,12 @@ def get_setup_wizard(wizard_id: str) -> dict | None:
         if age > timedelta(minutes=STALE_JOB_THRESHOLD_MINUTES):
             logger.warning(
                 "Setup wizard job %s is stale (age %s),  marking as failed.",
-                sanitise_for_log(wizard_id), age,
+                sanitise_for_log(wizard_id),
+                age,
             )
             update_setup_wizard_job(
-                wizard_id, "failed",
+                wizard_id,
+                "failed",
                 error=f"Timed out after exceeding the {STALE_JOB_THRESHOLD_MINUTES} minute threshold. Possible crash mid-pipeline",
             )
             doc = db["SETUP_WIZARD"].find_one({"_id": wizard_oid})
@@ -627,3 +690,107 @@ def get_setup_wizard(wizard_id: str) -> dict | None:
     doc["rulebookId"] = str(doc["rulebookId"])
     return doc
 
+
+# Mechanic Collection
+def upsert_mechanic(mechanic: dict) -> None:
+    """Upserts a single MECHANIC document by mechanicId (used as _id)"""
+    db = get_db()
+    db["MECHANIC"].replace_one(
+        {"_id": mechanic["mechanicId"]},
+        {
+            "_id": mechanic["mechanicId"],
+            "name": mechanic["name"],
+            "category": mechanic.get("category", ""),
+            "description": mechanic["description"],
+            "requiresComponentTypes": mechanic.get("requiresComponentTypes", []),
+        },
+        upsert=True,
+    )
+
+
+def upsert_mechanics(mechanics: list[dict]) -> int:
+    """Upserts multiple MECHANIC documents. Returns count written"""
+    if not mechanics:
+        return 0
+    for mechanic in mechanics:
+        upsert_mechanic(mechanic)
+    logger.info("Upserted %d mechanics.", len(mechanics))
+    return len(mechanics)
+
+
+def get_all_mechanics() -> list[dict]:
+    """Returns every MECHANIC document."""
+    db = get_db()
+    return list(db["MECHANIC"].find({}))
+
+
+def count_mechanics() -> int:
+    """Returns the number of MECHANIC documents."""
+    db = get_db()
+    return db["MECHANIC"].count_documents({})
+
+
+def get_boardgames_by_ids(ids: list[ObjectId]) -> list[dict]:
+    db = get_db()
+    return list(
+        db["BOARD_GAME"].find({"_id": {"$in": ids}}, {"title": 1, "mechanics": 1})
+    )
+
+
+def get_mechanics_by_bgg_ids(bgg_ids) -> list[dict]:
+    db = get_db()
+    return list(db["MECHANIC"].find({"bggId": {"$in": list(bgg_ids)}}))
+
+
+def get_game_slug_for_rulebook(rulebook_id: str, max_len: int = 16) -> str:
+    db = get_db()
+    rulebook = db["RULEBOOK"].find_one(
+        {"_id": _coerce_object_id(rulebook_id)}, {"gameId": 1}
+    )
+    if not rulebook:
+        raise ValueError(f"Rulebook '{rulebook_id}' not found.")
+
+    game_id = rulebook.get("gameId")
+    if game_id is None:
+        raise ValueError(f"Rulebook '{rulebook_id}' has no gameId")
+
+    game = db["BOARD_GAME"].find_one({"_id": game_id}, {"title": 1})
+    if not game or not game.get("title"):
+        raise ValueError(
+            f"BOARD_GAME '{game_id}' for rulebook '{rulebook_id}' has no title"
+        )
+    slug = slugify(game["title"], max_len)
+    if not slug:
+        # Non-ASCII title slugifies to nothing so the fallback is an id-derived prefix such that different games still get distinct slugs
+        slug = f"g{str(game_id)[-6:]}"
+    return slug
+
+
+def get_latest_rulebook_per_game(game_ids: list[ObjectId]) -> dict[str, str]:
+    if not game_ids:
+        return {}
+
+    db = get_db()
+    cursor = (
+        db["RULEBOOK"]
+        .find(
+            {"gameId": {"$in": list(game_ids)}, "status": "Ready"},
+            {"gameId": 1, "uploadedAt": 1},
+        )
+        .sort("uploadedAt", -1)
+    )
+
+    latest: dict[str, str] = {}
+    for doc in cursor:
+        gid = str(doc["gameId"])
+        if gid not in latest:
+            latest[gid] = str(doc["_id"])
+    return latest
+
+
+def setup_indexes() -> None:
+    db = get_db()
+
+    db["MECHANIC"].create_index("bggId")
+    db["RULEBOOK"].create_index([("gameId", 1), ("status", 1), ("uploadedAt", -1)])
+    db["SETUP_WIZARD"].create_index("rulebookId", unique=True)

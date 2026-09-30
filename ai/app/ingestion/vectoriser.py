@@ -10,6 +10,29 @@ from app.utils.logging_utils import sanitise_log_input
 logger = logging.getLogger(__name__)
 
 
+def embed_texts(
+    texts: list[str], model: SentenceTransformer, prefix: str
+) -> list[list[float]]:
+    """
+    Embeds text with given Nomic prefix, truncates to EMBEDDING_DIMENSIONS, and re-normalises.
+    Returns a list of embedding vectors.
+    """
+    # Nomic v1.5 requires the 'search_document: ' prefix for documents stored in a DB
+    prefixed = [f"{prefix}{text}" for text in texts]
+    embeddings = np.asarray(
+        model.encode(prefixed, normalize_embeddings=True, convert_to_numpy=True)
+    )
+
+    truncated = embeddings[:, : settings.EMBEDDING_DIMENSIONS]
+    # Re-normalize after truncation to maintain cosine/hamming similarity accuracy
+    norms = np.linalg.norm(truncated, axis=1, keepdims=True)
+    # Prevent division by zero
+    norms = np.maximum(norms, 1e-10)
+    truncated = truncated / norms
+
+    return truncated.tolist()
+
+
 def vectorise_chunks(
     chunks: list[dict], model: SentenceTransformer
 ) -> tuple[bool, list[dict], str]:
@@ -30,25 +53,13 @@ def vectorise_chunks(
                 combined_text = f"Section: {meta_to_embed}\n{chunk['content']}"
             else:
                 combined_text = chunk["content"]
+            texts.append(combined_text)
 
-            # Nomic v1.5 requires the 'search_document: ' prefix for documents stored in a DB
-            texts.append(f"search_document: {combined_text}")
-
-        embeddings = np.asarray(
-            model.encode(texts, normalize_embeddings=True, convert_to_numpy=True)
-        )
-
-        truncated_embeddings = embeddings[:, : settings.EMBEDDING_DIMENSIONS]
-
-        # Re-normalize after truncation to maintain cosine/hamming similarity accuracy
-        norms = np.linalg.norm(truncated_embeddings, axis=1, keepdims=True)
-        # Prevent division by zero
-        norms = np.maximum(norms, 1e-10)
-        truncated_embeddings = truncated_embeddings / norms
+        embeddings = embed_texts(texts, model, prefix="search_document")
 
         for i, chunk in enumerate(chunks):
             # Convert the numpy array to standard Python list of floats for BSON serialization
-            chunk["embedding"] = truncated_embeddings[i].tolist()
+            chunk["embedding"] = embeddings[i]
 
         logger.info("Successfully vectorised %d chunks.", len(chunks))
         return (True, chunks, "")
@@ -94,7 +105,7 @@ def background_vectorise_and_update(
             chunk_type=existing.get("type", "text"),
             needs_review=existing.get("needsReview", False),
             confidence=existing.get("confidence", 1.0),
-            associated_image_urls=existing.get("associatedImageUrls", [])
+            associated_image_urls=existing.get("associatedImageUrls", []),
         )
 
         logger.info(
