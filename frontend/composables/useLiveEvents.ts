@@ -110,6 +110,16 @@ const _useLiveEvents = () => {
             const res = await LiveEventsService.getLiveEvent(id)
             event.value = res.details
             roster.value = res.details.liveAttendees?.attendees ?? []
+
+            if (isJoined.value) {
+                try {
+                    const history = await LiveEventsService.getMessages(id)
+                    messages.value = history
+                } catch (e) {
+                    console.warn('Could not preload chat history', e)
+                }
+            }
+
             startSocket()
         } catch (e: any) {
             error.value = e?.data?.message ?? 'Could not load this event'

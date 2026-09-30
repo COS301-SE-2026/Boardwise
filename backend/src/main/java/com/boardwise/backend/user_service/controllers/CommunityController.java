@@ -289,7 +289,7 @@ public class CommunityController {
         return ResponseEntity.ok(service.postLiveEventMessage(token, eventId, body.content()));
     }
 
-    @GetMapping("/live-event/eventId/messages")
+    @GetMapping("/live-event/{eventId}/messages")
     public ResponseEntity<?> getLiveEventMessages(HttpServletRequest req,@PathVariable String eventId, @RequestParam(required = false) Instant after){
         String token = ProfileController.extractToken(req);
         return ResponseEntity.ok(service.getLiveEventMessages(token, eventId, after));

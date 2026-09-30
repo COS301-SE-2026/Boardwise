@@ -96,6 +96,7 @@ const userIdFromToken = (token) => {
     }
 }
 
+
 onMounted(async () => {
     const token = localStorage.getItem('access_token') ?? ''
     try {
