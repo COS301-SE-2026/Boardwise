@@ -2,100 +2,111 @@
   <PageContainer>
     <Navbar />
 
-    <div class="d-flex flex-column ga-5 mb-6">
-      <SectionTitle title="Library" subtitle="Browse community rulebooks" />
-
-      <RulebookSearch
-        @upload="handleUploadRequest"
-        @search="handleSearch"
-        @architect="openGameArchitect"
-      />
-    </div>
-
-    <BaseCard class="mb-6">
-      <div class="d-flex align-center ga-4 flex-wrap">
-        <V-icon size="32" color="primary">mdi-wizard-hat</V-icon>
-        <div class="flex-grow-1">
-          <h2 class="card-title">Setup Wizard</h2>
-          <p class="card-meta">Step-and-step setup grounded in the official rulebook.</p>
-        </div>
-
-        <BaseButton to="/setup-wizard">Open Wizard</BaseButton>
-      </div>
-    </BaseCard>
+    <LibraryHeader 
+      @upload="handleUploadRequest"
+      @search="handleSearch"
+    />
 
     <RulebookCarousel :rulebooks="featuredRulebooks" @select="openRulebook" />
-    <RecommendedBooks v-if="recommended.length" :rulebooks="recommended" @select ="openRulebook"/>
 
-    <SectionTitle title="All Rulebooks" class="mt-8" />
+    <BaseLoadingState v-if="isLoading" message="Fetching your library..." />
 
+    <RecommendedBooks v-else :rulebooks="recommended" @select ="openRulebook"/>
+
+    <SectionTitle
+        title="All Rulebooks"
+        class="mt-8"
+    />
+
+    <!-- Mobile filter -->
     <MobileFilterDrawer id="library-mobile-filters">
-      <RulebookFilterSidebar :key="filterKey" @filter="handleFilter" />
+      <RulebookFilterSidebar @filter="handleFilter" />
     </MobileFilterDrawer>
 
-    <div class="d-flex ga-6 mt-6 align-start">
-      <!-- Desktop Filter -->
-      <div class="d-none d-md-block">
-        <RulebookFilterSidebar :key="filterKey" @filter="handleFilter" />
-      </div>
+    <!-- Desktop -->
+    <div class="d-none d-md-flex ga-6 align-start">
 
+      <!-- Filters -->
+      <RulebookFilterSidebar
+        @filter="handleFilter"
+      />
+      
       <div class="flex-grow-1" style="min-width: 0;">
-        <BaseLoadingState
-          v-if="!initialLoaded || (isLoading && rulebooks.length === 0)"
-          message="Loading rulebooks..."
-        />
-
-        <template v-else-if="rulebooks.length === 0">
-          <BaseEmptyState 
-            title="No rulebooks match"
-            message="Sorry, we don't have any of the games you're looking for. Try other filters, or have a look at these instead."
-          >
-            <template #actions>
-              <BaseButton variant="secondary" @click="clearFilters">Clear filters</BaseButton>
-            </template>
-          </BaseEmptyState>
-
-          <RulebookGrid :rulebooks="featuredRulebooks.slice(0,6)" @select="openRulebook" />
-        </template>
-
+        <BaseLoadingState v-if="isLoading" message="Loading rulebooks... " />
         <template v-else>
-          <div :class="{ 'is-refreshing' : isLoading }">
-            <RulebookGrid :rulebooks="pagedRulebooks" @select="openRulebook" />
-          </div>
+          <RulebookGrid
+            :rulebooks="pagedRulebooks"
+            @select="openRulebook"
+          />
 
+          <template v-if="rulebooks.length > 0">
+            <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
+              <span class="card-meta">
+                Showing {{ rulebooksRangeStart }}-{{ rulebooksRangeEnd }}
+                of {{ hasMore ? `${rulebooks.length}+` : rulebooks.length }} rulebooks
+              </span>
+            </div>
+
+            <BasePagination 
+              v-if="rulebooksTotalPages > 1"
+              class="mt-4"
+              :model-value="rulebooksPage"
+              :total-pages="rulebooksTotalPages"
+              @update:modelValue="goToRulebooksPage"
+            />
+          </template>
+        </template>
+      </div>
+    </div>
+
+  <div class="d-md-none">
+    <BaseLoadingState v-if="isLoading" message="Fetching your library... " />
+
+    <template v-else>
+      <RulebookGrid
+        :rulebooks="pagedRulebooks"
+        @select="openRulebook"
+      />
+
+      <template v-if="rulebooks.length > 0">
+        <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
           <span class="card-meta">
             Showing {{ rulebooksRangeStart }}-{{ rulebooksRangeEnd }}
             of {{ hasMore ? `${rulebooks.length}+` : rulebooks.length }} rulebooks
           </span>
+        </div>
 
-          <BasePagination 
-            v-if="rulebooksTotalPages > 1"
-            class="mt-4"
-            :model-value="rulebooksPage"
-            :total-pages="rulebooksTotalPages"
-            @update:modelValue="goToRulebooksPage"
-          />
-        </template>
-      </div>
-    </div>
+        <BasePagination 
+          v-if="rulebooksTotalPages > 1"
+          class="mt-4"
+          :model-value="rulebooksPage"
+          :total-pages="rulebooksTotalPages"
+          @update:modelValue="goToRulebooksPage"
+        />
+      </template>
+    </template>
+  </div>
 
-    <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
-      <BaseLoadingState v-if="isLoading" message="Loading rulebooks... " />
+  <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
+    
+    <BaseLoadingState v-if="isLoading" message="Loading rulebooks... " />
 
-      <RulebookDetail
-        v-else-if="selectedRulebook"
-        :rulebook="selectedRulebook"
-        :rulebooks="rulebooks"
-        @select="openRulebook"
-        @close="showDetail = false"
-      />
-    </v-navigation-drawer>
+    <RulebookDetail
+      v-if="selectedRulebook"
+      :rulebook="selectedRulebook"
+      :rulebooks="rulebooks"
+      @select="openRulebook"
+      @close="showDetail = false"
+    />
+
+  </v-navigation-drawer>
 
     <UploadRulebookModal
       v-model="showUpload"
       :loading="isUploading"
       @add="handleUploadRulebook"
     />
+
   </PageContainer>
 </template>
 
@@ -109,7 +120,6 @@ import PageContainer from '~/components/layout/PageContainer.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BasePagination from '~/components/ui/BasePagination.vue'
 import MobileFilterDrawer from '~/components/ui/MobileFilterDrawer.vue'
-import BaseCard from '~/components/ui/BaseCard.vue'
 
 import LibraryHeader from '~/components/features/library/LibraryHeader.vue'
 import RulebookFilterSidebar from '~/components/features/library/RulebookFilterSidebar.vue'
@@ -118,16 +128,12 @@ import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue
 import UploadRulebookModal from '~/components/features/library/UploadRulebookModal.vue'
 import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
 import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue'
-import RulebookSearch from '~/components/features/library/RulebookSearch.vue'
-
 
 import { useLibrary } from '~/composables/useLibrary'
 import { useVaultUpload } from '~/composables/useVaultUpload';
 import { useAuth } from '~/composables/useAuth';
 
 import { useSnackBar } from '~/composables/useSnackbar';
-import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
 
 const CARD_PAGE_SIZE = 12
 
@@ -147,32 +153,10 @@ const showDetail = ref(false)
 const showUpload = ref(false)
 const selectedRulebook = ref(null)
 
-const openGameArchitect = () => {
-  if (!isAuthenticated.value) {
-    router.push({
-      path: '/auth/signin',
-      query: { redirect: '/game-architect?from=library' }
-    })
-    return
-  }
-
-  router.push({
-    path: '/game-architect',
-    query: { from: 'library' }
-  })
-}
-
 onMounted(() => { // Does stuff when component loads
   fetchFeaturedRulebooks();
   getAllRulebooks({}, true);
 })
-
-const activeCount = computed(() => Object.entries(activeFilterState.value).filter(([k, v]) => k !== 'languages' && v != null && v !== '' && (!Array.isArray(v) || v.length)).length)
-
-const clearFilters = () => {
-  filterKey.value++
-  handleFilter({})
-}
 
 const handleUploadRequest = () => {
   if(!isAuthenticated.value){
