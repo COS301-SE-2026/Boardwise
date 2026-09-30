@@ -4,7 +4,7 @@ from app.retrieval.vector_search import fetch_candidate_chunks
 from bson import ObjectId
 
 
-@patch("app.retrieval.vector_store.mongo_service")
+@patch("app.retrieval.vector_search.mongo_service")
 def test_fetch_candidate_chunks_valid_query_returns_results(mock_mongo_service):
     # Arrange
     rulebook_id = str(ObjectId())
