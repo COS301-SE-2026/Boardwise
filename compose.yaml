@@ -135,6 +135,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s
+    volumes:
+      - lancedb_data:/app/data/lancedb
 
   # mailhog:
   #   image: mailhog/mailhog:latest
@@ -168,3 +170,4 @@ volumes:
   mongot:
   caddy_data:
   caddy_config:
+  lancedb_data:

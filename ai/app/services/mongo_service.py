@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from bson import ObjectId
+from bson.errors import InvalidId
 from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
 
@@ -501,6 +502,7 @@ def get_components_for_rulebook(rulebook_id: str) -> list[dict]:
 
 # Setup Wizard
 
+
 def get_setup_wizard_by_rulebookId(rulebook_id: str) -> dict | None:
     """
     Fetches the SETUP_WIZARD document for a given rulebook, if one exists.
@@ -601,6 +603,94 @@ def get_or_create_setup_wizard(rulebook_id: str) -> dict:
     return doc
 
 
+def update_setup_wizard_job(
+    wizard_id: str,
+    status: str,
+    progress: int | None = None,
+    error: str | None = None,
+    session=None,
+) -> None:
+    db = get_db()
+    now = datetime.now(timezone.utc)
+    set_fields: dict[str, Any] = {
+        "job.status": status,
+        "updatedAt": now,
+        "job.error": error,
+    }
+    if progress is not None:
+        set_fields["job.progress"] = progress
+
+    if status == "ready":
+        set_fields["job.generatedAt"] = now
+
+    result = db["SETUP_WIZARD"].update_one(
+        {"_id": ObjectId(wizard_id)}, {"$set": set_fields}, session=session
+    )
+
+    if result.matched_count != 1:
+        logger.warning(
+            "Failed to upate setup wizard %s: no document matched.",
+            sanitise_for_log(wizard_id),
+        )
+        raise ValueError(f"Setup wizard '{wizard_id}' not found.")
+
+
+def finalise_setup_wizard(wizard_id: str, output: dict) -> None:
+    db = get_db()
+    now = datetime.now(timezone.utc)
+    db["SETUP_WIZARD"].update_one(
+        {"_id": ObjectId(wizard_id)},
+        {
+            "$set": {
+                "components": output["components"],
+                "phases": output["phases"],
+                "summary": output["summary"],
+                "job.status": "ready",
+                "job.progress": 100,
+                "job.generatedAt": now,
+                "job.error": None,
+                "updatedAt": now,
+            }
+        },
+    )
+
+
+def get_setup_wizard(wizard_id: str) -> dict | None:
+    """
+    Stale-job recovery, mirrors get_ingestion_job.
+    """
+    try:
+        wizard_oid = ObjectId(wizard_id)
+    except (InvalidId, TypeError):
+        return None
+
+    db = get_db()
+    doc = db["SETUP_WIZARD"].find_one({"_id": wizard_oid})
+    if not doc:
+        return None
+
+    if doc["job"]["status"] == "running":
+        age = datetime.now(timezone.utc) - doc["updatedAt"].replace(tzinfo=timezone.utc)
+        if age > timedelta(minutes=STALE_JOB_THRESHOLD_MINUTES):
+            logger.warning(
+                "Setup wizard job %s is stale (age %s),  marking as failed.",
+                sanitise_for_log(wizard_id),
+                age,
+            )
+            update_setup_wizard_job(
+                wizard_id,
+                "failed",
+                error=f"Timed out after exceeding the {STALE_JOB_THRESHOLD_MINUTES} minute threshold. Possible crash mid-pipeline",
+            )
+            doc = db["SETUP_WIZARD"].find_one({"_id": wizard_oid})
+            if not doc:
+                return None
+
+    doc["id"] = str(doc.pop("_id"))
+    doc["rulebookId"] = str(doc["rulebookId"])
+    return doc
+
+
 # Mechanic Collection
 def upsert_mechanic(mechanic: dict) -> None:
     """Upserts a single MECHANIC document by mechanicId (used as _id)"""
@@ -675,13 +765,21 @@ def get_game_slug_for_rulebook(rulebook_id: str, max_len: int = 16) -> str:
         slug = f"g{str(game_id)[-6:]}"
     return slug
 
+
 def get_latest_rulebook_per_game(game_ids: list[ObjectId]) -> dict[str, str]:
     if not game_ids:
         return {}
-    
+
     db = get_db()
-    cursor = db["RULEBOOK"].find({"gameId": {"$in": list(game_ids)}, "status": "Ready"}, {"gameId": 1, "uploadedAt": 1}).sort("uploadedAt", -1)
-    
+    cursor = (
+        db["RULEBOOK"]
+        .find(
+            {"gameId": {"$in": list(game_ids)}, "status": "Ready"},
+            {"gameId": 1, "uploadedAt": 1},
+        )
+        .sort("uploadedAt", -1)
+    )
+
     latest: dict[str, str] = {}
     for doc in cursor:
         gid = str(doc["gameId"])
@@ -689,9 +787,10 @@ def get_latest_rulebook_per_game(game_ids: list[ObjectId]) -> dict[str, str]:
             latest[gid] = str(doc["_id"])
     return latest
 
+
 def setup_indexes() -> None:
     db = get_db()
-    
+
     db["MECHANIC"].create_index("bggId")
     db["RULEBOOK"].create_index([("gameId", 1), ("status", 1), ("uploadedAt", -1)])
     db["SETUP_WIZARD"].create_index("rulebookId", unique=True)

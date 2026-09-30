@@ -128,21 +128,22 @@ import BasePagination from '~/components/ui/BasePagination.vue'
 import EventFilter from '~/components/features/events/EventFilter.vue'
 import EventGrid from '~/components/features/events/EventGrid.vue'
 import CreateEventModal from '~/components/features/events/CreateEventModal.vue'
-import { useEvents } from '~/composables/useEvents'
-import { useSnackBar } from '~/composables/useSnackbar'
-import { ref, computed, onMounted, watch } from 'vue'
-import { useDebounceFn } from '@vueuse/core'
-import { useRouter } from 'vue-router'
 import EditEventModal from '~/components/features/events/EditEventModal.vue'
 import InviteModal from '~/components/features/community/InviteModal.vue'
 import EventHeader from '~/components/features/events/EventHeader.vue'
 import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useEvents } from '~/composables/useEvents'
+import { useSnackBar } from '~/composables/useSnackbar'
+import { useDebouncedAutocomplete } from '~/composables/useDebounce'
+
 const showFilters = ref(false)
 const { show } = useSnackBar(3)
 const {
-  events, 
+  events: storeEvents, 
   isLoading, 
   fetchEvents,
   createEvent,
@@ -153,16 +154,22 @@ const {
 
 const router = useRouter()
 
+const fetchEventsData = async(query) => {
+  await fetchEvents(query);
+  return storeEvents.value ?? []
+}
+
+const {search:searchQuery, options: events, refetch: reloadEvents } = useDebouncedAutocomplete(fetchEventsData, {debounceMs: 400, fetchOnMount: false});
+
 onMounted(async () => {
   if (!localStorage.getItem('access_token')) {
     router.push('/auth/signin')
     return
   }
 
-  fetchEvents()
+  await reloadEvents('')
 })
 
-const searchQuery = ref('')
 const activeFilters = ref({})
 
 const showCreateEvent = ref(false)
@@ -301,7 +308,8 @@ const handleEventCreated = (event) => {
 
 const handleEventUpdated = async () => {
 
-  await fetchEvents();
+  await fetchEvents(searchQuery.value);
+  events.value = storeEvents.value;
 
   if (editingEvent.value) {
     selectedEvent.value = events.value.find(
@@ -314,13 +322,4 @@ const handleEventUpdated = async () => {
   showDetail.value = true
   editingEvent.value = null
 }
-
-const delaySearch = useDebounceFn(async (query) => {
-  await fetchEvents(query)
-}, 400)
-
-watch(searchQuery, (query) => {
-  delaySearch(query)
-})
-
 </script>
