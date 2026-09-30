@@ -3,7 +3,7 @@
         class="landing-rag"
         aria-labelledby="landing-rag-title"
     >
-        <v-container>
+        <v-container class="landing-section__inner">
             <BaseCard class="landing-rag__feature mb-6">
                 <div class="landing-rag__grid">
 
