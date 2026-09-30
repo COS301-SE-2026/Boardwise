@@ -16,6 +16,7 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 import com.boardwise.backend.shared.security.JWTService;
+import com.boardwise.backend.shared.services.EventGuard.LiveEventSubscribeGuard;
 import com.boardwise.backend.user_service.services.MyUserDetailsService;
 
 @Configuration
@@ -24,13 +25,16 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     
     private final JWTService jwtService;
     private final MyUserDetailsService userDetailsService;
-
+    private final LiveEventSubscribeGuard liveEventGuard;
+    
     public WebSocketConfig(
         JWTService jwtService,
-        MyUserDetailsService userDetailsService
+        MyUserDetailsService userDetailsService,
+        LiveEventSubscribeGuard liveEventGuard
     ){
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.liveEventGuard = liveEventGuard;
     }
 
     @Override
@@ -90,6 +94,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
                 return message;
             }
-        });
+        }, liveEventGuard);
     }
 }

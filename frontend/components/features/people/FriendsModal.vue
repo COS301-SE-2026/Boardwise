@@ -17,7 +17,7 @@
         />
 
         <!-- Friends / Mutuals -->
-         <template v-if="activeTab !== 'Requests'">
+         <template v-if="isOwnProfile">
              <BaseSearch v-model="query" placeholder="Search friends..." class="mb-3" />
 
             <div v-if="loading" class="d-flex flex-column ga-2">
@@ -53,7 +53,7 @@
          </template>
 
          <!-- Friend Requests -->
-          <template v-else-if="!route.params.id">
+          <template v-else-if="isOwnProfile">
             <FriendRequestsList
                 :requests="userFriendRequests!"
                 @respond="(requestId, action) => $emit('respond', requestId, action)"
@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseTabs from '~/components/ui/BaseTabs.vue'
@@ -107,13 +107,14 @@ const emit = defineEmits<{
 const route = useRoute()
 const router = useRouter()
 
-const tabs = ref<['Friends', 'Requests'] | ['Friends', 'Mutuals']>()
+const isOwnProfile = computed(() => !route.params.id)
+const tabs = computed(() =>isOwnProfile.value ? ['Friends', 'Requests'] : ['Friends', 'Mutuals'])
 const activeTab = ref<'Friends' | 'Mutuals' | 'Requests'>('Friends')
 const query = ref('')
 
 const visibleList = computed(() => {
-    const list = activeTab.value === 'Friends' ? props.friends! : props.mutuals!
-    if(!query.value.trim()) return list
+    const list = (activeTab.value === 'Mutuals' ? props.mutuals : props.friends) ?? []
+    if (!query.value.trim()) return list
     const q = query.value.toLowerCase()
     return list.filter(p => p.username.toLowerCase().includes(q))
 })
@@ -127,11 +128,11 @@ const handleClick = (id: string) => {
   })
 }
 
-onMounted(() => {
-    if(route.params.id)
-        tabs.value = ['Friends', 'Mutuals']
-    else
-        tabs.value = ['Friends', 'Requests']
+watch(() => props.modelValue, (open) => {
+    if (!open) {
+        activeTab.value = 'Friends'
+        query.value = ''
+    }
 })
 </script>
 

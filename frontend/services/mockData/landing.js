@@ -46,7 +46,7 @@ export const platformFeatures = [
         route: "/library"
     },
     {
-        id: 2,
+        id: 7,
         title: 'Marketplace',
         description: "Search the maket and trade board games with other players.",
         icon: "mdi-storefront-outline",
@@ -61,7 +61,7 @@ export const platformFeatures = [
         route: "/events"
   },
   {
-        id: 2,
+        id: 8,
         title: 'Communities',
         description: 'Find board game communities, join discussions and meet players who share your interests.',
         icon: 'mdi-account-group-outline',
@@ -83,5 +83,19 @@ export const platformFeatures = [
         icon: 'mdi-account-multiple-plus-outline',
         route: '/community',
         
+    },
+    {
+        id: 3,
+        title: 'Setup Wizard',
+        description: 'Prepare your game session step by step, from players to setup.',
+        icon: 'mdi-wizard-hat',
+        route: '/setup-wizard'
+    },
+    {
+        id: 2,
+        title: 'Game Architect',
+        description: 'Create new game experiences or adapt games for different players.',
+        icon: 'mdi-creation-outline',
+        route: '/game-architect'
     }
 ]

@@ -2,51 +2,37 @@
   <PageContainer>
     <Navbar />
 
-    <EventHeader 
+    <EventHeader
       @search="searchQuery = $event"
-      @create-event="showCreateEvent = true"  
+      @create-event="showTypeModal = true"
     />
-    
-    <!-- Mobile -->
-    <div class="d-flex d-md-none mt-6 mb-4">
-      <v-chip 
-        color="secondary"
-        prepend-icon="mdi-filter-variant"
-        :aria-expanded="showFilters"
-        aria-controls="event-mobile-filters"
-        size="large"
-        @click="showFilters = true"
-      >
-        Filters
-      </v-chip>
 
-      <v-navigation-drawer
-        v-model="showFilters"
-        temporary
-        location="left"
-        width="300"
-      >
-        <EventFilter 
-          :events="events" 
-          @filter="handleFilter" 
-        />
-      </v-navigation-drawer>
+    <LiveEventBanner :count="liveEvents.length" @view="scrollToLive" />
+
+    <div v-if="liveEvents.length" id="live-now" class="base-grid" style="margin-top: 24px">
+      <LiveEventCard
+        v-for="e in liveEvents"
+        :key="e.id"
+        :event="e"
+        @click="router.push(`/live-events/${e.id}`)"
+      />
     </div>
+
+    <MobileFilterDrawer id="mobile-events-filter">
+      <EventFilter :events="events" @filter="handleFilter" />
+    </MobileFilterDrawer>
 
     <div class="d-md-none">
       <BaseLoadingState v-if="isLoading" />
 
       <template v-else>
-        <EventGrid 
-          :events="pagedEvents"
-          @select="openEvent"
-        />
+        <EventGrid :events="pagedEvents" @select="openEvent" />
 
         <template v-if="filteredEvents.length > 0">
           <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
             <span class="card-meta">Page {{ eventsPage }} of {{ eventsTotalPages }}</span>
           </div>
-          
+
           <BasePagination
             v-if="eventsTotalPages > 1"
             class="mt-4"
@@ -56,63 +42,44 @@
           />
         </template>
       </template>
-      
     </div>
 
-    <!-- Desktop -->
-    <div class="d-flex d-md-flex ga-6 mt-6 align-start">
-      <EventFilter 
-        :events="events" 
-        @filter="handleFilter" 
-      />
-    
-      <div class="flex-grow-1" style="min-width: 0;">
+    <div class="d-flex flex-column flex-md-row ga-6 mt-6 align-start">
+      <div class="d-none d-md-block">
+        <EventFilter :events="events" @filter="handleFilter" />
+      </div>
+
+      <div class="flex-grow-1 w-100" style="min-width: 0;">
         <BaseLoadingState v-if="isLoading" />
 
+        <BaseEmptyState
+          v-else-if="filteredEvents.length === 0"
+          title="No events found"
+          message="Try adjusting your filters, or be the first to create one."
+        />
+
         <template v-else>
-          <BaseEmptyState
-            v-if="filteredEvents.length === 0"
-            title="No events found"
-            message="Try adjusting your filters, or be the first to create one."
+          <EventGrid :events="pagedEvents" @select="openEvent" />
+
+          <span class="card-meta d-block mt-6">
+            Page {{ eventsPage }} of {{ eventsTotalPages }}
+          </span>
+
+          <BasePagination
+            v-if="eventsTotalPages > 1"
+            class="mt-4"
+            :model-value="eventsPage"
+            :total-pages="eventsTotalPages"
+            @update:modelValue="goToPage"
           />
-
-          <template v-else>
-            <EventGrid 
-              :events="pagedEvents" 
-              @select="openEvent" 
-            />
-
-            <template v-if="filteredEvents.length > 0">
-              <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
-                <span class="card-meta">Page {{ eventsPage }} of {{ eventsTotalPages }}</span>
-              </div>
-
-              <BasePagination
-                v-if="eventsTotalPages > 1"
-                class="mt-4"
-                :model-value="eventsPage"
-                :total-pages="eventsTotalPages"
-                @update:modelValue="goToPage"
-              />
-            </template>
-          </template>
         </template>
       </div>
     </div>
 
-    <CreateEventModal v-model="showCreateEvent"   :on-submit="handleCreateEvent"  @created="handleCreateEvent" />
+    <CreateEventModal v-model="showCreateEvent" :on-submit="handleCreateEvent" />
+    <EventTypeModal v-model="showTypeModal" @select="handleTypeSelect" />
 
-    <EditEventModal
-      v-model="showEditEvent"
-      :event="editingEvent"
-      @saved="handleEventUpdated"
-    />
-
-    <InviteModal
-      v-model="showInviteModal"
-      :event="createdEvent"
-    />
-
+    <InviteModal v-model="showInviteModal" :event="createdEvent" />
   </PageContainer>
 </template>
 
@@ -121,64 +88,58 @@ definePageMeta({
   middleware: 'auth'
 })
 
+import { ref, computed, onMounted, watch } from 'vue'
+import { useDebounceFn } from '@vueuse/core'
+import { useRouter } from 'vue-router'
+
 import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import BasePagination from '~/components/ui/BasePagination.vue'
-
-import EventFilter from '~/components/features/events/EventFilter.vue'
-import EventGrid from '~/components/features/events/EventGrid.vue'
-import CreateEventModal from '~/components/features/events/CreateEventModal.vue'
-import EditEventModal from '~/components/features/events/EditEventModal.vue'
-import InviteModal from '~/components/features/community/InviteModal.vue'
-import EventHeader from '~/components/features/events/EventHeader.vue'
+import MobileFilterDrawer from '~/components/ui/MobileFilterDrawer.vue'
 import BaseLoadingState from '~/components/ui/BaseLoadingState.vue'
 import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
 
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { useEvents } from '~/composables/useEvents'
-import { useSnackBar } from '~/composables/useSnackbar'
-import { useDebouncedAutocomplete } from '~/composables/useDebounce'
+import EventFilter from '~/components/features/events/EventFilter.vue'
+import EventGrid from '~/components/features/events/EventGrid.vue'
+import EventHeader from '~/components/features/events/EventHeader.vue'
+import EventTypeModal from '~/components/features/events/EventTypeModal.vue'
+import CreateEventModal from '~/components/features/events/CreateEventModal.vue'
+import InviteModal from '~/components/features/community/InviteModal.vue'
 
-const showFilters = ref(false)
-const { show } = useSnackBar(3)
-const {
-  events: storeEvents, 
-  isLoading, 
-  fetchEvents,
-  createEvent,
-  rsvpToEvent, 
-  deRsvpToEvent,
-  cancelEvent
-} = useEvents()
+import LiveEventBanner from '~/components/features/live-events/LiveEventBanner.vue'
+import LiveEventCard from '~/components/features/live-events/LiveEventCard.vue'
+
+import { useEvents } from '~/composables/useEvents'
+import { useLiveEvents } from '~/composables/useLiveEvents'
+import { useSnackBar } from '~/composables/useSnackbar'
 
 const router = useRouter()
+const { show } = useSnackBar(3)
 
-const fetchEventsData = async(query) => {
-  await fetchEvents(query);
-  return storeEvents.value ?? []
-}
+const { activeLiveEvents: liveEvents, fetchLiveEvents } = useLiveEvents()
+const { events, isLoading, fetchEvents, createEvent } = useEvents()
 
-const {search:searchQuery, options: events, refetch: reloadEvents } = useDebouncedAutocomplete(fetchEventsData, {debounceMs: 400, fetchOnMount: false});
+const searchQuery = ref('')
+const activeFilters = ref({})
+
+const showCreateEvent = ref(false)
+const showTypeModal = ref(false)
+const showInviteModal = ref(false)
+const createdEvent = ref(null)
 
 onMounted(async () => {
   if (!localStorage.getItem('access_token')) {
     router.push('/auth/signin')
     return
   }
-
-  await reloadEvents('')
+  fetchLiveEvents().catch(() => {})
+  fetchEvents()
 })
 
-const activeFilters = ref({})
+const scrollToLive = () =>
+  document.getElementById('live-now')?.scrollIntoView({ behavior: 'smooth' })
 
-const showCreateEvent = ref(false)
-const showDetail = ref(false)
-const showEditEvent = ref(false)
-const selectedEvent = ref(null)
-const editingEvent = ref(null)
-
-const currentUsername = ref(null)
+// ============================== Filtering ==========================================
 
 const filteredEvents = computed(() => {
   let result = events.value
@@ -187,17 +148,18 @@ const filteredEvents = computed(() => {
     const now = new Date()
     result = result.filter(e => {
       const eventDate = new Date(e.startTime)
+
       if (activeFilters.value.date === 'Today') {
         return eventDate.toDateString() === now.toDateString()
       }
-
       if (activeFilters.value.date === 'This Week') {
         const weekFromNow = new Date(now)
         weekFromNow.setDate(now.getDate() + 7)
         return eventDate >= now && eventDate <= weekFromNow
       }
       if (activeFilters.value.date === 'This Month') {
-        return eventDate.getMonth() === now.getMonth() && eventDate.getFullYear() === now.getFullYear()
+        return eventDate.getMonth() === now.getMonth()
+          && eventDate.getFullYear() === now.getFullYear()
       }
       return true
     })
@@ -220,13 +182,18 @@ const filteredEvents = computed(() => {
   return result
 })
 
-// ============================== Pagination ==========================================
+const handleFilter = (filters) => {
+  activeFilters.value = filters
+  eventsPage.value = 1
+}
+
+// ============================== Pagination =========================================
 
 const EVENTS_PAGE_SIZE = 6
 const eventsPage = ref(1)
 
-const eventsTotalPages = computed(() => 
-  Math.max(1, Math.ceil(filteredEvents.value.length /EVENTS_PAGE_SIZE))
+const eventsTotalPages = computed(() =>
+  Math.max(1, Math.ceil(filteredEvents.value.length / EVENTS_PAGE_SIZE))
 )
 
 const pagedEvents = computed(() => {
@@ -234,7 +201,7 @@ const pagedEvents = computed(() => {
   return filteredEvents.value.slice(start, start + EVENTS_PAGE_SIZE)
 })
 
-const goToPage = async (pageNum) => {
+const goToPage = (pageNum) => {
   eventsPage.value = pageNum
 }
 
@@ -244,82 +211,36 @@ watch(filteredEvents, () => {
   }
 })
 
-const showInviteModal = ref(false);
-const createdEvent = ref(null);
+// ============================== Actions ============================================
 
 const openEvent = (event) => {
   router.push(`/events/detail/${event.id}`)
 }
 
-const openEdit = (event) => {
-  editingEvent.value = event
-  showEditEvent.value = true
-  showDetail.value = false
-}
-
-const handleFilter = (filters) => {
-  activeFilters.value = filters
-  eventsPage.value = 1
-}
-
-const handleRsvp = async (eventId) => {
-  try {
-    const updated = await rsvpToEvent(eventId)
-    selectedEvent.value = updated
-    show('Your seat is saved for game night.', 'success')
-  } catch {
-    show('Failed to RSVP. Please try again.', 'error')
-  }
-}
-
-const handleDeRsvp = async (eventId) => {
-  try {
-    const updated = await deRsvpToEvent(eventId)
-    selectedEvent.value = updated
-    show('Your seat has been opened up.', 'info')
-  } catch {
-    show('Failed to cancel RSVP.', 'error')
-  }
-}
-
-const handleCancelEvent = async (eventId) => {
-  try {
-    await cancelEvent(eventId)
-    showDetail.value = false
-    show('The event has been packed away.', 'success')
-  } catch {
-    show('Failed to cancel event.', 'error')
+const handleTypeSelect = (type) => {
+  if (type === 'live') {
+    router.push('/live-events/plan')
+  } else {
+    showCreateEvent.value = true
   }
 }
 
 const handleCreateEvent = async ({ eventInfo, image }) => {
   const event = await createEvent(eventInfo, image)
   show('Your event is ready. Game on!', 'success')
-  createdEvent.value = event      
-  showCreateEvent.value = false   
-  showInviteModal.value = true   
-  return event;
-}
-
-const handleEventCreated = (event) => {
   createdEvent.value = event
+  showCreateEvent.value = false
   showInviteModal.value = true
+  return event
 }
 
-const handleEventUpdated = async () => {
+// ============================== Search =============================================
 
-  await fetchEvents(searchQuery.value);
-  events.value = storeEvents.value;
+const delaySearch = useDebounceFn(async (query) => {
+  await fetchEvents(query)
+}, 400)
 
-  if (editingEvent.value) {
-    selectedEvent.value = events.value.find(
-      e => e.id === editingEvent.value.id
-    )
-  }
-  show('Your event changes are locked in.', 'success')
-
-  showEditEvent.value = false
-  showDetail.value = true
-  editingEvent.value = null
-}
+watch(searchQuery, (query) => {
+  delaySearch(query)
+})
 </script>

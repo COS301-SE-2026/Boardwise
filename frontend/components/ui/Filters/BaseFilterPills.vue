@@ -9,7 +9,7 @@
 
     <div class="filter-pill-options">
       <button
-        v-for="option in options"
+        v-for="option in filteredOptions"
         :key="option"
         type="button"
         class="filter-pill"
@@ -27,7 +27,7 @@
       </button>
 
       <span 
-        v-if="options.length === 0"
+        v-if="filteredOptions.length === 0"
         class="filter-pill-empty"
       >
         No genres found
@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import BaseSearch from '../BaseSearch.vue'
 
 const props = defineProps({
@@ -47,36 +47,32 @@ const props = defineProps({
   },
 
   modelValue: {
-    type: [Array, String],
+    type: Array,
     default: () => []
-  },
-  multiple: {
-    type: Boolean,
-    default: true
   }
 })
 
-const emit = defineEmits(['update:modelValue', 'search'])
+const emit = defineEmits(['update:modelValue'])
 
 const searchQuery = ref('')
 
-watch(searchQuery, (newQuery) => {
-  emit('search', newQuery.toLowerCase())
+const filteredOptions = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase()
+
+  if (!query) {
+    return props.options
+  }
+
+  return props.options.filter(option =>
+    option.toLowerCase().includes(query)
+  )
 })
 
 function isSelected(option) {
-  if (props.multiple) {
-    return props.modelValue.includes(option)
-  }
-  return props.modelValue === option
+  return props.modelValue.includes(option)
 }
 
 function toggleOption(option) {
-  if (!props.multiple) {
-    emit('update:modelValue', option)
-    return
-  }
-
   const selected = [...props.modelValue]
   const index = selected.indexOf(option)
 

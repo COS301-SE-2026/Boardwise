@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+
+import org.bson.types.ObjectId;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,8 +23,12 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+
+import com.boardwise.backend.marketplace.exceptions.ForbiddenException;
 import com.boardwise.backend.shared.dtos.GameInventoryDTO;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
@@ -34,16 +40,29 @@ import com.boardwise.backend.user_service.dtos.EventInviteDTO;
 import com.boardwise.backend.user_service.dtos.EventInviteInfo;
 import com.boardwise.backend.user_service.dtos.EventUpdateDTO;
 import com.boardwise.backend.user_service.dtos.InviteDTO;
+import com.boardwise.backend.user_service.dtos.LiveEventAttendee;
+import com.boardwise.backend.user_service.dtos.LiveEventAttendeeList;
+import com.boardwise.backend.user_service.dtos.request.LiveEventRequestDTO;
 import com.boardwise.backend.shared.model.Boardgame;
+import com.boardwise.backend.user_service.enums.EventPrivacy;
 import com.boardwise.backend.user_service.enums.EventStatus;
+import com.boardwise.backend.user_service.enums.LiveEventAttendeeStatus;
+import com.boardwise.backend.user_service.enums.LiveEventType;
 import com.boardwise.backend.user_service.enums.RSVPStatus;
 import com.boardwise.backend.user_service.enums.Visibility;
 import com.boardwise.backend.user_service.models.Event;
 import com.boardwise.backend.user_service.models.EventAttendee;
+import com.boardwise.backend.user_service.models.LiveEvent;
+import com.boardwise.backend.user_service.models.LiveEventMessage;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repository.EventAttendeeRepository;
 import com.boardwise.backend.user_service.repository.EventRepository;
+import com.boardwise.backend.user_service.repository.LiveEventMessageRepository;
+import com.boardwise.backend.user_service.repository.LiveEventRepository;
 import com.boardwise.backend.user_service.repository.UserRepository;
+import com.mongodb.client.result.UpdateResult;
+import com.boardwise.backend.user_service.dtos.LiveEventMessageDTO;
+
 import lombok.RequiredArgsConstructor;
 
 
@@ -54,11 +73,15 @@ public class CommunityService {
     private final EventRepository eventRepo;
     private final UserRepository userRepo;
     private final BoardGameRepository gameRepo;
+    private final LiveEventRepository liveEventRepo;
+    private final LiveEventMessageRepository liveEventMessageRepo;
     private final JWTService jwtService;
     private final GeocodingService geoService;
     private final R2StorageService bucket;
     private final EventAttendeeRepository eaRepo;
     private final MongoTemplate template;
+
+    private final SimpMessagingTemplate ws;
 
     public Map<String, Object> getEvents(String token, String name, Integer pageNumber) {
         User user = getUserFromToken(token);
@@ -711,4 +734,259 @@ public class CommunityService {
         String userId = jwtService.extractUserId(token).toString();
         return userRepo.findById(userId).get();
     }
+
+    public Map<String, Object> createLiveEvent(String token, LiveEventRequestDTO req){
+        User currentUser = getUserFromToken(token);
+
+        if(req.title() == null || req.title().isBlank() )
+            throw new IllegalArgumentException("Title is required");
+        if(req.type() == null || req.duration() == null || req.tone() == null || req.privacy() == null)
+            throw new IllegalArgumentException("Type, duration, tone and privacy are required");
+        if(req.maxSeats() == null || req.maxSeats() < 3 || req.maxSeats() > 12)
+            throw new IllegalArgumentException("Seats must be between 3 and 12");
+
+        boolean online = req.type() == LiveEventType.ONLINE;
+
+        String title = AuthService.sanitize(req.title().trim());
+        String venueName = (!online && req.venueName() != null) ? AuthService.sanitize(req.venueName()) : null;
+        String table = (!online && req.table() != null) ? AuthService.sanitize(req.table()) : null;
+        String link = (online && req.link() != null) ? AuthService.sanitize(req.link()) : null;
+
+        if(online && link == null) throw new IllegalArgumentException("A platform link is required");
+        if(!online && venueName == null) throw new IllegalArgumentException("A venue is required");
+
+        LocalDate date = req.date() != null ? req.date() : LocalDate.now();
+        LocalTime time = req.time() != null ? req.time() : LocalTime.now().withSecond(0).withNano(0);
+
+        if(liveEventRepo.existsByTitleAndDate(title, date)){
+            throw new IllegalArgumentException("There is already an event with the same name on the same day");
+        }
+
+        if(req.date() != null || req.time() != null){
+            if(LocalDateTime.of(date, time).isBefore(LocalDateTime.now().minusMinutes(5))){
+                throw new IllegalArgumentException("Start time has already passed");
+            }
+        }
+
+        GeoJsonPoint point = (!online) ? geoService.getLocationCoordinates(venueName) : null;
+
+        Boardgame game = gameRepo.findById(req.boardgameId().toString())
+                .orElseThrow(() -> new IllegalArgumentException("Boardgame not found"));
+
+        LiveEventAttendeeList attendees = new LiveEventAttendeeList(
+                List.of(new LiveEventAttendee(currentUser.getId(),currentUser.getUsername(), LiveEventAttendeeStatus.ARRIVED, true)));
+
+        ObjectId eventId = new ObjectId();
+        LiveEvent newLiveEvent = new LiveEvent(
+                eventId,
+                new ObjectId(game.getId()),
+                new ObjectId(currentUser.getId()),
+                title, req.type(), venueName, point, table, link,
+                date, time,
+                req.duration(), req.maxSeats(), req.tone(), req.privacy(),
+                Boolean.TRUE.equals(req.automaticApproval()),
+                attendees);
+
+        liveEventRepo.save(newLiveEvent);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("message", "Live Event has been successfully created");
+        result.put("id", eventId.toHexString());
+        return result;
+    }
+    
+    public Map<String, Object> getLiveEvent(String eventId){
+        LiveEvent e = liveEventRepo.findById(eventId)
+                .orElseThrow(() -> new IllegalArgumentException("Event does not exist"));
+        Map<String, Object> result = new HashMap<>();
+        result.put("message", "successfully fetched Live Event");
+        result.put("details", toView(e, gameTitle(e.getBoardgameId())));
+        return result;
+    }
+
+    public Map<String, Object> deleteLiveEvent(String token, String eventId){
+        Map<String, Object> result = new HashMap<>();
+        User user = getUserFromToken(token);
+        LiveEvent liveEvent = liveEventRepo.findById(eventId)
+                .orElseThrow(() -> new NoSuchElementException("Event does not exist"));
+
+        if(!user.getId().equals(liveEvent.getHostId().toString())){
+            throw new ForbiddenException("Only the host can delete this event");
+        }
+
+        liveEventMessageRepo.deleteById(liveEvent.getId().toHexString());
+        liveEventRepo.delete(liveEvent);
+        result.put("message", "Event successfully deleted.");
+        return result;
+    }
+
+    public Map<String, Object> joinLiveEvent(String token, String eventId){
+        Map<String, Object> result = new HashMap<>();
+        User user = getUserFromToken(token);
+        ObjectId id = new ObjectId(eventId);
+
+        LiveEvent event = liveEventRepo.findById(eventId)
+                .orElseThrow(() -> new NoSuchElementException("Event does not exist"));
+
+        LocalDateTime start = LocalDateTime.of(event.getDate(), event.getTime());
+        if(start.plusHours(12).isBefore(LocalDateTime.now())){
+            throw new IllegalStateException("This event has ended");
+        }
+
+        int maxSeats = event.getMaxSeats();
+
+        Query query = new Query(new Criteria().andOperator(
+                Criteria.where("_id").is(id),
+                Criteria.where("liveAttendees.attendees.userId").ne(user.getId()),
+                Criteria.where("liveAttendees.attendees." + (maxSeats - 1)).exists(false)
+        ));
+
+        Update update = new Update().push(
+                "liveAttendees.attendees",
+                new LiveEventAttendee(user.getId(),user.getUsername(), LiveEventAttendeeStatus.EN_ROUTE, false)
+        );
+
+        UpdateResult ur = template.updateFirst(query, update, LiveEvent.class);
+
+        LiveEvent fresh = liveEventRepo.findById(eventId)
+                .orElseThrow(() -> new NoSuchElementException("Event does not exist"));
+
+        if(ur.getModifiedCount() == 0){
+            boolean joined = fresh.getLiveAttendees().attendees().stream()
+                    .anyMatch(a -> a.userId().equals(user.getId()));
+            throw new IllegalStateException(joined ? "You already joined this event" : "Event is full");
+        }
+
+        ws.convertAndSend("/topic/live-event/" + eventId + "/roster", fresh.getLiveAttendees());
+
+        result.put("message", "Successfully joined the event");
+        return result;
+    }
+
+    private LiveEvent requireAttendee(User user, String eventId){
+        LiveEvent event = liveEventRepo.findById(eventId)
+                .orElseThrow(() -> new NoSuchElementException("Event does not exist"));
+        boolean inEvent = event.getLiveAttendees().attendees().stream()
+                .anyMatch(a -> a.userId().equals(user.getId()));
+        if(!inEvent){
+            throw new ForbiddenException("Join the event to use the table floor");
+        }
+        return event;
+    }
+
+    public Map<String, Object> postLiveEventMessage(String token, String eventId, String content){
+        User user = getUserFromToken(token);
+        LiveEvent event = requireAttendee(user, eventId);
+
+        if(content == null || content.isBlank()){
+            throw new IllegalArgumentException("Message cannot be empty");
+        }
+        String clean = AuthService.sanitize(content.trim());
+        if(clean.length() > 500){
+            throw new IllegalArgumentException("Message is too long (max 500)");
+        }
+
+        boolean isHost = event.getHostId().toString().equals(user.getId());
+
+        LiveEventMessage msg = new LiveEventMessage(
+                new ObjectId(), event.getId().toHexString(), user.getId(), user.getUsername(),
+                clean, isHost, Instant.now());
+        liveEventMessageRepo.save(msg);
+
+        Map<String, Object> results = new HashMap<>();
+        LiveEventMessageDTO dto = LiveEventMessageDTO.from(msg);
+        ws.convertAndSend("/topic/live-event/" + event.getId().toHexString() + "/messages", dto);
+        results.put("details", dto);
+        return results;
+    }
+
+    public Map<String, Object> getLiveEventMessages(String token, String eventId, Instant after){
+        User user = getUserFromToken(token);
+        LiveEvent event = requireAttendee(user, eventId);
+
+        List<LiveEventMessage> msgs = (after == null)
+                ? liveEventMessageRepo.findByEventIdOrderByCreatedAtAsc(event.getId().toHexString())
+                : liveEventMessageRepo.findByEventIdAndCreatedAtAfterOrderByCreatedAtAsc(event.getId().toHexString(), after);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("messages", msgs.stream().map(LiveEventMessageDTO::from).toList());        return result;
+    }
+
+    public Map<String, Object> updateAttendeeStatus(String token, String eventId, LiveEventAttendeeStatus status){
+        User user = getUserFromToken(token);
+
+        if(status != LiveEventAttendeeStatus.EN_ROUTE && status != LiveEventAttendeeStatus.ARRIVED){
+            throw new IllegalArgumentException("Invalid status");
+        }
+
+        Query query = new Query(new Criteria().andOperator(
+                Criteria.where("_id").is(new ObjectId(eventId)),
+                Criteria.where("liveAttendees.attendees.userId").is(user.getId())
+        ));
+        Update update = new Update().set("liveAttendees.attendees.$.status", status);
+
+        UpdateResult ur = template.updateFirst(query, update, LiveEvent.class);
+        if(ur.getMatchedCount() == 0){
+            throw new ForbiddenException("You are not in this event");
+        }
+
+        LiveEvent fresh = liveEventRepo.findById(eventId)
+                .orElseThrow(() -> new NoSuchElementException("Event does not exist"));
+        ws.convertAndSend("/topic/live-event/" + eventId + "/roster", withNames(fresh.getLiveAttendees()));
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("message", "Status updated");
+        return result;
+    }
+
+    public Map<String, Object> getPublicLiveEvents(){
+        List<LiveEvent> events = liveEventRepo. findByPrivacyAndDateGreaterThanEqual(EventPrivacy.PUBLIC_EVENT, LocalDate.now().minusDays(1));
+    
+        LocalDateTime cutoff = LocalDateTime.now().minusHours(12);
+        List<LiveEvent> active = events.stream()
+        .filter(e -> LocalDateTime.of(e.getDate(), e.getTime()).isAfter(cutoff))
+        .toList();
+
+        Map<String, Object> result = new HashMap<>();
+        List<Map<String, Object>> out = active.stream()
+                .map(e -> toView(e, gameTitle(e.getBoardgameId())))
+                .toList();
+        result.put("events", out);
+        return result;    
+    }
+
+    private Map<String, Object> toView(LiveEvent e, String gameTitle) {
+        Map<String, Object> m = new HashMap<>();
+        m.put("id", e.getId().toHexString());
+        m.put("boardgameId", e.getBoardgameId().toHexString());
+        m.put("gameTitle", gameTitle);
+        m.put("hostId", e.getHostId().toString());
+        m.put("title", e.getTitle());
+        m.put("type", e.getType());
+        m.put("venueName", e.getVenueName());
+        m.put("table", e.getTable());
+        m.put("link", e.getLink());
+        m.put("date", e.getDate().toString());
+        m.put("time", e.getTime().toString());
+        m.put("duration", e.getDuration());
+        m.put("maxSeats", e.getMaxSeats());
+        m.put("tone", e.getTone());
+        m.put("privacy", e.getPrivacy());
+        m.put("liveAttendees",withNames(e.getLiveAttendees()));
+        return m;
+    }
+
+    private String gameTitle(ObjectId gameId) {
+        return gameRepo.findById(gameId.toHexString()).map(Boardgame::getTitle).orElse("");
+    }
+
+    private LiveEventAttendeeList withNames(LiveEventAttendeeList list){
+        List<LiveEventAttendee> out = list.attendees().stream().map(a ->{
+            if (a.username() != null) return a;
+            String name = userRepo.findById(a.userId()).map(User::getUsername).orElse(null);
+            return new LiveEventAttendee(a.userId(), name, a.status(), a.isHost());
+        }).toList();
+        return new LiveEventAttendeeList(out);
+    }
+
 }

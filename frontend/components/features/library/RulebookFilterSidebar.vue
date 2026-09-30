@@ -2,7 +2,7 @@
   <BaseFilterSidebar @reset="resetFilters">
 
     <BaseFilterGroup title="Genre" :default-open="true">
-      <BaseFilterPills v-model="filters.genre" :options="availableGenres" @search="handleGenreSearch" />
+      <BaseFilterPills v-model="selectedGenre" :options="presetGenres" />
     </BaseFilterGroup>
 
     <BaseFilterGroup title="Player Count" :default-open="true">
@@ -21,23 +21,57 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { reactive, ref, watch } from 'vue'
 
 import BaseFilterGroup from '~/components/ui/BaseFilterGroup.vue'
 import BaseFilterSidebar from '~/components/ui/BaseFilterSidebar.vue'
+import BaseFilterCheckboxGroup from '~/components/ui/Filters/BaseFilterCheckboxGroup.vue'
 import BaseFilterNumberField from '~/components/ui/Filters/BaseFilterNumberField.vue'
 import BaseFilterPills from '~/components/ui/Filters/BaseFilterPills.vue'
-import { useRulebookFilters } from '~/composables/useRulebookFilters'
-import { useBoardGames } from '~/composables/useBoardGames'
-import { useDebouncedAutocomplete } from '~/composables/useDebounce'
 
-const {filters, resetFilters} = useRulebookFilters();
-const {searchGenres} = useBoardGames();
+const emit = defineEmits(['filter'])
 
-const {options: apiGenres, refetch: handleGenreSearch, markSelecting} = useDebouncedAutocomplete(searchGenres, {fetchOnMount: true});
+const presetGenres = [
+  'all',
+  'adventure',
+  'card game',
+  'economic',
+  'family',
+  'fantasy',
+  'strategy'
+]
 
-const availableGenres = computed(() => {
-  const combined = ['all', ...filters.genre, ...apiGenres.value];
-  return Array.from(new Set(combined));
-});
+const selectedGenre = ref('all')
+
+const filters = reactive({
+  playerCount: '',
+  duration: '',
+  minAge: ''
+})
+
+watch(
+  [selectedGenre, filters],
+  () => {
+    emit('filter', {
+      genre:
+        selectedGenre.value === 'all'
+          ? null
+          : selectedGenre.value,
+
+      playerCount: filters.playerCount,
+      duration: filters.duration,
+      minAge: filters.minAge
+    })
+  },
+  {
+    deep: true
+  }
+)
+
+const resetFilters = () => {
+  selectedGenre.value = 'all'
+  filters.playerCount = ''
+  filters.duration = ''
+  filters.minAge = ''
+}
 </script>
