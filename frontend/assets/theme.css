@@ -8114,3 +8114,83 @@ transition:
   display: flex;
   gap: var(--space-2);
 }
+
+.game-architect-job {
+  display: flex;
+  width: min(100%, 720px);
+  margin: var(--space-6) auto;
+  padding: clamp(1.5rem, 5vw, 3rem);
+  align-items: center;
+  flex-direction: column;
+  gap: var(--space-4);
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 32px rgba(46, 20, 48, 0.12);
+}
+
+.game-architect-job__icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.game-architect-job__mascot {
+  position: absolute;
+}
+
+.game-architect-job__copy h1,
+.game-architect-job__copy p {
+  margin: 0;
+}
+
+.game-architect-job__copy h1 {
+  color: var(--color-secondary);
+  font-family: var(--font-display);
+}
+
+.game-architect-job__copy > p:last-child {
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.game-architect-job__eyebrow {
+  color: var(--color-primary);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.game-architect-job__progress {
+  width: 100%;
+}
+
+.game-architect-job__progress-header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.game-architect-job__notice {
+  margin: 0;
+  padding: var(--space-3);
+  color: var(--color-text-muted);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-md);
+}
+
+.game-architect-job__actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+@media (max-width: 600px) {
+  .game-architect-job__actions,
+  .game-architect-job__actions :deep(.base-button) {
+    width: 100%;
+  }
+}

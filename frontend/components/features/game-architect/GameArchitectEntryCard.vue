@@ -24,7 +24,7 @@
   </BaseCard>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { useRouter } from 'vue-router'
 
 import BaseButton from '~/components/ui/BaseButton.vue'

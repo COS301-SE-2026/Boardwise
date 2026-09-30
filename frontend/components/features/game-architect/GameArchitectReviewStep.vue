@@ -114,24 +114,17 @@
   </section>
 </template>
 
-<script setup lang="ts">
-import { computed, type PropType } from 'vue'
-
+<script setup>
+import { computed } from 'vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
-import type {
-  GameArchitectGame,
-  GameArchitectMode,
-  GameDifficulty,
-  PlayerRange
-} from '~/services/gameArchitectService'
 
 const props = defineProps({
   mode: {
-    type: String as PropType<GameArchitectMode>,
+    type: String,
     required: true
   },
   selectedGames: {
-    type: Array as PropType<GameArchitectGame[]>,
+    type: Array,
     default: () => []
   },
   surpriseMe: {
@@ -139,11 +132,11 @@ const props = defineProps({
     default: false
   },
   difficulty: {
-    type: String as PropType<GameDifficulty | null>,
+    type: String,
     default: null
   },
   playerRange: {
-    type: String as PropType<PlayerRange | null>,
+    type: String,
     default: null
   },
   maxSelected: {
@@ -152,17 +145,17 @@ const props = defineProps({
 }
 })
 
-const emit = defineEmits<{
-  'update:difficulty': [value: GameDifficulty]
-  'update:playerRange': [value: PlayerRange]
-}>()
+const emit = defineEmits([
+  'update:difficulty',
+  'update:playerRange'
+])
 
-const updateDifficulty = (value: unknown) => {
-  emit('update:difficulty', value as GameDifficulty)
+const updateDifficulty = value => {
+  emit('update:difficulty', value )
 }
 
-const updatePlayerRange = (value: unknown) => {
-  emit('update:playerRange', value as PlayerRange)
+const updatePlayerRange = value => {
+  emit('update:playerRange', value)
 }
 
 const modeLabel = computed(() =>
@@ -180,7 +173,7 @@ const selectedGamesLabel = computed(() => {
 })
 
 const difficultyLabel = computed(() => {
-  const labels: Record<GameDifficulty, string> = {
+  const labels = {
     easier: 'Easier',
     same: 'Keep it similar',
     harder: 'Harder'
@@ -207,7 +200,7 @@ const difficultyImpact = computed(() => {
   return ''
 })
 const playerRangeLabel = computed(() => {
-  const labels: Record<PlayerRange, string> = {
+  const labels = {
     '1-2': '1–2 players',
     '3-4': '3–4 players',
     '5-6': '5–6 players',
