@@ -19,15 +19,54 @@ const _useLiveEvents = () => {
     const messages = ref<LiveEventMessage[]>([])
     const isLoading = ref(false)
     const error = ref('')
-    const liveEventsList = ref<any[]>([])
 
-    let eventId = ''
-    let token = ''
-    const myUserId = ref('')
-    let disconnect: (() => void) | undefined
+    const currentUser = 'You'
+    const findEvent = (id: string) => liveEvents.value.find(e => e.id === id)
 
-    const isJoined = computed(() => roster.value.some(a => a.userId === myUserId.value))
-    const isHost = computed(() => roster.value.some(a => a.userId === myUserId.value && a.isHost))
+    const activeLiveEvents = computed(() =>  liveEvents.value.filter(e => e.status !== 'ENDED'))
+
+    const setStatus = (eventId: string, status: 'LIVE' | 'PAUSED' | 'ENDED') => {
+        const event = findEvent(eventId)
+        if (event) event.status = status
+    }
+
+    const checkInPlayer = (eventId: string, seatNo: number) => {
+        const seat = findEvent(eventId)?.seats.find(s => s.seat === seatNo)
+        if (seat?.status === 'EN_ROUTE') seat.status = 'SEATED'
+    }
+
+    const removePlayer = (eventId: string, seatNo: number) => {
+        const seat = findEvent(eventId)?.seats.find(s => s.seat === seatNo)
+        if (seat && !seat.isHost) {
+            seat.user = null
+            seat.status = 'OPEN'
+        }
+    }
+
+    const setCapacity = (eventId: string, capacity: number) => {
+        const event = findEvent(eventId)
+        if (!event) return
+        while (event.seats.length < capacity) {
+            event.seats.push({ seat: event.seats.length + 1, user: null, status: 'OPEN' })
+        }
+
+        while (event.seats.length > capacity && event.seats.at(-1)?.status === 'OPEN') {
+            event.seats.pop()
+        }
+        event.capacity = event.seats.length
+    }
+
+    const postAnnouncement = (eventId: string, text: string) => {
+        const event = findEvent(eventId)
+        if (!event || !text.trim()) return
+        event.messages.push({
+            id: crypto.randomUUID(),
+            user: event.seats.find(s => s.isHost)?.user?.username ?? currentUser,
+            isHost: true,
+            text: text.trim(),
+            ts: Date.now()
+        })
+    }
 
     const fetchLiveEvents = async () => {
         isLoading.value = true
@@ -184,12 +223,21 @@ const _useLiveEvents = () => {
     }
 
     return {
-        event, roster, seats, seatedCount, messages,
-        isLoading, error, myUserId, isJoined, isHost,
-        openEvent, closeEvent,
-        createLiveEvent, claimSeat, sendMessage, postAnnouncement,
-        setMyStatus, deleteEvent,
-        activeLiveEvents, fetchLiveEvents,
+        liveEvents, 
+        isLoading, 
+        error, 
+        currentUser,
+        activeLiveEvents,
+        fetchLiveEvents, 
+        getLiveEvent, 
+        claimSeat, 
+        sendMessage, 
+        createLiveEvent,
+        setStatus,
+        checkInPlayer,
+        removePlayer,
+        setCapacity,
+        postAnnouncement,
     }
 }
 

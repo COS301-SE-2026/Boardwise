@@ -24,6 +24,7 @@
                     </div>
 
                     <BaseInput v-model="form.name" label="Event title" placeholder="e.g. Catan Marathon" />
+<<<<<<< HEAD
                     <v-autocomplete
                         v-if="form.timing === 'now'"
                         v-model="form.gameId"
@@ -40,6 +41,11 @@
                         @update:search="onGameSearch"
                     />
                     <v-autocomplete
+=======
+                    <BaseInput v-if="form.timing === 'now'" v-model="form.game" label="Game" placeholder="e.g. Catan" />
+
+                    <v-autocomplete 
+>>>>>>> edf84375bd43de1cf653f8fd8bc767f15b40919c
                         v-else
                         v-model="form.gameIds"
                         :items="gameOptions"
@@ -211,7 +217,7 @@
                                 @click="form.style = s.value"
                             >
                                 <span class="settings-choice-card__content">
-                                    <span class="settings-choice-card-title">{{ s.label }}</span>
+                                    <span class="settings-choice-card__title">{{ s.label }}</span>
                                     <span class="settings-choice-card__description">{{ s.desc }}</span>
                                 </span>
                             </button>
@@ -233,7 +239,7 @@
                             @click="form.privacy = 'public'"
                         >
                             <span class="settings-choice-card__content">
-                                <span class="settings-choice-card-title">Public</span>
+                                <span class="settings-choice-card__title">Public</span>
                                 <span class="settings-choice-card__description">Listed on Live Events Hub for nearby players.</span>
                             </span>
                         </button>
@@ -246,7 +252,7 @@
                         >
                             <span class="settings-choice-card__icon"><v-icon size="20">mdi-lock-outline</v-icon></span>
                             <span class="settings-choice-card__content">
-                                <span class="settings-choice-card-title">Private / Friends Only</span>
+                                <span class="settings-choice-card__title">Private / Friends Only</span>
                                 <span class="settings-choice-card__description">Accessible via direct share link only.</span>
                             </span>
                         </button>
@@ -324,7 +330,11 @@ const onGameSearch = (query) => {
     gameSearchTimeout = setTimeout(() => searchGames(query), 400)
 }
 
+<<<<<<< HEAD
 const form = ref({ name: '', gameId: null, gameIds: [], venue: '', table: '', capacity: 4, format: 'in-person', timing: 'now', date: '', time: '', duration: 'standard', style: 'casual', privacy: 'public', autoApprove: true })
+=======
+const form = ref({ name: '', game: '', gameIds: [], venue: '', table: '', capacity: 4 ,format: 'in-person', timing: 'now', date: '', time: '', duration: 'standard', style: 'casual', privacy: 'public', autoApprove: true })
+>>>>>>> edf84375bd43de1cf653f8fd8bc767f15b40919c
 
 const submitting = ref(false)
 
@@ -334,12 +344,21 @@ const adjustCapacity = (delta) => {
 
 const isValid = computed(() => {
     const f = form.value
+<<<<<<< HEAD
     const tableOk = f.format === 'virtual' || !!f.table
     if (f.timing === 'later') {
         return !!(f.name && f.venue && tableOk && f.date && f.time && f.gameIds.length > 0)
     }
     return !!(f.name && f.gameId && f.venue && tableOk)
 })
+=======
+    if (f.timing === 'later') {
+        return f.name && f.venue && f.table && f.date && f.time && f.gameIds.length > 0
+    }
+    return f.name && f.game && f.venue && f.table
+})
+
+>>>>>>> edf84375bd43de1cf653f8fd8bc767f15b40919c
 const DURATION_HOURS = { short: 2, standard: 4, marathon: 6 }
 
 const addHours = (time, hours) => {

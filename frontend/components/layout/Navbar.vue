@@ -4,6 +4,7 @@
     border="b" 
     color="surface" 
     height="72" 
+    class="app-bar"
   >
 
   <div class="navbar">
@@ -21,13 +22,7 @@
 
     <!-- Desktop Search -->
     <div v-if="lgAndUp" class="center">
-      <BaseSearch
-        v-model="searchQuery"
-        placeholder="Search games, users, rules..."
-        aria-label="Search"
-        class="search"
-        @keyup.enter="submitSearch(searchQuery)"
-      />
+      <GlobalSearch class="search" />
     </div>
 
     <!-- Desktop Navigation -->
@@ -70,6 +65,13 @@
               title="Settings"
               to="/settings"
           />
+
+          <v-list-item
+              prepend-icon="mdi-help-circle-outline"
+              title="Help"
+              to="/help"
+          />
+
           <v-divider class="my-1" />
           <v-list-item class="px-2">
               <LogOutButton block />
@@ -80,10 +82,14 @@
     <!-- Mobile -->
 
     <div v-if="!lgAndUp" class="mobile">
-      <v-menu 
-        :close-on-content-click="false" 
-        location="bottom end" 
+      <BaseButton
+        icon
+        variant="text"
+        aria-label="Search"
+        :aria-expanded="String(mobileSearchOpen)"
+        @click="mobileSearchOpen = !mobileSearchOpen"
       >
+<<<<<<< HEAD
 
         <template #activator="{ props: menuProps }">
           <BaseButton 
@@ -108,6 +114,12 @@
           />
         </v-card>
       </v-menu>
+
+      <NotificationBell />
+=======
+        <v-icon size="26">{{ mobileSearchOpen ? 'mdi-close' : 'mdi-magnify' }}</v-icon>
+      </BaseButton>
+>>>>>>> edf84375bd43de1cf653f8fd8bc767f15b40919c
 
       <NotificationBell />
 
@@ -142,6 +154,12 @@
             to="/settings"
           />
 
+          <v-list-item
+              prepend-icon="mdi-help-circle-outline"
+              title="Help"
+              to="/help"
+          />
+
           <v-divider class="my-1" />
           <v-list-item class="px-2">
             <LogOutButton block />
@@ -150,6 +168,10 @@
     </div>
   </div>
 </v-app-bar>
+
+<div v-if="!lgAndUp && mobileSearchOpen" class="mobile-search-bar">
+  <GlobalSearch placeholder="Search..." @select="mobileSearchOpen = false" />
+</div>
 
 <v-navigation-drawer 
   v-model="drawer" 
@@ -170,24 +192,15 @@
 <script setup>
 import { ref } from 'vue'
 import { useDisplay } from 'vuetify'
-import { useRouter } from 'vue-router'
 
 import LogOutButton from '~/components/features/auth/LogOutButton.vue'
+import GlobalSearch from '../features/search/GlobalSearch.vue'
 import BaseButton from '../ui/BaseButton.vue'
 import BaseDropdown from '../ui/BaseDropdown.vue'
 import NotificationBell from '../features/notifications/NotificationBell.vue'
 
 const drawer = ref(false)
-
-const router = useRouter()
-const searchQuery = ref('')
-const mobileSearchQuery = ref('')
-
-const submitSearch = (query) => {
-  const q = query.trim()
-  if(!q) return
-  router.push({ path: '/search', query:{ q } })
-}
+const mobileSearchOpen = ref(false)
 
 const { lgAndUp } = useDisplay()
 </script>
@@ -260,7 +273,7 @@ const { lgAndUp } = useDisplay()
 }
 
 @media (max-width:1279px) {
-  :deep(.v-toolbar__content) {
+  .v-toolbar__content {
     padding: 0 12px;
   }
 
@@ -286,12 +299,20 @@ const { lgAndUp } = useDisplay()
   gap: 4px;
 }
 
-:deep(.v-field--outlined) {
+.v-field--outlined {
   --v-field-border-color: var(--color-border-strong);
   --v-field-border-opacity: 1;
 }
 
-:deep(.v-field--focused) {
+.v-field--focused {
   --v-field-border-color: var(--color-primary) !important;
+}
+
+.app-bar {
+  overflow: visible !important;
+}
+
+.mobile-search {
+  overflow: visible !important;
 }
 </style>

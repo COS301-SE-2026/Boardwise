@@ -303,6 +303,7 @@ python_egress_ipv4 = aws.vpc.SecurityGroupEgressRule(
     ip_protocol="-1",
 )
 
+<<<<<<< HEAD
 python_to_spring = aws.vpc.SecurityGroupIngressRule(
     "spring-sg-ingress-python",
     description="Permit traffic from python/fastapi backend to spring backend",
@@ -312,6 +313,10 @@ python_to_spring = aws.vpc.SecurityGroupIngressRule(
     to_port=8080,
     ip_protocol="tcp"
 )
+=======
+# make unstructured instance security group. Allow traffic from python
+
+>>>>>>> edf84375bd43de1cf653f8fd8bc767f15b40919c
 # set up backend
 ami = aws.ssm.get_parameter(
     name="/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
@@ -349,9 +354,13 @@ backend_profile = aws.iam.InstanceProfile(
     f"{RESOURCE_PREFIX}-backend-profile", role=backend_role.name
 )
 
+<<<<<<< HEAD
 PYTHON_PRIVATE_IP = "10.0.0.10"
 SPRING_PRIVATE_IP = "10.0.0.11"
 SCRAPER_PRIVATE_IP = "10.0.0.12"
+=======
+# Make unstructured instance
+>>>>>>> edf84375bd43de1cf653f8fd8bc767f15b40919c
 
 python_repo = awsx.ecr.Repository(f"{RESOURCE_PREFIX}-python-repo", force_delete=True)
 
@@ -364,26 +373,14 @@ python_image = awsx.ecr.Image(
 
 python_setup_script = r"""#!/bin/bash
 yum update -y
-yum install -y docker cronie
+yum install -y docker
 
 systemctl enable --now docker
-systemctl enable --now crond
 
 aws ecr get-login-password --region __REGION__ | docker login --username AWS --password-stdin __REGISTRY_URL__
 
 mkdir -p /var/lib/lancedb
 chown 1001:1001 /var/lib/lancedb
-
-AWS_ACCESS_KEY_ID="__R2_ACCESS_KEY__" \
-AWS_SECRET_ACCESS_KEY="__R2_SECRET_KEY__" \
-AWS_DEFAULT_REGION="auto" \
-aws s3 sync s3://__R2_BUCKET_RULEBOOKS__/lancedb_backup /var/lib/lancedb \
-    --endpoint-url "https://__R2_ACCOUNT_ID__.r2.cloudflarestorage.com"
-
-cat << 'EOF' > /etc/cron.d/lancedb_backup
-0 */2 * * * root AWS_ACCESS_KEY_ID="__R2_ACCESS_KEY__" AWS_SECRET_ACCESS_KEY="__R2_SECRET_KEY__" AWS_DEFAULT_REGION="auto" aws s3 sync /var/lib/lancedb s3://__R2_BUCKET_RULEBOOKS__/lancedb_backup --endpoint-url "https://__R2_ACCOUNT_ID__.r2.cloudflarestorage.com" >> /var/log/lancedb_sync.log 2>&1
-EOF
-chmod 0644 /etc/cron.d/lancedb_backup
 
 docker run -d \
     --restart always \
@@ -409,12 +406,18 @@ docker run -d \
     -e EMBEDDING_DIMENSIONS="__EMBEDDING_DIMENSIONS__" \
     -e APP_ENV="__APP_ENV__" __IMAGE_URI__
 """
+<<<<<<< HEAD
 
 python_user_data = pulumi.Output.all(
     image_uri=python_image.image_uri,
 ).apply(
     lambda args : python_setup_script
                         .replace("__IMAGE_URI__", args["image_uri"])
+=======
+python_user_data = python_image.image_uri.apply(
+    lambda image_uri : python_setup_script
+                        .replace("__IMAGE_URI__", image_uri)
+>>>>>>> edf84375bd43de1cf653f8fd8bc767f15b40919c
                         .replace("__CPU_CORES__", str(settings.CPU_CORES))
                         .replace("__INTERNAL_SECRET__", settings.INTERNAL_WEBHOOK_SECRET)
                         .replace("__HF_TOKEN__", settings.HF_TOKEN)
@@ -426,12 +429,19 @@ python_user_data = pulumi.Output.all(
                         .replace("__JWT_SECRET__", settings.JWT_SECRET)
                         .replace("__DB_NAME__", settings.MONGODB_DATABASE)
                         .replace("__PROD_DB_URL__", settings.MONGODB_URL)
-                        .replace("__REGISTRY_URL__", args['image_uri'].split('/')[0])
+                        .replace("__REGISTRY_URL__", image_uri.split('/')[0])
                         .replace("__REGION__", aws.get_region().region)
+<<<<<<< HEAD
                         .replace("__EMBEDDING_DIMENSIONS__", str(settings.EMBEDDING_DIMENSIONS))
                         .replace("__PROD_SPRING_API_BASE__", f"http://{SPRING_PRIVATE_IP}:8080/api/sb/")
                         .replace("__GEMINI_API_KEY__", settings.GEMINI_API_KEY)
                         .replace("__GLM_API_KEY__", settings.GLM_API_KEY)
+=======
+                        .replace("__SYSTEM_CONTRIBUTOR_ID__", settings.SYSTEM_CONTRIBUTOR_ID)
+                        .replace("__UNSTRUCTURED_API_KEY__", settings.UNSTRUCTURED_API_KEY)
+                        .replace("__UNSTRUCTURED_PROD_URL__", "make instance then inser value")
+                        .replace("__EMBEDDING_DIMENSIONS__", settings.EMBEDDING_DIMENSIONS)
+>>>>>>> edf84375bd43de1cf653f8fd8bc767f15b40919c
                         .replace("__APP_ENV__", settings.APP_ENV)
 )
 
