@@ -186,7 +186,7 @@
     --radiux-xl: 32px;
 }
 
-    
+
 /* =============================================================
    BASE RESETS
    ============================================================= */
@@ -573,7 +573,7 @@ a { color: var(--color-link); text-decoration: none; }
 
   .game-strip {
     gap: var(--space-2);
-    
+
   }
 
   .game-card {
@@ -4935,12 +4935,12 @@ button:disabled,
   -webkit-overflow-scrolling: touch;
 }
 
-.mobile-filters__row::-webkit-scrollbar { 
-  display: none; 
+.mobile-filters__row::-webkit-scrollbar {
+  display: none;
 }
 
-.mobile-filters__row > * { 
-  flex: 0 0 auto; 
+.mobile-filters__row > * {
+  flex: 0 0 auto;
 }
 
 .mobile-filters__sheet {
@@ -4957,14 +4957,14 @@ button:disabled,
   padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--color-border);
 }
-.mobile-filters__header .card-title { 
-  font-size: var(--fs-h3); 
+.mobile-filters__header .card-title {
+  font-size: var(--fs-h3);
 }
 
-.mobile-filters__body { 
-  flex: 1; 
-  overflow-y: auto; 
-  padding: var(--space-4); 
+.mobile-filters__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
 }
 
 .mobile-filters__footer {
@@ -4979,8 +4979,8 @@ button:disabled,
   padding: 0 !important;
 }
 
-.mobile-filters__body :deep(.base-filter-sidebar__heading) { 
-  display: none; 
+.mobile-filters__body :deep(.base-filter-sidebar__heading) {
+  display: none;
 }
 
 @media (max-width: 600px) {
@@ -4989,13 +4989,13 @@ button:disabled,
     gap: var(--space-3);
   }
 
-  .base-grid .base-card__body { 
-    padding: var(--space-3); 
+  .base-grid .base-card__body {
+    padding: var(--space-3);
   }
 
-  .base-grid .card-title { 
-    font-size: var(--fs-body); 
-    overflow-wrap: anywhere; 
+  .base-grid .card-title {
+    font-size: var(--fs-body);
+    overflow-wrap: anywhere;
   }
 
   .base-filter-sidebar {
@@ -9092,8 +9092,8 @@ button:disabled,
   .host-controls-trigger { width: 100%; }
 }
 
-.is-refreshing { 
-  opacity: 0.5; 
-  pointer-events: none; 
-  transition: opacity var(--transition-fast); 
+.is-refreshing {
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
 }
