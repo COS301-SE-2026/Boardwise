@@ -1,6 +1,8 @@
 <template>
-  <section class="game-architect-result" aria-labelledby="architect-result-title">
-    <img
+  <section
+    class="game-architect-job-progress"
+    aria-labelledby="architect-progress-title"
+  ><img
       src="/images/Boarley_cute.svg"
       alt=""
       class="game-architect-result__mascot"
