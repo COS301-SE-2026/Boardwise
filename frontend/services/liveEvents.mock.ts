@@ -19,7 +19,7 @@ export interface LiveEvent {
     game: string
     venue: string
     table: string
-    status: 'LIVE'
+    status: 'LIVE' | 'PAUSED' | 'ENDED'
     capacity: number
     seats: LiveEventSeat[]
     startedAt: number

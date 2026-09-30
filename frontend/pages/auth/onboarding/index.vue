@@ -48,11 +48,9 @@ import PageContainer from '~/components/layout/PageContainer.vue'
 
 import { userService } from '~/services/userService'
 import { useBoardGames } from '~/composables/useBoardGames'
-// import { useProfile } from '~/composables/useProfile'
 
 const router = useRouter()
 const { user } = useAuth()
-// const { updateGenrePreferences } = useProfile()
 
 const pageRef = ref(null)
 const step = ref(1)
@@ -65,7 +63,7 @@ const selectedGenreIds = ref([])
 const genreOptions = ref([])
 const seenGames = ref({})
 
-const genres = ["Economic"," Strategy","Abstract Strategy","Card Game","Science Fiction","Cooperative", "Party Game", "Fantasy", "Wargame"];
+const genres = ["Economic","Strategy","Abstract Strategy","Card Game","Science Fiction","Cooperative", "Party Game", "Fantasy", "Wargame", "Dice"];
 
 const {
     games,
@@ -100,9 +98,6 @@ watch(step, async () => {
 })
 
 onMounted(async () => {
-    if(localStorage.getItem("access_token")){
-        router.push("/library");
-    }
     await Promise.all([
         loadTopNGenres(),
         handleGetGames(),
@@ -132,22 +127,9 @@ async function handleTabChange(tab) {
 }
 
 async function handleGenresSelected(ids) {
-    isSubmitting.value = true
-    errorMessages.value = ''
-
-    try{
-        await userService.updateGenrePreferences(ids)
-        await getPopularGamesBasedOnGenres(ids)
-        selectedGenreIds.value = ids
-        step.value = 3
-    }
-    catch (err) {
-        console.error('Failed to save genre preferences or fetch games by genre: ', err)
-        errorMessages.value = 'Failed to save genre preferences or fetch games by genre. Please try again.'
-    } finally {
-        isSubmitting.value = false
-    }
-    
+    selectedGenreIds.value = ids
+    await getPopularGamesBasedOnGenres(ids)
+    step.value = 3
 }
 
 async function handleGamesSelected(selectedIds) {

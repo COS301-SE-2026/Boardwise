@@ -1,7 +1,7 @@
 <template>
   <BaseCard
     clickable
-    class="games-card"
+    class="games-card game-card"
     @click="handleBoardgameRedirect"
     >
 
@@ -19,6 +19,7 @@
       </p>
 
       <BaseButton
+        v-if="removable"
         variant="text"
         size="small"
         class="game-card__remove"
@@ -39,21 +40,14 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 import RemoveGameModal from './RemoveGameModal.vue'
 
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useProfile } from '~/composables/useProfile'
-import { useSnackBar } from '~/composables/useSnackbar'
-
-const { fetchGetBoardgameRulebookId, error } = useProfile();
-const { show } = useSnackBar();
 
 const props = defineProps({
   id: { type: String, required: true },
   title: { type: String, default: '' },
   category: { type: String, default: '' },
-  image: { type: String, default: '' }
+  image: { type: String, default: '' },
+  removable: { type: Boolean, default: true }
 })
-
-const router = useRouter()
 
 const emit = defineEmits(['remove'])
 
@@ -64,15 +58,6 @@ const decodedCategory = computed(() => decodeEntity(props.category));
 
 function handleRemove(){
   emit('remove');
-}
-
-const handleBoardgameRedirect = async () => {
-  try{
-    const rulebookId = await fetchGetBoardgameRulebookId(props.id);
-    router.push(`/library/read/${rulebookId}`);
-  }catch(err){
-    if(err.message) show(error.value, 'error');
-  }
 }
 
 function decodeEntity(entity) {

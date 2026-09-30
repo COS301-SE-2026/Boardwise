@@ -12,6 +12,11 @@
       Date of Issue: {{ formattedDate }}
     </p>
 
+    <div class="d-flex flex-wrap ga-2 mt-2">
+      <span class="chip chip--obsidian"><v-icon size="16">mdi-account-group</v-icon>{{ rulebook.minPlayers }}-{{ rulebook.maxPlayers }} players</span>
+      <span class="chip chip--obsidian"><v-icon size="16">mdi-clock-outline</v-icon>{{ rulebook.duration }}</span>
+      <span class="chip chip--obsidian"><v-icon size="16">mdi-account</v-icon>{{ rulebook.minAge }}+</span>
+    </div>
   </div>
 </template>
 

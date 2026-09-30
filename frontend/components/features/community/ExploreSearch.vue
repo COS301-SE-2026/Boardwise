@@ -1,34 +1,21 @@
 <template>
-  <div class="d-flex flex-wrap align-center ga-4 mt-6">
+  <div class="d-flex ga-3 align-center search-container">
 
     <div class="flex-grow-1">
       <BaseSearch
         v-model="model"
         placeholder="Search for a community..."
-        hide-details
+        @update:model-value="$emit('search', $event)"
       />
     </div>
-
-    <BaseButton 
-      variant="primary" 
-      @click="$emit('create-community')"
-    >
-      + Create a community
-    </BaseButton>
-
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import BaseSearch from '~/components/ui/BaseSearch.vue'
-import BaseButton from '~/components/ui/BaseButton.vue'
 
-const model = defineModel({
-  type: String,
-  default: ''
-})
+const search = ref('')
 
-defineEmits([
-  'create-community'
-])
+defineEmits(['search'])
 </script>

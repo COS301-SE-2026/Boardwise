@@ -24,7 +24,40 @@
                     </div>
 
                     <BaseInput v-model="form.name" label="Event title" placeholder="e.g. Catan Marathon" />
-                    <BaseInput v-model="form.game" label="Game" placeholder="e.g. Catan" />
+
+                    <v-autocomplete
+                        v-if="form.timing === 'now'"
+                        v-model="form.gameId"
+                        :items="gameOptions"
+                        :loading="gamesLoading"
+                        item-title="title"
+                        item-value="id"
+                        label="Game"
+                        placeholder="Search for a game"
+                        variant="outlined"
+                        density="comfortable"
+                        rounded="xl"
+                        hide-details
+                        @update:search="onGameSearch"
+                    />
+                    <v-autocomplete
+                        v-else
+                        v-model="form.gameIds"
+                        :items="gameOptions"
+                        :loading="gamesLoading"
+                        item-title="title"
+                        item-value="id"
+                        label="Games"
+                        placeholder="Search for games to add"
+                        variant="outlined"
+                        density="comfortable"
+                        rounded="xl"
+                        multiple
+                        chips
+                        closable-chips
+                        hide-details
+                        @update:search="onGameSearch"
+                    />
 
                     <div>
                         <p class="card-subtitle" style="margin-bottom: var(--space-2)">Session Format</p>
@@ -57,15 +90,16 @@
                         </div>
                     </div>
 
-                    <BaseInput 
+                    <BaseInput
                         v-model="form.venue"
                         :label="form.format === 'virtual' ? 'Platform link / invite' : 'Venue name & table details'"
                         :placeholder="form.format === 'virtual' ? 'e.g. discord.gg/boardwise' : 'e.g. Tabletop Tavern Hatfield'"
                     />
 
-                    <BaseInput v-model="form.table" label="Table" placeholder="e.g. Table 4" />
+                    <BaseInput v-if="form.format !== 'virtual'" v-model="form.table" label="Table" placeholder="e.g. Table 4" />
                 </section>
 
+                <!-- 2. Timing & Readiness -->
                 <section class="live-form-section">
                     <div class="live-form-section__title">
                         <span class="live-form-section__dot" />
@@ -77,16 +111,16 @@
                             When is this event happening?
                         </p>
                         <div class="live-form-toggle-group">
-                            <button 
+                            <button
                                 type="button"
                                 class="live-form-toggle"
                                 :class="{ 'live-form-toggle--active': form.timing === 'now' }"
                                 @click="form.timing = 'now'"
                             >
-                                <v-icon size="14">mdi-record-circle</v-icon> Start  immediately
+                                <v-icon size="14">mdi-record-circle</v-icon> Start immediately
                             </button>
 
-                            <button 
+                            <button
                                 type="button"
                                 class="live-form-toggle"
                                 :class="{ 'live-form-toggle--active': form.timing === 'later' }"
@@ -98,24 +132,16 @@
                     </div>
 
                     <div v-if="form.timing === 'later'" class="d-flex ga-3">
-                        <BaseInput 
-                            v-model="form.date" 
-                            label="Date" type="date" 
-                        />
-                        
-                        <BaseInput 
-                            v-model="form.time" 
-                            label="Start time" 
-                            type="time" 
-                        />
+                        <BaseInput v-model="form.date" label="Date" type="date" />
+                        <BaseInput v-model="form.time" label="Start time" type="time" />
                     </div>
 
                     <div>
                         <p class="card-subtitle" style="margin-bottom: var(--space-2);">
-                           Estimated Duration
+                            Estimated Duration
                         </p>
                         <div class="settings-choice-grid">
-                            <button 
+                            <button
                                 v-for="d in durationOptions"
                                 :key="d.value"
                                 type="button"
@@ -124,7 +150,7 @@
                                 @click="form.duration = d.value"
                             >
                                 <span class="settings-choice-card__content">
-                                    <span class="settings-choice-card-title">{{ d.label }}</span>
+                                    <span class="settings-choice-card__title">{{ d.label }}</span>
                                     <span class="settings-choice-card__description">{{ d.desc }}</span>
                                 </span>
                             </button>
@@ -132,6 +158,7 @@
                     </div>
                 </section>
 
+                <!-- 3. Capacity & Table Tone -->
                 <section class="live-form-section">
                     <div class="live-form-section__title">
                         <span class="live-form-section__dot" />
@@ -144,33 +171,24 @@
                         </p>
                         <p class="card-meta" style="margin-bottom: var(--space-2)">Total seats available (incl. host)</p>
                         <div class="capacity-stepper">
-                            <BaseButton 
-                                icon
-                                size="36"
-                                variant="text"
-                                @click="adjustCapacity(-1)"
-                            >
+                            <BaseButton icon size="36" variant="text" @click="adjustCapacity(-1)">
                                 <v-icon size="18">mdi-minus</v-icon>
                             </BaseButton>
 
-                            <span class="capacity-stepper__value">{{ form.capacity }}</span> 
-                            <BaseButton
-                                icon
-                                size="36"
-                                variant="text"
-                                @click="adjustCapacity(1)"
-                            >
-                               <v-icon size="18">mdi-plus</v-icon>
+                            <span class="capacity-stepper__value">{{ form.capacity }}</span>
+
+                            <BaseButton icon size="36" variant="text" @click="adjustCapacity(1)">
+                                <v-icon size="18">mdi-plus</v-icon>
                             </BaseButton>
                         </div>
                     </div>
 
                     <div>
                         <p class="card-subtitle" style="margin-bottom: var(--space-2);">
-                           Table Tone &amp; Style
+                            Table Tone &amp; Style
                         </p>
                         <div class="settings-choice-grid">
-                            <button 
+                            <button
                                 v-for="s in styleOptions"
                                 :key="s.value"
                                 type="button"
@@ -179,7 +197,7 @@
                                 @click="form.style = s.value"
                             >
                                 <span class="settings-choice-card__content">
-                                    <span class="settings-choice-card-title">{{ s.label }}</span>
+                                    <span class="settings-choice-card__title">{{ s.label }}</span>
                                     <span class="settings-choice-card__description">{{ s.desc }}</span>
                                 </span>
                             </button>
@@ -187,6 +205,7 @@
                     </div>
                 </section>
 
+                <!-- 4. Privacy & Seating -->
                 <section class="live-form-section">
                     <div class="live-form-section__title">
                         <span class="live-form-section__dot" />
@@ -194,19 +213,19 @@
                     </div>
 
                     <div class="settings-choice-grid settings-choice-grid--two">
-                        <button 
+                        <button
                             type="button"
                             class="settings-choice-card settings-choice-card--compact"
                             :class="{ 'settings-choice-card--selected': form.privacy === 'public' }"
                             @click="form.privacy = 'public'"
                         >
                             <span class="settings-choice-card__content">
-                                <span class="settings-choice-card-title">Public</span>
+                                <span class="settings-choice-card__title">Public</span>
                                 <span class="settings-choice-card__description">Listed on Live Events Hub for nearby players.</span>
                             </span>
                         </button>
 
-                        <button 
+                        <button
                             type="button"
                             class="settings-choice-card settings-choice-card--compact"
                             :class="{ 'settings-choice-card--selected': form.privacy === 'private' }"
@@ -214,7 +233,7 @@
                         >
                             <span class="settings-choice-card__icon"><v-icon size="20">mdi-lock-outline</v-icon></span>
                             <span class="settings-choice-card__content">
-                                <span class="settings-choice-card-title">Private / Friends Only</span>
+                                <span class="settings-choice-card__title">Private / Friends Only</span>
                                 <span class="settings-choice-card__description">Accessible via direct share link only.</span>
                             </span>
                         </button>
@@ -225,7 +244,6 @@
                             <p class="card-subtitle" style="margin: 0;">
                                 Auto-approve RSVPs
                             </p>
-
                             <p class="card-meta">
                                 Guests take open seats immediately, no host approval needed.
                             </p>
@@ -238,9 +256,9 @@
                 <div class="live-form-footer">
                     <BaseBackButton :to="'/events'" variant="text">Cancel</BaseBackButton>
 
-                    <BaseButton type="submit" :loading="isLoading" :disabled="!isValid">
-                        <v-icon start>mdi-play-circle</v-icon>
-                        Launch Live Event
+                    <BaseButton type="submit" :loading="submitting" :disabled="!isValid">
+                        <v-icon start>{{ form.timing === 'later' ? 'mdi-calendar-plus' : 'mdi-play-circle' }}</v-icon>
+                        {{ form.timing === 'later' ? 'Schedule Event' : 'Launch Live Event' }}
                     </BaseButton>
                 </div>
             </form>
@@ -250,7 +268,7 @@
                 <div>
                     <p class="card-subtitle" style="margin: 0;">Host tip</p>
                     <p class="card-meta">
-                        Public sessions fill up faster when your venue name includes a landmark or table number. 
+                        Public sessions fill up faster when your venue name includes a landmark or table number.
                     </p>
                 </div>
             </div>
@@ -259,7 +277,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 import Navbar from '~/components/layout/Navbar.vue'
@@ -269,6 +287,8 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 
 import { useLiveEvents } from '~/composables/useLiveEvents'
+import { useEvents } from '~/composables/useEvents'
+import { useBoardGames } from '~/composables/useBoardGames'
 import { useSnackBar } from '~/composables/useSnackbar'
 
 definePageMeta({
@@ -276,31 +296,115 @@ definePageMeta({
 })
 
 const router = useRouter()
-const { createLiveEvent, isLoading } = useLiveEvents()
 const { show } = useSnackBar()
 
-const form = ref({ name: '', game: '', venue: '', table: '', capacity: 4 , format: 'in-person', timing: 'now', date: '', time: '', duration: 'standard', style: 'casual', privacy: 'public', autoApprove: true})
+const { createEvent } = useEvents()
+const { games: gameOptions, isLoading: gamesLoading, searchGames } = useBoardGames()
+const { createLiveEvent } = useLiveEvents()
+
+onMounted(() => searchGames())
+
+let gameSearchTimeout
+const onGameSearch = (query) => {
+    clearTimeout(gameSearchTimeout)
+    gameSearchTimeout = setTimeout(() => searchGames(query), 400)
+}
+
+const form = ref({
+    name: '',
+    gameId: null,
+    gameIds: [],
+    venue: '',
+    table: '',
+    capacity: 4,
+    format: 'in-person',
+    timing: 'now',
+    date: '',
+    time: '',
+    duration: 'standard',
+    style: 'casual',
+    privacy: 'public',
+    autoApprove: true,
+})
+
+const submitting = ref(false)
 
 const adjustCapacity = (delta) => {
     form.value.capacity = Math.max(3, Math.min(12, form.value.capacity + delta))
 }
-const isValid = computed(() => form.value.name && form.value.game && form.value.venue && form.value.table)
+
+const isValid = computed(() => {
+    const f = form.value
+    const tableOk = f.format === 'virtual' || !!f.table
+    if (f.timing === 'later') {
+        return !!(f.name && f.venue && tableOk && f.date && f.time && f.gameIds.length > 0)
+    }
+    return !!(f.name && f.gameId && f.venue && tableOk)
+})
+
+// ============================== Scheduling =========================================
+
+const DURATION_HOURS = { short: 2, standard: 4, marathon: 6 }
+
+const addHours = (time, hours) => {
+    const [h, m] = time.split(':').map(Number)
+    if (h + hours > 23) return '23:59'
+    return `${String(h + hours).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
+
+const handleSchedule = async () => {
+    const f = form.value
+
+    const eventInfo = {
+        name: f.name,
+        description:
+            `${f.style} table · ${f.capacity} seats` +
+            (f.format === 'virtual' ? ` · Join: ${f.venue}` : ` · ${f.table}`),
+        date: f.date,
+        startTime: `${f.time}:00`,
+        endTime: `${addHours(f.time, DURATION_HOURS[f.duration] ?? 4)}:00`,
+        location: f.format === 'virtual' ? 'Online' : `${f.venue}, ${f.table}`,
+        visibility: f.privacy.toUpperCase(),
+        games: f.gameIds,
+    }
+
+    await createEvent(eventInfo, null)
+    show('Your event is scheduled. Game on!', 'success')
+    router.push('/events')
+}
+
+// ============================== Submit =============================================
 
 const handleSubmit = async () => {
-  const event = await createLiveEvent(form.value)
-  show('Live table launched!', 'success')
-  router.push(`/live-events/${event.id}`)
+    if (submitting.value || !isValid.value) return
+    submitting.value = true
+
+    try {
+        if (form.value.timing === 'later') {
+            await handleSchedule()
+        } else {
+            const event = await createLiveEvent(form.value)
+            show('Live table launched!', 'success')
+            router.push(`/live-events/${event.id}`)
+        }
+    } catch (err) {
+        show(err?.data?.message || 'Something went wrong. Please try again.', 'error')
+    } finally {
+        submitting.value = false
+    }
 }
+
+// ============================== Options ============================================
 
 const durationOptions = [
     { value: 'short', label: '1–2 Hours', desc: 'Quick game / filler' },
     { value: 'standard', label: '2–4 Hours', desc: 'Standard Euro/Strategy' },
-    { value: 'marathon', label: '4+ Hours', desc: 'Epic or Campaign' }
+    { value: 'marathon', label: '4+ Hours', desc: 'Epic or Campaign' },
 ]
 
 const styleOptions = [
     { value: 'casual', label: 'Casual / Social', desc: 'Relaxed fun' },
     { value: 'learn', label: 'Learn to Play', desc: 'Beginners welcome' },
-    { value: 'competitive', label: 'Competitive', desc: 'Deep strategy' }
+    { value: 'competitive', label: 'Competitive', desc: 'Deep strategy' },
 ]
 </script>

@@ -44,5 +44,5 @@ import BaseCard from '~/components/ui/BaseCard.vue'
 import type { ChecklistItem } from '~/composables/useSetupWizard'
 
 defineProps<{ item: ChecklistItem }>()
-defineEmits<{ (e: 'toggle', id: string): void}>()
+defineEmits<{ (e: 'toggle', id: number): void}>()
 </script>

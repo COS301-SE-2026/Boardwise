@@ -30,14 +30,11 @@ export const useBoardGames = () => {
 
         try {
             const data = await BoardGameService.getGenres(query)
-            const res = data.genres ?? []
 
-            genres.value = res
-            return res
+            genres.value = data.genres??[]
         } catch (err: any) {
             error.value = err.data?.message || 'Failed to load genres'
             genres.value = []
-            return []
         }
     }
 

@@ -85,14 +85,14 @@
 //   which only creates the catalog entry and does NOT touch inventory. Its
 //   response has no usable id/title, so we poll search for the newly
 //   created game and emit that resolved object instead.
-import { ref, reactive, } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import BaseModal from '~/components/ui/BaseModal.vue'
 import BaseInput from '~/components/ui/BaseInput.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import { useProfile } from '@/composables/useProfile'
 import { useBoardGames } from '~/composables/useBoardGames'
 import { userService } from '~/services/userService'
-import { useDebouncedAutocomplete } from '~/composables/useDebounce'
+import { useDebounceFn } from '@vueuse/core'
 
 const { addGame, createGame, isLoading, error } = useProfile();
 const { games, searchGames } = useBoardGames();
@@ -119,6 +119,9 @@ const fileName = ref('');
 const fileInput = ref(null);
 const file = ref(null);
 const isResolving = ref(false);
+const genreOptions = ref([]);
+const genreSearch = ref('')
+const isSelecting = ref(false)
 
 const numberFields = reactive({
     minPlayers: null,
@@ -138,18 +141,32 @@ const numberFieldRows = [
     ]
 ]
 
-const fetchGamesForAutocomplete = async (query) => {
+watch(genreSearch, (val) => {
+    if (isSelecting.value) {
+        isSelecting.value = false;
+        return;
+    }
+    if (val !== null && val !== undefined) {
+        fetchGenres(val)
+    }
+})
+
+const handleGenreSelect = () => {
+    isSelecting.value = true
+}
+
+const fetchGenres = useDebounceFn(async (query) => {
+    if (query === null || query === undefined) return; // ignore post-selection clear
     try {
         const res = await userService.getGenres(query);
-        return res.genres ?? [];
+        genreOptions.value = res.genres;
     }
     catch (err) {
         console.error('failed to load genres: ', err);
-        return [];
     }
-}
+}, 300)
 
-const {genreSearch, options: genreOptions, markSelecting: handleGenreSelect } = useDebouncedAutocomplete(fetchGamesForAutocomplete, {debounceMs: 300, fetchOnMount: true});
+onMounted(() => fetchGenres(''))
 
 const triggerUpload = () => fileInput.value?.click()
 
@@ -176,7 +193,6 @@ const closeModal = () => {
     genres.value = [];
     fileName.value = '';
     file.value = null;
-    gameSearch.value = ''
 }
 
 // Newly created games can take a moment to become searchable, so poll

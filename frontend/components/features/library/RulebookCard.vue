@@ -1,9 +1,9 @@
 <template> 
   <BaseCard clickable class="h-100 d-flex flex-column" @click="$emit('click', rulebook)"> 
     <template #media>
-      <BaseImage 
-        :src="rulebook.coverUrl" 
-        :alt="rulebook.title" 
+      <BaseImage
+        :src="rulebook.coverUrl"
+        :alt="rulebook.title"
         :height="size === 'sm' ? '120px' : '200px'"
       />
     </template>
@@ -16,7 +16,7 @@
         {{ rulebook.title }}
       </p>
       <p class="card-meta">
-        {{ rulebook.edition }}
+        {{ rulebook.edition ?? `${rulebook.minPlayers}-${rulebook.maxPlayers} players` }}
       </p>
     </div>
   </BaseCard>
