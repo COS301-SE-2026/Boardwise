@@ -4,8 +4,8 @@
             <BaseImage src="/images/Boarley_cute.svg" alt="Boarley" height="32px" width="32px" fit="contain" />
 
             <div>
-                <p class="wizard-chat-panel__title">Boarley Copilot</p>
-                <span class="wizard-chat-panel__subtitle">{{ gameTitle }} Rules</span>
+                <p class="wizard-chat-panel__title">Boarley</p>
+                <span class="wizard-chat-panel__subtitle">{{  gameTitle  }} Rules</span>
             </div>
         </div>
 

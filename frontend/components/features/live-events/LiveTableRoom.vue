@@ -6,10 +6,22 @@
                 <h1 style="margin:8px 0 0">{{ event.name }}</h1>
             </div>
 
-            <div class="live-table-header__status">
-                <v-icon size="14" color="var(--wildfire)">mdi-circle</v-icon>
-                <span class="card-subtitle" style="margin:0">LIVE</span>
-                <span class="live-table-header__timer">{{ elapsed }}</span>
+            <div class="d-flex align-center ga-3 flex-wrap">
+                <div class="live-table-header__status">
+                    <v-icon size="14" :color="isPaused ? 'var(--color-warning)' : 'var(--wildfire)'">mdi-circle</v-icon>
+                    <span class="card-subtitle" style="margin:0">{{ isPaused ? 'PAUSED' : 'LIVE' }}</span>
+                    <span class="live-table-header__timer">{{ elapsed }}</span>
+                </div>
+
+                <button
+                    v-if="isHost"
+                    type="button"
+                    class="btn btn--primary host-controls-trigger"
+                    @click="showHostControls = true"
+                >
+                    <v-icon size="18">mdi-tune</v-icon>
+                    Host controls
+                </button>
             </div>
         </div>
 
@@ -21,24 +33,27 @@
                         <span class="card-meta">({{ seatedCount }} of {{ event.capacity }} seated)</span>
                     </p>
 
-                    <TableSeatGrid :seats="event.seats" @cliam="handleClaim" />
+                    <TableSeatGrid :seats="event.seats" @claim="handleClaim" />
                 </BaseCard>
 
                 <TableChatFeed :messages="event.messages" @send="handleSend" />
             </div>
 
             <div class="live-table-sidebar">
-                <VenueInfoCard :venue="event.vanue" :table="event.table" />
+                <VenueInfoCard :venue="event.venue" :table="event.table" />
                 <ShareLinkCard :url="shareUrl" />
             </div>
         </div>
+
+        <HostControlsModal v-if="isHost" v-model="showHostControls" :event="event" @ended="handleEnded" />
     </div>
 
     <BaseEmptyState v-else title="Table not found" message="This live session may have ended." />
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseBackButton from '~/components/ui/BaseBackButton.vue'
@@ -48,19 +63,36 @@ import TableSeatGrid from './TableSeatGrid.vue'
 import TableChatFeed from './TableChatFeed.vue'
 import VenueInfoCard from './VenueInfoCard.vue'
 import ShareLinkCard from './ShareLinkCard.vue'
+import HostControlsModal from './HostControlsModal.vue'
 
 import { useLiveEvents } from '~/composables/useLiveEvents'
 import { useElapsedTimer } from '~/composables/useElapsedTimer'
+import { useSnackBar } from '~/composables/useSnackbar'
 
 const props = defineProps({ eventId: { type: String, required: true } })
 
-const { getLiveEvent, calimSeat, sendMessage } = useLiveEvents()
+const router = useRouter()
+const { show } = useSnackBar()
+
+const { getLiveEvent, claimSeat, sendMessage, currentUser } = useLiveEvents()
 const event = getLiveEvent(props.eventId)
+const showHostControls = ref(false)
 
 const elapsed = useElapsedTimer(computed(() => event.value?.startedAt ?? Date.now()))
+const isPaused = computed(() => event.value?.status === 'PAUSED')
+const isHost = computed(() => event.value?.seats.some(s => s.isHost && s.user?.username === currentUser) ?? false)
 const seatedCount = computed(() => event.value?.seats.filter(s => s.status !== 'OPEN').length ?? 0)
-const shareUrl = computed(() => `boardwise.games/live/${props.eventId}`)
+const shareUrl = computed(() => `boardwise.games/live-events/${props.eventId}`)
 
-const handleClaim = () => claimSeat(props.eventId)
+const handleClaim = () => {
+  if (isPaused.value) return show('The host has paused this table.', 'warning')
+  claimSeat(props.eventId)
+}
+
 const handleSend = (text) => sendMessage(props.eventId, text)
+
+const handleEnded = () => {
+  show('Session ended.', 'success')
+  router.push('/events')
+}
 </script>
