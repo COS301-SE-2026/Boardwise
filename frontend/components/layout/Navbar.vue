@@ -65,6 +65,13 @@
               title="Settings"
               to="/settings"
           />
+
+          <v-list-item
+              prepend-icon="mdi-help-circle-outline"
+              title="Help"
+              to="/help"
+          />
+
           <v-divider class="my-1" />
           <v-list-item class="px-2">
               <LogOutButton block />
@@ -116,6 +123,12 @@
             prepend-icon="mdi-cog-outline"
             title="Settings"
             to="/settings"
+          />
+
+          <v-list-item
+              prepend-icon="mdi-help-circle-outline"
+              title="Help"
+              to="/help"
           />
 
           <v-divider class="my-1" />

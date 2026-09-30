@@ -48,9 +48,11 @@ import PageContainer from '~/components/layout/PageContainer.vue'
 
 import { userService } from '~/services/userService'
 import { useBoardGames } from '~/composables/useBoardGames'
+// import { useProfile } from '~/composables/useProfile'
 
 const router = useRouter()
 const { user } = useAuth()
+// const { updateGenrePreferences } = useProfile()
 
 const pageRef = ref(null)
 const step = ref(1)
@@ -98,9 +100,9 @@ watch(step, async () => {
 })
 
 onMounted(async () => {
-    if(localStorage.getItem("access_token")){
-        router.push("/library");
-    }
+    // if(localStorage.getItem("access_token")){
+    //     router.push("/library");
+    // }
     await Promise.all([
         loadTopNGenres(),
         handleGetGames(),
@@ -130,9 +132,22 @@ async function handleTabChange(tab) {
 }
 
 async function handleGenresSelected(ids) {
-    selectedGenreIds.value = ids
-    await getPopularGamesBasedOnGenres(ids)
-    step.value = 3
+    isSubmitting.value = true
+    errorMessages.value = ''
+
+    try{
+        await userService.updateGenrePreferences(ids)
+        await getPopularGamesBasedOnGenres(ids)
+        selectedGenreIds.value = ids
+        step.value = 3
+    }
+    catch (err) {
+        console.error('Failed to save genre preferences or fetch games by genre: ', err)
+        errorMessages.value = 'Failed to save genre preferences or fetch games by genre. Please try again.'
+    } finally {
+        isSubmitting.value = false
+    }
+    
 }
 
 async function handleGamesSelected(selectedIds) {

@@ -1,174 +1,260 @@
-import { jwtDecode } from 'jwt-decode';
-import { useStomp } from '~/composables/useStomp';
-import { useRoute } from 'vue-router';
-import { type CommunityMessageDTO, type Member, CommunityService } from '~/services/communityService';
+import { computed, onScopeDispose, ref, watch } from 'vue'
+import { createSharedComposable } from '@vueuse/core'
+import { useRoute, useRouter } from 'vue-router'
 
-export interface CommunityMessage{
-    id: string,
-    communityId: string,
-    message: string
+import { useStomp } from '~/composables/useStomp'
+import {
+  CommunityService,
+  type CommunityMessageDTO,
+  type Member
+} from '~/services/communityService'
+
+export interface CommunityMessage {
+  id: string
+  communityId: string
+  message: string
 }
 
-export interface NewMemberNotification{
-    type: 'COMMUNITY_CHAT',
-    senderId: string,
-    message: string
+export interface NewMemberNotification {
+  type: 'COMMUNITY_CHAT'
+  senderId: string
+  message: string
 }
 
-const error = ref<string>('');
-const isLoading = ref<boolean>(false);
-const messages = ref<Array<CommunityMessageDTO>>([]);
+const _useCommunityChat = () => {
+  const {
+    isConnected,
+    subscribe,
+    unsubscribe,
+    sendCommunityMessage
+  } = useStomp()
 
-export const useCommunityChat = () => {
-    const { isConnected, subscribe, unsubscribe, sendCommunityMessage } = useStomp();
-    const route = useRoute();
-    let dest: string | null = null;
-    let notifDest: string | null = null;
-    const token = localStorage.getItem("access_token");
+  const route = useRoute()
+  const router = useRouter()
 
-    const lastMessageTime = computed(() =>{
-        if(messages.value.length === 0) return null;
+  const error = ref('')
+  const isLoading = ref(false)
+  const messages = ref<CommunityMessageDTO[]>([])
+  const activeCommunityId = ref<string | null>(null)
 
-        return messages.value[messages.value.length - 1]?.sentAt
-    })
+  let chatDestination: string | null = null
+  let notificationDestination: string | null = null
 
-    const getMissedCommunityMessages = async (targetId: string) => {
-        error.value = '';
-        isLoading.value = true;
+  const getToken = () => (
+    import.meta.client
+      ? localStorage.getItem('access_token')
+      : null
+  )
 
-        if(messages.value.length > 0 && messages.value[0]?.communityId !== targetId){
-            messages.value = [];
-        }
-
-        try{
-            if(!token) throw new Error("User is not authenticated");
-
-            const res = await CommunityService.getMissedCommunityMessage(
-                targetId, 
-                lastMessageTime.value
-            );
-
-            messages.value = res.sort((a, b) => {
-                return new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime();
-            });
-        }
-        catch(err: any){
-            if(err.message.includes("authenticated")){
-                const router = useRouter()
-                localStorage.removeItem("access_token");
-                router.push("/auth/signin")
-                return;
-            }
-
-            error.value = err.data?.message || "Could not retrieve missed community messages."
-            throw err;
-        }
-        finally{
-            isLoading.value = false;
-        }
+  const lastMessageTime = computed(() => {
+    if (messages.value.length === 0) {
+      return null
     }
 
-    const listenForMessages = (id: string) => {
-        if(!token) return;
+    return messages.value.at(-1)?.sentAt
+  })
 
-        subscribe(`/topic/community/${id}/chat`, (message: CommunityMessageDTO) => {
-            const myUserId = jwtDecode<{sub: string}>(token).sub;
-            const serverEcho = message.senderId === myUserId;
+  const sortMessages = () => {
+    messages.value.sort(
+      (a, b) => (
+        new Date(a.sentAt).getTime() -
+        new Date(b.sentAt).getTime()
+      )
+    )
+  }
 
-            if(serverEcho){
-                const eIdx = messages.value.findIndex((el) => {
-                    return el.id === message.id && el.senderId === myUserId;
-                })
-                if(eIdx !== -1 && messages.value[eIdx]){
-                    const existing = messages.value[eIdx];  
-                    existing.sentAt = message.sentAt;
-                    messages.value[eIdx] = existing;
-            
-                    // you'd also update indexedDB (for demo 4)
-                }
-            }
-            else{
-                messages.value.push(message);
-            }
-            
-            messages.value.sort((a, b) => {
-                return new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime();
-            })
-        })
+  const upsertMessage = (message: CommunityMessageDTO) => {
+    if (
+      activeCommunityId.value &&
+      String(message.communityId) !== String(activeCommunityId.value)
+    ) {
+      return
     }
 
-    const listenForNewMemberJoin = (id: string, notificationHandler: (member: Member) => void) => {
-        if(!token) return;
-
-        subscribe(`/topic/community/${id}/notification`, (notification: NewMemberNotification) => {
-            const newMember = JSON.parse(notification.message) as Member;
-            notificationHandler(newMember);
-        })
-    }
-
-    const sendGroupMessage = (msg: CommunityMessageDTO) => {
-        if(!token) return;
-        
-        messages.value.push(msg);
-        messages.value.sort((a, b) => {
-            return new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime();
-        })
-
-        const toWire: CommunityMessage = {
-            id: msg.id,
-            communityId: msg.communityId,
-            message: msg.message
-        };
-
-        sendCommunityMessage(toWire);
-    }
-
-    const subToComm = (id: string) => {
-        if(dest)
-            unsubscribe(dest);
-        
-        dest = `/topic/community/${id}/chat`;
-        listenForMessages(id);
-        
-    }
-
-    const subToCommNotif = (id: string, notificationHandler: (member: Member) => void) => {
-        if(notifDest)
-            unsubscribe(notifDest);
-
-        notifDest = `/topic/community/${id}/notification`;
-        listenForNewMemberJoin(id, notificationHandler);
-    }
-
-    const unSubToCommNotif = () => {
-        if(notifDest)
-            unsubscribe(notifDest);
-    }
-
-    watch(
-        () => route.params.id,
-        (id: any) => {
-            if (typeof id === "string") {
-                subToComm(id);
-            }
-        },
-        { immediate: true }
+    const existingIndex = messages.value.findIndex(
+      existing => String(existing.id) === String(message.id)
     )
 
-    onUnmounted(() => {
-        unsubscribe(dest!)
-        unsubscribe(notifDest!)
-    });
-
-    return {
-        isConnected,
-        isLoading,
-        error,
-        sendGroupMessage,
-        getMissedCommunityMessages,
-        messages,
-        listenForNewMemberJoin,
-        subToCommNotif,
-        unSubToCommNotif
+    if (existingIndex === -1) {
+      messages.value.push(message)
+    } else {
+      messages.value[existingIndex] = {
+        ...messages.value[existingIndex],
+        ...message
+      }
     }
+
+    sortMessages()
+  }
+
+  const getMissedCommunityMessages = async (targetId: string) => {
+    error.value = ''
+    isLoading.value = true
+
+    const switchingCommunity =
+      String(activeCommunityId.value) !== String(targetId)
+
+    if (switchingCommunity) {
+      activeCommunityId.value = targetId
+      messages.value = []
+    }
+
+    const since = switchingCommunity
+      ? null
+      : lastMessageTime.value
+
+    try {
+      const token = getToken()
+
+      if (!token) {
+        throw new Error('User is not authenticated')
+      }
+
+      const response = await CommunityService.getMissedCommunityMessage(
+        targetId,
+        since
+      )
+
+      response.forEach(upsertMessage)
+    } catch (err: any) {
+      if (err?.message?.includes('authenticated')) {
+        localStorage.removeItem('access_token')
+        await router.push('/auth/signin')
+        return
+      }
+
+      error.value =
+        err?.data?.message ||
+        'Could not retrieve community messages.'
+
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const listenForMessages = (id: string) => {
+    const token = getToken()
+
+    if (!token) {
+      return
+    }
+
+    subscribe(
+      `/topic/community/${id}/chat`,
+      (message: CommunityMessageDTO) => {
+        upsertMessage(message)
+      }
+    )
+  }
+
+  const listenForNewMemberJoin = (
+    id: string,
+    notificationHandler: (member: Member) => void
+  ) => {
+    if (!getToken()) {
+      return
+    }
+
+    subscribe(
+      `/topic/community/${id}/notification`,
+      (notification: NewMemberNotification) => {
+        try {
+          const newMember = JSON.parse(notification.message) as Member
+          notificationHandler(newMember)
+        } catch {
+          console.error('Invalid community member notification.')
+        }
+      }
+    )
+  }
+
+  const sendGroupMessage = (message: CommunityMessageDTO) => {
+    if (!getToken()) {
+      return
+    }
+
+    upsertMessage(message)
+
+    const payload: CommunityMessage = {
+      id: message.id,
+      communityId: message.communityId,
+      message: message.message
+    }
+
+    sendCommunityMessage(payload)
+  }
+
+  const subscribeToCommunity = (id: string) => {
+    if (chatDestination) {
+      unsubscribe(chatDestination)
+    }
+
+    if (String(activeCommunityId.value) !== String(id)) {
+      messages.value = []
+    }
+
+    activeCommunityId.value = id
+    chatDestination = `/topic/community/${id}/chat`
+
+    listenForMessages(id)
+  }
+
+  const subToCommNotif = (
+    id: string,
+    notificationHandler: (member: Member) => void
+  ) => {
+    if (notificationDestination) {
+      unsubscribe(notificationDestination)
+    }
+
+    notificationDestination =
+      `/topic/community/${id}/notification`
+
+    listenForNewMemberJoin(id, notificationHandler)
+  }
+
+  const unSubToCommNotif = () => {
+    if (!notificationDestination) {
+      return
+    }
+
+    unsubscribe(notificationDestination)
+    notificationDestination = null
+  }
+
+  watch(
+    () => route.params.id,
+    id => {
+      if (typeof id === 'string') {
+        subscribeToCommunity(id)
+      }
+    },
+    { immediate: true }
+  )
+
+  onScopeDispose(() => {
+    if (chatDestination) {
+      unsubscribe(chatDestination)
+    }
+
+    if (notificationDestination) {
+      unsubscribe(notificationDestination)
+    }
+  })
+
+  return {
+    isConnected,
+    isLoading,
+    error,
+    messages,
+    sendGroupMessage,
+    getMissedCommunityMessages,
+    listenForNewMemberJoin,
+    subToCommNotif,
+    unSubToCommNotif
+  }
 }
+
+export const useCommunityChat =
+  createSharedComposable(_useCommunityChat)

@@ -2,10 +2,15 @@
   <PageContainer>
     <Navbar />
 
-    <LibraryHeader 
-      @upload="handleUploadRequest"
-      @search="handleSearch"
-    />
+    <div class="d-flex flex-column ga-5 mb-6">
+      <SectionTitle title="Library" subtitle="Browse community rulebooks" />
+
+      <RulebookSearch
+        @upload="handleUploadRequest"
+        @search="handleSearch"
+        @architect="openGameArchitect"
+      />
+    </div>
 
     <RulebookCarousel :rulebooks="featuredRulebooks" @select="openRulebook" />
     <RecommendedBooks v-if="recommended.length" :rulebooks="recommended" @select ="openRulebook"/>
@@ -66,7 +71,7 @@
       <BaseLoadingState v-if="isLoading" message="Loading rulebooks... " />
 
       <RulebookDetail
-        v-else="selectedRulebook"
+        v-else-if="selectedRulebook"
         :rulebook="selectedRulebook"
         :rulebooks="rulebooks"
         @select="openRulebook"
@@ -93,13 +98,14 @@ import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BasePagination from '~/components/ui/BasePagination.vue'
 import MobileFilterDrawer from '~/components/ui/MobileFilterDrawer.vue'
 
-import LibraryHeader from '~/components/features/library/LibraryHeader.vue'
 import RulebookFilterSidebar from '~/components/features/library/RulebookFilterSidebar.vue'
 import RulebookGrid from '~/components/features/library/RulebookGrid.vue'
 import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue'
 import UploadRulebookModal from '~/components/features/library/UploadRulebookModal.vue'
 import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
 import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue'
+import RulebookSearch from '~/components/features/library/RulebookSearch.vue'
+
 
 import { useLibrary } from '~/composables/useLibrary'
 import { useVaultUpload } from '~/composables/useVaultUpload';
@@ -126,16 +132,25 @@ const activeFilterState = ref({})
 const showDetail = ref(false)
 const showUpload = ref(false)
 const selectedRulebook = ref(null)
-const filterKey = ref(0)
-const initialLoaded = ref(false)
 
-onMounted(async () => {
-  fetchFeaturedRulebooks()
-  try {
-    await getAllRulebooks({}, true)
-  } finally {
-    initialLoaded.value = true
+const openGameArchitect = () => {
+  if (!isAuthenticated.value) {
+    router.push({
+      path: '/auth/signin',
+      query: { redirect: '/game-architect?from=library' }
+    })
+    return
   }
+
+  router.push({
+    path: '/game-architect',
+    query: { from: 'library' }
+  })
+}
+
+onMounted(() => { // Does stuff when component loads
+  fetchFeaturedRulebooks();
+  getAllRulebooks({}, true);
 })
 
 const activeCount = computed(() => Object.entries(activeFilterState.value).filter(([k, v]) => k !== 'languages' && v != null && v !== '' && (!Array.isArray(v) || v.length)).length)

@@ -7,6 +7,20 @@
         @update:model-value="$emit('search', $event)"
       />      
     </div>
+
+    <div class="rulebook-search__actions">
+      <BaseButton
+        variant="secondary"
+        prepend-icon="mdi-creation-outline"
+        @click="$emit('architect')"
+      >
+        Game Architect
+      </BaseButton>
+
+    <BaseButton variant="primary" prepend-icon="mdi-upload" @click="$emit('upload')"> 
+        Upload Rulebook
+    </BaseButton>
+  </div>
   </div>
 </template>
 
@@ -14,7 +28,8 @@
 import { ref } from 'vue'
 
 import BaseSearch from '~/components/ui/BaseSearch.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
 
 const search = ref('')
-defineEmits(['search', 'upload'])
+defineEmits(['search', 'upload', 'architect'])
 </script>

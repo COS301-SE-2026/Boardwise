@@ -42,8 +42,8 @@
       </div>
     </div>
 
-    <EditListingModal v-model="showEdit" :listing="listing" @saved="$emit('updated', listing.listingId)"  />
-    <DeleteListingModal v-model="showDelete" :listing="listing" @confirm="handleDelete"  />
+    <EditListingModal v-if="showEdit" v-model="showEdit" :listing="listing" @saved="$emit('updated', listing.listingId)"  />
+    <DeleteListingModal v-if="showDelete" v-model="showDelete" :listing="listing" @confirm="handleDelete"  />
 
   </BaseCard>
 </template>

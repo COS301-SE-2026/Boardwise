@@ -1,8 +1,11 @@
 package com.boardwise.backend.marketplace.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Logger;
 
 import org.bson.types.ObjectId;
@@ -18,9 +21,13 @@ import org.springframework.web.client.RestClientException;
 import com.boardwise.backend.marketplace.dtos.retailsource.BoardgamesRequest;
 import com.boardwise.backend.marketplace.dtos.retailsource.RetailSourceItemDTO;
 import com.boardwise.backend.marketplace.dtos.retailsource.ScrapeResultsDTO;
+import com.boardwise.backend.shared.dtos.GameListDTO;
+import com.boardwise.backend.shared.dtos.GenreRequestDTO;
+import com.boardwise.backend.shared.dtos.OnboardingDTO;
 import com.boardwise.backend.shared.model.Boardgame;
 import com.boardwise.backend.shared.repository.BoardGameRepository;
 import com.boardwise.backend.shared.security.JWTService;
+import com.boardwise.backend.shared.services.BoardGameService;
 import com.boardwise.backend.user_service.models.user_preferences.*;
 import com.boardwise.backend.user_service.models.User;
 import com.boardwise.backend.user_service.repository.UserRepository;
@@ -31,21 +38,22 @@ public class RetailService {
     private static final Logger logger = Logger.getLogger(RetailService.class.getName());
     private static final int PAGESIZE = 20;
     private static final int NUM_SUGGESTED_GAMES = 10;
-    private static final int NUM_FALLBACK_GAMES = 5;
 
     private final JWTService jwtService;
     private final UserRepository userRepository;
     private final BoardGameRepository boardGameRepository;
+    private final BoardGameService boardGameService;
     private final RestClient scraperClient;
 
     public RetailService(UserRepository userRepository,
                          BoardGameRepository boardGameRepository,
                          JWTService jwtService,
-                         @Qualifier("scraperRestClient") RestClient scraperclient) {
+                         @Qualifier("scraperRestClient") RestClient scraperclient, BoardGameService boardGameService) {
         this.userRepository = userRepository;
         this.boardGameRepository = boardGameRepository;
         this.jwtService = jwtService;
         this.scraperClient = scraperclient;
+        this.boardGameService = boardGameService;
     }
 
     private Boardgame getRandomBoardGameByGenre(String genre, List<String> suggBoardgames) {
@@ -59,38 +67,90 @@ public class RetailService {
             throw new IllegalArgumentException("Games with genre " + genre + " doesn't exist in db");
         }
 
-        Random r = new Random(12345);
-        logger.info("value of random: " + r);
-        int index = r.nextInt(0, games.size());
+        int index = ThreadLocalRandom.current().nextInt(games.size());
         return games.get(index);
     }
 
     private List<String> buildGamePrefrenceList(String token) {
-        ObjectId userId = jwtService.extractUserId(token);
-        User user = userRepository.findById(userId.toString()).orElseThrow();
-
-        List<String> ownedGameIds = new ArrayList<>(user.getOwnedGames());
-
-        if (ownedGameIds.isEmpty()) {
-            return getTopOwnedGameIds(NUM_FALLBACK_GAMES);
+        ObjectId userId;
+        try {
+            userId = jwtService.extractUserId(token);
+        } catch (Exception e) {
+            logger.warning("buildGamePrefrenceList: extractUserId failed: " + e.getMessage());
+            return List.of();
         }
 
-        if (ownedGameIds.size() >= NUM_SUGGESTED_GAMES) {
+        User user;
+        try {
+            user = userRepository.findById(userId.toString())
+                    .orElseThrow(() -> new IllegalStateException("User not found: " + userId));
+        } catch (Exception e) {
+            logger.warning("buildGamePrefrenceList: user lookup failed: " + e.getMessage());
+            return List.of();
+        }
+
+        List<String> ownedGames = user.getOwnedGames();
+        List<String> ownedGameIds = new ArrayList<>(ownedGames == null ? List.of() : ownedGames);
+
+        if (ownedGameIds.isEmpty()) {
+            try {
+                Object response = boardGameService.getBoardgames(null, null);
+                if (response instanceof Map<?, ?> map) {
+                    Object raw = map.get("boardGames");
+                    if (raw instanceof List<?> list) {
+                        for (Object item : list) {
+                            if (ownedGameIds.size() >= NUM_SUGGESTED_GAMES) break;
+                            if (item instanceof GameListDTO dto && dto.id() != null) {
+                                ownedGameIds.add(dto.id());
+                            }
+                        }
+                    } else {
+                        logger.warning("buildGamePrefrenceList: 'boardgames' key missing or not a List");
+                    }
+                } else {
+                    logger.warning("buildGamePrefrenceList: getBoardgames returned null or non-map");
+                }
+            } catch (Exception e) {
+                logger.warning("buildGamePrefrenceList: getBoardgames failed: " + e.getMessage());
+            }
             return ownedGameIds;
         }
 
-        List<String> genreList = resolveGenres(user, ownedGameIds);
+        if (ownedGameIds.size() >= NUM_SUGGESTED_GAMES) {
+            return ownedGameIds.stream().limit(NUM_SUGGESTED_GAMES).toList();
+        }
 
-        int numGamesToSearchFor = NUM_SUGGESTED_GAMES - ownedGameIds.size();
+        Set<String> seen = new HashSet<>(ownedGameIds);
+
+        List<String> genreList;
+        try {
+            genreList = resolveGenres(user, ownedGameIds);
+        } catch (Exception e) {
+            logger.warning("buildGamePrefrenceList: resolveGenres failed: " + e.getMessage());
+            genreList = List.of();
+        }
 
         for (String genre : genreList) {
-            if (numGamesToSearchFor == 0) break;
+            if (ownedGameIds.size() >= NUM_SUGGESTED_GAMES) break;
 
             try {
-                ownedGameIds.add(getRandomBoardGameByGenre(genre, ownedGameIds).getId());
-                numGamesToSearchFor--;
-            } catch (IllegalArgumentException e) {
-                logger.warning("No games available for genre " + genre + ", skipping");
+                List<OnboardingDTO> suggestions = boardGameService
+                        .getPopularGamesBasedOnGenres(new GenreRequestDTO(List.of(genre)), 1);
+
+                if (suggestions == null || suggestions.isEmpty()) {
+                    logger.warning("No games available for genre " + genre + ", skipping");
+                    continue;
+                }
+
+                for (OnboardingDTO suggestion : suggestions) {
+                    if (ownedGameIds.size() >= NUM_SUGGESTED_GAMES) break;
+                    if (suggestion == null || suggestion.id() == null) continue;
+                    if (seen.add(suggestion.id())) {
+                        ownedGameIds.add(suggestion.id());
+                    }
+                }
+            } catch (Exception e) {
+                logger.warning("No games available for genre " + genre + ", skipping: " + e.getMessage());
             }
         }
 
@@ -134,7 +194,12 @@ public class RetailService {
         int pageNum = (page == null || page < 0) ? 0 : page;
         Pageable pageable = PageRequest.of(pageNum, PAGESIZE);
 
-        List<String> gameIds = buildGamePrefrenceList(token.replace("Bearer ", ""));
+        String cleanedToken = token == null ? "" : token.replace("Bearer ", "");
+        System.out.println("getPersonalisedRetailListings: entered, token length=" + cleanedToken.length());
+
+        List<String> gameIds = buildGamePrefrenceList(cleanedToken);
+        System.out.println("PREFERENCE LIST OF: " + gameIds);
+
         if (gameIds.isEmpty()) {
             return new PageImpl<>(List.of(), pageable, 0);
         }
@@ -144,6 +209,8 @@ public class RetailService {
                 .map(Boardgame::getTitle)
                 .limit(NUM_SUGGESTED_GAMES)
                 .toList();
+
+        System.out.println("TITLES: " + titles);
 
         return fetchListingsFromScraper(titles, pageNum, PAGESIZE);
     }
