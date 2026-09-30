@@ -85,6 +85,7 @@ export const useLibrary = () => {
         try {
             const response = await LibraryService.fetchRulebookText(id)
             rulebookText.value = response;
+            return response
         } catch (err: any) {
             console.error(`Failed to fetch rulebook text ${id}:`, err)
             rulebookText.value = null
