@@ -134,7 +134,7 @@ import { useLiveEvents } from '~/composables/useLiveEvents'
 import LiveEventBanner from '~/components/features/live-events/LiveEventBanner.vue'
 import LiveEventCard from '~/components/features/live-events/LiveEventCard.vue'
 
-const { activeLiveEvents: liveEvents } = useLiveEvents()
+const { activeLiveEvents: liveEvents, fetchLiveEvents } = useLiveEvents()
 const scrollToLive = () => document.getElementById('live-now')?.scrollIntoView({ behavior: 'smooth' })
 
 const { show } = useSnackBar(3)
@@ -152,7 +152,7 @@ onMounted(async () => {
     router.push('/auth/signin')
     return
   }
-
+  fetchLiveEvents().catch(()=>{})
   fetchEvents()
 })
 

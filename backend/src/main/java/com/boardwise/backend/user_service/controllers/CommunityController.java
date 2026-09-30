@@ -243,10 +243,14 @@ public class CommunityController {
     }
 
     @PostMapping("/live-event")
-    public ResponseEntity<?> createLiveEvent(HttpServletRequest req ,@RequestBody LiveEventRequestDTO eventInfo){
+    public ResponseEntity<?> createLiveEvent(HttpServletRequest req, @RequestBody LiveEventRequestDTO eventInfo){
         String token = ProfileController.extractToken(req);
-        Map<String, Object> res = service.createLiveEvent(token,eventInfo);
-        return new ResponseEntity<>(res,HttpStatus.OK);
+        try {
+            return new ResponseEntity<>(service.createLiveEvent(token, eventInfo), HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("message", e.toString()));
+        }
     }
     
     @GetMapping("/live-event/{eventId}")

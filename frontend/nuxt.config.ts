@@ -114,6 +114,7 @@ export default defineNuxtConfig({
       apiBase: process.env.APP_ENV === 'prod' ? process.env.PROD_API_BASE : process.env.DEV_API_BASE,
       wsBaseUrl: process.env.APP_ENV === 'prod' ? process.env.PROD_WS_API_BASE : process.env.DEV_WS_API_BASE,
       fastApiBase: process.env.APP_ENV === 'prod' ? process.env.PROD_FAST_API_BASE : process.env.DEV_FAST_API_BASE
+      
     }
   }
 })
