@@ -58,6 +58,9 @@
                 </v-tooltip>
             </template>
 
+              <BaseButton v-if="mdAndUp" size="sm" variant="ghost" prepend-icon="mdi-wizard-hat" :disabled="!rulebook?.gameId" :to="`/setup-wizard/${rulebook?.gameId}`">Setup</BaseButton>
+              <BaseButton v-if="mdAndUp" size="sm" variant="ghost" prepend-icon="mdi-creation-outline"@click="emit('ask')">Ask Boarley</BaseButton>
+
               <!-- Edit/ Done Editing Button -->
               <template v-if="isEditing">
                 <BaseButton
@@ -204,8 +207,7 @@
       </template>
     </v-app-bar>
 
-    <!-- Mobile search row: its own full-width bar below the toolbar,
-         instead of trying to cram into the fixed-height app-bar -->
+    <!-- Mobile search row: its own full-width bar below the toolbar,instead of trying to cram into the fixed-height app-bar -->
     <div v-if="!mdAndUp && showSearch" class="mobile-search-row d-flex align-center ga-2 pa-2">
       <BaseSearch 
         v-model="localQuery"
@@ -262,7 +264,7 @@ const props = defineProps({
   canRedo: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['search', 'next-match', 'prev-match', 'clear-search', 'edit', 'stop-editing','toggle-history', 'undo', 'redo'])
+const emit = defineEmits(['search', 'next-match', 'prev-match', 'clear-search', 'edit', 'stop-editing','toggle-history', 'undo', 'redo', 'ask'])
 
 const showSearch = ref(false)
 const localQuery = ref('')

@@ -1,5 +1,9 @@
 <template>
-  <BaseCard class="games-card"">
+  <BaseCard
+    clickable
+    class="games-card game-card"
+    @click="handleBoardgameRedirect"
+    >
 
     <template #media>
       <BaseImage :src="image" :alt="title" height="200px" />
@@ -15,6 +19,7 @@
       </p>
 
       <BaseButton
+        v-if="removable"
         variant="text"
         size="small"
         class="game-card__remove"
@@ -40,7 +45,8 @@ const props = defineProps({
   id: { type: String, required: true },
   title: { type: String, default: '' },
   category: { type: String, default: '' },
-  image: { type: String, default: '' }
+  image: { type: String, default: '' },
+  removable: { type: Boolean, default: true }
 })
 
 const emit = defineEmits(['remove'])

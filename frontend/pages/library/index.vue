@@ -12,6 +12,18 @@
       />
     </div>
 
+    <BaseCard class="mb-6">
+      <div class="d-flex align-center ga-4 flex-wrap">
+        <V-icon size="32" color="primary">mdi-wizard-hat</V-icon>
+        <div class="flex-grow-1">
+          <h2 class="card-title">Setup Wizard</h2>
+          <p class="card-meta">Step-and-step setup grounded in the official rulebook.</p>
+        </div>
+
+        <BaseButton to="/setup-wizard">Open Wizard</BaseButton>
+      </div>
+    </BaseCard>
+
     <RulebookCarousel :rulebooks="featuredRulebooks" @select="openRulebook" />
     <RecommendedBooks v-if="recommended.length" :rulebooks="recommended" @select ="openRulebook"/>
 
@@ -97,6 +109,7 @@ import PageContainer from '~/components/layout/PageContainer.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BasePagination from '~/components/ui/BasePagination.vue'
 import MobileFilterDrawer from '~/components/ui/MobileFilterDrawer.vue'
+import BaseCard from '~/components/ui/BaseCard.vue'
 
 import LibraryHeader from '~/components/features/library/LibraryHeader.vue'
 import RulebookFilterSidebar from '~/components/features/library/RulebookFilterSidebar.vue'
