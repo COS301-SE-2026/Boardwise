@@ -260,7 +260,7 @@ const { lgAndUp } = useDisplay()
 }
 
 @media (max-width:1279px) {
-  :deep(.v-toolbar__content) {
+  .v-toolbar__content {
     padding: 0 12px;
   }
 
@@ -286,12 +286,12 @@ const { lgAndUp } = useDisplay()
   gap: 4px;
 }
 
-:deep(.v-field--outlined) {
+.v-field--outlined {
   --v-field-border-color: var(--color-border-strong);
   --v-field-border-opacity: 1;
 }
 
-:deep(.v-field--focused) {
+.v-field--focused {
   --v-field-border-color: var(--color-primary) !important;
 }
 </style>
