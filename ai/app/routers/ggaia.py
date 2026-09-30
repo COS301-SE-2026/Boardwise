@@ -50,7 +50,7 @@ def run_generation_job(
                     embedding_model.encode(to_embed, normalize_embeddings=True, convert_to_numpy=True)
                 )
 
-                trunc_emb = embedding_model[:, : settings.EMBEDDING_DIMENSIONS]
+                trunc_emb = embeddings[:, : settings.EMBEDDING_DIMENSIONS]
                 pre_norms = np.linalg.norm(trunc_emb, axis=1, keepdims=True)
                 norms = np.maximum(pre_norms, 1e-10)
                 trunc_emb = trunc_emb / norms

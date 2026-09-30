@@ -16,7 +16,7 @@ from app.services.ggaia_new_game import (
     normalise_text
 )
 
-from app.retrieval.vector_store import fetch_candidate_chunks
+from app.retrieval.vector_search import fetch_candidate_chunks
 from app.generation.ggaia_prompt import game_scaler
 from app.utils.ggaia_utils import validate_game_against_pool, duplicate_component_overuse
 
@@ -263,7 +263,7 @@ def generate_scaled_game(
     options: ScaleOptions,
     ml_models: dict,
     embed: Callable[[str], list[float]],
-    config: GenerationConfig
+    config: GenerationConfig = GenerationConfig()
 ) -> ScaleResult:
     if not input.pool.components:
         raise MissingComponentData("This game has no extracted components, so a variant cannot be generated nor validated.")
