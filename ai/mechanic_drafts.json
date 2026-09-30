@@ -1,0 +1,82 @@
+[
+  {
+    "nameKey": "acting",
+    "name": "Acting",
+    "description": "Participants perform physical gestures, mime, or vocalizations to convey concepts to others without using explicit spoken descriptions. Success relies on expressive communication and the interpretive skills of the observing individuals.",
+    "requiresComponentTypes": [],
+    "status": "ok",
+    "approved": true
+  },
+  {
+    "nameKey": "action-drafting",
+    "name": "Action Drafting",
+    "description": "Participants sequentially select their desired maneuvers from a shared, limited pool of available options. Once an option is chosen by an individual, it is typically removed from the pool or becomes significantly more expensive for subsequent participants to select during that round.",
+    "requiresComponentTypes": [],
+    "status": "ok",
+    "approved": true
+  },
+  {
+    "nameKey": "action-event",
+    "name": "Action/Event",
+    "description": "Participants are presented with components that offer two distinct, mutually exclusive options: taking standard procedural actions or triggering a specialized unique effect. Choosing one option inherently forfeits the other, forcing individuals to constantly weigh immediate tactical needs against powerful situational benefits.",
+    "requiresComponentTypes": [],
+    "status": "ok",
+    "approved": true
+  },
+  {
+    "nameKey": "action-points",
+    "name": "Action Points",
+    "description": "Players receive a specific allowance of points at the beginning of their turn to spend on various available activities. Each activity costs a predefined number of these points, allowing for flexible turn structures.",
+    "requiresComponentTypes": [],
+    "status": "ok",
+    "approved": true
+  },
+  {
+    "nameKey": "action-queue",
+    "name": "Action Queue",
+    "description": "Participants plan a sequence of specific commands in advance by placing them in a structured line or row. These chosen commands are then resolved strictly in the order they were placed, requiring careful foresight to ensure earlier actions do not invalidate later ones.",
+    "requiresComponentTypes": [],
+    "status": "ok",
+    "approved": true
+  },
+  {
+    "nameKey": "action-retrieval",
+    "name": "Action Retrieval",
+    "description": "Participants expend specific components from their personal supply to perform corresponding actions, rendering those options temporarily unavailable. To regain access to these expended choices, the individual must dedicate a subsequent turn or action specifically to recovering all previously used components.",
+    "requiresComponentTypes": [],
+    "status": "ok",
+    "approved": true
+  },
+  {
+    "nameKey": "action-timer",
+    "name": "Action Timer",
+    "description": "Participants must complete their decisions or execute specific tasks within a strict, real-time limit imposed by a physical or digital clock. Failure to finish before the limit expires typically results in a loss of opportunity or a penalty.",
+    "requiresComponentTypes": [],
+    "status": "ok",
+    "approved": true
+  },
+  {
+    "nameKey": "advantage-token",
+    "name": "Advantage Token",
+    "description": "A specific physical marker grants its holder a persistent benefit, rule exception, or tie-breaking priority. The marker can change ownership throughout the session based on specific triggers, temporarily shifting this distinct edge to different individuals.",
+    "requiresComponentTypes": [],
+    "status": "ok",
+    "approved": true
+  },
+  {
+    "nameKey": "alliances",
+    "name": "Alliances",
+    "description": "Participants formally or informally join forces to achieve mutual goals or overcome common adversaries during the session. These partnerships often require individuals to share resources or coordinate strategies while still maneuvering toward their own eventual victory.",
+    "requiresComponentTypes": [],
+    "status": "ok",
+    "approved": true
+  },
+  {
+    "nameKey": "area-impulse",
+    "name": "Area-Impulse",
+    "description": "The playing surface is divided into discrete zones, and participants take turns activating an entire zone rather than individual pieces. Once a zone is activated, all pieces within it may perform their actions, after which the zone is typically marked as exhausted for the remainder of the phase.",
+    "requiresComponentTypes": [],
+    "status": "ok",
+    "approved": true
+  }
+]
