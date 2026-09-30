@@ -1,6 +1,7 @@
 package com.boardwise.backend.user_service.controllers;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -23,6 +24,8 @@ import com.boardwise.backend.user_service.dtos.DeRsvpDTO;
 import com.boardwise.backend.user_service.dtos.EventInfoDTO;
 import com.boardwise.backend.user_service.dtos.EventInviteDTO;
 import com.boardwise.backend.user_service.dtos.EventUpdateDTO;
+import com.boardwise.backend.user_service.dtos.LiveEventStatusRequestDTO;
+import com.boardwise.backend.user_service.dtos.LiveMessageRequestDTO;
 import com.boardwise.backend.user_service.dtos.request.LiveEventRequestDTO;
 import com.boardwise.backend.user_service.services.CommunityService;
 
@@ -30,6 +33,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
@@ -268,10 +272,30 @@ public class CommunityController {
                     .body(Map.of("message", "Live event not found"));
         }
     }
+
     @PostMapping("/live-event/{eventId}/join")
     public ResponseEntity<?> joinLiveEvent(HttpServletRequest req, @PathVariable String eventId){
         String token = ProfileController.extractToken(req);
         return ResponseEntity.ok(service.joinLiveEvent(token, eventId));
+    }
+    
+    @PostMapping("/live-event/{eventId}/messages")
+    public ResponseEntity<?> postLiveEventMessage(HttpServletRequest req, @PathVariable String eventId, @RequestBody LiveMessageRequestDTO body){
+        String token = ProfileController.extractToken(req);
+        return ResponseEntity.ok(service.postLiveEventMessage(token, eventId, body.content()));
+    }
+
+    @GetMapping("/live-event/eventId/messages")
+    public ResponseEntity<?> getLiveEventMessages(HttpServletRequest req,@PathVariable String eventId, @RequestParam(required = false) Instant after){
+        String token = ProfileController.extractToken(req);
+        return ResponseEntity.ok(service.getLiveEventMessages(token, eventId, after));
+    }
+
+    @PutMapping("/live-event/{eventId}/status")
+    public ResponseEntity<?> updateAttendeeStatus(HttpServletRequest req, @PathVariable String eventId,
+                                                @RequestBody LiveEventStatusRequestDTO body){
+        String token = ProfileController.extractToken(req);
+        return ResponseEntity.ok(service.updateAttendeeStatus(token, eventId, body.status()));
     }
 }
 
