@@ -34,6 +34,10 @@
           </div>
           
           <p class="profile-username">@{{ user.username }}</p>
+
+          <p class="card-meta profile-location">
+            <v-icon>mdi-map-marker</v-icon>{{ user.location }}
+          </p>
             
           <div class="profile-preferences">
 
