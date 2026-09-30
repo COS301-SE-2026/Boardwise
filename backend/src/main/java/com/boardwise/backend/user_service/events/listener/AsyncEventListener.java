@@ -12,10 +12,10 @@ import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import com.boardwise.backend.shared.services.NotificationService;
 import com.boardwise.backend.user_service.dtos.notifications.PresenceNotification;
-import com.boardwise.backend.user_service.events.FriendEvent;
 import com.boardwise.backend.user_service.events.JoinedCommunityEvent;
-import com.boardwise.backend.user_service.events.payload.FriendEventPayload;
+import com.boardwise.backend.user_service.events.UserRelatedEvent;
 import com.boardwise.backend.user_service.events.payload.JoinedCommunityEventPayload;
+import com.boardwise.backend.user_service.events.payload.UserRelatedEventPayload;
 import com.boardwise.backend.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -70,8 +70,8 @@ public class AsyncEventListener{
 
     @Async 
     @EventListener 
-    public void handleFriendEvent(FriendEvent event){
-        FriendEventPayload payload = event.getMessage();
+    public void handleUserRelatedEvents(UserRelatedEvent event){
+        UserRelatedEventPayload payload = event.getMessage();
         notificationService.notifyUser(payload.receiverId(), payload.notification());
     }
 

@@ -1,6 +1,6 @@
-from typing import Any, Literal
-
-from pydantic import BaseModel, Field, field_validator, model_validator
+from typing import Any, Literal, List, Tuple, Optional
+from pydantic import BaseModel, Field, model_validator, field_validator
+from app.schemas.schemas import BaseAPIModel
 
 ComponentType = Literal[
     "board", "card", "die", "token", "meeple", "tile", "miniature", "other"
@@ -419,3 +419,98 @@ class Comparison(BaseModel):
         ..., description="1-2 sentences weighting the flaws above by severity."
     )
     preferred: Literal["version_1", "version_2", "tie"]
+
+class RuleChange(BaseModel):
+    type: Literal["player_scaling", "difficulty"] = Field(
+        ...,
+        description="Whether this change serves the target player count or the difficulty change."
+    )
+    section: NewGameSection = Field(
+        ...,
+        description="The rules section this change applies to."
+    )
+    original_quote: str = Field(
+        ...,
+        description=(
+            "A passage of at most one sentence copied VERBATIM from the original rules that this "
+            "change modifies. Leave this empty ONLY if this change adds a new rule."
+        )
+    )
+    change: str = Field(
+        ..., 
+        description="The new or modified rule, written for players to follow. 2-3 sentences."
+    )
+    reason: str = Field(
+        ...,
+        description="How this serves the target player count or difficulty. 1 sentences."
+    )
+
+class ScaledGame(BaseModel):
+    new_player_count: Tuple[int, int] = Field(
+        ...,
+        description="[min, max] player count this version supports."
+    )
+    version_summary: str = Field(
+        ...,
+        description="What changes and what stays the same, 2-3 sentences."
+    )
+    components: List[ComponentEntry] = Field(
+        ...,
+        min_length=1,
+        description="The COMPLETE component list for this version (not just the differences), from the pool."
+    )
+    rule_changes: List[RuleChange] = Field(..., min_length=1)
+    version_faq: List[FAQEntry] = Field(default_factory=list)
+
+    @field_validator("new_player_count")
+    @classmethod
+    def min_and_max_valid(cls, value: Tuple[int, int]):
+        minimum, maximum = value
+        if minimum > maximum:
+            raise ValueError(f"Minimum value ({minimum}) cannot be greater than maximum value ({maximum})")
+        return value
+
+
+# --- Over the wire stuff ig ---
+PlayerRange = Literal["1-2", "3-4", "5-6", "7-10"]
+Difficulty = Literal["EASIER", "SIMILAR", "HARDER"]
+
+class ScaleOptions(BaseAPIModel):
+    player_range: PlayerRange
+    difficulty: Difficulty
+
+class GGAIARequest(BaseAPIModel):
+    type: Literal["SCALE", "NEW"]
+    parents: list[str] | Literal["Surprise Me"]
+    scale_options: Optional[ScaleOptions] = None
+
+    @field_validator("parents", mode="before")
+    @classmethod
+    def correct_surprise_me(cls, value):
+        if isinstance(value, str) and value.strip().lower() == "surprise me":
+            return "Surprise Me"
+        return value
+    
+    @model_validator(mode="after")
+    def validate_self(self):
+        if self.type == "NEW":
+            if isinstance(self.parents, list) and len(self.parents) != 2:
+                raise ValueError("The \"parents\" field must be of length two if parent games are supplied.")
+            
+            elif isinstance(self.parents, str) and self.parents.lower() != "Surprise Me".lower():
+                raise ValueError("If \"parents\" is not an array, then it must be \"Surprise Me\".")
+
+            elif self.scale_options is not None:
+                raise ValueError("The \"scale_options\" field must not be set for requests of type \"NEW\".")
+            
+        elif self.type == "SCALE":
+            if not isinstance(self.parents, list):
+                raise ValueError("The \"parents\" field must be an array.")
+            
+            elif len(self.parents) != 1:
+                raise ValueError("The \"parents\" field must be of length one.")
+            
+            elif self.scale_options is None:
+                raise ValueError("The \"scale_options\" field must be set for requests of type \"SCALE\".")
+
+        return self

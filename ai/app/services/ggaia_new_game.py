@@ -23,16 +23,16 @@ T = TypeVar("T", bound=BaseModel)
 
 # Exceptions
 class InfeasiblePair(RuntimeError):
-    "The pool cannot support enough mechanics to design anything."
+    """The pool cannot support enough mechanics to design anything."""
 
 class StructuredOutputError(RuntimeError):
-    "The model never produced JSON matching the schema."
+    """The model never produced JSON matching the schema."""
 
 class GenerationFailed(RuntimeError):
-    "The model kept violating code-level checks."
+    """The model kept violating code-level checks."""
 
 class CriticUnavailable(RuntimeError):
-    "No usable critic response (both remote and local models failed or the output never validated)."
+    """No usable critic response (both remote and local models failed or the output never validated)."""
 
 @dataclass(frozen=True)
 class Phase:
@@ -53,10 +53,11 @@ class GenerationConfig:
     revision: Phase = Phase(6000, 0.3)
     diagnosis: Phase = Phase(2000, 0.1)
     comparison: Phase = Phase(1200, 0.1)
+    scaler: Phase = Phase(3000, 0.4)
 
 @dataclass
 class GenerationInput:
-    parent_a: dict
+    parent_a: dict # {title, types, }
     parent_b: dict
     pool: ComponentPool
     mechanics: list[Mechanic]
@@ -127,7 +128,7 @@ def generate_structured_output(
             backend=backend,
             max_tokens=phase.max_tokens,
             temperature=phase.temperature,
-            response_schema= model.model_json_schema()
+            response_schema=model.model_json_schema()
         )
         try:
             return StructuredOutput(parse_model(output.text, model), output.source)
