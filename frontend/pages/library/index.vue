@@ -8,129 +8,82 @@
       <RulebookSearch
         @upload="handleUploadRequest"
         @search="handleSearch"
+        @architect="openGameArchitect"
       />
     </div>
 
     <RulebookCarousel :rulebooks="featuredRulebooks" @select="openRulebook" />
+    <RecommendedBooks v-if="recommended.length" :rulebooks="recommended" @select ="openRulebook"/>
 
-    <BaseLoadingState v-if="isLoading" message="Fetching your library..." />
+    <SectionTitle title="All Rulebooks" class="mt-8" />
 
-    <RecommendedBooks v-else :rulebooks="recommended" @select ="openRulebook"/>
+    <MobileFilterDrawer id="library-mobile-filters">
+      <RulebookFilterSidebar :key="filterKey" @filter="handleFilter" />
+    </MobileFilterDrawer>
 
-    <SectionTitle
-        title="All Rulebooks"
-        class="mt-8"
-    />
-
-    <!-- Mobile filter -->
-    <div class="d-flex d-md-none mt-4 mb-4">
-      <v-chip
-        color="secondary"
-        prepend-icon="mdi-filter-variant"
-        size="large"
-        @click="showFilters = true"
-      >
-        Filters
-      </v-chip>
-
-      <v-navigation-drawer
-        v-model="showFilters"
-        temporary
-        location="left"
-        width="300"
-      >
-        
-        <RulebookFilterSidebar
-          @filter="handleFilter"
-        />
-        
-      </v-navigation-drawer>
-    </div>
-
-    <!-- Desktop -->
-    <div class="d-none d-md-flex ga-6 align-start">
-
-      <!-- Filters -->
-      <RulebookFilterSidebar
-        @filter="handleFilter"
-      />
-      
-      <div class="flex-grow-1" style="min-width: 0;">
-        <BaseLoadingState v-if="isLoading" message="Loading rulebooks... " />
-        <template v-else>
-          <RulebookGrid
-            :rulebooks="pagedRulebooks"
-            @select="openRulebook"
-          />
-
-          <template v-if="rulebooks.length > 0">
-            <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
-              <span class="card-meta">
-                Showing {{ rulebooksRangeStart }}-{{ rulebooksRangeEnd }}
-                of {{ hasMore ? `${rulebooks.length}+` : rulebooks.length }} rulebooks
-              </span>
-            </div>
-
-            <BasePagination 
-              v-if="rulebooksTotalPages > 1"
-              class="mt-4"
-              :model-value="rulebooksPage"
-              :total-pages="rulebooksTotalPages"
-              @update:modelValue="goToRulebooksPage"
-            />
-          </template>
-        </template>
+    <div class="d-flex ga-6 mt-6 align-start">
+      <!-- Desktop Filter -->
+      <div class="d-none d-md-block">
+        <RulebookFilterSidebar :key="filterKey" @filter="handleFilter" />
       </div>
-    </div>
 
-  <div class="d-md-none">
-    <BaseLoadingState v-if="isLoading" message="Fetching your library... " />
+      <div class="flex-grow-1" style="min-width: 0;">
+        <BaseLoadingState
+          v-if="!initialLoaded || (isLoading && rulebooks.length === 0)"
+          message="Loading rulebooks..."
+        />
 
-    <template v-else>
-      <RulebookGrid
-        :rulebooks="pagedRulebooks"
-        @select="openRulebook"
-      />
+        <template v-else-if="rulebooks.length === 0">
+          <BaseEmptyState 
+            title="No rulebooks match"
+            message="Sorry, we don't have any of the games you're looking for. Try other filters, or have a look at these instead."
+          >
+            <template #actions>
+              <BaseButton variant="secondary" @click="clearFilters">Clear filters</BaseButton>
+            </template>
+          </BaseEmptyState>
 
-      <template v-if="rulebooks.length > 0">
-        <div class="d-flex justify-space-between align-center mt-6 flex-wrap ga-4">
+          <RulebookGrid :rulebooks="featuredRulebooks.slice(0,6)" @select="openRulebook" />
+        </template>
+
+        <template v-else>
+          <div :class="{ 'is-refreshing' : isLoading }">
+            <RulebookGrid :rulebooks="pagedRulebooks" @select="openRulebook" />
+          </div>
+
           <span class="card-meta">
             Showing {{ rulebooksRangeStart }}-{{ rulebooksRangeEnd }}
             of {{ hasMore ? `${rulebooks.length}+` : rulebooks.length }} rulebooks
           </span>
-        </div>
 
-        <BasePagination 
-          v-if="rulebooksTotalPages > 1"
-          class="mt-4"
-          :model-value="rulebooksPage"
-          :total-pages="rulebooksTotalPages"
-          @update:modelValue="goToRulebooksPage"
-        />
-      </template>
-    </template>
-  </div>
+          <BasePagination 
+            v-if="rulebooksTotalPages > 1"
+            class="mt-4"
+            :model-value="rulebooksPage"
+            :total-pages="rulebooksTotalPages"
+            @update:modelValue="goToRulebooksPage"
+          />
+        </template>
+      </div>
+    </div>
 
-  <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
-    
-    <BaseLoadingState v-if="isLoading" message="Loading rulebooks... " />
+    <v-navigation-drawer v-model="showDetail" location="right" temporary width="480">
+      <BaseLoadingState v-if="isLoading" message="Loading rulebooks... " />
 
-    <RulebookDetail
-      v-if="selectedRulebook"
-      :rulebook="selectedRulebook"
-      :rulebooks="rulebooks"
-      @select="openRulebook"
-      @close="showDetail = false"
-    />
-
-  </v-navigation-drawer>
+      <RulebookDetail
+        v-else-if="selectedRulebook"
+        :rulebook="selectedRulebook"
+        :rulebooks="rulebooks"
+        @select="openRulebook"
+        @close="showDetail = false"
+      />
+    </v-navigation-drawer>
 
     <UploadRulebookModal
       v-model="showUpload"
       :loading="isUploading"
       @add="handleUploadRulebook"
     />
-
   </PageContainer>
 </template>
 
@@ -143,20 +96,24 @@ import Navbar from '~/components/layout/Navbar.vue'
 import PageContainer from '~/components/layout/PageContainer.vue'
 import SectionTitle from '~/components/ui/SectionTitle.vue'
 import BasePagination from '~/components/ui/BasePagination.vue'
+import MobileFilterDrawer from '~/components/ui/MobileFilterDrawer.vue'
 
 import RulebookFilterSidebar from '~/components/features/library/RulebookFilterSidebar.vue'
 import RulebookGrid from '~/components/features/library/RulebookGrid.vue'
 import RecommendedBooks from '~/components/features/library/RecommendedBooks.vue'
-import RulebookSearch from '~/components/features/library/RulebookSearch.vue'
 import UploadRulebookModal from '~/components/features/library/UploadRulebookModal.vue'
 import RulebookDetail from '~/components/features/library/RulebookDetail.vue'
 import RulebookCarousel from '~/components/features/library/RulebookCarousel.vue'
+import RulebookSearch from '~/components/features/library/RulebookSearch.vue'
+
 
 import { useLibrary } from '~/composables/useLibrary'
 import { useVaultUpload } from '~/composables/useVaultUpload';
 import { useAuth } from '~/composables/useAuth';
 
 import { useSnackBar } from '~/composables/useSnackbar';
+import BaseEmptyState from '~/components/ui/BaseEmptyState.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
 
 const CARD_PAGE_SIZE = 12
 
@@ -176,10 +133,32 @@ const showDetail = ref(false)
 const showUpload = ref(false)
 const selectedRulebook = ref(null)
 
+const openGameArchitect = () => {
+  if (!isAuthenticated.value) {
+    router.push({
+      path: '/auth/signin',
+      query: { redirect: '/game-architect?from=library' }
+    })
+    return
+  }
+
+  router.push({
+    path: '/game-architect',
+    query: { from: 'library' }
+  })
+}
+
 onMounted(() => { // Does stuff when component loads
   fetchFeaturedRulebooks();
   getAllRulebooks({}, true);
 })
+
+const activeCount = computed(() => Object.entries(activeFilterState.value).filter(([k, v]) => k !== 'languages' && v != null && v !== '' && (!Array.isArray(v) || v.length)).length)
+
+const clearFilters = () => {
+  filterKey.value++
+  handleFilter({})
+}
 
 const handleUploadRequest = () => {
   if(!isAuthenticated.value){

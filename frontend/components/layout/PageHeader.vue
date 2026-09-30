@@ -1,6 +1,6 @@
 <template>
-  <div class="d-flex flex-column ga-5" :datat-test="dataTest">
-    <div class="page-header__top">
+  <div class="d-flex flex-column ga-5" :data-test="dataTest">
+    <div class="page-header__top d-flex flex-column flex-md-row justify-md-space-between align-md-center ga-4">
       <SectionTitle
         :title="title"
         :subtitle="subtitle"
@@ -9,7 +9,7 @@
       <BaseButton
         v-if="actionLabel"
         variant="primary"
-        :block="mobile"
+        :block="smAndDown"
         :prepend-icon="actionIcon"
         @click="$emit('action')"
       >
@@ -23,10 +23,11 @@
 
 <script setup>
 import { useDisplay } from 'vuetify'
-const { mobile } = useDisplay()
 
 import SectionTitle from '../ui/SectionTitle.vue'
 import BaseButton from '../ui/BaseButton.vue'
+
+const { smAndDown } = useDisplay()
 
 defineProps({
   title: { type: String, required: true },
@@ -35,4 +36,6 @@ defineProps({
   actionIcon: { type: String, default: 'mdi-plus' },
   dataTest: { type: String, default: 'page-header' }
 })
+
+defineEmits(['action'])
 </script>

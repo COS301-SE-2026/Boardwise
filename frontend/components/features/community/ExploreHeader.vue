@@ -1,12 +1,24 @@
 <template>
-    <div class="d-flex flex-column ga-4">
-        <SectionTitle 
-            title="Social" 
-            subtitle="Find your people" 
-        />
-    </div>
+   <PageHeader
+        data-test="explore-header"
+        title="Social"
+        subtitle="Find your people"
+        action-label="Create Community"
+        action-icon="mdi-plus"
+        @action="$emit('create-community')"
+   >
+        <template #search>
+            <ExploreSearch
+                data-test="explore-search"
+                @search="$emit('search', $event)"
+            />
+        </template>
+   </PageHeader>
 </template>
 
 <script setup>
-import SectionTitle from '~/components/ui/SectionTitle.vue'
+import PageHeader from '~/components/layout/PageHeader.vue'
+import ExploreSearch from './ExploreSearch.vue'
+
+defineEmits(['search', 'create-community'])
 </script>

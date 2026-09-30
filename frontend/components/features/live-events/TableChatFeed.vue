@@ -11,7 +11,7 @@
                         <BaseBadge v-if="m.isHost" variant="primary" size="x-small">Host</BaseBadge>
                         <span class="card-meta">{{ formatTime(m.ts) }}</span>
                     </div>
-                    <p style="margin: 0">{{ m.ts }}</p>
+                    <p style="margin: 0">{{ m.text }}</p>
                 </div>
             </div>
 
