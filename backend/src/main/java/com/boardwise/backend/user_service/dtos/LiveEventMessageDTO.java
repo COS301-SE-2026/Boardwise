@@ -8,7 +8,7 @@ public record LiveEventMessageDTO(
 ) {
     public static LiveEventMessageDTO from(LiveEventMessage m) {
         return new LiveEventMessageDTO(
-            m.id().toHexString(), m.eventId(), m.senderId(), m.senderUsername(),
+            m.id(), m.eventId(), m.senderId(), m.senderUsername(),
             m.content(), m.isHost(), m.createdAt().toString());
     }
 }
